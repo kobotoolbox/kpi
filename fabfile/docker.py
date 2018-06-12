@@ -139,7 +139,7 @@ def commit_pull_and_deploy(tag):
         if local('git diff', capture=True):
             # Commit the change
             local("git add '{}'".format(local_compose_file))
-            local("git commit -am 'Updated {service} to {tag}'".format(
+            local("git commit -am 'Upgrade {service} to {tag}'".format(
                 service=SERVICE_NAME, tag=tag)
             )
             # Push the commit
@@ -184,9 +184,6 @@ def build_and_deploy(branch):
     with cd(env.docker_config_path):
         # Build the image
         run("docker-compose build '{}'".format(SERVICE_NAME))
-        # Run the new image
-        run("docker-compose stop '{}'".format(SERVICE_NAME))
-        run("docker-compose rm -f '{}'".format(SERVICE_NAME))
         # Don't specify a service name to avoid "Cannot link to a non running
         # container"
         run("docker-compose up -d")

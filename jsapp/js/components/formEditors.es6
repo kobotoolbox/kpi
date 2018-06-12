@@ -136,12 +136,12 @@ export class ProjectSettings extends React.Component {
       });
     }
   }
-  onDrop (files) {
+  onDrop (files, rejectedFiles, evt) {
     if (files.length === 0)
       return;
 
     let asset = this.props.newFormAsset;
-    this.dropFiles(files, [], {destination: asset.url});
+    this.dropFiles(files, [], evt, { destination: asset.url });
   }
 
   onSubmit (evt) {
@@ -664,8 +664,7 @@ export class ProjectDownloads extends React.Component {
                       <iframe src={
                           this.props.asset.deployment__data_download_links[
                             this.state.type]
-                      }>
-                      </iframe>
+                      } />
                     </bem.FormModal__item>
                   :
                     <bem.FormModal__item key={'s'} m='export-submit'>
@@ -690,7 +689,7 @@ export class ProjectDownloads extends React.Component {
                     <bem.FormView__label m='lang'>{t('Language')}</bem.FormView__label>
                     <bem.FormView__label m='include-groups'>{t('Include Groups')}</bem.FormView__label>
                     <bem.FormView__label m='multi-versioned'>{t('Multiple Versions')}</bem.FormView__label>
-                    <bem.FormView__label></bem.FormView__label>
+                    <bem.FormView__label />
                   </bem.FormView__group>
                   {this.state.exports.map((item, n) => {
                     let timediff = moment().diff(moment(item.date_created), 'seconds');

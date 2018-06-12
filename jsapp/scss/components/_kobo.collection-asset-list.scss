@@ -117,12 +117,7 @@ div.library {
   padding-right: 12px;
 
   .asset-list {
-    min-height: 300px;
-    padding-bottom: 50px;
-
-    > .loading {
-      margin-top: 110px;
-    }
+    height: 100%;
   }
 
   .asset-items {

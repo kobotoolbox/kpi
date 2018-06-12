@@ -51,6 +51,12 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getEnvironment: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
@@ -280,7 +286,13 @@ actions.misc = Reflux.createActions({
       'completed',
       'failed'
     ]
-  }
+  },
+  getServerEnvironment: {
+    children: [
+      'completed',
+      'failed',
+    ]
+  },
 });
 
 
@@ -300,6 +312,12 @@ actions.misc.updateProfile.completed.listen(function(){
 });
 actions.misc.updateProfile.failed.listen(function(){
   notify(t('failed to update profile'), 'error');
+});
+
+actions.misc.getServerEnvironment.listen(function(){
+  dataInterface.serverEnvironment()
+    .done(actions.misc.getServerEnvironment.completed)
+    .fail(actions.misc.getServerEnvironment.failed);
 });
 
 actions.resources.createImport.listen(function(contents){
@@ -484,6 +502,22 @@ actions.reports.setCustom.listen(function(assetId, details){
     report_custom: JSON.stringify(details),
   }).done(actions.reports.setCustom.completed)
     .fail(actions.reports.setCustom.failed);
+});
+
+actions.table = Reflux.createActions({
+  updateSettings: {
+    children: [
+      'completed',
+      'failed',
+    ]
+  }
+});
+
+actions.table.updateSettings.listen(function(assetId, settings){
+  dataInterface.patchAsset(assetId, {
+    settings: JSON.stringify(settings),
+  }).done(actions.table.updateSettings.completed)
+    .fail(actions.table.updateSettings.failed);
 });
 
 actions.resources.createResource.listen(function(details){
@@ -693,6 +727,17 @@ actions.resources.registerRESTService.completed.listen(() => {
 });
 actions.resources.registerRESTService.failed.listen(() => {
   notify(t('failed to register REST service'), 'error');
+});
+
+actions.auth.getEnvironment.listen(function(){
+  dataInterface.environment()
+    .done((data)=>{
+      actions.auth.getEnvironment.completed(data);
+    })
+    .fail(actions.auth.getEnvironment.failed);
+});
+actions.auth.getEnvironment.failed.listen(() => {
+  notify(t('failed to load environment data'), 'error');
 });
 
 actions.resources.loadAsset.listen(function(params){

@@ -12,6 +12,7 @@ import Reflux from 'reflux';
 import bem from '../bem';
 import actions from '../actions';
 import mixins from '../mixins';
+import {dataInterface} from '../dataInterface';
 import {
   t,
   assign,
@@ -20,15 +21,12 @@ import {
   stringToColor,
 } from '../utils';
 import searches from '../searches';
-import cookie from 'react-cookie';
 
 import {
   ListSearch,
   ListTagFilter,
 } from '../components/list';
 
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
-var cookieDomain = stores.pageState.cookieDomain;
 let typingTimer;
 
 function langsToValues (langs) {
@@ -67,32 +65,6 @@ class MainHeader extends Reflux.Component {
     ];
     autoBind(this);
   }
-  getInitialState () {
-    this.listenTo(stores.session, ({currentAccount}) => {
-      this.setState({
-        languages: currentAccount.languages,
-      });
-    });
-
-    return assign({
-      dataPopoverShowing: false,
-      asset: false,
-      currentLang: currentLang(),
-      libraryFiltersContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
-        },
-        filterTags: 'asset_type:question OR asset_type:block',
-      }),
-      formFiltersContext: searches.getSearchContext('forms', {
-        filterParams: {
-          assetType: 'asset_type:survey',
-        },
-        filterTags: 'asset_type:survey',
-      }),
-      _langIndex: 0
-    }, stores.pageState.state);
-  }
   componentDidMount() {
     document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
@@ -116,18 +88,17 @@ class MainHeader extends Reflux.Component {
     });
   }
   languageChange (evt) {
-    var langCode = $(evt.target).data('key');
+    evt.preventDefault();
+    let langCode = $(evt.target).data('key');
     if (langCode) {
-      var cookieParams = {path: '/'};
-      if (cookieDomain) {
-        cookieParams.domain = cookieDomain;
-      }
-      cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
-      if ('reload' in window.location) {
-        window.location.reload();
-      } else {
-        window.alert(t('Please refresh the page'));
-      }
+      // use .always (instead of .done) here since Django 1.8 redirects the request
+      dataInterface.setLanguage({language: langCode}).always((r)=>{
+        if ('reload' in window.location) {
+          window.location.reload();
+        } else {
+          window.alert(t('Please refresh the page'));
+        }
+      });
     }
   }
   renderLangItem(lang) {
@@ -174,7 +145,17 @@ class MainHeader extends Reflux.Component {
                     </button>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'lang'} key='2'>
+                {stores.session && stores.session.environment &&
+                  <bem.AccountBox__menuLI key='2' className="environment-links">
+                    <a href={stores.session.environment.terms_of_service_url} target="_blank">
+                      {t('Terms of Service')}
+                    </a>
+                    <a href={stores.session.environment.privacy_policy_url} target="_blank">
+                      {t('Privacy Policy')}
+                    </a>
+                  </bem.AccountBox__menuLI>
+                }
+                <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink>
                     <i className="k-icon-language" />
                     {t('Language')}
@@ -183,7 +164,7 @@ class MainHeader extends Reflux.Component {
                     {langs.map(this.renderLangItem)}
                   </ul>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'logout'} key='3'>
+                <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
                     <i className="k-icon-logout" />
                     {t('Logout')}
@@ -258,7 +239,7 @@ class MainHeader extends Reflux.Component {
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
             <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
-              <i className="fa fa-bars"></i>
+              <i className="fa fa-bars" />
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>

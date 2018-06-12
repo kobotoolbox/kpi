@@ -10,7 +10,6 @@ import {
   t,
   notify,
   assign,
-  setSupportDetails,
 } from './utils';
 
 function changes(orig_obj, new_obj) {
@@ -265,6 +264,7 @@ var assetStore = Reflux.createStore({
 
 var sessionStore = Reflux.createStore({
   init () {
+    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.login.passwordfail, ()=> {
 
@@ -280,9 +280,8 @@ var sessionStore = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
-    // dataInterface.selfProfile().then(function success(acct){
-    //   actions.auth.login.completed(acct);
-    // });
+    actions.auth.getEnvironment();
+
   },
   getInitialState () {
     return {
@@ -291,6 +290,9 @@ var sessionStore = Reflux.createStore({
     };
   },
   triggerAnonymous (/*data*/) {},
+  triggerEnv (environment) {
+    this.environment = environment;
+  },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
     if (acct.upcoming_downtime) {
@@ -314,9 +316,6 @@ var sessionStore = Reflux.createStore({
         localStorage.removeItem('downtimeNoticeSeen');
       }
     }
-    if (acct.support) {
-      setSupportDetails(acct.support)
-    }
     var nestedArrToChoiceObjs = function (_s) {
       return {
         value: _s[0],
@@ -336,28 +335,6 @@ var sessionStore = Reflux.createStore({
     }
     if (acct.all_languages) {
       acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
-    }
-    if (acct.dkobo_survey_drafts && acct.dkobo_survey_drafts.non_migrated) {
-      let wait_message = t(
-        `It may take several minutes for all of your survey drafts to finish
-        migrating from the legacy form builder. Refresh the page to view
-        newly-migrated drafts.`
-      );
-      let stuck_message = t(
-        `If this message persists longer than a few hours, click here to
-        restart the migration process.`
-      );
-      let notify_content = `${wait_message}<br/>
-        <a href="${acct.dkobo_survey_drafts.migrate_url}">${stuck_message}</a>
-        <small>
-        (${acct.dkobo_survey_drafts.non_migrated}/${acct.dkobo_survey_drafts.total})
-        </small>
-      `;
-      alertify.notify(
-        notify_content,
-        'warning',
-        0 // Persist until the user clicks the close button
-      );
     }
 
     this.trigger({
@@ -586,6 +563,24 @@ stores.collections = Reflux.createStore({
   }
 });
 
+var serverEnvironmentStore = Reflux.createStore({
+  init() {
+    this.state = {};
+    this.listenTo(actions.misc.getServerEnvironment.completed,
+                  this.updateEnvironment);
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+  updateEnvironment(response) {
+    this.setState(response);
+  },
+});
+
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -631,6 +626,7 @@ assign(stores, {
   session: sessionStore,
   userExists: userExistsStore,
   surveyState: surveyStateStore,
+  serverEnvironment: serverEnvironmentStore,
 });
 
 module.exports = stores;

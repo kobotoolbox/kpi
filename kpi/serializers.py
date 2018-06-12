@@ -4,6 +4,7 @@ import json
 import pytz
 from collections import OrderedDict
 
+import constance
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -822,7 +823,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
-    support = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
@@ -840,7 +840,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'server_time',
             'date_joined',
             'projects_url',
-            'support',
             'is_superuser',
             'gravatar',
             'is_staff',
@@ -863,12 +862,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
-
-    def get_support(self, obj):
-        return {
-            'email': settings.KOBO_SUPPORT_EMAIL,
-            'url': settings.KOBO_SUPPORT_URL,
-        }
 
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)
@@ -903,26 +896,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             rep['extra_details']['require_auth'] = get_kc_profile_data(
                 obj.pk).get('require_auth', False)
 
-        # Count the number of dkobo SurveyDrafts to determine migration status
-        from kpi.management.commands.import_survey_drafts_from_dkobo import \
-            SurveyDraft
-        try:
-            SurveyDraft.objects.exists()
-        except ProgrammingError:
-            # dkobo is not installed. Freude, schöner Götterfunken
-            pass
-        else:
-            survey_drafts = SurveyDraft.objects.filter(user=obj)
-            rep['dkobo_survey_drafts'] = {
-                'total': survey_drafts.count(),
-                'non_migrated': survey_drafts.filter(kpi_asset_uid='').count(),
-                'migrate_url': u'{switch_builder}?beta=1&migrate=1'.format(
-                    switch_builder=reverse(
-                        'toggle-preferred-builder',
-                        request=self.context.get('request', None)
-                    )
-                )
-            }
         return rep
 
     def update(self, instance, validated_data):

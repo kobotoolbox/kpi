@@ -316,7 +316,7 @@ export class FormLanding extends React.Component {
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
-                <li>{t('Click on')} <i className="fa fa-ellipsis-v"></i> {t('to open settings.')}</li>
+                <li>{t('Click on')} <i className="fa fa-ellipsis-v"/> {t('to open settings.')}</li>
                 <li>
                   {t('Enter the server URL')}&nbsp;
                   <code>{kobocollect_url}</code>&nbsp;
@@ -338,12 +338,6 @@ export class FormLanding extends React.Component {
         selectedCollectMethod: method
       }
     );
-  }
-  onDrop(files, rejectedFiles) {
-    if (files.length === 0)
-      return;
-
-    this.dropFiles(files, [], {destination: this.state.url});
   }
   renderButtons () {
     const userCanEdit = this.userCan('change_asset', this.state);
@@ -465,7 +459,6 @@ export class FormLanding extends React.Component {
 
 };
 
-reactMixin(FormLanding.prototype, mixins.droppable);
 reactMixin(FormLanding.prototype, mixins.permissions);
 reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);

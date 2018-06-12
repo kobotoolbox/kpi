@@ -33,7 +33,6 @@ class Submission extends React.Component {
       });
     }
 
-
     this.state = {
       submission: {},
       loading: true,
@@ -47,6 +46,7 @@ class Submission extends React.Component {
       translationIndex: 0,
       translationOptions: translationOptions
     };
+
     autoBind(this);
   }
   componentDidMount() {
@@ -74,10 +74,23 @@ class Submission extends React.Component {
 
       if (this.props.ids && sid) {
         const c = this.props.ids.findIndex(k => k==sid);
-        if (c > 0)
+        let tableInfo = this.props.tableInfo || false,
+            nextAvailable = false;
+        if (this.props.ids[c - 1])
           prev = this.props.ids[c - 1];
-        if (c < this.props.ids.length)
+        if (this.props.ids[c + 1])
           next = this.props.ids[c + 1];
+
+        // table submissions pagination
+        if (tableInfo) {
+          const nextAvailable = tableInfo.resultsTotal > (tableInfo.currentPage + 1) * tableInfo.pageSize;
+          if (c + 1 === this.props.ids.length && nextAvailable) {
+            next = -2;
+          }
+
+          if (tableInfo.currentPage > 0 && prev == -1)
+            prev = -2;
+        }
       }
 
       const survey = this.props.asset.content.survey;
@@ -172,12 +185,34 @@ class Submission extends React.Component {
   }
 
   switchSubmission(evt) {
+    this.setState({ loading: true});
     const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
       type: 'submission',
       sid: sid,
       asset: this.props.asset,
-      ids: this.props.ids
+      ids: this.props.ids,
+      tableInfo: this.props.tableInfo || false
+    });
+  }
+
+  prevTablePage() {
+    this.setState({ loading: true});
+
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: false,
+      page: 'prev'
+    });
+  }
+
+  nextTablePage() {
+    this.setState({ loading: true});
+
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: false,
+      page: 'next'
     });
   }
 
@@ -296,7 +331,7 @@ class Submission extends React.Component {
           <tr key={`row-${name}`}>
             <td colSpan="3" className="submission--group">
               <h4>
-                {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled')}
+                {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled group')}
               </h4>
             </td>
           </tr>
@@ -307,7 +342,7 @@ class Submission extends React.Component {
         parentGroup = false;
         return (
           <tr key={`row-${name}-end`}>
-            <td colSpan="3" className="submission--end-group"></td>
+            <td colSpan="3" className="submission--end-group"/>
           </tr>
         );
       }
@@ -411,10 +446,27 @@ class Submission extends React.Component {
               </a>
             }
 
+            {this.state.previous == -2 &&
+              <a onClick={this.prevTablePage}
+                    className="mdl-button mdl-button--colored">
+                <i className="k-icon-prev" />
+                {t('Previous')}
+              </a>
+            }
+
+
             {this.state.next > -1 &&
               <a onClick={this.switchSubmission}
                     className="mdl-button mdl-button--colored"
                     data-sid={this.state.next}>
+                {t('Next')}
+                <i className="k-icon-next" />
+              </a>
+            }
+
+            {this.state.next == -2 &&
+              <a onClick={this.nextTablePage}
+                    className="mdl-button mdl-button--colored">
                 {t('Next')}
                 <i className="k-icon-next" />
               </a>
@@ -450,33 +502,33 @@ class Submission extends React.Component {
           <tbody>
             {this.renderRows()}
             <tr key={`row-meta`}>
-              <td colSpan="3" className="submission--end-group"></td>
+              <td colSpan="3" className="submission--end-group"/>
             </tr>
 
             {s.start &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('start')}</td>
                 <td>{s.start}</td>
               </tr>
             }
             {s.end &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('end')}</td>
                 <td>{s.end}</td>
               </tr>
             }
             {s.__version__ &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('__version__')}</td>
                 <td>{s.__version__}</td>
               </tr>
             }
             {s['meta/instanceID'] &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('instanceID')}</td>
                 <td>{s['meta/instanceID']}</td>
               </tr>
