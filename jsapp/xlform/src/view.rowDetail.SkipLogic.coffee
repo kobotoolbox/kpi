@@ -145,7 +145,7 @@ module.exports = do ->
     render: () ->
       super()
 
-      # HACK disable placeholder option on load and after change
+      # disable placeholder option onLoad and onChange
       if @$el.val() isnt PLACEHOLDER_VALUE
         @disable_placeholder_option()
       @$el.on('change', @disable_placeholder_option.bind(@))
@@ -186,6 +186,9 @@ module.exports = do ->
 
           operators
       })
+
+      # workaround for missing elements when toggling skiplogic back and forth
+      target.find('.skiplogic__expressionselect.select2-container').show()
 
       if @value
         @val @value
@@ -283,6 +286,8 @@ module.exports = do ->
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
       super(target)
+      # workaround for missing elements when toggling skiplogic back and forth
+      target.find('.skiplogic__responseval.select2-container').show()
 
     bind_event: (handler) ->
       super 'change', handler
