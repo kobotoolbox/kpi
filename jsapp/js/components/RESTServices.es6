@@ -298,7 +298,7 @@ export class RESTServicesList extends React.Component {
             <bem.FormView__group m={['items', 'headings']}>
               <bem.FormView__label m='name'>{t('Service Name')}</bem.FormView__label>
               <bem.FormView__label m='count'>{t('Count')}</bem.FormView__label>
-              <bem.FormView__label m='actions'></bem.FormView__label>
+              <bem.FormView__label m='actions' />
             </bem.FormView__group>
 
             {services.map((item, n) => {
