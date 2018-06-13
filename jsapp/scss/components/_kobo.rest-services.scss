@@ -1,18 +1,15 @@
+// RESTServices custom overrides
+
 .rest-services {
-  padding: 40px;
-
+  // center empty content message
   &.rest-services--empty {
-    .empty-content {
-      text-align: center;
+    display: flex;
+    align-items: center;
+    justify-items: center;
+  }
 
-      .empty-content__icon {
-        font-size: 156px;
-        opacity: 0.25;
-      }
-
-      .empty-content__title {
-        font-weight: 400;
-      }
-    }
+  > button {
+    display: block;
+    float: right;
   }
 }

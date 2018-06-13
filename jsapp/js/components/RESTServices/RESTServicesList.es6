@@ -6,26 +6,26 @@ import {t} from '../../utils';
 export default class RESTServicesList extends React.Component {
   constructor(props){
     super(props);
-    this.state = {};
+    this.state = {
+      services: [
+        {
+          name: 'Service 1',
+          count: 20
+        },
+        {
+          name: 'Service 2',
+          count: 20
+        },
+        {
+          name: 'Service 3',
+          count: 20
+        }
+      ]
+    };
     autoBind(this);
   }
 
   render() {
-    const services = [
-      {
-        name: 'Service 1',
-        count: 20
-      },
-      {
-        name: 'Service 2',
-        count: 20
-      },
-      {
-        name: 'Service 3',
-        count: 20
-      }
-    ];
-
     return (
       <bem.FormView__cell m='REST-services-list'>
         <bem.FormView__group m='headings'>
@@ -41,7 +41,7 @@ export default class RESTServicesList extends React.Component {
               <bem.FormView__label m='actions' />
             </bem.FormView__group>
 
-            {services.map((item, n) => {
+            {this.state.services.map((item, n) => {
               return (
                 <bem.FormView__group m='items' key={n} >
                   <bem.FormView__label m='name'>

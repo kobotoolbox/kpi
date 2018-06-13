@@ -11,7 +11,7 @@ bem.Loading = BEM('loading');
 bem.Loading__inner = bem.Loading.__('inner');
 bem.Loading__msg = bem.Loading.__('msg');
 
-bem.EmptyContent = BEM('empty-content');
+bem.EmptyContent = BEM('empty-content', '<section>');
 bem.EmptyContent__icon = bem.EmptyContent.__('icon', '<i>');
 bem.EmptyContent__title = bem.EmptyContent.__('title', '<h1>');
 bem.EmptyContent__message = bem.EmptyContent.__('message', '<p>');
