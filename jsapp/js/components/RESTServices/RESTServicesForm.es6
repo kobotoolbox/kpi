@@ -9,22 +9,23 @@ export default class RESTServicesForm extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      currentAssetUid: "TODO",
+      assetUid: props.assetUid,
+      // used for determining if editing or creating new
+      rsid: props.rsid,
       name: '',
       url: 'https://',
       type: 'json',
-      securityType: 'oauth',
+      securityType: null,
       securityOptions: [
         {
-          value: 'oauth',
-          label: t('OAuth')
+          value: 'no-auth',
+          label: t('No Authorization')
         },
         {
-          value: 'auth_header',
-          label: t('Authorization Header')
+          value: 'basic-auth',
+          label: t('Basic Authorization')
         }
-      ],
-      auth_header: ''
+      ]
     };
     autoBind(this);
   }
@@ -45,7 +46,7 @@ export default class RESTServicesForm extends React.Component {
 
   onSubmit(evt) {
     evt.preventDefault();
-    actions.resources.registerRESTService(this.state.currentAssetUid, {
+    actions.resources.registerRESTService(this.state.assetUid, {
       name: this.state.name,
       url: this.state.url,
       type: this.state.type
@@ -135,7 +136,7 @@ export default class RESTServicesForm extends React.Component {
             />
           </bem.FormModal__item>
 
-          {this.state.securityType && this.state.securityType.value == 'auth_header' &&
+          {this.state.securityType && this.state.securityType.value == 'basic-auth' &&
             <bem.FormModal__item>
               <label htmlFor='rest-service-form--authorization-header'>
                 {t('Authorization Header')}
@@ -150,28 +151,12 @@ export default class RESTServicesForm extends React.Component {
             </bem.FormModal__item>
           }
 
-          <bem.FormModal__item m='fields'>
-            <label className='long'>
-              {t('Advanced Users')}
-            </label>
-            <label htmlFor='rest-service-form--fields'>
-              {t('Post selected questions only (use question names, comma-delimited)')}
-            </label>
-            <textarea
-              id='rest-service-form--fields'
-              className='questions'
-              name='questions'
-              value={this.state.questions}
-              onChange={this.formItemChange}
-            />
-          </bem.FormModal__item>
-
           <bem.FormModal__item m='actions'>
             <button
               onClick={this.onSubmit}
               className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
             >
-              {t('Create')}
+              { this.state.rsid ? t('Save') : t('Create') }
             </button>
           </bem.FormModal__item>
         </bem.FormModal__item>

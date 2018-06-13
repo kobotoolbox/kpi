@@ -76,19 +76,17 @@ class Modal extends React.Component {
         });
       break;
       case 'rest-services':
-        this.setState({
-          title: t('New REST Service')
-        });
+        if (this.props.params.rsid) {
+          this.setState({title: t('Edit REST Service')});
+        } else {
+          this.setState({title: t('New REST Service')});
+        }
         break;
       case 'replace-xls':
-        this.setState({
-          title: t('Replace with XLS')
-        });
+        this.setState({title: t('Replace with XLS')});
         break;
       case 'table-columns':
-        this.setState({
-          title: t('Table display options')
-        });
+        this.setState({title: t('Table display options')});
       break;
 		}
   }
@@ -230,10 +228,11 @@ class Modal extends React.Component {
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
 
-            { this.props.params.type == 'rest-services' && !this.props.params.sid &&
-              <div>
-                <RESTServicesForm asset={this.props.params.asset} sid={this.props.params.sid} />
-              </div>
+            { this.props.params.type == 'rest-services' &&
+              <RESTServicesForm
+                assetUid={this.props.params.assetUid}
+                rsid={this.props.params.rsid}
+              />
             }
 
           </ui.Modal.Body>

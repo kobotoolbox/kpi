@@ -39,8 +39,9 @@ export default class RESTServices extends React.Component {
 
   openRESTServiceModal() {
     stores.pageState.showModal({
+      assetUid: this.state.currentAsset.uid,
       type: 'rest-services',
-      sid: false
+      rsid: null
     });
   }
 
@@ -70,7 +71,7 @@ export default class RESTServices extends React.Component {
           className={classes}
         >
           {this.state.hasServices &&
-            <RESTServicesList />
+            <RESTServicesList assetUid={this.state.currentAsset.uid} />
           }
           {this.state.hasServices &&
             this.renderButton()
