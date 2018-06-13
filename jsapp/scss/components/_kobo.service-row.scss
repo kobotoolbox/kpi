@@ -1,0 +1,31 @@
+$s-action-button: 36px;
+
+.service-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-items: space-between;
+  min-height: $s-action-button;
+
+  &.service-row--header {
+    font-weight: 600;
+  }
+}
+
+.service-row__column {}
+
+.service-row__action-button {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  width: $s-action-button;
+  height: $s-action-button;
+  font-size: $s-action-button;
+  color: $cool-gray;
+  cursor: pointer;
+  float: left;
+
+  &:hover {
+    color: $cool-blue;
+  }
+}

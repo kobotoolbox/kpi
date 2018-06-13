@@ -48,58 +48,60 @@ export default class RESTServicesList extends React.Component {
 
   render() {
     return (
-      <bem.FormView__cell m='REST-services-list'>
+      <bem.FormView__cell m='rest-services-list'>
         <bem.FormView__group m='headings'>
           <bem.FormView__cell m='label'>
             {this.state.services.length} Services
           </bem.FormView__cell>
         </bem.FormView__group>
-        <bem.FormView__cell m={['REST-services-table', 'box']}>
-          <bem.FormView__group>
-            <bem.FormView__group m={['items', 'headings']}>
-              <bem.FormView__label m='name'>{t('Service Name')}</bem.FormView__label>
-              <bem.FormView__label m='count'>{t('Count')}</bem.FormView__label>
-              <bem.FormView__label m='actions' />
-            </bem.FormView__group>
 
-            {this.state.services.map((item, n) => {
-              return (
-                <bem.FormView__group m='items' key={n} >
-                  <bem.FormView__label m='name'>
-                    {item.name}
-                  </bem.FormView__label>
-                  <bem.FormView__label m='count'>
-                    {item.count}
-                  </bem.FormView__label>
-                  <bem.FormView__label m='actions'>
-                    <button
-                      className='mdl-button'
-                      onClick={this.showServiceLogs.bind(this)}
-                      data-rsid={item.rsid}
-                    >
-                      logs
-                    </button>
+        <bem.FormView__cell m={['box']}>
 
-                    <button
-                      className='mdl-button'
-                      onClick={this.editService.bind(this)}
-                      data-rsid={item.rsid}
-                    >
-                      edit
-                    </button>
+          <bem.ServiceRow m='header'>
+            <bem.ServiceRow__column m='name'>{t('Service Name')}</bem.ServiceRow__column>
+            <bem.ServiceRow__column m='count'>{t('Count')}</bem.ServiceRow__column>
+            <bem.ServiceRow__column m='actions' />
+          </bem.ServiceRow>
 
-                    <button
-                      className='mdl-button'
-                      onClick={this.deleteService.bind(this)}
-                      data-rsid={item.rsid}
-                    >
-                      delete
-                    </button>
-                  </bem.FormView__label>
-                </bem.FormView__group>
-              );
-            })}
-          </bem.FormView__group>
+          {this.state.services.map((item, n) => {
+            return (
+              <bem.ServiceRow key={n} >
+                <bem.ServiceRow__column m='name'>
+                  {item.name}
+                </bem.ServiceRow__column>
+
+                <bem.ServiceRow__column m='count'>
+                  {item.count}
+                </bem.ServiceRow__column>
+
+                <bem.ServiceRow__column m='actions'>
+                  <bem.ServiceRow__actionButton
+                    onClick={this.showServiceLogs.bind(this)}
+                    data-rsid={item.rsid}
+                    data-tip={t('Show logs')}
+                  >
+                    <i className='k-icon-log' />
+                  </bem.ServiceRow__actionButton>
+
+                  <bem.ServiceRow__actionButton
+                    onClick={this.editService.bind(this)}
+                    data-rsid={item.rsid}
+                    data-tip={t('Edit')}
+                  >
+                    <i className='k-icon-edit' />
+                  </bem.ServiceRow__actionButton>
+
+                  <bem.ServiceRow__actionButton
+                    onClick={this.deleteService.bind(this)}
+                    data-rsid={item.rsid}
+                    data-tip={t('Delete')}
+                  >
+                    <i className='k-icon-trash' />
+                  </bem.ServiceRow__actionButton>
+                </bem.ServiceRow__column>
+              </bem.ServiceRow>
+            );
+          })}
         </bem.FormView__cell>
       </bem.FormView__cell>
     );

@@ -13,7 +13,7 @@ export default class RESTServicesForm extends React.Component {
       // used for determining if editing or creating new
       rsid: props.rsid,
       name: '',
-      url: 'https://',
+      url: '',
       type: 'json',
       securityType: null,
       securityOptions: [
@@ -30,18 +30,12 @@ export default class RESTServicesForm extends React.Component {
     autoBind(this);
   }
 
-  formItemChange(evt) {
-    if (evt.target) {
-      var val = evt.target.value;
-      var attr = evt.target.name;
-    } else {
-      var val = evt;
-      var attr = 'securityType';
-    }
+  formSecurityTypeChange(evt) {
+    this.setState({'securityType': evt});
+  }
 
-    this.setState({
-      [attr]: val
-    })
+  formItemChange(evt) {
+    this.setState({[evt.target.name]: evt.target.value})
   }
 
   onSubmit(evt) {
@@ -63,6 +57,7 @@ export default class RESTServicesForm extends React.Component {
             <label htmlFor='rest-service-form--name'>
               {t('Name')}
             </label>
+
             <input
               type='text'
               id='rest-service-form--name'
@@ -77,6 +72,7 @@ export default class RESTServicesForm extends React.Component {
             <label htmlFor='rest-service-form--url'>
               {t('Endpoint URL')}
             </label>
+
             <input
               type='text'
               id='rest-service-form--url'
@@ -101,6 +97,7 @@ export default class RESTServicesForm extends React.Component {
                   onChange={this.formItemChange}
                   checked={this.state.type === 'json'}
                 />
+
                 <bem.FormModal__radioText>
                   {t('JSON')}
                 </bem.FormModal__radioText>
@@ -116,6 +113,7 @@ export default class RESTServicesForm extends React.Component {
                   onChange={this.formItemChange}
                   checked={this.state.type === 'xml'}
                 />
+
                 <bem.FormModal__radioText>
                   {t('XML')}
                 </bem.FormModal__radioText>
@@ -127,25 +125,27 @@ export default class RESTServicesForm extends React.Component {
             <label htmlFor='rest-service-form--security'>
               {t('Security')}
             </label>
+
             <Select
               id='rest-service-form--security'
               name='securityType'
               value={this.state.securityType}
-              onChange={this.formItemChange}
+              onChange={this.formSecurityTypeChange}
               options={this.state.securityOptions}
             />
           </bem.FormModal__item>
 
-          {this.state.securityType && this.state.securityType.value == 'basic-auth' &&
+          {this.state.securityType && this.state.securityType.value === 'basic-auth' &&
             <bem.FormModal__item>
               <label htmlFor='rest-service-form--authorization-header'>
                 {t('Authorization Header')}
               </label>
+
               <input
                 type='text'
                 id='rest-service-form--authorization-header'
-                name='auth_header'
-                value={this.state.auth_header}
+                name='security-authorization-header'
+                value={this.state.securityAuthorizationHeader}
                 onChange={this.formItemChange}
               />
             </bem.FormModal__item>

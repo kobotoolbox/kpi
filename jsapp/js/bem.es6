@@ -30,6 +30,10 @@ bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 bem.AssetRow__typeIcon  = bem.AssetRow.__('type-icon', '<span>');
 
+bem.ServiceRow = BEM('service-row');
+bem.ServiceRow__column = bem.ServiceRow.__('column');
+bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
+
 bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
