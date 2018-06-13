@@ -80,7 +80,7 @@ export default class RESTServicesList extends React.Component {
                     data-rsid={item.rsid}
                     data-tip={t('Show logs')}
                   >
-                    <i className='k-icon-log' />
+                    <i className='k-icon-report-menu' />
                   </bem.ServiceRow__actionButton>
 
                   <bem.ServiceRow__actionButton
