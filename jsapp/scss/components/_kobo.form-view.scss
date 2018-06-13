@@ -534,57 +534,6 @@
   }
 }
 
-.form-view.form-view--form-settings-REST-empty {
-  background: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  .empty {
-    text-align: center;
-
-    i {
-      font-size: 156px;
-      opacity: 0.25;
-    }
-
-    h2 {
-      font-weight: 400;
-    }
-
-    .mdl-button {
-      margin-top: 30px;
-    }
-  }
-}
-
-.form-view.form-view--form-settings-REST {
-  padding: 40px;
-
-  .REST-services-list-wrapper {
-    height: 100%;
-
-    > button {
-      float: right;
-      margin-top: 30px;
-    }
-
-    > .form-view__cell--REST-services-list {
-      height: calc(100% - 70px);
-      overflow: auto;
-
-      > .form-view__cell {
-        margin: 0px 4px;
-      }
-    }
-  }
-
-  .form-view__group--items > .form-view__label {
-    text-align: left;
-    padding: 15px 10px;
-  }
-}
-
 .form-view.form-view--form-data-downloads {
   .form-modal__item {
     &:last-child {

@@ -1,0 +1,18 @@
+.rest-services {
+  padding: 40px;
+
+  &.rest-services--empty {
+    .empty-content {
+      text-align: center;
+
+      .empty-content__icon {
+        font-size: 156px;
+        opacity: 0.25;
+      }
+
+      .empty-content__title {
+        font-weight: 400;
+      }
+    }
+  }
+}

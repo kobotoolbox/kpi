@@ -17,7 +17,7 @@ import {
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
-import {RESTServicesForm} from '../components/RESTServices';
+import RESTServicesForm from '../components/RESTServices/RESTServicesForm';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 import TableColumnFilter from '../components/tableColumnFilter';

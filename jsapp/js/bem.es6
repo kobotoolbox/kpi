@@ -11,8 +11,11 @@ bem.Loading = BEM('loading');
 bem.Loading__inner = bem.Loading.__('inner');
 bem.Loading__msg = bem.Loading.__('msg');
 
-bem.Empty = BEM('empty');
-bem.Empty__inner = bem.Empty.__('inner');
+bem.EmptyContent = BEM('empty-content');
+bem.EmptyContent__icon = bem.EmptyContent.__('icon', '<i>');
+bem.EmptyContent__title = bem.EmptyContent.__('title', '<h1>');
+bem.EmptyContent__message = bem.EmptyContent.__('message', '<p>');
+bem.EmptyContent__button = bem.EmptyContent.__('button', '<button>');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
