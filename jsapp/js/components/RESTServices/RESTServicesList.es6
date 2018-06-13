@@ -13,25 +13,24 @@ export default class RESTServicesList extends React.Component {
         {
           name: 'Service 1',
           rsid: 'service-1',
-          count: 20
+          totalCount: 198,
+          failedCount: 0
         },
         {
           name: 'Service 2',
           rsid: 'service-2',
-          count: 20
+          totalCount: 2057,
+          failedCount: 341
         },
         {
           name: 'Service 3',
           rsid: 'service-3',
-          count: 20
+          totalCount: 8045,
+          failedCount: 1
         }
       ]
     };
     autoBind(this);
-  }
-
-  showServiceLogs(evt) {
-    console.log('logs', this.state.assetUid, evt.currentTarget.dataset.rsid);
   }
 
   editService(evt) {
@@ -71,18 +70,15 @@ export default class RESTServicesList extends React.Component {
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='count'>
-                  {item.count}
+                  {item.totalCount}
+                  {item.failedCount &&
+                    <span className='service-row__error'>
+                      &nbsp;({item.failedCount})
+                    </span>
+                  }
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='actions'>
-                  <bem.ServiceRow__actionButton
-                    onClick={this.showServiceLogs.bind(this)}
-                    data-rsid={item.rsid}
-                    data-tip={t('Show logs')}
-                  >
-                    <i className='k-icon-report-menu' />
-                  </bem.ServiceRow__actionButton>
-
                   <bem.ServiceRow__actionButton
                     onClick={this.editService.bind(this)}
                     data-rsid={item.rsid}

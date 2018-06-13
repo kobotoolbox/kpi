@@ -1,18 +1,37 @@
 $s-action-button: 36px;
+$s-column-spacing: 10px;
 
 .service-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-items: space-between;
   min-height: $s-action-button;
+  box-sizing: content-box;
+
+  &:not(:last-of-type) {
+    border-bottom: 1px solid $divider-color;
+  }
 
   &.service-row--header {
     font-weight: 600;
+    border-bottom-width: 2px;
   }
 }
 
-.service-row__column {}
+.service-row__column {
+  padding: 0 $s-column-spacing;
+
+  .service-row__column--name {flex: 4;}
+  .service-row__column--count {flex: 1;}
+  .service-row__column--actions {
+    min-width: $s-action-button * 2;
+    box-sizing: content-box;
+  }
+}
+
+.service-row__error {
+  color: $cool-red;
+}
 
 .service-row__action-button {
   appearance: none;
