@@ -1,15 +1,22 @@
 // RESTServices custom overrides
 
 .rest-services {
-  // center empty content message
+  display: flex;
+  flex-direction: column;
+
+  // centers empty content message
   &.rest-services--empty {
-    display: flex;
     align-items: center;
     justify-items: center;
   }
 
+  .form-view__cell--REST-services-list {
+    flex: 1;
+  }
+
   > button {
     display: block;
-    float: right;
+    align-self: flex-end;
+    margin-top: 30px;
   }
 }

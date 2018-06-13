@@ -18,7 +18,7 @@ export default class RESTServices extends React.Component {
     super(props);
     this.state = {
       currentAsset: this.props.asset,
-      hasServices: false
+      hasServices: true
     };
     autoBind(this);
   }
