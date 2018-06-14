@@ -28,15 +28,7 @@ export default class RESTServicesForm extends React.Component {
       ],
       httpHeaderName: '',
       httpHeaderValue: '',
-      httpHeaders: [
-        {
-          name: 'Validation-x1792w910'
-        },
-        {
-          name: 'AccessToken',
-          value: '8A5IFLS2M5dc6pjy97pZNnZkAtZgzxf7ljXbpHlhaLiQm5tqSZ9w6KQR7uorjrpN5U1TW9-CDsF1smv-xvNtR5ZDSgsNyjEVp0YaiBtYa1ftHfziC2hT77XvauY93JPJo8fHTrOTYL_jSe0WXo3pZnNaPs1esbCyYu71WyTksig'
-        }
-      ]
+      httpHeaders: []
     };
     autoBind(this);
   }
