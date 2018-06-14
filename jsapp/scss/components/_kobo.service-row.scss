@@ -58,7 +58,8 @@ $c-service-row-hover: #f2f2f3;
 
   &.service-row__column--status {
     flex: 2;
-    padding: $s-service-row-column-spacing;
+    padding: 0 $s-service-row-column-spacing;
+    line-height: $s-service-row-action-button;
   }
 
   &.service-row__column--date {
@@ -81,6 +82,8 @@ $c-service-row-hover: #f2f2f3;
   color: $cool-gray;
   cursor: pointer;
   background: transparent;
+  display: inline-block;
+  vertical-align: top;
 
   &:hover {
     color: $cool-blue;

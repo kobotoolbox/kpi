@@ -2,7 +2,10 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import stores from '../../stores';
 import bem from '../../bem';
-import {t} from '../../utils';
+import {
+  t,
+  formatTime
+} from '../../utils';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){
@@ -15,13 +18,13 @@ export default class RESTServiceLogs extends React.Component {
         {
           name: 'Submission 1',
           sid: 'submission-1',
-          date: 'yesterday',
+          date: 'Thu Jun 14 2018 11:31:38 GMT+0200 (Central European Summer Time)',
           status: 'sent'
         },
         {
           name: 'Submission 2',
           sid: 'submission-2',
-          date: 'yesterday',
+          date: 'Thu Jun 12 2018 10:00:00 GMT+0200 (Central European Summer Time)',
           status: 'failed'
         }
       ]
@@ -63,7 +66,10 @@ export default class RESTServiceLogs extends React.Component {
                   {item.name}
                 </bem.ServiceRow__column>
 
-                <bem.ServiceRow__column m='status'>
+                <bem.ServiceRow__column
+                  m='status'
+                  className={item.status === 'failed' ? 'service-row__error' : ''}
+                >
                   {item.status}
 
                   {item.status === 'failed' &&
@@ -77,7 +83,7 @@ export default class RESTServiceLogs extends React.Component {
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='date'>
-                  {item.date}
+                  {formatTime(item.date)}
                 </bem.ServiceRow__column>
               </bem.ServiceRow>
             );
