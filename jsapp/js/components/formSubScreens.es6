@@ -103,6 +103,9 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/settings/rest`:
           return <RESTServices asset={this.state} />;
           break;
+        case `/forms/${this.state.uid}/settings/rest/${this.props.params.rsid}`:
+          return <RESTServices asset={this.state} rsid={this.props.params.rsid}/>;
+          break;
         case `/forms/${this.state.uid}/settings/kobocat`:
           iframeUrl = deployment__identifier+'/form_settings';
           break;
@@ -149,13 +152,6 @@ export class FormSubScreens extends React.Component {
       </bem.FormView>
     );
   }
-  // renderREST() {
-  //   return (
-  //     <bem.FormView m='form-settings-rest'>
-        
-  //     </bem.FormView>
-  //   );
-  // }
   renderReset() {
     return (
       <bem.Loading>
