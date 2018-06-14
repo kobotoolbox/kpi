@@ -25,7 +25,10 @@ export default class RESTServicesForm extends React.Component {
           value: 'basic-auth',
           label: t('Basic Authorization')
         }
-      ]
+      ],
+      httpHeaderName: '',
+      httpHeaderValue: '',
+      httpHeaders: []
     };
     autoBind(this);
   }
@@ -48,17 +51,86 @@ export default class RESTServicesForm extends React.Component {
     return false;
   }
 
+  addHttpHeader(evt) {
+    evt.preventDefault();
+    const newHttpHeaders = this.state.httpHeaders;
+    newHttpHeaders.push({
+      name: this.state.httpHeaderName,
+      value: this.state.httpHeaderValue
+    });
+    this.setState({
+      httpHeaders: newHttpHeaders,
+      httpHeaderName: '',
+      httpHeaderValue: ''
+    });
+  }
+
+  removeHttpHeader(httpHeader, evt) {
+    evt.preventDefault();
+    const newHttpHeaders = this.state.httpHeaders;
+    newHttpHeaders.splice(this.state.httpHeaders.indexOf(httpHeader), 1);
+    this.setState({httpHeaders: newHttpHeaders});
+  }
+
+  renderCustomHttpHeaders() {
+    const isAddButtonEnabled = this.state.httpHeaderName !== '';
+
+    return (
+      <bem.FormModal__item>
+        <label className='formModal__item'>{t('Custom HTTP Headers')}</label>
+
+        {this.state.httpHeaders.map((item, n) => {
+          return (
+            <bem.FormModal__item>
+              {item.name} - {item.value}
+
+              <button
+                className='mdl-button mdl-button--icon'
+                onClick={this.removeHttpHeader.bind(this, item)}
+              >
+                <i className='k-icon-trash' />
+              </button>
+            </bem.FormModal__item>
+          );
+        })}
+
+        <input
+          className='form-modal__item'
+          type='text'
+          placeholder={t('Name')}
+          name='httpHeaderName'
+          value={this.state.httpHeaderName}
+          onChange={this.formItemChange.bind(this)}
+        />
+
+        <input
+          className='form-modal__item'
+          type='text'
+          placeholder={t('Value')}
+          name='httpHeaderValue'
+          value={this.state.httpHeaderValue}
+          onChange={this.formItemChange.bind(this)}
+        />
+
+        <button
+          onClick={this.addHttpHeader.bind(this)}
+          disabled={!isAddButtonEnabled}
+          className='mdl-button mdl-button--raised mdl-button--colored'
+        >
+          {t('Add HTTP Header')}
+        </button>
+      </bem.FormModal__item>
+    )
+  }
+
   render() {
     const isNew = Boolean(this.state.rsid);
 
     return (
       <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
         <bem.FormModal__item m='wrapper'>
-
           <bem.FormModal__item>
-            <label htmlFor='rest-service-form--name'>
-              {t('Name')}
-            </label>
+            <label htmlFor='rest-service-form--name'>{t('Name')}</label>
 
             <input
               type='text'
@@ -71,9 +143,7 @@ export default class RESTServicesForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor='rest-service-form--url'>
-              {t('Endpoint URL')}
-            </label>
+            <label htmlFor='rest-service-form--url'>{t('Endpoint URL')}</label>
 
             <input
               type='text'
@@ -86,9 +156,7 @@ export default class RESTServicesForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item m='type'>
-            <label>
-              {t('Type')}
-            </label>
+            <label>{t('Type')}</label>
 
             <bem.FormModal__item m={['half-width', 'half-width-left']}>
               <bem.FormModal__radio>
@@ -166,9 +234,7 @@ export default class RESTServicesForm extends React.Component {
           }
 
           {this.state.securityType &&
-            <bem.FormModal__item>
-              Custom HTTP Headers
-            </bem.FormModal__item>
+            this.renderCustomHttpHeaders()
           }
 
           <bem.FormModal__item m='actions'>
