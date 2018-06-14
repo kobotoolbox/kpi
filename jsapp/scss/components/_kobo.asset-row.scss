@@ -3,12 +3,13 @@ $hover-asset-row: #F2F2F3;
 .asset-row {
   list-style-type: none;
   border-top: 1px solid $divider-color;
-  padding: 4px 12px;
+  padding: 6px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height: 55px;
+  min-height: 52px;
   opacity: 1;
   position: relative;
+  align-items: flex-start;
 
   &:hover {
     background: $hover-asset-row;
@@ -106,7 +107,6 @@ $hover-asset-row: #F2F2F3;
     position: absolute;
     top: 8px;
     right: 0px;
-    background: $hover-asset-row;
     width: 0;
     overflow: hidden;
     opacity: 0;
@@ -115,15 +115,20 @@ $hover-asset-row: #F2F2F3;
     padding-right: 6px;
     height: calc(100% - 10px);
     max-height: 45px;
+
+    .popover-menu > .popover-menu__toggle {
+      background: $hover-asset-row;
+    }
   }
 
   .asset-row__action-icon {
-    margin-left: 4px;
+    margin-left: 0px;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
     display: inline-block;
     vertical-align: middle;
+    background: $hover-asset-row;
 
     &:hover {
       background-color: transparent;
