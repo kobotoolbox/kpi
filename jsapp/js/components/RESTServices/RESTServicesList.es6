@@ -11,20 +11,20 @@ export default class RESTServicesList extends React.Component {
       assetUid: props.assetUid,
       services: [
         {
-          name: 'Service 1',
-          rsid: 'service-1',
+          name: 'Backup clone of master project',
+          rsid: 'backup-clone-of-master-project',
           totalCount: 198,
           failedCount: 0
         },
         {
-          name: 'Service 2',
-          rsid: 'service-2',
+          name: 'Ricky\'s API',
+          rsid: 'ricky-s-api',
           totalCount: 2057,
           failedCount: 341
         },
         {
-          name: 'Service 3',
-          rsid: 'service-3',
+          name: 'Ricky`\s API v3',
+          rsid: 'ricky-s-api-3',
           totalCount: 8045,
           failedCount: 1
         }
@@ -66,7 +66,7 @@ export default class RESTServicesList extends React.Component {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='name'>
-                  {item.name}
+                  <a href={`/#/forms/${this.state.assetUid}/settings/rest/${item.rsid}`}>{item.name}</a>
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='count'>

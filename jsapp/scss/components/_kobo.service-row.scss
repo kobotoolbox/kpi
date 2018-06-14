@@ -1,15 +1,22 @@
-$s-action-button: 36px;
-$s-column-spacing: 10px;
+$s-service-row-action-button: 36px;
+$s-service-row-leading: 18px;
+$s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
+$c-service-row-hover: #f2f2f3;
 
 .service-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  min-height: $s-action-button;
+  min-height: $s-service-row-action-button;
   box-sizing: content-box;
+  line-height: $s-service-row-leading;
 
   &:not(:last-of-type) {
     border-bottom: 1px solid $divider-color;
+  }
+
+  &:hover {
+    background-color: $c-service-row-hover;
   }
 
   &.service-row--header {
@@ -19,12 +26,28 @@ $s-column-spacing: 10px;
 }
 
 .service-row__column {
-  padding: 0 $s-column-spacing;
+  &.service-row__column--name {
+    flex: 4;
 
-  .service-row__column--name {flex: 4;}
-  .service-row__column--count {flex: 1;}
-  .service-row__column--actions {
-    min-width: $s-action-button * 2;
+    .service-row--header & {padding: $s-service-row-column-spacing;}
+
+    a {
+      color: inherit;
+      display: block;
+      padding: $s-service-row-column-spacing;
+
+      &:hover {color: $cool-blue;}
+    }
+  }
+
+  &.service-row__column--count {
+    flex: 1;
+    padding: $s-service-row-column-spacing;
+  }
+
+  &.service-row__column--actions {
+    padding: 0 $s-service-row-column-spacing;
+    min-width: $s-service-row-action-button * 2;
     box-sizing: content-box;
   }
 }
@@ -37,12 +60,13 @@ $s-column-spacing: 10px;
   appearance: none;
   border: 0;
   padding: 0;
-  width: $s-action-button;
-  height: $s-action-button;
-  font-size: $s-action-button;
+  width: $s-service-row-action-button;
+  height: $s-service-row-action-button;
+  font-size: $s-service-row-action-button;
   color: $cool-gray;
   cursor: pointer;
   float: left;
+  background: transparent;
 
   &:hover {
     color: $cool-blue;
