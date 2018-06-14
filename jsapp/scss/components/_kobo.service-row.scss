@@ -50,6 +50,21 @@ $c-service-row-hover: #f2f2f3;
     min-width: $s-service-row-action-button * 2;
     box-sizing: content-box;
   }
+
+  &.service-row__column--submission {
+    flex: 6;
+    padding: $s-service-row-column-spacing;
+  }
+
+  &.service-row__column--status {
+    flex: 2;
+    padding: $s-service-row-column-spacing;
+  }
+
+  &.service-row__column--date {
+    flex: 4;
+    padding: $s-service-row-column-spacing;
+  }
 }
 
 .service-row__error {
@@ -65,7 +80,6 @@ $c-service-row-hover: #f2f2f3;
   font-size: $s-service-row-action-button;
   color: $cool-gray;
   cursor: pointer;
-  float: left;
   background: transparent;
 
   &:hover {

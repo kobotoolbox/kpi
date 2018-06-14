@@ -4,6 +4,7 @@ import DocumentTitle from 'react-document-title';
 import bem from '../bem';
 import stores from '../stores';
 import RESTServicesList from './RESTServices/RESTServicesList'
+import RESTServiceLogs from './RESTServices/RESTServiceLogs'
 import {t} from '../utils';
 
 export const RESTServicesSupportUrl = 'http://help.kobotoolbox.org/managing-your-project-s-data/rest-services';
@@ -70,10 +71,10 @@ export default class RESTServices extends React.Component {
     );
   }
 
-  renderServiceView(assetUid, rsid) {
+  renderServiceLogsView(assetUid, rsid) {
     return (
       <bem.FormView m={'form-settings'} className='rest-services'>
-        {assetUid}/{rsid}
+        <RESTServiceLogs assetUid={assetUid} rsid={rsid} />
       </bem.FormView>
     )
   }
@@ -86,7 +87,7 @@ export default class RESTServices extends React.Component {
     const assetUid = this.props.asset.uid;
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        {rsid ? this.renderServiceView(assetUid, rsid) : this.renderListView(assetUid)}
+        {rsid ? this.renderServiceLogsView(assetUid, rsid) : this.renderListView(assetUid)}
       </DocumentTitle>
     );
   }

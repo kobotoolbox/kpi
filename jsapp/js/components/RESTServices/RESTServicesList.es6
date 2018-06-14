@@ -4,6 +4,8 @@ import stores from '../../stores';
 import bem from '../../bem';
 import {t} from '../../utils';
 
+import {RESTServicesSupportUrl} from '../RESTServices';
+
 export default class RESTServicesList extends React.Component {
   constructor(props){
     super(props);
@@ -48,14 +50,19 @@ export default class RESTServicesList extends React.Component {
   render() {
     return (
       <bem.FormView__cell m='rest-services-list'>
-        <bem.FormView__group m='headings'>
-          <bem.FormView__cell m='label'>
-            {this.state.services.length} Services
-          </bem.FormView__cell>
-        </bem.FormView__group>
+        <header className='rest-services-list__header'>
+          <h2 className='rest-services-list__header-label'>
+            {t('##number## Services').replace('##number##', this.state.services.length)}
+          </h2>
+
+          <a
+            className='rest-services-list__header-help-link'
+            href={RESTServicesSupportUrl}
+            target='_blank'
+          >{t('Need help?')}</a>
+        </header>
 
         <bem.FormView__cell m={['box']}>
-
           <bem.ServiceRow m='header'>
             <bem.ServiceRow__column m='name'>{t('Service Name')}</bem.ServiceRow__column>
             <bem.ServiceRow__column m='count'>{t('Count')}</bem.ServiceRow__column>
