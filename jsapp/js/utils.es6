@@ -127,6 +127,31 @@ export function currentLang() {
   return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
+export function getLangAsObject(langString) {
+  var lang = {
+    code: '',
+    name: ''
+  };
+  let opening = langString.indexOf('(');
+  let closing = langString.indexOf(')');
+  let langCode = langString.substring(opening + 1, closing);
+
+  if (langCode) {
+    lang.code = langCode;
+    lang.name = langString.substring(0, opening).trim();
+  } else {
+    lang.name = langString;
+  }
+
+  return lang;
+}
+
+export function getLangString(obj) {
+  if (obj.languageName && obj.languageCode) {
+    return `${obj.languageName} (${obj.languageCode})`;
+  }
+}
+
 log.t = function () {
   let _t = {};
   __strings.forEach(function(str){ _t[str] = str; })

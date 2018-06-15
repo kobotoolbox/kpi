@@ -2,24 +2,22 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import {hashHistory} from 'react-router';
+
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
-import {hashHistory} from 'react-router';
 
-import {
-  t,
-  assign,
-  notify
-} from '../utils';
+import {t, notify} from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
-import SharingForm from '../components/sharingForm';
-import Submission from '../components/submission';
-import TableColumnFilter from '../components/tableColumnFilter';
+import SharingForm from '../components/modalForms/sharingForm';
+import Submission from '../components/modalForms/submission';
+import TableColumnFilter from '../components/modalForms/tableColumnFilter';
+import TranslationSettings from '../components/modalForms/translationSettings';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -82,6 +80,10 @@ class Modal extends React.Component {
       case 'table-columns':
         this.setState({
           title: t('Table display options')
+        });
+      case 'form-languages':
+        this.setState({
+          title: t('Manage languages and translations')
         });
       break;
 		}
@@ -222,6 +224,9 @@ class Modal extends React.Component {
                                  columns={this.props.params.columns}
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
+            }
+            { this.props.params.type == 'form-languages' &&
+              <TranslationSettings asset={this.props.params.asset}/>
             }
         </ui.Modal.Body>
       </ui.Modal>

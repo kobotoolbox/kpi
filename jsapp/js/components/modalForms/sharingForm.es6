@@ -5,21 +5,22 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
-import stores from '../stores';
-import actions from '../actions';
-import mixins from '../mixins';
 import classNames from 'classnames';
 import Select from 'react-select';
-import bem from '../bem';
+
+import mixins from 'js/mixins';
+import stores from 'js/stores';
+import actions from 'js/actions';
+import bem from 'js/bem';
 import {
   t,
   parsePermissions,
   stringToColor,
   anonUsername
-} from '../utils';
+} from 'utils';
 
 // parts
-import CopyTeamPermissions from './sharingForm/copyTeamPermissions';
+import CopyTeamPermissions from './copyTeamPermissions';
 
 var availablePermissions = [
   {value: 'view', label: t('View Form')},

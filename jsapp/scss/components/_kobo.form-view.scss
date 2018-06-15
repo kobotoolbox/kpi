@@ -240,15 +240,8 @@
   }
 
   &--langButton {
-    margin-left: 15px;
+    margin-left: 10px;
     display: inline-block;
-    padding: 6px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  &--langButton.active {
-    background: #E6E6E8;
   }
 
   &--thin-label {
@@ -257,44 +250,6 @@
     font-size: 12px;
     line-height: 18px;
     margin-bottom: 10px;
-  }
-
-  &--questions {
-    align-items: flex-start;
-
-    .question-count {
-      font-size: 36px;
-      padding-top: 15px;
-    }
-  }
-
-  &--question-list {
-    margin-left: 40px;
-    max-height: 260px;
-    padding: 10px 0px;
-    overflow: auto;
-    flex-grow: 2;
-
-    > div {
-      margin-bottom: 15px;
-      font-size: 14px;
-    }
-
-    > div > i {
-      margin-right: 25px;
-      opacity: 0.3;
-      display: inline-block;
-      vertical-align: middle;
-    }
-
-    > div > span {
-      vertical-align: middle;
-      display: inline-block;
-      width: calc(100% - 60px);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
 
   &--centered {

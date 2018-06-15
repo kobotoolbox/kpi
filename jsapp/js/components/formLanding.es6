@@ -29,16 +29,9 @@ export class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      questionLanguageIndex: 0,
       selectedCollectMethod: 'offline_url'
     };
     autoBind(this);
-  }
-  componentWillReceiveProps() {
-    this.setState({
-        questionLanguageIndex: 0
-      }
-    );
   }
   enketoPreviewModal (evt) {
     evt.preventDefault();
@@ -47,9 +40,7 @@ export class FormLanding extends React.Component {
       assetid: this.state.uid
     });
   }
-  renderFormInfo () {
-    const userCanEdit = this.userCan('change_asset', this.state);
-
+  renderFormInfo (userCanEdit) {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion = undefined;
 
@@ -103,31 +94,6 @@ export class FormLanding extends React.Component {
         </bem.FormView__cell>
       );
   }
-  // renderFormLanguages () {
-  //   return (
-  //     <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
-  //       {t('Languages')}
-  //       {this.state.summary.languages.map((l, i)=>{
-  //         return (
-  //             <bem.FormView__cell key={`lang-${i}`} m='langButton'
-  //               className={this.state.questionLanguageIndex == i ? 'active' : ''}
-  //               onClick={this.updateQuestionListLanguage}
-  //               data-index={i}>
-  //               {l}
-  //             </bem.FormView__cell>
-  //           );
-  //       })}
-
-  //     </bem.FormView__cell>
-  //   );
-  // }
-  updateQuestionListLanguage (evt) {
-    let i = evt.currentTarget.dataset.index;
-    this.setState({
-        questionLanguageIndex: i
-      }
-    );
-  }
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
@@ -139,6 +105,13 @@ export class FormLanding extends React.Component {
     evt.preventDefault();
     stores.pageState.showModal({
       type: 'replace-xls',
+      asset: this.state
+    });
+  }
+  languagesModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: 'form-languages',
       asset: this.state
     });
   }
@@ -339,8 +312,7 @@ export class FormLanding extends React.Component {
       }
     );
   }
-  renderButtons () {
-    const userCanEdit = this.userCan('change_asset', this.state);
+  renderButtons (userCanEdit) {
     var downloadable = false;
     var downloads = [];
     if (this.state.downloads) {
@@ -398,12 +370,43 @@ export class FormLanding extends React.Component {
                 <i className="k-icon-clone"/>
                 {t('Clone this project')}
               </bem.PopoverMenu__link>
+              <bem.PopoverMenu__link>
+                <i className="k-icon-language" onClick={this.languagesModal}/>
+                {t('Add/Edit Languages')}
+              </bem.PopoverMenu__link>
           </ui.PopoverMenu>
         </bem.FormView__group>
       );
   }
+  renderLanguages () {
+    if (this.state.content.translations.length < 2)
+      return false;
+
+    return (
+      <bem.FormView__cell m={['columns', 'padding', 'bordertop', 'languages']}>
+        <bem.FormView__cell m='languages-col1'>
+          <strong>{t('Languages')}</strong>
+          {this.state.content.translations.map((l, i)=>{
+            return (
+              <bem.FormView__cell key={`lang-${i}`} m='langButton'>
+                {l}
+              </bem.FormView__cell>
+            );
+          })}
+        </bem.FormView__cell>
+        <bem.FormView__cell m='languages-col2'>
+          <bem.FormView__link m='add-edit-languages'
+            data-tip={t('Manage Translations')}
+            onClick={this.languagesModal}>
+            <i className="k-icon-language" />
+          </bem.FormView__link>
+        </bem.FormView__cell>
+      </bem.FormView__cell>
+    );
+  }
   render () {
     var docTitle = this.state.name || t('Untitled');
+    const userCanEdit = this.userCan('change_asset', this.state);
 
     if (this.state.uid == undefined) {
       return (
@@ -429,21 +432,19 @@ export class FormLanding extends React.Component {
                     t('Draft version')}
               </bem.FormView__cell>
               <bem.FormView__cell>
-                {this.renderButtons()}
+                {this.renderButtons(userCanEdit)}
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.userCan('change_asset', this.state) && this.state.deployed_versions.count > 0 &&
+              {userCanEdit && this.state.deployed_versions.count > 0 &&
                 this.state.deployed_version_id != this.state.version_id && this.state.deployment__active &&
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />
                   {t('If you want to make these changes public, you must deploy this form.')}
                 </bem.FormView__cell>
               }
-              {this.renderFormInfo()}
-              {/*this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null &&
-                this.renderFormLanguages() */
-              }
+              {this.renderFormInfo(userCanEdit)}
+              {this.renderLanguages(userCanEdit)}
             </bem.FormView__cell>
           </bem.FormView__row>
           {this.state.deployed_versions.count > 0 &&

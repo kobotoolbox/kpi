@@ -468,6 +468,64 @@
   }
 }
 
+.form-modal--translation-settings {
+  .form-view__cell--translation {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid $divider-color;
+    padding: 6px 0px;
+  }
+
+  .form-view__cell--add-language {
+    margin-top: 20px;
+    text-align: right;
+  }
+
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: #F8F8F8;
+    padding: 15px;
+    position: relative;
+
+    .form-view__link--close {
+      position: absolute;
+      right: 0px;
+      top: 6px;
+
+      i {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .form-view__cell--add-language-form {
+    margin-top: 20px;
+  }
+
+  .form-view__cell--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+
+    .form-view__cell {
+      min-width: 100px;
+
+      &--lang-code {
+        max-width: 50px;
+      }
+
+      input {
+        padding-left: 5px;
+        max-width: 95%;
+      }
+
+      button {
+        margin-left: 10px;
+        margin-top: 5px;
+      }
+    }
+  }
+}
+
 // alertify overrides
 
 .alertify .ajs-dimmer {
