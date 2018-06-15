@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'constance',
     'constance.backends.database',
     'guardian', # For access to KC permissions ONLY
+    'hook',
 )
 
 MIDDLEWARE_CLASSES = (
