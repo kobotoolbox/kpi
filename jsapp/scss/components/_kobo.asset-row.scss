@@ -1,4 +1,7 @@
 $hover-asset-row: #F2F2F3;
+$s-asset-row-icon: 36px;
+$s-asset-row: 52px;
+$hover-transition: 0.3s opacity;
 
 .asset-row {
   list-style-type: none;
@@ -6,13 +9,15 @@ $hover-asset-row: #F2F2F3;
   padding: 6px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height: 52px;
+  min-height: $s-asset-row;
   opacity: 1;
   position: relative;
   align-items: flex-start;
 
   &:hover {
     background: $hover-asset-row;
+    // avoid displaying border over tooltip
+     z-index: 1;
   }
 
   > .asset-row__cell {
@@ -62,7 +67,7 @@ $hover-asset-row: #F2F2F3;
     border: 1px solid $cool-green;
     font-size: 13px;
     color: $cool-green;
-    width: 36px;
+    width: $s-asset-row-icon;
     border-radius: 10px;
     display: inline-block;
     margin-right: 10px;
@@ -90,7 +95,6 @@ $hover-asset-row: #F2F2F3;
 
   .asset-row__cell--tags {
     white-space: normal;
-    padding-top: 30px;
   }
 
   .asset-row__cell--date-created,
@@ -105,20 +109,13 @@ $hover-asset-row: #F2F2F3;
 
   > .asset-row__buttons {
     position: absolute;
-    top: 8px;
-    right: 0px;
-    width: 0;
-    overflow: hidden;
-    opacity: 0;
+    top: ($s-asset-row - $s-asset-row-icon) * 0.5;
+    right: 6px;
+    width: auto;
     text-align: right;
-    transition: 0.3s opacity;
-    padding-right: 6px;
-    height: calc(100% - 10px);
-    max-height: 45px;
-
-    .popover-menu > .popover-menu__toggle {
-      background: $hover-asset-row;
-    }
+    opacity: 0;
+    visibility: hidden;
+    transition: $hover-transition;
   }
 
   .asset-row__action-icon {
@@ -128,7 +125,6 @@ $hover-asset-row: #F2F2F3;
     cursor: pointer;
     display: inline-block;
     vertical-align: middle;
-    background: $hover-asset-row;
 
     &:hover {
       background-color: transparent;
@@ -141,13 +137,21 @@ $hover-asset-row: #F2F2F3;
 
     i:before {
       margin: 0px;
-      font-size: 36px;
+      font-size: $s-asset-row-icon;
     }
   }
 
   &--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
     color: $cool-blue;
+  }
+
+  .asset-row__cell--asset-details > .asset-row__cell:not(:first-of-type) {
+    opacity: 1;
+    visibility: visible;
+    transition: $hover-transition;
+    // make them reappear moment after items in front of them starts to disappear
+    transition-delay: 0.1s;
   }
 
   a.asset-row__celllink {
@@ -163,9 +167,17 @@ $hover-asset-row: #F2F2F3;
   &:hover {
     > .asset-row__buttons {
       opacity: 1;
-      width: 33%;
-      overflow: visible;
-      transition: 0.3s opacity;
+      visibility: visible;
+      transition: $hover-transition;
+      // make them appear moment after items behind starts to disappear
+      transition-delay: 0.1s;
+    }
+
+    // hide all columns but first one
+    .asset-row__cell--asset-details > .asset-row__cell:not(:first-of-type) {
+      opacity: 0;
+      visibility: hidden;
+      transition: $hover-transition;
     }
 
     .date--modified {
