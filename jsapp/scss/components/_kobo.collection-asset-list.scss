@@ -96,10 +96,8 @@ div.library {
   }
 
   .asset-row > .asset-row__buttons {
-    width: 50%;
+    width: 33%;
     top: 10px;
-    // make it disappear immediately to avoid visual glitch from buttons background
-    transition: none;
   }
 
   .asset-list, .asset-list-sorts {
