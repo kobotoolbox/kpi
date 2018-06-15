@@ -20,7 +20,7 @@ import {DebounceInput} from 'react-debounce-input';
 import {session} from '../stores';
 import mixins from '../mixins';
 
-let newFormMixins = [
+const newFormMixins = [
     Reflux.ListenerMixin,
     editableFormMixin
 ];
@@ -39,10 +39,20 @@ import {
 
 import {
   update_states,
+  PROJECT_SETTINGS_CONTEXTS
 } from '../constants';
 
 var formViaUrlHelpLink = 'http://help.kobotoolbox.org/creating-forms/importing-an-xlsform-via-url';
 
+/*
+This is used for multiple different purposes:
+
+1. When creating new project
+2. When replacing project with new one
+3. When editing project in /settings
+
+Identifying the purpose is done by checking `context` and `newFormAsset`.
+*/
 export class ProjectSettings extends React.Component {
   constructor(props){
     super(props);
@@ -67,6 +77,7 @@ export class ProjectSettings extends React.Component {
     this.state = state;
     autoBind(this);
   }
+
   componentDidMount () {
     this.listenTo(session, (session) => {
       this.setState({
@@ -74,31 +85,27 @@ export class ProjectSettings extends React.Component {
       });
     });
   }
+
   nameChange (evt) {
-    this.setState({
-      name: evt.target.value
-    });
+    this.setState({name: evt.target.value});
   }
+
   descriptionChange (evt) {
-    this.setState({
-      description: evt.target.value
-    });
+    this.setState({description: evt.target.value});
   }
+
   countryChange (val) {
-    this.setState({
-      country: val
-    });
+    this.setState({country: val});
   }
+
   sectorChange (val) {
-    this.setState({
-      sector: val
-    });
+    this.setState({sector: val});
   }
+
   shareMetadataChange (evt) {
-    this.setState({
-      'share-metadata': evt.target.checked
-    });
+    this.setState({'share-metadata': evt.target.checked});
   }
+
   importUrlChange (value) {
     this.setState({
       importUrl: value,
@@ -106,26 +113,33 @@ export class ProjectSettings extends React.Component {
       importUrlButton: t('Import')
     });
   }
+
   goToFormBuilder() {
     hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
     stores.pageState.hideModal();
   }
+
   goToFormLanding() {
     hashHistory.push(`/forms/${this.props.newFormAsset.uid}/landing`);
     stores.pageState.hideModal();
   }
-  displayChooseTemplate() {
+
+  displayStepChooseTemplate() {
     this.setState({step3: 'template'});
   }
-  displayUpload() {
+
+  displayStepUpload() {
     this.setState({step3: 'upload'});
   }
-  displayImport() {
+
+  displayStepImport() {
     this.setState({step3: 'import'});
   }
+
   resetStep3() {
     this.setState({step3: false});
   }
+
   chooseTemplate(evt) {
     evt.preventDefault();
 
@@ -149,12 +163,14 @@ export class ProjectSettings extends React.Component {
       alertify.error(t('Could not create project!'));
     });
   }
+
   handleTemplateSelected(templateUid) {
     this.setState({
       chooseTemplateButtonEnabled: true,
       chosenTemplateUid: templateUid
     });
   }
+
   importFromURL(evt) {
     evt.preventDefault();
     let validUrl = isAValidUrl(this.state.importUrl);
@@ -177,6 +193,7 @@ export class ProjectSettings extends React.Component {
       });
     }
   }
+
   onDrop (files, rejectedFiles, evt) {
     if (files.length === 0)
       return;
@@ -193,6 +210,7 @@ export class ProjectSettings extends React.Component {
       this.props.onSubmit(this);
     }
   }
+
   render () {
     if (!this.state.sessionLoaded) {
       return (
@@ -204,17 +222,18 @@ export class ProjectSettings extends React.Component {
           </bem.Loading>
         )
     }
-    var acct = session.currentAccount;
-    var sectors = acct.available_sectors;
-    var countries = acct.available_countries;
+
+    const sectors = session.currentAccount.available_sectors;
+    const countries = session.currentAccount.available_countries;
 
     if (this.state.permissions && this.state.owner) {
-      var perms = this.state.permissions;
-      var owner = this.state.owner;
-
       var sharedWith = [];
-      perms.forEach(function(perm) {
-        if (perm.user__username != owner && perm.user__username != 'AnonymousUser' && sharedWith.indexOf(perm.user__username) < 0)
+      this.state.permissions.forEach((perm) => {
+        if (
+          perm.user__username != this.state.owner &&
+          perm.user__username != 'AnonymousUser' &&
+          sharedWith.indexOf(perm.user__username) < 0
+        )
           sharedWith.push(perm.user__username);
       });
     }
@@ -222,7 +241,7 @@ export class ProjectSettings extends React.Component {
     if (!this.props.newFormAsset) {
       return (
         <bem.FormModal__form onSubmit={this.onSubmit}>
-          {this.props.context != 'existingForm' &&
+          {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.FormModal__item m='upload-note'>
               <i className="k-icon-alert" />
               <label className="long">
@@ -231,13 +250,14 @@ export class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
-          {this.props.context == 'existingForm' &&
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item m={['actions', 'fixed']}>
               <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {this.props.submitButtonValue}
               </button>
             </bem.FormModal__item>
           }
+
           <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
               <label htmlFor="name">
@@ -250,6 +270,7 @@ export class ProjectSettings extends React.Component {
                   onChange={this.nameChange}
                 />
             </bem.FormModal__item>
+
             <bem.FormModal__item>
               <label htmlFor="description">
                 {t('Description')}
@@ -259,6 +280,7 @@ export class ProjectSettings extends React.Component {
                 value={this.state.description}
                 placeholder={t('Enter short description here')} />
             </bem.FormModal__item>
+
             <bem.FormModal__item>
               <label className="long">
                 {t('Please specify the country and the sector where this project will be deployed. ')}
@@ -277,6 +299,7 @@ export class ProjectSettings extends React.Component {
                   options={sectors}
                 />
             </bem.FormModal__item>
+
             <bem.FormModal__item  m='country'>
               <label htmlFor="country">
                 {t('Country')}
@@ -288,6 +311,7 @@ export class ProjectSettings extends React.Component {
                 options={countries}
               />
             </bem.FormModal__item>
+
             <bem.FormModal__item m='metadata-share'>
               <input type="checkbox"
                   id="share-metadata"
@@ -301,7 +325,7 @@ export class ProjectSettings extends React.Component {
               </label>
             </bem.FormModal__item>
 
-            {this.props.context != 'existingForm' &&
+            {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
               <bem.FormModal__item m='actions'>
                 <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                   {this.props.submitButtonValue}
@@ -309,7 +333,7 @@ export class ProjectSettings extends React.Component {
               </bem.FormModal__item>
             }
 
-            {this.props.context == 'existingForm' && this.props.iframeUrl &&
+            {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
               <bem.FormView__cell m='iframe'>
                 <iframe src={this.props.iframeUrl} />
               </bem.FormView__cell>
@@ -323,7 +347,7 @@ export class ProjectSettings extends React.Component {
         <bem.FormModal__form>
           {!this.state.step3 &&
             <bem.FormModal__item m='newForm-step2'>
-              {this.props.context !== 'replaceProject' &&
+              {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING) &&
                 <bem.FormModal__item m='upload-note'>
                   <label className="long">
                     {t('Project "##" has been created. Choose one of the options below to continue.').replace('##', this.props.newFormAsset.name)}
@@ -331,21 +355,21 @@ export class ProjectSettings extends React.Component {
                 </bem.FormModal__item>
               }
               <bem.FormModal__item m='new-project-buttons'>
-                {this.props.context !== 'replaceProject' &&
+                {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING) &&
                   <button onClick={this.goToFormBuilder}>
                     <i className="k-icon-edit" />
                     {t('Design in Form Builder')}
                   </button>
                 }
-                <button onClick={this.displayChooseTemplate}>
+                <button onClick={this.displayStepChooseTemplate}>
                   <i className="k-icon-template" />
                   {t('Use a Template')}
                 </button>
-                <button onClick={this.displayUpload}>
+                <button onClick={this.displayStepUpload}>
                   <i className="k-icon-upload" />
                   {t('Upload an XLSForm')}
                 </button>
-                <button onClick={this.displayImport}>
+                <button onClick={this.displayStepImport}>
                   <i className="k-icon-link" />
                   {t('Import an XLSForm via URL')}
                 </button>
@@ -469,7 +493,7 @@ export class ProjectSettingsEditor extends React.Component {
         onSubmit={this.updateAsset}
         submitButtonValue={t('Save Changes')}
         initialData={initialData}
-        context='existingForm'
+        context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
         iframeUrl={this.props.iframeUrl}
       />
     );

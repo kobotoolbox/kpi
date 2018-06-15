@@ -13,9 +13,7 @@ import ui from '../ui';
 import alertify from 'alertifyjs';
 import icons from '../../xlform/src/view.icons';
 import Select from 'react-select';
-import {
-  VALIDATION_STATUSES
-} from '../constants';
+import {VALIDATION_STATUSES} from '../constants';
 
 
 class Submission extends React.Component {

@@ -18,9 +18,7 @@ import ReactTable from 'react-table'
 import Select from 'react-select';
 import {DebounceInput} from 'react-debounce-input';
 
-import {
-  VALIDATION_STATUSES
-} from '../constants';
+import {VALIDATION_STATUSES} from '../constants';
 
 import {
   assign,

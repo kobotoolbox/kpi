@@ -16,6 +16,8 @@ import {
   notify
 } from '../utils';
 
+import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
+
 import {ProjectSettings} from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
@@ -28,7 +30,7 @@ class Modal extends React.Component {
       enketopreviewlink: false,
       error: false,
       modalClass: false,
-      newFormAsset: false
+      newFormAsset: undefined
     };
     autoBind(this);
   }
@@ -173,15 +175,15 @@ class Modal extends React.Component {
             }
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
+                context={PROJECT_SETTINGS_CONTEXTS.NEW}
                 onSubmit={this.createNewForm}
                 submitButtonValue={t('Create Project')}
-                context='newForm'
                 newFormAsset={this.state.newFormAsset}
               />
             }
             { this.props.params.type == 'replace-project' &&
               <ProjectSettings
-                context='replaceProject'
+                context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
                 newFormAsset={this.props.params.asset}
               />
             }

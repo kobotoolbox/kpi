@@ -2,6 +2,12 @@ import {
   t,
 } from './utils';
 
+const PROJECT_SETTINGS_CONTEXTS = {
+  NEW: 'newForm',
+  EXISTING: 'existingForm',
+  REPLACE: 'replaceProject'
+};
+
 const update_states = {
   UNSAVED_CHANGES: -1,
   UP_TO_DATE: true,
@@ -36,5 +42,6 @@ const VALIDATION_STATUSES = [
 export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
-  VALIDATION_STATUSES: VALIDATION_STATUSES
+  VALIDATION_STATUSES: VALIDATION_STATUSES,
+  PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS
 };

@@ -6,6 +6,7 @@ import {Link, hashHistory} from 'react-router';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 
+import {PROJECT_SETTINGS_CONTEXTS} from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
 import bem from './bem';
@@ -184,7 +185,7 @@ mixins.droppable = {
   _forEachDroppedFile (params={}) {
     let router = this.context.router;
     let isProjectReplaceInForm = (
-      this.props.context == 'replaceProject'
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
       && router.params.assetid != undefined
     );
