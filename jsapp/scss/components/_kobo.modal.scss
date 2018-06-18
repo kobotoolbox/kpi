@@ -369,7 +369,7 @@
   }
 }
 
-.form-modal__item--newForm-step2 {
+.form-modal__item--create-project-step-form-source {
   .intro {
     padding-bottom: 20px;
     text-align: left;
@@ -377,7 +377,7 @@
 
   $buttons-spacing: 10px;
 
-  .form-modal__item--new-project-buttons {
+  .form-modal__item--form-source-buttons {
     margin: 3*$buttons-spacing auto 2*$buttons-spacing;
     max-width: 600px;
     display: flex;
