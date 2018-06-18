@@ -379,7 +379,7 @@ export class FormLanding extends React.Component {
       );
   }
   renderLanguages () {
-    if (this.state.content.translations.length < 2)
+    if (!this.state.content.translations || this.state.content.translations.length < 2)
       return false;
 
     return (
