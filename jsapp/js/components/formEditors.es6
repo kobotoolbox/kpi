@@ -226,17 +226,6 @@ export class ProjectSettings extends React.Component {
     const sectors = session.currentAccount.available_sectors;
     const countries = session.currentAccount.available_countries;
 
-    if (this.state.permissions && this.state.owner) {
-      var sharedWith = [];
-      this.state.permissions.forEach((perm) => {
-        if (
-          perm.user__username != this.state.owner &&
-          perm.user__username != 'AnonymousUser' &&
-          sharedWith.indexOf(perm.user__username) < 0
-        )
-          sharedWith.push(perm.user__username);
-      });
-    }
 
     if (!this.props.newFormAsset) {
       return (
