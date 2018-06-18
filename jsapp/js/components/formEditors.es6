@@ -73,7 +73,8 @@ export class ProjectSettings extends React.Component {
       country: '',
       'share-metadata': false,
       step3: false,
-      currentStep: this.getInitialStep(),
+      currentStep: null,
+      previousStep: null,
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
@@ -89,26 +90,36 @@ export class ProjectSettings extends React.Component {
     autoBind(this);
   }
 
-  getInitialStep() {
-    switch (this.props.context) {
-      case PROJECT_SETTINGS_CONTEXTS.NEW:
-      case PROJECT_SETTINGS_CONTEXTS.REPLACE:
-        return this.STEPS.FORM_SOURCE;
-        break;
-      case PROJECT_SETTINGS_CONTEXTS.EXISTING:
-        return this.STEPS.PROJECT_DETAILS;
-        break;
-      default:
-        throw new Error(`Unknown context: ${this.props.context}!`);
-    }
-  }
-
   componentDidMount () {
+    this.setInitialStep();
     this.listenTo(session, (session) => {
       this.setState({
         sessionLoaded: true,
       });
     });
+  }
+
+  setInitialStep() {
+    switch (this.props.context) {
+      case PROJECT_SETTINGS_CONTEXTS.NEW:
+      case PROJECT_SETTINGS_CONTEXTS.REPLACE:
+        return this.displayStep(this.STEPS.FORM_SOURCE);
+      case PROJECT_SETTINGS_CONTEXTS.EXISTING:
+        return this.displayStep(this.STEPS.FORM_SOURCE);
+      default:
+        throw new Error(`Unknown context: ${this.props.context}!`);
+    }
+  }
+
+  getStepTitle(step) {
+    switch (step) {
+      case this.STEPS.FORM_SOURCE: return t('Form source');
+      case this.STEPS.CHOOSE_TEMPLATE: return t('Choose template');
+      case this.STEPS.UPLOAD_FILE: return t('Upload XLSForm');
+      case this.STEPS.IMPORT_URL: return t('Import XLSForm');
+      case this.STEPS.PROJECT_DETAILS: return t('Project details');
+      default: return '';
+    }
   }
 
   nameChange (evt) {
@@ -149,8 +160,34 @@ export class ProjectSettings extends React.Component {
     stores.pageState.hideModal();
   }
 
-  displayStep(evt) {
-    this.setState({currentStep: evt.currentTarget.dataset.step});
+  displayStep(targetStep) {
+    const currentStep = this.state.currentStep;
+    const previousStep = this.state.previousStep;
+
+    if (targetStep === currentStep) {
+      return;
+    } else if (targetStep === previousStep) {
+      this.setState({
+        currentStep: previousStep,
+        previousStep: null
+      });
+    } else {
+      this.setState({
+        currentStep: targetStep,
+        previousStep: currentStep
+      });
+    }
+
+    if (this.props.onSetModalTitle) {
+      const stepTitle = this.getStepTitle(targetStep);
+      this.props.onSetModalTitle(`${t('Create new project')}: ${stepTitle}`);
+    }
+  }
+
+  displayPreviousStep() {
+    if (this.state.previousStep) {
+      this.displayStep(this.state.previousStep);
+    }
   }
 
   resetStep3() {
@@ -239,23 +276,23 @@ export class ProjectSettings extends React.Component {
 
         <bem.FormModal__item m='form-source-buttons'>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
-            <button data-step={this.STEPS.PROJECT_DETAILS} onClick={this.displayStep}>
+            <button onClick={this.displayStep.bind(this, this.STEPS.PROJECT_DETAILS)}>
               <i className="k-icon-edit" />
               {t('Build from scratch')}
             </button>
           }
 
-          <button data-step={this.STEPS.CHOOSE_TEMPLATE} onClick={this.displayStep}>
+          <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
             <i className="k-icon-template" />
             {t('Use a template')}
           </button>
 
-          <button data-step={this.STEPS.UPLOAD_FILE} onClick={this.displayStep}>
+          <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
             <i className="k-icon-upload" />
             {t('Upload an XLSForm')}
           </button>
 
-          <button data-step={this.STEPS.IMPORT_URL} onClick={this.displayStep}>
+          <button onClick={this.displayStep.bind(this, this.STEPS.IMPORT_URL)}>
             <i className="k-icon-link" />
             {t('Import an XLSForm via URL')}
           </button>
@@ -266,79 +303,78 @@ export class ProjectSettings extends React.Component {
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__item m='newForm-step3'>
-        <bem.FormModal__item m='template'>
-          <TemplatesList onSelectTemplate={this.handleTemplateSelected}/>
+      <bem.FormModal__item m='create-project-step-choose-template'>
+        <TemplatesList onSelectTemplate={this.handleTemplateSelected}/>
 
-          <button
-            onClick={this.chooseTemplate}
-            disabled={!this.state.chooseTemplateButtonEnabled}
-            className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-          >
-            {this.state.chooseTemplateButton}
-          </button>
-        </bem.FormModal__item>
+        <button
+          onClick={this.chooseTemplate}
+          disabled={!this.state.chooseTemplateButtonEnabled}
+          className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+        >
+          {this.state.chooseTemplateButton}
+        </button>
 
-        <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
-          {t('Back')}
-        </bem.FormView__link>
+        {this.renderBackButton()}
       </bem.FormModal__item>
     );
   }
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__item m='newForm-step3'>
+      <bem.FormModal__item m='create-project-step-upload-file'>
         <div className="intro">
           {t('Import an XLSForm from your computer.')}
         </div>
-        <Dropzone onDrop={this.onDrop.bind(this)}
-                      multiple={false}
-                      className='dropzone'
-                      activeClassName='dropzone-active'
-                      rejectClassName='dropzone-reject'
-                      accept={validFileTypes()}>
+
+        <Dropzone
+          onDrop={this.onDrop.bind(this)}
+          multiple={false}
+          className='dropzone'
+          activeClassName='dropzone-active'
+          rejectClassName='dropzone-reject'
+          accept={validFileTypes()}
+        >
           <i className="k-icon-xls-file" />
           {t(' Drag and drop the XLSForm file here or click to browse')}
         </Dropzone>
-        <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
-          {t('back')}
-        </bem.FormView__link>
+
+        {this.renderBackButton()}
       </bem.FormModal__item>
     );
   }
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__item m='newForm-step3'>
+      <bem.FormModal__item m='create-project-step-import-url'>
         <div className="intro">
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
-          <a href={formViaUrlHelpLink}
-            target="_blank">
+          <a href={formViaUrlHelpLink} target="_blank">
             {t('Having issues? See this help article.')}
           </a>
         </div>
-        <bem.FormModal__item m='url-import'>
-          <label htmlFor="url">
-            {t('URL')}
-          </label>
-          <DebounceInput
-            type="text"
-            id="importUrl"
-            debounceTimeout={300}
-            value={this.state.importUrl}
-            placeholder='https://'
-            onChange={event => this.importUrlChange(event.target.value)} />
-          <button onClick={this.importFromURL}
-                  disabled={!this.state.importUrlButtonEnabled}
-                  className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-            {this.state.importUrlButton}
-          </button>
-        </bem.FormModal__item>
 
-        <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
-          {t('Back')}
-        </bem.FormView__link>
+        <label htmlFor="url">
+          {t('URL')}
+        </label>
+
+        <DebounceInput
+          type="text"
+          id="importUrl"
+          debounceTimeout={300}
+          value={this.state.importUrl}
+          placeholder='https://'
+          onChange={event => this.importUrlChange(event.target.value)}
+        />
+
+        <button
+          onClick={this.importFromURL}
+          disabled={!this.state.importUrlButtonEnabled}
+          className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+        >
+          {this.state.importUrlButton}
+        </button>
+
+        {this.renderBackButton()}
       </bem.FormModal__item>
     );
   }
@@ -447,42 +483,49 @@ export class ProjectSettings extends React.Component {
             </bem.FormView__cell>
 
           }
+          {this.renderBackButton()}
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
   }
 
-  render () {
-    if (!this.state.sessionLoaded) {
+  renderBackButton() {
+    if (this.state.previousStep) {
       return (
-          <bem.Loading>
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        )
+        <button
+          m='create-project-back-button'
+          onClick={this.displayPreviousStep}
+        >
+          {t('Back')}
+        </button>
+      )
+    } else {
+      return false;
+    }
+  }
+
+  renderLoading() {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('loading...')}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+
+  render () {
+    if (!this.state.sessionLoaded || !this.state.currentStep) {
+      return this.renderLoading();
     }
 
-
-
-
     switch (this.state.currentStep) {
-      case this.STEPS.FORM_SOURCE:
-        return this.renderStepFormSource();
-        break;
-      case this.STEPS.CHOOSE_TEMPLATE:
-        return this.renderStepChooseTemplate();
-        break;
-      case this.STEPS.UPLOAD_FILE:
-        return this.renderStepUploadFile();
-        break;
-      case this.STEPS.IMPORT_URL:
-        return this.renderStepImportUrl();
-        break;
-      case this.STEPS.PROJECT_DETAILS:
-        return this.renderStepProjectDetails();
-        break;
+      case this.STEPS.FORM_SOURCE: return this.renderStepFormSource();
+      case this.STEPS.CHOOSE_TEMPLATE: return this.renderStepChooseTemplate();
+      case this.STEPS.UPLOAD_FILE: return this.renderStepUploadFile();
+      case this.STEPS.IMPORT_URL: return this.renderStepImportUrl();
+      case this.STEPS.PROJECT_DETAILS: return this.renderStepProjectDetails();
       default:
         throw new Error(`Unknown step: ${this.state.currentStep}!`);
     }

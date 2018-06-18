@@ -1,6 +1,14 @@
-import {
-  t,
-} from './utils';
+import {t} from './utils';
+
+const MODAL_TYPES = {
+  SHARING: 'sharing',
+  UPLOADING_XLS: 'uploading-xls',
+  NEW_FORM: 'new-form',
+  ENKETO_PREVIEW: 'enketo-preview',
+  SUBMISSION: 'submission',
+  REPLACE_PROJECT: 'replace-project',
+  TABLE_COLUMNS: 'table-columns'
+}
 
 const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
@@ -43,5 +51,6 @@ export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,
-  PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS
+  PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
+  MODAL_TYPES: MODAL_TYPES
 };

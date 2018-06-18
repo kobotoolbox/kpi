@@ -1,3 +1,7 @@
+// -----------------------------------------------------------------------------
+// common parts
+// -----------------------------------------------------------------------------
+
 .modal-backdrop {
   position: fixed;
   height: 100%;
@@ -94,13 +98,9 @@
   color: #FFF;
   cursor: pointer;
 
-  i {
-    font-size: 32px;
-  }
+  i {font-size: 32px;}
 
-  &:hover {
-    opacity: 0.7;
-  }
+  &:hover {opacity: 0.7;}
 }
 
 .modal-footer {
@@ -369,12 +369,28 @@
   }
 }
 
-.form-modal__item--create-project-step-form-source {
+.form-modal__item--create-project-step-form-source,
+.form-modal__item--create-project-step-choose-template,
+.form-modal__item--create-project-step-upload-file,
+.form-modal__item--create-project-step-import-url {
   .intro {
     padding-bottom: 20px;
     text-align: left;
   }
 
+  .create-project-back-button {
+    float: left;
+    font-size: 14px;
+    color: $cool-blue;
+    opacity: 1;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.form-modal__item--create-project-step-form-source {
   $buttons-spacing: 10px;
 
   .form-modal__item--form-source-buttons {
@@ -421,7 +437,23 @@
   }
 }
 
-.form-modal__item--newForm-step3 {
+.form-modal__item--create-project-step-choose-template {
+  margin-bottom: 30px;
+}
+
+.form-modal__item--create-project-step-import-url {
+  margin: 30px 0px;
+}
+
+.form-modal__item--create-project-step-import-url,
+.form-modal__item--create-project-step-choose-template {
+  button {
+    margin-top: 20px;
+    float: right;
+  }
+}
+
+.form-modal__item--create-project-step-upload-file {
   .dropzone {
     background: #F5F5F5;
     margin: 20px 0px 40px 0;
@@ -448,32 +480,6 @@
 
     &.dropzone-reject {
       border-color: $cool-red;
-    }
-  }
-
-  .form-modal__item--url-import {
-    margin: 30px 0px;
-  }
-
-  .form-modal__item--template {
-    margin-bottom: 30px;
-  }
-
-  .form-modal__item--url-import,
-  .form-modal__item--template {
-    button {
-      margin-top: 20px;
-      float: right;
-    }
-  }
-
-  .form-view__link--step3-back {
-    font-size: 14px;
-    color: $cool-blue;
-    opacity: 1;
-
-    &:hover {
-      opacity: 0.8;
     }
   }
 }

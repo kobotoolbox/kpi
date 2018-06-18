@@ -16,7 +16,10 @@ import {
   notify
 } from '../utils';
 
-import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
+import {
+  PROJECT_SETTINGS_CONTEXTS,
+  MODAL_TYPES
+} from '../constants';
 
 import {ProjectSettings} from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
@@ -37,13 +40,11 @@ class Modal extends React.Component {
   componentDidMount () {
     var type = this.props.params.type;
     switch(type) {
-      case 'sharing':
-        this.setState({
-          title: t('Sharing Permissions')
-        });
+      case MODAL_TYPES.SHARING:
+        this.setModalTitle(t('Sharing Permissions'));
         break;
 
-      case 'uploading-xls':
+      case MODAL_TYPES.UPLOADING_XLS:
         var filename = this.props.params.filename || '';
         this.setState({
           title: t('Uploading XLS file'),
@@ -51,13 +52,11 @@ class Modal extends React.Component {
         });
         break;
 
-      case 'new-form':
-        this.setState({
-          title: `${t('Create New Project')}: ${t('Define Project')}`
-        });
+      case MODAL_TYPES.NEW_FORM:
+        // title is set by formEditors
         break;
 
-      case 'enketo-preview':
+      case MODAL_TYPES.ENKETO_PREVIEW:
         var uid = this.props.params.assetid;
         stores.allAssets.whenLoaded(uid, function(asset){
           actions.resources.createSnapshot({
@@ -72,7 +71,7 @@ class Modal extends React.Component {
         });
         break;
 
-      case 'submission':
+      case MODAL_TYPES.SUBMISSION:
         this.setState({
           title: this.submissionTitle(this.props),
           modalClass: 'modal-large modal-submission',
@@ -80,21 +79,20 @@ class Modal extends React.Component {
         });
         break;
 
-      case 'replace-project':
-        this.setState({
-          title: t('Replace project')
-        });
+      case MODAL_TYPES.REPLACE_PROJECT:
+        this.setModalTitle(t('Replace project'));
         break;
 
-      case 'table-columns':
-        this.setState({
-          title: t('Table display options')
-        });
+      case MODAL_TYPES.TABLE_COLUMNS:
+        this.setModalTitle(t('Table display options'));
         break;
 
       default:
         console.error(`Unknown modal type: "${type}"!`);
     }
+  }
+  setModalTitle(title) {
+    this.setState({title: title});
   }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
@@ -108,8 +106,7 @@ class Modal extends React.Component {
       asset_type: 'survey',
     }).done((asset) => {
       this.setState({
-        newFormAsset: asset,
-        title: `${t('Create New Project')}: ${t('Form Source')}`
+        newFormAsset: asset
       });
     }).fail(function(r){
       notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
@@ -135,7 +132,7 @@ class Modal extends React.Component {
       });
     }
 
-    if (this.props.params.type != nextProps.params.type && nextProps.params.type === 'uploading-xls') {
+    if (this.props.params.type != nextProps.params.type && nextProps.params.type === MODAL_TYPES.UPLOADING_XLS) {
       var filename = nextProps.params.filename || '';
       this.setState({
         title: t('Uploading XLS file'),
@@ -170,29 +167,31 @@ class Modal extends React.Component {
         className={this.state.modalClass}
       >
         <ui.Modal.Body>
-            { this.props.params.type == 'sharing' &&
+            { this.props.params.type == MODAL_TYPES.SHARING &&
               <SharingForm uid={this.props.params.assetid} />
             }
-            { this.props.params.type == 'new-form' &&
+            { this.props.params.type == MODAL_TYPES.NEW_FORM &&
               <ProjectSettings
                 context={PROJECT_SETTINGS_CONTEXTS.NEW}
                 onSubmit={this.createNewForm}
+                onSetModalTitle={this.setModalTitle}
                 submitButtonValue={t('Create Project')}
                 newFormAsset={this.state.newFormAsset}
               />
             }
-            { this.props.params.type == 'replace-project' &&
+            { this.props.params.type == MODAL_TYPES.REPLACE_PROJECT &&
               <ProjectSettings
                 context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
+                onSetModalTitle={this.setModalTitle}
                 newFormAsset={this.props.params.asset}
               />
             }
-            { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
+            { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink &&
               <div className='enketo-holder'>
                 <iframe src={this.state.enketopreviewlink} />
               </div>
             }
-            { this.props.params.type == 'enketo-preview' && !this.state.enketopreviewlink &&
+            { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink &&
               <bem.Loading>
                 <bem.Loading__inner>
                   <i />
@@ -200,12 +199,12 @@ class Modal extends React.Component {
                 </bem.Loading__inner>
               </bem.Loading>
             }
-            { this.props.params.type == 'enketo-preview' && this.state.error &&
+            { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && this.state.error &&
               <div>
                 {this.state.message}
               </div>
             }
-            { this.props.params.type == 'uploading-xls' &&
+            { this.props.params.type == MODAL_TYPES.UPLOADING_XLS &&
               <div>
                 <bem.Loading>
                   <bem.Loading__inner>
@@ -215,13 +214,13 @@ class Modal extends React.Component {
                 </bem.Loading>
               </div>
             }
-            { this.props.params.type == 'submission' && this.state.sid &&
+            { this.props.params.type == MODAL_TYPES.SUBMISSION && this.state.sid &&
               <Submission sid={this.state.sid}
                           asset={this.props.params.asset}
                           ids={this.props.params.ids}
                           tableInfo={this.props.params.tableInfo || false} />
             }
-            { this.props.params.type == 'submission' && !this.state.sid &&
+            { this.props.params.type == MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>
                 <bem.Loading>
                   <bem.Loading__inner>
@@ -230,7 +229,7 @@ class Modal extends React.Component {
                 </bem.Loading>
               </div>
             }
-            { this.props.params.type == 'table-columns' &&
+            { this.props.params.type == MODAL_TYPES.TABLE_COLUMNS &&
               <TableColumnFilter asset={this.props.params.asset}
                                  columns={this.props.params.columns}
                                  getColumnLabel={this.props.params.getColumnLabel}

@@ -16,6 +16,8 @@ import searches from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   t,
   assign,
@@ -204,7 +206,7 @@ class LibrarySidebar extends Reflux.Component {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: collectionUid
     });
   }

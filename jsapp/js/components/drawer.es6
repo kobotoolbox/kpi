@@ -17,6 +17,8 @@ import mixins from '../mixins';
 
 import LibrarySidebar from '../components/librarySidebar';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   t,
   assign,
@@ -58,7 +60,7 @@ class FormSidebar extends Reflux.Component {
   newFormModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'new-form'
+      type: MODAL_TYPES.NEW_FORM
     });
   }
   render () {

@@ -18,7 +18,10 @@ import ReactTable from 'react-table'
 import Select from 'react-select';
 import {DebounceInput} from 'react-debounce-input';
 
-import {VALIDATION_STATUSES} from '../constants';
+import {
+  VALIDATION_STATUSES,
+  MODAL_TYPES
+} from '../constants';
 
 import {
   assign,
@@ -549,7 +552,7 @@ export class DataTable extends React.Component {
     })
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: sid,
       asset: this.props.asset,
       ids: ids,
@@ -562,7 +565,7 @@ export class DataTable extends React.Component {
   }
   launchTableColumnsModal () {
     stores.pageState.showModal({
-      type: 'table-columns',
+      type: MODAL_TYPES.TABLE_COLUMNS,
       asset: this.props.asset,
       columns: this.state.columns,
       getColumnLabel: this.getColumnLabel,
@@ -592,7 +595,7 @@ export class DataTable extends React.Component {
     let params = pageState.modal,
         page = 0;
 
-    if (params.type !== 'table-columns' && !params.sid) {
+    if (params.type !== MODAL_TYPES.TABLE_COLUMNS && !params.sid) {
       let fetchInstance = this.state.fetchInstance;
       if (params.page == 'next')
         page = this.state.currentPage + 1;

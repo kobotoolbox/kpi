@@ -16,6 +16,8 @@ import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import $ from 'jquery';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   formatTime,
   currentLang,
@@ -43,7 +45,7 @@ export class FormLanding extends React.Component {
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'enketo-preview',
+      type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid
     });
   }
@@ -131,14 +133,14 @@ export class FormLanding extends React.Component {
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: this.state.uid
     });
   }
   showReplaceProjectModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'replace-project',
+      type: MODAL_TYPES.REPLACE_PROJECT,
       asset: this.state
     });
   }

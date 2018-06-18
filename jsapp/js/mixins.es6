@@ -6,7 +6,10 @@ import {Link, hashHistory} from 'react-router';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 
-import {PROJECT_SETTINGS_CONTEXTS} from './constants';
+import {
+  PROJECT_SETTINGS_CONTEXTS,
+  MODAL_TYPES
+} from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
 import bem from './bem';
@@ -195,7 +198,7 @@ mixins.droppable = {
 
     if (params.base64Encoded) {
       stores.pageState.showModal({
-        type: 'uploading-xls',
+        type: MODAL_TYPES.UPLOADING_XLS,
         filename: multipleFiles ? t('## files').replace('##', params.totalFiles) : params.name
       });
     }
@@ -484,13 +487,13 @@ mixins.clickAssets = {
       },
       sharing: function(uid){
         stores.pageState.showModal({
-          type: 'sharing',
+          type: MODAL_TYPES.SHARING,
           assetid: uid
         });
       },
       refresh: function(uid) {
         stores.pageState.showModal({
-          type: 'replace-project',
+          type: MODAL_TYPES.REPLACE_PROJECT,
           asset: stores.selectedAsset.asset
         });
       }
