@@ -25,6 +25,7 @@
 }
 
 .modal-content {
+  overflow: hidden;
   background-color: #FFF;
   padding: 15px 20px;
 }
@@ -378,14 +379,30 @@
     text-align: left;
   }
 
+  .create-project-back-button,
+  .create-project-forward-button {
+    margin-top: 20px;
+  }
+
+  .create-project-forward-button {
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+
+    float: right;
+  }
+
   .create-project-back-button {
+    @extend .mdl-button;
+
     float: left;
+    border-radius: 2px;
+    border: 1px solid $cool-blue;
     font-size: 14px;
     color: $cool-blue;
     opacity: 1;
 
     &:hover {
       opacity: 0.8;
+      color: $cool-blue;
     }
   }
 }
@@ -434,22 +451,6 @@
         i {color: $cool-blue;}
       }
     }
-  }
-}
-
-.form-modal__item--create-project-step-choose-template {
-  margin-bottom: 30px;
-}
-
-.form-modal__item--create-project-step-import-url {
-  margin: 30px 0px;
-}
-
-.form-modal__item--create-project-step-import-url,
-.form-modal__item--create-project-step-choose-template {
-  button {
-    margin-top: 20px;
-    float: right;
   }
 }
 

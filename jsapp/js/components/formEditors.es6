@@ -309,7 +309,7 @@ export class ProjectSettings extends React.Component {
         <button
           onClick={this.chooseTemplate}
           disabled={!this.state.chooseTemplateButtonEnabled}
-          className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+          className="create-project-forward-button mdl-js-button"
         >
           {this.state.chooseTemplateButton}
         </button>
@@ -369,7 +369,7 @@ export class ProjectSettings extends React.Component {
         <button
           onClick={this.importFromURL}
           disabled={!this.state.importUrlButtonEnabled}
-          className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+          className="create-project-forward-button mdl-js-button"
         >
           {this.state.importUrlButton}
         </button>
@@ -396,7 +396,10 @@ export class ProjectSettings extends React.Component {
 
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.FormModal__item m={['actions', 'fixed']}>
-            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+            <button
+              onClick={this.onSubmit}
+              className="create-project-forward-button mdl-js-button"
+            >
               {this.props.submitButtonValue}
             </button>
           </bem.FormModal__item>
@@ -471,7 +474,10 @@ export class ProjectSettings extends React.Component {
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.FormModal__item m='actions'>
-              <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              <button
+                onClick={this.onSubmit}
+                className="create-project-forward-button mdl-js-button"
+              >
                 {this.props.submitButtonValue}
               </button>
             </bem.FormModal__item>
@@ -493,7 +499,7 @@ export class ProjectSettings extends React.Component {
     if (this.state.previousStep) {
       return (
         <button
-          m='create-project-back-button'
+          className='create-project-back-button'
           onClick={this.displayPreviousStep}
         >
           {t('Back')}
