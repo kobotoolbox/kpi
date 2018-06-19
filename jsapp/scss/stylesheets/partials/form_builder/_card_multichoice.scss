@@ -94,9 +94,10 @@
   code {
     font-weight: 600;
     font-size: 11px;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     background-color: #E3E7EC;
     padding: 2px;
-    margin: 3px;
+    margin: 2px;
     width: 25%;
     text-align: left;
     display: inline-block;
@@ -123,21 +124,13 @@
       color: $linkColor;
     }
 
-    .editable-buttons {
-      display: none;
-
-      // TEMPORARY
-
-    }
-
-    .editable-container .editable-input input {
+    input {
       text-align: right;
       display: inline-block;
       float: right;
       color: $linkColor;
       line-height: 1em;
       font-size: 11px;
-      margin-top: 4px;
     }
   }
 

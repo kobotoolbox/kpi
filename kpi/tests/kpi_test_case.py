@@ -74,9 +74,12 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if content is None:
             content = ''
 
-        kwargs.update(
-            {'name': name, 'content': content, 'asset_type': 'survey'}
-        )
+        kwargs.update({
+            "name": name,
+            "content": content,
+            "asset_type": kwargs.get("asset_type", "survey")
+        })
+
         response= self.client.post(reverse('asset-list'), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
