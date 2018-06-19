@@ -459,6 +459,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
 
+    # Only add link instead of hooks list to avoid multiple access to DB.
+    hooks_link = serializers.SerializerMethodField()
+
     class Meta:
         model = Asset
         lookup_field = 'uid'
@@ -491,6 +494,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'embeds',
                   'koboform_link',
                   'xform_link',
+                  'hooks_link',
                   'tag_string',
                   'uid',
                   'kind',
@@ -551,6 +555,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
+
+    def get_hooks_link(self, obj):
+        return reverse('hook-list', args=(obj.uid,), request=self.context.get('request', None))
 
     def get_embeds(self, obj):
         request = self.context.get('request', None)
