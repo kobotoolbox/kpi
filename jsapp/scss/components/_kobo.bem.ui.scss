@@ -601,11 +601,6 @@ iframe {
 
     @include box-shadow;
   }
-
-  &.form-modal__item--actions {
-    text-align: right;
-    margin-top: 20px;
-  }
 }
 
 @media screen and (max-width: 767px) {

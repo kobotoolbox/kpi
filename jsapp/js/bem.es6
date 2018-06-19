@@ -173,10 +173,14 @@ bem.FormModal__item = bem.FormModal.__('item');
 bem.FormModal__group = bem.FormModal.__('group');
 
 bem.Modal = bem('modal');
+bem.Modal__backdrop = bem.Modal.__('backdrop');
 bem.Modal__body = bem.Modal.__('body');
 bem.Modal__content = bem.Modal.__('content');
 bem.Modal__header = bem.Modal.__('header', '<header>');
+bem.Modal__title = bem.Modal.__('title', '<h4>');
 bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
+bem.Modal__footer = bem.Modal.__('footer', '<footer>');
+bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
 bem.Modal__tabs = bem.Modal.__('tabs');
 
 bem.PopoverMenu = bem('popover-menu');

@@ -55,40 +55,35 @@ class Modal extends React.Component {
       this.props.onClose.call(evt);
     }
   }
-  renderTitle () {
+  renderTitle() {
     if (!this.props.title) {
       return null;
     } else if (this.props.small) {
       return (
-          <div>
-            <h4 className="modal-title">
-              {this.props.title}
-            </h4>
-            <h6>
-              {this.props.small}
-            </h6>
-          </div>
-        );
+        <div>
+          <bem.Modal__title>{this.props.title}</bem.Modal__title>
+          <h6>{this.props.small}</h6>
+        </div>
+      );
     } else {
       return (
-          <h4 className="modal-title">
-            {this.props.title}
-          </h4>
-        );
+        <bem.Modal__title>{this.props.title}</bem.Modal__title>
+      );
     }
   }
-  render () {
+  render() {
     return (
       // m={['done', isSearch ? 'search' : 'default']}
-      <div
-        className={classNames(
-          'modal__backdrop',
-          this.props.className,
-          this.props.large ? 'modal--large' : null
-        )}
+      <bem.Modal__backdrop
+        className={classNames('modal__backdrop', this.props.className)}
         onClick={this.backdropClick}
       >
-        <div className={classNames(this.props.open ? 'modal--open' : 'modal', this.props.icon ? 'modal--withicon' : null)}>
+        <div className={classNames(
+          'modal',
+          this.props.open ? 'modal--open' : null,
+          this.props.large ? 'modal--large' : null,
+          this.props.icon ? 'modal--withicon' : null
+        )}>
           {this.props.icon &&
             <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
           }
@@ -102,7 +97,7 @@ class Modal extends React.Component {
             {this.props.children}
           </bem.Modal__content>
         </div>
-      </div>
+      </bem.Modal__backdrop>
     );
   }
 };
@@ -111,8 +106,12 @@ class Footer extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
-    return <bem.Modal__footer>{this.props.children}</bem.Modal__footer>;
+  render() {
+    return (
+      <bem.Modal__footer>
+        {this.props.children}
+      </bem.Modal__footer>
+    );
   }
 };
 
@@ -122,8 +121,12 @@ class Body extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
-    return <bem.Modal__body>{this.props.children}</bem.Modal__body>;
+  render() {
+    return (
+      <bem.Modal__body>
+        {this.props.children}
+      </bem.Modal__body>
+    );
   }
 };
 
