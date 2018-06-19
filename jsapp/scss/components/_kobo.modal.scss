@@ -106,8 +106,8 @@
 
       &.modal__footer-button--back {
         border-radius: 2px;
-        border: 1px solid $cool-blue;
         color: $cool-blue;
+        border: 1px solid currentColor;
         opacity: 1;
         float: left;
 

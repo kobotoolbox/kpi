@@ -74,6 +74,7 @@ export class ProjectSettings extends React.Component {
       'share-metadata': false,
       currentStep: null,
       previousStep: null,
+      isSubmitPending: false,
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
@@ -168,9 +169,9 @@ export class ProjectSettings extends React.Component {
    * routes navigation
    */
 
-  goToFormBuilder() {
-    hashHistory.push(`/forms/${this.props.formAsset.uid}/edit`);
+  goToFormBuilder(assetUid) {
     stores.pageState.hideModal();
+    hashHistory.push(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
@@ -216,20 +217,20 @@ export class ProjectSettings extends React.Component {
    * handling asset creation
    */
 
-  createNewAsset(settingsComponent) {
+  createNewAsset() {
+    this.setState({isSubmitPending: true});
+
     dataInterface.createResource({
-      name: settingsComponent.state.name,
+      name: this.state.name,
       settings: JSON.stringify({
-        description: settingsComponent.state.description,
-        sector: settingsComponent.state.sector,
-        country: settingsComponent.state.country,
-        'share-metadata': settingsComponent.state['share-metadata']
+        description: this.state.description,
+        sector: this.state.sector,
+        country: this.state.country,
+        'share-metadata': this.state['share-metadata']
       }),
       asset_type: 'survey',
     }).done((asset) => {
-      this.setState({
-        formAsset: asset
-      });
+      this.goToFormBuilder(asset.uid);
     }).fail(function(r){
       notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
@@ -313,9 +314,9 @@ export class ProjectSettings extends React.Component {
     console.log('onSubmit', evt);
     evt.preventDefault();
     if (!this.state.name.trim()) {
-      alertify.error(t('Please enter a title for your project'));
+      alertify.error(t('Please enter a title for your project!'));
     } else {
-      this.props.onSubmit(this);
+      this.createNewAsset();
     }
   }
 
@@ -546,8 +547,9 @@ export class ProjectSettings extends React.Component {
                 m='primary'
                 onClick={this.onSubmit}
                 className="mdl-js-button"
+                disabled={this.state.isSubmitPending}
               >
-                {t('Create Project')}
+                {this.state.isSubmitPending ? t('Creating…') : t('Crate Project')}
               </bem.Modal__footerButton>
 
               {this.renderBackButton()}
@@ -567,7 +569,11 @@ export class ProjectSettings extends React.Component {
   renderBackButton() {
     if (this.state.previousStep) {
       return (
-        <bem.Modal__footerButton m='back' onClick={this.displayPreviousStep}>
+        <bem.Modal__footerButton
+          m='back'
+          onClick={this.displayPreviousStep}
+          disabled={this.state.isSubmitPending}
+        >
           {t('Back')}
         </bem.Modal__footerButton>
       )

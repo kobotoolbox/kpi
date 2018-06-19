@@ -100,7 +100,7 @@ input[type="button"].btn--block {
 
 .btn--disabled {
     cursor: default;
-    color: #ddd;
+    color: $cool-lightgray;
     font-weight: normal;
     &.btn--utility:hover {
         background-color: inherit;
