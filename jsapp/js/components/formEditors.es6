@@ -51,7 +51,7 @@ This is used for multiple different purposes:
 2. When replacing project with new one
 3. When editing project in /settings
 
-Identifying the purpose is done by checking `context` and `newFormAsset`.
+Identifying the purpose is done by checking `context` and `formAsset`.
 */
 export class ProjectSettings extends React.Component {
   constructor(props){
@@ -72,14 +72,13 @@ export class ProjectSettings extends React.Component {
       sector: '',
       country: '',
       'share-metadata': false,
-      step3: false,
       currentStep: null,
       previousStep: null,
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
-      chooseTemplateButtonEnabled: false,
-      chooseTemplateButton: t('Choose'),
+      applyTemplateButtonEnabled: false,
+      applyTemplateButton: t('Choose'),
       chosenTemplateUid: null
     }
     if (this.props.initialData !== undefined) {
@@ -89,6 +88,10 @@ export class ProjectSettings extends React.Component {
 
     autoBind(this);
   }
+
+  /*
+   * setup
+   */
 
   componentDidMount () {
     this.setInitialStep();
@@ -122,27 +125,31 @@ export class ProjectSettings extends React.Component {
     }
   }
 
-  nameChange (evt) {
+  /*
+   * handling user input
+   */
+
+  onNameChange (evt) {
     this.setState({name: evt.target.value});
   }
 
-  descriptionChange (evt) {
+  onDescriptionChange (evt) {
     this.setState({description: evt.target.value});
   }
 
-  countryChange (val) {
+  onCountryChange (val) {
     this.setState({country: val});
   }
 
-  sectorChange (val) {
+  onSectorChange (val) {
     this.setState({sector: val});
   }
 
-  shareMetadataChange (evt) {
+  onShareMetadataChange (evt) {
     this.setState({'share-metadata': evt.target.checked});
   }
 
-  importUrlChange (value) {
+  onImportUrlChange (value) {
     this.setState({
       importUrl: value,
       importUrlButtonEnabled: value.length > 6 ? true : false,
@@ -150,15 +157,30 @@ export class ProjectSettings extends React.Component {
     });
   }
 
+  onTemplateChange(templateUid) {
+    this.setState({
+      applyTemplateButtonEnabled: true,
+      chosenTemplateUid: templateUid
+    });
+  }
+
+  /*
+   * routes navigation
+   */
+
   goToFormBuilder() {
-    hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
+    hashHistory.push(`/forms/${this.props.formAsset.uid}/edit`);
     stores.pageState.hideModal();
   }
 
   goToFormLanding() {
-    hashHistory.push(`/forms/${this.props.newFormAsset.uid}/landing`);
+    hashHistory.push(`/forms/${this.props.formAsset.uid}/landing`);
     stores.pageState.hideModal();
   }
+
+  /*
+   * modal steps navigation
+   */
 
   displayStep(targetStep) {
     const currentStep = this.state.currentStep;
@@ -190,19 +212,53 @@ export class ProjectSettings extends React.Component {
     }
   }
 
-  resetStep3() {
-    this.setState({step3: false});
+  /*
+   * handling asset creation
+   */
+
+  createNewAsset(settingsComponent) {
+    dataInterface.createResource({
+      name: settingsComponent.state.name,
+      settings: JSON.stringify({
+        description: settingsComponent.state.description,
+        sector: settingsComponent.state.sector,
+        country: settingsComponent.state.country,
+        'share-metadata': settingsComponent.state['share-metadata']
+      }),
+      asset_type: 'survey',
+    }).done((asset) => {
+      this.setState({
+        formAsset: asset
+      });
+    }).fail(function(r){
+      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+    });
   }
 
-  chooseTemplate(evt) {
+  updateAsset(settingsComponent) {
+    actions.resources.updateAsset(
+      this.props.asset.uid,
+      {
+        name: settingsComponent.state.name,
+        settings: JSON.stringify({
+          description: settingsComponent.state.description,
+          sector: settingsComponent.state.sector,
+          country: settingsComponent.state.country,
+          'share-metadata': settingsComponent.state['share-metadata']
+        }),
+      }
+    );
+  }
+
+  applyTemplate(evt) {
     evt.preventDefault();
 
     this.setState({
-      chooseTemplateButtonEnabled: false,
-      chooseTemplateButton: t('Creating…')
+      applyTemplateButtonEnabled: false,
+      applyTemplateButton: t('Creating…')
     });
 
-    dataInterface.patchAsset(this.props.newFormAsset.uid, {
+    dataInterface.patchAsset(this.props.formAsset.uid, {
       clone_from: this.state.chosenTemplateUid,
       asset_type: 'template'
     }).done(() => {
@@ -211,17 +267,10 @@ export class ProjectSettings extends React.Component {
     }).fail((data) => {
       // reset button and display error notification
       this.setState({
-        chooseTemplateButtonEnabled: true,
-        chooseTemplateButton: t('Choose')
+        applyTemplateButtonEnabled: true,
+        applyTemplateButton: t('Choose')
       });
       alertify.error(t('Could not create project!'));
-    });
-  }
-
-  handleTemplateSelected(templateUid) {
-    this.setState({
-      chooseTemplateButtonEnabled: true,
-      chosenTemplateUid: templateUid
     });
   }
 
@@ -232,7 +281,7 @@ export class ProjectSettings extends React.Component {
     if (!validUrl) {
       alertify.error(t('Please enter a valid URL'));
     } else {
-      let asset = this.props.newFormAsset;
+      let asset = this.props.formAsset;
       let params = {
         destination: asset.url,
         url: this.state.importUrl,
@@ -249,14 +298,19 @@ export class ProjectSettings extends React.Component {
   }
 
   onDrop (files, rejectedFiles, evt) {
-    if (files.length === 0)
+    if (files.length === 0) {
       return;
+    }
+    this.dropFiles(files, [], evt, { destination: this.props.formAsset.url });
+  }
 
-    let asset = this.props.newFormAsset;
-    this.dropFiles(files, [], evt, { destination: asset.url });
+  handleSubmit(evt) {
+    console.log('handleSubmit', evt);
+    evt.preventDefault();
   }
 
   onSubmit (evt) {
+    console.log('onSubmit', evt);
     evt.preventDefault();
     if (!this.state.name.trim()) {
       alertify.error(t('Please enter a title for your project'));
@@ -264,6 +318,10 @@ export class ProjectSettings extends React.Component {
       this.props.onSubmit(this);
     }
   }
+
+  /*
+   * rendering
+   */
 
   renderStepFormSource() {
     return (
@@ -302,16 +360,16 @@ export class ProjectSettings extends React.Component {
   renderStepChooseTemplate() {
     return (
       <bem.FormModal__item className='project-settings'>
-        <TemplatesList onSelectTemplate={this.handleTemplateSelected}/>
+        <TemplatesList onSelectTemplate={this.onTemplateChange}/>
 
         <bem.Modal__footer>
           <bem.Modal__footerButton
             m='primary'
-            onClick={this.chooseTemplate}
-            disabled={!this.state.chooseTemplateButtonEnabled}
+            onClick={this.applyTemplate}
+            disabled={!this.state.applyTemplateButtonEnabled}
             className="mdl-js-button"
           >
-            {this.state.chooseTemplateButton}
+            {this.state.applyTemplateButton}
           </bem.Modal__footerButton>
 
           {this.renderBackButton()}
@@ -366,7 +424,7 @@ export class ProjectSettings extends React.Component {
           debounceTimeout={300}
           value={this.state.importUrl}
           placeholder='https://'
-          onChange={event => this.importUrlChange(event.target.value)}
+          onChange={event => this.onImportUrlChange(event.target.value)}
         />
 
         <bem.Modal__footer>
@@ -390,7 +448,10 @@ export class ProjectSettings extends React.Component {
     const countries = session.currentAccount.available_countries;
 
     return (
-      <bem.FormModal__form onSubmit={this.onSubmit} className='project-settings'>
+      <bem.FormModal__form
+        onSubmit={this.handleSubmit}
+        className='project-settings'
+      >
         {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
           <bem.Modal__subheader>
             <i className="k-icon-alert" />
@@ -405,7 +466,7 @@ export class ProjectSettings extends React.Component {
               onClick={this.onSubmit}
               className="mdl-js-button"
             >
-              {this.props.submitButtonValue}
+              {t('Save Changes')}
             </bem.Modal__footerButton>
           </bem.Modal__footer>
         }
@@ -416,11 +477,11 @@ export class ProjectSettings extends React.Component {
               {t('Project Name')}
             </label>
             <input type="text"
-                id="name"
-                placeholder={t('Enter title of project here')}
-                value={this.state.name}
-                onChange={this.nameChange}
-              />
+              id="name"
+              placeholder={t('Enter title of project here')}
+              value={this.state.name}
+              onChange={this.onNameChange}
+            />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
@@ -428,9 +489,10 @@ export class ProjectSettings extends React.Component {
               {t('Description')}
             </label>
             <TextareaAutosize
-              onChange={this.descriptionChange}
+              onChange={this.onDescriptionChange}
               value={this.state.description}
-              placeholder={t('Enter short description here')} />
+              placeholder={t('Enter short description here')}
+            />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
@@ -445,11 +507,11 @@ export class ProjectSettings extends React.Component {
               {t('Sector')}
             </label>
             <Select
-                id="sector"
-                value={this.state.sector}
-                onChange={this.sectorChange}
-                options={sectors}
-              />
+              id="sector"
+              value={this.state.sector}
+              onChange={this.onSectorChange}
+              options={sectors}
+            />
           </bem.FormModal__item>
 
           <bem.FormModal__item  m='country'>
@@ -459,17 +521,18 @@ export class ProjectSettings extends React.Component {
             <Select
               id="country"
               value={this.state.country}
-              onChange={this.countryChange}
+              onChange={this.onCountryChange}
               options={countries}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item m='metadata-share'>
-            <input type="checkbox"
-                id="share-metadata"
-                checked={this.state['share-metadata']}
-                onChange={this.shareMetadataChange}
-              />
+            <input
+              type="checkbox"
+              id="share-metadata"
+              checked={this.state['share-metadata']}
+              onChange={this.onShareMetadataChange}
+            />
             <label htmlFor="share-metadata">
               {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
               &nbsp;
@@ -484,7 +547,7 @@ export class ProjectSettings extends React.Component {
                 onClick={this.onSubmit}
                 className="mdl-js-button"
               >
-                {this.props.submitButtonValue}
+                {t('Create Project')}
               </bem.Modal__footerButton>
 
               {this.renderBackButton()}
@@ -553,21 +616,8 @@ export class ProjectSettingsEditor extends React.Component {
     super(props);
     autoBind(this);
   }
-  updateAsset (settingsComponent) {
-    actions.resources.updateAsset(
-      this.props.asset.uid,
-      {
-        name: settingsComponent.state.name,
-        settings: JSON.stringify({
-          description: settingsComponent.state.description,
-          sector: settingsComponent.state.sector,
-          country: settingsComponent.state.country,
-          'share-metadata': settingsComponent.state['share-metadata']
-        }),
-      }
-    );
-  }
-  render () {
+
+  render() {
     let initialData = {
       name: this.props.asset.name,
       permissions: this.props.asset.permissions,
@@ -578,8 +628,6 @@ export class ProjectSettingsEditor extends React.Component {
 
     return (
       <ProjectSettings
-        onSubmit={this.updateAsset}
-        submitButtonValue={t('Save Changes')}
         initialData={initialData}
         context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
         iframeUrl={this.props.iframeUrl}

@@ -32,8 +32,7 @@ class Modal extends React.Component {
     this.state = {
       enketopreviewlink: false,
       error: false,
-      modalClass: false,
-      newFormAsset: undefined
+      modalClass: false
     };
     autoBind(this);
   }
@@ -93,24 +92,6 @@ class Modal extends React.Component {
   }
   setModalTitle(title) {
     this.setState({title: title});
-  }
-  createNewForm (settingsComponent) {
-    dataInterface.createResource({
-      name: settingsComponent.state.name,
-      settings: JSON.stringify({
-        description: settingsComponent.state.description,
-        sector: settingsComponent.state.sector,
-        country: settingsComponent.state.country,
-        'share-metadata': settingsComponent.state['share-metadata']
-      }),
-      asset_type: 'survey',
-    }).done((asset) => {
-      this.setState({
-        newFormAsset: asset
-      });
-    }).fail(function(r){
-      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
-    });
   }
   enketoSnapshotCreation (data) {
     if (data.success) {
@@ -173,17 +154,14 @@ class Modal extends React.Component {
             { this.props.params.type == MODAL_TYPES.NEW_FORM &&
               <ProjectSettings
                 context={PROJECT_SETTINGS_CONTEXTS.NEW}
-                onSubmit={this.createNewForm}
                 onSetModalTitle={this.setModalTitle}
-                submitButtonValue={t('Create Project')}
-                newFormAsset={this.state.newFormAsset}
               />
             }
             { this.props.params.type == MODAL_TYPES.REPLACE_PROJECT &&
               <ProjectSettings
                 context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
                 onSetModalTitle={this.setModalTitle}
-                newFormAsset={this.props.params.asset}
+                formAsset={this.props.params.asset}
               />
             }
             { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink &&
@@ -239,7 +217,6 @@ class Modal extends React.Component {
       </ui.Modal>
     )
   }
-
 };
 
 reactMixin(Modal.prototype, Reflux.ListenerMixin);
