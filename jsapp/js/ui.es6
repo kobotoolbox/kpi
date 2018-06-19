@@ -80,24 +80,27 @@ class Modal extends React.Component {
   render () {
     return (
       // m={['done', isSearch ? 'search' : 'default']}
-      <div className={classNames('modal-backdrop', this.props.className,
-            this.props.large ? 'modal-large' : null,
-            this.props.error ? 'modal-error' : null,
-            this.props.title ? 'modal-titled' : null)}
-          onClick={this.backdropClick}>
-        <div className={classNames(this.props.open ? 'modal-open' : 'modal', this.props.icon ? 'modal--withicon' : null)}>
-          {this.props.icon ?
+      <div
+        className={classNames(
+          'modal__backdrop',
+          this.props.className,
+          this.props.large ? 'modal--large' : null
+        )}
+        onClick={this.backdropClick}
+      >
+        <div className={classNames(this.props.open ? 'modal--open' : 'modal', this.props.icon ? 'modal--withicon' : null)}>
+          {this.props.icon &&
             <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
-          :null}
-          <div className={classNames('modal-content')}>
-            <div className="modal-header">
+          }
+          <bem.Modal__content>
+            <bem.Modal__header>
               {this.renderTitle()}
-              <a className="modal-x" type="button" onClick={this.props.onClose}>
+              <a className="modal__x" type="button" onClick={this.props.onClose}>
                 <i className="k-icon-close"/>
               </a>
-            </div>
+            </bem.Modal__header>
             {this.props.children}
-          </div>
+          </bem.Modal__content>
         </div>
       </div>
     );
@@ -109,7 +112,7 @@ class Footer extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-footer">{this.props.children}</div>;
+    return <bem.Modal__footer>{this.props.children}</bem.Modal__footer>;
   }
 };
 
@@ -120,7 +123,7 @@ class Body extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-body">{this.props.children}</div>;
+    return <bem.Modal__body>{this.props.children}</bem.Modal__body>;
   }
 };
 
@@ -131,7 +134,7 @@ class Tabs extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-tabs">{this.props.children}</div>;
+    return <bem.Modal__tabs>{this.props.children}</bem.Modal__tabs>;
   }
 };
 

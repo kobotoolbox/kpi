@@ -267,12 +267,10 @@ export class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <bem.FormModal__item m='create-project-step-form-source'>
-        <bem.FormModal__item m='upload-note'>
-          <label className="long">
-            {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
-          </label>
-        </bem.FormModal__item>
+      <bem.FormModal__item className='project-settings'>
+        <bem.Modal__subheader>
+          {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
+        </bem.Modal__subheader>
 
         <bem.FormModal__item m='form-source-buttons'>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
@@ -303,25 +301,27 @@ export class ProjectSettings extends React.Component {
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__item m='create-project-step-choose-template'>
+      <bem.FormModal__item className='project-settings'>
         <TemplatesList onSelectTemplate={this.handleTemplateSelected}/>
 
-        <button
-          onClick={this.chooseTemplate}
-          disabled={!this.state.chooseTemplateButtonEnabled}
-          className="create-project-forward-button mdl-js-button"
-        >
-          {this.state.chooseTemplateButton}
-        </button>
+        <bem.FormModal__item m='actions'>
+          <button
+            onClick={this.chooseTemplate}
+            disabled={!this.state.chooseTemplateButtonEnabled}
+            className="project-settings-forward-button mdl-js-button"
+            >
+              {this.state.chooseTemplateButton}
+            </button>
 
-        {this.renderBackButton()}
+            {this.renderBackButton()}
+        </bem.FormModal__item>
       </bem.FormModal__item>
     );
   }
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__item m='create-project-step-upload-file'>
+      <bem.FormModal__item className='project-settings'>
         <div className="intro">
           {t('Import an XLSForm from your computer.')}
         </div>
@@ -338,14 +338,16 @@ export class ProjectSettings extends React.Component {
           {t(' Drag and drop the XLSForm file here or click to browse')}
         </Dropzone>
 
-        {this.renderBackButton()}
+        <bem.FormModal__item m='actions'>
+          {this.renderBackButton()}
+        </bem.FormModal__item>
       </bem.FormModal__item>
     );
   }
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__item m='create-project-step-import-url'>
+      <bem.FormModal__item className='project-settings'>
         <div className="intro">
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
           <a href={formViaUrlHelpLink} target="_blank">
@@ -366,15 +368,17 @@ export class ProjectSettings extends React.Component {
           onChange={event => this.importUrlChange(event.target.value)}
         />
 
-        <button
-          onClick={this.importFromURL}
-          disabled={!this.state.importUrlButtonEnabled}
-          className="create-project-forward-button mdl-js-button"
-        >
-          {this.state.importUrlButton}
-        </button>
+        <bem.FormModal__item m='actions'>
+          <button
+            onClick={this.importFromURL}
+            disabled={!this.state.importUrlButtonEnabled}
+            className="project-settings-forward-button mdl-js-button"
+          >
+            {this.state.importUrlButton}
+          </button>
 
-        {this.renderBackButton()}
+          {this.renderBackButton()}
+        </bem.FormModal__item>
       </bem.FormModal__item>
     );
   }
@@ -384,21 +388,19 @@ export class ProjectSettings extends React.Component {
     const countries = session.currentAccount.available_countries;
 
     return (
-      <bem.FormModal__form onSubmit={this.onSubmit}>
+      <bem.FormModal__form onSubmit={this.onSubmit} className='project-settings'>
         {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
-          <bem.FormModal__item m='upload-note'>
+          <bem.Modal__subheader>
             <i className="k-icon-alert" />
-            <label className="long">
-              {t('Enter your project details below. In the next step, you can import an XLSForm (via upload or URL) or design the form from scratch in the Form Builder. ')}
-            </label>
-          </bem.FormModal__item>
+            {t('Enter your project details below. In the next step, you can import an XLSForm (via upload or URL) or design the form from scratch in the Form Builder. ')}
+          </bem.Modal__subheader>
         }
 
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-          <bem.FormModal__item m={['actions', 'fixed']}>
+          <bem.FormModal__item m='actions'>
             <button
               onClick={this.onSubmit}
-              className="create-project-forward-button mdl-js-button"
+              className="project-settings-forward-button mdl-js-button"
             >
               {this.props.submitButtonValue}
             </button>
@@ -476,10 +478,12 @@ export class ProjectSettings extends React.Component {
             <bem.FormModal__item m='actions'>
               <button
                 onClick={this.onSubmit}
-                className="create-project-forward-button mdl-js-button"
+                className="project-settings-forward-button mdl-js-button"
               >
                 {this.props.submitButtonValue}
               </button>
+
+              {this.renderBackButton()}
             </bem.FormModal__item>
           }
 
@@ -487,9 +491,7 @@ export class ProjectSettings extends React.Component {
             <bem.FormView__cell m='iframe'>
               <iframe src={this.props.iframeUrl} />
             </bem.FormView__cell>
-
           }
-          {this.renderBackButton()}
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
@@ -499,7 +501,7 @@ export class ProjectSettings extends React.Component {
     if (this.state.previousStep) {
       return (
         <button
-          className='create-project-back-button'
+          className='project-settings-back-button'
           onClick={this.displayPreviousStep}
         >
           {t('Back')}

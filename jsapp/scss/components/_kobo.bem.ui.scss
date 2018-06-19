@@ -482,7 +482,9 @@ iframe {
 
 // modal forms
 .form-modal__item {
-  margin-bottom: 15px;
+  &:not(:last-child) {
+    margin-bottom: 15px;
+  }
 
   &--sector, &--country {
     width: 50%;
@@ -600,9 +602,9 @@ iframe {
     @include box-shadow;
   }
 
-  &--actions {
+  &.form-modal__item--actions {
     text-align: right;
-    padding-top: 10px;
+    margin-top: 20px;
   }
 }
 

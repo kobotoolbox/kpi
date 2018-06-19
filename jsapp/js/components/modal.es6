@@ -67,14 +67,14 @@ class Modal extends React.Component {
 
         this.setState({
           title: t('Form Preview'),
-          modalClass: 'modal-large'
+          modalClass: 'modal--large'
         });
         break;
 
       case MODAL_TYPES.SUBMISSION:
         this.setState({
           title: this.submissionTitle(this.props),
-          modalClass: 'modal-large modal-submission',
+          modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid
         });
         break;
