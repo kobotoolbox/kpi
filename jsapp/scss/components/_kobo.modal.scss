@@ -30,7 +30,7 @@
   }
 
   .modal__content {
-    overflow: hidden;
+    overflow: auto;
     background-color: #FFF;
   }
 
@@ -94,6 +94,10 @@
         @extend .mdl-button--colored, .mdl-button--raised;
         padding-left: 40px;
         padding-right: 40px;
+      }
+
+      &.modal__footer-button--secondary {
+        @extend .mdl-button--colored;
       }
 
       &.modal__footer-button--danger {
@@ -333,7 +337,7 @@
 
 .enketo-holder {
   // resets modal window paddings
-  margin: -30px -35px;
+  margin: -30px -30px;
 
   .enketo-loading-message {
     p {

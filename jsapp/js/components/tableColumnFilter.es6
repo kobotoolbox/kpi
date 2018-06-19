@@ -211,18 +211,17 @@ export class TableColumnFilter extends React.Component {
             </bem.FormModal__item>
           </bem.FormModal__item>
         }
-        <div className='tableColumn-modal--footer'>
+        <bem.Modal__footer>
           {this.userCan('change_asset', this.props.asset) &&
-            <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
+            <bem.Modal__footerButton m='secondary' onClick={this.resetTableSettings}>
               {t('Reset')}
-            </button>
+            </bem.Modal__footerButton>
           }
 
-          <button className="mdl-button mdl-button--raised mdl-button--colored"
-                  onClick={this.saveTableColumns}>
+          <bem.Modal__footerButton m='primary' onClick={this.saveTableColumns}>
             {t('Save')}
-          </button>
-        </div>
+          </bem.Modal__footerButton>
+        </bem.Modal__footer>
 
       </div>
     )
