@@ -11,7 +11,113 @@ from kpi.views import AssetOwnerFilterBackend
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    """
 
+    ## External services
+
+    Lists the external services endpoints accessible to requesting user
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/{asset_uid}/hooks/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
+
+    ## CRUD
+
+    * `asset_uid` - is the unique identifier of a specific asset
+    * `uid` - is the unique identifier of a specific external service
+
+    #### Retrieves an external service
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{asset_uid}</code>/hooks/<code>{uid}</code>
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
+
+    #### Add an external service to asset.
+    <pre class="prettyprint">
+    <b>POST</b> /assets/<code>{asset_uid}</code>/hooks/
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
+
+
+    > **Payload to create a new external service**
+    >
+    >        {
+    >           "name": {string},
+    >           "endpoint": {string},
+    >           "active": {boolean},
+    >           "export_type": {string}
+    >           "security_level": {string},
+    >           "settings": {
+    >               "username": {string},
+    >               "password": {string},
+    >               "custom_headers": {
+    >                   {string}: {string}
+    >                   ...
+    >                   {string}: {string}
+    >               }
+    >           }
+    >        }
+
+    where
+
+    * `name` and `endpoint` are required
+    * `active` is True by default
+    * `export_type` must be one these values:
+
+        1. `json` (_default_)
+        2. `xml`
+
+    * `security_level` must be one these values:
+
+        1. `no_auth` (_default_)
+        2. `basic_auth`
+        3. `advanced_auth`
+
+    * `settings`.`custom_headers` is dictionary of `custom header`: `value`
+
+    For example:
+    >           "settings": {
+    >               "customer_headers": {
+    >                   "Authorization" : "Token 1af538baa9045a84c0e889f672baf83ff24"
+    >               }
+
+    #### Update an external service.
+    <pre class="prettyprint">
+    <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/{uid}
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
+
+
+    Only specify properties to update in the payload. See above for payload structure
+
+    #### Delete an external service.
+    <pre class="prettyprint">
+    <b>DELETE</b> /assets/<code>{asset_uid}</code>/hooks/{uid}
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
+
+    ### CURRENT ENDPOINT
+    """
     model = Hook
     lookup_field = "uid"
     filter_backends = (
