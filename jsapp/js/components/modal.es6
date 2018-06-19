@@ -18,6 +18,7 @@ import SharingForm from '../components/modalForms/sharingForm';
 import Submission from '../components/modalForms/submission';
 import TableColumnFilter from '../components/modalForms/tableColumnFilter';
 import TranslationSettings from '../components/modalForms/translationSettings';
+import TranslationTable from '../components/modalForms/translationTable';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -84,6 +85,12 @@ class Modal extends React.Component {
       case 'form-languages':
         this.setState({
           title: t('Manage languages and translations')
+        });
+      break;
+      case 'form-translation-table':
+        this.setState({
+          title: t('Translations table'),
+          modalClass: 'modal-large'
         });
       break;
 		}
@@ -227,6 +234,9 @@ class Modal extends React.Component {
             }
             { this.props.params.type == 'form-languages' &&
               <TranslationSettings asset={this.props.params.asset}/>
+            }
+            { this.props.params.type == 'form-translation-table' &&
+              <TranslationTable asset={this.props.params.asset} langIndex={this.props.params.langIndex} />
             }
         </ui.Modal.Body>
       </ui.Modal>

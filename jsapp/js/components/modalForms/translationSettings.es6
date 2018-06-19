@@ -12,8 +12,8 @@ import stores from 'js/stores';
 import mixins from 'js/mixins';
 import ui from 'js/ui';
 import actions from 'js/actions';
-import {dataInterface} from 'js/dataInterface';
-import {t,getLangAsObject, getLangString, notify} from 'utils';
+
+import {t, getLangAsObject, getLangString, notify} from 'utils';
 
 class LanguageForm extends React.Component {
   constructor(props) {
@@ -121,6 +121,18 @@ export class TranslationSettings extends React.Component {
       });
     }
   }
+  launchTranslationTableModal(e) {
+    let index = parseInt($(e.target).closest('[data-index]').get(0).getAttribute('data-index')),
+        asset = this.props.asset;
+    stores.pageState.hideModal();
+    window.setTimeout(function(){
+      stores.pageState.showModal({
+        type: 'form-translation-table',
+        asset: asset,
+        langIndex: index
+      });
+    }, 300);
+  }
   addOrUpdateLanguage(lang, index) {
     let content = this.props.asset.content;
     if (index > -1) {
@@ -223,7 +235,6 @@ export class TranslationSettings extends React.Component {
     );
   }
   render () {
-    this.prepareTranslations(this.props.asset.content);
     return (
       <bem.FormModal m='translation-settings'>
           {!this.state.showTranslations &&
@@ -249,6 +260,7 @@ export class TranslationSettings extends React.Component {
                         {i > 0 &&
                           <bem.FormView__link m='translate'
                                               data-index={i}
+                                              onClick={this.launchTranslationTableModal}
                                               data-tip={t('Update translations')}>
                             <i className="k-icon-globe" />
                           </bem.FormView__link>

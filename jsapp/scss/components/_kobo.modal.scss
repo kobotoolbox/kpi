@@ -527,6 +527,16 @@
   }
 }
 
+.form-modal--translation-table {
+  height: 100%;
+  display: flex;
+  width: 100%;
+
+  .ReactTable {
+    width: 100%;
+  }
+}
+
 // alertify overrides
 
 .alertify .ajs-dimmer {
