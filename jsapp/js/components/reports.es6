@@ -700,7 +700,7 @@ class ReportStyleSettings extends React.Component {
                           onChange={this.translationIndexChange}
                           checked={this.props.parentState.asset.content.translations[reportStyle.translationIndex] === row ? true : false}
                           id={'translation-' + i} />
-                        {row}
+                        {row || t('Unnamed language')}
                       </label>
                     );
                   })
@@ -904,7 +904,7 @@ class Reports extends React.Component {
         showReportGraphSettings: false,
         currentQuestionGraph: false,
         currentCustomReport: false,
-        groupBy: reportStyles.default.groupDataBy
+        groupBy: (reportStyles.default && reportStyles.default.groupDataBy) ? reportStyles.default.groupDataBy : false
       });
     }
   }
@@ -1167,7 +1167,7 @@ class Reports extends React.Component {
             <bem.PrintOnly>
               <h3>{asset.name}</h3>
             </bem.PrintOnly>
-            {this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+            {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
               <bem.FormView__cell m={['centered', 'reportLimit']}>
                 <div>
                   {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
