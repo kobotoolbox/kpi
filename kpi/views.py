@@ -655,15 +655,22 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
     def get_queryset(self):
         _asset_uid = self.get_parents_query_dict()['asset']
         _queryset = self.model.objects.filter(asset__uid=_asset_uid)
-        _queryset = _queryset.filter(asset__uid=_asset_uid)
         return _queryset
 
     def perform_create(self, serializer):
-        _asset_uid = self.get_parents_query_dict()['asset']
+        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
+        if not self.request.user.has_perm('change_asset', asset):
+            raise exceptions.PermissionDenied()
         serializer.save(
-            asset=Asset.objects.get(uid=_asset_uid),
+            asset=asset,
             user=self.request.user
         )
+
+    def perform_destroy(self, *args, **kwargs):
+        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
+        if not self.request.user.has_perm('change_asset', asset):
+            raise exceptions.PermissionDenied()
+        return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
 
     @detail_route(methods=['get'])
     def content(self, *args, **kwargs):
