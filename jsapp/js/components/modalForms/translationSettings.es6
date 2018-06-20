@@ -78,7 +78,6 @@ export class TranslationSettings extends React.Component {
     super(props);
     this.state = {
       translations: props.asset.content.translations || [],
-      showTranslations: false,
       showAddLanguageForm: false,
       renameLanguageIndex: -1
     }
@@ -91,7 +90,9 @@ export class TranslationSettings extends React.Component {
     let uid = this.props.asset.uid;
 
     this.setState({
-      translations: asset[uid].content.translations
+      translations: asset[uid].content.translations,
+      showAddLanguageForm: false,
+      renameLanguageIndex: -1
     })
 
     stores.pageState.showModal({
@@ -237,78 +238,71 @@ export class TranslationSettings extends React.Component {
   render () {
     return (
       <bem.FormModal m='translation-settings'>
-          {!this.state.showTranslations &&
-            <bem.FormModal__item>
-              <bem.FormView__cell m='label'>
-                {t('Current languages')}
-              </bem.FormView__cell>
-              {this.state.translations.map((l, i)=> {
-                return (
-                  <React.Fragment key={`lang-${i}`}>
-                    <bem.FormView__cell m='translation'>
-                      <bem.FormView__cell>
-                        {l ? l : t('Unnamed language')}
-                        <em>{i === 0 ? ` ${t('default')}` : ''}</em>
-                      </bem.FormView__cell>
-                      <bem.FormView__cell m='translation-actions'>
-                        <bem.FormView__link m='rename'
-                                            onClick={this.toggleRenameLanguageForm}
-                                            data-index={i}
-                                            data-tip={t('Edit language')}>
-                          <i className="k-icon-edit" />
-                        </bem.FormView__link>
-                        {i > 0 &&
-                          <bem.FormView__link m='translate'
-                                              data-index={i}
-                                              onClick={this.launchTranslationTableModal}
-                                              data-tip={t('Update translations')}>
-                            <i className="k-icon-globe" />
-                          </bem.FormView__link>
-                        }
-                        {i > 0 &&
-                          <bem.FormView__link m='translate'
-                                              onClick={this.deleteLanguage}
-                                              data-index={i}
-                                              data-tip={t('Delete language')}>
-                            <i className='k-icon-trash' />
-                          </bem.FormView__link>
-                        }
-                      </bem.FormView__cell>
-                    </bem.FormView__cell>
-                    {this.state.renameLanguageIndex === i &&
-                      <bem.FormView__cell m='update-language-form'>
-                        <LanguageForm langString={l} langIndex={i} addOrUpdateLanguage={this.addOrUpdateLanguage}/>
-                      </bem.FormView__cell>
-                    }
-                  </React.Fragment>
-                );
-              })}
-              {!this.state.showAddLanguageForm &&
-                <bem.FormView__cell m='add-language'>
-                  <button className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
-                          onClick={this.showAddLanguageForm}>
-                    {t('Add language')}
-                  </button>
-                </bem.FormView__cell>
-              }
-              {this.state.showAddLanguageForm &&
-                <bem.FormView__cell m='add-language-form'>
-                  <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
-                    <i className="k-icon-close" />
-                  </bem.FormView__link>
-                  <bem.FormView__cell m='label'>
-                    {t('Add a new language')}
+        <bem.FormModal__item>
+          <bem.FormView__cell m='label'>
+            {t('Current languages')}
+          </bem.FormView__cell>
+          {this.state.translations.map((l, i)=> {
+            return (
+              <React.Fragment key={`lang-${i}`}>
+                <bem.FormView__cell m='translation'>
+                  <bem.FormView__cell>
+                    {l ? l : t('Unnamed language')}
+                    <em>{i === 0 ? ` ${t('default')}` : ''}</em>
                   </bem.FormView__cell>
-                  <LanguageForm addOrUpdateLanguage={this.addOrUpdateLanguage}/>
+                  <bem.FormView__cell m='translation-actions'>
+                    <bem.FormView__link m='rename'
+                                        onClick={this.toggleRenameLanguageForm}
+                                        data-index={i}
+                                        data-tip={t('Edit language')}>
+                      <i className="k-icon-edit" />
+                    </bem.FormView__link>
+                    {i > 0 &&
+                      <bem.FormView__link m='translate'
+                                          data-index={i}
+                                          onClick={this.launchTranslationTableModal}
+                                          data-tip={t('Update translations')}>
+                        <i className="k-icon-globe" />
+                      </bem.FormView__link>
+                    }
+                    {i > 0 &&
+                      <bem.FormView__link m='translate'
+                                          onClick={this.deleteLanguage}
+                                          data-index={i}
+                                          data-tip={t('Delete language')}>
+                        <i className='k-icon-trash' />
+                      </bem.FormView__link>
+                    }
+                  </bem.FormView__cell>
                 </bem.FormView__cell>
-              }
-            </bem.FormModal__item>
+                {this.state.renameLanguageIndex === i &&
+                  <bem.FormView__cell m='update-language-form'>
+                    <LanguageForm langString={l} langIndex={i} addOrUpdateLanguage={this.addOrUpdateLanguage}/>
+                  </bem.FormView__cell>
+                }
+              </React.Fragment>
+            );
+          })}
+          {!this.state.showAddLanguageForm &&
+            <bem.FormView__cell m='add-language'>
+              <button className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+                      onClick={this.showAddLanguageForm}>
+                {t('Add language')}
+              </button>
+            </bem.FormView__cell>
           }
-          {this.state.showTranslations &&
-            <div>
-              {t('asdasd 123 - translations for ?')}
-            </div>
+          {this.state.showAddLanguageForm &&
+            <bem.FormView__cell m='add-language-form'>
+              <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
+                <i className="k-icon-close" />
+              </bem.FormView__link>
+              <bem.FormView__cell m='label'>
+                {t('Add a new language')}
+              </bem.FormView__cell>
+              <LanguageForm addOrUpdateLanguage={this.addOrUpdateLanguage}/>
+            </bem.FormView__cell>
           }
+        </bem.FormModal__item>
       </bem.FormModal>
     );
   }

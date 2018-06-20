@@ -370,7 +370,7 @@ export class FormLanding extends React.Component {
                 <i className="k-icon-clone"/>
                 {t('Clone this project')}
               </bem.PopoverMenu__link>
-              {this.state.content.survey.length > 0 &&
+              {userCanEdit && this.state.content.survey.length > 0 &&
                 <bem.PopoverMenu__link onClick={this.languagesModal}>
                   <i className="k-icon-language"/>
                   {t('Add/Edit Languages')}
