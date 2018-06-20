@@ -477,6 +477,11 @@
     padding: 6px 0px;
   }
 
+  .form-view__cell--translation-actions {
+    min-width: 150px;
+    text-align: right;
+  }
+
   .form-view__cell--add-language {
     margin-top: 20px;
     text-align: right;

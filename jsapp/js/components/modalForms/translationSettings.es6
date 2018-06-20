@@ -188,9 +188,11 @@ export class TranslationSettings extends React.Component {
     }
 
     // append null values to translations for each survey row
-    for (var i = 0, len = choices.length; i < len; i++) {
-      if (choices[i].label.length < translationsLength) {
-        choices[i].label.push(null);
+    if (content.choices && content.choices.length) {
+      for (var i = 0, len = choices.length; i < len; i++) {
+        if (choices[i].label.length < translationsLength) {
+          choices[i].label.push(null);
+        }
       }
     }
     return content;

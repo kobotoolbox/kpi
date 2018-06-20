@@ -37,16 +37,18 @@ export class TranslationTable extends React.Component {
     }
 
     // add choice options to translation table
-    for (var i = 0, len = choices.length; i < len; i++) {
-      let choice = choices[i];
-      var tableRow = {
-        original: choice.label[0],
-        translation: choice.label[props.langIndex],
-        name: choice.name || choice.$autovalue,
-        itemProp: 'label',
-        contentProp: 'choices'
+    if (choices && choices.length) {
+      for (var i = 0, len = choices.length; i < len; i++) {
+        let choice = choices[i];
+        var tableRow = {
+          original: choice.label[0],
+          translation: choice.label[props.langIndex],
+          name: choice.name || choice.$autovalue,
+          itemProp: 'label',
+          contentProp: 'choices'
+        }
+        this.state.tableData.push(tableRow);
       }
-      this.state.tableData.push(tableRow);
     }
   }
   onChange(value, index) {
@@ -96,7 +98,7 @@ export class TranslationTable extends React.Component {
                         <td className={item.translation ? 'translation' : 'translation missing'}>
                           <TextareaAutosize
                             onChange={e => this.onChange(e.target.value, i)}
-                            value={item.translation}/>
+                            value={item.translation || ''}/>
                         </td>
                       </tr>
                     );
