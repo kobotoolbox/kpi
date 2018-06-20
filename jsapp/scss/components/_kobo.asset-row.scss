@@ -14,8 +14,9 @@ $hover-transition: 0.3s opacity;
 
   &:hover {
     background: $hover-asset-row;
+
     // avoid displaying border over tooltip
-     z-index: 1;
+    z-index: 1;
   }
 
   > .asset-row__cell {
@@ -116,6 +117,8 @@ $hover-transition: 0.3s opacity;
     visibility: hidden;
     transition: $hover-transition;
     background: $hover-asset-row;
+    padding-left: 4px;
+    box-shadow: -5px 0px 15px 0px $hover-asset-row;
   }
 
   .asset-row__action-icon {
@@ -161,12 +164,9 @@ $hover-transition: 0.3s opacity;
       opacity: 1;
       visibility: visible;
       transition: $hover-transition;
+
       // make them appear moment after items behind starts to disappear
       transition-delay: 0.1s;
-    }
-
-    .date--modified {
-      visibility: hidden;
     }
 
     a.asset-row__celllink {
