@@ -1,6 +1,4 @@
 $hover-asset-row: #F2F2F3;
-$s-asset-row-icon: 36px;
-$s-asset-row: 52px;
 $hover-transition: 0.3s opacity;
 
 .asset-row {
@@ -9,7 +7,7 @@ $hover-transition: 0.3s opacity;
   padding: 6px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height: $s-asset-row;
+  min-height: 52px;
   opacity: 1;
   position: relative;
   align-items: flex-start;
@@ -67,7 +65,7 @@ $hover-transition: 0.3s opacity;
     border: 1px solid $cool-green;
     font-size: 13px;
     color: $cool-green;
-    width: $s-asset-row-icon;
+    width: 36px;
     border-radius: 10px;
     display: inline-block;
     margin-right: 10px;
@@ -109,13 +107,15 @@ $hover-transition: 0.3s opacity;
 
   > .asset-row__buttons {
     position: absolute;
-    top: ($s-asset-row - $s-asset-row-icon) * 0.5;
+    top: 50%;
+    transform: translateY(-50%);
     right: 6px;
     width: auto;
     text-align: right;
     opacity: 0;
     visibility: hidden;
     transition: $hover-transition;
+    background: $hover-asset-row;
   }
 
   .asset-row__action-icon {
@@ -135,23 +135,15 @@ $hover-transition: 0.3s opacity;
       @extend .k-icon, .k-icon-folder;
     }
 
-    i:before {
+    i::before {
       margin: 0px;
-      font-size: $s-asset-row-icon;
+      font-size: 36px;
     }
   }
 
   &--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
     color: $cool-blue;
-  }
-
-  .asset-row__cell--asset-details > .asset-row__cell:not(:first-of-type) {
-    opacity: 1;
-    visibility: visible;
-    transition: $hover-transition;
-    // make them reappear moment after items in front of them starts to disappear
-    transition-delay: 0.1s;
   }
 
   a.asset-row__celllink {
@@ -171,13 +163,6 @@ $hover-transition: 0.3s opacity;
       transition: $hover-transition;
       // make them appear moment after items behind starts to disappear
       transition-delay: 0.1s;
-    }
-
-    // hide all columns but first one
-    .asset-row__cell--asset-details > .asset-row__cell:not(:first-of-type) {
-      opacity: 0;
-      visibility: hidden;
-      transition: $hover-transition;
     }
 
     .date--modified {
