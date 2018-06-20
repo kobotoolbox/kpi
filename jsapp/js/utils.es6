@@ -255,6 +255,9 @@ export function koboMatrixParser(params) {
   return params;
 }
 
+/*
+ * Displays a prompt for cloning asset, requires <targetType>
+ */
 export function cloneAssetAsNewType({
   sourceUid,
   targetType,

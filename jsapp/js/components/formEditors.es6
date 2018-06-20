@@ -78,7 +78,7 @@ export class ProjectSettings extends React.Component {
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
-      applyTemplateButtonEnabled: false,
+      isApplyTemplatePending: false,
       applyTemplateButton: t('Choose'),
       chosenTemplateUid: null
     }
@@ -160,8 +160,14 @@ export class ProjectSettings extends React.Component {
 
   onTemplateChange(templateUid) {
     this.setState({
-      applyTemplateButtonEnabled: true,
       chosenTemplateUid: templateUid
+    });
+  }
+
+  resetApplyTemplateButton() {
+    this.setState({
+      isApplyTemplatePending: false,
+      applyTemplateButton: t('Choose')
     });
   }
 
@@ -255,23 +261,23 @@ export class ProjectSettings extends React.Component {
     evt.preventDefault();
 
     this.setState({
-      applyTemplateButtonEnabled: false,
+      isApplyTemplatePending: true,
       applyTemplateButton: t('Creating…')
     });
 
-    dataInterface.patchAsset(this.props.formAsset.uid, {
-      clone_from: this.state.chosenTemplateUid,
-      asset_type: 'template'
-    }).done(() => {
-      // open created project
-      this.goToFormLanding();
-    }).fail((data) => {
-      // reset button and display error notification
-      this.setState({
-        applyTemplateButtonEnabled: true,
-        applyTemplateButton: t('Choose')
-      });
-      alertify.error(t('Could not create project!'));
+    actions.resources.cloneAsset({
+      uid: this.state.chosenTemplateUid,
+      new_asset_type: 'survey'
+    }, {
+      onComplete: (asset) => {
+        console.debug('applied template', asset);
+        this.resetApplyTemplateButton();
+        this.displayStep(this.STEPS.PROJECT_DETAILS);
+      },
+      onFailed: (asset) => {
+        this.resetApplyTemplateButton();
+        alertify.error(t('Could not create project!'));
+      }
     });
   }
 
@@ -367,7 +373,7 @@ export class ProjectSettings extends React.Component {
           <bem.Modal__footerButton
             m='primary'
             onClick={this.applyTemplate}
-            disabled={!this.state.applyTemplateButtonEnabled}
+            disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
             className="mdl-js-button"
           >
             {this.state.applyTemplateButton}
@@ -572,7 +578,7 @@ export class ProjectSettings extends React.Component {
         <bem.Modal__footerButton
           m='back'
           onClick={this.displayPreviousStep}
-          disabled={this.state.isSubmitPending}
+          disabled={this.state.isSubmitPending || this.state.isApplyTemplatePending}
         >
           {t('Back')}
         </bem.Modal__footerButton>
