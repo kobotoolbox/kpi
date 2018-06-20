@@ -357,10 +357,21 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values){
+actions.resources.updateAsset.listen(function(uid, values, params={}) {
+  let onComplete;
+  if (params && params.onComplete) {
+    onComplete = params.onComplete;
+  }
+
+  let hideDefaultDoneMessage = false;
+  if (params && params.hideDefaultDoneMessage) {
+    hideDefaultDoneNotification = Boolean(params.hideDefaultDoneNotification)
+  }
+
   dataInterface.patchAsset(uid, values)
     .done(function(asset){
       actions.resources.updateAsset.completed(asset);
+      if (onComplete) {onComplete(asset);}
       notify(t('successfully updated'));
     })
     .fail(function(resp){

@@ -65,27 +65,30 @@ export class ProjectSettings extends React.Component {
       PROJECT_DETAILS: 'project-details'
     }
 
-    let state = {
-      sessionLoaded: !!session.currentAccount,
-      name: '',
-      description: '',
-      sector: '',
-      country: '',
-      'share-metadata': false,
+    const formAsset = this.props.formAsset;
+
+    this.state = {
+      isSessionLoaded: !!session.currentAccount,
+      isSubmitPending: false,
+      formAsset: formAsset,
+      // project details
+      name: formAsset ? formAsset.name : '',
+      description: formAsset ? formAsset.settings.description : '',
+      sector: formAsset ? formAsset.settings.sector : null,
+      country: formAsset ? formAsset.settings.country : null,
+      'share-metadata': formAsset ? formAsset.settings['share-metadata'] : false,
+      // steps
       currentStep: null,
       previousStep: null,
-      isSubmitPending: false,
+      // importing url
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
+      // template
       isApplyTemplatePending: false,
       applyTemplateButton: t('Choose'),
       chosenTemplateUid: null
-    }
-    if (this.props.initialData !== undefined) {
-      assign(state, this.props.initialData);
-    }
-    this.state = state;
+    };
 
     autoBind(this);
   }
@@ -98,7 +101,7 @@ export class ProjectSettings extends React.Component {
     this.setInitialStep();
     this.listenTo(session, (session) => {
       this.setState({
-        sessionLoaded: true,
+        isSessionLoaded: true,
       });
     });
   }
@@ -109,7 +112,7 @@ export class ProjectSettings extends React.Component {
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return this.displayStep(this.STEPS.FORM_SOURCE);
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
-        return this.displayStep(this.STEPS.FORM_SOURCE);
+        return this.displayStep(this.STEPS.PROJECT_DETAILS);
       default:
         throw new Error(`Unknown context: ${this.props.context}!`);
     }
@@ -181,8 +184,8 @@ export class ProjectSettings extends React.Component {
   }
 
   goToFormLanding() {
-    hashHistory.push(`/forms/${this.props.formAsset.uid}/landing`);
     stores.pageState.hideModal();
+    hashHistory.push(`/forms/${this.state.formAsset.uid}/landing`);
   }
 
   /*
@@ -223,9 +226,7 @@ export class ProjectSettings extends React.Component {
    * handling asset creation
    */
 
-  createNewAsset() {
-    this.setState({isSubmitPending: true});
-
+  createAssetAndOpenInBuilder() {
     dataInterface.createResource({
       name: this.state.name,
       settings: JSON.stringify({
@@ -242,17 +243,25 @@ export class ProjectSettings extends React.Component {
     });
   }
 
-  updateAsset(settingsComponent) {
+  updateAndOpenAsset() {
     actions.resources.updateAsset(
-      this.props.asset.uid,
+      this.state.formAsset.uid,
       {
-        name: settingsComponent.state.name,
+        name: this.state.name,
         settings: JSON.stringify({
-          description: settingsComponent.state.description,
-          sector: settingsComponent.state.sector,
-          country: settingsComponent.state.country,
-          'share-metadata': settingsComponent.state['share-metadata']
+          description: this.state.description,
+          sector: this.state.sector,
+          country: this.state.country,
+          'share-metadata': this.state['share-metadata']
         }),
+      }, {
+        onComplete: () => {
+          // no need to open asset from withing asset's settings view
+          if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
+            this.goToFormLanding();
+          }
+        },
+        hideDefaultDoneNotification: true
       }
     );
   }
@@ -270,7 +279,14 @@ export class ProjectSettings extends React.Component {
       new_asset_type: 'survey'
     }, {
       onComplete: (asset) => {
-        console.debug('applied template', asset);
+        this.setState({
+          formAsset: asset,
+          name: asset.name,
+          description: asset.settings.description,
+          sector: asset.settings.sector,
+          country: asset.settings.country,
+          'share-metadata': asset.settings['share-metadata'] || false,
+        });
         this.resetApplyTemplateButton();
         this.displayStep(this.STEPS.PROJECT_DETAILS);
       },
@@ -288,7 +304,7 @@ export class ProjectSettings extends React.Component {
     if (!validUrl) {
       alertify.error(t('Please enter a valid URL'));
     } else {
-      let asset = this.props.formAsset;
+      let asset = this.state.formAsset;
       let params = {
         destination: asset.url,
         url: this.state.importUrl,
@@ -308,21 +324,24 @@ export class ProjectSettings extends React.Component {
     if (files.length === 0) {
       return;
     }
-    this.dropFiles(files, [], evt, { destination: this.props.formAsset.url });
+    this.dropFiles(files, [], evt, { destination: this.state.formAsset.url });
   }
 
   handleSubmit(evt) {
-    console.log('handleSubmit', evt);
     evt.preventDefault();
-  }
 
-  onSubmit (evt) {
-    console.log('onSubmit', evt);
-    evt.preventDefault();
+    // simple non-empty name validation
     if (!this.state.name.trim()) {
       alertify.error(t('Please enter a title for your project!'));
+      return
+    }
+
+    this.setState({isSubmitPending: true});
+
+    if (this.state.formAsset) {
+      this.updateAndOpenAsset();
     } else {
-      this.createNewAsset();
+      this.createAssetAndOpenInBuilder();
     }
   }
 
@@ -470,7 +489,7 @@ export class ProjectSettings extends React.Component {
           <bem.Modal__footer>
             <bem.Modal__footerButton
               m='primary'
-              onClick={this.onSubmit}
+              onClick={this.handleSubmit}
               className="mdl-js-button"
             >
               {t('Save Changes')}
@@ -551,14 +570,17 @@ export class ProjectSettings extends React.Component {
             <bem.Modal__footer>
               <bem.Modal__footerButton
                 m='primary'
-                onClick={this.onSubmit}
+                onClick={this.handleSubmit}
                 className="mdl-js-button"
                 disabled={this.state.isSubmitPending}
               >
                 {this.state.isSubmitPending ? t('Creating…') : t('Crate Project')}
               </bem.Modal__footerButton>
 
-              {this.renderBackButton()}
+              {/* Don't allow going back if asset already exist */}
+              {!this.state.formAsset &&
+                this.renderBackButton()
+              }
             </bem.Modal__footer>
           }
 
@@ -600,7 +622,7 @@ export class ProjectSettings extends React.Component {
   }
 
   render () {
-    if (!this.state.sessionLoaded || !this.state.currentStep) {
+    if (!this.state.isSessionLoaded || !this.state.currentStep) {
       return this.renderLoading();
     }
 
@@ -621,31 +643,6 @@ reactMixin(ProjectSettings.prototype, mixins.droppable);
 
 ProjectSettings.contextTypes = {
   router: PropTypes.object
-};
-
-export class ProjectSettingsEditor extends React.Component {
-  constructor(props){
-    super(props);
-    autoBind(this);
-  }
-
-  render() {
-    let initialData = {
-      name: this.props.asset.name,
-      permissions: this.props.asset.permissions,
-      owner: this.props.asset.owner__username,
-      assetid: this.props.asset.uid
-    };
-    assign(initialData, this.props.asset.settings);
-
-    return (
-      <ProjectSettings
-        initialData={initialData}
-        context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
-        iframeUrl={this.props.iframeUrl}
-      />
-    );
-  }
 };
 
 export class ProjectDownloads extends React.Component {
