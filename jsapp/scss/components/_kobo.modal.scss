@@ -530,10 +530,78 @@
 .form-modal--translation-table {
   height: 100%;
   display: flex;
+  flex-direction: column;
   width: 100%;
+  margin: 0;
+
+  .form-modal__item--translation-table--container {
+    height: calc(100% - 80px);
+    overflow: auto;
+    border: 1px solid $divider-color;
+  }
+
+  table {
+    width: 100%;
+    border-spacing: 0px;
+
+    tr {
+      th, td {
+        border-bottom: 1px solid $divider-color;
+        vertical-align: top;
+        text-align: left;
+        padding: 6px 8px;
+      }
+
+      th:first-child, td:first-child {
+        width: 30%;
+      }
+
+      th:last-child, td:last-child {
+        width: 70%;
+      }
+
+      td.translation {
+        padding: 0px;
+        padding-top: 4px;
+        background: lighten($cool-green, 41%);
+
+        &.missing {}
+      }
+    }
+
+    textarea {
+      border: none;
+      background: transparent;
+      width: 100%;
+      padding: 4px 8px;
+
+      &:focus {
+        background: lighten($cool-green, 36%);
+      }
+    }
+  }
 
   .ReactTable {
     width: 100%;
+
+    .rt-thead > .rt-tr,
+    .rt-tr-group > .rt-tr {
+      > .rt-th:first-child, > .rt-td:first-child {
+        min-width: 30%;
+        color: lighten($cool-gray, 10%);
+      }
+
+      > .rt-th:last-child, > .rt-td:last-child {
+        min-width: 70%;
+      }
+    }
+  }
+
+  .form-modal__item--translation-table--actions {
+    width: 100%;
+    text-align: right;
+    padding-top: 20px;
+    height: 80px;
   }
 }
 
