@@ -81,13 +81,16 @@ export class ProjectSettings extends React.Component {
       currentStep: null,
       previousStep: null,
       // importing url
+      isImportFromURLPending: false,
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
       // template
       isApplyTemplatePending: false,
       applyTemplateButton: t('Choose'),
-      chosenTemplateUid: null
+      chosenTemplateUid: null,
+      // upload files
+      isUploadFilePending: false
     };
 
     autoBind(this);
@@ -97,7 +100,7 @@ export class ProjectSettings extends React.Component {
    * setup
    */
 
-  componentDidMount () {
+  componentDidMount() {
     this.setInitialStep();
     this.listenTo(session, (session) => {
       this.setState({
@@ -133,27 +136,27 @@ export class ProjectSettings extends React.Component {
    * handling user input
    */
 
-  onNameChange (evt) {
+  onNameChange(evt) {
     this.setState({name: evt.target.value});
   }
 
-  onDescriptionChange (evt) {
+  onDescriptionChange(evt) {
     this.setState({description: evt.target.value});
   }
 
-  onCountryChange (val) {
+  onCountryChange(val) {
     this.setState({country: val});
   }
 
-  onSectorChange (val) {
+  onSectorChange(val) {
     this.setState({sector: val});
   }
 
-  onShareMetadataChange (evt) {
+  onShareMetadataChange(evt) {
     this.setState({'share-metadata': evt.target.checked});
   }
 
-  onImportUrlChange (value) {
+  onImportUrlChange(value) {
     this.setState({
       importUrl: value,
       importUrlButtonEnabled: value.length > 6 ? true : false,
@@ -326,12 +329,17 @@ export class ProjectSettings extends React.Component {
 
     if (isAValidUrl(this.state.importUrl)) {
       this.setState({
+        isImportFromURLPending: true,
         importUrlButtonEnabled: false,
         importUrlButton: t('Retrieving form, please wait...')
       });
 
       this.getOrCreateFormAsset().then(
         (asset) => {
+          this.setState({
+            isImportFromURLPending: false,
+            formAsset: asset
+          });
           this._forEachDroppedFile({
             destination: asset.url,
             url: this.state.importUrl,
@@ -346,11 +354,27 @@ export class ProjectSettings extends React.Component {
     }
   }
 
-  onDrop (files, rejectedFiles, evt) {
-    if (files.length === 0) {
-      return;
+  onFileDrop(files, rejectedFiles, evt) {
+    if (files.length >= 1) {
+      this.setState({
+        isUploadFilePending: true,
+        importUrlButtonEnabled: false,
+        importUrlButton: t('Retrieving form, please wait...')
+      });
+
+      this.getOrCreateFormAsset().then(
+        (asset) => {
+          this.setState({
+            formAsset: asset,
+            isUploadFilePending: false
+          });
+          this.dropFiles(files, [], evt, {destination: asset.url});
+        },
+        (errorMessage) => {
+          alertify.error(t('Could not import XLSForm!'))
+        }
+      );
     }
-    this.dropFiles(files, [], evt, { destination: this.state.formAsset.url });
   }
 
   handleSubmit(evt) {
@@ -438,7 +462,7 @@ export class ProjectSettings extends React.Component {
         </bem.Modal__subheader>
 
         <Dropzone
-          onDrop={this.onDrop.bind(this)}
+          onDrop={this.onFileDrop.bind(this)}
           multiple={false}
           className='dropzone'
           activeClassName='dropzone-active'
@@ -622,11 +646,17 @@ export class ProjectSettings extends React.Component {
 
   renderBackButton() {
     if (this.state.previousStep) {
+      const isBackButtonDisabled = (
+        this.state.isSubmitPending ||
+        this.state.isApplyTemplatePending ||
+        this.state.isImportFromURLPending ||
+        this.state.isUploadFilePending
+      )
       return (
         <bem.Modal__footerButton
           m='back'
           onClick={this.displayPreviousStep}
-          disabled={this.state.isSubmitPending || this.state.isApplyTemplatePending}
+          disabled={isBackButtonDisabled}
         >
           {t('Back')}
         </bem.Modal__footerButton>
@@ -647,7 +677,7 @@ export class ProjectSettings extends React.Component {
     );
   }
 
-  render () {
+  render() {
     if (!this.state.isSessionLoaded || !this.state.currentStep) {
       return this.renderLoading();
     }
