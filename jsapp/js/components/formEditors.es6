@@ -177,6 +177,14 @@ export class ProjectSettings extends React.Component {
     });
   }
 
+  resetImportUrlButton() {
+    this.setState({
+      isImportFromURLPending: false,
+      importUrlButtonEnabled: false,
+      importUrlButton: t('Import'),
+    });
+  }
+
   /*
    * routes navigation
    */
@@ -336,19 +344,34 @@ export class ProjectSettings extends React.Component {
 
       this.getOrCreateFormAsset().then(
         (asset) => {
-          this.setState({
-            isImportFromURLPending: false,
-            formAsset: asset
-          });
-          this._forEachDroppedFile({
-            destination: asset.url,
-            url: this.state.importUrl,
-            name: asset.name,
-            assetUid: asset.uid
-          });
+          this.setState({formAsset: asset});
+
+          this.applyUrlToAsset(this.state.importUrl, asset).then(
+            (data) => {
+              dataInterface.getAsset({id: data.uid}).done((freshAsset) => {
+                this.setState({
+                  formAsset: freshAsset,
+                  name: freshAsset.name,
+                  description: freshAsset.settings.description,
+                  sector: freshAsset.settings.sector,
+                  country: freshAsset.settings.country,
+                  'share-metadata': freshAsset.settings['share-metadata'],
+                  isImportFromURLPending: false
+                });
+                this.displayStep(this.STEPS.PROJECT_DETAILS);
+              }).fail(() => {
+                this.resetImportUrlButton();
+                alertify.error(t('Failed to reload project after import!'));
+              });
+            },
+            (data) => {
+              this.resetImportUrlButton();
+              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again.'));
+            }
+          );
         },
         (errorMessage) => {
-          alertify.error(t('Could not import XLSForm!'))
+          alertify.error(t('Could not initialize XLSForm import!'));
         }
       );
     }

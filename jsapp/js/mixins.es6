@@ -185,6 +185,50 @@ mixins.dmix = {
 };
 
 mixins.droppable = {
+  applyUrlToAsset(url, asset) {
+    const applyPromise = new Promise((resolve, reject) => {
+      const params = {
+        destination: asset.url,
+        url: url,
+        name: asset.name,
+        assetUid: asset.uid
+      };
+
+      dataInterface.postCreateImport(params).then((data)=> {
+        const doneCheckInterval = setInterval(() => {
+          dataInterface.getImportDetails({
+            uid: data.uid,
+          }).done((importData) => {
+            switch (importData.status) {
+              case 'complete':
+                const finalData = importData.messages.updated || importData.messages.created;
+                if (finalData && finalData.length > 0 && finalData[0].uid) {
+                  clearInterval(doneCheckInterval);
+                  resolve(finalData[0]);
+                } else {
+                  clearInterval(doneCheckInterval);
+                  reject(importData);
+                }
+                break;
+              case 'processing':
+              case 'created':
+                // TODO: notify promise awaiter about delay
+                break;
+              case 'error':
+              default:
+                clearInterval(doneCheckInterval);
+                reject(importData);
+            }
+          }).fail((failData)=>{
+            clearInterval(doneCheckInterval);
+            reject(failData);
+          });
+        }, 500);
+      });
+    });
+    return applyPromise;
+  },
+
   _forEachDroppedFile (params={}) {
     let router = this.context.router;
     let isProjectReplaceInForm = (
@@ -265,6 +309,7 @@ mixins.droppable = {
       alertify.error(t('Failed to create import.'));
     });
   },
+
   dropFiles (files, rejectedFiles, evt, pms={}) {
     files.map((file) => {
       var reader = new FileReader();
