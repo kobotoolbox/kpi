@@ -25,8 +25,9 @@
     box-sizing: border-box;
 
     &.templates-list__column--name {flex: 1;}
-    &.templates-list__column--date {width: 30%}
-    &.templates-list__column--questions {width: 20%;}
+    &.templates-list__column--owner {width: 20%}
+    &.templates-list__column--date {width: 25%}
+    &.templates-list__column--questions {width: 15%;}
   }
 
   .templates-list__template {

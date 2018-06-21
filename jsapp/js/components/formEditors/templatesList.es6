@@ -29,7 +29,8 @@ class TemplatesList extends React.Component {
       isLoading: false,
       templates: [],
       templatesCount: 0,
-      selectedTemplateUid: null
+      selectedTemplateUid: null,
+      currentAccountUsername: stores.session.currentAccount ? stores.session.currentAccount.username : null
     };
     autoBind(this);
   }
@@ -77,6 +78,9 @@ class TemplatesList extends React.Component {
             <bem.TemplatesList__column m='name'>
               {t('Template name')}
             </bem.TemplatesList__column>
+            <bem.TemplatesList__column m='owner'>
+              {t('Owner')}
+            </bem.TemplatesList__column>
             <bem.TemplatesList__column m='date'>
               {t('Last modified')}
             </bem.TemplatesList__column>
@@ -87,6 +91,11 @@ class TemplatesList extends React.Component {
 
           {this.state.templates.map((template) => {
             const htmlId = `selected_template_${template.uid}`;
+            let owner = template.owner__username;
+            if (owner = this.state.currentAccountUsername) {
+              owner = t('me');
+            }
+
             return (
               <bem.TemplatesList__template
                 key={template.uid}
@@ -95,6 +104,9 @@ class TemplatesList extends React.Component {
               >
                 <bem.TemplatesList__column m='name'>
                   {template.name}
+                </bem.TemplatesList__column>
+                <bem.TemplatesList__column m='owner'>
+                  {owner}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='date'>
                   {formatTime(template.date_modified)}
