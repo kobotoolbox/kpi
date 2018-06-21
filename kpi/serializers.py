@@ -383,6 +383,7 @@ class AssetVersionListSerializer(serializers.Serializer):
     # `select_related()` calls  in `AssetVersionViewSet.get_queryset()`
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
+    content_hash = serializers.ReadOnlyField()
     date_deployed = serializers.SerializerMethodField(read_only=True)
     date_modified = serializers.CharField(read_only=True)
 
@@ -409,6 +410,7 @@ class AssetVersionSerializer(AssetVersionListSerializer):
                     'version_id',
                     'date_deployed',
                     'date_modified',
+                    'content_hash',
                     'content',
                   )
 
