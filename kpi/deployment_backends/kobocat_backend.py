@@ -259,7 +259,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
             }
         )
-        payload = {u'downloadable': active}
+        payload = {
+            u"downloadable": active,
+            u"has_kpi_hook": self.asset.has_active_hooks
+        }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
@@ -289,8 +292,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
         )
         payload = {
-            u'downloadable': active,
-            u'title': self.asset.name
+            u"downloadable": active,
+            u"title": self.asset.name,
+            u"has_kpi_hook": self.asset.has_active_hooks
         }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         try:
@@ -325,6 +329,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             'active': json_response['downloadable'],
             'backend_response': json_response,
+        })
+
+    def set_has_kpi_hooks(self):
+        """
+        PATCH `has_kpi_hooks` boolean of survey.
+        It lets `kc` know whether it needs to ping `kpi`
+        each time a submission comes in.
+
+        Store results in self.asset._deployment_data
+        """
+        has_active_hooks = self.asset.has_active_hooks
+        url = self.external_to_internal_url(
+            self.backend_response["url"])
+        payload = {
+            u"has_kpi_hooks": has_active_hooks
+        }
+        json_response = self._kobocat_request("PATCH", url, data=payload)
+        assert(json_response["has_kpi_hooks"] == has_active_hooks)
+        self.store_data({
+            "has_kpi_hooks": json_response.get("has_kpi_hooks"),
+            "backend_response": json_response,
         })
 
     def delete(self):

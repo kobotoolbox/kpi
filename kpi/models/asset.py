@@ -719,6 +719,15 @@ class Asset(ObjectPermissionMixin,
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
+    @property
+    def has_active_hooks(self):
+        """
+        Returns if asset has active hooks.
+        Useful to update `kc.XForm.has_kpi_hooks` field.
+        :return: {boolean}
+        """
+        return self.hooks.filter(active=True).exists()
+
 
 class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     '''

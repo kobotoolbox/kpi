@@ -653,6 +653,16 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
     '''
     parent_model = Asset
 
+    def create(self, request, *args, **kwargs):
+        """
+        This endpoint is handled by the SubmissionViewSet because it doesn't use KC proxy.
+        It's only used to trigger hook services of the Asset, so far.
+
+        :param request:
+        :return:
+        """
+        # TODO to implement when `kc` new rest_service is up
+        return Response("Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
