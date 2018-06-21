@@ -132,6 +132,10 @@ export class ProjectSettings extends React.Component {
     }
   }
 
+  getFilenameFromURI(url) {
+    return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0]);
+  }
+
   /*
    * handling user input
    */
@@ -348,14 +352,15 @@ export class ProjectSettings extends React.Component {
 
           this.applyUrlToAsset(this.state.importUrl, asset).then(
             (data) => {
-              dataInterface.getAsset({id: data.uid}).done((freshAsset) => {
+              dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
                 this.setState({
-                  formAsset: freshAsset,
-                  name: freshAsset.name,
-                  description: freshAsset.settings.description,
-                  sector: freshAsset.settings.sector,
-                  country: freshAsset.settings.country,
-                  'share-metadata': freshAsset.settings['share-metadata'],
+                  formAsset: finalAsset,
+                  // try proposing something more meaningful than "Untitled"
+                  name: this.getFilenameFromURI(this.state.importUrl),
+                  description: finalAsset.settings.description,
+                  sector: finalAsset.settings.sector,
+                  country: finalAsset.settings.country,
+                  'share-metadata': finalAsset.settings['share-metadata'],
                   isImportFromURLPending: false
                 });
                 this.displayStep(this.STEPS.PROJECT_DETAILS);
