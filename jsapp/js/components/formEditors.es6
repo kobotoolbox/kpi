@@ -226,6 +226,30 @@ export class ProjectSettings extends React.Component {
    * handling asset creation
    */
 
+  getOrCreateFormAsset() {
+    const assetPromise = new Promise((resolve, reject) => {
+      if (this.state.formAsset) {
+        resolve(this.state.FormAsset)
+      } else {
+        dataInterface.createResource({
+          name: 'Untitled',
+          asset_type: 'survey',
+          settings: JSON.stringify({
+            description: '',
+            sector: null,
+            country: null,
+            'share-metadata': false
+          })
+        }).done((asset) => {
+          resolve(asset);
+        }).fail(function(r){
+          reject(t('Error: asset could not be created.') + ` (code: ${r.statusText})`);
+        });
+      }
+    });
+    return assetPromise;
+  }
+
   createAssetAndOpenInBuilder() {
     dataInterface.createResource({
       name: this.state.name,
@@ -299,24 +323,26 @@ export class ProjectSettings extends React.Component {
 
   importFromURL(evt) {
     evt.preventDefault();
-    let validUrl = isAValidUrl(this.state.importUrl);
 
-    if (!validUrl) {
-      alertify.error(t('Please enter a valid URL'));
-    } else {
-      let asset = this.state.formAsset;
-      let params = {
-        destination: asset.url,
-        url: this.state.importUrl,
-        name: asset.name,
-        assetUid: asset.uid
-      };
-      this._forEachDroppedFile(params);
-
+    if (isAValidUrl(this.state.importUrl)) {
       this.setState({
         importUrlButtonEnabled: false,
         importUrlButton: t('Retrieving form, please wait...')
       });
+
+      this.getOrCreateFormAsset().then(
+        (asset) => {
+          this._forEachDroppedFile({
+            destination: asset.url,
+            url: this.state.importUrl,
+            name: asset.name,
+            assetUid: asset.uid
+          });
+        },
+        (errorMessage) => {
+          alertify.error(t('Could not import XLSForm!'))
+        }
+      );
     }
   }
 
