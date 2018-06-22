@@ -1,9 +1,21 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import alertify from 'alertifyjs';
 import bem from '../../bem';
+import dataInterface from '../../dataInterface';
 import actions from '../../actions';
+import stores from '../../stores';
 import Select from 'react-select';
 import {t} from '../../utils';
+
+const EXPORT_TYPES = {
+  JSON: 'json',
+  XML: 'xml'
+};
+const SECURITY_LEVELS = {
+  NO: 'no_auth',
+  BASIC: 'basic_auth'
+};
 
 export default class RESTServicesForm extends React.Component {
   constructor(props){
@@ -11,43 +23,101 @@ export default class RESTServicesForm extends React.Component {
     this.state = {
       assetUid: props.assetUid,
       // used for determining if editing or creating new
-      rsid: props.rsid,
+      esid: props.esid,
       name: '',
       url: '',
-      type: 'json',
-      securityType: null,
+      type: EXPORT_TYPES.JSON,
+      securityLevel: null,
       securityOptions: [
         {
-          value: 'no-auth',
+          value: SECURITY_LEVELS.NO,
           label: t('No Authorization')
         },
         {
-          value: 'basic-auth',
+          value: SECURITY_LEVELS.BASIC,
           label: t('Basic Authorization')
         }
       ],
-      httpHeaderName: '',
-      httpHeaderValue: '',
-      httpHeaders: []
+      securityUsername: '',
+      securityPassword: '',
+      newHeaderName: '',
+      newHeaderValue: '',
+      httpHeaders: [],
+      isSubmitPending: false
     };
     autoBind(this);
   }
 
   formSecurityTypeChange(evt) {
-    this.setState({'securityType': evt});
+    this.setState({'securityLevel': evt});
   }
 
   formItemChange(evt) {
     this.setState({[evt.target.name]: evt.target.value})
   }
 
+  getDataForEndpoint() {
+    let securityLevel = SECURITY_LEVELS.NO;
+    if (this.state.securityLevel !== null) {
+      securityLevel = this.state.securityLevel.value;
+    }
+
+    const data = {
+      name: this.state.name,
+      endpoint: this.state.url,
+      export_type: this.state.type,
+      security_level: securityLevel,
+      settings: {
+        custom_headers: {}
+      }
+    };
+
+    if (this.state.securityUsername) {
+      data.settings.username = this.state.securityUsername;
+    }
+    if (this.state.securityPassword) {
+      data.settings.password = this.state.securityPassword;
+    }
+
+    if (this.state.httpHeaders.length > 0) {
+      this.state.httpHeaders.map((header) => {
+        data.settings.custom_headers[header.name] = header.value;
+      });
+    }
+    return data;
+  }
+
   onSubmit(evt) {
     evt.preventDefault();
-    actions.resources.registerRESTService(this.state.assetUid, {
-      name: this.state.name,
-      url: this.state.url,
-      type: this.state.type
-    })
+
+    this.setState({isSubmitPending: true});
+
+    const data = this.getDataForEndpoint();
+    const callbacks = {
+      onComplete: () => {
+        stores.pageState.hideModal();
+        actions.resources.loadAsset({id: this.state.assetUid});
+      },
+      onFail: () => {
+        this.setState({isSubmitPending: false});
+        alertify.error(t('Failed registering REST service'));
+      },
+    };
+
+    if (this.state.esid) {
+      actions.externalServices.update(
+        this.state.assetUid,
+        data,
+        this.state.esid,
+        callbacks
+      );
+    } else {
+      actions.externalServices.add(
+        this.state.assetUid,
+        data,
+        callbacks
+      );
+    }
     return false;
   }
 
@@ -55,13 +125,13 @@ export default class RESTServicesForm extends React.Component {
     evt.preventDefault();
     const newHttpHeaders = this.state.httpHeaders;
     newHttpHeaders.push({
-      name: this.state.httpHeaderName,
-      value: this.state.httpHeaderValue
+      name: this.state.newHeaderName,
+      value: this.state.newHeaderValue
     });
     this.setState({
       httpHeaders: newHttpHeaders,
-      httpHeaderName: '',
-      httpHeaderValue: ''
+      newHeaderName: '',
+      newHeaderValue: ''
     });
   }
 
@@ -73,12 +143,12 @@ export default class RESTServicesForm extends React.Component {
   }
 
   renderCustomHttpHeaders() {
-    const isAddButtonEnabled = this.state.httpHeaderName !== '';
+    const isAddButtonEnabled = this.state.newHeaderName !== '';
 
     return (
       <bem.FormModal__item>
         <label
-          for="http-header-name"
+          htmlFor="http-header-name"
           className='long'
         >
           {t('Custom HTTP Headers')}
@@ -105,16 +175,16 @@ export default class RESTServicesForm extends React.Component {
             type='text'
             placeholder={t('Name')}
             id='http-header-name'
-            name='httpHeaderName'
-            value={this.state.httpHeaderName}
+            name='newHeaderName'
+            value={this.state.newHeaderName}
             onChange={this.formItemChange.bind(this)}
           />
 
           <input
             type='text'
             placeholder={t('Value')}
-            name='httpHeaderValue'
-            value={this.state.httpHeaderValue}
+            name='newHeaderValue'
+            value={this.state.newHeaderValue}
             onChange={this.formItemChange.bind(this)}
           />
 
@@ -131,7 +201,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   render() {
-    const isNew = Boolean(this.state.rsid);
+    const isNew = Boolean(this.state.esid);
 
     return (
       <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
@@ -169,10 +239,10 @@ export default class RESTServicesForm extends React.Component {
               <bem.FormModal__radio>
                 <bem.FormModal__radioInput
                   type='radio'
-                  value='json'
+                  value={EXPORT_TYPES.JSON}
                   name='type'
                   onChange={this.formItemChange.bind(this)}
-                  checked={this.state.type === 'json'}
+                  checked={this.state.type === EXPORT_TYPES.JSON}
                 />
 
                 <bem.FormModal__radioText>
@@ -185,10 +255,10 @@ export default class RESTServicesForm extends React.Component {
               <bem.FormModal__radio>
                 <bem.FormModal__radioInput
                   type='radio'
-                  value='xml'
+                  value={EXPORT_TYPES.XML}
                   name='type'
                   onChange={this.formItemChange.bind(this)}
-                  checked={this.state.type === 'xml'}
+                  checked={this.state.type === EXPORT_TYPES.XML}
                 />
 
                 <bem.FormModal__radioText>
@@ -205,14 +275,14 @@ export default class RESTServicesForm extends React.Component {
 
             <Select
               id='rest-service-form--security'
-              name='securityType'
-              value={this.state.securityType}
+              name='securityLevel'
+              value={this.state.securityLevel}
               onChange={this.formSecurityTypeChange.bind(this)}
               options={this.state.securityOptions}
             />
           </bem.FormModal__item>
 
-          {this.state.securityType && this.state.securityType.value === 'basic-auth' &&
+          {this.state.securityLevel && this.state.securityLevel.value === SECURITY_LEVELS.BASIC &&
             <bem.FormModal__item>
               <label htmlFor='rest-service-form--username'>
                 {t('Username')}
@@ -221,7 +291,7 @@ export default class RESTServicesForm extends React.Component {
               <input
                 type='text'
                 id='rest-service-form--username'
-                name='security-username'
+                name='securityUsername'
                 value={this.state.securityUsername}
                 onChange={this.formItemChange.bind(this)}
               />
@@ -233,7 +303,7 @@ export default class RESTServicesForm extends React.Component {
               <input
                 type='text'
                 id='rest-service-form--password'
-                name='security-password'
+                name='securityPassword'
                 value={this.state.securityPassword}
                 onChange={this.formItemChange.bind(this)}
               />
@@ -245,6 +315,7 @@ export default class RESTServicesForm extends React.Component {
           <bem.FormModal__item m='actions'>
             <button
               onClick={this.onSubmit}
+              disabled={this.state.isSubmitPending}
               className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
             >
               { isNew ? t('Create') : t('Save') }

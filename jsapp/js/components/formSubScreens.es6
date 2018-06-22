@@ -103,8 +103,8 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/settings/rest`:
           return <RESTServices asset={this.state} />;
           break;
-        case `/forms/${this.state.uid}/settings/rest/${this.props.params.rsid}`:
-          return <RESTServices asset={this.state} rsid={this.props.params.rsid}/>;
+        case `/forms/${this.state.uid}/settings/rest/${this.props.params.esid}`:
+          return <RESTServices asset={this.state} esid={this.props.params.esid}/>;
           break;
         case `/forms/${this.state.uid}/settings/kobocat`:
           iframeUrl = deployment__identifier+'/form_settings';

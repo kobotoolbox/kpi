@@ -76,7 +76,7 @@ class Modal extends React.Component {
         });
       break;
       case 'rest-services':
-        if (this.props.params.rsid) {
+        if (this.props.params.esid) {
           this.setState({title: t('Edit REST Service')});
         } else {
           this.setState({title: t('New REST Service')});
@@ -88,7 +88,7 @@ class Modal extends React.Component {
       case 'table-columns':
         this.setState({title: t('Table display options')});
       break;
-		}
+    }
   }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
@@ -156,12 +156,14 @@ class Modal extends React.Component {
     return title;
   }
   render() {
-  	return (
+    console.log(this.props.params, this.props);
+
+    return (
       <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
         <ui.Modal.Body>
-	        	{ this.props.params.type == 'sharing' &&
-	          	<SharingForm uid={this.props.params.assetid} />
-	        	}
+            { this.props.params.type == 'sharing' &&
+              <SharingForm uid={this.props.params.assetid} />
+            }
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
                 onSubmit={this.createNewForm}
@@ -231,7 +233,7 @@ class Modal extends React.Component {
             { this.props.params.type == 'rest-services' &&
               <RESTServicesForm
                 assetUid={this.props.params.assetUid}
-                rsid={this.props.params.rsid}
+                esid={this.props.params.esid}
               />
             }
 

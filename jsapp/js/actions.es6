@@ -138,12 +138,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  registerRESTService: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   loadAsset: {
     children: [
       'completed',
@@ -266,6 +260,27 @@ actions.permissions = Reflux.createActions({
     ]
   },
   setCollectionDiscoverability: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+});
+
+actions.externalServices = Reflux.createActions({
+  add: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+  update: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+  delete: {
     children: [
       'completed',
       'failed'
@@ -707,28 +722,6 @@ actions.auth.changePassword.failed.listen(() => {
   notify(t('failed to change password'), 'error');
 });
 
-actions.resources.registerRESTService.listen((assetUid, details) => {
-  dataInterface.registerRESTService({
-    // TODO: adjust to real endpoint
-    parent_asset_uid: assetUid,
-    service_name: details.name,
-    service_url: details.url,
-    service_type: details.type
-    // ENDTODO
-  })
-    .done((response) => {
-      actions.resources.loadAsset({id: assetUid});
-      actions.resources.registerRESTService.completed();
-    })
-    .fail(actions.resources.registerRESTService.failed);
-});
-actions.resources.registerRESTService.completed.listen(() => {
-  notify(t('REST Service registered successfully'));
-});
-actions.resources.registerRESTService.failed.listen(() => {
-  notify(t('failed to register REST service'), 'error');
-});
-
 actions.auth.getEnvironment.listen(function(){
   dataInterface.environment()
     .done((data)=>{
@@ -801,6 +794,57 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
     console.error(error);
     actions.resources.updateSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.externalServices.add.listen((assetUid, data, callbacks = {}) => {
+  dataInterface.addExternalService(assetUid, data)
+    .done((...args) => {
+      actions.resources.loadAsset({id: assetUid});
+      actions.externalServices.add.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.add.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) => {
+  dataInterface.updateExternalService(assetUid, esid, data)
+    .done((...args) => {
+      actions.resources.loadAsset({id: assetUid});
+      actions.externalServices.update.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.update.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
+  dataInterface.deleteExternalService(assetUid, esid)
+    .done((...args) => {
+      actions.resources.loadAsset({id: assetUid});
+      actions.externalServices.delete.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.delete.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
 });
 
 module.exports = actions;

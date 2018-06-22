@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import stores from '../../stores';
+import actions from '../../actions';
 import bem from '../../bem';
 import {t} from '../../utils';
 
@@ -14,19 +15,19 @@ export default class RESTServicesList extends React.Component {
       services: [
         {
           name: 'Backup clone of master project',
-          rsid: 'backup-clone-of-master-project',
+          esid: 'backup-clone-of-master-project',
           totalCount: 198,
           failedCount: 0
         },
         {
           name: 'Ricky\'s API',
-          rsid: 'ricky-s-api',
+          esid: 'ricky-s-api',
           totalCount: 2057,
           failedCount: 341
         },
         {
           name: 'Ricky`\s API v3',
-          rsid: 'ricky-s-api-3',
+          esid: 'ricky-s-api-3',
           totalCount: 8045,
           failedCount: 1
         }
@@ -39,12 +40,22 @@ export default class RESTServicesList extends React.Component {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
       type: 'rest-services',
-      rsid: evt.currentTarget.dataset.rsid
+      esid: evt.currentTarget.dataset.esid
     });
   }
 
   deleteService(evt) {
-    console.log('delete', this.state.assetUid, evt.currentTarget.dataset.rsid);
+    actions.externalServices.delete(
+      this.state.assetUid,
+      evt.currentTarget.dataset.esid, {
+        onComplete: () => {
+          console.log('deleted');
+        },
+        onFail: () => {
+          console.log('del failed');
+        }
+      }
+    );
   }
 
   render() {
@@ -73,7 +84,7 @@ export default class RESTServicesList extends React.Component {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='name'>
-                  <a href={`/#/forms/${this.state.assetUid}/settings/rest/${item.rsid}`}>{item.name}</a>
+                  <a href={`/#/forms/${this.state.assetUid}/settings/rest/${item.esid}`}>{item.name}</a>
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='count'>
@@ -87,16 +98,16 @@ export default class RESTServicesList extends React.Component {
 
                 <bem.ServiceRow__column m='actions'>
                   <bem.ServiceRow__actionButton
-                    onClick={this.editService.bind(this)}
-                    data-rsid={item.rsid}
+                    onClick={this.editService}
+                    data-esid={item.esid}
                     data-tip={t('Edit')}
                   >
                     <i className='k-icon-edit' />
                   </bem.ServiceRow__actionButton>
 
                   <bem.ServiceRow__actionButton
-                    onClick={this.deleteService.bind(this)}
-                    data-rsid={item.rsid}
+                    onClick={this.deleteService}
+                    data-esid={item.esid}
                     data-tip={t('Delete')}
                   >
                     <i className='k-icon-trash' />

@@ -12,29 +12,33 @@ export const RESTServicesSupportUrl = 'http://help.kobotoolbox.org/managing-your
 export default class RESTServices extends React.Component {
   constructor(props){
     super(props);
+    this.state = {
+      asset: props.asset,
+      esid: props.esid
+    };
     autoBind(this);
   }
 
-  openNewRESTServiceModal(assetUid) {
+  openNewRESTServiceModal() {
     stores.pageState.showModal({
-      assetUid: assetUid,
-      type: 'rest-services',
-      rsid: null
+      assetUid: this.state.asset.uid,
+      // esid not provided intentionally
+      type: 'rest-services'
     });
   }
 
-  renderModalButton(assetUid, additionalClassNames) {
+  renderModalButton(additionalClassNames) {
     return (
       <button
         className={`mdl-button mdl-button--raised mdl-button--colored ${additionalClassNames}`}
-        onClick={this.openNewRESTServiceModal.bind(assetUid)}
+        onClick={this.openNewRESTServiceModal}
       >
         {t('Register a New Service')}
       </button>
     );
   }
 
-  renderListView(assetUid) {
+  renderListView() {
     // TEMP
     const hasServices = true;
 
@@ -44,10 +48,10 @@ export default class RESTServices extends React.Component {
     return (
       <bem.FormView m={'form-settings'} className={classes}>
         {hasServices &&
-          <RESTServicesList assetUid={assetUid} />
+          <RESTServicesList assetUid={this.state.asset.uid} />
         }
         {hasServices &&
-          this.renderModalButton(assetUid)
+          this.renderModalButton()
         }
 
         {!hasServices &&
@@ -64,30 +68,26 @@ export default class RESTServices extends React.Component {
               <a href={RESTServicesSupportUrl} target='_blank'>{t('Learn more')}</a>
             </bem.EmptyContent__message>
 
-            {this.renderModalButton(assetUid, 'empty-content__button')}
+            {this.renderModalButton('empty-content__button')}
           </bem.EmptyContent>
         }
       </bem.FormView>
     );
   }
 
-  renderServiceLogsView(assetUid, rsid) {
+  renderServiceLogsView() {
     return (
       <bem.FormView m={'form-settings'} className='rest-services'>
-        <RESTServiceLogs assetUid={assetUid} rsid={rsid} />
+        <RESTServiceLogs assetUid={this.state.asset.uid} esid={this.state.esid} />
       </bem.FormView>
     )
   }
 
   render() {
-    console.log('RESTServices render', this.props);
-
     const docTitle = this.props.asset.name || t('Untitled');
-    const rsid = this.props.rsid;
-    const assetUid = this.props.asset.uid;
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        {rsid ? this.renderServiceLogsView(assetUid, rsid) : this.renderListView(assetUid)}
+        {this.state.esid ? this.renderServiceLogsView() : this.renderListView()}
       </DocumentTitle>
     );
   }

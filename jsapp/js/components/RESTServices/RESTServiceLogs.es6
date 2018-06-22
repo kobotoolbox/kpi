@@ -13,7 +13,7 @@ export default class RESTServiceLogs extends React.Component {
     this.state = {
       serviceName: 'TODO',
       assetUid: props.assetUid,
-      rsid: props.rsid,
+      esid: props.esid,
       serviceLogs: [
         {
           name: 'Submission 1',

@@ -112,11 +112,30 @@ var dataInterface;
         data: data
       });
     },
-    registerRESTService (data) {
+    getExternalServices(uid) {
       return $ajax({
-        url: `${rootUrl}/TODO/`,
+        url: `${rootUrl}/assets/${uid}/hooks/`,
+        method: 'GET'
+      });
+    },
+    addExternalService(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/`,
         method: 'POST',
         data: data
+      });
+    },
+    updateExternalService(uid, esid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
+        method: 'PATCH',
+        data: data
+      });
+    },
+    deleteExternalService(uid, esid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
+        method: 'DELETE'
       });
     },
     getReportData (data) {
