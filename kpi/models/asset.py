@@ -204,8 +204,8 @@ class FormpackXLSFormUtils(object):
     def _unlink_list_items(self, content):
         arr = content['survey']
         for row in arr:
-            if '$kuid' in row:
-                del row['$kuid']
+            if '$prev' in row:
+                del row['$prev']
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
