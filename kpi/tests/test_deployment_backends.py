@@ -30,7 +30,7 @@ class CreateDeployment(TestCase):
 
 
 @pytest.mark.django_db
-def test_deployment_kuids():
+def test_initial_kuids():
     initial_kuid = 'aaaa1111'
     asset = Asset.objects.create(content={
         'survey': [
@@ -41,11 +41,12 @@ def test_deployment_kuids():
              }
             ]
         })
+    assert asset.content['survey'][0]['$kuid'] == initial_kuid
+
     asset.deploy(backend='mock', active=False)
     asset.save()
     assert '$kuid' in asset.content['survey'][0]
-
-    # this assertion fails because the kuid value has changed
+    second_kuid = asset.content['survey'][0]['$kuid']
     assert asset.content['survey'][0]['$kuid'] == initial_kuid
 
 

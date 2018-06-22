@@ -824,5 +824,7 @@ def test_kuid_persists():
     content = asset.ordered_xlsform_content(kobo_specific_types=True)
     # kuids are stripped in "kobo_to_xlsform.to_xlsform_structure(...)"
 
+    assert '$kuid' in content['survey'][0]
     assert content['survey'][0].get('$kuid') == initial_kuid_1
+    assert '$kuid' in content['survey'][1]
     assert content['survey'][1].get('$kuid') == initial_kuid_2
