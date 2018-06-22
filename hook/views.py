@@ -57,7 +57,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >           "name": {string},
     >           "endpoint": {string},
     >           "active": {boolean},
-    >           "export_type": {string}
+    >           "export_type": {string},
     >           "security_level": {string},
     >           "settings": {
     >               "username": {string},
