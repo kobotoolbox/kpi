@@ -49,6 +49,7 @@
     "moment": "^2.10.3",
     "ms": "^0.7.1",
     "node-sass": "^4.5.1",
+    "object-assign": "^4.1.1",
     "postcss": "^6.0.22",
     "postcss-loader": "^2.1.5",
     "prop-types": "^15.6.1",

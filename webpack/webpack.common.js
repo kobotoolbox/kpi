@@ -4,7 +4,6 @@ const BundleTracker = require('webpack-bundle-tracker');
 var merge = require('lodash.merge');
 
 var defaultOptions = {
-  entry: {app: ['react-hot-loader/patch', './jsapp/js/main.es6']},
   module: {
     rules: [
       {
@@ -19,7 +18,7 @@ var defaultOptions = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["env","es2015","react"],
+            presets: ["env","react"],
             plugins: ["add-module-exports", "react-hot-loader/babel"]
           }
         }
