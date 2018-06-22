@@ -121,6 +121,18 @@ export class ProjectSettings extends React.Component {
     }
   }
 
+  getBaseTitle() {
+    switch (this.props.context) {
+      case PROJECT_SETTINGS_CONTEXTS.NEW:
+        return t('Create project');
+      case PROJECT_SETTINGS_CONTEXTS.REPLACE:
+        return t('Replace project');
+      case PROJECT_SETTINGS_CONTEXTS.EXISTING:
+      default:
+        return t('Project settings');
+    }
+  }
+
   getStepTitle(step) {
     switch (step) {
       case this.STEPS.FORM_SOURCE: return t('Form source');
@@ -227,7 +239,8 @@ export class ProjectSettings extends React.Component {
 
     if (this.props.onSetModalTitle) {
       const stepTitle = this.getStepTitle(targetStep);
-      this.props.onSetModalTitle(`${t('Create new project')}: ${stepTitle}`);
+      const baseTitle = this.getBaseTitle();
+      this.props.onSetModalTitle(`${baseTitle}: ${stepTitle}`);
     }
   }
 
@@ -244,7 +257,7 @@ export class ProjectSettings extends React.Component {
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
       if (this.state.formAsset) {
-        resolve(this.state.FormAsset)
+        resolve(this.state.formAsset);
       } else {
         dataInterface.createResource({
           name: 'Untitled',
@@ -675,7 +688,9 @@ export class ProjectSettings extends React.Component {
                 className="mdl-js-button"
                 disabled={this.state.isSubmitPending}
               >
-                {this.state.isSubmitPending ? t('Creating…') : t('Crate Project')}
+                {this.state.isSubmitPending && t('Creating…')}
+                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
 
               {/* Don't allow going back if asset already exist */}

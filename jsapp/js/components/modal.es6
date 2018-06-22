@@ -79,7 +79,7 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.REPLACE_PROJECT:
-        this.setModalTitle(t('Replace project'));
+        // title is set by formEditors
         break;
 
       case MODAL_TYPES.TABLE_COLUMNS:
