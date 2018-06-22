@@ -30,7 +30,7 @@ class Submission extends React.Component {
       translationOptions = translations.map((trns, i) => {
         return {
           value: trns,
-          label: trns
+          label: trns || t('Unnamed language')
         }
       });
     }

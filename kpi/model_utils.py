@@ -198,3 +198,6 @@ def disable_auto_field_update(kls, field_name):
     finally:
         field.auto_now = original_auto_now
         field.auto_now_add = original_auto_now_add
+
+def remove_string_prefix(string, prefix):
+    return string[len(prefix):] if string.startswith(prefix) else string

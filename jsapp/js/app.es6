@@ -112,7 +112,8 @@ class App extends React.Component {
           name='APP_SHORTCUTS'
           handler={this._handleShortcuts}
           className="mdl-wrapper"
-          global>
+          global
+          isolate>
 
           { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
             <div className="k-header__bar" />

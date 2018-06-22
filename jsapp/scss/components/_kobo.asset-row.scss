@@ -1,17 +1,22 @@
 $hover-asset-row: #F2F2F3;
+$hover-transition: 0.3s opacity;
 
 .asset-row {
   list-style-type: none;
   border-top: 1px solid $divider-color;
-  padding: 4px 12px;
+  padding: 6px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height: 55px;
+  min-height: 52px;
   opacity: 1;
   position: relative;
+  align-items: flex-start;
 
   &:hover {
     background: $hover-asset-row;
+
+    // avoid displaying border over tooltip
+    z-index: 1;
   }
 
   > .asset-row__cell {
@@ -94,7 +99,6 @@ $hover-asset-row: #F2F2F3;
 
   .asset-row__cell--tags {
     white-space: normal;
-    padding-top: 30px;
   }
 
   .asset-row__cell--date-created,
@@ -109,21 +113,21 @@ $hover-asset-row: #F2F2F3;
 
   > .asset-row__buttons {
     position: absolute;
-    top: 8px;
-    right: 0px;
-    background: $hover-asset-row;
-    width: 0;
-    overflow: hidden;
-    opacity: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 6px;
+    width: auto;
     text-align: right;
-    transition: 0.3s opacity;
-    padding-right: 6px;
-    height: calc(100% - 10px);
-    max-height: 45px;
+    opacity: 0;
+    visibility: hidden;
+    transition: $hover-transition;
+    background: $hover-asset-row;
+    padding-left: 4px;
+    box-shadow: -5px 0px 15px 0px $hover-asset-row;
   }
 
   .asset-row__action-icon {
-    margin-left: 4px;
+    margin-left: 0px;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
@@ -139,7 +143,7 @@ $hover-asset-row: #F2F2F3;
       @extend .k-icon, .k-icon-folder;
     }
 
-    i:before {
+    i::before {
       margin: 0px;
       font-size: 36px;
     }
@@ -163,13 +167,11 @@ $hover-asset-row: #F2F2F3;
   &:hover {
     > .asset-row__buttons {
       opacity: 1;
-      width: 33%;
-      overflow: visible;
-      transition: 0.3s opacity;
-    }
+      visibility: visible;
+      transition: $hover-transition;
 
-    .date--modified {
-      visibility: hidden;
+      // make them appear moment after items behind starts to disappear
+      transition-delay: 0.1s;
     }
 
     a.asset-row__celllink {
