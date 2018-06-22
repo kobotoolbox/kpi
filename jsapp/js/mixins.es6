@@ -186,7 +186,51 @@ mixins.dmix = {
   }
 };
 
+/*
+ * helper function for apply*ToAsset droppable mixin methods
+ * returns an interval-fueled promise
+ */
+const applyImport = (params) => {
+  const applyPromise = new Promise((resolve, reject) => {
+    dataInterface.postCreateImport(params).then((data)=> {
+      const doneCheckInterval = setInterval(() => {
+        dataInterface.getImportDetails({
+          uid: data.uid,
+        }).done((importData) => {
+          switch (importData.status) {
+            case 'complete':
+              const finalData = importData.messages.updated || importData.messages.created;
+              if (finalData && finalData.length > 0 && finalData[0].uid) {
+                clearInterval(doneCheckInterval);
+                resolve(finalData[0]);
+              } else {
+                clearInterval(doneCheckInterval);
+                reject(importData);
+              }
+              break;
+            case 'processing':
+            case 'created':
+              // TODO: notify promise awaiter about delay (after multiple interval rounds)
+              break;
+            case 'error':
+            default:
+              clearInterval(doneCheckInterval);
+              reject(importData);
+          }
+        }).fail((failData)=>{
+          clearInterval(doneCheckInterval);
+          reject(failData);
+        });
+      }, IMPORT_CHECK_INTERVAL);
+    });
+  });
+  return applyPromise;
+};
+
 mixins.droppable = {
+  /*
+   * returns an interval-fueled promise
+   */
   applyFileToAsset(file, asset) {
     const applyPromise = new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -200,43 +244,19 @@ mixins.droppable = {
           totalFiles: 1
         };
 
-        dataInterface.postCreateImport(params).then((data)=> {
-          const doneCheckInterval = setInterval(() => {
-            dataInterface.getImportDetails({
-              uid: data.uid,
-            }).done((importData) => {
-              switch (importData.status) {
-                case 'complete':
-                  const finalData = importData.messages.updated || importData.messages.created;
-                  if (finalData && finalData.length > 0 && finalData[0].uid) {
-                    clearInterval(doneCheckInterval);
-                    resolve(finalData[0]);
-                  } else {
-                    clearInterval(doneCheckInterval);
-                    reject(importData);
-                  }
-                  break;
-                case 'processing':
-                case 'created':
-                  // TODO: notify promise awaiter about delay
-                  break;
-                case 'error':
-                default:
-                  clearInterval(doneCheckInterval);
-                  reject(importData);
-              }
-            }).fail((failData)=>{
-              clearInterval(doneCheckInterval);
-              reject(failData);
-            });
-          }, IMPORT_CHECK_INTERVAL);
-        });
+        applyImport(params).then(
+          (data) => {resolve(data);},
+          (data) => {reject(data);}
+        );
       };
       reader.readAsDataURL(file);
     });
     return applyPromise;
   },
 
+  /*
+   * returns an interval-fueled promise
+   */
   applyUrlToAsset(url, asset) {
     const applyPromise = new Promise((resolve, reject) => {
       const params = {
@@ -246,37 +266,10 @@ mixins.droppable = {
         assetUid: asset.uid
       };
 
-      dataInterface.postCreateImport(params).then((data)=> {
-        const doneCheckInterval = setInterval(() => {
-          dataInterface.getImportDetails({
-            uid: data.uid,
-          }).done((importData) => {
-            switch (importData.status) {
-              case 'complete':
-                const finalData = importData.messages.updated || importData.messages.created;
-                if (finalData && finalData.length > 0 && finalData[0].uid) {
-                  clearInterval(doneCheckInterval);
-                  resolve(finalData[0]);
-                } else {
-                  clearInterval(doneCheckInterval);
-                  reject(importData);
-                }
-                break;
-              case 'processing':
-              case 'created':
-                // TODO: notify promise awaiter about delay
-                break;
-              case 'error':
-              default:
-                clearInterval(doneCheckInterval);
-                reject(importData);
-            }
-          }).fail((failData)=>{
-            clearInterval(doneCheckInterval);
-            reject(failData);
-          });
-        }, IMPORT_CHECK_INTERVAL);
-      });
+      applyImport(params).then(
+        (data) => {resolve(data);},
+        (data) => {reject(data);}
+      );
     });
     return applyPromise;
   },
