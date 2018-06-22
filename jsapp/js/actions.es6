@@ -304,8 +304,12 @@ actions.misc.updateProfile.listen(function(data){
 actions.misc.updateProfile.completed.listen(function(){
   notify(t('updated profile successfully'));
 });
-actions.misc.updateProfile.failed.listen(function(){
-  notify(t('failed to update profile'), 'error');
+actions.misc.updateProfile.failed.listen(function(data){
+  if (data.responseJSON.email) {
+    notify(t(data.responseJSON.email[0]), 'error');
+  } else {
+    notify(t('failed to update profile'), 'error');
+  }
 });
 
 actions.misc.getServerEnvironment.listen(function(){

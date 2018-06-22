@@ -102,15 +102,16 @@ export class AccountSettings extends React.Component {
     });
   }
   handleChange (e, attr) {
-    if (e.target) {
+    let val;
+    if (e && e.target) {
       if (e.target.type == 'checkbox') {
-        var val = e.target.checked;
+        val = e.target.checked;
       } else {
-        var val = e.target.value;
+        val = e.target.value;
       }
     } else {
       // react-select just passes a string
-      var val = e;
+      val = e;
     }
     this.setState({[attr]: val});
   }
@@ -138,7 +139,12 @@ export class AccountSettings extends React.Component {
         <ui.Panel>
           <bem.AccountSettings>
             <bem.AccountSettings__item>
-              {t('loading...')}
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  {t('loading...')}
+                </bem.Loading__inner>
+              </bem.Loading>
             </bem.AccountSettings__item>
           </bem.AccountSettings>
         </ui.Panel>
@@ -385,7 +391,12 @@ export class ChangePassword extends React.Component {
         <ui.Panel>
           <bem.AccountSettings>
             <bem.AccountSettings__item>
-              {t('loading...')}
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  {t('loading...')}
+                </bem.Loading__inner>
+              </bem.Loading>
             </bem.AccountSettings__item>
           </bem.AccountSettings>
         </ui.Panel>
