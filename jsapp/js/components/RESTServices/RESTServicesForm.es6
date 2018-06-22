@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import bem from '../../bem';
-import dataInterface from '../../dataInterface';
+import {dataInterface} from '../../dataInterface';
 import actions from '../../actions';
 import stores from '../../stores';
 import Select from 'react-select';
@@ -21,8 +21,9 @@ export default class RESTServicesForm extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      isLoadingExternalService: true,
       assetUid: props.assetUid,
-      // used for determining if editing or creating new
+      // will be empty if creating new service
       esid: props.esid,
       name: '',
       url: '',
@@ -46,6 +47,21 @@ export default class RESTServicesForm extends React.Component {
       isSubmitPending: false
     };
     autoBind(this);
+  }
+
+  componentDidMount() {
+    if (this.state.esid) {
+      dataInterface.getExternalService(this.state.assetUid, this.state.esid)
+        .done((data) => {
+          console.log('loaded external service', data);
+          this.setState({isLoadingExternalService: false});
+        })
+        .fail((data) => {
+          console.log('failed loading external service', data);
+        });
+    } else {
+      this.setState({isLoadingExternalService: false});
+    }
   }
 
   formSecurityTypeChange(evt) {
@@ -90,9 +106,13 @@ export default class RESTServicesForm extends React.Component {
   onSubmit(evt) {
     evt.preventDefault();
 
-    this.setState({isSubmitPending: true});
-
     const data = this.getDataForEndpoint();
+
+    if (!data.name.trim() || !data.endpoint.trim()) {
+      alertify.error(t('Please enter both name and url of your service.'));
+      return;
+    }
+
     const callbacks = {
       onComplete: () => {
         stores.pageState.hideModal();
@@ -104,6 +124,7 @@ export default class RESTServicesForm extends React.Component {
       },
     };
 
+    this.setState({isSubmitPending: true});
     if (this.state.esid) {
       actions.externalServices.update(
         this.state.assetUid,
@@ -203,126 +224,137 @@ export default class RESTServicesForm extends React.Component {
   render() {
     const isNew = Boolean(this.state.esid);
 
-    return (
-      <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
-        <bem.FormModal__item m='wrapper'>
-          <bem.FormModal__item>
-            <label htmlFor='rest-service-form--name'>{t('Name')}</label>
-
-            <input
-              type='text'
-              id='rest-service-form--name'
-              name='name'
-              placeholder={t('Service Name')}
-              value={this.state.name}
-              onChange={this.formItemChange.bind(this)}
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item>
-            <label htmlFor='rest-service-form--url'>{t('Endpoint URL')}</label>
-
-            <input
-              type='text'
-              id='rest-service-form--url'
-              name='url'
-              placeholder={t('https://')}
-              value={this.state.url}
-              onChange={this.formItemChange.bind(this)}
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='type'>
-            <label>{t('Type')}</label>
-
-            <bem.FormModal__item m={['half-width', 'half-width-left']}>
-              <bem.FormModal__radio>
-                <bem.FormModal__radioInput
-                  type='radio'
-                  value={EXPORT_TYPES.JSON}
-                  name='type'
-                  onChange={this.formItemChange.bind(this)}
-                  checked={this.state.type === EXPORT_TYPES.JSON}
-                />
-
-                <bem.FormModal__radioText>
-                  {t('JSON')}
-                </bem.FormModal__radioText>
-              </bem.FormModal__radio>
-            </bem.FormModal__item>
-
-            <bem.FormModal__item m='half-width'>
-              <bem.FormModal__radio>
-                <bem.FormModal__radioInput
-                  type='radio'
-                  value={EXPORT_TYPES.XML}
-                  name='type'
-                  onChange={this.formItemChange.bind(this)}
-                  checked={this.state.type === EXPORT_TYPES.XML}
-                />
-
-                <bem.FormModal__radioText>
-                  {t('XML')}
-                </bem.FormModal__radioText>
-              </bem.FormModal__radio>
-            </bem.FormModal__item>
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='security'>
-            <label htmlFor='rest-service-form--security'>
-              {t('Security')}
-            </label>
-
-            <Select
-              id='rest-service-form--security'
-              name='securityLevel'
-              value={this.state.securityLevel}
-              onChange={this.formSecurityTypeChange.bind(this)}
-              options={this.state.securityOptions}
-            />
-          </bem.FormModal__item>
-
-          {this.state.securityLevel && this.state.securityLevel.value === SECURITY_LEVELS.BASIC &&
+    if (this.state.isLoadingExternalService) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    } else {
+      return (
+        <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
+          <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
-              <label htmlFor='rest-service-form--username'>
-                {t('Username')}
-              </label>
+              <label htmlFor='rest-service-form--name'>{t('Name')}</label>
 
               <input
                 type='text'
-                id='rest-service-form--username'
-                name='securityUsername'
-                value={this.state.securityUsername}
-                onChange={this.formItemChange.bind(this)}
-              />
-
-              <label htmlFor='rest-service-form--password'>
-                {t('Password')}
-              </label>
-
-              <input
-                type='text'
-                id='rest-service-form--password'
-                name='securityPassword'
-                value={this.state.securityPassword}
+                id='rest-service-form--name'
+                name='name'
+                placeholder={t('Service Name')}
+                value={this.state.name}
                 onChange={this.formItemChange.bind(this)}
               />
             </bem.FormModal__item>
-          }
 
-          {this.renderCustomHttpHeaders()}
+            <bem.FormModal__item>
+              <label htmlFor='rest-service-form--url'>{t('Endpoint URL')}</label>
 
-          <bem.FormModal__item m='actions'>
-            <button
-              onClick={this.onSubmit}
-              disabled={this.state.isSubmitPending}
-              className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
-            >
-              { isNew ? t('Create') : t('Save') }
-            </button>
+              <input
+                type='text'
+                id='rest-service-form--url'
+                name='url'
+                placeholder={t('https://')}
+                value={this.state.url}
+                onChange={this.formItemChange.bind(this)}
+              />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item m='type'>
+              <label>{t('Type')}</label>
+
+              <bem.FormModal__item m={['half-width', 'half-width-left']}>
+                <bem.FormModal__radio>
+                  <bem.FormModal__radioInput
+                    type='radio'
+                    value={EXPORT_TYPES.JSON}
+                    name='type'
+                    onChange={this.formItemChange.bind(this)}
+                    checked={this.state.type === EXPORT_TYPES.JSON}
+                  />
+
+                  <bem.FormModal__radioText>
+                    {t('JSON')}
+                  </bem.FormModal__radioText>
+                </bem.FormModal__radio>
+              </bem.FormModal__item>
+
+              <bem.FormModal__item m='half-width'>
+                <bem.FormModal__radio>
+                  <bem.FormModal__radioInput
+                    type='radio'
+                    value={EXPORT_TYPES.XML}
+                    name='type'
+                    onChange={this.formItemChange.bind(this)}
+                    checked={this.state.type === EXPORT_TYPES.XML}
+                  />
+
+                  <bem.FormModal__radioText>
+                    {t('XML')}
+                  </bem.FormModal__radioText>
+                </bem.FormModal__radio>
+              </bem.FormModal__item>
+            </bem.FormModal__item>
+
+            <bem.FormModal__item m='security'>
+              <label htmlFor='rest-service-form--security'>
+                {t('Security')}
+              </label>
+
+              <Select
+                id='rest-service-form--security'
+                name='securityLevel'
+                value={this.state.securityLevel}
+                onChange={this.formSecurityTypeChange.bind(this)}
+                options={this.state.securityOptions}
+              />
+            </bem.FormModal__item>
+
+            {this.state.securityLevel && this.state.securityLevel.value === SECURITY_LEVELS.BASIC &&
+              <bem.FormModal__item>
+                <label htmlFor='rest-service-form--username'>
+                  {t('Username')}
+                </label>
+
+                <input
+                  type='text'
+                  id='rest-service-form--username'
+                  name='securityUsername'
+                  value={this.state.securityUsername}
+                  onChange={this.formItemChange.bind(this)}
+                />
+
+                <label htmlFor='rest-service-form--password'>
+                  {t('Password')}
+                </label>
+
+                <input
+                  type='text'
+                  id='rest-service-form--password'
+                  name='securityPassword'
+                  value={this.state.securityPassword}
+                  onChange={this.formItemChange.bind(this)}
+                />
+              </bem.FormModal__item>
+            }
+
+            {this.renderCustomHttpHeaders()}
+
+            <bem.FormModal__item m='actions'>
+              <button
+                onClick={this.onSubmit}
+                disabled={this.state.isSubmitPending}
+                className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+              >
+                { isNew ? t('Create') : t('Save') }
+              </button>
+            </bem.FormModal__item>
           </bem.FormModal__item>
-        </bem.FormModal__item>
-      </bem.FormModal__form>
-    );
+        </bem.FormModal__form>
+      );
+    }
   }
 };

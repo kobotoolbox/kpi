@@ -118,6 +118,12 @@ var dataInterface;
         method: 'GET'
       });
     },
+    getExternalService(uid, esid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
+        method: 'GET'
+      });
+    },
     addExternalService(uid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/`,
