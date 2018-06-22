@@ -353,10 +353,12 @@ export class ProjectSettings extends React.Component {
           this.applyUrlToAsset(this.state.importUrl, asset).then(
             (data) => {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
+                // try proposing something more meaningful than "Untitled"
+                const newName = decodeURIComponent(new URL(this.state.importUrl).pathname.split('/').pop().split('.')[0]);
+
                 this.setState({
                   formAsset: finalAsset,
-                  // try proposing something more meaningful than "Untitled"
-                  name: this.getFilenameFromURI(this.state.importUrl),
+                  name: newName,
                   description: finalAsset.settings.description,
                   sector: finalAsset.settings.sector,
                   country: finalAsset.settings.country,
@@ -369,13 +371,13 @@ export class ProjectSettings extends React.Component {
                 alertify.error(t('Failed to reload project after import!'));
               });
             },
-            (data) => {
+            () => {
               this.resetImportUrlButton();
               alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again.'));
             }
           );
         },
-        (errorMessage) => {
+        () => {
           alertify.error(t('Could not initialize XLSForm import!'));
         }
       );
@@ -384,21 +386,37 @@ export class ProjectSettings extends React.Component {
 
   onFileDrop(files, rejectedFiles, evt) {
     if (files.length >= 1) {
-      this.setState({
-        isUploadFilePending: true,
-        importUrlButtonEnabled: false,
-        importUrlButton: t('Retrieving form, please wait...')
-      });
+      this.setState({isUploadFilePending: true});
 
       this.getOrCreateFormAsset().then(
         (asset) => {
-          this.setState({
-            formAsset: asset,
-            isUploadFilePending: false
-          });
-          this.dropFiles(files, [], evt, {destination: asset.url});
+          this.applyFileToAsset(files[0], asset).then(
+            (data) => {
+              dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
+                // try proposing something more meaningful than "Untitled"
+                const newName = files[0].name.split('.')[0];
+                this.setState({
+                  formAsset: finalAsset,
+                  name: newName,
+                  description: finalAsset.settings.description,
+                  sector: finalAsset.settings.sector,
+                  country: finalAsset.settings.country,
+                  'share-metadata': finalAsset.settings['share-metadata'],
+                  isUploadFilePending: false
+                });
+                this.displayStep(this.STEPS.PROJECT_DETAILS);
+              }).fail(() => {
+                this.setState({isUploadFilePending: false});
+                alertify.error(t('Failed to reload project after upload!'));
+              });
+            },
+            () => {
+              alertify.error(t('Could not initialize XLSForm upload!'));
+            }
+          );
         },
-        (errorMessage) => {
+        () => {
+          this.setState({isUploadFilePending: false});
           alertify.error(t('Could not import XLSForm!'))
         }
       );
@@ -489,17 +507,22 @@ export class ProjectSettings extends React.Component {
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
 
-        <Dropzone
-          onDrop={this.onFileDrop.bind(this)}
-          multiple={false}
-          className='dropzone'
-          activeClassName='dropzone-active'
-          rejectClassName='dropzone-reject'
-          accept={validFileTypes()}
-        >
-          <i className="k-icon-xls-file" />
-          {t(' Drag and drop the XLSForm file here or click to browse')}
-        </Dropzone>
+        {!this.state.isUploadFilePending &&
+          <Dropzone
+            onDrop={this.onFileDrop.bind(this)}
+            multiple={false}
+            className='dropzone'
+            activeClassName='dropzone-active'
+            rejectClassName='dropzone-reject'
+            accept={validFileTypes()}
+          >
+            <i className="k-icon-xls-file" />
+            {t(' Drag and drop the XLSForm file here or click to browse')}
+          </Dropzone>
+        }
+        {this.state.isUploadFilePending &&
+          this.renderLoading(t('Uploading file…'))
+        }
 
         <bem.Modal__footer>
           {this.renderBackButton()}
@@ -694,12 +717,12 @@ export class ProjectSettings extends React.Component {
     }
   }
 
-  renderLoading() {
+  renderLoading(message = t('loading…')) {
     return (
       <bem.Loading>
         <bem.Loading__inner>
           <i />
-          {t('loading...')}
+          {message}
         </bem.Loading__inner>
       </bem.Loading>
     );

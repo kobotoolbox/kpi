@@ -31,6 +31,8 @@ import {
 
 import icons from '../xlform/src/view.icons';
 
+const IMPORT_CHECK_INTERVAL = 500;
+
 var mixins = {};
 
 mixins.dmix = {
@@ -185,6 +187,56 @@ mixins.dmix = {
 };
 
 mixins.droppable = {
+  applyFileToAsset(file, asset) {
+    const applyPromise = new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const params = {
+          destination: asset.url,
+          assetUid: asset.uid,
+          name: file.name,
+          base64Encoded: evt.target.result,
+          lastModified: file.lastModified,
+          totalFiles: 1
+        };
+
+        dataInterface.postCreateImport(params).then((data)=> {
+          const doneCheckInterval = setInterval(() => {
+            dataInterface.getImportDetails({
+              uid: data.uid,
+            }).done((importData) => {
+              switch (importData.status) {
+                case 'complete':
+                  const finalData = importData.messages.updated || importData.messages.created;
+                  if (finalData && finalData.length > 0 && finalData[0].uid) {
+                    clearInterval(doneCheckInterval);
+                    resolve(finalData[0]);
+                  } else {
+                    clearInterval(doneCheckInterval);
+                    reject(importData);
+                  }
+                  break;
+                case 'processing':
+                case 'created':
+                  // TODO: notify promise awaiter about delay
+                  break;
+                case 'error':
+                default:
+                  clearInterval(doneCheckInterval);
+                  reject(importData);
+              }
+            }).fail((failData)=>{
+              clearInterval(doneCheckInterval);
+              reject(failData);
+            });
+          }, IMPORT_CHECK_INTERVAL);
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    return applyPromise;
+  },
+
   applyUrlToAsset(url, asset) {
     const applyPromise = new Promise((resolve, reject) => {
       const params = {
@@ -223,7 +275,7 @@ mixins.droppable = {
             clearInterval(doneCheckInterval);
             reject(failData);
           });
-        }, 500);
+        }, IMPORT_CHECK_INTERVAL);
       });
     });
     return applyPromise;
