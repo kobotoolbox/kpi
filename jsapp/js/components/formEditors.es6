@@ -534,7 +534,9 @@ export class ProjectSettings extends React.Component {
           </Dropzone>
         }
         {this.state.isUploadFilePending &&
-          this.renderLoading(t('Uploading file…'))
+          <div className='dropzone'>
+            {this.renderLoading(t('Uploading file…'))}
+          </div>
         }
 
         <bem.Modal__footer>
