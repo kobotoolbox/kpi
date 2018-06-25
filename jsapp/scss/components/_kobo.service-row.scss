@@ -23,6 +23,14 @@ $c-service-row-hover: #f2f2f3;
     font-weight: 600;
     border-bottom-width: 2px;
   }
+
+  &.service-row--active {
+    color: $black;
+  }
+
+  &.service-row--inactive {
+    color: $cool-gray;
+  }
 }
 
 .service-row__column {

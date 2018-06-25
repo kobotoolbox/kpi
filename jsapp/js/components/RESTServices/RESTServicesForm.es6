@@ -81,6 +81,7 @@ export default class RESTServicesForm extends React.Component {
     const data = {
       name: this.state.name,
       endpoint: this.state.url,
+      active: true,
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
