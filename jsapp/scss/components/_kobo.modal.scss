@@ -468,44 +468,47 @@
   }
 }
 
-.form-modal__item--http-header {
-  font-size: 14px;
-  line-height: 20px;
-  word-wrap: break-word;
-
-  &:hover i {color: lighten($cool-red, 10%);}
-
-  &:not(:last-of-type) {margin-bottom: 10px;}
-
-  code + code::before {content: ": ";}
-
-  i {
-    cursor: pointer;
-    font-size: 20px;
-    display: inline-block;
-    vertical-align: top;
-
-    &::before {font-size: inherit;}
-
-    &:hover {color: $cool-red;}
-  }
-}
-
-.form-modal__item.form-modal__item--http-header-inputs {
-  input {
-    width: calc(50% - 25px);
+.form-modal__item--http-headers {
+  .form-modal__item--http-header-row {
     margin-bottom: 10px;
-    margin-right: 10px;
+
+    input {
+      width: calc(50% - 20px);
+      background-color: rgba($black, 0.05);
+      padding-left: 5px;
+      padding-right: 5px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
   }
 
-  button {
+  .http-header-add,
+  .http-header-row-remove {
     height: 30px;
-    width: 30px;
     min-height: 30px;
+    font-size: 1.5em;
     line-height: 30px;
     padding: 0;
 
     i {font-size: inherit;}
+  }
+
+  .http-header-add {
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+    width: calc(100% - 30px);
+
+    background: $cool-green;
+
+    &:hover {background: darken($cool-green, 10%);}
+  }
+
+  .http-header-row-remove {
+    @extend .mdl-button, .mdl-button--icon;
+    width: 30px;
+    vertical-align: top;
+    &:hover {color: $cool-red;}
   }
 }
 

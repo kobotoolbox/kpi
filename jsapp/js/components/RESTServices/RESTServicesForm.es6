@@ -43,12 +43,16 @@ export default class RESTServicesForm extends React.Component {
       ],
       securityUsername: '',
       securityPassword: '',
-      customHeaders: {},
-      newHeaderName: '',
-      newHeaderValue: ''
+      customHeaders: [
+        this.getEmptyHeaderRow()
+      ]
     };
     autoBind(this);
   }
+
+  /*
+   * initialization
+   */
 
   componentDidMount() {
     if (this.state.esid) {
@@ -64,7 +68,7 @@ export default class RESTServicesForm extends React.Component {
             type: data.export_type,
             securityLevel: SECURITY_OPTIONS[data.security_level],
             settings: {
-              customHeaders: data.settings.custom_headers
+              customHeaders: this.headersObjToArr(data.settings.custom_headers)
             }
           };
 
@@ -85,13 +89,66 @@ export default class RESTServicesForm extends React.Component {
     }
   }
 
-  formSecurityTypeChange(evt) {
+  /*
+   * helpers
+   */
+
+  getEmptyHeaderRow() {
+    return {name: '', value: ''};
+  }
+
+  headersObjToArr(headersObj) {
+    const headersArr = [];
+    for (let header in headersObj) {
+      if (headersObj.hasOwnProperty(header)) {
+        headersArr.push({
+          name: header,
+          value: headersObj[header]
+        });
+      }
+    }
+    return headersArr;
+  }
+
+  headersArrToObj(headersArr) {
+    const headersObj = {}
+    for (const header of headersArr) {
+      if (header.name !== '') {
+        headersObj[header.name] = header.value;
+      }
+    }
+    return headersObj;
+  }
+
+  /*
+   * user input handling
+   */
+
+  handleSecurityTypeChange(evt) {
     this.setState({securityLevel: evt});
   }
 
   formItemChange(evt) {
     this.setState({[evt.target.name]: evt.target.value})
   }
+
+  customHeaderChange(evt) {
+    const propName = evt.target.name;
+    const propValue = evt.target.value;
+    const index = evt.target.dataset.index;
+    const newCustomHeaders = this.state.customHeaders;
+    if (propName === 'headerName') {
+      newCustomHeaders[index].name = propValue;
+    }
+    if (propName === 'headerValue') {
+      newCustomHeaders[index].value = propValue;
+    }
+    this.setState({customHeaders: newCustomHeaders});
+  }
+
+  /*
+   * submitting form
+   */
 
   getDataForEndpoint() {
     let securityLevel = SECURITY_OPTIONS.no_auth.value;
@@ -106,7 +163,7 @@ export default class RESTServicesForm extends React.Component {
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
-        custom_headers: this.state.customHeaders
+        custom_headers: this.headersArrToObj(this.state.customHeaders)
       }
     };
 
@@ -159,91 +216,79 @@ export default class RESTServicesForm extends React.Component {
     return false;
   }
 
-  addHttpHeader(evt) {
-    evt.preventDefault();
-    const newCustomHeaders = this.state.customHeaders;
-    newCustomHeaders[this.state.newHeaderName] = this.state.newHeaderValue;
-    this.setState({
-      customHeaders: newCustomHeaders,
-      newHeaderName: '',
-      newHeaderValue: ''
-    });
-  }
+  /*
+   * rendering custom headers
+   */
 
-  removeHttpHeader(httpHeaderName, evt) {
+  addNewCustomHeaderRow(evt) {
     evt.preventDefault();
     const newCustomHeaders = this.state.customHeaders;
-    delete newCustomHeaders[httpHeaderName];
+    newCustomHeaders.push(this.getEmptyHeaderRow());
     this.setState({customHeaders: newCustomHeaders});
   }
 
-  renderCustomHttpHeaders() {
-    const isAddButtonEnabled = this.state.newHeaderName !== '';
-
-    const customHeadersArray = [];
-    for (let header in this.state.customHeaders) {
-      if (this.state.customHeaders.hasOwnProperty(header)) {
-        customHeadersArray.push({
-          name: header,
-          value: this.state.customHeaders[header]
-        });
-      }
+  removeCustomHeaderRow(evt) {
+    evt.preventDefault();
+    const newCustomHeaders = this.state.customHeaders;
+    newCustomHeaders.splice(evt.target.dataset.index, 1);
+    if (newCustomHeaders.length === 0) {
+      newCustomHeaders.push(this.getEmptyHeaderRow());
     }
+    this.setState({customHeaders: newCustomHeaders});
+  }
 
+  renderCustomHeaders() {
     return (
-      <bem.FormModal__item>
-        <label
-          htmlFor="http-header-name"
-          className='long'
-        >
+      <bem.FormModal__item m='http-headers'>
+        <label className='long'>
           {t('Custom HTTP Headers')}
         </label>
 
-        {customHeadersArray.length > 0 &&
-          <bem.FormModal__item>
-            {customHeadersArray.map((item, n) => {
-              return (
-                <bem.FormModal__item m='http-header' key={n}>
-                  <code>{item.name}</code>
+        {this.state.customHeaders.map((item, n) => {
+          return (
+            <bem.FormModal__item m='http-header-row' key={n}>
+              <input
+                type='text'
+                placeholder={t('Name')}
+                name='headerName'
+                value={this.state.customHeaders[n].name}
+                data-index={n}
+                onChange={this.customHeaderChange}
+              />
 
-                  {item.value ? <code>{item.value}</code> : null}
+              <input
+                type='text'
+                placeholder={t('Value')}
+                name='headerValue'
+                value={this.state.customHeaders[n].value}
+                data-index={n}
+                onChange={this.customHeaderChange}
+              />
 
-                  <i className='k-icon-trash' onClick={this.removeHttpHeader.bind(this, item.name)}/>
-                </bem.FormModal__item>
-              );
-            })}
-          </bem.FormModal__item>
-        }
+              <button
+                className='http-header-row-remove'
+                data-index={n}
+                onClick={this.removeCustomHeaderRow}
+              >
+                <i className='k-icon-trash'/>
+              </button>
+            </bem.FormModal__item>
+          );
+        })}
 
-        <bem.FormModal__item m='http-header-inputs'>
-          <input
-            type='text'
-            placeholder={t('Name')}
-            id='http-header-name'
-            name='newHeaderName'
-            value={this.state.newHeaderName}
-            onChange={this.formItemChange.bind(this)}
-          />
-
-          <input
-            type='text'
-            placeholder={t('Value')}
-            name='newHeaderValue'
-            value={this.state.newHeaderValue}
-            onChange={this.formItemChange.bind(this)}
-          />
-
-          <button
-            onClick={this.addHttpHeader.bind(this)}
-            disabled={!isAddButtonEnabled}
-            className='mdl-button mdl-button--raised mdl-button--colored'
-          >
-            <i className='k-icon-plus' />
-          </button>
-        </bem.FormModal__item>
+        <button
+          className='http-header-add'
+          onClick={this.addNewCustomHeaderRow}
+        >
+          <i className='k-icon-plus' />
+        </button>
       </bem.FormModal__item>
     )
   }
+
+  /*
+   * initialization
+   */
 
   render() {
     const isEditingExistingService = Boolean(this.state.esid);
@@ -332,7 +377,7 @@ export default class RESTServicesForm extends React.Component {
                 id='rest-service-form--security'
                 name='securityLevel'
                 value={this.state.securityLevel}
-                onChange={this.formSecurityTypeChange.bind(this)}
+                onChange={this.handleSecurityTypeChange.bind(this)}
                 options={this.state.securityOptions}
               />
             </bem.FormModal__item>
@@ -365,7 +410,7 @@ export default class RESTServicesForm extends React.Component {
               </bem.FormModal__item>
             }
 
-            {this.renderCustomHttpHeaders()}
+            {this.renderCustomHeaders()}
 
             <bem.FormModal__item m='actions'>
               <button
