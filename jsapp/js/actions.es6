@@ -814,7 +814,7 @@ actions.externalServices.add.listen((assetUid, data, callbacks = {}) => {
 });
 
 actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) => {
-  dataInterface.updateExternalService(assetUid, esid, data)
+  dataInterface.updateExternalService(assetUid, esid, data, callbacks)
     .done((...args) => {
       actions.resources.loadAsset({id: assetUid});
       actions.externalServices.update.completed(...args);
@@ -831,7 +831,7 @@ actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) =>
 });
 
 actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.deleteExternalService(assetUid, esid)
+  dataInterface.deleteExternalService(assetUid, esid, callbacks)
     .done((...args) => {
       actions.resources.loadAsset({id: assetUid});
       actions.externalServices.delete.completed(...args);

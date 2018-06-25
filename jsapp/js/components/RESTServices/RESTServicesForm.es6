@@ -12,9 +12,15 @@ const EXPORT_TYPES = {
   JSON: 'json',
   XML: 'xml'
 };
-const SECURITY_LEVELS = {
-  NO: 'no_auth',
-  BASIC: 'basic_auth'
+const SECURITY_OPTIONS = {
+  no_auth: {
+    value: 'no_auth',
+    label: t('No Authorization')
+  },
+  basic_auth: {
+    value: 'basic_auth',
+    label: t('Basic Authorization')
+  }
 };
 
 export default class RESTServicesForm extends React.Component {
@@ -22,29 +28,24 @@ export default class RESTServicesForm extends React.Component {
     super(props);
     this.state = {
       isLoadingExternalService: true,
+      isSubmitPending: false,
       assetUid: props.assetUid,
       // will be empty if creating new service
       esid: props.esid,
       name: '',
       url: '',
       type: EXPORT_TYPES.JSON,
+      isActive: true,
       securityLevel: null,
       securityOptions: [
-        {
-          value: SECURITY_LEVELS.NO,
-          label: t('No Authorization')
-        },
-        {
-          value: SECURITY_LEVELS.BASIC,
-          label: t('Basic Authorization')
-        }
+        SECURITY_OPTIONS.no_auth,
+        SECURITY_OPTIONS.basic_auth
       ],
       securityUsername: '',
       securityPassword: '',
+      customHeaders: {},
       newHeaderName: '',
-      newHeaderValue: '',
-      httpHeaders: [],
-      isSubmitPending: false
+      newHeaderValue: ''
     };
     autoBind(this);
   }
@@ -54,7 +55,27 @@ export default class RESTServicesForm extends React.Component {
       dataInterface.getExternalService(this.state.assetUid, this.state.esid)
         .done((data) => {
           console.log('loaded external service', data);
-          this.setState({isLoadingExternalService: false});
+
+          const stateUpdate = {
+            isLoadingExternalService: false,
+            name: data.name,
+            url: data.endpoint,
+            isActive: data.active,
+            type: data.export_type,
+            securityLevel: SECURITY_OPTIONS[data.security_level],
+            settings: {
+              customHeaders: data.settings.custom_headers
+            }
+          };
+
+          if (data.settings.username) {
+            stateUpdate.securityUsername = data.settings.username;
+          }
+          if (data.settings.username) {
+            stateUpdate.securityPassword = data.settings.username;
+          }
+
+          this.setState(stateUpdate);
         })
         .fail((data) => {
           console.log('failed loading external service', data);
@@ -65,7 +86,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   formSecurityTypeChange(evt) {
-    this.setState({'securityLevel': evt});
+    this.setState({securityLevel: evt});
   }
 
   formItemChange(evt) {
@@ -73,7 +94,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   getDataForEndpoint() {
-    let securityLevel = SECURITY_LEVELS.NO;
+    let securityLevel = SECURITY_OPTIONS.no_auth.value;
     if (this.state.securityLevel !== null) {
       securityLevel = this.state.securityLevel.value;
     }
@@ -81,11 +102,11 @@ export default class RESTServicesForm extends React.Component {
     const data = {
       name: this.state.name,
       endpoint: this.state.url,
-      active: true,
+      active: this.state.isActive,
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
-        custom_headers: {}
+        custom_headers: this.state.customHeaders
       }
     };
 
@@ -96,11 +117,6 @@ export default class RESTServicesForm extends React.Component {
       data.settings.password = this.state.securityPassword;
     }
 
-    if (this.state.httpHeaders.length > 0) {
-      this.state.httpHeaders.map((header) => {
-        data.settings.custom_headers[header.name] = header.value;
-      });
-    }
     return data;
   }
 
@@ -129,8 +145,8 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.esid) {
       actions.externalServices.update(
         this.state.assetUid,
-        data,
         this.state.esid,
+        data,
         callbacks
       );
     } else {
@@ -145,27 +161,34 @@ export default class RESTServicesForm extends React.Component {
 
   addHttpHeader(evt) {
     evt.preventDefault();
-    const newHttpHeaders = this.state.httpHeaders;
-    newHttpHeaders.push({
-      name: this.state.newHeaderName,
-      value: this.state.newHeaderValue
-    });
+    const newCustomHeaders = this.state.customHeaders;
+    newCustomHeaders[this.state.newHeaderName] = this.state.newHeaderValue;
     this.setState({
-      httpHeaders: newHttpHeaders,
+      customHeaders: newCustomHeaders,
       newHeaderName: '',
       newHeaderValue: ''
     });
   }
 
-  removeHttpHeader(httpHeader, evt) {
+  removeHttpHeader(httpHeaderName, evt) {
     evt.preventDefault();
-    const newHttpHeaders = this.state.httpHeaders;
-    newHttpHeaders.splice(this.state.httpHeaders.indexOf(httpHeader), 1);
-    this.setState({httpHeaders: newHttpHeaders});
+    const newCustomHeaders = this.state.customHeaders;
+    delete newCustomHeaders[httpHeaderName];
+    this.setState({customHeaders: newCustomHeaders});
   }
 
   renderCustomHttpHeaders() {
     const isAddButtonEnabled = this.state.newHeaderName !== '';
+
+    const customHeadersArray = [];
+    for (let header in this.state.customHeaders) {
+      if (this.state.customHeaders.hasOwnProperty(header)) {
+        customHeadersArray.push({
+          name: header,
+          value: this.state.customHeaders[header]
+        });
+      }
+    }
 
     return (
       <bem.FormModal__item>
@@ -176,16 +199,16 @@ export default class RESTServicesForm extends React.Component {
           {t('Custom HTTP Headers')}
         </label>
 
-        {this.state.httpHeaders.length > 0 &&
+        {customHeadersArray.length > 0 &&
           <bem.FormModal__item>
-            {this.state.httpHeaders.map((item, n) => {
+            {customHeadersArray.map((item, n) => {
               return (
                 <bem.FormModal__item m='http-header' key={n}>
                   <code>{item.name}</code>
 
                   {item.value ? <code>{item.value}</code> : null}
 
-                  <i className='k-icon-trash' onClick={this.removeHttpHeader.bind(this, item)}/>
+                  <i className='k-icon-trash' onClick={this.removeHttpHeader.bind(this, item.name)}/>
                 </bem.FormModal__item>
               );
             })}
@@ -223,7 +246,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   render() {
-    const isNew = Boolean(this.state.esid);
+    const isEditingExistingService = Boolean(this.state.esid);
 
     if (this.state.isLoadingExternalService) {
       return (
@@ -314,7 +337,7 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            {this.state.securityLevel && this.state.securityLevel.value === SECURITY_LEVELS.BASIC &&
+            {this.state.securityLevel && this.state.securityLevel.value === SECURITY_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
                 <label htmlFor='rest-service-form--username'>
                   {t('Username')}
@@ -350,7 +373,7 @@ export default class RESTServicesForm extends React.Component {
                 disabled={this.state.isSubmitPending}
                 className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
               >
-                { isNew ? t('Create') : t('Save') }
+                { isEditingExistingService ? t('Save') : t('Create') }
               </button>
             </bem.FormModal__item>
           </bem.FormModal__item>

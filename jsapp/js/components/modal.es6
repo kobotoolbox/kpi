@@ -156,8 +156,6 @@ class Modal extends React.Component {
     return title;
   }
   render() {
-    console.log(this.props.params, this.props);
-
     return (
       <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
         <ui.Modal.Body>
