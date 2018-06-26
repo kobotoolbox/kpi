@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Image file</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M13,29 L13,11 L23,11 L23,15 L27,15 L27.001,29 L13,29 Z M24.414,9 L13,9 C11.897,9 11,9.897 11,11 L11,29 C11,30.103 11.897,31 13,31 L27,31 C28.103,31 29,30.103 29,29 L29,13.586 L24.414,9 Z M20,24.001 L18,22.001 L15,26.001 L25,26.001 L22,20.001 L20,24.001 Z M18,21.001 C19.104,21.001 20,20.106 20,19.001 C20,17.896 19.104,17.001 18,17.001 C16.894,17.001 16,17.896 16,19.001 C16,20.106 16.894,21.001 18,21.001" id="path-1"></path>
+    </defs>
+    <g id="Icons/Image-file" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

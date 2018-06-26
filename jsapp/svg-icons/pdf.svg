@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/PDF</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M13,11 L23,11 L23,15 L27,15 L27,16 L29,16 L29,13.586 L24.414,9 L13,9 C11.897,9 11,9.898 11,11 L11,16 L13,16 L13,11 Z M27,29 L13,29 L13,28 L11,28 L11,29 C11,30.103 11.897,31 13,31 L27,31 C28.103,31 29,30.103 29,29 L29,28 L27,28 L27,29 Z M21,22 C21,23.103 20.103,24 19,24 L19,20 C20.103,20 21,20.898 21,22 L21,22 Z M17,18 L17,26 L19,26 C21.206,26 23,24.206 23,22 C23,19.794 21.206,18 19,18 L17,18 Z M30,20 L30,18 L26,18 C24.897,18 24,18.898 24,20 L24,26 L26,26 L26,23 L29,23 L29,21 L26,21 L26,20 L30,20 Z M12,20 L13,20 C13.551,20 14,20.448 14,21 C14,21.552 13.551,22 13,22 L12,22 L12,20 Z M12,24 L13,24 C14.654,24 16,22.654 16,21 C16,19.346 14.654,18 13,18 L10,18 L10,26 L12,26 L12,24 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/PDF" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>
