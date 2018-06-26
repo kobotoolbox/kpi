@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Notification</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M16.555,27 C17.248,28.19 18.524,29 20,29 C21.477,29 22.752,28.19 23.446,27 L16.555,27 Z M14.035,24 L25.966,24 C24.745,22.998 24,21.486 24,19.838 L24,17 C24,14.794 22.206,13 20,13 C17.795,13 16,14.794 16,17 L16,19.838 C16,21.486 15.255,22.998 14.035,24 L14.035,24 Z M29,26 L11,26 L11,23.279 L11.684,23.052 C13.069,22.589 14,21.298 14,19.838 L14,17 C14,13.691 16.692,11 20,11 C23.309,11 26,13.691 26,17 L26,19.838 C26,21.298 26.932,22.589 28.317,23.052 L29,23.279 L29,26 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Notification" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#FFFFFF" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

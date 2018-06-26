@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Clone</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M27.0015,25 L17.0005,25 L17.0005,11 L23.0005,11 L23.0005,15 L27.0005,15 L27.0015,25 Z M24.4145,9 L29.0005,13.586 L29.0005,25 C29.0005,26.103 28.1035,27 27.0005,27 L17.0005,27 C15.8975,27 15.0005,26.103 15.0005,25 L15.0005,11 C15.0005,9.898 15.8975,9 17.0005,9 L24.4145,9 Z M13,13 L13,29 L25,29 L25,31 L13,31 C11.897,31 11,30.103 11,29 L11,13 L13,13 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Clone" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Folder shared</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M17.75,15 L16,15 L16,25 L10,25 L10,12 L14.5,12 L16.15,14.2 C16.525,14.701 17.124,15 17.75,15 Z M28,15 L16,15 L16,27 L10,27 C8.897,27 8,26.103 8,25 L8,12 C8,10.898 8.897,10 10,10 L14.5,10 C15.126,10 15.725,10.299 16.1,10.8 L17.75,13 L26,13 C27.103,13 28,13.898 28,15 Z M25,24 C23.06975,24 21.5,22.43025 21.5,20.5 C21.5,18.56975 23.06975,17 25,17 C26.93025,17 28.5,18.56975 28.5,20.5 C28.5,22.43025 26.93025,24 25,24 Z M25,18.75 C25.965125,18.75 26.75,19.534 26.75,20.5 C26.75,21.465125 25.965125,22.25 25,22.25 C24.034875,22.25 23.25,21.465125 23.25,20.5 C23.25,19.534 24.034875,18.75 25,18.75 Z M31.9997375,31 L17.9997375,31 L17.9997375,30.125 C17.9997375,27.033625 20.8784875,24.875 24.9997375,24.875 C29.1218625,24.875 31.9997375,27.033625 31.9997375,30.125 L31.9997375,31 Z M19.8888625,29.25 L30.1114875,29.25 C29.5882375,27.668 27.6317375,26.625 24.9997375,26.625 C22.3677375,26.625 20.4121125,27.668 19.8888625,29.25 L19.8888625,29.25 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Folder-shared" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

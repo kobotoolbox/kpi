@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Table</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M26.9839015,26 L12.9971591,26 L12.9971591,16 L26.9839015,16 L26.9839015,26 Z M11.9981061,13 L27.9829545,13 L27.9829545,14 L11.9981061,14 L11.9981061,13 Z M29.9810606,15 L29.9810606,12 C29.9810606,11.448 29.5344839,11 28.9820076,11 L10.999053,11 C10.4475758,11 10,11.448 10,12 L10,15 C10,15.552 10.4475758,16 10.999053,16 L10.999053,26 L10,26 L10,28 L18.9914773,28 L18.9914773,30 L20.9895833,30 L20.9895833,28 L29.9810606,28 L29.9810606,26 L28.9820076,26 L28.9820076,16 C29.5344839,16 29.9810606,15.552 29.9810606,15 L29.9810606,15 Z M14,25 L17,25 L17,23 L14,23 L14,25 Z M18,25 L26,25 L26,23 L18,23 L18,25 Z M14,22 L17,22 L17,20 L14,20 L14,22 Z M18,22 L26,22 L26,20 L18,20 L18,22 Z M14,19 L17,19 L17,17 L14,17 L14,19 Z M18,19 L26,19 L26,17 L18,17 L18,19 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Table" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

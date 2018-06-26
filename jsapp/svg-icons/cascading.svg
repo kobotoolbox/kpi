@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Cascading</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M29,23 L19,23 L19,21 L29,21 L29,23 Z M11,28 L21,28 L21,30 L11,30 L11,28 Z M13,10 L23,10 L23,12 L13,12 L13,10 Z M26,19 C26,17.346 24.654,16 23,16 L20,16 C19.449,16 19,15.551 19,15 L19,14 L24,14 C24.552,14 25,13.552 25,13 L25,9 C25,8.448 24.552,8 24,8 L12,8 C11.448,8 11,8.448 11,9 L11,13 C11,13.552 11.448,14 12,14 L17,14 L17,15 C17,16.654 18.346,18 20,18 L23,18 C23.551,18 24,18.449 24,19 L18,19 C17.448,19 17,19.448 17,20 L17,24 C17,24.552 17.448,25 18,25 L25,25 L25,27 C25,27.551 24.551,28 24,28 L23,28 L23,27 C23,26.448 22.552,26 22,26 L10,26 C9.448,26 9,26.448 9,27 L9,31 C9,31.552 9.448,32 10,32 L22,32 C22.552,32 23,31.552 23,31 L23,30 L24,30 C25.654,30 27,28.654 27,27 L27,25 L30,25 C30.552,25 31,24.552 31,24 L31,20 C31,19.448 30.552,19 30,19 L26,19 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Cascading" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

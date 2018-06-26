@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Restore</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M20,30 C19.1358333,30 18.3008333,29.8783333 17.5,29.6708333 L17.5,27.9491667 C18.29,28.1975 19.1291667,28.3333333 20,28.3333333 C24.5958333,28.3333333 28.3333333,24.595 28.3333333,20 C28.3333333,15.405 24.5958333,11.6666667 20,11.6666667 C15.405,11.6666667 11.6666667,15.405 11.6666667,20 C11.6666667,22.3233333 12.6266667,24.4216667 14.1666667,25.9325 L14.1666667,23.3333333 L15.8333333,23.3333333 L15.8333333,28.3333333 L10.8333333,28.3333333 L10.8333333,26.6666667 L12.5658333,26.6666667 C10.975,24.8958333 10,22.5625 10,20 C10,14.4858333 14.4866667,10 20,10 C25.5141667,10 30,14.4858333 30,20 C30,25.5141667 25.5141667,30 20,30 M19.1666667,14.1666667 L19.1666667,20.3458333 L22.7441667,23.9233333 L23.9225,22.7441667 L20.8333333,19.655 L20.8333333,14.1666667 L19.1666667,14.1666667 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Restore" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

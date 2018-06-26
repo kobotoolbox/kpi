@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Settings</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M20,25 C17.2425,25 15,22.7575 15,20 C15,17.2425 17.2425,15 20,15 C22.7575,15 25,17.2425 25,20 C25,22.7575 22.7575,25 20,25 L20,25 Z M30,22 L30,18 L27.737,18 C27.503,17.099 27.125,16.256 26.614,15.507 L28.132,13.989 L26.011,11.868 L24.493,13.386 C23.744,12.875 22.901,12.498 22,12.263 L22,10 L18,10 L18,12.263 C17.099,12.498 16.256,12.875 15.507,13.386 L13.989,11.868 L11.868,13.989 L13.386,15.507 C12.875,16.256 12.497,17.099 12.263,18 L10,18 L10,22 L12.263,22 C12.497,22.902 12.875,23.744 13.386,24.493 L11.868,26.011 L13.989,28.132 L15.507,26.615 C16.256,27.125 17.099,27.503 18,27.737 L18,30 L22,30 L22,27.737 C22.901,27.503 23.744,27.125 24.493,26.615 L26.011,28.132 L28.132,26.011 L26.614,24.493 C27.125,23.744 27.503,22.902 27.737,22 L30,22 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Settings" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

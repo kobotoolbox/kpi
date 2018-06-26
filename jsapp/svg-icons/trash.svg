@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Trash</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M15,18 L25,18 L25.001,28 L15,28 L15,18 Z M13,28 L13,16 L27,16 L27,28 C27,29.103 26.103,30 25,30 L15,30 C13.897,30 13,29.103 13,28 Z M23,13 L29,13 L29,15 L11,15 L11,13 L17,13 L17,11 L23,11 L23,13 Z M17,26 L19,26 L19,20 L17,20 L17,26 Z M21,26 L23,26 L23,20 L21,20 L21,26 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Trash" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

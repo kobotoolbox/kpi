@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Folder move to</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M21,25 L21,27 L11,27 C9.897,27 9,26.103 9,25 L9,12 C9,10.898 9.897,10 11,10 L15.5,10 C16.126,10 16.725,10.299 17.1,10.8 L18.75,13 L27,13 C28.103,13 29,13.898 29,15 L29,20 L27,20 L27,15 L18.75,15 C18.124,15 17.525,14.701 17.15,14.2 L15.5,12 L11,12 L11,25 L21,25 Z M28.9712,22.0625 L32.9372,26.0005 L28.9712,29.9375 L27.4592,28.4355 L28.8422,27.0625 L23.9372,27.0625 L23.9372,24.9375 L28.8422,24.9375 L27.4592,23.5645 L28.9712,22.0625 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Folder-move-to" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Lock</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M15,28 L15,21 L25,21 L25.002,28 L15,28 Z M17,15 C17,13.346 18.346,12 20,12 C21.654,12 23,13.346 23,15 L23,19 L17,19 L17,15 Z M25,19 L25,15 C25,12.243 22.757,10 20,10 C17.243,10 15,12.243 15,15 L15,19 C13.897,19 13,19.896 13,21 L13,28 C13,29.103 13.897,30 15,30 L25,30 C26.103,30 27,29.103 27,28 L27,21 C27,19.896 26.103,19 25,19 L25,19 Z M21.5,24.5 C21.5,25.328 20.828,26 20,26 C19.172,26 18.5,25.328 18.5,24.5 C18.5,23.672 19.172,23 20,23 C20.828,23 21.5,23.672 21.5,24.5" id="path-1"></path>
+    </defs>
+    <g id="Icons/Lock" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

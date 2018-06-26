@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Arrow first</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M25.414,28.828 L17,20.414 L25.414,12 L26.828,13.414 L19.828,20.414 L26.828,27.414 L25.414,28.828 Z M20.414,28.828 L12,20.414 L20.414,12 L21.828,13.414 L14.828,20.414 L21.828,27.414 L20.414,28.828 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Arrow-first" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>

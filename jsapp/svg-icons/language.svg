@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Language</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M24,26.921 L24,24 L26.921,24 C26.219,25.212 25.211,26.219 24,26.921 L24,26.921 Z M18,27.738 L18,24 L22,24 L22,27.738 C21.36,27.903 20.692,28 20,28 C19.308,28 18.64,27.903 18,27.738 L18,27.738 Z M13.079,24 L16,24 L16,26.921 C14.789,26.219 13.781,25.212 13.079,24 L13.079,24 Z M12.262,18 L16,18 L16,22 L12.262,22 C12.097,21.36 12,20.692 12,20 C12,19.308 12.097,18.64 12.262,18 L12.262,18 Z M16,13.079 L16,16 L13.079,16 C13.781,14.789 14.789,13.781 16,13.079 L16,13.079 Z M22,12.262 L22,16 L18,16 L18,12.262 C18.64,12.097 19.308,12 20,12 C20.692,12 21.36,12.097 22,12.262 L22,12.262 Z M18,22 L22,22 L22,18 L18,18 L18,22 Z M28,20 C28,20.692 27.903,21.36 27.738,22 L24,22 L24,18 L27.738,18 C27.903,18.64 28,19.308 28,20 L28,20 Z M26.921,16 L24,16 L24,13.079 C25.211,13.781 26.219,14.789 26.921,16 L26.921,16 Z M20,10 C14.477,10 10,14.477 10,20 C10,25.523 14.477,30 20,30 C25.523,30 30,25.523 30,20 C30,14.477 25.523,10 20,10 L20,10 Z" id="path-1"></path>
+    </defs>
+    <g id="Icons/Language" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <mask id="mask-2" fill="white">
+            <use xlink:href="#path-1"></use>
+        </mask>
+        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
+        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
+            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
+        </g>
+    </g>
+</svg>
