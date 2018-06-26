@@ -686,24 +686,35 @@ span.svg-icon {
   }
 }
 
-.dropzone-active {
+.dropzone {
   position: relative;
   min-height: calc(100% - 4px);
 
-  &:after {
-    width: calc(100% - 4px);
-    height: calc(100% - 4px);
+  &::after {
     position: absolute;
-    left: 0;
     top: 0;
+    right: 4px;
+    bottom: 4px;
+    left: 0;
     content: '';
     background: rgba(255, 255, 255, 0.7);
     border: 2px solid $cool-blue;
     z-index: 1;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.2s;
   }
 
-  .dropzone-active-overlay {
-    display: block;
+  &.dropzone-active {
+    &::after {
+      opacity: 1;
+      visibility: visible;
+      transition: 0.2s;
+    }
+
+    .dropzone-active-overlay {
+      display: block;
+    }
   }
 }
 
