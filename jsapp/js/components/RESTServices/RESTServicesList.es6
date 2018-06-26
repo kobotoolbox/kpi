@@ -1,5 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import stores from '../../stores';
 import actions from '../../actions';
 import {dataInterface} from '../../dataInterface';
@@ -20,6 +22,11 @@ export default class RESTServicesList extends React.Component {
   }
 
   componentDidMount() {
+    this.listenTo(
+      actions.externalServices.getAll.completed,
+      this.onExternalServicesUpdate
+    );
+
     dataInterface.getExternalServices(this.state.assetUid)
       .done((data) => {
         console.log(data);
@@ -34,6 +41,14 @@ export default class RESTServicesList extends React.Component {
         });
         alertify.error(t('Could not load REST services list.'));
       });
+  }
+
+  onExternalServicesUpdate(data) {
+    console.log('onExternalServicesUpdate', data);
+    this.setState({
+      isLoadingServices: false,
+      services: data.results
+    })
   }
 
   editService(evt) {
@@ -183,3 +198,5 @@ export default class RESTServicesList extends React.Component {
     }
   }
 }
+
+reactMixin(RESTServicesList.prototype, Reflux.ListenerMixin);

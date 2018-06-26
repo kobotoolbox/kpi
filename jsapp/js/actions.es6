@@ -268,6 +268,12 @@ actions.permissions = Reflux.createActions({
 });
 
 actions.externalServices = Reflux.createActions({
+  getAll: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   add: {
     children: [
       'completed',
@@ -796,10 +802,26 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
   });
 });
 
+actions.externalServices.getAll.listen((assetUid, callbacks = {}) => {
+  dataInterface.getExternalServices(assetUid)
+    .done((...args) => {
+      actions.externalServices.getAll.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.getAll.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
 actions.externalServices.add.listen((assetUid, data, callbacks = {}) => {
   dataInterface.addExternalService(assetUid, data)
     .done((...args) => {
-      actions.resources.loadAsset({id: assetUid});
+      actions.externalServices.getAll(assetUid);
       actions.externalServices.add.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
@@ -814,9 +836,9 @@ actions.externalServices.add.listen((assetUid, data, callbacks = {}) => {
 });
 
 actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) => {
-  dataInterface.updateExternalService(assetUid, esid, data, callbacks)
+  dataInterface.updateExternalService(assetUid, esid, data)
     .done((...args) => {
-      actions.resources.loadAsset({id: assetUid});
+      actions.externalServices.getAll(assetUid);
       actions.externalServices.update.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
@@ -831,9 +853,9 @@ actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) =>
 });
 
 actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.deleteExternalService(assetUid, esid, callbacks)
+  dataInterface.deleteExternalService(assetUid, esid)
     .done((...args) => {
-      actions.resources.loadAsset({id: assetUid});
+      actions.externalServices.getAll(assetUid);
       actions.externalServices.delete.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
