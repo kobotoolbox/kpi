@@ -79,6 +79,7 @@
     "style-loader": "^0.21.0",
     "underscore": "^1.8.3",
     "vinyl-source-stream": "^1.1.0",
+    "webfonts-generator": "^0.4.0",
     "webpack": "^4.10.1",
     "webpack-bundle-tracker": "0.4.0-beta",
     "webpack-cli": "^2.1.4",
@@ -91,6 +92,7 @@
     "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
     "watch": "webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-chrome test/tests.html",
+    "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python ./scripts/copy_fonts.py"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
