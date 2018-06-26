@@ -196,7 +196,7 @@ class SearchCollectionList extends Reflux.Component {
           disableClick
           multiple
           className="dropzone"
-          activeClassName="dropzone-active"
+          activeClassName="dropzone--active"
           accept={validFileTypes()}
         >
           <bem.List m={display} onScroll={this.handleScroll}>

@@ -693,8 +693,8 @@ span.svg-icon {
   &::after {
     position: absolute;
     top: 0;
-    right: 4px;
-    bottom: 4px;
+    right: 0;
+    bottom: 0;
     left: 0;
     content: '';
     background: rgba(255, 255, 255, 0.7);
@@ -705,7 +705,7 @@ span.svg-icon {
     transition: 0.2s;
   }
 
-  &.dropzone-active {
+  &.dropzone--active {
     &::after {
       opacity: 1;
       visibility: visible;
