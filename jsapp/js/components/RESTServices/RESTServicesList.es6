@@ -39,7 +39,7 @@ export default class RESTServicesList extends React.Component {
         this.setState({
           isLoadingServices: false
         });
-        alertify.error(t('Could not load REST services list.'));
+        alertify.error(t('Could not load REST Services'));
       });
   }
 
@@ -116,11 +116,11 @@ export default class RESTServicesList extends React.Component {
           <bem.EmptyContent__icon className='k-icon-data-sync' />
 
           <bem.EmptyContent__title>
-            {t("This project doesn't have any REST services yet!")}
+            {t("This project doesn't have any REST Services yet!")}
           </bem.EmptyContent__title>
 
           <bem.EmptyContent__message>
-            {t('You can use REST services to automatically post submissions to a third-party application.')}
+            {t('You can use REST Services to automatically post submissions to a third-party application.')}
             &nbsp;
             <a href={RESTServicesSupportUrl} target='_blank'>{t('Learn more')}</a>
           </bem.EmptyContent__message>

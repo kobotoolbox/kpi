@@ -71,7 +71,6 @@ export default class RESTServicesForm extends React.Component {
           if (stateUpdate.customHeaders.length === 0) {
             stateUpdate.customHeaders.push(this.getEmptyHeaderRow());
           }
-
           if (data.settings.username) {
             stateUpdate.securityUsername = data.settings.username;
           }
@@ -114,7 +113,7 @@ export default class RESTServicesForm extends React.Component {
   headersArrToObj(headersArr) {
     const headersObj = {}
     for (const header of headersArr) {
-      if (header.name !== '') {
+      if (header.name) {
         headersObj[header.name] = header.value;
       }
     }
@@ -129,11 +128,15 @@ export default class RESTServicesForm extends React.Component {
     this.setState({securityLevel: evt});
   }
 
-  formItemChange(evt) {
-    this.setState({[evt.target.name]: evt.target.value})
+  handleFormItemChange(evt) {
+    this.setState({[evt.target.name]: evt.target.value});
   }
 
-  customHeaderChange(evt) {
+  handleActiveChange(evt) {
+    this.setState({isActive: evt.target.checked});
+  }
+
+  handleCustomHeaderChange(evt) {
     const propName = evt.target.name;
     const propValue = evt.target.value;
     const index = evt.target.dataset.index;
@@ -255,7 +258,7 @@ export default class RESTServicesForm extends React.Component {
                 name='headerName'
                 value={this.state.customHeaders[n].name}
                 data-index={n}
-                onChange={this.customHeaderChange}
+                onChange={this.handleCustomHeaderChange}
               />
 
               <input
@@ -265,7 +268,7 @@ export default class RESTServicesForm extends React.Component {
                 name='headerValue'
                 value={this.state.customHeaders[n].value}
                 data-index={n}
-                onChange={this.customHeaderChange}
+                onChange={this.handleCustomHeaderChange}
               />
 
               <button
@@ -318,7 +321,7 @@ export default class RESTServicesForm extends React.Component {
                 name='name'
                 placeholder={t('Service Name')}
                 value={this.state.name}
-                onChange={this.formItemChange.bind(this)}
+                onChange={this.handleFormItemChange.bind(this)}
               />
             </bem.FormModal__item>
 
@@ -331,8 +334,24 @@ export default class RESTServicesForm extends React.Component {
                 name='url'
                 placeholder={t('https://')}
                 value={this.state.url}
-                onChange={this.formItemChange.bind(this)}
+                onChange={this.handleFormItemChange.bind(this)}
               />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item m='active'>
+              <bem.FormModal__checkbox>
+                <bem.FormModal__checkboxInput
+                  type='checkbox'
+                  name='isActive'
+                  id='active-checkbox'
+                  onChange={this.handleActiveChange.bind(this)}
+                  checked={this.state.isActive}
+                />
+
+                <bem.FormModal__checkboxText htmlFor='active-checkbox'>
+                  {t('Submissions active')}
+                </bem.FormModal__checkboxText>
+              </bem.FormModal__checkbox>
             </bem.FormModal__item>
 
             <bem.FormModal__item m='type'>
@@ -344,7 +363,7 @@ export default class RESTServicesForm extends React.Component {
                     type='radio'
                     value={EXPORT_TYPES.JSON}
                     name='type'
-                    onChange={this.formItemChange.bind(this)}
+                    onChange={this.handleFormItemChange.bind(this)}
                     checked={this.state.type === EXPORT_TYPES.JSON}
                   />
 
@@ -360,7 +379,7 @@ export default class RESTServicesForm extends React.Component {
                     type='radio'
                     value={EXPORT_TYPES.XML}
                     name='type'
-                    onChange={this.formItemChange.bind(this)}
+                    onChange={this.handleFormItemChange.bind(this)}
                     checked={this.state.type === EXPORT_TYPES.XML}
                   />
 
@@ -396,7 +415,7 @@ export default class RESTServicesForm extends React.Component {
                   id='rest-service-form--username'
                   name='securityUsername'
                   value={this.state.securityUsername}
-                  onChange={this.formItemChange.bind(this)}
+                  onChange={this.handleFormItemChange.bind(this)}
                 />
 
                 <label htmlFor='rest-service-form--password'>
@@ -408,7 +427,7 @@ export default class RESTServicesForm extends React.Component {
                   id='rest-service-form--password'
                   name='securityPassword'
                   value={this.state.securityPassword}
-                  onChange={this.formItemChange.bind(this)}
+                  onChange={this.handleFormItemChange.bind(this)}
                 />
               </bem.FormModal__item>
             }

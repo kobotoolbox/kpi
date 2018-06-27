@@ -176,6 +176,9 @@ bem.FormModal__item = bem.FormModal.__('item');
 bem.FormModal__radio = bem.FormModal.__('radio', '<label>');
 bem.FormModal__radioInput = bem.FormModal.__('radioInput', '<input>');
 bem.FormModal__radioText = bem.FormModal.__('radioText', '<span>');
+bem.FormModal__checkbox = bem.FormModal.__('checkbox', '<label>');
+bem.FormModal__checkboxInput = bem.FormModal.__('checkboxInput', '<input>');
+bem.FormModal__checkboxText = bem.FormModal.__('checkboxText', '<span>');
 bem.FormModal__group = bem.FormModal.__('group');
 
 bem.PopoverMenu = bem('popover-menu');
