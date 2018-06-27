@@ -22,7 +22,27 @@ class ServiceDefinition(ServiceDefinitionInterface):
         try:
             submission_json = data.get("json")
             submission_uuid = data.get("uuid")
-            response = requests.post(hook.endpoint, headers=headers, json=submission_json)
+            # Add custom headers
+            headers.update(hook.settings.get("custom_headers", {}))
+
+            # Prepares `requests` parameters
+            requests_kwargs = {
+                "headers": headers,
+                "json": submission_json
+            }
+
+            # If the request needs basic authentication with username & password,
+            # let's provide them
+            if hook.settings.get("username"):
+                requests_kwargs.update({
+                    "auth": (hook.settings.get("username"),
+                             hook.settings.get("password"))
+                })
+
+            print(hook.settings.get("custom_headers"))
+            print(requests_kwargs)
+
+            response = requests.post(hook.endpoint, **requests_kwargs)
             success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
             cls.save_log(hook, submission_uuid, response.status_code, response.text)
         except Exception as e:
