@@ -78,12 +78,12 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         1. `json` (_default_)
         2. `xml`
+        3. `f2dhis2`
 
     * `security_level` must be one these values:
 
         1. `no_auth` (_default_)
         2. `basic_auth`
-        3. `advanced_auth`
 
     * `settings`.`custom_headers` is dictionary of `custom header`: `value`
 

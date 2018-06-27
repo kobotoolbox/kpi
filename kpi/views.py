@@ -101,6 +101,7 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
+from hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
 
 
@@ -661,7 +662,15 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
         :param request:
         :return:
         """
-        # TODO to implement when `kc` new rest_service is up
+        try:
+            asset_uid = self.get_parents_query_dict()['asset']
+            asset = get_object_or_404(self.parent_model, uid=asset_uid)
+            HookUtils.call_service(asset, request.data)
+        except Exception as e:
+            # TODO logger error and return 500
+            pass
+
+        # TODO Returns correct response.
         return Response("Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

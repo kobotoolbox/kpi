@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from abc import ABCMeta, abstractmethod
+from importlib import import_module
+
 from django.db import models
 from datetime import datetime
 from jsonbfield.fields import JSONField as JSONBField
@@ -15,7 +18,6 @@ class Hook(models.Model):
     # Authentication levels
     NO_AUTH = "no_auth"
     BASIC_AUTH = "basic_auth"
-    ADVANCED_AUTH = "advanced_auth"
 
     # Export types list
     EXPORT_TYPE_CHOICES = (
@@ -26,10 +28,8 @@ class Hook(models.Model):
     # Authentication levels list
     SECURITY_LEVEL_CHOICES = (
         (NO_AUTH, NO_AUTH),
-        (BASIC_AUTH, BASIC_AUTH),
-        (ADVANCED_AUTH, ADVANCED_AUTH)
+        (BASIC_AUTH, BASIC_AUTH)
     )
-
 
     asset = models.ForeignKey("kpi.Asset", related_name="hooks", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="h")
@@ -51,3 +51,33 @@ class Hook(models.Model):
         # Update date_modified each time object is saved
         self.date_modified = datetime.now()
         super(Hook, self).save(*args, **kwargs)
+
+
+    def __unicode__(self):
+        return u"%s:%s - %s" % (self.asset, self.name, self.endpoint)
+
+    def get_service_definition(self):
+        mod = import_module("hook.services.service_{}".format(self.export_type))
+        return getattr(mod, "ServiceDefinition")
+
+
+class ServiceDefinitionInterface(object):
+
+    __metaclass__ = ABCMeta
+
+    @classmethod
+    @abstractmethod
+    def send(cls, hook, data=None):
+        pass
+
+    @staticmethod
+    def save_log(hook, submission_uuid, status_code, message):
+        pass
+        # TODO save log in DB
+        # log = HookLog(
+        #    instance_uuid=dict_data.get("uuid"),
+        #    status_code=status_code,
+        #    message=message,
+        #    hook=hook
+        # )
+        # log.save()
