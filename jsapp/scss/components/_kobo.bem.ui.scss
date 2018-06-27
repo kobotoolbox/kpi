@@ -690,6 +690,7 @@ iframe {
       outline: 0;
       background-color: transparent;
       color: $cool-gray;
+      cursor: pointer;
 
       &::after {
         display: block;
