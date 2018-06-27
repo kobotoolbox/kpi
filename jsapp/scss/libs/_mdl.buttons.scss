@@ -113,17 +113,18 @@ input.mdl-button[type="submit"] {
   // Bump up specificity by using [disabled] twice.
   &[disabled][disabled],
   &.mdl-button--disabled.mdl-button--disabled {
-    color: #999;
+    color: $cool-gray;
     cursor: default;
     background-color: transparent;
+    pointer-events: none;
   }
 
   &--raised {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      background-color: #DDD;
-      color: #999;
+      background-color: $cool-lightgray;
+      color: $cool-gray;
       box-shadow: none;
     }
   }
@@ -132,7 +133,7 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      color: #999;
+      color: $cool-gray;
     }
   }
 }
