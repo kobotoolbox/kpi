@@ -610,6 +610,21 @@ iframe {
     padding-top: 10px;
   }
 
+  /*
+    checkbox and radio input styles - use as:
+
+    ```
+      <bem.FormModal__checkbox>
+        <bem.FormModal__checkboxInput/>
+        <bem.FormModal__checkboxText>…</bem.FormModal__checkboxText>
+      </bem.FormModal__checkbox>
+
+      <bem.FormModal__radio>
+        <bem.FormModal__radioInput/>
+        <bem.FormModal__radioText>…</bem.FormModal__radioText>
+      </bem.FormModal__radio>
+    ```
+  */
   .form-modal__radio,
   .form-modal__checkbox {
     color: $black;
@@ -815,15 +830,15 @@ span.svg-icon {
 // Checkboxes
 
 // Remove default checkbox
-[type="checkbox"]:not(:checked),
-[type="checkbox"]:checked {
+[type="checkbox"]:not(.form-modal__checkboxInput):not(:checked),
+[type="checkbox"]:not(.form-modal__checkboxInput):checked {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
 
 // Checkbox Styles
-[type="checkbox"] {
+[type="checkbox"]:not(.form-modal__checkboxInput) {
   + label {
     position: relative;
     padding-left: 35px;
