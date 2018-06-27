@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/media-files</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M11,14 L9,14 L9,27 C9,28.103 9.897,29 11,29 L26,29 L26,27 L11,27 L11,14 Z M19,21 L25,18 L19,15 L19,21 Z M15,23 L15,13 L26,13 L26,16 L29,16 L29.001,23 L15,23 Z M27.414,11 L15,11 C13.897,11 13,11.898 13,13 L13,23 C13,24.103 13.897,25 15,25 L29,25 C30.103,25 31,24.103 31,23 L31,14.586 L27.414,11 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/media-files" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m11 14h-2v13c0 1.103.897 2 2 2h15v-2h-15zm8 7 6-3-6-3zm-4 2v-10h11v3h3l.001 7zm12.414-12h-12.414c-1.103 0-2 .898-2 2v10c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2v-8.414z" fill-rule="evenodd"/></svg>

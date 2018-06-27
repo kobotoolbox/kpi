@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/email</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M12,25 L12,17.179 L19.47,21.848 C19.632,21.949 19.816,22 20,22 C20.184,22 20.368,21.949 20.53,21.848 L28,17.179 L28.001,25 L12,25 Z M26.113,16 L20,19.821 L13.887,16 L26.113,16 Z M28,14 L12,14 C10.897,14 10,14.897 10,16 L10,25 C10,26.103 10.897,27 12,27 L28,27 C29.103,27 30,26.103 30,25 L30,16 C30,14.897 29.103,14 28,14 L28,14 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/email" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m12 25v-7.821l7.47 4.669c.162.101.346.152.53.152s.368-.051.53-.152l7.47-4.669.001 7.821zm14.113-9-6.113 3.821-6.113-3.821zm1.887-2h-16c-1.103 0-2 .897-2 2v9c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2v-9c0-1.103-.897-2-2-2z" fill-rule="evenodd"/></svg>

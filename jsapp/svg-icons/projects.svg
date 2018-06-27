@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/projects</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M15,23 L15,21 L17,21 L17,23 L15,23 Z M17,17 L17,19 L15,19 L15,17 L17,17 Z M15,27 L15,25 L17,25 L17,27 L15,27 Z M19,23 L19,21 L25,21 L25,23 L19,23 Z M23,17 L23,19 L19,19 L19,17 L23,17 Z M19,27 L19,25 L25,25 L25,27 L19,27 Z M13,30 L27.001,30 L27,12 L13,12 L13,30 Z M15,10 L15,12 L25,12 L25,10 L27,10 C28.103,10 29,10.896 29,12 L29,30 C29,31.102 28.103,32 27,32 L13,32 C11.897,32 11,31.102 11,30 L11,12 C11,10.896 11.897,10 13,10 L15,10 Z M15,8 L25,8 L25,14 L15,14 L15,8 Z M17,10 L17,12 L23,12 L23,10 L17,10 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/projects" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m15 23v-2h2v2zm2-6v2h-2v-2zm-2 10v-2h2v2zm4-4v-2h6v2zm4-6v2h-4v-2zm-4 10v-2h6v2zm-6 3h14.001l-.001-18h-14zm2-20v2h10v-2h2c1.103 0 2 .896 2 2v18c0 1.102-.897 2-2 2h-14c-1.103 0-2-.898-2-2v-18c0-1.104.897-2 2-2zm0-2h10v6h-10zm2 2v2h6v-2z" fill-rule="evenodd"/></svg>

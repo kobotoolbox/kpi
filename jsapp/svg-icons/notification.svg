@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/notification</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M16.555,27 C17.248,28.19 18.524,29 20,29 C21.477,29 22.752,28.19 23.446,27 L16.555,27 Z M14.035,24 L25.966,24 C24.745,22.998 24,21.486 24,19.838 L24,17 C24,14.794 22.206,13 20,13 C17.795,13 16,14.794 16,17 L16,19.838 C16,21.486 15.255,22.998 14.035,24 L14.035,24 Z M29,26 L11,26 L11,23.279 L11.684,23.052 C13.069,22.589 14,21.298 14,19.838 L14,17 C14,13.691 16.692,11 20,11 C23.309,11 26,13.691 26,17 L26,19.838 C26,21.298 26.932,22.589 28.317,23.052 L29,23.279 L29,26 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/notification" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m16.555 27c.693 1.19 1.969 2 3.445 2 1.477 0 2.752-.81 3.446-2zm-2.52-3h11.931c-1.221-1.002-1.966-2.514-1.966-4.162v-2.838c0-2.206-1.794-4-4-4-2.205 0-4 1.794-4 4v2.838c0 1.648-.745 3.16-1.965 4.162zm14.965 2h-18v-2.721l.684-.227c1.385-.463 2.316-1.754 2.316-3.214v-2.838c0-3.309 2.692-6 6-6 3.309 0 6 2.691 6 6v2.838c0 1.46.932 2.751 2.317 3.214l.683.227z" fill-rule="evenodd"/></svg>

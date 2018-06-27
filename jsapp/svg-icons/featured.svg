@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/featured</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M13,13 L13,27 L26.997,27 L27,13 L13,13 Z M27,29 L13,29 C11.897,29 11,28.103 11,27 L11,13 C11,11.897 11.897,11 13,11 L27,11 C28.103,11 29,11.897 29,13 L29,27 C29,28.103 28.103,29 27,29 L27,29 Z M20,14 L21.714,18 L26,18 L22.292,21.416 L24.285,26 L20,23.165 L15.714,26 L17.708,21.416 L14,18 L18.285,18 L20,14 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/featured" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m13 13v14h13.997l.003-14zm14 16h-14c-1.103 0-2-.897-2-2v-14c0-1.103.897-2 2-2h14c1.103 0 2 .897 2 2v14c0 1.103-.897 2-2 2zm-7-15 1.714 4h4.286l-3.708 3.416 1.993 4.584-4.285-2.835-4.286 2.835 1.994-4.584-3.708-3.416h4.285z" fill-rule="evenodd"/></svg>

@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/filter</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M21.293,20.293 C21.106,20.48 21,20.735 21,21 L21,24.586 L19,26.586 L19,21 C19,20.735 18.894,20.48 18.707,20.293 L14,15.586 L14,12 L26,12 L26,15.586 L21.293,20.293 Z M26,10 L14,10 C12.897,10 12,10.898 12,12 L12,16 C12,16.256 12.098,16.512 12.293,16.707 L17,21.414 L17,29 C17,29.404 17.244,29.769 17.617,29.924 C17.741,29.975 17.871,30 18,30 C18.26,30 18.516,29.898 18.707,29.707 L22.707,25.707 C22.894,25.52 23,25.265 23,25 L23,21.414 L27.707,16.707 C27.902,16.512 28,16.256 28,16 L28,12 C28,10.898 27.103,10 26,10 L26,10 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/filter" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m21.293 20.293c-.187.187-.293.442-.293.707v3.586l-2 2v-5.586c0-.265-.106-.52-.293-.707l-4.707-4.707v-3.586h12v3.586zm4.707-10.293h-12c-1.103 0-2 .898-2 2v4c0 .256.098.512.293.707l4.707 4.707v7.586c0 .404.244.769.617.924.124.051.254.076.383.076.26 0 .516-.102.707-.293l4-4c.187-.187.293-.442.293-.707v-3.586l4.707-4.707c.195-.195.293-.451.293-.707v-4c0-1.102-.897-2-2-2z" fill-rule="evenodd"/></svg>

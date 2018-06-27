@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/select-one</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M20,13.6 C16.4712,13.6 13.6,16.4712 13.6,20 C13.6,23.5288 16.4712,26.4 20,26.4 C23.5288,26.4 26.4,23.5288 26.4,20 C26.4,16.4712 23.5288,13.6 20,13.6 M20,28 C15.5888,28 12,24.4112 12,20 C12,15.5888 15.5888,12 20,12 C24.4112,12 28,15.5888 28,20 C28,24.4112 24.4112,28 20,28 M20,22.4 C21.3254834,22.4 22.4,21.3254834 22.4,20 C22.4,18.6745166 21.3254834,17.6 20,17.6 C18.6745166,17.6 17.6,18.6745166 17.6,20 C17.6,21.3254834 18.6745166,22.4 20,22.4 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/select-one" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m20 13.6c-3.5288 0-6.4 2.8712-6.4 6.4s2.8712 6.4 6.4 6.4 6.4-2.8712 6.4-6.4-2.8712-6.4-6.4-6.4m0 14.4c-4.4112 0-8-3.5888-8-8s3.5888-8 8-8 8 3.5888 8 8-3.5888 8-8 8m0-5.6c1.3254834 0 2.4-1.0745166 2.4-2.4s-1.0745166-2.4-2.4-2.4-2.4 1.0745166-2.4 2.4 1.0745166 2.4 2.4 2.4z" fill-rule="evenodd"/></svg>

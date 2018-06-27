@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/template</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M23.414,10 L28,14.586 L28,28 C28,29.103 27.103,30 26,30 L14,30 C12.897,30 12,29.103 12,28 L12,12 C12,10.898 12.897,10 14,10 L23.414,10 Z M26.001,28 L26,16 L22,16 L22,12 L14,12 L14,28 L26.001,28 Z M23.2774372,19.6352539 L20.9302692,19.6352539 L20.9302692,26 L19.0450153,26 L19.0450153,19.6352539 L16.7408161,19.6352539 L16.7408161,18.1796875 L23.2774372,18.1796875 L23.2774372,19.6352539 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/template" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m23.414 10 4.586 4.586v13.414c0 1.103-.897 2-2 2h-12c-1.103 0-2-.897-2-2v-16c0-1.102.897-2 2-2zm2.587 18-.001-12h-4v-4h-8v16zm-2.7235628-8.3647461h-2.347168v6.3647461h-1.8852539v-6.3647461h-2.3041992v-1.4555664h6.5366211z" fill-rule="evenodd"/></svg>

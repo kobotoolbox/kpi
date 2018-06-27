@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/check</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <polygon id="path-1" points="16.927 25.651 12 20.725 13.768 18.957 16.841 22.03 25.959 12 27.809 13.681"></polygon>
-    </defs>
-    <g id="Icons/check" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m16.927 25.651-4.927-4.926 1.768-1.768 3.073 3.073 9.118-10.03 1.85 1.681z" fill-rule="evenodd"/></svg>

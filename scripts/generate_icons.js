@@ -26,16 +26,10 @@ webfontsGenerator(
       baseSelector: '.k-icon',
       baseClassName: 'k-icon'
     },
-    formatOptions: {
-      svg: {
-        normalize: false,
-        round: 10e99,
-      },
-      ttf: {},
-      woff2: {},
-      woff: {},
-      eot: {}
-    }
+    fixedWidth: false,
+    centerHorizontally: false,
+    normalize: false,
+    round: 0
   },
   function(error) {
     if (error) {

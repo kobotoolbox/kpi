@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/share</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M17.0003,16 C15.8973,16 15.0003,16.896 15.0003,18 C15.0003,19.103 15.8973,20 17.0003,20 C18.1033,20 19.0003,19.103 19.0003,18 C19.0003,16.896 18.1033,16 17.0003,16 M17.0003,22 C14.7943,22 13.0003,20.206 13.0003,18 C13.0003,15.794 14.7943,14 17.0003,14 C19.2063,14 21.0003,15.794 21.0003,18 C21.0003,20.206 19.2063,22 17.0003,22 Z M11.159,28 C11.757,26.192 13.992,25 17,25 C20.008,25 22.244,26.192 22.842,28 L11.159,28 Z M25,30 L9,30 L9,29 C9,25.467 12.29,23 17,23 C21.711,23 25,25.467 25,29 L25,30 Z M31.0003,13 L31.0003,15 L28.0003,15 L28.0003,18 L26.0003,18 L26.0003,15 L23.0003,15 L23.0003,13 L26.0003,13 L26.0003,10 L28.0003,10 L28.0003,13 L31.0003,13 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/share" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m17.0003 16c-1.103 0-2 .896-2 2 0 1.103.897 2 2 2s2-.897 2-2c0-1.104-.897-2-2-2m0 6c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4zm-5.8413 6c.598-1.808 2.833-3 5.841-3s5.244 1.192 5.842 3zm13.841 2h-16v-1c0-3.533 3.29-6 8-6 4.711 0 8 2.467 8 6zm6.0003-17v2h-3v3h-2v-3h-3v-2h3v-3h2v3z" fill-rule="evenodd"/></svg>

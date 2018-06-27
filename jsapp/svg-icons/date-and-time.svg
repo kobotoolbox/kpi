@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/date-and-time</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M16,26 L10,26 L10,16 L28,16 L28,13 C28,11.898 27.103,11 26,11 L25,11 L25,8 L23,8 L23,13 L22,13 L22,11 L15,11 L15,8 L13,8 L13,13 L12,13 L12,11 L10,11 C8.897,11 8,11.898 8,13 L8,26 C8,27.103 8.897,28 10,28 L16,28 L16,26 Z M25,20 C22.243,20 20,22.243 20,25 C20,27.757 22.243,30 25,30 C27.757,30 30,27.757 30,25 C30,22.243 27.757,20 25,20 M25,32 C21.14,32 18,28.86 18,25 C18,21.14 21.14,18 25,18 C28.86,18 32,21.14 32,25 C32,28.86 28.86,32 25,32 M28,26 L24,26 L24,21 L26,21 L26,24 L28,24 L28,26 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/date-and-time" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m16 26h-6v-10h18v-3c0-1.102-.897-2-2-2h-1v-3h-2v5h-1v-2h-7v-3h-2v5h-1v-2h-2c-1.103 0-2 .898-2 2v13c0 1.103.897 2 2 2h6zm9-6c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5m0 12c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7m3-6h-4v-5h2v3h2z" fill-rule="evenodd"/></svg>

@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/comment-reply</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M23,22 L23,26 L15.667,26 L13,28 L13,26 L10,26 L10,17 L18,17 L18,15 L10,15 C8.897,15 8,15.897 8,17 L8,26 C8,27.103 8.897,28 10,28 L11,28 L11,32 L16.333,28 L23,28 C24.103,28 25,27.103 25,26 L25,22 L23,22 Z M26,8 C22.691,8 20,10.691 20,14 L22,14 C22,11.794 23.794,10 26,10 C28.206,10 30,11.794 30,14 C30,16.206 28.206,18 26,18 C24.931,18 23.926,17.584 23.22,16.881 L23.173,16.827 L25,15 L20,15 L20,20 L21.757,18.243 C22.889,19.376 24.396,20 26,20 C29.309,20 32,17.309 32,14 C32,10.691 29.309,8 26,8" id="path-1"></path>
-    </defs>
-    <g id="Icons/comment-reply" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m23 22v4h-7.333l-2.667 2v-2h-3v-9h8v-2h-8c-1.103 0-2 .897-2 2v9c0 1.103.897 2 2 2h1v4l5.333-4h6.667c1.103 0 2-.897 2-2v-4zm3-14c-3.309 0-6 2.691-6 6h2c0-2.206 1.794-4 4-4s4 1.794 4 4-1.794 4-4 4c-1.069 0-2.074-.416-2.78-1.119l-.047-.054 1.827-1.827h-5v5l1.757-1.757c1.132 1.133 2.639 1.757 4.243 1.757 3.309 0 6-2.691 6-6s-2.691-6-6-6" fill-rule="evenodd"/></svg>

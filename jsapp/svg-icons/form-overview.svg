@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/form-overview</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M10,10 L20,10 L20,14 L24,14 L24,16 L26,16 L26,12.586 L21.414,8 L10,8 C8.897,8 8,8.898 8,10 L8,28 C8,29.103 8.897,30 10,30 L16,30 L16,28 L10,28 L10,10 Z M12,23 L15,23 L15,21 L12,21 L12,23 Z M12,19 L17,19 L17,17 L12,17 L12,19 Z M25,30 C22.243,30 20,27.757 20,25 C20,22.243 22.243,20 25,20 C27.757,20 30,22.243 30,25 C30,27.757 27.757,30 25,30 M25,18 C21.141,18 18,21.14 18,25 C18,28.86 21.141,32 25,32 C28.859,32 32,28.86 32,25 C32,21.14 28.859,18 25,18 M24,29 L26,29 L26,25 L24,25 L24,29 Z M25,22 C24.447,22 24,22.448 24,23 C24,23.553 24.447,24 25,24 C25.553,24 26,23.553 26,23 C26,22.448 25.553,22 25,22" id="path-1"></path>
-    </defs>
-    <g id="Icons/form-overview" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m10 10h10v4h4v2h2v-3.414l-4.586-4.586h-11.414c-1.103 0-2 .898-2 2v18c0 1.103.897 2 2 2h6v-2h-6zm2 13h3v-2h-3zm0-4h5v-2h-5zm13 11c-2.757 0-5-2.243-5-5s2.243-5 5-5 5 2.243 5 5-2.243 5-5 5m0-12c-3.859 0-7 3.14-7 7s3.141 7 7 7 7-3.14 7-7-3.141-7-7-7m-1 11h2v-4h-2zm1-7c-.553 0-1 .448-1 1 0 .553.447 1 1 1s1-.447 1-1c0-.552-.447-1-1-1" fill-rule="evenodd"/></svg>

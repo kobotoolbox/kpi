@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/attach</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M19,31 C16.103,31 14,28.687 14,25.5 L14,17 C14,13.009 16.794,10 20.5,10 C24.206,10 27,13.009 27,17 L27,24 L25,24 L25,17 C25,14.103 23.107,12 20.5,12 C17.893,12 16,14.103 16,17 L16,25.5 C16,27.243 16.928,29 19,29 C21.072,29 22,27.243 22,25.5 L22,18 C22,17.398 21.854,16 20.5,16 C19.146,16 19,17.398 19,18 L19,25 L17,25 L17,18 C17,15.607 18.407,14 20.5,14 C22.593,14 24,15.607 24,18 L24,25.5 C24,28.687 21.897,31 19,31" id="path-1"></path>
-    </defs>
-    <g id="Icons/attach" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m19 31c-2.897 0-5-2.313-5-5.5v-8.5c0-3.991 2.794-7 6.5-7s6.5 3.009 6.5 7v7h-2v-7c0-2.897-1.893-5-4.5-5s-4.5 2.103-4.5 5v8.5c0 1.743.928 3.5 3 3.5s3-1.757 3-3.5v-7.5c0-.602-.146-2-1.5-2s-1.5 1.398-1.5 2v7h-2v-7c0-2.393 1.407-4 3.5-4s3.5 1.607 3.5 4v7.5c0 3.187-2.103 5.5-5 5.5" fill-rule="evenodd"/></svg>

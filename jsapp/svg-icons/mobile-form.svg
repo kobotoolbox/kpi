@@ -1,15 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/mobile-form</title>
-    <desc>Created with Sketch.</desc>
-    <defs>
-        <path d="M15,30 L15,27 L26,27 L26,30 L15,30 Z M26,15 L26,25 L15,25 L15,15 L26,15 Z M26,13 L15,13 L15,10 L26,10 L26,13 Z M25.5,8 L15.5,8 C14.12125,8 13,9.0764 13,10.4 L13,29.6 C13,30.9236 14.12125,32 15.5,32 L25.5,32 C26.87875,32 28,30.9236 28,29.6 L28,10.4 C28,9.0764 26.87875,8 25.5,8 L25.5,8 Z M17,23 L24,23 L24,21 L17,21 L17,23 Z M21,17 L17,17 L17,19 L21,19 L21,17 Z" id="path-1"></path>
-    </defs>
-    <g id="Icons/mobile-form" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <mask id="mask-2" fill="white">
-            <use xlink:href="#path-1"></use>
-        </mask>
-        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
-    </g>
-</svg>
+<svg height="40" viewBox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg"><path d="m15 30v-3h11v3zm11-15v10h-11v-10zm0-2h-11v-3h11zm-.5-5h-10c-1.37875 0-2.5 1.0764-2.5 2.4v19.2c0 1.3236 1.12125 2.4 2.5 2.4h10c1.37875 0 2.5-1.0764 2.5-2.4v-19.2c0-1.3236-1.12125-2.4-2.5-2.4zm-8.5 15h7v-2h-7zm4-6h-4v2h4z" fill-rule="evenodd"/></svg>
