@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
+import alertify from 'alertifyjs';
 import stores from '../../stores';
 import actions from '../../actions';
 import {dataInterface} from '../../dataInterface';
@@ -29,7 +30,6 @@ export default class RESTServicesList extends React.Component {
 
     dataInterface.getExternalServices(this.state.assetUid)
       .done((data) => {
-        console.log(data);
         this.setState({
           isLoadingServices: false,
           services: data.results
@@ -44,7 +44,6 @@ export default class RESTServicesList extends React.Component {
   }
 
   onExternalServicesUpdate(data) {
-    console.log('onExternalServicesUpdate', data);
     this.setState({
       isLoadingServices: false,
       services: data.results
@@ -59,18 +58,36 @@ export default class RESTServicesList extends React.Component {
     });
   }
 
-  deleteService(evt) {
-    actions.externalServices.delete(
-      this.state.assetUid,
-      evt.currentTarget.dataset.esid, {
-        onComplete: () => {
-          console.log('deleted');
+  deleteServiceSafe(evt) {
+    const serviceName = evt.currentTarget.dataset.serviceName;
+    const serviceEsid = evt.currentTarget.dataset.esid;
+    if (this.state.assetUid) {
+      const dialog = alertify.dialog("confirm");
+      const message = t("You are about to delete ##target. This action cannot be undone.")
+        .replace("##target", `<strong>${serviceName}</strong>`);
+      let dialogOptions = {
+        title: t(`Are you sure you want to delete ${serviceName}?`),
+        message: message,
+        labels: { ok: t("Confirm"), cancel: t("Cancel") },
+        onok: () => {
+          actions.externalServices.delete(
+            this.state.assetUid,
+            serviceEsid, {
+              onComplete: () => {
+                console.log('deleted');
+              },
+              onFail: () => {
+                console.log('del failed');
+              }
+            }
+          );
         },
-        onFail: () => {
-          console.log('del failed');
+        oncancel: () => {
+          dialog.destroy();
         }
-      }
-    );
+      };
+      dialog.set(dialogOptions).show();
+    }
   }
 
   openNewRESTServiceModal() {
@@ -127,7 +144,10 @@ export default class RESTServicesList extends React.Component {
               className='rest-services-list__header-help-link'
               href={RESTServicesSupportUrl}
               target='_blank'
-            >{t('Need help?')}</a>
+            >
+              <i className="k-icon k-icon-help" />
+              {t('Need help?')}
+            </a>
           </header>
 
           <bem.FormView__cell m={['box']}>
@@ -163,7 +183,8 @@ export default class RESTServicesList extends React.Component {
                     </bem.ServiceRow__actionButton>
 
                     <bem.ServiceRow__actionButton
-                      onClick={this.deleteService}
+                      onClick={this.deleteServiceSafe.bind(this)}
+                      data-service-name={item.name}
                       data-esid={item.uid}
                       data-tip={t('Delete')}
                     >

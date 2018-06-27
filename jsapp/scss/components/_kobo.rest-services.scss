@@ -30,6 +30,12 @@
     line-height: 20px;
     padding: 10px 0;
     min-height: 40px;
+
+    i {
+      font-size: 20px;
+      vertical-align: top;
+      display: inline-block;
+    }
   }
 
   .rest-services-list__header-help-link {float: right;}

@@ -58,8 +58,6 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.esid) {
       dataInterface.getExternalService(this.state.assetUid, this.state.esid)
         .done((data) => {
-          console.log('loaded external service', data);
-
           const stateUpdate = {
             isLoadingExternalService: false,
             name: data.name,
