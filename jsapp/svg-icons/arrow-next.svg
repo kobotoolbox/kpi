@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Arrow next</title>
+    <title>Icons/arrow-next</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <polygon id="path-1" points="21.293 23 22.707 24.414 27.414 19.707 22.707 15 21.293 16.414 23.586 18.707 12 18.707 12 20.707 23.586 20.707"></polygon>
     </defs>
-    <g id="Icons/Arrow-next" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/arrow-next" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

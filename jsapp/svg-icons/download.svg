@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Download</title>
+    <title>Icons/download</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M26,26 L26,28 L14,28 L14,26 L12,26 L12,28 C12,29.103 12.897,30 14,30 L26,30 C27.103,30 28,29.103 28,28 L28,26 L26,26 Z M18,19 C18.552,19 19,18.552 19,18 L19,12 L21,12 L21,18 C21,18.552 21.448,19 22,19 L22.586,19 L20,21.586 L17.414,19 L18,19 Z M19.293,23.707 C19.488,23.902 19.744,24 20,24 C20.256,24 20.512,23.902 20.707,23.707 L25.707,18.707 C25.993,18.421 26.079,17.991 25.924,17.617 C25.769,17.244 25.404,17 25,17 L23,17 L23,11 C23,10.448 22.552,10 22,10 L18,10 C17.448,10 17,10.448 17,11 L17,17 L15,17 C14.596,17 14.231,17.244 14.076,17.617 C13.921,17.991 14.007,18.421 14.293,18.707 L19.293,23.707 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Download" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/download" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

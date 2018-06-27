@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Layer</title>
+    <title>Icons/layer</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M13.4624,15.99925 L20.0004,18.90525 L26.5374,15.99925 L20.0004,13.09325 L13.4624,15.99925 Z M20.0004,20.99925 C19.8614,20.99925 19.7234,20.97025 19.5934,20.91325 L10.5934,16.91325 C10.2334,16.75225 10.0004,16.39525 10.0004,15.99925 C10.0004,15.60325 10.2334,15.24625 10.5934,15.08625 L19.5934,11.08625 C19.8524,10.97125 20.1474,10.97125 20.4064,11.08625 L29.4064,15.08625 C29.7674,15.24625 30.0004,15.60325 30.0004,15.99925 C30.0004,16.39525 29.7674,16.75225 29.4064,16.91325 L20.4064,20.91325 C20.2764,20.97025 20.1384,20.99925 20.0004,20.99925 L20.0004,20.99925 Z M30,18.35765 L19.982,22.90965 L10,18.75065 L10,20.91565 L19.615,24.92365 C19.738,24.97665 19.869,24.99965 20,24.99965 C20.141,24.99965 20.282,24.97065 20.413,24.91165 L30,20.55465 L30,18.35765 Z M30,22.35765 L19.982,26.90965 L10,22.75065 L10,24.91565 L19.615,28.92365 C19.738,28.97665 19.869,28.99965 20,28.99965 C20.141,28.99965 20.282,28.97065 20.413,28.91165 L30,24.55465 L30,22.35765 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Layer" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/layer" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

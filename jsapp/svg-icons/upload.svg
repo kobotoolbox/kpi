@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Upload</title>
+    <title>Icons/upload</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M26,30.00025 L14,30.00025 C12.897,30.00025 12,29.10325 12,28.00025 L12,26.00025 L14,26.00025 L14,28.00025 L26,28.00025 L26,26.00025 L28,26.00025 L28,28.00025 C28,29.10325 27.103,30.00025 26,30.00025 M19,22.00025 L21,22.00025 L21,16.00025 C21,15.44825 21.448,15.00025 22,15.00025 L22.586,15.00025 L20,12.41425 L17.414,15.00025 L18,15.00025 C18.552,15.00025 19,15.44825 19,16.00025 L19,22.00025 Z M22,24.00025 L18,24.00025 C17.448,24.00025 17,23.55225 17,23.00025 L17,17.00025 L15,17.00025 C14.596,17.00025 14.231,16.75725 14.076,16.38325 C13.921,16.00925 14.007,15.57925 14.293,15.29325 L19.293,10.29325 C19.684,9.90225 20.316,9.90225 20.707,10.29325 L25.707,15.29325 C25.993,15.57925 26.079,16.00925 25.924,16.38325 C25.769,16.75725 25.404,17.00025 25,17.00025 L23,17.00025 L23,23.00025 C23,23.55225 22.552,24.00025 22,24.00025 L22,24.00025 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Upload" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/upload" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

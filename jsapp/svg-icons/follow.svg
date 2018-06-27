@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Follow</title>
+    <title>Icons/follow</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M16.0003,18 C14.8973,18 14.0003,18.896 14.0003,20 C14.0003,21.103 14.8973,22 16.0003,22 C17.1033,22 18.0003,21.103 18.0003,20 C18.0003,18.896 17.1033,18 16.0003,18 M16.0003,24 C13.7943,24 12.0003,22.206 12.0003,20 C12.0003,17.794 13.7943,16 16.0003,16 C18.2063,16 20.0003,17.794 20.0003,20 C20.0003,22.206 18.2063,24 16.0003,24 Z M10.159,30 C10.757,28.192 12.992,27 16,27 C19.008,27 21.244,28.192 21.842,30 L10.159,30 Z M24,32 L8,32 L8,31 C8,27.467 11.29,25 16,25 C20.711,25 24,27.467 24,31 L24,32 Z M26.0003,8 L27.7143,12.286 L32.0003,12.286 L28.2923,15.416 L30.2853,20 L26.0003,17.166 L21.7143,20 L23.7083,15.416 L20.0003,12.286 L24.2853,12.286 L26.0003,8 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Follow" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/follow" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

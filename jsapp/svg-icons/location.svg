@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Location</title>
+    <title>Icons/location</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M20,16 C19.449,16 19,16.449 19,17 C19,17.552 19.449,18 20,18 C20.551,18 21,17.552 21,17 C21,16.449 20.551,16 20,16 M20,20 C18.346,20 17,18.654 17,17 C17,15.346 18.346,14 20,14 C21.654,14 23,15.346 23,17 C23,18.654 21.654,20 20,20 M20,12 C17.243,12 15,14.243 15,17 C15,19.591 18.107,24.583 20,27.291 C21.892,24.582 25,19.589 25,17 C25,14.243 22.757,12 20,12 M20,30.667 C17.641,27.52 13,20.936 13,17 C13,13.14 16.14,10 20,10 C23.86,10 27,13.14 27,17 C27,20.936 22.359,27.521 20,30.667" id="path-1"></path>
     </defs>
-    <g id="Icons/Location" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/location" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

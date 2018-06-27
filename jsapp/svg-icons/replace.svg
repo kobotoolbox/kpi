@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Replace</title>
+    <title>Icons/replace</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M26,25.2916488 L26,22 L24,22 L24,26.9297424 C24.4617016,26.6626625 24.8942341,26.3507655 25.2916488,26 L26,26 L26,25.2916488 C27.2447268,23.8813824 28,22.0288929 28,20 C28,15.581722 24.418278,12 20,12 C19.3094009,12 18.6392398,12.087506 18,12.252035 L18,10.2000362 C18.6462199,10.0688605 19.3150683,10 20,10 C25.5228475,10 30,14.4771525 30,20 C30,22.2512118 29.2561104,24.3286789 28.0007324,26 L30,26 L30,28 L24,28 L24,27.4648712 L24,26.9297424 Z M14,14.7083512 C12.7552732,16.1186176 12,17.9711071 12,20 C12,24.418278 15.581722,28 20,28 C20.6905991,28 21.3607602,27.912494 22,27.747965 L22,29.7999638 C21.3537801,29.9311395 20.6849317,30 20,30 C14.4771525,30 10,25.5228475 10,20 C10,17.7487882 10.7438896,15.6713211 11.9992676,14 L10,14 L10,12 L13.9990251,12 C13.99935,11.9997559 13.999675,11.9995117 14,11.9992676 L14,12 L16,12 L16,13 L16.1239928,13 C16.0824335,13.0230612 16.0411012,13.0464818 16,13.0702576 L16,14 L16,18 L14,18 L14,14.7083512 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Replace" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/replace" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

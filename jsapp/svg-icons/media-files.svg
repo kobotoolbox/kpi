@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/clone</title>
+    <title>Icons/media-files</title>
     <desc>Created with Sketch.</desc>
     <defs>
-        <path d="M27.0015,25 L17.0005,25 L17.0005,11 L23.0005,11 L23.0005,15 L27.0005,15 L27.0015,25 Z M24.4145,9 L29.0005,13.586 L29.0005,25 C29.0005,26.103 28.1035,27 27.0005,27 L17.0005,27 C15.8975,27 15.0005,26.103 15.0005,25 L15.0005,11 C15.0005,9.898 15.8975,9 17.0005,9 L24.4145,9 Z M13,13 L13,29 L25,29 L25,31 L13,31 C11.897,31 11,30.103 11,29 L11,13 L13,13 Z" id="path-1"></path>
+        <path d="M11,14 L9,14 L9,27 C9,28.103 9.897,29 11,29 L26,29 L26,27 L11,27 L11,14 Z M19,21 L25,18 L19,15 L19,21 Z M15,23 L15,13 L26,13 L26,16 L29,16 L29.001,23 L15,23 Z M27.414,11 L15,11 C13.897,11 13,11.898 13,13 L13,23 C13,24.103 13.897,25 15,25 L29,25 C30.103,25 31,24.103 31,23 L31,14.586 L27.414,11 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/clone" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/media-files" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>

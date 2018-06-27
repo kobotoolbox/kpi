@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Report menu</title>
+    <title>Icons/report-menu</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M28,14 L12,14 L12,12 L28,12 L28,14 Z M28,17.999 L12,17.999 L12,15.999 L28,15.999 L28,17.999 Z M22,22 L12,22 L12,20 L22,20 L22,22 Z M16,26 L12,26 L12,24 L16,24 L16,26 Z M25.8875237,21.5534983 L27.3791098,24.5404983 L29.9886364,22.7984983 L29.9886364,25.2024983 L27.5459517,26.8324983 C27.307178,26.9914983 27.0144555,27.0414983 26.7357197,26.9674983 C26.458982,26.8934983 26.2262027,26.7044983 26.0983239,26.4484983 L25.0952746,24.4394983 L23.9233854,27.3724983 C23.7985038,27.6844983 23.5257623,27.9124983 23.1970739,27.9804983 C22.8683854,28.0504983 22.5277083,27.9454983 22.2889347,27.7074983 L20.8702794,26.2874983 L18,28.2024983 L18,25.7984983 L20.4436837,24.1684983 C20.8393087,23.9044983 21.3678078,23.9564983 21.7044886,24.2934983 L22.6306108,25.2214983 L24.06625,21.6294983 C24.2121117,21.2634983 24.5587831,21.0184983 24.95241,21.0014983 C25.3450379,20.9794983 25.7116903,21.2014983 25.8875237,21.5534983 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Report-menu" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/report-menu" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

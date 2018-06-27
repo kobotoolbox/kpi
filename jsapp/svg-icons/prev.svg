@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Prev</title>
+    <title>Icons/prev</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <polygon id="path-1" points="15.0539648 19.4792724 15.050254 19.4755615 23.5258155 11 24.9472078 12.4213923 17.8390737 19.5295263 24.8969538 26.5874064 23.4755615 28.0087987 15 19.5332372 15.0539648 19.4792724"></polygon>
     </defs>
-    <g id="Icons/Prev" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/prev" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

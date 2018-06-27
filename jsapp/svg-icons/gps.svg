@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/GPS</title>
+    <title>Icons/gps</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M20,18 C18.897,18 18,17.103 18,16 C18,14.898 18.897,14 20,14 C21.103,14 22,14.898 22,16 C22,17.103 21.103,18 20,18 M20,30 C15.184,30 10,28.749 10,26 C10,25.046 10.648,23.716 13.734,22.799 L14.303,24.717 C12.4,25.282 12,25.902 12,26 C12,26.515 14.75,28 20,28 C25.25,28 28,26.515 28,26 C28,25.902 27.602,25.284 25.711,24.721 L26.281,22.804 C29.355,23.719 30,25.047 30,26 C30,28.749 24.816,30 20,30 M20,12 C17.794,12 16,13.794 16,16 C16,18.498 18.46,21.798 20,23.536 C21.541,21.798 24,18.498 24,16 C24,13.794 22.206,12 20,12 L20,12 Z M20,26.415 L19.293,25.707 C19.077,25.491 14,20.365 14,16 C14,12.692 16.691,10 20,10 C23.309,10 26,12.692 26,16 C26,20.365 20.923,25.491 20.707,25.707 L20,26.415 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/GPS" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/gps" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

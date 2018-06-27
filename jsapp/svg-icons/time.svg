@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Time</title>
+    <title>Icons/time</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M20,14 C16.14,14 13,17.14 13,21 C13,24.86 16.14,28 20,28 C23.86,28 27,24.86 27,21 C27,17.14 23.86,14 20,14 M20,30 C15.038,30 11,25.963 11,21 C11,16.037 15.038,12 20,12 C24.962,12 29,16.037 29,21 C29,25.963 24.962,30 20,30 M29.239,16.099 C29.769,15.558 30.098,14.818 30.098,14 C30.098,12.343 28.756,11 27.098,11 C26.281,11 25.541,11.329 25,11.861 L29.239,16.099 Z M10.859,16.099 C10.329,15.558 10,14.818 10,14 C10,12.343 11.342,11 13,11 C13.817,11 14.557,11.329 15.098,11.861 L10.859,16.099 Z M22.293,24.707 L19.293,21.707 C19.105,21.519 19,21.265 19,21 L19,16 L21,16 L21,20.586 L23.707,23.293 L22.293,24.707 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Time" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/time" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

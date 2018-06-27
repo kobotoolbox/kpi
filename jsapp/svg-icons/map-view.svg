@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Map view</title>
+    <title>Icons/map-view</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M20,27.9194 L17,25.5194 L17,14.0814 L20,16.4804 L20,27.9194 Z M11,16.5354 L15,13.8684 L15,25.4644 L11,28.1324 L11,16.5354 Z M27.555,26.8314 C27.833,26.6464 28,26.3344 28,26.0004 L28,23.0004 L26,23.0004 L26,25.4644 L22,28.1314 L22,16.0004 C22,15.6964 21.862,15.4094 21.625,15.2194 L16.625,11.2194 C16.483,11.1064 16.252,11.0154 16.034,11.0084 C15.819,11.0024 15.595,11.0684 15.445,11.1684 L9.445,15.1684 C9.167,15.3534 9,15.6654 9,16.0004 L9,30.0004 C9,30.3694 9.203,30.7084 9.528,30.8814 C9.676,30.9614 9.838,31.0004 10,31.0004 C10.194,31.0004 10.387,30.9434 10.555,30.8314 L15.946,27.2374 L20.376,30.7804 C20.556,30.9254 20.777,31.0004 21,31.0004 C21.266,31.0004 21.395,30.9264 21.549,30.8234 L27.555,26.8314 Z M27,11 C28.103,11 29,11.898 29,13 C29,14.615 27.891,16.778 27,18.214 C26.108,16.781 25,14.62 25,13 C25,11.898 25.897,11 27,11 L27,11 Z M27,21.667 L27.8,20.6 C27.931,20.426 31,16.295 31,13 C31,10.794 29.206,9 27,9 C24.794,9 23,10.794 23,13 C23,16.295 26.069,20.426 26.2,20.6 L27,21.667 Z M28,13 C28,12.447 27.553,12 27,12 C26.447,12 26,12.447 26,13 C26,13.552 26.447,14 27,14 C27.553,14 28,13.552 28,13" id="path-1"></path>
     </defs>
-    <g id="Icons/Map-view" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/map-view" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

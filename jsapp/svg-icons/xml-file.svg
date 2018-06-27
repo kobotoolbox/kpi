@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/XML File</title>
+    <title>Icons/xml-file</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M13.1328,11 L23.1328,11 L23.1328,15 L27.1328,15 L27.1328,16 L29.1328,16 L29.1328,13.586 L24.5468,9 L13.1328,9 C12.0298,9 11.1328,9.898 11.1328,11 L11.1328,16 L13.1328,16 L13.1328,11 Z M27.1328,29 L13.1328,29 L13.1328,28 L11.1328,28 L11.1328,29 C11.1328,30.103 12.0298,31 13.1328,31 L27.1328,31 C28.2358,31 29.1328,30.103 29.1328,29 L29.1328,28 L27.1328,28 L27.1328,29 Z M25,18 L25,26 L30,26 L30,24 L27,24 L27,18 L25,18 Z M20,22.3026088 L20.168,22.5546088 C20.539,23.1116088 21.461,23.1116088 21.832,22.5546088 L22,22.3026088 L22,25.9996088 L24,25.9996088 L24,18.9996088 C24,18.5596088 23.712,18.1706088 23.29,18.0436088 C22.87,17.9146088 22.413,18.0786088 22.168,18.4456088 L21,20.1976088 L19.832,18.4456088 C19.588,18.0786088 19.13,17.9146088 18.711,18.0436088 C18.289,18.1706088 18,18.5596088 18,18.9996088 L18,25.9996088 L20,25.9996088 L20,22.3026088 Z M12.333,26 L13.566,23.944 L14.8,26 L17.133,26 L14.732,22 L17.133,18 L14.8,18 L13.566,20.056 L12.333,18 L10,18 L12.4,22 L10,26 L12.333,26 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/XML-File" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/xml-file" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>

@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
-    <title>Icons/Heatmap</title>
+    <title>Icons/heatmap</title>
     <desc>Created with Sketch.</desc>
     <defs>
         <path d="M13,18 C11.3431458,18 10,16.6568542 10,15 C10,13.3431458 11.3431458,12 13,12 C14.6568542,12 16,13.3431458 16,15 C16,16.6568542 14.6568542,18 13,18 Z M27,16 C25.3431458,16 24,14.6568542 24,13 C24,11.3431458 25.3431458,10 27,10 C28.6568542,10 30,11.3431458 30,13 C30,14.6568542 28.6568542,16 27,16 Z M28,26 C26.8954305,26 26,25.1045695 26,24 C26,22.8954305 26.8954305,22 28,22 C29.1045695,22 30,22.8954305 30,24 C30,25.1045695 29.1045695,26 28,26 Z M20.5,30 C19.1192881,30 18,28.8807119 18,27.5 C18,26.1192881 19.1192881,25 20.5,25 C21.8807119,25 23,26.1192881 23,27.5 C23,28.8807119 21.8807119,30 20.5,30 Z M11.5,30 C10.6715729,30 10,29.3284271 10,28.5 C10,27.6715729 10.6715729,27 11.5,27 C12.3284271,27 13,27.6715729 13,28.5 C13,29.3284271 12.3284271,30 11.5,30 Z M21,24 C18.2385763,24 16,21.7614237 16,19 C16,16.2385763 18.2385763,14 21,14 C23.7614237,14 26,16.2385763 26,19 C26,21.7614237 23.7614237,24 21,24 Z" id="path-1"></path>
     </defs>
-    <g id="Icons/Heatmap" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="Icons/heatmap" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <mask id="mask-2" fill="white">
             <use xlink:href="#path-1"></use>
         </mask>
-        <use id="Mask" fill="#414453" opacity="0" xlink:href="#path-1"></use>
-        <g id="Atoms/Colors/Idle" mask="url(#mask-2)" fill="#59636B" opacity="0.25">
-            <rect id="State" x="-2" y="-2" width="40" height="40"></rect>
-        </g>
+        <use id="Mask" fill="#000000" xlink:href="#path-1"></use>
     </g>
 </svg>
