@@ -65,10 +65,12 @@ export default class RESTServicesForm extends React.Component {
             isActive: data.active,
             type: data.export_type,
             securityLevel: SECURITY_OPTIONS[data.security_level],
-            settings: {
-              customHeaders: this.headersObjToArr(data.settings.custom_headers)
-            }
+            customHeaders: this.headersObjToArr(data.settings.custom_headers)
           };
+
+          if (stateUpdate.customHeaders.length === 0) {
+            stateUpdate.customHeaders.push(this.getEmptyHeaderRow());
+          }
 
           if (data.settings.username) {
             stateUpdate.securityUsername = data.settings.username;
@@ -80,7 +82,8 @@ export default class RESTServicesForm extends React.Component {
           this.setState(stateUpdate);
         })
         .fail((data) => {
-          console.log('failed loading external service', data);
+          this.setState({isSubmitPending: false});
+          alertify.error(t('Could not load REST Service'));
         });
     } else {
       this.setState({isLoadingExternalService: false});
@@ -192,7 +195,7 @@ export default class RESTServicesForm extends React.Component {
       },
       onFail: () => {
         this.setState({isSubmitPending: false});
-        alertify.error(t('Failed registering REST service'));
+        alertify.error(t('Failed saving REST Service'));
       },
     };
 
@@ -248,6 +251,7 @@ export default class RESTServicesForm extends React.Component {
               <input
                 type='text'
                 placeholder={t('Name')}
+                id={`headerName-${n}`}
                 name='headerName'
                 value={this.state.customHeaders[n].name}
                 data-index={n}
@@ -257,6 +261,7 @@ export default class RESTServicesForm extends React.Component {
               <input
                 type='text'
                 placeholder={t('Value')}
+                id={`headerValue-${n}`}
                 name='headerValue'
                 value={this.state.customHeaders[n].value}
                 data-index={n}

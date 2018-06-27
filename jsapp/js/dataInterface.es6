@@ -128,14 +128,18 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/`,
         method: 'POST',
-        data: data
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
     updateExternalService(uid, esid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
         method: 'PATCH',
-        data: data
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
     deleteExternalService(uid, esid) {
@@ -199,7 +203,7 @@ var dataInterface;
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
         url: `${rootUrl}/assets/${targetUid}/permissions/`,
-        method: "PATCH",
+        method: 'PATCH',
         data: {
           clone_from: sourceUid
         }
