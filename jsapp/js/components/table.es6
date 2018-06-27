@@ -176,7 +176,7 @@ export class DataTable extends React.Component {
       columns.push({
         Header: row => (
             <div className="table-header-checkbox">
-              <input type="checkbox"
+              <input type='checkbox'
                 id={`ch-head`}
                 checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
                 onChange={this.bulkSelectAllRows} />
@@ -193,7 +193,7 @@ export class DataTable extends React.Component {
         className: 'rt-checkbox',
         Cell: row => (
           <div>
-            <input type="checkbox"
+            <input type='checkbox'
                 id={`ch-${row.original._id}`}
                 checked={this.state.selectedRows[row.original._id] ? true : false}
                 onChange={this.bulkUpdateChange} data-sid={row.original._id} />

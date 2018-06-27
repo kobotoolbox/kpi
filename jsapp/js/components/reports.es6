@@ -266,7 +266,7 @@ class CustomReportForm extends React.Component {
     var questionList = this.props.reportData.map(function(q, i){
       return (
         <div className='graph-settings__question' key={i}>
-            <input type="checkbox" name="chart_question"
+            <input type='checkbox' name="chart_question"
               checked={this.state.customReport.questions.includes(q.name)}
               onChange={this.customReportQuestionChange}
               data-name={q.name}

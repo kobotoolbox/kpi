@@ -248,7 +248,7 @@ export class ProjectSettings extends React.Component {
               />
             </bem.FormModal__item>
             <bem.FormModal__item m='metadata-share'>
-              <input type="checkbox"
+              <input type='checkbox'
                   id="share-metadata"
                   checked={this.state['share-metadata']}
                   onChange={this.shareMetadataChange}
@@ -630,7 +630,7 @@ export class ProjectDownloads extends React.Component {
                         </select>
                       </bem.FormModal__item>,
                       <bem.FormModal__item key={'h'} m='export-group-headers'>
-                        <input type="checkbox" id="hierarchy_in_labels"
+                        <input type='checkbox' id="hierarchy_in_labels"
                           value={this.state.hierInLabels}
                           onChange={this.hierInLabelsChange}
                         />
@@ -649,7 +649,7 @@ export class ProjectDownloads extends React.Component {
                       : null,
                       dvcount > 1 ?
                         <bem.FormModal__item key={'v'} m='export-fields-from-all-versions'>
-                          <input type="checkbox" id="fields_from_all_versions"
+                          <input type='checkbox' id="fields_from_all_versions"
                             checked={this.state.fieldsFromAllVersions}
                             onChange={this.fieldFromAllVersionsChange}
                           />

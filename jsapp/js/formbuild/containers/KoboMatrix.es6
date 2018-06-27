@@ -416,7 +416,7 @@ class KoboMatrix extends React.Component {
                 </label>
                 <label>
                   <span>{t('Required')}</span>
-                  <input type="checkbox"
+                  <input type='checkbox'
                     id={`required-${expandedCol}`}
                     name={`required-${expandedCol}`}
                     checked={this.getRequiredStatus(expandedCol)}
