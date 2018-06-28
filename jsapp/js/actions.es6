@@ -304,9 +304,16 @@ actions.misc.updateProfile.listen(function(data){
 actions.misc.updateProfile.completed.listen(function(){
   notify(t('updated profile successfully'));
 });
-actions.misc.updateProfile.failed.listen(function(data){
-  if (data.responseJSON.email) {
-    notify(t(data.responseJSON.email[0]), 'error');
+actions.misc.updateProfile.failed.listen(function(data) {
+  let hadFieldsErrors = false;
+  for (errorProp of data.responseJSON) {
+    if (data.responseJSON.hasOwnProperty(errorProp) && errorProp !== 'non_fields_error') {
+      hadFieldsErrors = true;
+    }
+  }
+
+  if (hadFieldsErrors) {
+    notify(t('You have errors with some fields'), 'error');
   } else {
     notify(t('failed to update profile'), 'error');
   }
