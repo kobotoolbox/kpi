@@ -74,8 +74,8 @@ export default class RESTServicesForm extends React.Component {
           if (data.settings.username) {
             stateUpdate.securityUsername = data.settings.username;
           }
-          if (data.settings.username) {
-            stateUpdate.securityPassword = data.settings.username;
+          if (data.settings.password) {
+            stateUpdate.securityPassword = data.settings.password;
           }
 
           this.setState(stateUpdate);
@@ -349,7 +349,7 @@ export default class RESTServicesForm extends React.Component {
                 />
 
                 <bem.FormModal__checkboxText htmlFor='active-checkbox'>
-                  {t('Submissions active')}
+                  {t('Enabled')}
                 </bem.FormModal__checkboxText>
               </bem.FormModal__checkbox>
             </bem.FormModal__item>
