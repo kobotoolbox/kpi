@@ -2,11 +2,9 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import _ from 'underscore';
-import {dataInterface} from '../dataInterface';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
-
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -29,18 +27,23 @@ export class AccountSettings extends React.Component {
     }
     this.state = state;
     autoBind(this);
+
     if (stores.session && stores.session.currentAccount) {
       this.state = this.getStateFromCurrentAccount(stores.session.currentAccount);
     }
   }
+
   componentDidMount() {
     this.listenTo(stores.session, ({currentAccount}) => {
       this.setState(this.getStateFromCurrentAccount(currentAccount));
     });
   }
+
   getStateFromCurrentAccount(currentAccount) {
-    if (currentAccount.extra_details == undefined)
+    if (currentAccount.extra_details == undefined) {
       currentAccount.extra_details = {};
+    }
+
     return {
       name: currentAccount.extra_details.name,
       email: currentAccount.email,
@@ -76,7 +79,8 @@ export class AccountSettings extends React.Component {
           value: 'other',
           label: t('Other')
         },
-      ]
+      ],
+      fieldsErrors: {}
     };
   }
 
@@ -181,42 +185,56 @@ export class AccountSettings extends React.Component {
         <bem.AccountSettings>
           <bem.AccountSettings__item m={'column'}>
             <bem.AccountSettings__item m='actions'>
-              <button onClick={this.updateProfile}
-                      className="mdl-button mdl-button--raised mdl-button--colored">
+              <button
+                onClick={this.updateProfile}
+                className="mdl-button mdl-button--raised mdl-button--colored"
+              >
                 {t('Save Changes')}
               </button>
             </bem.AccountSettings__item>
+
             <bem.AccountSettings__item m='username'>
               <bem.AccountBox__initials style={initialsStyle}>
                 {accountName.charAt(0)}
               </bem.AccountBox__initials>
+
               <h4>{accountName}</h4>
             </bem.AccountSettings__item>
+
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
-                <label htmlFor="requireAuth">
-                  {t('Privacy')}
-                </label>
-              </bem.AccountSettings__item>
-              <bem.AccountSettings__item>
-                <input type="checkbox"
+                <bem.AccountSettings__item>
+                  <label htmlFor="requireAuth">{t('Privacy')}</label>
+                </bem.AccountSettings__item>
+
+                <input
+                  type='checkbox'
                   id="requireAuth"
                   checked={this.state.requireAuth}
-                  onChange={this.requireAuthChange} />
+                  onChange={this.requireAuthChange}
+                />
+
                 <label htmlFor="requireAuth">
                   {t('Require authentication to see forms and submit data')}
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Name')}
-                  <input type="text" value={this.state.name}
-                    onChange={this.nameChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.name}
+                    onChange={this.nameChange}
+                  />
                 </label>
+
                 <bem.AccountSettings__desc>
                   {t('Use this to display your real name to other users')}
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label className={this.state.fieldsErrors.email ? 'error' : ''}>
                   {t('Email')}
@@ -232,117 +250,185 @@ export class AccountSettings extends React.Component {
                   }
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='password'>
                 <a href='/#/change-password'
                     className="mdl-button mdl-button--raised mdl-button--colored">
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Organization')}
-                  <input type="text" value={this.state.organization}
-                    onChange={this.organizationChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.organization}
+                    onChange={this.organizationChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Organization Website')}
-                  <input type="text" value={this.state.organizationWebsite}
-                    onChange={this.organizationWebsiteChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.organizationWebsite}
+                    onChange={this.organizationWebsiteChange}
+                  />
                 </label>
+
                 <bem.AccountSettings__desc className="is-edge">
                   {t('This will be used to create a hyperlink for your organization name. ')}
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Primary Sector')}
-                  <Select value={this.state.primarySector}
+
+                  <Select
+                    value={this.state.primarySector}
                     options={this.state.sectorChoices}
-                    onChange={this.primarySectorChange} />
+                    onChange={this.primarySectorChange}
+                  />
                 </label>
+
                 <bem.AccountSettings__desc>
                   {t('Select the primary sector in which you work. ')}
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Gender')}
-                  <Select value={this.state.gender}
+
+                  <Select
+                    value={this.state.gender}
                     options={this.state.genderChoices}
-                    onChange={this.genderChange} />
+                    onChange={this.genderChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Bio')}
-                  <TextareaAutosize onChange={this.bioChange} value={this.state.bio} id="bio" />
+
+                  <TextareaAutosize
+                    onChange={this.bioChange}
+                    value={this.state.bio}
+                    id="bio"
+                  />
                 </label>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
                 <label>
                   {t('Phone Number')}
-                  <input type="text" value={this.state.phoneNumber}
-                    onChange={this.phoneNumberChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.phoneNumber}
+                    onChange={this.phoneNumberChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Address')}
-                  <input type="text" value={this.state.address}
-                    onChange={this.addressChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.address}
+                    onChange={this.addressChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='city'>
                 <label>
                   {t('City')}
-                  <input type="text" value={this.state.city}
-                    onChange={this.cityChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.city}
+                    onChange={this.cityChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='country'>
                 <label>
                   {t('Country')}
-                  <Select value={this.state.country}
+
+                  <Select
+                    value={this.state.country}
                     options={this.state.countryChoices}
-                    onChange={this.countryChange} />
+                    onChange={this.countryChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item className="is-edge">
                 <label>
                   {t('Default Form Language')}
-                  <Select value={this.state.defaultLanguage}
+
+                  <Select
+                    value={this.state.defaultLanguage}
                     options={this.state.languageChoices}
-                    onChange={this.defaultLanguageChange} />
+                    onChange={this.defaultLanguageChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='social'>
-                <label>
-                  {t('Social')}
-                </label>
+                <label>{t('Social')}</label>
+
                 <label>
                   <i className="fa fa-twitter" />
-                  <input type="text" value={this.state.twitter}
-                    onChange={this.twitterChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.twitter}
+                    onChange={this.twitterChange}
+                  />
                 </label>
+
                 <label>
                   <i className="fa fa-linkedin" />
-                  <input type="text" value={this.state.linkedin}
-                    onChange={this.linkedinChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.linkedin}
+                    onChange={this.linkedinChange}
+                  />
                 </label>
+
                 <label>
                   <i className="fa fa-instagram" />
-                  <input type="text" value={this.state.instagram}
-                    onChange={this.instagramChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.instagram}
+                    onChange={this.instagramChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Metadata')}
-                  <input type="text" value={this.state.metadata}
-                    onChange={this.metadataChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.metadata}
+                    onChange={this.metadataChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
