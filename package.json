@@ -93,7 +93,7 @@
     "watch": "webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-chrome test/tests.html",
     "generate-icons": "node ./scripts/generate_icons.js",
-    "copy-fonts": "python ./scripts/copy_fonts.py"
+    "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
