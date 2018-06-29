@@ -2,7 +2,7 @@
 from importlib import import_module
 
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
 from jsonbfield.fields import JSONField as JSONBField
 
 from kpi.fields import KpiUidField
@@ -48,7 +48,7 @@ class Hook(models.Model):
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
-        self.date_modified = datetime.now()
+        self.date_modified = timezone.now()
         super(Hook, self).save(*args, **kwargs)
 
     def __unicode__(self):

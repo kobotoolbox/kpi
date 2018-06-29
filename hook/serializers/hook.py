@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -13,23 +14,8 @@ class HookSerializer(serializers.ModelSerializer):
         fields = ("url", "asset", "uid", "name", "endpoint", "active", "export_type",
                   "security_level", "success_count", "failed_count", "settings",
                   "date_modified")
-        extra_kwargs = {
-            "asset": {
-                "read_only": True,
-            },
-            "uid": {
-                "read_only": True,
-            },
-            "date_modified": {
-                "read_only": True,
-            },
-            "success_count": {
-                "read_only": True,
-            },
-            "failed_count": {
-                "read_only": True,
-            },
-        }
+
+        read_only_fields = ("asset", "uid", "date_modified", "success_count", "failed_count")
 
     url = serializers.SerializerMethodField()
 
