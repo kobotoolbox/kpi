@@ -37,14 +37,16 @@ class Hook(models.Model):
     active = models.BooleanField(default=True)
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
     security_level = models.CharField(choices=SECURITY_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
-    success_count = models.IntegerField(default=0)
-    failed_count = models.IntegerField(default=0)
     settings = JSONBField(default=dict)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["name"]
+
+    def __init__(self, *args, **kwargs):
+        self.__totals = {}
+        return super(Hook, self).__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
@@ -57,3 +59,26 @@ class Hook(models.Model):
     def get_service_definition(self):
         mod = import_module("hook.services.service_{}".format(self.export_type))
         return getattr(mod, "ServiceDefinition")
+
+    @property
+    def success_count(self):
+        if not self.__totals:
+            self._get_totals()
+        return self.__totals.get(True)
+
+    @property
+    def failed_count(self):
+        if not self.__totals:
+            self._get_totals()
+        return self.__totals.get(False)
+
+    def _get_totals(self):
+        # TODO add some cache
+        queryset = self.logs.values("success").annotate(values_count=models.Count("success"))
+        queryset.query.clear_ordering(True)
+        for record in queryset:
+            self.__totals[record.get("success")] = record.get("values_count")
+
+    def reset_totals(self):
+        # TODO remove cache when it's enabled
+        self.__totals = {}
