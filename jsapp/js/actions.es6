@@ -323,20 +323,10 @@ actions.misc.checkUsername.listen(function(username){
     .fail(actions.misc.checkUsername.failed_);
 });
 
-actions.misc.updateProfile.listen(function(data, callbacks={}){
+actions.misc.updateProfile.listen(function(data){
   dataInterface.patchProfile(data)
-    .done((...args) => {
-      actions.misc.updateProfile.completed(...args)
-      if (callbacks.onComplete) {
-        callbacks.onComplete(...args);
-      }
-    })
-    .fail((...args) => {
-      actions.misc.updateProfile.failed(...args)
-      if (callbacks.onFail) {
-        callbacks.onFail(...args);
-      }
-    });
+    .done(actions.misc.updateProfile.completed)
+    .fail(actions.misc.updateProfile.failed);
 });
 actions.misc.updateProfile.completed.listen(function(){
   notify(t('updated profile successfully'));
