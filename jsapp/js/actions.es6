@@ -316,8 +316,8 @@ actions.misc.updateProfile.completed.listen(function(){
 });
 actions.misc.updateProfile.failed.listen(function(data) {
   let hadFieldsErrors = false;
-  for (errorProp of data.responseJSON) {
-    if (data.responseJSON.hasOwnProperty(errorProp) && errorProp !== 'non_fields_error') {
+  for (const [errorProp, errorValue] of Object.entries(data.responseJSON)){
+    if (errorProp !== 'non_fields_error') {
       hadFieldsErrors = true;
     }
   }
