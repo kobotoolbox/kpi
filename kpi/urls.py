@@ -32,7 +32,7 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
-from hook.views import HookViewSet
+from hook.views.hook import HookViewSet
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -56,6 +56,12 @@ asset_routes.register(r'hooks',
                       base_name='hook',
                       parents_query_lookups=['asset'],
                       )
+
+# asset_routes.register(r'logs',
+#                       HookLogViewSet,
+#                       base_name='log',
+#                       parents_query_lookups=['asset', 'hook'],
+#                       )
 
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)

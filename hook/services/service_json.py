@@ -6,7 +6,7 @@ from celery import shared_task
 import requests
 from rest_framework import status
 
-from hook.models import ServiceDefinitionInterface
+from hook.models.service_definition_interface import ServiceDefinitionInterface
 
 
 class ServiceDefinition(ServiceDefinitionInterface):
@@ -38,10 +38,6 @@ class ServiceDefinition(ServiceDefinitionInterface):
                     "auth": (hook.settings.get("username"),
                              hook.settings.get("password"))
                 })
-
-            print(hook.settings.get("custom_headers"))
-            print(requests_kwargs)
-
             response = requests.post(hook.endpoint, **requests_kwargs)
             success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
             cls.save_log(hook, submission_uuid, response.status_code, response.text)

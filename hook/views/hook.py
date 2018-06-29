@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from hook.models import Hook
-from hook.serializers import HookSerializer
+from ..models.hook import Hook
+from ..serializers.hook import HookSerializer
 from kpi.models import Asset
 from kpi.views import AssetOwnerFilterBackend
 

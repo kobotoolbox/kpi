@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 
-from hook.models import ServiceDefinitionInterface
+from hook.models.service_definition_interface import ServiceDefinitionInterface
 
 
 class ServiceDefinition(ServiceDefinitionInterface):

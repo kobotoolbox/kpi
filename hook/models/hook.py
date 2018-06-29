@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from abc import ABCMeta, abstractmethod
 from importlib import import_module
 
 from django.db import models
@@ -52,32 +51,9 @@ class Hook(models.Model):
         self.date_modified = datetime.now()
         super(Hook, self).save(*args, **kwargs)
 
-
     def __unicode__(self):
         return u"%s:%s - %s" % (self.asset, self.name, self.endpoint)
 
     def get_service_definition(self):
         mod = import_module("hook.services.service_{}".format(self.export_type))
         return getattr(mod, "ServiceDefinition")
-
-
-class ServiceDefinitionInterface(object):
-
-    __metaclass__ = ABCMeta
-
-    @classmethod
-    @abstractmethod
-    def send(cls, hook, data=None):
-        pass
-
-    @staticmethod
-    def save_log(hook, submission_uuid, status_code, message):
-        pass
-        # TODO save log in DB
-        # log = HookLog(
-        #    instance_uuid=dict_data.get("uuid"),
-        #    status_code=status_code,
-        #    message=message,
-        #    hook=hook
-        # )
-        # log.save()

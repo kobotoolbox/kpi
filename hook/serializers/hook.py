@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from rest_framework import serializers
-from rest_framework.reverse import reverse_lazy, reverse
+from rest_framework.reverse import reverse
 
-from hook.models import Hook
+from ..models.hook import Hook
 
 
 class HookSerializer(serializers.ModelSerializer):
