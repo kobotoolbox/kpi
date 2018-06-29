@@ -8,15 +8,15 @@ language: python
 addons:
   postgresql: 9.4
   chrome: stable
-  apt:
-    packages:
-      - build-essential
-      - fontforge
-      - gettext
-      - git-core
-      - libpcre3
-      - libpcre3-dev
-      - libpq-dev
+  #apt:
+  #  packages:
+  #    - build-essential
+  #    - fontforge
+  #    - gettext
+  #    - git-core
+  #    - libpcre3
+  #    - libpcre3-dev
+  #    - libpq-dev
 cache:
   directories:
     - $HOME/.pip-download-cache
@@ -24,13 +24,14 @@ cache:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
 script:
-  - npm run copy-fonts
-  - npm run build
-  - pytest -vv --cov
-  - npm run test
+  - psql -c '\l' -U postgres
+  #- npm run copy-fonts
+  #- npm run build
+  #- pytest -vv --cov
+  #- npm run test
 after_script:
-  - coverage xml && python-codacy-coverage -r coverage.xml
-  - coveralls
+  #- coverage xml && python-codacy-coverage -r coverage.xml
+  #- coveralls
 env:
   # All about YAML line breaks: https://stackoverflow.com/a/21699210
   - >-
@@ -41,17 +42,17 @@ env:
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
-install:
-  -  >-
-        rm -rf ~/.nvm &&
-        git clone https://github.com/creationix/nvm.git ~/.nvm &&
-        (cd ~/.nvm &&
-        git checkout `git describe --abbrev=0 --tags`) &&
-        source ~/.nvm/nvm.sh &&
-        nvm install $TRAVIS_NODE_VERSION
-  - npm install -g install npm@latest
-  - npm config set strict-ssl false && npm install --save-dev
-  - pip install --upgrade 'pip>=8.0' wheel
-  - pip install pip-tools
-  - pip-sync dependencies/pip/requirements.txt
-  - pip install coverage codacy-coverage python-coveralls pytest-cov
+#install:
+#  -  >-
+#        rm -rf ~/.nvm &&
+#        git clone https://github.com/creationix/nvm.git ~/.nvm &&
+#        (cd ~/.nvm &&
+#        git checkout `git describe --abbrev=0 --tags`) &&
+#        source ~/.nvm/nvm.sh &&
+#        nvm install $TRAVIS_NODE_VERSION
+#  - npm install -g install npm@latest
+#  - npm config set strict-ssl false && npm install --save-dev
+#  - pip install --upgrade 'pip>=8.0' wheel
+#  - pip install pip-tools
+#  - pip-sync dependencies/pip/requirements.txt
+#  - pip install coverage codacy-coverage python-coveralls pytest-cov
