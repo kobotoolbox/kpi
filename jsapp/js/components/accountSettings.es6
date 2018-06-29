@@ -25,6 +25,7 @@ export class AccountSettings extends React.Component {
     super(props);
     let state = {
       requireAuth: false,
+      fieldsErrors: {}
     }
     this.state = state;
     autoBind(this);
@@ -78,30 +79,48 @@ export class AccountSettings extends React.Component {
       ]
     };
   }
-  updateProfile () {
-    actions.misc.updateProfile({
-      email: this.state.email,
-      extra_details: JSON.stringify({
-        name: this.state.name,
-        organization: this.state.organization,
-        organization_website: this.state.organizationWebsite,
-        primarySector: this.state.primarySector,
-        gender: this.state.gender,
-        bio: this.state.bio,
-        phone_number: this.state.phoneNumber,
-        address: this.state.address,
-        city: this.state.city,
-        country: this.state.country,
-        default_language: this.state.defaultLanguage,
-        require_auth: this.state.requireAuth,
-        twitter: this.state.twitter,
-        linkedin: this.state.linkedin,
-        instagram: this.state.instagram,
-        metadata: this.state.metadata,
-      })
-    });
+
+  updateProfile() {
+    actions.misc.updateProfile(
+      {
+        email: this.state.email,
+        extra_details: JSON.stringify({
+          name: this.state.name,
+          organization: this.state.organization,
+          organization_website: this.state.organizationWebsite,
+          primarySector: this.state.primarySector,
+          gender: this.state.gender,
+          bio: this.state.bio,
+          phone_number: this.state.phoneNumber,
+          address: this.state.address,
+          city: this.state.city,
+          country: this.state.country,
+          default_language: this.state.defaultLanguage,
+          require_auth: this.state.requireAuth,
+          twitter: this.state.twitter,
+          linkedin: this.state.linkedin,
+          instagram: this.state.instagram,
+          metadata: this.state.metadata,
+        })
+      },
+      {
+        onComplete: this.onUpdateComplete.bind(this),
+        onFail: this.onUpdateFail.bind(this)
+      }
+    );
   }
-  handleChange (e, attr) {
+
+  onUpdateComplete(data) {
+    this.setState({fieldsErrors: {}});
+    console.log('onComplete', data.responseJSON);
+  }
+
+  onUpdateFail(data) {
+    this.setState({fieldsErrors: data.responseJSON});
+    console.log('onFail', data.responseJSON);
+  }
+
+  handleChange(e, attr) {
     let val;
     if (e && e.target) {
       if (e.target.type == 'checkbox') {
@@ -133,7 +152,7 @@ export class AccountSettings extends React.Component {
   instagramChange (e) {this.handleChange(e, 'instagram');}
   metadataChange (e) {this.handleChange(e, 'metadata');}
 
-  render () {
+  render() {
     if(!stores.session || !stores.session.currentAccount) {
       return (
         <ui.Panel>
@@ -199,10 +218,18 @@ export class AccountSettings extends React.Component {
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
               <bem.AccountSettings__item>
-                <label>
+                <label className={this.state.fieldsErrors.email ? 'error' : ''}>
                   {t('Email')}
-                  <input type="email" value={this.state.email}
-                    onChange={this.emailChange} />
+
+                  <input
+                    type="email"
+                    value={this.state.email}
+                    onChange={this.emailChange}
+                  />
+
+                  {this.state.fieldsErrors.email &&
+                    <span>{this.state.fieldsErrors.email}</span>
+                  }
                 </label>
               </bem.AccountSettings__item>
               <bem.AccountSettings__item m='password'>
@@ -331,7 +358,7 @@ reactMixin(AccountSettings.prototype, Reflux.connect(stores.session, 'session'))
 reactMixin(AccountSettings.prototype, Reflux.ListenerMixin);
 
 export class ChangePassword extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.errors = {};
     this.state = {
@@ -342,16 +369,16 @@ export class ChangePassword extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(
       actions.auth.changePassword.failed, this.changePasswordFailed);
   }
-  validateRequired (what) {
+  validateRequired(what) {
     if (!this.state[what]) {
       this.errors[what] = t('This field is required.');
     }
   }
-  changePassword () {
+  changePassword() {
     this.errors = {};
     this.validateRequired('currentPassword');
     this.validateRequired('newPassword');
@@ -367,7 +394,7 @@ export class ChangePassword extends React.Component {
     }
     this.setState({errors: this.errors});
   }
-  changePasswordFailed (jqXHR) {
+  changePasswordFailed(jqXHR) {
     if (jqXHR.responseJSON.current_password) {
       this.errors.currentPassword = jqXHR.responseJSON.current_password;
     }
@@ -376,16 +403,16 @@ export class ChangePassword extends React.Component {
     }
     this.setState({errors: this.errors});
   }
-  currentPasswordChange (e) {
+  currentPasswordChange(e) {
     this.setState({currentPassword: e.target.value});
   }
-  newPasswordChange (e) {
+  newPasswordChange(e) {
     this.setState({newPassword: e.target.value});
   }
-  verifyPasswordChange (e) {
+  verifyPasswordChange(e) {
     this.setState({verifyPassword: e.target.value});
   }
-  render () {
+  render() {
     if(!stores.session || !stores.session.currentAccount) {
       return (
         <ui.Panel>
