@@ -9,6 +9,7 @@ import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
+import TextBox from './textBox';
 import ui from '../ui';
 import $ from 'jquery';
 import {
@@ -124,17 +125,17 @@ export class AccountSettings extends React.Component {
     console.log('onFail', data.responseJSON);
   }
 
-  handleChange(e, attr) {
+  handleChange(evt, attr) {
     let val;
-    if (e && e.target) {
-      if (e.target.type == 'checkbox') {
-        val = e.target.checked;
+    if (evt && evt.target) {
+      if (evt.target.type == 'checkbox') {
+        val = evt.target.checked;
       } else {
-        val = e.target.value;
+        val = evt.target.value;
       }
     } else {
-      // react-select just passes a string
-      val = e;
+      // react-select and TextBox just passes a string
+      val = evt;
     }
     this.setState({[attr]: val});
   }
@@ -236,19 +237,13 @@ export class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label className={this.state.fieldsErrors.email ? 'error' : ''}>
-                  {t('Email')}
-
-                  <input
-                    type="email"
-                    value={this.state.email}
-                    onChange={this.emailChange}
-                  />
-
-                  {this.state.fieldsErrors.email &&
-                    <span>{this.state.fieldsErrors.email}</span>
-                  }
-                </label>
+                <TextBox
+                  label={t('Email')}
+                  type='email'
+                  errors={this.state.fieldsErrors.email}
+                  value={this.state.email}
+                  onChange={this.emailChange}
+                />
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='password'>

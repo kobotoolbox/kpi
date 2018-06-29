@@ -323,7 +323,7 @@ actions.misc.updateProfile.failed.listen(function(data) {
   }
 
   if (hadFieldsErrors) {
-    notify(t('You have errors with some fields'), 'error');
+    notify(t('Some fields contain errors'), 'error');
   } else {
     notify(t('failed to update profile'), 'error');
   }

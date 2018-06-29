@@ -40,16 +40,6 @@
     }
   }
 
-  label {
-    &.error {
-      color: $cool-red;
-
-      input {
-        border-bottom-color: $cool-red;
-      }
-    }
-  }
-
   h4 {
     margin: 0px;
     font-weight: 400;
