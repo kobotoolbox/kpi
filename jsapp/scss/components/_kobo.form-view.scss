@@ -177,7 +177,7 @@
   }
 
   &--bordertop {
-    border-top: 1px solid #DDD;
+    border-top: 1px solid $cool-lightgray;
   }
 
   &--padding {
@@ -366,7 +366,7 @@
     }
 
     + .form-view__cell--collect-row {
-      border-top: 1px solid #DDD;
+      border-top: 1px solid $cool-lightgray;
     }
 
     code {
@@ -374,7 +374,7 @@
       background: #F8F8F8;
       padding: 10px;
       margin-top: 15px;
-      border: 1px solid #DDD;
+      border: 1px solid $cool-lightgray;
       font-size: 0.9em;
     }
   }
