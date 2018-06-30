@@ -111,16 +111,11 @@ class TagStringMixin:
 FLATTEN_OPTS = {
     'remove_columns': {
         'survey': [
-            '$autoname',
-            '$kuid',
             '$prev',
             'select_from_list_name',
             '_or_other',
         ],
-        'choices': [
-            '$autovalue',
-            '$kuid',
-        ]
+        'choices': []
     },
     'remove_sheets': [
         'schema',
@@ -168,15 +163,21 @@ class FormpackXLSFormUtils(object):
             if sht in content:
                 content[sht] += rows
 
-    def _xlsform_structure(self, content, ordered=True):
+    def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
+        opts = copy.deepcopy(FLATTEN_OPTS)
+        if not kobo_specific:
+            opts['remove_columns']['survey'].append('$kuid')
+            opts['remove_columns']['survey'].append('$autoname')
+            opts['remove_columns']['choices'].append('$kuid')
+            opts['remove_columns']['choices'].append('$autovalue')
         if ordered:
             if not isinstance(content, OrderedDict):
                 raise TypeError('content must be an ordered dict if '
                                 'ordered=True')
             flatten_to_spreadsheet_content(content, in_place=True,
-                                           **FLATTEN_OPTS)
+                                           **opts)
         else:
-            flatten_content(content, in_place=True, **FLATTEN_OPTS)
+            flatten_content(content, in_place=True, **opts)
 
     def _assign_kuids(self, content):
         for row in content['survey']:
@@ -204,8 +205,8 @@ class FormpackXLSFormUtils(object):
     def _unlink_list_items(self, content):
         arr = content['survey']
         for row in arr:
-            if '$kuid' in row:
-                del row['$kuid']
+            if '$prev' in row:
+                del row['$prev']
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
@@ -351,7 +352,7 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
-        self._xlsform_structure(content, ordered=True)
+        self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
     def to_xls_io(self, versioned=False, **kwargs):
