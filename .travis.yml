@@ -8,6 +8,7 @@ language: python
 services:
     - postgresql
 addons:
+  postgresql: "9.5"
   chrome: stable
   #apt:
   #  packages:
