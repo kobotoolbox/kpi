@@ -26,6 +26,7 @@ before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
 script:
   - psql -c '\l' -U postgres
+  - psql -c 'select version();' -U postgres
   #- npm run copy-fonts
   #- npm run build
   #- pytest -vv --cov
