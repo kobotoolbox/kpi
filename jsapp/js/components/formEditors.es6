@@ -315,8 +315,8 @@ export class ProjectSettings extends React.Component {
               <Dropzone onDrop={this.onDrop.bind(this)}
                             multiple={false}
                             className='dropzone'
-                            activeClassName='dropzone-active'
-                            rejectClassName='dropzone-reject'
+                            activeClassName='dropzone--active'
+                            rejectClassName='dropzone--reject'
                             accept={validFileTypes()}>
                 <i className="k-icon-xls-file" />
                 {t(' Drag and drop the XLSForm file here or click to browse')}
