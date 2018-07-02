@@ -34,7 +34,7 @@
 }
 
 .library-asset-list__item {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid $cool-lightgray;
   padding-left: 20px;
   position: relative;
 }
@@ -60,7 +60,7 @@
   }
   .Select-control {
     border-color: transparent;
-    border-bottom-color: #DDD;
+    border-bottom-color: $cool-lightgray;
     border-radius: 0px;
   }
 }
@@ -103,7 +103,7 @@
   width: 100%;
   padding-top: 4px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #DDD;
+  border-bottom: 1px solid $cool-lightgray;
 }
 
 .lib-nav__header .tag-select,
@@ -131,6 +131,6 @@
     padding-top: 12px;
   }
   .Select-control {
-    border-color: #DDD !important;
+    border-color: $cool-lightgray !important;
   }
 }

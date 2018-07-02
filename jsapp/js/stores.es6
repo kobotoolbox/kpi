@@ -441,18 +441,6 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
-  byKind (kind) {
-    var kinds = [].concat(kind);
-    return this.data.filter(function(asset){
-      return kinds.indexOf(asset.kind) !== -1;
-    });
-  },
-  byAssetType (asset_type) {
-    var asset_types = [].concat(asset_type);
-    return this.data.filter(function(asset){
-      return asset_types.indexOf(asset.asset_type) !== -1;
-    });
-  },
   onListAssetsCompleted: function(resp/*, req, jqxhr*/) {
     resp.results.forEach(this.registerAssetOrCollection);
     this.data = resp.results;

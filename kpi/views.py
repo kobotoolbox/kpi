@@ -64,7 +64,7 @@ from .models import (
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
 from .models.import_export_task import _resolve_url_to_asset_or_collection
-from .model_utils import disable_auto_field_update
+from .model_utils import disable_auto_field_update, remove_string_prefix
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
@@ -524,12 +524,12 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             # No filter requested
             return queryset
         if q.startswith('source:'):
-            q = q.lstrip('source:')
+            q = remove_string_prefix(q, 'source:')
             # This is exceedingly crude... but support for querying inside
             # JSONField not available until Django 1.9
             queryset = queryset.filter(data__contains=q)
         elif q.startswith('uid__in:'):
-            q = q.lstrip('uid__in:')
+            q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]
             queryset = queryset.filter(uid__in=uids)
         else:
