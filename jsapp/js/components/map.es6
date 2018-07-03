@@ -177,7 +177,9 @@ export class FormMap extends React.Component {
           overlayLayer = omnivore.wkt(layer.content_url);
           break;
         case 'kmz':
-          // unzip the KMZ file in the browser and feed the resulting text to map and controls
+          // KMZ files are zipped KMLs, therefore
+          // unzip the KMZ file in the browser
+          // and feed the resulting text to map and controls
           fetch(layer.content)
           .then(function (response) {
             if (response.status === 200 || response.status === 0) {
@@ -207,7 +209,6 @@ export class FormMap extends React.Component {
     });
   }
   mapSettingsListener(uid, changes) {
-    console.log(changes);
     let map = this.refreshMap();
 
     if (Object.keys(changes).length === 0) {
@@ -221,19 +222,20 @@ export class FormMap extends React.Component {
   }
 
   requestData(map, nextViewBy = '') {
-    let GeoPointQuestion = this.props.asset.map_styles.GeoPointQuestion || null;
+    // TODO: support area / line geodata questions
+    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
     var fq = ['_id', '_geolocation'];
-    if (GeoPointQuestion) fq.push(GeoPointQuestion);
+    if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
 
     const sort = [{id: '_id', desc: true}];
 
     // TODO: handle forms with over 5000 results
     dataInterface.getSubmissions(this.props.asset.uid, 5000, 0, sort, fq).done((data) => {
-      if (GeoPointQuestion) {
+      if (selectedQuestion) {
         data.forEach(function(row, i) {
-          if (row[GeoPointQuestion]) {
-            var coordsArray = row[GeoPointQuestion].split(' ');
+          if (row[selectedQuestion]) {
+            var coordsArray = row[selectedQuestion].split(' ');
             data[i]._geolocation[0] = coordsArray[0];
             data[i]._geolocation[1] = coordsArray[1];
           }

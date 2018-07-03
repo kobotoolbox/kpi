@@ -383,6 +383,17 @@ body .leaflet-control-layers,
   }
 }
 
+.map-settings__GeoQuestions {
+  label {
+    display: block;
+    margin-bottom: 10px;
+
+    input {
+      margin-right: 8px;
+    }
+  }
+}
+
 // ClusterMarker overrides
 
 .marker-cluster-small {

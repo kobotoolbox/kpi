@@ -5,13 +5,14 @@ import Reflux from 'reflux';
 import Select from 'react-select';
 import bem from '../bem';
 import ui from '../ui';
-import { assign, t, validFileTypes } from '../utils';
 import autoBind from 'react-autobind';
 import actions from '../actions';
 import mixins from '../mixins';
-import { dataInterface } from '../dataInterface';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
+
+import { assign, t, validFileTypes } from '../utils';
+import { dataInterface } from '../dataInterface';
 
 let colorSets = ['a', 'b', 'c', 'd', 'e'];
 // see kobo.map.marker-colors.scss for styling details of each set
@@ -81,11 +82,11 @@ class MapSettings extends React.Component {
     super(props);
     autoBind(this);
 
-    var geoPointQuestions = [];
+    var geoQuestions = [];
 
     props.asset.content.survey.forEach(function(question) {
       if (question.type && question.type === 'geopoint') {
-        geoPointQuestions.push({
+        geoQuestions.push({
           value: question.name || question.$autoname,
           label: question.label[0]
         });
@@ -94,11 +95,11 @@ class MapSettings extends React.Component {
 
     let defaultActiveTab = 'colors';
     if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
-    if (geoPointQuestions.length > 1) defaultActiveTab = 'geoquestion';
+    if (geoQuestions.length > 1) defaultActiveTab = 'geoquestion';
 
     this.state = {
       activeModalTab: defaultActiveTab,
-      geoPointQuestions: geoPointQuestions,
+      geoQuestions: geoQuestions,
       mapSettings: this.props.asset.map_styles,
       files: [],
       layerName: ''
@@ -225,13 +226,13 @@ class MapSettings extends React.Component {
   }
   render() {
     let asset = this.props.asset,
-      geoPointQuestions = this.state.geoPointQuestions,
+      geoQuestions = this.state.geoQuestions,
       activeTab = this.state.activeModalTab;
 
     var tabs = ['colors'];
 
     if (this.userCan('change_asset', asset)) tabs.unshift('overlays');
-    if (geoPointQuestions.length > 1) tabs.unshift('geoquestion');
+    if (geoQuestions.length > 1) tabs.unshift('geoquestion');
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
@@ -253,13 +254,13 @@ class MapSettings extends React.Component {
         <ui.Modal.Body>
           <div className="tabs-content map-settings">
             {activeTab === 'geoquestion' && (
-              <div className="map-settings__GeopointQuestions">
+              <div className="map-settings__GeoQuestions">
                 <p>
                   {t(
                     'Choose the Geopoint question you would like to display on the map:'
                   )}
                 </p>
-                {geoPointQuestions.map((question, i) => {
+                {geoQuestions.map((question, i) => {
                   return (
                     <label htmlFor={'GeopointQuestion-' + i} key={i}>
                       <input
