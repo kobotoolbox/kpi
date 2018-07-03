@@ -3,6 +3,7 @@
   width: 100%;
   height: 100%;
   background: #FFF;
+  overflow-y: auto;
   @include box-shadow;
 
   .form-modal__item--column {

@@ -239,8 +239,10 @@ export class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='password'>
-                <a href='/#/change-password'
-                    className="mdl-button mdl-button--raised mdl-button--colored">
+                <a
+                  href='/#/change-password'
+                  className="mdl-button mdl-button--raised mdl-button--colored"
+                >
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
@@ -425,31 +427,31 @@ export class ChangePassword extends React.Component {
     };
     autoBind(this);
   }
+
   componentDidMount() {
-    this.listenTo(
-      actions.auth.changePassword.failed, this.changePasswordFailed);
+    this.listenTo(actions.auth.changePassword.failed, this.changePasswordFailed);
   }
+
   validateRequired(what) {
     if (!this.state[what]) {
       this.errors[what] = t('This field is required.');
     }
   }
+
   changePassword() {
     this.errors = {};
     this.validateRequired('currentPassword');
     this.validateRequired('newPassword');
     this.validateRequired('verifyPassword');
     if (this.state.newPassword != this.state.verifyPassword) {
-      this.errors['newPassword'] =
-        t('This field must match the Verify Password field.');
+      this.errors['newPassword'] = t('This field must match the Verify Password field.');
     }
     if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(
-        this.state.currentPassword, this.state.newPassword
-      );
+      actions.auth.changePassword(this.state.currentPassword, this.state.newPassword);
     }
     this.setState({errors: this.errors});
   }
+
   changePasswordFailed(jqXHR) {
     if (jqXHR.responseJSON.current_password) {
       this.errors.currentPassword = jqXHR.responseJSON.current_password;
@@ -459,15 +461,19 @@ export class ChangePassword extends React.Component {
     }
     this.setState({errors: this.errors});
   }
-  currentPasswordChange(e) {
-    this.setState({currentPassword: e.target.value});
+
+  currentPasswordChange(val) {
+    this.setState({currentPassword: val});
   }
-  newPasswordChange(e) {
-    this.setState({newPassword: e.target.value});
+
+  newPasswordChange(val) {
+    this.setState({newPassword: val});
   }
-  verifyPasswordChange(e) {
-    this.setState({verifyPassword: e.target.value});
+
+  verifyPasswordChange(val) {
+    this.setState({verifyPassword: val});
   }
+
   render() {
     if(!stores.session || !stores.session.currentAccount) {
       return (
@@ -502,38 +508,49 @@ export class ChangePassword extends React.Component {
               <h4>{accountName}</h4>
             </bem.AccountSettings__item>
 
-            <h4>{t('Reset Password')}</h4>
+            <bem.AccountSettings__item>
+              <h4>{t('Reset Password')}</h4>
+            </bem.AccountSettings__item>
 
             <bem.ChangePassword__item>
-              <label>
-                {t('Current Password')}
-                <input type="password" value={this.state.currentPassword}
-                  onChange={this.currentPasswordChange} />
-                {this.state.errors.currentPassword}
-              </label>
+              <TextBox
+                label={t('Current Password')}
+                type='password'
+                errors={this.state.errors.currentPassword}
+                value={this.state.currentPassword}
+                onChange={this.currentPasswordChange}
+              />
+
               <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
                 {t('Forgot Password?')}
               </a>
             </bem.ChangePassword__item>
+
             <bem.ChangePassword__item>
-              <label>
-                {t('New Password')}
-                <input type="password" value={this.state.newPassword}
-                  onChange={this.newPasswordChange} />
-                {this.state.errors.newPassword}
-              </label>
+              <TextBox
+                label={t('New Password')}
+                type='password'
+                errors={this.state.errors.newPassword}
+                value={this.state.newPassword}
+                onChange={this.newPasswordChange}
+              />
             </bem.ChangePassword__item>
+
             <bem.ChangePassword__item>
-              <label>
-                {t('Verify Password')}
-                <input type="password" value={this.state.verifyPassword}
-                  onChange={this.verifyPasswordChange} />
-                {this.state.errors.verifyPassword}
-              </label>
+              <TextBox
+                label={t('Verify Password')}
+                type='password'
+                errors={this.state.errors.verifyPassword}
+                value={this.state.verifyPassword}
+                onChange={this.verifyPasswordChange}
+              />
             </bem.ChangePassword__item>
+
             <bem.ChangePassword__item  m='actions'>
-              <button onClick={this.changePassword}
-                      className="mdl-button mdl-button--raised mdl-button--colored">
+              <button
+                onClick={this.changePassword}
+                className="mdl-button mdl-button--raised mdl-button--colored"
+              >
                 {t('Save Changes')}
               </button>
             </bem.ChangePassword__item>

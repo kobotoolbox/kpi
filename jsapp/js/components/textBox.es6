@@ -9,7 +9,7 @@ Properties:
 - type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
 - value <string>: required
 - onChange <function>: required
-- errors <string[]>
+- errors <string[]> or <string>
 - label <string>
 - placeholder <string>
 - description <string>
@@ -43,13 +43,17 @@ class TextBox extends React.Component {
     let errors = [];
     if (Array.isArray(this.props.errors)) {
       errors = this.props.errors;
+    } else if (typeof this.props.errors === 'string' && this.props.errors.length > 0) {
+      errors.push(this.props.errors);
     }
     if (errors.length > 0) {
       modifiers.push('error')
     }
 
     let type = this.DEFAULT_TYPE;
-    if (this.props.type && this.AVAILABLE_TYPES.indexOf(this.props.type) === -1) {
+    if (this.props.type && this.AVAILABLE_TYPES.indexOf(this.props.type) !== -1) {
+      type = this.props.type;
+    } else if (this.props.type) {
       throw new Error(`Unknown textBox type: ${this.props.type}!`);
     }
 
