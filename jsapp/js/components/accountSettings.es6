@@ -117,12 +117,10 @@ export class AccountSettings extends React.Component {
 
   onUpdateComplete(data) {
     this.setState({fieldsErrors: {}});
-    console.log('onComplete', data.responseJSON);
   }
 
   onUpdateFail(data) {
     this.setState({fieldsErrors: data.responseJSON});
-    console.log('onFail', data.responseJSON);
   }
 
   handleChange(evt, attr) {
@@ -221,19 +219,13 @@ export class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label>
-                  {t('Name')}
-
-                  <input
-                    type="text"
-                    value={this.state.name}
-                    onChange={this.nameChange}
-                  />
-                </label>
-
-                <bem.AccountSettings__desc>
-                  {t('Use this to display your real name to other users')}
-                </bem.AccountSettings__desc>
+                <TextBox
+                  label={t('Name')}
+                  errors={this.state.fieldsErrors.name}
+                  value={this.state.name}
+                  onChange={this.nameChange}
+                  description={t('Use this to display your real name to other users')}
+                />
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
@@ -254,27 +246,22 @@ export class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label>
-                  {t('Organization')}
-
-                  <input
-                    type="text"
-                    value={this.state.organization}
-                    onChange={this.organizationChange}
-                  />
-                </label>
+                <TextBox
+                  label={t('Organization')}
+                  errors={this.state.fieldsErrors.organization}
+                  value={this.state.organization}
+                  onChange={this.organizationChange}
+                />
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label>
-                  {t('Organization Website')}
-
-                  <input
-                    type="text"
-                    value={this.state.organizationWebsite}
-                    onChange={this.organizationWebsiteChange}
-                  />
-                </label>
+                <TextBox
+                  label={t('Organization Website')}
+                  type='url'
+                  errors={this.state.fieldsErrors.organizationWebsite}
+                  value={this.state.organizationWebsite}
+                  onChange={this.organizationWebsiteChange}
+                />
 
                 <bem.AccountSettings__desc className="is-edge">
                   {t('This will be used to create a hyperlink for your organization name. ')}
@@ -322,39 +309,30 @@ export class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label>
-                  {t('Phone Number')}
-
-                  <input
-                    type="text"
-                    value={this.state.phoneNumber}
-                    onChange={this.phoneNumberChange}
-                  />
-                </label>
+                <TextBox
+                  label={t('Phone Number')}
+                  errors={this.state.fieldsErrors.phoneNumber}
+                  value={this.state.phoneNumber}
+                  onChange={this.phoneNumberChange}
+                />
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label>
-                  {t('Address')}
-
-                  <input
-                    type="text"
-                    value={this.state.address}
-                    onChange={this.addressChange}
-                  />
-                </label>
+                <TextBox
+                  label={t('Address')}
+                  errors={this.state.fieldsErrors.address}
+                  value={this.state.address}
+                  onChange={this.addressChange}
+                />
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='city'>
-                <label>
-                  {t('City')}
-
-                  <input
-                    type="text"
-                    value={this.state.city}
-                    onChange={this.cityChange}
-                  />
-                </label>
+                <TextBox
+                  label={t('City')}
+                  errors={this.state.fieldsErrors.city}
+                  value={this.state.city}
+                  onChange={this.cityChange}
+                />
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='country'>
@@ -416,15 +394,12 @@ export class AccountSettings extends React.Component {
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
-                <label>
-                  {t('Metadata')}
-
-                  <input
-                    type="text"
-                    value={this.state.metadata}
-                    onChange={this.metadataChange}
-                  />
-                </label>
+                <TextBox
+                  label={t('Metadata')}
+                  errors={this.state.fieldsErrors.metadata}
+                  value={this.state.metadata}
+                  onChange={this.metadataChange}
+                />
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>

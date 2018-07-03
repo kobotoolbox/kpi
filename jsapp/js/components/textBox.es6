@@ -21,7 +21,12 @@ class TextBox extends React.Component {
       value: props.value,
       onChangeCallback: props.onChange
     }
-    this.AVAILABLE_TYPES = ['text', 'email', 'password', 'url'];
+    this.AVAILABLE_TYPES = [
+      'text',
+      'email',
+      'password',
+      'url'
+    ];
     this.DEFAULT_TYPE = 'text';
     autoBind(this);
   }
