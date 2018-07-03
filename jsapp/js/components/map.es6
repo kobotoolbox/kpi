@@ -11,7 +11,7 @@ import stores from '../stores';
 import actions from '../actions';
 import ui from '../ui';
 import classNames from 'classnames';
-import omnivore from 'leaflet-omnivore';
+import omnivore from '@mapbox/leaflet-omnivore';
 import JSZip from 'jszip';
 
 import L from 'leaflet/dist/leaflet';
@@ -82,7 +82,8 @@ export class FormMap extends React.Component {
       filteredByMarker: false,
       componentRefreshed: false,
       showMapSettings: false,
-      overridenStyles: false
+      overridenStyles: false,
+      clearDisaggregatedPopover: false
     };
 
     autoBind(this);
@@ -478,6 +479,17 @@ export class FormMap extends React.Component {
     );
   }
   filterMap (evt) {
+    // roundabout solution for https://github.com/kobotoolbox/kpi/issues/1678
+    //
+    // when blurEventDisabled prop is set, no blur event takes place in ui.popovermenu
+    // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
+    // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
+    this.setState({clearDisaggregatedPopover: true});
+    // reset clearDisaggregatedPopover in order to maintain same behaviour on subsequent clicks
+    window.setTimeout(()=>{
+      this.setState({clearDisaggregatedPopover: false});
+    }, 1000);
+
     let name = evt.target.getAttribute('data-name') || undefined;
     if (name != undefined) {
       hashHistory.push(`/forms/${this.props.asset.uid}/data/map/${name}`);
@@ -487,10 +499,7 @@ export class FormMap extends React.Component {
   }
   filterLanguage (evt) {
     let index = evt.target.getAttribute('data-index');
-    this.setState({
-        langIndex: index
-      }
-    );
+    this.setState({langIndex: index});
   }
   componentWillReceiveProps (nextProps) {
     if (this.props.viewby != undefined) {
@@ -685,7 +694,12 @@ export class FormMap extends React.Component {
             <i className="k-icon-heatmap" />
           </bem.FormView__mapButton>
         }
-        <ui.PopoverMenu type='viewby-menu' triggerLabel={label} m={'above'}>
+        <ui.PopoverMenu type='viewby-menu'
+                        triggerLabel={label}
+                        m={'above'}
+                        clearPopover={this.state.clearDisaggregatedPopover}
+                        blurEventDisabled
+                        >
             {langs.length > 1 &&
               <bem.PopoverMenu__heading>
                 {t('Language')}
@@ -705,13 +719,13 @@ export class FormMap extends React.Component {
             </bem.PopoverMenu__link>
             {fields.map((f)=>{
               const name = f.name || f.$autoname;
-
+              const label = f.label ? f.label[langIndex] ? f.label[langIndex] : <em>{t('untranslated: ') + name}</em> : t('Question label not set');
               return (
                   <bem.PopoverMenu__link
                     data-name={name} key={`f-${name}`}
                     onClick={this.filterMap}
                     className={viewby == name ? 'active': ''}>
-                    {f.label ? f.label[langIndex] : t('Question label not set')}
+                    {label}
                   </bem.PopoverMenu__link>
                 );
             })}
@@ -733,7 +747,6 @@ export class FormMap extends React.Component {
                 if (colorSet !== undefined && colorSet !== 'a') {
                   index = this.calculateIconIndex(index, this.state.markerMap);
                 }
-
 
                 return (
                     <div key={`m-${i}`} className={markerItemClass}>
