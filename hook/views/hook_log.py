@@ -36,9 +36,18 @@ class HookLogViewSet(NestedViewSetMixin,
 
         return queryset
 
-    @detail_route(methods=["POST"], url_path="retry")
+    @detail_route(methods=["PATCH"], url_path="retry")
     def retry_detail(self, request, uid=None, *args, **kwargs):
-        #hook_log = get_object_or_404(uid=uid)
+        """
+        Retries to send data to external service.
+        :param request: rest_framework.request.Request
+        :param uid: str
+        :return:
+        """
+        hook_log = self.get_object()
+        if hook_log.retry():
+            pass
+
         # TODO implement
         return Response("Retry detail")
 

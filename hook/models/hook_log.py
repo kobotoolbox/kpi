@@ -20,9 +20,22 @@ class HookLog(models.Model):
     class Meta:
         ordering = ["date_modified"]
 
+    def retry(self):
+        """
+        Retry to send data to external service.
+        :return: bool
+        """
+        ServiceDefinition = self.hook.get_service_definition()
+
+        return ServiceDefinition.send(self.hook, data)
+
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
         self.date_modified = timezone.now()
         self.tries += 1
         self.hook.reset_totals()
         super(HookLog, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return "<HookLog {uid}>".format(uid=self.uid)
+
