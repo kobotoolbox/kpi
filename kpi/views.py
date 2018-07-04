@@ -4,6 +4,7 @@ import copy
 import json
 import base64
 import datetime
+import logging
 
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -656,22 +657,29 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
 
     def create(self, request, *args, **kwargs):
         """
-        This endpoint is handled by the SubmissionViewSet because it doesn't use KC proxy.
-        It's only used to trigger hook services of the Asset, so far.
+        This endpoint is handled by the SubmissionViewSet (not KobocatDataProxyViewSetMixin)
+        because it doesn't use KC proxy.
+        It's only used to trigger hook services of the Asset (so far).
 
         :param request:
         :return:
         """
+        response = ""
+        # Not so rest. a HTTP_201_CREATED would have been better.
+        # Because hook is called asynchronously, we have no data to return for this request.
+        response_status_code = status.HTTP_204_NO_CONTENT
         try:
-            asset_uid = self.get_parents_query_dict()['asset']
+            asset_uid = self.get_parents_query_dict().get("asset")
             asset = get_object_or_404(self.parent_model, uid=asset_uid)
             HookUtils.call_service(asset, request.data)
         except Exception as e:
-            # TODO logger error and return 500
-            pass
+            logging.error("SubmissionViewSet.create - {}".format(str(e)))
+            response = {
+                "detail": "An error has occurred when calling the external service. Please retry later."
+            }
+            response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        # TODO Returns correct response.
-        return Response("Method not allowed", status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(response, status=response_status_code)
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
