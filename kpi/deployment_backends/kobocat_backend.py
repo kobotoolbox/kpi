@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 import cStringIO
 import logging
@@ -19,7 +20,7 @@ from rest_framework import exceptions, status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
 
-from base_backend import BaseDeploymentBackend
+from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
 
 
