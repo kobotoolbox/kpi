@@ -481,6 +481,37 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
 
+
+# Need a default logger when sentry is not activated
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s' +
+                      ' %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'console_logger': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    }
+}
+
 ''' Sentry configuration '''
 if os.environ.get('RAVEN_DSN', False):
     import raven
@@ -546,6 +577,11 @@ if os.environ.get('RAVEN_DSN', False):
                 'level': 'DEBUG',
                 'handlers': ['console'],
                 'propagate': False,
+            },
+            'console_logger': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': True
             },
         },
     }
