@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod
+from rest_framework import status
 
 from .hook_log import HookLog
 
@@ -12,11 +13,28 @@ class ServiceDefinitionInterface(object):
 
     @classmethod
     @abstractmethod
-    def send(cls, hook, data=None):
+    def parse(cls, uid, data):
+        """
+        Parsed the data before sending it.
+        Useful when retrieving stringified JSON and parse as JSON.
+
+        Should return
+        {
+            <export_type>: <value>,
+            "uuid": uid
+        }
+        :param data: mixed
+        :return: dict
+        """
+        pass
+
+    @classmethod
+    @abstractmethod
+    def send(cls, hook, data):
         pass
 
     @staticmethod
-    def save_log(hook, data_uid, success, status_code, message):
+    def save_log(hook, data_uid, status_code, message):
         """
         Updates/creates log entry
 
@@ -31,11 +49,12 @@ class ServiceDefinitionInterface(object):
         except HookLog.DoesNotExist:
             log = HookLog(uid=data_uid, hook=hook)
 
-        log.success = success
+        log.success = status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
         log.status_code = status_code
         log.message = message
 
         try:
             log.save()
         except Exception as e:
-            logging.error("ServiceDefinitionInterface.save_log - {}".format(str(e)), exc_info=True)
+            logger = logging.getLogger("console_logger")
+            logger.error("ServiceDefinitionInterface.save_log - {}".format(str(e)), exc_info=True)

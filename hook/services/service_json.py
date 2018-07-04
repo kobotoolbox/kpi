@@ -13,7 +13,20 @@ class ServiceDefinition(ServiceDefinitionInterface):
     id = u"json"
 
     @classmethod
+    def parse(cls, uid, data):
+        return {
+            "json": json.loads(data),
+            "uuid": uid
+        }
+
+    @classmethod
     def send(cls, hook, data):
+        """
+
+        :param hook: Hook
+        :param data: dict
+        :return: bool
+        """
 
         success = False
         headers = {"Content-Type": "application/json"}
@@ -39,15 +52,15 @@ class ServiceDefinition(ServiceDefinitionInterface):
                              hook.settings.get("password"))
                 })
             response = requests.post(hook.endpoint, **requests_kwargs)
-            success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
             cls.save_log(hook, submission_uuid, response.status_code, response.text)
         except Exception as e:
-            logging.error("service_json.ServiceDefinition.send - Submission #{} - {}".format(
+            logger = logging.getLogger("console_logger")
+            logger.error("service_json.ServiceDefinition.send - Submission #{} - {}".format(
                 submission_uuid, str(e)), exc_info=True)
             cls.save_log(
                 hook,
                 submission_uuid,
-                500,
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "An error occurred when sending data to external endpoint")
 
         return success

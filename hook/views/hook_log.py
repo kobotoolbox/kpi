@@ -3,14 +3,14 @@ from __future__ import absolute_import
 
 from datetime import datetime
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
-from kpi.views import AssetOwnerFilterBackend
+from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
 
 class HookLogViewSet(NestedViewSetMixin,
@@ -42,17 +42,36 @@ class HookLogViewSet(NestedViewSetMixin,
         Retries to send data to external service.
         :param request: rest_framework.request.Request
         :param uid: str
-        :return:
+        :return: Response
         """
         hook_log = self.get_object()
-        if hook_log.retry():
-            pass
-
-        # TODO implement
-        return Response("Retry detail")
-
+        data = self.__get_data(request, hook_log)
+        status_code, message = hook_log.retry(data)
+        response = {"detail": message}
+        return Response(response, status=status_code)
 
     @list_route(methods=["POST"], url_path="retry")
     def retry_list(self, request, *args, **kwargs):
         #TODO implement Celery task
         return Response("Retry list")
+
+
+    def __get_data(self, request, hook_log):
+        """
+        Retrieves `kc` instance data through `kpi` proxy viewset.
+
+        :param request: HttpRequest
+        :param hook_log: Hook
+        :return: str
+        """
+        kwargs = {
+            "pk": 106, # hook_log.uid,
+            "parent_lookup_asset": hook_log.hook.asset.uid,
+            "format": hook_log.hook.export_type
+        }
+        request.method = "GET"
+        view = SubmissionViewSet.as_view({"get": "retrieve"})(request, **kwargs)
+        if view.status_code == status.HTTP_200_OK:
+            return view.content
+        else:
+            return None

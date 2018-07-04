@@ -538,10 +538,27 @@ class KobocatDataProxyViewSetMixin(object):
             kc_url = deployment.submission_list_url
         else:
             kc_url = deployment.get_submission_detail_url(pk)
+
+
+        # We can now retrieve XML or JSON format from `kc`
+        # Request can be:
+        # - /assets/<parent_lookup_asset>/submissions/<pk>/
+
+        # - /assets/<parent_lookup_asset>/submissions/<pk>.<format>/
+        #   where `format` is among `kwargs`
+
+        # - /assets/<parent_lookup_asset>/submissions/<pk>?format=<format>/
+        #   where `format` is among `request.GET`
+
+        format = kwargs.pop("format", None)
+        params = kpi_request.GET.copy()
+        if format:
+            params.update({"format": format})
+
         kc_request = requests.Request(
             method='GET',
             url=kc_url,
-            params=kpi_request.GET
+            params=params
         )
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
         return self._requests_response_to_django_response(kc_response)

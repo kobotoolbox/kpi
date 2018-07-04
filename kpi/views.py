@@ -673,7 +673,8 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
             asset = get_object_or_404(self.parent_model, uid=asset_uid)
             HookUtils.call_service(asset, request.data)
         except Exception as e:
-            logging.error("SubmissionViewSet.create - {}".format(str(e)))
+            logger = logging.getLogger("console_logger")
+            logger.error("SubmissionViewSet.create - {}".format(str(e)))
             response = {
                 "detail": "An error has occurred when calling the external service. Please retry later."
             }
