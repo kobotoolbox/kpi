@@ -25,7 +25,7 @@ webfontsGenerator(
     files: files,
     dest: destDir,
     fontName: 'k-icons',
-    cssFontsPath: '../fonts/',
+    cssFontsUrl: '../fonts/',
     css: true,
     cssTemplate: './jsapp/k-icons-css-template.hbs',
     html: true,
@@ -59,8 +59,17 @@ webfontsGenerator(
     if (error) {
       throw new Error('Fail!', error);
     } else {
-      fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}_k-icons.scss`);
-      console.log('\x1b[32m', 'Fonts generated :-)', '\x1b[0m');
+      try {
+        fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}_k-icons.scss`);
+        console.info('Copied k-icons.css to _k-icons.scss in fonts folder.');
+      } catch(e){
+        console.warn(
+          '\x1b[31m***\n',
+          e,
+          '\n***',
+          '\x1b[0m'
+        );
+      }
     }
   }
 );
