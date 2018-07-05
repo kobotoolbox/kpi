@@ -15,7 +15,7 @@ class ServiceDefinition(ServiceDefinitionInterface):
 
     def _prepare_request_kwargs(self):
         return {
-            "headers": {"Content-Type": "application/json"},
-            "json": self._data.get("json")
+            "headers": {"Content-Type": "application/xml"},
+            "data": self._data.get("xml")
         }
 

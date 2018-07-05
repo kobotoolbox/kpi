@@ -74,9 +74,19 @@ class ServiceDefinitionInterface(object):
                     "auth": (self._hook.settings.get("username"),
                              self._hook.settings.get("password"))
                 })
-            response = requests.post(self._hook.endpoint, **request_kwargs)
+            response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
             success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
             self.save_log(success, response.status_code, response.text)
+        except requests.exceptions.Timeout as e:
+            self.save_log(
+                False,
+                status.HTTP_408_REQUEST_TIMEOUT,
+                str(e))
+        except requests.exceptions.RequestException as e:
+            self.save_log(
+                False,
+                status.HTTP_400_BAD_REQUEST,
+                str(e))
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("service_json.ServiceDefinition.send - Submission #{} - {}".format(

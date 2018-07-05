@@ -19,7 +19,7 @@ class HookLog(models.Model):
     tries = models.IntegerField(default=0)
     success = models.BooleanField(default=True)  # Could use status_code, but will speed-up queries.
     status_code = models.IntegerField(default=200)
-    message = models.CharField(default="", max_length=500)
+    message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now_add=True)
 
