@@ -55,7 +55,7 @@ class ServiceDefinitionInterface(object):
 
     def send(self):
         """
-
+        Sends data to external endpoint
         :return: bool
         """
 
@@ -75,19 +75,20 @@ class ServiceDefinitionInterface(object):
                              self._hook.settings.get("password"))
                 })
             response = requests.post(self._hook.endpoint, **request_kwargs)
-            self.save_log(response.status_code, response.text)
+            success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
+            self.save_log(success, response.status_code, response.text)
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("service_json.ServiceDefinition.send - Submission #{} - {}".format(
                 self._data.get("uid"), str(e)), exc_info=True)
             self.save_log(
+                False,
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "An error occurred when sending data to external endpoint")
 
         return success
 
-
-    def save_log(self, status_code, message):
+    def save_log(self, success, status_code, message):
         """
         Updates/creates log entry
 
@@ -102,7 +103,7 @@ class ServiceDefinitionInterface(object):
                           hook=self._hook,
                           instance_id=self._data.get("id"))
 
-        log.success = status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
+        log.success = success
         log.status_code = status_code
         log.message = message
 
@@ -111,3 +112,4 @@ class ServiceDefinitionInterface(object):
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("ServiceDefinitionInterface.save_log - {}".format(str(e)), exc_info=True)
+
