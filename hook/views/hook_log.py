@@ -46,8 +46,7 @@ class HookLogViewSet(NestedViewSetMixin,
         """
         hook_log = self.get_object()
         data = self.__get_data(request, hook_log)
-        status_code, message = hook_log.retry(data)
-        response = {"detail": message}
+        status_code, response = hook_log.retry(data)
         return Response(response, status=status_code)
 
     @list_route(methods=["POST"], url_path="retry")
@@ -65,11 +64,11 @@ class HookLogViewSet(NestedViewSetMixin,
         :return: str
         """
         kwargs = {
-            "pk": 106, # hook_log.uid,
+            "pk": hook_log.instance_id,
             "parent_lookup_asset": hook_log.hook.asset.uid,
             "format": hook_log.hook.export_type
         }
-        request.method = "GET"
+        request.method = "GET"  # Force request to be a GET instead of PATCH
         view = SubmissionViewSet.as_view({"get": "retrieve"})(request, **kwargs)
         if view.status_code == status.HTTP_200_OK:
             return view.content

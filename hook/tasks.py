@@ -18,8 +18,8 @@ def service_definition_task(self, hook, data):
     # Use camelcase (even if it's not PEP-8 compliant)
     # because variable represents the class, not the instance.
     ServiceDefinition = hook.get_service_definition()
-
-    if not ServiceDefinition.send(hook, data):
+    service_definition = ServiceDefinition(hook, data)
+    if not service_definition.send():
         # Countdown is in seconds
         countdown = 60 * (10 ** self.request.retries)
         # max_retries is 3 by default. No need to specify it in parameters
