@@ -76,6 +76,12 @@ class Hook(models.Model):
         # TODO add some cache
         queryset = self.logs.values("success").annotate(values_count=models.Count("success"))
         queryset.query.clear_ordering(True)
+
+        # Initialize totals
+        self.__totals = {
+            False: 0,
+            True: 0
+        }
         for record in queryset:
             self.__totals[record.get("success")] = record.get("values_count")
 
