@@ -682,6 +682,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
 
         return Response(response, status=response_status_code)
 
+
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
