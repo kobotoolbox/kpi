@@ -67,6 +67,11 @@ class ServiceDefinitionInterface(object):
             # Add custom headers
             request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
 
+            # Add user agent
+            request_kwargs.get("headers").update({
+                "User-Agent": "KoBoToolbox external service #{}".format(self._hook.uid)
+            })
+
             # If the request needs basic authentication with username & password,
             # let's provide them
             if self._hook.settings.get("username"):
