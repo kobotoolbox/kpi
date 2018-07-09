@@ -82,7 +82,6 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         1. `json` (_default_)
         2. `xml`
-        3. `f2dhis2`
 
     * `security_level` must be one these values:
 
