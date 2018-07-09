@@ -117,7 +117,7 @@ class HookLogViewSet(NestedViewSetMixin,
         :return: str
         """
         kwargs = {
-            "pk": hook_log.instance_id,
+            "pk": hook_log.data_id,
             "parent_lookup_asset": hook_log.hook.asset.uid,
             "format": hook_log.hook.export_type
         }

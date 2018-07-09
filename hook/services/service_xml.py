@@ -7,10 +7,10 @@ from hook.models.service_definition_interface import ServiceDefinitionInterface
 class ServiceDefinition(ServiceDefinitionInterface):
     id = u"xml"
 
-    def _parse(self, uid, data):
+    def _parse(self, data, id):
         return {
             "data": data,
-            "uid": uid
+            "id": id
         }
 
     def _prepare_request_kwargs(self):

@@ -10,12 +10,14 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 import requests
 
+from kpi.fields import KpiUidField
+
 
 class HookLog(models.Model):
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
-    uid = models.CharField(unique=True, max_length=36)  # Unique ID provided by submitted data
-    instance_id = models.IntegerField(default=0)  # `kc.logger.Instance.id`. Useful to retrieve data on retry
+    uid = KpiUidField(uid_prefix="hl")
+    data_id = models.IntegerField(default=0, db_index=True)  # `kc.logger.Instance.id`. Useful to retrieve data on retry
     tries = models.IntegerField(default=0)
     success = models.BooleanField(default=True)  # Could use status_code, but will speed-up queries.
     status_code = models.IntegerField(default=200)
@@ -37,7 +39,7 @@ class HookLog(models.Model):
             if data:
                 try:
                     ServiceDefinition = self.hook.get_service_definition()
-                    service_definition = ServiceDefinition(self.hook, data, self.uid)
+                    service_definition = ServiceDefinition(self.hook, data, self.data_id)
                     success = service_definition.send()
                     self.refresh_from_db()
                     return status.HTTP_200_OK, {
