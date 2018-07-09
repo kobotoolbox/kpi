@@ -50,6 +50,7 @@
     "ms": "^0.7.1",
     "node-sass": "^4.5.1",
     "object-assign": "^4.1.1",
+    "opn-cli": "^3.1.0",
     "postcss": "^6.0.22",
     "postcss-loader": "^2.1.5",
     "prop-types": "^15.6.1",
@@ -79,6 +80,7 @@
     "style-loader": "^0.21.0",
     "underscore": "^1.8.3",
     "vinyl-source-stream": "^1.1.0",
+    "webfonts-generator": "^0.4.0",
     "webpack": "^4.10.1",
     "webpack-bundle-tracker": "0.4.0-beta",
     "webpack-cli": "^2.1.4",
@@ -91,7 +93,9 @@
     "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
     "watch": "webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-chrome test/tests.html",
-    "copy-fonts": "python ./scripts/copy_fonts.py"
+    "show-icons": "opn jsapp/fonts/k-icons.html",
+    "generate-icons": "node ./scripts/generate_icons.js",
+    "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
