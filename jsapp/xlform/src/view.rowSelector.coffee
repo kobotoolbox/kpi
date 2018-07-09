@@ -124,8 +124,11 @@ module.exports = do ->
       @hide()
 
     scrollBuilder: (scrollBy)->
-      $fbC = @$el.parents('.formBuilder__contents')
       $row = @$el.parents('.survey__row')
+      if !$row.length
+        return
+
+      $fbC = @$el.parents('.formBuilder__contents')
 
       if $row.height() + $row.position().top + 50 > $fbC.height() + $fbC.prop('scrollTop')
         $fbC.animate scrollTop: scrollBy
