@@ -13,12 +13,12 @@ class ServiceDefinitionInterface(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, hook, data, uid=None):
+    def __init__(self, hook, data, id=None):
         self._hook = hook
-        self._data = data if uid is None else self._parse(data, uid)
+        self._data = data if id is None else self._parse(data, id)
 
     @abstractmethod
-    def _parse(self, data, uid):
+    def _parse(self, data, id):
         """
         Parses the data to be compliant with the payload `kc` is sending
         when it receives data from `enketo`.
@@ -26,13 +26,13 @@ class ServiceDefinitionInterface(object):
         Should return
         {
             <export_type>: <value>,
-            "uid": uid
+            "id": id
         }
 
         For example
         {
             "json": data,
-            "uid": uid
+            "id": id
         }
         :return: dict
         """
@@ -94,8 +94,8 @@ class ServiceDefinitionInterface(object):
                 str(e))
         except Exception as e:
             logger = logging.getLogger("console_logger")
-            logger.error("service_json.ServiceDefinition.send - Submission #{} - {}".format(
-                self._data.get("uid"), str(e)), exc_info=True)
+            logger.error("service_json.ServiceDefinition.send - HookLog #{} - {}".format(
+                self.uid, str(e)), exc_info=True)
             self.save_log(
                 False,
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -111,12 +111,17 @@ class ServiceDefinitionInterface(object):
         :param status_code: int. HTTP status code
         :param message: str.
         """
+        fields = {
+            "hook": self._hook,
+            "data_id": self._data.get("id")
+        }
         try:
-            log = HookLog.objects.get(uid=self._data.get("uid"))
+            # Try to load the log with a multiple field FK because
+            # we don't know the log `uid` in this context, but we do know
+            # its `hook` FK and its `instance.id
+            log = HookLog.objects.get(**fields)
         except HookLog.DoesNotExist:
-            log = HookLog(uid=self._data.get("uid"),
-                          hook=self._hook,
-                          instance_id=self._data.get("id"))
+            log = HookLog(**fields)
 
         log.success = success
         log.status_code = status_code
@@ -127,4 +132,3 @@ class ServiceDefinitionInterface(object):
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("ServiceDefinitionInterface.save_log - {}".format(str(e)), exc_info=True)
-

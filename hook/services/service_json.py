@@ -8,10 +8,10 @@ from hook.models.service_definition_interface import ServiceDefinitionInterface
 class ServiceDefinition(ServiceDefinitionInterface):
     id = u"json"
 
-    def _parse(self, data, uid):
+    def _parse(self, data, id):
         return {
             "json": json.loads(data),
-            "uid": uid
+            "id": id
         }
 
     def _prepare_request_kwargs(self):
