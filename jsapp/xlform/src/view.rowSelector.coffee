@@ -40,7 +40,7 @@ module.exports = do ->
       @line.parents(".survey-editor__null-top-row").addClass "expanded"
       @line.css "height", "inherit"
       @line.html $viewTemplates.$$render('xlfRowSelector.namer')
-      @scrollBuilder('+=50')
+      @scrollFormBuilder('+=50')
 
       if (@options.surveyView.features.multipleQuestions)
         $(window).on 'keydown.cancel_add_question',  (evt) =>
@@ -71,7 +71,7 @@ module.exports = do ->
         for mitem, i in mrow when mitem
           menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
 
-      @scrollBuilder('+=220')
+      @scrollFormBuilder('+=220')
       @$('.questiontypelist__item').click _.bind(@selectMenuItem, @)
 
     shrink: ->
@@ -123,7 +123,7 @@ module.exports = do ->
       newRow.linkUp(warnings: [], errors: [])
       @hide()
 
-    scrollBuilder: (scrollBy)->
+    scrollFormBuilder: (scrollBy)->
       $row = @$el.parents('.survey__row')
       if !$row.length
         return
