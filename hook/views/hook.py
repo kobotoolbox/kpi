@@ -4,12 +4,14 @@ from __future__ import absolute_import
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..models.hook import Hook
 from ..serializers.hook import HookSerializer
 from kpi.models import Asset
 from kpi.views import AssetOwnerFilterBackend
+from kpi.permissions import IsOwnerOrReadOnly
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -126,12 +128,22 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         AssetOwnerFilterBackend,
     )
     serializer_class = HookSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         asset_uid = self.get_parents_query_dict().get("asset")
         queryset = self.model.objects.filter(asset__uid=asset_uid)
         queryset = queryset.select_related("asset__uid")
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        # Because object permissions is done on hook only,
+        # we need to check whether the user is the owner of the user to return a 404 when it's not.
+        # We prefer to return 404 instead of 403 to avoid to expose existence of the Asset/Hook
+        # to unauthorized user
+        asset_uid = self.get_parents_query_dict().get("asset")
+        asset = get_object_or_404(Asset, uid=asset_uid, owner=request.user)
+        return super(HookViewSet, self).list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         asset_uid = self.get_parents_query_dict().get("asset")

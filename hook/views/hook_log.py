@@ -10,6 +10,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
+from kpi.models import Asset
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
 
@@ -35,6 +36,12 @@ class HookLogViewSet(NestedViewSetMixin,
         queryset = queryset.select_related("hook__asset__uid")
 
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        # Same as HookViewSet.list()
+        asset_uid = self.get_parents_query_dict().get("asset")
+        asset = get_object_or_404(Asset, uid=asset_uid, owner=request.user)
+        return super(HookLogViewSet, self).list(request, *args, **kwargs)
 
     @detail_route(methods=["PATCH"], url_path="retry")
     def retry_detail(self, request, uid=None, *args, **kwargs):
