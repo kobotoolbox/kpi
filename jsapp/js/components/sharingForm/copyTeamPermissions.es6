@@ -22,7 +22,6 @@ class CopyTeamPermissions extends React.Component {
       targetUid: this.props.uid,
       targetName: stores.allAssets.byUid[this.props.uid].name
     };
-    this.store = stores.allAssets;
     autoBind(this);
   }
 
