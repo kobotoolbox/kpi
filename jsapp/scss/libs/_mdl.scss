@@ -3,10 +3,14 @@
 $black: #414453;
 $white: #fff;
 $cool-gray: lighten($black, 30%);
+$cool-lightgray: lighten($black, 60%);
+$divider-color: lighten($black, 63%);
 $cool-blue: #2095f3;
 $cool-green: #52c5d0;
+$warm-green: #52ce7b;
 $cool-red: #ff556a;
-$divider-color: #e7e7e8;
+$cool-orange: #ffaa56;
+
 $font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $layout-text-color: #414453 !default;
 $layout-nav-color: white !default;

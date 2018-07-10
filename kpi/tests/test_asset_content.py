@@ -807,3 +807,24 @@ def test_required_value_can_be_a_string():
     })
     r2 = content['survey'][1]
     assert r2['required'] == "${abc} != ''"
+
+
+def test_kuid_persists():
+    initial_kuid_1 = 'aaaa1111'
+    initial_kuid_2 = 'bbbb2222'
+
+    asset = Asset(content={
+        'survey': [
+            {'type': 'text', 'name': 'abc', '$kuid': initial_kuid_1},
+            {'type': 'text', 'name': 'def', '$kuid': initial_kuid_2},
+        ],
+    })
+    # kobo_specific_types=True avoids calling _strip_kuids
+    # so, can we assume that kuids are supposed to remain?
+    content = asset.ordered_xlsform_content(kobo_specific_types=True)
+    # kuids are stripped in "kobo_to_xlsform.to_xlsform_structure(...)"
+
+    assert '$kuid' in content['survey'][0]
+    assert content['survey'][0].get('$kuid') == initial_kuid_1
+    assert '$kuid' in content['survey'][1]
+    assert content['survey'][1].get('$kuid') == initial_kuid_2

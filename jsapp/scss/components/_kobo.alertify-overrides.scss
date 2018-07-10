@@ -108,6 +108,10 @@
     line-height: 1.3em;
   }
 
+  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 $cool-red inset;}
+  .ajs-message.ajs-success {box-shadow: 0 2px 0 0 $warm-green inset;}
+  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $cool-orange inset;}
+
   .ajs-message .ajs-close {
     background-image: none;
     background: transparent;

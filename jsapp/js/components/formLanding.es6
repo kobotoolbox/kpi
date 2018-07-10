@@ -388,6 +388,12 @@ export class FormLanding extends React.Component {
                     </bem.PopoverMenu__link>
                   );
               })}
+
+              <bem.PopoverMenu__link href="#pdf" className="is-edge">
+                <i className="k-icon-pdf"/>
+                {t('Download PDF')}
+              </bem.PopoverMenu__link>
+
               {userCanEdit &&
                 <bem.PopoverMenu__link onClick={this.sharingModal}>
                   <i className="k-icon-share"/>
