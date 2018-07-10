@@ -112,6 +112,11 @@ var dataInterface;
         data: data
       });
     },
+
+    /*
+     * external services
+     */
+
     getExternalServices(uid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/`,
@@ -148,6 +153,25 @@ var dataInterface;
         method: 'DELETE'
       });
     },
+    getExternalServiceLogs(uid, esid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${esid}/logs/`,
+        method: 'GET'
+      })
+    },
+    getExternalServiceLog(uid, esid, lid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${esid}/logs/${lid}/`,
+        method: 'GET'
+      })
+    },
+    retryExternalServiceLog(uid, esid, lid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${esid}/logs/${lid}/retry/`,
+        method: 'PATCH'
+      })
+    },
+
     getReportData (data) {
       let identifierString;
       if (data.identifiers) {
