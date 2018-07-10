@@ -108,20 +108,20 @@ export default class RESTServiceLogs extends React.Component {
             <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
           </bem.ServiceRow>
 
-          {this.state.serviceLogs.map((item, n) => {
+          {this.state.logs.map((item, n) => {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
-                  {item.name}
+                  {item.message.length !== 0 ? item.message : item.uid}
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
                   m='status'
-                  className={item.status === 'failed' ? 'service-row__error' : ''}
+                  className={item.status_code !== 200 ? 'service-row__error' : ''}
                 >
-                  {item.status}
+                  {item.status_code}
 
-                  {item.status === 'failed' &&
+                  {item.status_code !== 200 &&
                     <bem.ServiceRow__actionButton
                       onClick={this.retrySubmission.bind(this, item)}
                       data-tip={t('Retry submission')}
@@ -132,7 +132,7 @@ export default class RESTServiceLogs extends React.Component {
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='date'>
-                  {formatTime(item.date)}
+                  {formatTime(item.date_modified)}
                 </bem.ServiceRow__column>
               </bem.ServiceRow>
             );
