@@ -1,5 +1,7 @@
 const webfontsGenerator = require('webfonts-generator');
 const fs = require('fs');
+// Node version on Docker is too old to have fs.copyFileSync, thus polyfill:
+const copyFileSync = require('fs-copy-file-sync');
 const sourceDir = 'jsapp/svg-icons/';
 const destDir = 'jsapp/fonts/';
 
@@ -60,7 +62,7 @@ webfontsGenerator(
       throw new Error('Fail!', error);
     } else {
       try {
-        fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}_k-icons.scss`);
+        copyFileSync(`${destDir}k-icons.css`, `${destDir}_k-icons.scss`);
         console.info('Copied k-icons.css to _k-icons.scss in fonts folder.');
       } catch(e){
         console.warn(
