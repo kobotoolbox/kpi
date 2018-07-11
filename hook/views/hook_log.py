@@ -12,6 +12,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
 from kpi.models import Asset
+from kpi.serializers import TinyPaginated
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
 
@@ -76,6 +77,7 @@ class HookLogViewSet(NestedViewSetMixin,
     )
     serializer_class = HookLogSerializer
     permission_classes = (IsAuthenticated,)
+    pagination_class = TinyPaginated
 
     def get_queryset(self):
         asset_uid = self.get_parents_query_dict().get("asset")
