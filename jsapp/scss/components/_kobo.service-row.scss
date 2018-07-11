@@ -36,13 +36,14 @@ $c-service-row-hover: #f2f2f3;
 .service-row__column {
   &.service-row__column--name {
     flex: 4;
+    padding: 0 $s-service-row-column-spacing;
 
     .service-row--header & {padding: $s-service-row-column-spacing;}
 
     a {
       color: inherit;
       display: block;
-      padding: $s-service-row-column-spacing;
+      padding: $s-service-row-column-spacing 0;
 
       &:hover {color: $cool-blue;}
     }
@@ -60,18 +61,18 @@ $c-service-row-hover: #f2f2f3;
   }
 
   &.service-row__column--submission {
-    flex: 6;
+    flex: 16;
     padding: $s-service-row-column-spacing;
   }
 
   &.service-row__column--status {
-    flex: 2;
+    flex: 3;
     padding: 0 $s-service-row-column-spacing;
     line-height: $s-service-row-action-button;
   }
 
   &.service-row__column--date {
-    flex: 4;
+    flex: 5;
     padding: $s-service-row-column-spacing;
   }
 }
@@ -92,6 +93,11 @@ $c-service-row-hover: #f2f2f3;
   background: transparent;
   display: inline-block;
   vertical-align: top;
+
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 
   &:hover {
     color: $cool-blue;

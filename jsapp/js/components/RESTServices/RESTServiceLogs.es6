@@ -1,5 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
+import alertify from 'alertifyjs';
 import stores from '../../stores';
 import bem from '../../bem';
 import actions from '../../actions';
@@ -18,12 +21,18 @@ export default class RESTServiceLogs extends React.Component {
       esid: props.esid,
       isLoadingService: true,
       isLoadingLogs: true,
-      logs: []
+      logs: [],
+      pendingRetries: {}
     };
     autoBind(this);
   }
 
   componentDidMount() {
+    this.listenTo(
+      actions.externalServices.getLogs.completed,
+      this.onLogsUpdated
+    );
+
     dataInterface.getExternalService(this.state.assetUid, this.state.esid)
       .done((data) => {
         this.setState({
@@ -37,44 +46,94 @@ export default class RESTServiceLogs extends React.Component {
         });
         alertify.error(t('Could not load REST Service'));
       });
-    dataInterface.getExternalServiceLogs(this.state.assetUid, this.state.esid)
-      .done((data) => {
-        this.setState({
-          isLoadingLogs: false,
-          logs: data.results
-        });
-      })
-      .fail((data) => {
-        this.setState({
-          isLoadingLogs: false
-        });
-        alertify.error(t('Could not load REST Service logs'));
-      });
+
+    actions.externalServices.getLogs(
+      this.state.assetUid,
+      this.state.esid,
+      {
+        onComplete: (data) => {
+          this.setState({
+            isLoadingLogs: false,
+            logs: data.results
+          });
+        },
+        onFail: (data) => {
+          this.setState({
+            isLoadingLogs: false
+          });
+          alertify.error(t('Could not load REST Service logs'));
+        }
+      }
+    );
+  }
+
+  onLogsUpdated(data) {
+    this.setState({
+      logs: data.results
+    });
   }
 
   retrySubmission(submission, evt) {
-    console.log('retrySubmission', submission);
+    this.setState({
+      pendingRetries: {[submission.uid]: true}
+    });
+
+    actions.externalServices.retryLog(
+      this.state.assetUid,
+      this.state.esid,
+      submission.uid,
+      {
+        onComplete: (data) => {
+          this.setState({
+            pendingRetries: {[submission.uid]: false}
+          });
+
+          if (data.success === false) {
+            alertify.error(t('Submission retry failed'));
+          }
+        },
+        onFail: (data) => {
+          this.setState({
+            pendingRetries: {[submission.uid]: false}
+          });
+
+          alertify.error(t('Submission retry failed'));
+        }
+      }
+    );
+  }
+
+  isStatusSuccessful(statusCode) {
+    return (200 <= statusCode && statusCode <= 299);
   }
 
   /*
    * rendering methods
    */
 
+  renderHeader() {
+    return (
+      <header className='rest-services-list__header'>
+        <a
+          className='rest-services-list__header-back-button'
+          href={`/#/forms/${this.state.assetUid}/settings/rest`}
+        >
+          <i className='k-icon-prev' />
+        </a>
+
+        <h2 className='rest-services-list__header-label'>
+          {this.state.serviceName}
+          &nbsp;
+          <small>{t('activity logs')}</small>
+        </h2>
+      </header>
+    )
+  }
+
   renderEmptyView() {
     return (
       <bem.FormView__cell m='rest-services-list' className='rest-services-list--empty'>
-        <header className='rest-services-list__header'>
-          <a
-            className='rest-services-list__header-back-button'
-            href={`/#/forms/${this.state.assetUid}/settings/rest`}
-          >
-            <i className='k-icon-prev' />
-          </a>
-
-          <h2 className='rest-services-list__header-label'>
-            {t('##name## activity logs').replace('##name##', this.state.serviceName)}
-          </h2>
-        </header>
+        {this.renderHeader()}
 
         <bem.EmptyContent>
           <bem.EmptyContent__message>
@@ -88,18 +147,7 @@ export default class RESTServiceLogs extends React.Component {
   renderListView() {
     return (
       <bem.FormView__cell m='rest-services-list'>
-        <header className='rest-services-list__header'>
-          <a
-            className='rest-services-list__header-back-button'
-            href={`/#/forms/${this.state.assetUid}/settings/rest`}
-          >
-            <i className='k-icon-prev' />
-          </a>
-
-          <h2 className='rest-services-list__header-label'>
-            {t('##name## activity logs').replace('##name##', this.state.serviceName)}
-          </h2>
-        </header>
+        {this.renderHeader()}
 
         <bem.FormView__cell m={['box']}>
           <bem.ServiceRow m='header'>
@@ -117,12 +165,13 @@ export default class RESTServiceLogs extends React.Component {
 
                 <bem.ServiceRow__column
                   m='status'
-                  className={item.status_code !== 200 ? 'service-row__error' : ''}
+                  className={this.isStatusSuccessful(item.status_code) ? '' : 'service-row__error'}
                 >
                   {item.status_code}
 
-                  {item.status_code !== 200 &&
+                  {!this.isStatusSuccessful(item.status_code) &&
                     <bem.ServiceRow__actionButton
+                      disabled={this.state.pendingRetries[item.uid] === true}
                       onClick={this.retrySubmission.bind(this, item)}
                       data-tip={t('Retry submission')}
                     >
@@ -159,3 +208,5 @@ export default class RESTServiceLogs extends React.Component {
     }
   }
 }
+
+reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);
