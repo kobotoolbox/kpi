@@ -11,7 +11,6 @@ from ..models.hook import Hook
 from ..serializers.hook import HookSerializer
 from kpi.models import Asset
 from kpi.views import AssetOwnerFilterBackend
-from kpi.permissions import IsOwnerOrReadOnly
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

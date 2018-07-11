@@ -49,6 +49,63 @@ class ApiHookTestCase(KpiTestCase):
         self.assertTrue(hook.active)
         return hook
 
+    def test_anonymous_access(self):
+        hook = self._create_hook()
+        self.client.logout()
+
+        list_url = reverse("hook-list", kwargs={
+            "parent_lookup_asset": self.asset.uid
+        })
+
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        detail_url = reverse("hook-detail", kwargs={
+            "parent_lookup_asset": self.asset.uid,
+            "uid": hook.uid,
+        })
+
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        log_list_url = reverse("hook-log-list", kwargs={
+            "parent_lookup_asset": self.asset.uid,
+            "parent_lookup_hook": hook.uid,
+        })
+
+        response = self.client.get(log_list_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+    def test_not_owner_access(self):
+        hook = self._create_hook()
+        self.client.logout()
+        self.client.login(username="anotheruser", password="anotheruser")
+
+        list_url = reverse("hook-list", kwargs={
+            "parent_lookup_asset": self.asset.uid
+        })
+
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        detail_url = reverse("hook-detail", kwargs={
+            "parent_lookup_asset": self.asset.uid,
+            "uid": hook.uid,
+        })
+
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        log_list_url = reverse("hook-log-list", kwargs={
+            "parent_lookup_asset": self.asset.uid,
+            "parent_lookup_hook": hook.uid,
+        })
+
+        response = self.client.get(log_list_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
     def test_create_hook(self):
         self._create_hook()
 
