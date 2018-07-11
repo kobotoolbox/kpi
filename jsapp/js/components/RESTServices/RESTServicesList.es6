@@ -138,7 +138,7 @@ export default class RESTServicesList extends React.Component {
         <bem.FormView__cell m='rest-services-list'>
           <header className='rest-services-list__header'>
             <h2 className='rest-services-list__header-label'>
-              {t('##number## Services').replace('##number##', this.state.services.length)}
+              {t('REST Services: ##number##').replace('##number##', this.state.services.length)}
             </h2>
 
             <a
