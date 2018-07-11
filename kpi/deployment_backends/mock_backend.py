@@ -58,3 +58,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def _get_submissions(self):
         return self.asset._deployment_data.get('submissions', [])
+
+    def set_has_kpi_hooks(self):
+        """
+        Store results in self.asset._deployment_data
+        """
+        has_active_hooks = self.asset.has_active_hooks
+        self.store_data({
+            "has_kpi_hooks": has_active_hooks,
+        })
