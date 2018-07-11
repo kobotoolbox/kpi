@@ -61,12 +61,12 @@ $c-service-row-hover: #f2f2f3;
   }
 
   &.service-row__column--submission {
-    flex: 16;
+    flex: 15;
     padding: $s-service-row-column-spacing;
   }
 
   &.service-row__column--status {
-    flex: 3;
+    flex: 4;
     padding: 0 $s-service-row-column-spacing;
     line-height: $s-service-row-action-button;
   }
@@ -93,6 +93,10 @@ $c-service-row-hover: #f2f2f3;
   background: transparent;
   display: inline-block;
   vertical-align: top;
+
+  &:first-of-type {
+    margin-left: 8px;
+  }
 
   &[disabled] {
     opacity: 0.5;

@@ -169,7 +169,7 @@ export default class RESTServicesList extends React.Component {
                     {item.success_count + item.failed_count}
                     {item.failed_count > 1 &&
                       <span className='service-row__error'>
-                        &nbsp;({item.failed_count})
+                        {t(' (##number## failed)').replace('##number##', item.failed_count)}
                       </span>
                     }
                   </bem.ServiceRow__column>

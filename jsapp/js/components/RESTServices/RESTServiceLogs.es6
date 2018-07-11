@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
@@ -103,6 +104,14 @@ export default class RESTServiceLogs extends React.Component {
     );
   }
 
+  showSubmissionInfo(submission, evt) {
+    const escapedMessage = $('<div/>').text(submission.message).html();
+    alertify.alert(
+      submission.uid,
+      `<pre>${escapedMessage}</pre>`
+    );
+  }
+
   isStatusSuccessful(statusCode) {
     return (200 <= statusCode && statusCode <= 299);
   }
@@ -160,7 +169,7 @@ export default class RESTServiceLogs extends React.Component {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
-                  {item.message.length !== 0 ? item.message : item.uid}
+                  {item.uid}
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
@@ -176,6 +185,15 @@ export default class RESTServiceLogs extends React.Component {
                       data-tip={t('Retry submission')}
                     >
                       <i className='k-icon-replace' />
+                    </bem.ServiceRow__actionButton>
+                  }
+
+                  {!this.isStatusSuccessful(item.status_code) && item.message.length > 0 &&
+                    <bem.ServiceRow__actionButton
+                      onClick={this.showSubmissionInfo.bind(this, item)}
+                      data-tip={t('More info')}
+                    >
+                      <i className='k-icon-information' />
                     </bem.ServiceRow__actionButton>
                   }
                 </bem.ServiceRow__column>
