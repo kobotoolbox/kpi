@@ -142,7 +142,7 @@ export default class RESTServicesList extends React.Component {
             </h2>
 
             <a
-              className='rest-services-list__header-help-link'
+              className='rest-services-list__header-help-link rest-services-list__header-right'
               href={RESTServicesSupportUrl}
               target='_blank'
             >

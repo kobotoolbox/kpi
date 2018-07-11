@@ -35,7 +35,7 @@ $c-service-row-hover: #f2f2f3;
 
 .service-row__column {
   &.service-row__column--name {
-    flex: 4;
+    flex: 6;
     padding: 0 $s-service-row-column-spacing;
 
     .service-row--header & {padding: $s-service-row-column-spacing;}
@@ -55,8 +55,8 @@ $c-service-row-hover: #f2f2f3;
   }
 
   &.service-row__column--actions {
+    flex: 1;
     padding: 0 $s-service-row-column-spacing;
-    min-width: $s-service-row-action-button * 2;
     box-sizing: content-box;
   }
 
@@ -95,7 +95,7 @@ $c-service-row-hover: #f2f2f3;
   vertical-align: top;
 
   &:first-of-type {
-    margin-left: 8px;
+    margin-left: 12px;
   }
 
   &[disabled] {

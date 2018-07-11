@@ -18,15 +18,16 @@
     margin-top: 30px;
   }
 
+  .rest-services-list__header::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
   .rest-services-list__header-label {
     display: inline-block;
     font-size: inherit;
     font-weight: 600;
-
-    small {
-      font-weight: 400;
-      font-size: 100%;
-    }
   }
 
   .rest-services-list__header-label,
@@ -34,7 +35,7 @@
     margin: 0;
     line-height: 20px;
     padding: 10px 0;
-    min-height: 40px;
+    min-height: 36px;
 
     i {
       font-size: 20px;
@@ -43,10 +44,13 @@
     }
   }
 
-  .rest-services-list__header-help-link {float: right;}
+  .rest-services-list__header-right {float: right;}
 
   .rest-services-list__header-back-button {
     @extend .mdl-button, .mdl-button--icon;
-    float: left;
+
+    i {
+      vertical-align: middle;
+    }
   }
 }
