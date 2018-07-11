@@ -103,6 +103,10 @@ export default class RESTServiceLogs extends React.Component {
     );
   }
 
+  isStatusSuccessful(statusCode) {
+    return (200 <= statusCode && statusCode <= 299);
+  }
+
   /*
    * rendering methods
    */
@@ -161,11 +165,11 @@ export default class RESTServiceLogs extends React.Component {
 
                 <bem.ServiceRow__column
                   m='status'
-                  className={item.status_code !== 200 ? 'service-row__error' : ''}
+                  className={this.isStatusSuccessful(item.status_code) ? '' : 'service-row__error'}
                 >
                   {item.status_code}
 
-                  {item.status_code !== 200 &&
+                  {!this.isStatusSuccessful(item.status_code) &&
                     <bem.ServiceRow__actionButton
                       disabled={this.state.pendingRetries[item.uid] === true}
                       onClick={this.retrySubmission.bind(this, item)}
