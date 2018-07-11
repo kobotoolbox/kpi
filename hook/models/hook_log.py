@@ -26,7 +26,7 @@ class HookLog(models.Model):
     date_modified = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["date_modified"]
+        ordering = ["-date_modified"]
 
     def retry(self, data):
         """

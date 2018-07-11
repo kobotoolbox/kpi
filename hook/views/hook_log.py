@@ -5,12 +5,14 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
 from kpi.models import Asset
+from kpi.serializers import TinyPaginated
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
 
@@ -74,6 +76,8 @@ class HookLogViewSet(NestedViewSetMixin,
         AssetOwnerFilterBackend,
     )
     serializer_class = HookLogSerializer
+    permission_classes = (IsAuthenticated,)
+    pagination_class = TinyPaginated
 
     def get_queryset(self):
         asset_uid = self.get_parents_query_dict().get("asset")

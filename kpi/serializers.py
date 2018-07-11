@@ -14,7 +14,7 @@ from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
@@ -48,6 +48,13 @@ class Paginated(LimitOffsetPagination):
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
+
+
+class TinyPaginated(PageNumberPagination):
+    """
+    Same as Paginated with a small page size
+    """
+    page_size = 50
 
 
 class WritableJSONField(serializers.Field):
