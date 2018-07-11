@@ -85,6 +85,12 @@ def check_required_settings(required_settings):
                 required_setting, deployments_file))
 
 
+def get_base_image_from_dockerfile():
+    from_line = run_no_pty("sed -n '/^FROM /p;q' Dockerfile")
+    base_image_name = from_line.strip().split(' ')[-1]
+    return base_image_name
+
+
 def deploy(deployment_name, tag_or_branch):
     setup_env(deployment_name)
     if 'docker_git_repo' in env:
@@ -181,6 +187,8 @@ def build_and_deploy(branch):
             branch, GIT_REPO))
         # Note which commit is at the tip of the cloned branch
         cloned_commit = run_no_pty("git show --no-patch")
+        # Update the base image
+        run_no_pty("docker pull '{}'".format(get_base_image_from_dockerfile()))
     with cd(env.docker_config_path):
         # Build the image
         run("docker-compose build '{}'".format(SERVICE_NAME))
@@ -236,6 +244,10 @@ def publish_docker_image(tag, deployment_name='_image_builder'):
         with settings(warn_only=True):
             commit_inside_image = _get_commit_from_docker_image(image_name)
         if commit_inside_image != cloned_commit:
+            # Update the base image
+            run_no_pty("docker pull '{}'".format(
+                get_base_image_from_dockerfile()
+            ))
             # Build the image
             run("docker build -t '{}' .".format(image_name))
             # Make sure the resulting image has the expected code
