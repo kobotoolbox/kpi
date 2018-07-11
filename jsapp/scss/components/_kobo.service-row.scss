@@ -93,6 +93,11 @@ $c-service-row-hover: #f2f2f3;
   display: inline-block;
   vertical-align: top;
 
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
   &:hover {
     color: $cool-blue;
   }

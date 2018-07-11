@@ -1,5 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
+import alertify from 'alertifyjs';
 import stores from '../../stores';
 import bem from '../../bem';
 import actions from '../../actions';
@@ -18,12 +21,18 @@ export default class RESTServiceLogs extends React.Component {
       esid: props.esid,
       isLoadingService: true,
       isLoadingLogs: true,
-      logs: []
+      logs: [],
+      pendingRetries: {}
     };
     autoBind(this);
   }
 
   componentDidMount() {
+    this.listenTo(
+      actions.externalServices.getLogs.completed,
+      this.onLogsUpdated
+    );
+
     dataInterface.getExternalService(this.state.assetUid, this.state.esid)
       .done((data) => {
         this.setState({
@@ -37,23 +46,61 @@ export default class RESTServiceLogs extends React.Component {
         });
         alertify.error(t('Could not load REST Service'));
       });
-    dataInterface.getExternalServiceLogs(this.state.assetUid, this.state.esid)
-      .done((data) => {
-        this.setState({
-          isLoadingLogs: false,
-          logs: data.results
-        });
-      })
-      .fail((data) => {
-        this.setState({
-          isLoadingLogs: false
-        });
-        alertify.error(t('Could not load REST Service logs'));
-      });
+
+    actions.externalServices.getLogs(
+      this.state.assetUid,
+      this.state.esid,
+      {
+        onComplete: (data) => {
+          this.setState({
+            isLoadingLogs: false,
+            logs: data.results
+          });
+        },
+        onFail: (data) => {
+          this.setState({
+            isLoadingLogs: false
+          });
+          alertify.error(t('Could not load REST Service logs'));
+        }
+      }
+    );
+  }
+
+  onLogsUpdated(data) {
+    this.setState({
+      logs: data.results
+    });
   }
 
   retrySubmission(submission, evt) {
-    console.log('retrySubmission', submission);
+    this.setState({
+      pendingRetries: {[submission.uid]: true}
+    });
+
+    actions.externalServices.retryLog(
+      this.state.assetUid,
+      this.state.esid,
+      submission.uid,
+      {
+        onComplete: (data) => {
+          this.setState({
+            pendingRetries: {[submission.uid]: false}
+          });
+
+          if (data.success === false) {
+            alertify.error(t('Submission retry was not successful'));
+          }
+        },
+        onFail: (data) => {
+          this.setState({
+            pendingRetries: {[submission.uid]: false}
+          });
+
+          alertify.error(t('Submission retry failed'));
+        }
+      }
+    );
   }
 
   /*
@@ -123,6 +170,7 @@ export default class RESTServiceLogs extends React.Component {
 
                   {item.status_code !== 200 &&
                     <bem.ServiceRow__actionButton
+                      disabled={this.state.pendingRetries[item.uid] === true}
                       onClick={this.retrySubmission.bind(this, item)}
                       data-tip={t('Retry submission')}
                     >
@@ -159,3 +207,5 @@ export default class RESTServiceLogs extends React.Component {
     }
   }
 }
+
+reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);

@@ -28,19 +28,23 @@ export default class RESTServicesList extends React.Component {
       this.onExternalServicesUpdate
     );
 
-    dataInterface.getExternalServices(this.state.assetUid)
-      .done((data) => {
-        this.setState({
-          isLoadingServices: false,
-          services: data.results
-        });
-      })
-      .fail((data) => {
-        this.setState({
-          isLoadingServices: false
-        });
-        alertify.error(t('Could not load REST Services'));
-      });
+    actions.externalServices.getAll(
+      this.state.assetUid,
+      {
+        onComplete: (data) => {
+          this.setState({
+            isLoadingServices: false,
+            services: data.results
+          });
+        },
+        onFail: (data) => {
+          this.setState({
+            isLoadingServices: false
+          });
+          alertify.error(t('Could not load REST Services'));
+        }
+      }
+    );
   }
 
   onExternalServicesUpdate(data) {
@@ -73,11 +77,8 @@ export default class RESTServicesList extends React.Component {
           actions.externalServices.delete(
             this.state.assetUid,
             serviceEsid, {
-              onComplete: () => {
-                console.log('deleted');
-              },
               onFail: () => {
-                console.log('del failed');
+                alertify.error(t('Could not delete REST Service'));
               }
             }
           );

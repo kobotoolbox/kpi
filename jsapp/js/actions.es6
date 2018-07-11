@@ -292,6 +292,18 @@ actions.externalServices = Reflux.createActions({
       'failed'
     ]
   },
+  getLogs: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+  retryLog: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.misc = Reflux.createActions({
@@ -884,6 +896,39 @@ actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
     })
     .fail((...args) => {
       actions.externalServices.delete.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.externalServices.getLogs.listen((assetUid, esid, callbacks = {}) => {
+  dataInterface.getExternalServiceLogs(assetUid, esid)
+    .done((...args) => {
+      actions.externalServices.getLogs.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.getLogs.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.externalServices.retryLog.listen((assetUid, esid, lid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLog(assetUid, esid, lid)
+    .done((...args) => {
+      actions.externalServices.getLogs(assetUid, esid);
+      actions.externalServices.retryLog.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.retryLog.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
