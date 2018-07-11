@@ -15,7 +15,8 @@ def upload_to(self, filename):
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     '''
     return posixpath.join(
-        'asset_files', self.asset.uid, self.file_type, filename
+        self.asset.owner.username, 'asset_files', self.asset.uid,
+        self.file_type, filename
     )
 
 class AssetFile(models.Model):

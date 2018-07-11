@@ -2,14 +2,12 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import jsonfield.fields
 import kpi.models.asset_file
 from django.conf import settings
 import jsonbfield.fields
 import django.utils.timezone
-import kpi.models.import_export_task
 import private_storage.fields
-import private_storage.storage.s3boto3
+import private_storage.storage.files
 import kpi.fields
 
 
@@ -29,7 +27,7 @@ class Migration(migrations.Migration):
                 ('file_type', models.CharField(max_length=32, choices=[(b'map_layer', b'map_layer')])),
                 ('name', models.CharField(max_length=255)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
-                ('content', private_storage.fields.PrivateFileField(storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(), max_length=380, upload_to=kpi.models.asset_file.upload_to)),
+                ('content', private_storage.fields.PrivateFileField(storage=private_storage.storage.files.PrivateFileSystemStorage(), max_length=380, upload_to=kpi.models.asset_file.upload_to)),
                 ('metadata', jsonbfield.fields.JSONField(default=dict)),
             ],
         ),

@@ -41,6 +41,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 import constance
 from taggit.models import Tag
+from private_storage.views import PrivateStorageDetailView
 
 from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import AssetOwnerFilterBackend
@@ -673,10 +674,26 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
             raise exceptions.PermissionDenied()
         return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
 
+    class PrivateContentView(PrivateStorageDetailView):
+        model = AssetFile
+        model_file_field = 'content'
+        def can_access_file(self, private_file):
+            return private_file.request.user.has_perm(
+                'view_asset', private_file.parent_object.asset)
+
     @detail_route(methods=['get'])
     def content(self, *args, **kwargs):
+        view = self.PrivateContentView.as_view(
+            model=AssetFile,
+            slug_url_kwarg='uid',
+            slug_field='uid',
+            model_file_field='content'
+        )
         af = self.get_object()
-        return HttpResponseRedirect(af.content.url)
+        # TODO: simply redirect if external storage with expiring tokens (e.g.
+        # Amazon S3) is used?
+        #   return HttpResponseRedirect(af.content.url)
+        return view(self.request, uid=af.uid)
 
 
 class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,

@@ -164,17 +164,17 @@ export class FormMap extends React.Component {
       var overlayLayer = false;
       switch (layer.metadata.type) {
         case 'kml':
-          overlayLayer = omnivore.kml(layer.content_url);
+          overlayLayer = omnivore.kml(layer.content);
           break;
         case 'csv':
-          overlayLayer = omnivore.csv(layer.content_url);
+          overlayLayer = omnivore.csv(layer.content);
           break;
         case 'json':
         case 'geojson':
-          overlayLayer = omnivore.geojson(layer.content_url);
+          overlayLayer = omnivore.geojson(layer.content);
           break;
         case 'wkt':
-          overlayLayer = omnivore.wkt(layer.content_url);
+          overlayLayer = omnivore.wkt(layer.content);
           break;
         case 'kmz':
           // KMZ files are zipped KMLs, therefore

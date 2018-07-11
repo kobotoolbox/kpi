@@ -20,7 +20,7 @@ from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
-from .fields import PaginatedApiField
+from .fields import PaginatedApiField, SerializerMethodFileField
 from .models import Asset
 from .models import AssetSnapshot
 from .models import AssetVersion
@@ -390,15 +390,14 @@ class AssetFileSerializer(serializers.ModelSerializer):
     file_type = serializers.ChoiceField(choices=AssetFile.TYPE_CHOICES)
     name = serializers.CharField()
     date_created = serializers.ReadOnlyField()
-    content = serializers.FileField()
-    content_url = serializers.SerializerMethodField()
+    content = SerializerMethodFileField()
     metadata = WritableJSONField(required=False)
 
     def get_url(self, obj):
         return reverse('asset-file-detail', args=(obj.asset.uid, obj.uid),
                        request=self.context.get('request', None))
 
-    def get_content_url(self, obj):
+    def get_content(self, obj, *args, **kwargs):
         return reverse('asset-file-content', args=(obj.asset.uid, obj.uid),
                        request=self.context.get('request', None))
 
@@ -414,7 +413,6 @@ class AssetFileSerializer(serializers.ModelSerializer):
             'name',
             'date_created',
             'content',
-            'content_url',
             'metadata',
         )
 

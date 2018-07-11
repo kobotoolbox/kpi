@@ -538,17 +538,8 @@ class AssetFileTest(APITestCase):
         return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
 
     def get_asset_file_content(self, url):
-        # Assume all `AssetFile`s use the same storage
-        local_storage = isinstance(
-            self.asset.asset_files.first().content.storage,
-            PrivateFileSystemStorage
-        )
-        if local_storage:
-            response = self.client.get(url)
-            return ''.join(response.streaming_content)
-        else:
-            response = requests.get(url)
-            return response.content
+        response = self.client.get(url)
+        return ''.join(response.streaming_content)
 
     @property
     def asset_file_payload(self):
@@ -611,13 +602,6 @@ class AssetFileTest(APITestCase):
         expected_content = posted_payload['content'].read()
         self.assertEqual(
             self.get_asset_file_content(response_dict['content']),
-            expected_content
-        )
-        # Content via the durable redirector URL
-        redirect_response = self.client.get(response_dict['content_url'])
-        self.assertEqual(redirect_response.status_code, 302)
-        self.assertEqual(
-            self.get_asset_file_content(redirect_response['Location']),
             expected_content
         )
         return response_dict['uid']
