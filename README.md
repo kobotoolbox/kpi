@@ -57,8 +57,12 @@ Admin reports
 -------------
 There are several types of data reports available to superusers. 
 * Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
-* Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`         
+* Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`
 
 Django Admin Interface
 ----------------------
 As this is a Django project, you may find the admin panel at `<kpi base url>/admin` useful, e.g. to configure user accounts or log in as other users without knowing their passwords. You must use a superuser account to access the admin panel.
+
+Icons
+-----
+All project icons are kept in `jsapp/svg-icons/`. Adding new icon requires adding new `svg` file here and regenerating icons with `npm run generate-icons`. Filenames are used for icon font classnames, e.g. `.k-icon-arrow-last` for `arrow-last.svg` (please use kebab-case). You can see all available icons by running `npm run show-icons` - it will open a list in your browser.

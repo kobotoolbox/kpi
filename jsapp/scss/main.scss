@@ -1,7 +1,7 @@
 @import "./libs/mdl";
 
 @import "./fonts/roboto";
-@import "./fonts/k-icons/k-icons";
+@import "../fonts/k-icons";
 @import "~font-awesome/scss/font-awesome";
 @import "~select2/select2.css";
 @import "~react-table/react-table.css";
@@ -33,6 +33,7 @@
 @import "./components/kobo.sharing-modal";
 @import "./components/kobo.map";
 @import "./components/kobo.map.marker-colors";
+@import "./components/kobo.text-box";
 
 @import "./formbuild/kobomatrix";
 

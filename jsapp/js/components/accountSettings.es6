@@ -2,15 +2,14 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import _ from 'underscore';
-import {dataInterface} from '../dataInterface';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
-
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
+import TextBox from './textBox';
 import ui from '../ui';
 import $ from 'jquery';
 import {
@@ -25,21 +24,27 @@ export class AccountSettings extends React.Component {
     super(props);
     let state = {
       requireAuth: false,
+      fieldsErrors: {}
     }
     this.state = state;
     autoBind(this);
+
     if (stores.session && stores.session.currentAccount) {
       this.state = this.getStateFromCurrentAccount(stores.session.currentAccount);
     }
   }
+
   componentDidMount() {
     this.listenTo(stores.session, ({currentAccount}) => {
       this.setState(this.getStateFromCurrentAccount(currentAccount));
     });
   }
+
   getStateFromCurrentAccount(currentAccount) {
-    if (currentAccount.extra_details == undefined)
+    if (currentAccount.extra_details == undefined) {
       currentAccount.extra_details = {};
+    }
+
     return {
       name: currentAccount.extra_details.name,
       email: currentAccount.email,
@@ -75,42 +80,60 @@ export class AccountSettings extends React.Component {
           value: 'other',
           label: t('Other')
         },
-      ]
+      ],
+      fieldsErrors: {}
     };
   }
-  updateProfile () {
-    actions.misc.updateProfile({
-      email: this.state.email,
-      extra_details: JSON.stringify({
-        name: this.state.name,
-        organization: this.state.organization,
-        organization_website: this.state.organizationWebsite,
-        primarySector: this.state.primarySector,
-        gender: this.state.gender,
-        bio: this.state.bio,
-        phone_number: this.state.phoneNumber,
-        address: this.state.address,
-        city: this.state.city,
-        country: this.state.country,
-        default_language: this.state.defaultLanguage,
-        require_auth: this.state.requireAuth,
-        twitter: this.state.twitter,
-        linkedin: this.state.linkedin,
-        instagram: this.state.instagram,
-        metadata: this.state.metadata,
-      })
-    });
+
+  updateProfile() {
+    actions.misc.updateProfile(
+      {
+        email: this.state.email,
+        extra_details: JSON.stringify({
+          name: this.state.name,
+          organization: this.state.organization,
+          organization_website: this.state.organizationWebsite,
+          primarySector: this.state.primarySector,
+          gender: this.state.gender,
+          bio: this.state.bio,
+          phone_number: this.state.phoneNumber,
+          address: this.state.address,
+          city: this.state.city,
+          country: this.state.country,
+          default_language: this.state.defaultLanguage,
+          require_auth: this.state.requireAuth,
+          twitter: this.state.twitter,
+          linkedin: this.state.linkedin,
+          instagram: this.state.instagram,
+          metadata: this.state.metadata,
+        })
+      },
+      {
+        onComplete: this.onUpdateComplete.bind(this),
+        onFail: this.onUpdateFail.bind(this)
+      }
+    );
   }
-  handleChange (e, attr) {
-    if (e.target) {
-      if (e.target.type == 'checkbox') {
-        var val = e.target.checked;
+
+  onUpdateComplete(data) {
+    this.setState({fieldsErrors: {}});
+  }
+
+  onUpdateFail(data) {
+    this.setState({fieldsErrors: data.responseJSON});
+  }
+
+  handleChange(evt, attr) {
+    let val;
+    if (evt && evt.target) {
+      if (evt.target.type == 'checkbox') {
+        val = evt.target.checked;
       } else {
-        var val = e.target.value;
+        val = evt.target.value;
       }
     } else {
-      // react-select just passes a string
-      var val = e;
+      // react-select and TextBox just passes a string
+      val = evt;
     }
     this.setState({[attr]: val});
   }
@@ -132,13 +155,18 @@ export class AccountSettings extends React.Component {
   instagramChange (e) {this.handleChange(e, 'instagram');}
   metadataChange (e) {this.handleChange(e, 'metadata');}
 
-  render () {
+  render() {
     if(!stores.session || !stores.session.currentAccount) {
       return (
         <ui.Panel>
           <bem.AccountSettings>
             <bem.AccountSettings__item>
-              {t('loading...')}
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  {t('loading...')}
+                </bem.Loading__inner>
+              </bem.Loading>
             </bem.AccountSettings__item>
           </bem.AccountSettings>
         </ui.Panel>
@@ -156,161 +184,224 @@ export class AccountSettings extends React.Component {
         <bem.AccountSettings>
           <bem.AccountSettings__item m={'column'}>
             <bem.AccountSettings__item m='actions'>
-              <button onClick={this.updateProfile}
-                      className="mdl-button mdl-button--raised mdl-button--colored">
+              <button
+                onClick={this.updateProfile}
+                className="mdl-button mdl-button--raised mdl-button--colored"
+              >
                 {t('Save Changes')}
               </button>
             </bem.AccountSettings__item>
+
             <bem.AccountSettings__item m='username'>
               <bem.AccountBox__initials style={initialsStyle}>
                 {accountName.charAt(0)}
               </bem.AccountBox__initials>
+
               <h4>{accountName}</h4>
             </bem.AccountSettings__item>
+
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
-                <label htmlFor="requireAuth">
-                  {t('Privacy')}
-                </label>
-              </bem.AccountSettings__item>
-              <bem.AccountSettings__item>
-                <input type="checkbox"
+                <bem.AccountSettings__item>
+                  <label htmlFor="requireAuth">{t('Privacy')}</label>
+                </bem.AccountSettings__item>
+
+                <input
+                  type='checkbox'
                   id="requireAuth"
                   checked={this.state.requireAuth}
-                  onChange={this.requireAuthChange} />
+                  onChange={this.requireAuthChange}
+                />
+
                 <label htmlFor="requireAuth">
                   {t('Require authentication to see forms and submit data')}
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
-                <label>
-                  {t('Name')}
-                  <input type="text" value={this.state.name}
-                    onChange={this.nameChange} />
-                </label>
-                <bem.AccountSettings__desc>
-                  {t('Use this to display your real name to other users')}
-                </bem.AccountSettings__desc>
+                <TextBox
+                  label={t('Name')}
+                  errors={this.state.fieldsErrors.name}
+                  value={this.state.name}
+                  onChange={this.nameChange}
+                  description={t('Use this to display your real name to other users')}
+                />
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
-                <label>
-                  {t('Email')}
-                  <input type="email" value={this.state.email}
-                    onChange={this.emailChange} />
-                </label>
+                <TextBox
+                  label={t('Email')}
+                  type='email'
+                  errors={this.state.fieldsErrors.email}
+                  value={this.state.email}
+                  onChange={this.emailChange}
+                />
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='password'>
-                <a href='/#/change-password'
-                    className="mdl-button mdl-button--raised mdl-button--colored">
+                <a
+                  href='/#/change-password'
+                  className="mdl-button mdl-button--raised mdl-button--colored"
+                >
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
-                <label>
-                  {t('Organization')}
-                  <input type="text" value={this.state.organization}
-                    onChange={this.organizationChange} />
-                </label>
+                <TextBox
+                  label={t('Organization')}
+                  errors={this.state.fieldsErrors.organization}
+                  value={this.state.organization}
+                  onChange={this.organizationChange}
+                />
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
-                <label>
-                  {t('Organization Website')}
-                  <input type="text" value={this.state.organizationWebsite}
-                    onChange={this.organizationWebsiteChange} />
-                </label>
+                <TextBox
+                  label={t('Organization Website')}
+                  type='url'
+                  errors={this.state.fieldsErrors.organizationWebsite}
+                  value={this.state.organizationWebsite}
+                  onChange={this.organizationWebsiteChange}
+                />
+
                 <bem.AccountSettings__desc className="is-edge">
                   {t('This will be used to create a hyperlink for your organization name. ')}
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Primary Sector')}
-                  <Select value={this.state.primarySector}
+
+                  <Select
+                    value={this.state.primarySector}
                     options={this.state.sectorChoices}
-                    onChange={this.primarySectorChange} />
+                    onChange={this.primarySectorChange}
+                  />
                 </label>
+
                 <bem.AccountSettings__desc>
                   {t('Select the primary sector in which you work. ')}
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
                 <label>
                   {t('Gender')}
-                  <Select value={this.state.gender}
+
+                  <Select
+                    value={this.state.gender}
                     options={this.state.genderChoices}
-                    onChange={this.genderChange} />
-                </label>
-              </bem.AccountSettings__item>
-              <bem.AccountSettings__item>
-                <label>
-                  {t('Bio')}
-                  <TextareaAutosize onChange={this.bioChange} value={this.state.bio} id="bio" />
+                    onChange={this.genderChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
                 <label>
-                  {t('Phone Number')}
-                  <input type="text" value={this.state.phoneNumber}
-                    onChange={this.phoneNumberChange} />
+                  {t('Bio')}
+
+                  <TextareaAutosize
+                    onChange={this.bioChange}
+                    value={this.state.bio}
+                    id="bio"
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
-                <label>
-                  {t('Address')}
-                  <input type="text" value={this.state.address}
-                    onChange={this.addressChange} />
-                </label>
+                <TextBox
+                  label={t('Phone Number')}
+                  errors={this.state.fieldsErrors.phoneNumber}
+                  value={this.state.phoneNumber}
+                  onChange={this.phoneNumberChange}
+                />
               </bem.AccountSettings__item>
+
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={t('Address')}
+                  errors={this.state.fieldsErrors.address}
+                  value={this.state.address}
+                  onChange={this.addressChange}
+                />
+              </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='city'>
-                <label>
-                  {t('City')}
-                  <input type="text" value={this.state.city}
-                    onChange={this.cityChange} />
-                </label>
+                <TextBox
+                  label={t('City')}
+                  errors={this.state.fieldsErrors.city}
+                  value={this.state.city}
+                  onChange={this.cityChange}
+                />
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='country'>
                 <label>
                   {t('Country')}
-                  <Select value={this.state.country}
+
+                  <Select
+                    value={this.state.country}
                     options={this.state.countryChoices}
-                    onChange={this.countryChange} />
+                    onChange={this.countryChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item className="is-edge">
                 <label>
                   {t('Default Form Language')}
-                  <Select value={this.state.defaultLanguage}
+
+                  <Select
+                    value={this.state.defaultLanguage}
                     options={this.state.languageChoices}
-                    onChange={this.defaultLanguageChange} />
+                    onChange={this.defaultLanguageChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item m='social'>
-                <label>
-                  {t('Social')}
-                </label>
+                <label>{t('Social')}</label>
+
                 <label>
                   <i className="fa fa-twitter" />
-                  <input type="text" value={this.state.twitter}
-                    onChange={this.twitterChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.twitter}
+                    onChange={this.twitterChange}
+                  />
                 </label>
+
                 <label>
                   <i className="fa fa-linkedin" />
-                  <input type="text" value={this.state.linkedin}
-                    onChange={this.linkedinChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.linkedin}
+                    onChange={this.linkedinChange}
+                  />
                 </label>
+
                 <label>
                   <i className="fa fa-instagram" />
-                  <input type="text" value={this.state.instagram}
-                    onChange={this.instagramChange} />
+
+                  <input
+                    type="text"
+                    value={this.state.instagram}
+                    onChange={this.instagramChange}
+                  />
                 </label>
               </bem.AccountSettings__item>
+
               <bem.AccountSettings__item>
-                <label>
-                  {t('Metadata')}
-                  <input type="text" value={this.state.metadata}
-                    onChange={this.metadataChange} />
-                </label>
+                <TextBox
+                  label={t('Metadata')}
+                  errors={this.state.fieldsErrors.metadata}
+                  value={this.state.metadata}
+                  onChange={this.metadataChange}
+                />
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
@@ -325,7 +416,7 @@ reactMixin(AccountSettings.prototype, Reflux.connect(stores.session, 'session'))
 reactMixin(AccountSettings.prototype, Reflux.ListenerMixin);
 
 export class ChangePassword extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     this.errors = {};
     this.state = {
@@ -336,32 +427,32 @@ export class ChangePassword extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount () {
-    this.listenTo(
-      actions.auth.changePassword.failed, this.changePasswordFailed);
+
+  componentDidMount() {
+    this.listenTo(actions.auth.changePassword.failed, this.changePasswordFailed);
   }
-  validateRequired (what) {
+
+  validateRequired(what) {
     if (!this.state[what]) {
       this.errors[what] = t('This field is required.');
     }
   }
-  changePassword () {
+
+  changePassword() {
     this.errors = {};
     this.validateRequired('currentPassword');
     this.validateRequired('newPassword');
     this.validateRequired('verifyPassword');
     if (this.state.newPassword != this.state.verifyPassword) {
-      this.errors['newPassword'] =
-        t('This field must match the Verify Password field.');
+      this.errors['newPassword'] = t('This field must match the Verify Password field.');
     }
     if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(
-        this.state.currentPassword, this.state.newPassword
-      );
+      actions.auth.changePassword(this.state.currentPassword, this.state.newPassword);
     }
     this.setState({errors: this.errors});
   }
-  changePasswordFailed (jqXHR) {
+
+  changePasswordFailed(jqXHR) {
     if (jqXHR.responseJSON.current_password) {
       this.errors.currentPassword = jqXHR.responseJSON.current_password;
     }
@@ -370,22 +461,31 @@ export class ChangePassword extends React.Component {
     }
     this.setState({errors: this.errors});
   }
-  currentPasswordChange (e) {
-    this.setState({currentPassword: e.target.value});
+
+  currentPasswordChange(val) {
+    this.setState({currentPassword: val});
   }
-  newPasswordChange (e) {
-    this.setState({newPassword: e.target.value});
+
+  newPasswordChange(val) {
+    this.setState({newPassword: val});
   }
-  verifyPasswordChange (e) {
-    this.setState({verifyPassword: e.target.value});
+
+  verifyPasswordChange(val) {
+    this.setState({verifyPassword: val});
   }
-  render () {
+
+  render() {
     if(!stores.session || !stores.session.currentAccount) {
       return (
         <ui.Panel>
           <bem.AccountSettings>
             <bem.AccountSettings__item>
-              {t('loading...')}
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  {t('loading...')}
+                </bem.Loading__inner>
+              </bem.Loading>
             </bem.AccountSettings__item>
           </bem.AccountSettings>
         </ui.Panel>
@@ -408,38 +508,49 @@ export class ChangePassword extends React.Component {
               <h4>{accountName}</h4>
             </bem.AccountSettings__item>
 
-            <h4>{t('Reset Password')}</h4>
+            <bem.AccountSettings__item>
+              <h4>{t('Reset Password')}</h4>
+            </bem.AccountSettings__item>
 
             <bem.ChangePassword__item>
-              <label>
-                {t('Current Password')}
-                <input type="password" value={this.state.currentPassword}
-                  onChange={this.currentPasswordChange} />
-                {this.state.errors.currentPassword}
-              </label>
+              <TextBox
+                label={t('Current Password')}
+                type='password'
+                errors={this.state.errors.currentPassword}
+                value={this.state.currentPassword}
+                onChange={this.currentPasswordChange}
+              />
+
               <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
                 {t('Forgot Password?')}
               </a>
             </bem.ChangePassword__item>
+
             <bem.ChangePassword__item>
-              <label>
-                {t('New Password')}
-                <input type="password" value={this.state.newPassword}
-                  onChange={this.newPasswordChange} />
-                {this.state.errors.newPassword}
-              </label>
+              <TextBox
+                label={t('New Password')}
+                type='password'
+                errors={this.state.errors.newPassword}
+                value={this.state.newPassword}
+                onChange={this.newPasswordChange}
+              />
             </bem.ChangePassword__item>
+
             <bem.ChangePassword__item>
-              <label>
-                {t('Verify Password')}
-                <input type="password" value={this.state.verifyPassword}
-                  onChange={this.verifyPasswordChange} />
-                {this.state.errors.verifyPassword}
-              </label>
+              <TextBox
+                label={t('Verify Password')}
+                type='password'
+                errors={this.state.errors.verifyPassword}
+                value={this.state.verifyPassword}
+                onChange={this.verifyPasswordChange}
+              />
             </bem.ChangePassword__item>
+
             <bem.ChangePassword__item  m='actions'>
-              <button onClick={this.changePassword}
-                      className="mdl-button mdl-button--raised mdl-button--colored">
+              <button
+                onClick={this.changePassword}
+                className="mdl-button mdl-button--raised mdl-button--colored"
+              >
                 {t('Save Changes')}
               </button>
             </bem.ChangePassword__item>

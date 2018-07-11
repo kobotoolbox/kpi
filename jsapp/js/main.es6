@@ -1,6 +1,7 @@
 import RunRoutes, {routes} from './app';
 import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
+import "babel-polyfill"; // required to support Array.prototypes.includes in IE11
 import cookie from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
