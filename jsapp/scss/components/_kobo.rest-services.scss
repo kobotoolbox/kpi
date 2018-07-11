@@ -21,9 +21,12 @@
   .rest-services-list__header-label {
     display: inline-block;
     font-size: inherit;
-    font-weight: 400;
+    font-weight: 600;
 
-    strong {font-weight: 600;}
+    small {
+      font-weight: 400;
+      font-size: 100%;
+    }
   }
 
   .rest-services-list__header-label,

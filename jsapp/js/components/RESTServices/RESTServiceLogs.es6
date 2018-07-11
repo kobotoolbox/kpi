@@ -122,9 +122,9 @@ export default class RESTServiceLogs extends React.Component {
         </a>
 
         <h2 className='rest-services-list__header-label'>
-          {t('Activity logs of:')}
+          {this.state.serviceName}
           &nbsp;
-          <strong>{this.state.serviceName}</strong>
+          <small>{t('activity logs')}</small>
         </h2>
       </header>
     )
