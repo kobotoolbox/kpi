@@ -89,7 +89,7 @@ export default class RESTServiceLogs extends React.Component {
           });
 
           if (data.success === false) {
-            alertify.error(t('Submission retry was not successful'));
+            alertify.error(t('Submission retry failed'));
           }
         },
         onFail: (data) => {
