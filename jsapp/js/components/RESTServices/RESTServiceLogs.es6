@@ -107,21 +107,29 @@ export default class RESTServiceLogs extends React.Component {
    * rendering methods
    */
 
+  renderHeader() {
+    return (
+      <header className='rest-services-list__header'>
+        <a
+          className='rest-services-list__header-back-button'
+          href={`/#/forms/${this.state.assetUid}/settings/rest`}
+        >
+          <i className='k-icon-prev' />
+        </a>
+
+        <h2 className='rest-services-list__header-label'>
+          {t('Activity logs of:')}
+          &nbsp;
+          <strong>{this.state.serviceName}</strong>
+        </h2>
+      </header>
+    )
+  }
+
   renderEmptyView() {
     return (
       <bem.FormView__cell m='rest-services-list' className='rest-services-list--empty'>
-        <header className='rest-services-list__header'>
-          <a
-            className='rest-services-list__header-back-button'
-            href={`/#/forms/${this.state.assetUid}/settings/rest`}
-          >
-            <i className='k-icon-prev' />
-          </a>
-
-          <h2 className='rest-services-list__header-label'>
-            {t('##name## activity logs').replace('##name##', this.state.serviceName)}
-          </h2>
-        </header>
+        {this.renderHeader()}
 
         <bem.EmptyContent>
           <bem.EmptyContent__message>
@@ -135,18 +143,7 @@ export default class RESTServiceLogs extends React.Component {
   renderListView() {
     return (
       <bem.FormView__cell m='rest-services-list'>
-        <header className='rest-services-list__header'>
-          <a
-            className='rest-services-list__header-back-button'
-            href={`/#/forms/${this.state.assetUid}/settings/rest`}
-          >
-            <i className='k-icon-prev' />
-          </a>
-
-          <h2 className='rest-services-list__header-label'>
-            {t('##name## activity logs').replace('##name##', this.state.serviceName)}
-          </h2>
-        </header>
+        {this.renderHeader()}
 
         <bem.FormView__cell m={['box']}>
           <bem.ServiceRow m='header'>
