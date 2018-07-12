@@ -19,6 +19,13 @@ addons:
       - libpcre3
       - libpcre3-dev
       - libpq-dev
+      - xvfb
+      - libgtk2.0-0 
+      - libnotify-dev 
+      - libgconf-2-4 
+      - libnss3 
+      - libxss1 
+      - libasound2
 cache:
   directories:
     - $HOME/.pip-download-cache
