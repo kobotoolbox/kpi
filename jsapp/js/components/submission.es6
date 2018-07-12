@@ -294,22 +294,23 @@ class Submission extends React.Component {
                   var qName = pN.split('/').pop(-1);
                   const subQ = survey.find(x => x.name == qName || x.$autoname == qName);
 
-                  const icon = icons._byId[subQ.type];
-                  var type = q.type;
-                  if (icon)
-                    type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
-
-                  response.push(
-                    <tr key={`row-${pN}`}>
-                      <td className="submission--question-type">{type}</td>
-                      <td className="submission--question">
-                        {subQ.label && subQ.label[translationIndex]}
-                      </td>
-                      <td className="submission--response">
-                        {_this.responseDisplayHelper(subQ, s, repQ[pN], pN)}
-                      </td>
-                    </tr>
-                  );
+                  if (subQ) {
+                    const icon = icons._byId[subQ.type];
+                    var type = q.type;
+                    if (icon)
+                      type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
+                    response.push(
+                      <tr key={`row-${pN}`}>
+                        <td className="submission--question-type">{type}</td>
+                        <td className="submission--question">
+                          {subQ.label && subQ.label[translationIndex]}
+                        </td>
+                        <td className="submission--response">
+                          {_this.responseDisplayHelper(subQ, s, repQ[pN], pN)}
+                        </td>
+                      </tr>
+                    );
+                  }
                 }
                 return (
                   <table key={`repeat-${i}`}>
