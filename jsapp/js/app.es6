@@ -1,7 +1,6 @@
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
-require('jquery.scrollto');
 require('jquery-ui/ui/widgets/sortable');
 
 import React from 'react';
