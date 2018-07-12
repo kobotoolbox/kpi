@@ -1,5 +1,5 @@
+FROM cypress/base
 FROM kobotoolbox/koboform_base:latest
-
 
 # Note: Additional environment variables have been set in `Dockerfile.koboform_base`.
 ENV KPI_LOGS_DIR=/srv/logs \
