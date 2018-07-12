@@ -1,4 +1,8 @@
 {
   "baseUrl": "http://192.168.0.248:8000",
-  "video": false
+  "video": false,
+  "chromeWebSecurity": false,
+  "fixturesFolder": false,
+  "pluginsFile": false,
+  "supportFile": false
 }

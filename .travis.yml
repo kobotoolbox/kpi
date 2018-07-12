@@ -22,7 +22,9 @@ addons:
 cache:
   directories:
     - $HOME/.pip-download-cache
-    - node_modules
+    # keep the npm cache around to speed up installs
+    - $HOME/.npm
+    - $HOME/.cache
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
 script:
@@ -52,7 +54,7 @@ install:
         source ~/.nvm/nvm.sh &&
         nvm install $TRAVIS_NODE_VERSION
   - npm install -g install npm@latest
-  - npm config set strict-ssl false && npm install --save-dev
+  - npm config set strict-ssl false && npm ci
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
   - pip-sync dependencies/pip/requirements.txt
