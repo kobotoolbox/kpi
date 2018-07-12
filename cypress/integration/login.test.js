@@ -12,7 +12,7 @@ describe('Login', () => {
     cy.get('form.registration').submit();
 
     // check username in UI
-    cy.get('.popover-menu__toggle').click();
-    cy.get('.popover-menu__content.popover-menu__content--visible .account-username').should('contain', username);
+    cy.get('.account-box .popover-menu__toggle').click();
+    cy.get('.account-box .popover-menu__content.popover-menu__content--visible .account-username').should('contain', username);
   });
 });
