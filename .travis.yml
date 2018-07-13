@@ -36,7 +36,7 @@ cache:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   # for Cypress
-  - python manage.py runserver &
+  - python manage.py runserver 127.0.0.1:8000 &
 script:
   - npm run copy-fonts
   - npm run build
@@ -56,7 +56,7 @@ env:
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
        DEBUG=True
-       CYPRESS_baseUrl=127.0.0.1:8000/
+       CYPRESS_baseUrl=http://127.0.0.1:8000/
 install:
   -  >-
         rm -rf ~/.nvm &&
