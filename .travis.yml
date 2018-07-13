@@ -36,7 +36,8 @@ cache:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   # for Cypress
-  - ./manage.py runserver &
+  - python manage.py runserver &
+  - sleep 3 # give django server time to bind to sockets
 script:
   - npm run copy-fonts
   - npm run build
