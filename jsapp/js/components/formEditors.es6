@@ -135,7 +135,7 @@ export class ProjectSettings extends React.Component {
 
   getStepTitle(step) {
     switch (step) {
-      case this.STEPS.FORM_SOURCE: return t('Form source');
+      case this.STEPS.FORM_SOURCE: return t('Choose a source');
       case this.STEPS.CHOOSE_TEMPLATE: return t('Choose template');
       case this.STEPS.UPLOAD_FILE: return t('Upload XLSForm');
       case this.STEPS.IMPORT_URL: return t('Import XLSForm');
