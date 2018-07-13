@@ -19,6 +19,7 @@ addons:
       - libpcre3
       - libpcre3-dev
       - libpq-dev
+      # for cypress
       - xvfb
       - libgtk2.0-0 
       - libnotify-dev 
@@ -26,6 +27,7 @@ addons:
       - libnss3 
       - libxss1 
       - libasound2
+      - iproute2
 cache:
   directories:
     - $HOME/.pip-download-cache
@@ -34,6 +36,7 @@ cache:
     - $HOME/.cache
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
+  - ip -f inet addr show wlan0 | grep -Po 'inet \K[\d.]+'
 script:
   - npm run copy-fonts
   - npm run build
