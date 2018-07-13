@@ -445,6 +445,16 @@
       opacity: 0.5;
     }
 
+    .loading {
+      font-size: inherit;
+    }
+
+    .loading i {
+      font-size: 36px;
+      margin-top: 20px;
+      margin-bottom: 16px;
+    }
+
     &:hover {border-color: $cool-blue;}
     &.dropzone-active {border-color: $cool-blue;}
     &.dropzone-reject {border-color: $cool-red;}
