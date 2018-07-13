@@ -40,8 +40,9 @@ before_script:
 script:
   - npm run copy-fonts
   - npm run build
-  - pytest -vv --cov
-  - npm run test
+  # - pytest -vv --cov
+  # - npm run test
+  - npm run cypress:test
 after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
   - coveralls
@@ -49,13 +50,12 @@ env:
   # All about YAML line breaks: https://stackoverflow.com/a/21699210
   - >-
        PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache
-       DJANGO_DEBUG=False
+       DJANGO_DEBUG=True
        DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM
        DJANGO_SETTINGS_MODULE=kobo.settings
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
-       DEBUG=True
        CYPRESS_baseUrl=http://127.0.0.1:8000/
 install:
   -  >-
