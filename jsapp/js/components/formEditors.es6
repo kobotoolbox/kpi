@@ -594,13 +594,6 @@ export class ProjectSettings extends React.Component {
         onSubmit={this.handleSubmit}
         className='project-settings'
       >
-        {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
-          <bem.Modal__subheader>
-            <i className="k-icon-alert" />
-            {t('Enter your project details below. In the next step, you can import an XLSForm (via upload or URL) or design the form from scratch in the Form Builder. ')}
-          </bem.Modal__subheader>
-        }
-
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
             <bem.Modal__footerButton
