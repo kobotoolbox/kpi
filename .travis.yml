@@ -55,7 +55,7 @@ env:
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
-       CYPRESS_baseUrl=http://127.0.0.1:8000/
+       CYPRESS_baseUrl=127.0.0.1:8000/
 install:
   -  >-
         rm -rf ~/.nvm &&
