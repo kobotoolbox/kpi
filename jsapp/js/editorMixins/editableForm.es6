@@ -698,12 +698,14 @@ export default assign({
     this.safeNavigateToRoute(backRoute);
   },
 
-  render () {
+  render() {
     const isFormSettingsBoxVisible = (
       this.app &&
-      this.state.asset_type === 'survey' ||
-      this.state.asset_type === 'template' ||
-      this.state.desiredAssetType === 'template'
+      (
+        this.state.asset_type === 'survey' ||
+        this.state.asset_type === 'template' ||
+        this.state.desiredAssetType === 'template'
+      )
     );
 
     var docTitle = this.state.name || t('Untitled');
