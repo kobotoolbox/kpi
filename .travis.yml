@@ -27,7 +27,6 @@ addons:
       - libnss3 
       - libxss1 
       - libasound2
-      - iproute2
 cache:
   directories:
     - $HOME/.pip-download-cache
@@ -36,9 +35,8 @@ cache:
     - $HOME/.cache
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
-  - ip a
-  - ip addr ls
-  - ip addr show
+  # for Cypress
+  - ./manage.py runserver &
 script:
   - npm run copy-fonts
   - npm run build
@@ -57,6 +55,7 @@ env:
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
+       CYPRESS_baseUrl=http://127.0.0.1:8000/
 install:
   -  >-
         rm -rf ~/.nvm &&
