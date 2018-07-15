@@ -255,15 +255,16 @@ export class FormLanding extends React.Component {
               <ui.PopoverMenu type='collectData-menu' triggerLabel={available_links.get(chosenMethod).label}>
                 {deployment__links_list.map((c)=>{
                   return (
-                      <bem.PopoverMenu__link m={['collect-row']}
-                        key={`c-${c.key}`}
-                        data-method={c.key}
-                        onClick={this.setCollectMethod}>
-                        <div className="collect-data-label">{c.label}</div>
-                        <div className="collect-data-desc">{c.desc}</div>
-                        <div className="collect-data-desc">{c.value}</div>
-                      </bem.PopoverMenu__link>
-                    );
+                    <bem.PopoverMenu__link
+                      m={['collect-row']}
+                      key={`c-${c.key}`}
+                      data-method={c.key}
+                      onClick={this.setCollectMethod}
+                    >
+                      <div className="collect-data-label">{c.label}</div>
+                      <div className="collect-data-desc">{c.desc}</div>
+                    </bem.PopoverMenu__link>
+                  );
                 })}
               </ui.PopoverMenu>
             </bem.FormView__cell>
@@ -333,11 +334,7 @@ export class FormLanding extends React.Component {
     );
   }
   setCollectMethod(evt) {
-    var method = $(evt.target).parents('.popover-menu__link').data('method');
-    this.setState({
-        selectedCollectMethod: method
-      }
-    );
+    this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   renderButtons () {
     const userCanEdit = this.userCan('change_asset', this.state);
