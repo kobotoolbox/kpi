@@ -120,7 +120,11 @@ const originalSupportEmail = 'help@kobotoolbox.org';
 
 // use this utility function to replace hardcoded email in transifex translations
 export function replaceSupportEmail(str) {
-  return str.replace(originalSupportEmail, supportDetails.email);
+  if (supportDetails) {
+    return str.replace(originalSupportEmail, supportDetails.email);
+  } else {
+    return str;
+  }
 }
 
 export function currentLang() {
