@@ -1,10 +1,16 @@
-// login user half-programmaticaly
+// login user programmaticaly
 Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
-  // we need to visit "/" to get csrftoken cookie
-  // TODO: try getting cookie value without the need to load page
-  cy.visit('/');
-
-  cy.getCookie('csrftoken').then((cookie) => {
+  cy.request({
+    method: 'GET',
+    url: '/accounts/login/'
+  }).then((data) => {
+    const tokenName = 'csrftoken=';
+    let tokenVal;
+    for (let cookieVal of data.headers['set-cookie']) {
+      if (cookieVal.startsWith(tokenName)) {
+        tokenVal = cookieVal.substring(tokenName.length, cookieVal.indexOf(';'));
+      }
+    }
     cy.request({
       method: 'POST',
       url: '/accounts/login/',
@@ -12,7 +18,7 @@ Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
       body: {
         username: username,
         password: password,
-        csrfmiddlewaretoken: cookie.value
+        csrfmiddlewaretoken: tokenVal
       }
     });
   });
