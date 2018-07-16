@@ -298,7 +298,12 @@ export default assign({
         enketopreviewOverlay: content.enketopreviewlink,
       });
     }).fail((jqxhr) => {
-      let err = jqxhr.responseJSON.error;
+      let err;
+      if (jqxhr && jqxhr.responseJSON && jqxhr.responseJSON.error) {
+        err = jqxhr.responseJSON.error
+      } else {
+        err = t('Unknown Enketo preview error');
+      }
       this.setState({
         enketopreviewError: err,
       });
