@@ -7,7 +7,6 @@
 .map-marker {
   border: 1px solid #FFF;
   border-radius: 50%;
-  position: relative;
 
   &.unselected {
     visibility: hidden;
@@ -16,7 +15,6 @@
   &.default-overlay-marker {
     background: rgba(0, 0, 0, 0.7);
     border: none;
-    cursor: grab;
     border-radius: 0;
   }
 }

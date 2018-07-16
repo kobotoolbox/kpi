@@ -77,6 +77,15 @@
   }
 }
 
+.leaflet-popup-content {
+  pre {
+    font-family: $font;
+    white-space: pre-line;
+    max-height: 200px;
+    overflow-x: auto;
+  }
+}
+
 .popover-menu--viewby-menu {
   position: absolute;
   bottom: 15px;
@@ -365,6 +374,7 @@ body .leaflet-control-layers,
       width: 120px;
       bottom: 0px;
       text-align: right;
+      min-height: 30px;
     }
   }
 }

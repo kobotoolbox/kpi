@@ -194,7 +194,6 @@ export class FormMap extends React.Component {
           })
           .then(function success(kml) {
             overlayLayer = omnivore.kml.parse(kml);
-            overlayLayer.options = {interactive: false};
             controls.addOverlay(overlayLayer, layer.name);
             overlayLayer.addTo(map);
           });
@@ -202,7 +201,18 @@ export class FormMap extends React.Component {
       }
 
       if (overlayLayer) {
-        overlayLayer.options = {interactive: false};
+        overlayLayer.on('ready', function() {
+          overlayLayer.eachLayer(function(l) {
+            let fprops = l.feature.properties;
+            let name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE;
+            if (name) {
+              l.bindPopup(name);
+            } else {
+              // when no name or title, load full list of feature's properties
+              l.bindPopup('<pre>'+JSON.stringify(fprops, null, 2).replace(/[\{\}"]/g,'')+'</pre>');
+            }
+          });
+        });
         controls.addOverlay(overlayLayer, layer.name);
         overlayLayer.addTo(map);
       }
@@ -281,7 +291,11 @@ export class FormMap extends React.Component {
           survey = this.props.asset.content.survey;
 
       let question = survey.find(s => s.name === viewby || s.$autoname === viewby);
-      let currentQuestionChoices = choices.filter(ch => ch.list_name === question.select_from_list_name);
+
+      if (question && question.type == 'select_one') {
+        let currentQuestionChoices = choices.filter(ch => ch.list_name === question.select_from_list_name);
+      }
+
       Object.keys(mapMarkers).map(function(m, i) {
         if (question && question.type == 'select_one') {
           var choice = currentQuestionChoices.find(ch => ch.name === m || ch.$autoname === m);
