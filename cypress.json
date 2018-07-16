@@ -3,6 +3,5 @@
   "video": false,
   "chromeWebSecurity": false,
   "fixturesFolder": false,
-  "pluginsFile": false,
-  "supportFile": false
+  "pluginsFile": false
 }
