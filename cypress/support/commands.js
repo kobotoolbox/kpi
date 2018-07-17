@@ -27,7 +27,7 @@ Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
 // flush database
 Cypress.Commands.add('flushDatabase', () => {
   console.warn('Flushing database not implemented yet');
-  // cy.exec('./manage.py flush --help');
+  // cy.exec('docker exec kobo-docker_kpi_1 python ./manage.py flush --noinput');
 });
 
 Cypress.Commands.add('createAsset', (assetName) => {
