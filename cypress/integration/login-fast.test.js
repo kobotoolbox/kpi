@@ -1,5 +1,6 @@
 describe('Login programmaticaly', () => {
   it('should log in to a proper user account without need for UI', () => {
+    cy.flushDatabase();
     cy.login();
 
     cy.visit('/');

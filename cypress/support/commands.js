@@ -23,3 +23,9 @@ Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
     });
   });
 });
+
+// flush database
+Cypress.Commands.add('flushDatabase', () => {
+  console.warn('Flushing database not implemente yet');
+  // cy.exec('./manage.py flush --help');
+});
