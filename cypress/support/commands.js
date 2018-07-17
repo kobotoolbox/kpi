@@ -26,6 +26,27 @@ Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
 
 // flush database
 Cypress.Commands.add('flushDatabase', () => {
-  console.warn('Flushing database not implemente yet');
+  console.warn('Flushing database not implemented yet');
   // cy.exec('./manage.py flush --help');
+});
+
+Cypress.Commands.add('createAsset', (assetName) => {
+  cy.getCookie('csrftoken').then((cookie) => {
+    cy.request({
+      method: 'POST',
+      url: '/assets/',
+      form: true,
+      body: {
+        name: assetName,
+        settings: {
+          description: '',
+          sector: '',
+          country: '',
+          'share-metadata': true
+        },
+        asset_type: 'survey',
+        csrfmiddlewaretoken: cookie.value
+      }
+    });
+  });
 });
