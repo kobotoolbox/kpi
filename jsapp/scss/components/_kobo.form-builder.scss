@@ -32,7 +32,6 @@
 
 .formBuilder-header {
   height: 125px;
-  transition: margin 0.2s;
 }
 
 .formBuilder__contents {
@@ -129,25 +128,26 @@
 // FORM BUILDER HEADER
 
 .formBuilder-header {
-  &__row {
+  .formBuilder-header__row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    align-items: center;
 
-    &--first {
+    &.formBuilder-header__row--first {
       background-color: #FFF;
       height: 75px;
       position: relative;
     }
 
-    &--second {
+    &.formBuilder-header__row--second {
       background-color: #F1F1F1;
       box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
     }
   }
 
-  &__cell {
-    &--project-icon {
+  .formBuilder-header__cell {
+    &.formBuilder-header__cell--project-icon {
       background-color: $cool-green;
       width: 75px;
       text-align: center;
@@ -173,17 +173,16 @@
       }
     }
 
-    &--name {
-      width: calc(100% - 350px);
-      padding-left: 20px;
-      padding-top: 20px;
+    &.formBuilder-header__cell--name {
+      flex: 1;
+      margin-left: 20px;
 
       input {
         border-radius: 0px;
       }
     }
 
-    &--translations {
+    &.formBuilder-header__cell--translations {
       p {
         margin: 0 0 0 10px;
         line-height: 15px;
@@ -201,13 +200,16 @@
       }
     }
 
-    &--buttonsTopRight {
-      width: 270px;
+    &.formBuilder-header__cell--buttonsTopRight {
       text-align: right;
-      align-self: center;
+      margin-right: 10px;
+
+      button {
+        margin-left: 10px;
+      }
     }
 
-    &--close {
+    &.formBuilder-header__cell--close {
       width: 45px;
       text-align: right;
       padding: 5px;
@@ -215,7 +217,7 @@
     }
 
     // second row
-    &--buttons {
+    &.formBuilder-header__cell--buttons {
       margin-left: 75px;
 
       .formBuilder-header__item {
@@ -251,11 +253,11 @@
       }
     }
 
-    &--spacer {
+    &.formBuilder-header__cell--spacer {
       flex-grow: 1;
     }
 
-    &--library-toggle {
+    &.formBuilder-header__cell--library-toggle {
       width: 200px;
       padding: 5px;
 
@@ -267,8 +269,6 @@
 }
 
 .formBuilder-header__close {
-  margin-left: 10px;
-  margin-top: -12px;
   border: none;
   color: lighten($cool-gray, 20%);
   cursor: pointer;
@@ -465,12 +465,7 @@
     display: none;
   }
 
-  .formBuilder-header__cell--name {
-    width: calc(100% - 175px);
-  }
-
   .formBuilder-header__cell--buttonsTopRight {
-    width: 175px;
 
     .formBuilder-header__button--save {
       max-width: 120px;

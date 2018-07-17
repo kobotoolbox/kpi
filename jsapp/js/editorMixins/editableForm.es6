@@ -431,18 +431,37 @@ export default assign({
 
     let translations = this.state.translations || [];
 
+    let nameLabel;
+    switch (this.state.asset_type) {
+      case 'template':
+        nameLabel = t('Template');
+        break;
+      case 'survey':
+        nameLabel = t('Project');
+        break;
+      case 'question':
+        nameLabel = t('Question');
+        break;
+      default:
+        nameLabel = null;
+    }
+
     return (
         <bem.FormBuilderHeader>
           <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
 
-            <bem.FormBuilderHeader__cell m={'project-icon'}
+            <bem.FormBuilderHeader__cell
+              m={'project-icon'}
               data-tip={t('Return to list')}
               className="left-tooltip"
-              onClick={this.safeNavigateToFormsList}>
-              <i className="k-icon-projects" />
+              onClick={this.safeNavigateToFormsList}
+            >
+              <i className="k-icon-kobo" />
             </bem.FormBuilderHeader__cell>
+
             <bem.FormBuilderHeader__cell m={'name'} >
               <bem.FormModal__item>
+                <label>{nameLabel}</label>
                 <input type="text" onChange={this.nameChange} value={this.state.name} id="nameField"/>
               </bem.FormModal__item>
             </bem.FormBuilderHeader__cell>
