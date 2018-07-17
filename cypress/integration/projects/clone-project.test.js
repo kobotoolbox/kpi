@@ -1,6 +1,6 @@
 describe('Clone project', () => {
   it('should clone existing project with a button and modal', () => {
-    const assetName = 'foo';
+    const assetName = 'First mammals on Earth';
 
     cy.flushDatabase();
     cy.login();
