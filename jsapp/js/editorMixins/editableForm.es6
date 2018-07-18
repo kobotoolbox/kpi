@@ -448,10 +448,7 @@ export default assign({
 
     return (
       <bem.FormBuilderHeader>
-        <bem.FormBuilderHeader__row
-          m='primary'
-          disabled={allButtonsDisabled}
-        >
+        <bem.FormBuilderHeader__row m='primary'>
           <bem.FormBuilderHeader__cell
             m={'logo'}
             data-tip={t('Return to list')}
@@ -486,7 +483,6 @@ export default assign({
                 saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
               }]}
               onClick={this.saveForm}
-              className="disabled"
               disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
             >
               <i />
@@ -599,7 +595,7 @@ export default assign({
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
 
-        { this.state.formStylePanelDisplayed ?
+        { this.state.formStylePanelDisplayed &&
           <FormStyle__panel m='formstyle'>
             <FormStyle__panelheader>
               {t('form style')}
@@ -627,43 +623,47 @@ export default assign({
               options={AVAILABLE_FORM_STYLES}
             />
           </FormStyle__panel>
-        : null }
+        }
       </bem.FormBuilderHeader>
     );
   },
+
   renderNotLoadedMessage () {
     if (this.state.surveyLoadError) {
       return (
-          <ErrorMessage>
-            <ErrorMessage__strong>
-              {t('Error loading survey:')}
-            </ErrorMessage__strong>
-            <p>
-              {this.state.surveyLoadError}
-            </p>
-          </ErrorMessage>
-        );
+        <ErrorMessage>
+          <ErrorMessage__strong>
+            {t('Error loading survey:')}
+          </ErrorMessage__strong>
+          <p>
+            {this.state.surveyLoadError}
+          </p>
+        </ErrorMessage>
+      );
     }
 
     return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('loading...')}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
   },
+
   hidePreview () {
     this.setState({
       enketopreviewOverlay: false
     });
   },
+
   hideCascade () {
     this.setState({
       showCascadePopup: false
     });
   },
+
   launchAppForSurveyContent (survey, _state={}) {
     if (_state.name) {
       _state.savedName = _state.name;
@@ -709,11 +709,13 @@ export default assign({
 
     this.setState(_state);
   },
+
   clearPreviewError () {
     this.setState({
       enketopreviewError: false,
     });
   },
+
   safeNavigateToRoute(route) {
     if (!this.needsSave()) {
       hashHistory.push(route);
@@ -733,9 +735,11 @@ export default assign({
       dialog.set(opts).show();
     }
   },
+
   safeNavigateToFormsList() {
     this.safeNavigateToRoute('/forms/');
   },
+
   safeNavigateToForm() {
     var backRoute = this.state.backRoute;
     if (this.state.backRoute == '/forms') {

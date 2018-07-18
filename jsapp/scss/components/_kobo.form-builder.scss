@@ -327,7 +327,8 @@
   }
 
   &[disabled] {
-    color: lighten($cool-gray, 20%) !important;
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 
