@@ -1,3 +1,4 @@
+import re
 import haystack
 from distutils.util import strtobool
 from django.conf import settings
@@ -116,6 +117,12 @@ class SearchFilter(filters.BaseFilterBackend):
     ''' Filter objects by searching with Whoosh if the request includes a `q`
     parameter. Another parameter, `parent`, is recognized when its value is an
     empty string; this restricts the queryset to objects without parents. '''
+
+    library_collection_pattern = re.compile(
+        r'\(asset_type:question OR asset_type:block\) AND '
+        r'\(parent__uid:([^)]+)\)'
+    )
+
     def filter_queryset(self, request, queryset, view):
         if ('parent' in request.query_params and
                 request.query_params['parent'] == ''):
@@ -125,6 +132,7 @@ class SearchFilter(filters.BaseFilterBackend):
             q = request.query_params['q']
         except KeyError:
             return queryset
+
         # Short-circuit some commonly used queries
         COMMON_QUERY_TO_ORM_FILTER = {
             'asset_type:block': {'asset_type': 'block'},
@@ -137,13 +145,26 @@ class SearchFilter(filters.BaseFilterBackend):
         try:
             return queryset.filter(**COMMON_QUERY_TO_ORM_FILTER[q])
         except KeyError:
-            # We don't know how to short-circuit this query; pass it along to
-            # the search engine
+            # We don't know how to short-circuit this query; pass it along
             pass
         except FieldError:
             # The user passed a query we recognized as commonly-used, but the
             # field was invalid for the requested model
             return queryset.none()
+
+        # Queries for library questions/blocks inside collections are also
+        # common (and buggy when using Whoosh: see #1707)
+        library_collection_match = self.library_collection_pattern.match(q)
+        if library_collection_match:
+            try:
+                return queryset.filter(
+                    asset_type__in=('question', 'block'),
+                    parent__uid=library_collection_match.groups()[0]
+                )
+            except FieldError:
+                return queryset.none()
+
+        # Fall back to Whoosh
         queryset_pks = list(queryset.values_list('pk', flat=True))
         if not len(queryset_pks):
             return queryset
