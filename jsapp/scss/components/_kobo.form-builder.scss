@@ -37,7 +37,7 @@
 .formBuilder__contents {
   height: calc(100% - 125px);
   overflow: auto;
-  margin-top: 8px;
+  padding-top: 10px;
   margin-right: 0px;
   transition: margin 0.2s;
 }
@@ -45,11 +45,6 @@
 @media screen and (min-width: 1100px) {
   .lib-nav--visible + .formBuilder {
     .formBuilder__contents {
-      margin-right: 400px;
-      transition: margin 0.2s;
-    }
-
-    .form-style__panel--formstyle {
       margin-right: 400px;
       transition: margin 0.2s;
     }
@@ -111,43 +106,37 @@
   }
 }
 
-.formBuilder--formStyleDisplayed {
-  > .formBuilder-header {
-    height: 260px;
-  }
-
-  .formBuilder__contents {
-    height: calc(100% - 280px);
-  }
-
-  .formBuilder-header__button--formstyle {
-    color: $black;
-  }
-}
-
 // FORM BUILDER HEADER
 
 .formBuilder-header {
+  position: relative;
+  z-index: 1;
+
   .formBuilder-header__row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
 
-    &.formBuilder-header__row--first {
+    &.formBuilder-header__row--primary {
       background-color: #FFF;
       height: 75px;
       position: relative;
+      z-index: 2;
+      box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
     }
 
-    &.formBuilder-header__row--second {
-      background-color: #F1F1F1;
-      box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
+    &.formBuilder-header__row--secondary {
+      background: $cool-whitegray;
+      height: 50px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
     }
   }
 
   .formBuilder-header__cell {
-    &.formBuilder-header__cell--project-icon {
+    &.formBuilder-header__cell--logo {
       background-color: $cool-green;
       width: 75px;
       text-align: center;
@@ -217,22 +206,17 @@
     }
 
     // second row
-    &.formBuilder-header__cell--buttons {
-      margin-left: 75px;
-
-      .formBuilder-header__item {
-        display: inline-block;
-        border-left: 1px solid $cool-gray;
-        border-right: 1px solid $cool-gray;
-        margin: 4px;
-        padding: 0px 6px;
-      }
+    &.formBuilder-header__cell--toolsButtons {
+      margin: 0 10px;
 
       button {
         color: $cool-gray;
-        overflow: visible;
-        vertical-align: middle;
-        padding: 0px 4px;
+        overflow: visible; // for tooltip
+        padding: 0;
+
+        &[data-tip]::after {
+          margin-left: 30px;
+        }
 
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
@@ -246,8 +230,8 @@
           font-size: 32px;
           vertical-align: middle;
 
-          &.fa {
-            font-size: 20px;
+          &::before {
+            vertical-align: bottom;
           }
         }
       }
@@ -255,15 +239,13 @@
 
     &.formBuilder-header__cell--spacer {
       flex-grow: 1;
+      height: 100%;
     }
 
-    &.formBuilder-header__cell--library-toggle {
-      width: 200px;
-      padding: 5px;
-
-      button {
-        min-width: 146px;
-      }
+    &.formBuilder-header__cell--verticalRule {
+      width: 1px;
+      background: $cool-lightgray;
+      height: 100%;
     }
   }
 }
@@ -285,8 +267,6 @@
 
   > i {
     @extend .fa, .fa-fw;
-
-    margin-right: 5px;
   }
 
   &.formBuilder-header__button--create,
@@ -317,7 +297,8 @@
     }
   }
 
-  &.formBuilder-header__button--savefailed:after, &.formBuilder-header__button--saveneeded:after {
+  &.formBuilder-header__button--savefailed:after,
+  &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
   }
@@ -332,9 +313,17 @@
     color: white;
   }
 
-  &.formBuilder-header__button--showLibrary {
-    border: 1px solid #5D6971;
-    color: #5D6971;
+  &.formBuilder-header__button--panel-toggle {
+    padding: 0 10px;
+
+    .panel-toggle-name {
+      margin-right: 10px;
+    }
+
+    i.k-icon {
+      font-size: 32px;
+      vertical-align: middle;
+    }
   }
 
   &[disabled] {
@@ -461,52 +450,19 @@
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
 @media screen and (max-width: 767px) {
-  .formBuilder-header__cell--project-icon {
+  .formBuilder-header__cell--logo {
     display: none;
   }
 
   .formBuilder-header__cell--buttonsTopRight {
-
     .formBuilder-header__button--save {
       max-width: 120px;
       text-overflow: ellipsis;
     }
   }
 
-  .formBuilder-header__cell--buttons {
-    margin-left: 10px;
-
-    button {
-      padding: 0px 6px;
-
-      i {
-        margin-right: 0px;
-      }
-    }
-
-    .formBuilder-header__button--formstyle {
-      i.fa-angle-down {
-        display: none;
-      }
-    }
-
-    .formBuilder-header__item {
-      border-left: none;
-      border-right: none;
-      margin: 4px 0px;
-      padding: 0px;
-    }
-  }
-
-  .formBuilder-header__cell--library-toggle {
-    width: 150px;
-    max-width: 35%;
-
-    button {
-      min-width: 60px;
-      max-width: 100%;
-      padding: 0px 12px;
-    }
+  .formBuilder-header__button--panel-toggle {
+    .panel-toggle-name {display: none;}
   }
 
   .form-wrap {
@@ -532,7 +488,7 @@
 }
 
 @media screen and (max-width: 480px) {
-  .formBuilder-header__cell--buttons button {
+  .formBuilder-header__cell--toolsButtons button {
     padding: 0px;
     border-radius: 0px;
   }
@@ -540,12 +496,6 @@
   .form-style__panel {
     margin: 0px;
     padding: 8px 16px;
-  }
-
-  .formBuilder-header__button--formstyle {
-    span {
-      display: none;
-    }
   }
 
   .card--selectquestion__expansion {

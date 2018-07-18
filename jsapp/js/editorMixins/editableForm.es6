@@ -431,178 +431,205 @@ export default assign({
 
     let translations = this.state.translations || [];
 
-    let nameLabel;
+    let nameFieldLabel;
     switch (this.state.asset_type) {
       case 'template':
-        nameLabel = t('Template');
+        nameFieldLabel = t('Template');
         break;
       case 'survey':
-        nameLabel = t('Project');
+        nameFieldLabel = t('Project');
         break;
       case 'question':
-        nameLabel = t('Question');
+        nameFieldLabel = t('Question');
         break;
       default:
-        nameLabel = null;
+        nameFieldLabel = null;
     }
 
     return (
-        <bem.FormBuilderHeader>
-          <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
+      <bem.FormBuilderHeader>
+        <bem.FormBuilderHeader__row
+          m='primary'
+          disabled={allButtonsDisabled}
+        >
+          <bem.FormBuilderHeader__cell
+            m={'logo'}
+            data-tip={t('Return to list')}
+            className="left-tooltip"
+            onClick={this.safeNavigateToFormsList}
+          >
+            <i className="k-icon-kobo" />
+          </bem.FormBuilderHeader__cell>
 
-            <bem.FormBuilderHeader__cell
-              m={'project-icon'}
-              data-tip={t('Return to list')}
-              className="left-tooltip"
-              onClick={this.safeNavigateToFormsList}
-            >
-              <i className="k-icon-kobo" />
-            </bem.FormBuilderHeader__cell>
-
-            <bem.FormBuilderHeader__cell m={'name'} >
-              <bem.FormModal__item>
-                <label>{nameLabel}</label>
-                <input type="text" onChange={this.nameChange} value={this.state.name} id="nameField"/>
-              </bem.FormModal__item>
-            </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
-
-              <bem.FormBuilderHeader__button m={['share']} className="is-edge">
-                {t('share')}
-              </bem.FormBuilderHeader__button>
-
-              <bem.FormBuilderHeader__button m={['save', {
-                    savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
-                    savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
-                    savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
-                    saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
-                  }]} onClick={this.saveForm} className="disabled"
-                  disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}>
-                <i />
-                {saveButtonText}
-              </bem.FormBuilderHeader__button>
-
-              <bem.FormBuilderHeader__close m={[{
-                    'close-warning': this.needsSave(),
-                  }]} onClick={this.safeNavigateToForm}>
-                <i className="k-icon-close"/>
-              </bem.FormBuilderHeader__close>
-
-            </bem.FormBuilderHeader__cell>
-
-          </bem.FormBuilderHeader__row>
-          <bem.FormBuilderHeader__row m={'second'} >
-            <bem.FormBuilderHeader__cell m={'buttons'} >
-              <bem.FormBuilderHeader__button m={['preview', {
-                    previewdisabled: previewDisabled
-                  }]} onClick={this.previewForm}
-                  disabled={previewDisabled}
-                  data-tip={t('Preview form')} >
-                <i className="k-icon-view" />
-              </bem.FormBuilderHeader__button>
-              { showAllAvailable ?
-                <bem.FormBuilderHeader__button m={['show-all', {
-                      open: showAllOpen,
-                    }]}
-                    onClick={this.showAll}
-                    data-tip={t('Expand / collapse questions')}>
-                  <i className="k-icon-view-all-alt" />
-                </bem.FormBuilderHeader__button>
-              : null }
-              <bem.FormBuilderHeader__button m={['group', {
-                    groupable: groupable
-                  }]} onClick={this.groupQuestions}
-                  disabled={!groupable}
-                  data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}>
-                <i className="k-icon-group" />
-              </bem.FormBuilderHeader__button>
-              <bem.FormBuilderHeader__button m={['download']}
-                  data-tip={t('Download form')}
-                  className="is-edge">
-                <i className="k-icon-download" />
-              </bem.FormBuilderHeader__button>
-
-              <bem.FormBuilderHeader__item>
-                <bem.FormBuilderHeader__button m={{
-                  formstyle: true,
-                  formstyleactive: this.state.formStylePanelDisplayed,
-                }} onClick={this.openFormStylePanel}
-                  data-tip={t('Web form layout')} >
-                  <i className="k-icon-grid" />
-                  <span>{t('Layout')}</span>
-                  <i className="fa fa-angle-down" />
-                </bem.FormBuilderHeader__button>
-              </bem.FormBuilderHeader__item>
-
-              <bem.FormBuilderHeader__button m={['attach']}
-                  data-tip={t('Attach media files')}
-                  className="is-edge">
-                <i className="k-icon-attach" />
-              </bem.FormBuilderHeader__button>
-              { this.toggleCascade !== undefined ?
-                <bem.FormBuilderHeader__button m={['cascading']}
-                    onClick={this.toggleCascade}
-                    data-tip={t('Insert cascading select')}>
-                  <i className="k-icon-cascading" />
-                </bem.FormBuilderHeader__button>
-              : null }
-
-            </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m="translations">
-              {
-                (translations.length < 2) ?
-                <p>
-                  {translations[0]}
-                </p>
-                :
-                <p>
-                  {translations[0]}
-                  <small>
-                    {translations[1]}
-                  </small>
-                </p>
-              }
-            </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m={'spacer'} />
-            <bem.FormBuilderHeader__cell m={'library-toggle'} >
-              <bem.FormBuilderHeader__button m={['showLibrary']}
-                onClick={this.toggleLibraryNav} >
-                {t('Search Library')}
-              </bem.FormBuilderHeader__button>
-            </bem.FormBuilderHeader__cell>
-          </bem.FormBuilderHeader__row>
-          { this.state.formStylePanelDisplayed ?
-            <FormStyle__panel m='formstyle'>
-              <FormStyle__panelheader>
-                {t('form style')}
-                <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
-                  <i className="k-icon-help"/>
-                </a>
-              </FormStyle__panelheader>
-              <FormStyle__paneltext>
-                { hasSettings ?
-                  t('select the form style that you would like to use. this will only affect web forms.')
-                  :
-                  t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
-                }
-
-              </FormStyle__paneltext>
-
-              <Select
-                name="webform-style"
-                ref="webformStyle"
-                value={styleValue}
-                onChange={this.onStyleChange}
-                addLabelText={t('custom form style: "{label}"')}
-                allowCreate
-                placeholder={AVAILABLE_FORM_STYLES[0].label}
-                options={AVAILABLE_FORM_STYLES}
+          <bem.FormBuilderHeader__cell m={'name'} >
+            <bem.FormModal__item>
+              <label>{nameFieldLabel}</label>
+              <input
+                type="text"
+                onChange={this.nameChange}
+                value={this.state.name}
+                id="nameField"
               />
-            </FormStyle__panel>
-          : null }
+            </bem.FormModal__item>
+          </bem.FormBuilderHeader__cell>
 
-        </bem.FormBuilderHeader>
-      );
+          <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
+            <bem.FormBuilderHeader__button m={['share']} className="is-edge">
+              {t('share')}
+            </bem.FormBuilderHeader__button>
+
+            <bem.FormBuilderHeader__button
+              m={['save', {
+                savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
+                savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
+                saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
+              }]}
+              onClick={this.saveForm}
+              className="disabled"
+              disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
+            >
+              <i />
+              {saveButtonText}
+            </bem.FormBuilderHeader__button>
+
+            <bem.FormBuilderHeader__close
+              m={[{'close-warning': this.needsSave()}]}
+              onClick={this.safeNavigateToForm}
+            >
+              <i className="k-icon-close"/>
+            </bem.FormBuilderHeader__close>
+          </bem.FormBuilderHeader__cell>
+        </bem.FormBuilderHeader__row>
+
+        <bem.FormBuilderHeader__row m={'secondary'} >
+          <bem.FormBuilderHeader__cell m={'toolsButtons'} >
+            <bem.FormBuilderHeader__button
+              m={['preview', {previewdisabled: previewDisabled}]}
+              onClick={this.previewForm}
+              disabled={previewDisabled}
+              data-tip={t('Preview form')}
+            >
+              <i className="k-icon-view" />
+            </bem.FormBuilderHeader__button>
+
+            { showAllAvailable &&
+              <bem.FormBuilderHeader__button m={['show-all', {
+                    open: showAllOpen,
+                  }]}
+                  onClick={this.showAll}
+                  data-tip={t('Expand / collapse questions')}>
+                <i className="k-icon-view-all-alt" />
+              </bem.FormBuilderHeader__button>
+            }
+
+            <bem.FormBuilderHeader__button
+              m={['group', {groupable: groupable}]}
+              onClick={this.groupQuestions}
+              disabled={!groupable}
+              data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
+            >
+              <i className="k-icon-group" />
+            </bem.FormBuilderHeader__button>
+
+            <bem.FormBuilderHeader__button
+              m={['download']}
+              data-tip={t('Download form')}
+              className="is-edge"
+            >
+              <i className="k-icon-download" />
+            </bem.FormBuilderHeader__button>
+
+            <bem.FormBuilderHeader__button
+              m={['attach']}
+              data-tip={t('Attach media files')}
+              className="is-edge"
+            >
+              <i className="k-icon-attach" />
+            </bem.FormBuilderHeader__button>
+
+            { this.toggleCascade !== undefined &&
+              <bem.FormBuilderHeader__button
+                m={['cascading']}
+                onClick={this.toggleCascade}
+                data-tip={t('Insert cascading select')}
+              >
+                <i className="k-icon-cascading" />
+              </bem.FormBuilderHeader__button>
+            }
+          </bem.FormBuilderHeader__cell>
+
+          { translations.length > 0 && !(translations.length === 1 && translations[0] === null) &&
+            <bem.FormBuilderHeader__cell m='translations'>
+              <p>
+                {translations[0]}
+                {translations.length > 1 &&
+                  <small>{translations[1]}</small>
+                }
+              </p>
+            </bem.FormBuilderHeader__cell>
+          }
+
+          <bem.FormBuilderHeader__cell m='verticalRule'/>
+
+          <bem.FormBuilderHeader__cell m='spacer'/>
+
+          <bem.FormBuilderHeader__cell m='verticalRule'/>
+
+          <bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__button
+              m={['panel-toggle']}
+              onClick={this.toggleLibraryNav}
+            >
+              <i className="k-icon k-icon-library" />
+              <span className='panel-toggle-name'>{t('Add from Library')}</span>
+            </bem.FormBuilderHeader__button>
+          </bem.FormBuilderHeader__cell>
+
+          <bem.FormBuilderHeader__cell m={'verticalRule'} />
+
+          <bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__button
+              m={['panel-toggle']}
+              onClick={this.openFormStylePanel}
+            >
+              <i className="k-icon k-icon-settings" />
+              <span className='panel-toggle-name'>{t('Layout & Settings')}</span>
+            </bem.FormBuilderHeader__button>
+          </bem.FormBuilderHeader__cell>
+        </bem.FormBuilderHeader__row>
+
+        { this.state.formStylePanelDisplayed ?
+          <FormStyle__panel m='formstyle'>
+            <FormStyle__panelheader>
+              {t('form style')}
+              <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
+                <i className="k-icon-help"/>
+              </a>
+            </FormStyle__panelheader>
+
+            <FormStyle__paneltext>
+              { hasSettings ?
+                t('select the form style that you would like to use. this will only affect web forms.')
+                :
+                t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+              }
+            </FormStyle__paneltext>
+
+            <Select
+              name="webform-style"
+              ref="webformStyle"
+              value={styleValue}
+              onChange={this.onStyleChange}
+              addLabelText={t('custom form style: "{label}"')}
+              allowCreate
+              placeholder={AVAILABLE_FORM_STYLES[0].label}
+              options={AVAILABLE_FORM_STYLES}
+            />
+          </FormStyle__panel>
+        : null }
+      </bem.FormBuilderHeader>
+    );
   },
   renderNotLoadedMessage () {
     if (this.state.surveyLoadError) {
