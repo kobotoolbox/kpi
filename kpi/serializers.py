@@ -270,6 +270,24 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             return content_object.assign_perm(user, perm)
 
 
+class ObjectPermissionNestedSerializer(ObjectPermissionSerializer):
+    '''
+    When serializing a list of permissions inside the object to which they are
+    assigned, omit `content_object` to improve performance significantly
+    '''
+    class Meta(ObjectPermissionSerializer.Meta):
+        fields = (
+            'uid',
+            'kind',
+            'url',
+            'user',
+            'permission',
+            #'content_object',
+            'deny',
+            'inherited',
+        )
+
+
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='collection-detail')
@@ -442,7 +460,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    permissions = ObjectPermissionSerializer(many=True, read_only=True)
+    permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
@@ -591,17 +609,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return
-        if obj.asset_versions.filter(deployed=True).exists():
-            if isinstance(obj.deployment.version_id, int):
-                # this can be removed once the 'replace_deployment_ids'
-                # migration has been run
-                v_id = obj.deployment.version_id
-                try:
-                    return obj.asset_versions.get(_reversion_version_id=v_id).uid
-                except ObjectDoesNotExist, e:
-                    return obj.asset_versions.filter(deployed=True).first().uid
-            else:
-                return obj.deployment.version_id
+        if isinstance(obj.deployment.version_id, int):
+            asset_versions_uids_only = obj.asset_versions.only('uid')
+            # this can be removed once the 'replace_deployment_ids'
+            # migration has been run
+            v_id = obj.deployment.version_id
+            try:
+                return asset_versions_uids_only.get(_reversion_version_id=v_id).uid
+            except ObjectDoesNotExist, e:
+                return asset_versions_uids_only.filter(deployed=True).first().uid
+        else:
+            return obj.deployment.version_id
 
     def get_deployment__identifier(self, obj):
         if obj.has_deployment:
@@ -767,6 +785,9 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
+        # WARNING! If you're changing something here, please update
+        # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
+        # additional database query for each asset in the list.
         fields = ('url',
                   'date_modified',
                   'date_created',
@@ -1009,14 +1030,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         # (http://www.django-rest-framework.org/api-guide/fields/#source).
         source='*',
         source_processor=lambda source: CollectionChildrenQuerySet(
-            source).select_related(
-                'owner', 'parent'
-            ).prefetch_related(
-                'permissions',
-                'permissions__permission',
-                'permissions__user',
-                'permissions__content_object',
-            ).all()
+            source
+        ).optimize_for_list()
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()

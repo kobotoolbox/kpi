@@ -221,6 +221,9 @@ class CollectionChildrenQuerySet(object):
     def only(self, *args, **kwargs):
         return self._apply_to_both('only', *args, **kwargs)
 
+    def defer(self, *args, **kwargs):
+        return self._apply_to_both('defer', *args, **kwargs)
+
     def _apply_to_both(self, method, *args, **kwargs):
         qs = self._clone()
         qs.child_collections = getattr(qs.child_collections, method)(
@@ -233,6 +236,21 @@ class CollectionChildrenQuerySet(object):
         qs = CollectionChildrenQuerySet(self.collection)
         qs.child_collections = self.child_collections._clone()
         qs.child_assets = self.child_assets._clone()
+        return qs
+
+    def optimize_for_list(self):
+        def optimize_subquery_for_list(sub_qs):
+            model = sub_qs.model
+            try:
+                optimize_method = model.optimize_queryset_for_list
+            except AttributeError:
+                return sub_qs
+            else:
+                return optimize_method(sub_qs)
+
+        qs = self._clone()
+        qs.child_collections = optimize_subquery_for_list(qs.child_collections)
+        qs.child_assets = optimize_subquery_for_list(qs.child_assets)
         return qs
 
 
