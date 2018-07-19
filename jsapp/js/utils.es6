@@ -3,7 +3,6 @@ import alertify from 'alertifyjs';
 import $ from 'jquery';
 import cookie from 'react-cookie';
 import Promise from 'es6-promise';
-import {hashHistory} from 'react-router';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
