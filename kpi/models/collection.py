@@ -62,7 +62,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'collection'
 
     class Meta:
         ordering = ('-date_modified',)

@@ -451,7 +451,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'asset'
 
     class Meta:
         ordering = ('-date_modified',)
