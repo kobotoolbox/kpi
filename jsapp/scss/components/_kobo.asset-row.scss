@@ -30,6 +30,10 @@ $hover-transition: 0.3s opacity;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      &.asset-row__cell--type {
+        text-transform: capitalize;
+      }
     }
   }
 

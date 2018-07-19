@@ -8,7 +8,8 @@ import classNames from 'classnames';
 
 import {
   PROJECT_SETTINGS_CONTEXTS,
-  MODAL_TYPES
+  MODAL_TYPES,
+  ASSET_TYPES
 } from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -25,8 +26,7 @@ import {
   t,
   assign,
   notify,
-  stringToColor,
-  cloneAssetAsNewType
+  stringToColor
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
@@ -45,8 +45,8 @@ mixins.dmix = {
 
     let dialog = alertify.dialog('prompt');
     let opts = {
-      title: t('Clone form'),
-      message: t('Enter the name of the cloned form'),
+      title: `${t('Clone')} ${ASSET_TYPES.survey}`,
+      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -74,11 +74,12 @@ mixins.dmix = {
   cloneAsTemplate: function(evt) {
     const sourceUid = evt.currentTarget.dataset.assetUid;
     const sourceName = evt.currentTarget.dataset.assetName;
-    cloneAssetAsNewType.call(this, {
-        sourceUid: sourceUid,
-        targetType: 'template',
-        promptTitle: t('Create new template'),
-        promptMessage: t('Enter the name of your new template (or leave blank to use "##" as the project name)').replace('##', sourceName)
+    mixins.cloneAssetAsNewType.dialog({
+      sourceUid: sourceUid,
+      sourceName: sourceName,
+      targetType: 'template',
+      promptTitle: t('Create new template from this project'),
+      promptMessage: t('Enter the name of the new template.')
     });
   },
   reDeployConfirm (asset, onComplete) {
@@ -407,11 +408,12 @@ mixins.clickAssets = {
   click: {
     asset: {
       clone: function(uid, name){
+        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type] || '';
         let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
         let opts = {
-          title: t('Clone form'),
-          message: t('Enter the name of the cloned form'),
+          title: `${t('Clone')} ${assetType}`,
+          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
@@ -435,19 +437,21 @@ mixins.clickAssets = {
         dialog.set(opts).show();
       },
       cloneAsTemplate: function(sourceUid, sourceName) {
-        cloneAssetAsNewType.call(this, {
-            sourceUid: sourceUid,
-            targetType: 'template',
-            promptTitle: t('Create new template'),
-            promptMessage: t('Enter the name of your new template (or leave blank to use "##" as the project name)').replace('##', sourceName)
+        mixins.cloneAssetAsNewType.dialog({
+          sourceUid: sourceUid,
+          sourceName: sourceName,
+          targetType: 'template',
+          promptTitle: t('Create new template from this project'),
+          promptMessage: t('Enter the name of the new template.')
         });
       },
       cloneAsSurvey: function(sourceUid, sourceName) {
-        cloneAssetAsNewType.call(this, {
-            sourceUid: sourceUid,
-            targetType: 'survey',
-            promptTitle: t('Create new project'),
-            promptMessage: t('Enter the name of your new project (or leave blank to use "##" as the project name)').replace('##', sourceName)
+        mixins.cloneAssetAsNewType.dialog({
+          sourceUid: sourceUid,
+          sourceName: sourceName,
+          targetType: 'survey',
+          promptTitle: t('Create new project from this template'),
+          promptMessage: t('Enter the name of the new project.')
         });
       },
       edit: function (uid) {
@@ -681,4 +685,60 @@ mixins.contextRouter = {
     return this.context.router.isActive(`/forms/${assetid}/edit`);
   }
 }
+
+/*
+ * generates dialog when cloning an asset as new type
+ */
+mixins.cloneAssetAsNewType = {
+  dialog(params) {
+    const dialog = alertify.dialog('prompt');
+    const opts = {
+      title: params.promptTitle,
+      message: params.promptMessage,
+      value: params.sourceName,
+      labels: {ok: t('Create'), cancel: t('Cancel')},
+      onok: (evt, value) => {
+        // disable buttons
+        dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
+        dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
+        dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
+
+        actions.resources.cloneAsset({
+          uid: params.sourceUid,
+          name: value,
+          new_asset_type: params.targetType
+        }, {
+          onComplete: (asset) => {
+            dialog.destroy();
+
+            this.refreshSearch && this.refreshSearch();
+
+            switch (asset.asset_type) {
+              case 'survey':
+                hashHistory.push(`/forms/${asset.uid}/landing`);
+                break;
+              case 'template':
+              case 'block':
+              case 'question':
+                hashHistory.push(`/library`);
+                break;
+            }
+          },
+          onFailed: (asset) => {
+            dialog.destroy();
+            alertify.error(t('Failed to create new asset!'));
+          }
+        });
+
+        // keep the dialog open
+        return false;
+      },
+      oncancel: (evt, value) => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
+}
+
 export default mixins;

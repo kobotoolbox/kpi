@@ -47,10 +47,18 @@ const VALIDATION_STATUSES = [
   },
 ];
 
+const ASSET_TYPES = {
+  question: t('question'),
+  block: t('block'),
+  template: t('template'),
+  survey: t('project')
+}
+
 export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
-  MODAL_TYPES: MODAL_TYPES
+  MODAL_TYPES: MODAL_TYPES,
+  ASSET_TYPES: ASSET_TYPES
 };

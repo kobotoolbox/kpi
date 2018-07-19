@@ -9,6 +9,7 @@ import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
+import {ASSET_TYPES} from '../constants';
 
 import TagInput from '../components/tagInput';
 
@@ -176,15 +177,7 @@ class AssetRow extends React.Component {
                 m={'type'}
                 className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone']}
               >
-                { this.props.asset_type == 'question' &&
-                  <span>{ t('Question') }</span>
-                }
-                { this.props.asset_type == 'block' &&
-                  <span>{ t('Block') }</span>
-                }
-                { this.props.asset_type == 'template' &&
-                  <span>{ t('Template') }</span>
-                }
+                {ASSET_TYPES[this.props.asset_type]}
               </bem.AssetRow__cell>
             }
 
