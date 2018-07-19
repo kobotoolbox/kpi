@@ -14,7 +14,6 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import $ from 'jquery';
 
 import {
   formatTime,
