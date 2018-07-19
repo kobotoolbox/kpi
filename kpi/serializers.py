@@ -615,9 +615,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             # migration has been run
             v_id = obj.deployment.version_id
             try:
-                return asset_versions_uids_only.get(_reversion_version_id=v_id).uid
-            except ObjectDoesNotExist, e:
-                return asset_versions_uids_only.filter(deployed=True).first().uid
+                return asset_versions_uids_only.get(
+                    _reversion_version_id=v_id
+                ).uid
+            except AssetVersion.DoesNotExist:
+                deployed_version = asset_versions_uids_only.filter(
+                    deployed=True
+                ).first()
+                if deployed_version:
+                    return deployed_version.uid
+                else:
+                    return None
         else:
             return obj.deployment.version_id
 
