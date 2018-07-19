@@ -87,7 +87,7 @@ export class ProjectSettings extends React.Component {
       importUrlButton: t('Import'),
       // template
       isApplyTemplatePending: false,
-      applyTemplateButton: t('Choose'),
+      applyTemplateButton: t('Next'),
       chosenTemplateUid: null,
       // upload files
       isUploadFilePending: false

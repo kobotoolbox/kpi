@@ -100,7 +100,7 @@ class TemplatesList extends React.Component {
               <bem.TemplatesList__template
                 key={template.uid}
                 htmlFor={htmlId}
-                className={['templates-list__row']}
+                className={['templates-list__row', this.state.selectedTemplateUid === template.uid ? 'selected' : '']}
               >
                 <bem.TemplatesList__column m='name'>
                   {template.name}

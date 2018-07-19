@@ -8,12 +8,15 @@
   }
 
   // HACK: because of stronger selectors in `_kobo.bem.ui.scss`
-  label.templates-list__row {display: flex;}
+  label.templates-list__row {
+    display: flex;
+  }
 
   .templates-list__row {
     display: flex;
     box-shadow: 0 0 0 1px $divider-color;
     padding: 10px;
+    align-items: center;
 
     &:not(:first-child) {
       margin-top: 1px;
@@ -24,18 +27,36 @@
     padding: 10px;
     box-sizing: border-box;
 
-    &.templates-list__column--name {flex: 1;}
-    &.templates-list__column--owner {width: 20%}
-    &.templates-list__column--date {width: 25%}
-    &.templates-list__column--questions {width: 15%;}
+    &.templates-list__column--name {
+      flex: 1;
+    }
+
+    &.templates-list__column--owner {
+      width: 20%;
+    }
+
+    &.templates-list__column--date {
+      width: 25%;
+    }
+
+    &.templates-list__column--questions {
+      width: 15%;
+    }
   }
 
   .templates-list__template {
     font-size: inherit;
     position: relative;
+    color: lighten($black, 20%);
+    border: 1px solid transparent;
 
-    &:hover {
-      background: rgba($divider-color, 0.2);
+    &:hover, &.selected {
+      background: rgba($divider-color, 0.3);
+      color: $cool-blue;
+    }
+
+    &.selected {
+      border: 1px solid $cool-blue;
     }
   }
 
@@ -49,10 +70,5 @@
     margin: 0;
     cursor: pointer;
     background: transparent;
-
-    &:checked {
-      z-index: 1;
-      box-shadow: 0 0 0 1px $cool-blue;
-    }
   }
 }
