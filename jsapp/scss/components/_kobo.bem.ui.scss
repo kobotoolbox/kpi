@@ -558,6 +558,7 @@ iframe {
     vertical-align: top;
   }
 
+  // TODO REFACTOR: use _kobo.select-underlined styles instead of these
   .Select-control {
     border: none;
     border-bottom: 1px solid $divider-color;

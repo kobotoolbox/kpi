@@ -31,6 +31,7 @@ bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 bem.FormBuilderAside = bem('form-builder-aside');
 bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
+bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
 
 bem.FormBuilderHeader = bem('formBuilder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');

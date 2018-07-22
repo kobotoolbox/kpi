@@ -223,10 +223,12 @@ export default assign({
   surveyStateChanged (state) {
     this.setState(state);
   },
-  onStyleChange ({value}) {
-    this.setState({
-      settings__style: value,
-    });
+  onStyleChange (evt) {
+    if (evt !== null) {
+      this.setState({settings__style: evt.value});
+    } else {
+      this.setState({settings__style: null});
+    }
   },
   onSurveyChange: _.debounce(function () {
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
@@ -612,35 +614,53 @@ export default assign({
     return (
       <bem.FormBuilderAside m={isVisible ? 'visible' : null}>
         <bem.FormBuilderAside__content>
-          <bem.FormBuilderAside__header>
-              {t('form style')}
-              <a
-                href={webformStylesSupportUrl}
-                target="_blank"
-                data-tip={t('Read more about form styles')}
-              >
-                <i className="k-icon k-icon-help"/>
-              </a>
-          </bem.FormBuilderAside__header>
+          <bem.FormBuilderAside__row>
+            <bem.FormBuilderAside__header>
+                {t('Form style')}
+                <a
+                  href={webformStylesSupportUrl}
+                  target="_blank"
+                  data-tip={t('Read more about form styles')}
+                >
+                  <i className="k-icon k-icon-help"/>
+                </a>
+            </bem.FormBuilderAside__header>
 
-            <p>
+            <label
+              className='Select__label'
+              htmlFor='webform-style'
+            >
               { hasSettings ?
                 t('select the form style that you would like to use. this will only affect web forms.')
                 :
                 t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
               }
-            </p>
+            </label>
 
             <Select
+              className='Select--underlined'
+              id='webform-style'
               name="webform-style"
               ref="webformStyle"
               value={styleValue}
               onChange={this.onStyleChange}
-              addLabelText={t('custom form style: "{label}"')}
               allowCreate
               placeholder={AVAILABLE_FORM_STYLES[0].label}
               options={AVAILABLE_FORM_STYLES}
             />
+          </bem.FormBuilderAside__row>
+
+          <bem.FormBuilderAside__row>
+            <bem.FormBuilderAside__header>
+              {t('Metadata')}
+            </bem.FormBuilderAside__header>
+          </bem.FormBuilderAside__row>
+
+          <bem.FormBuilderAside__row>
+            <bem.FormBuilderAside__header>
+              {t('Details')}
+            </bem.FormBuilderAside__header>
+          </bem.FormBuilderAside__row>
         </bem.FormBuilderAside__content>
       </bem.FormBuilderAside>
     )
