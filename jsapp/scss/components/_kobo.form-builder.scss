@@ -323,6 +323,12 @@ $t-form-builder-aside-open: 200ms;
   &.formBuilder-header__button--panel-toggle {
     padding: 0 10px;
 
+    &.formBuilder-header__button--active {
+      i.k-icon {
+        color: $cool-blue;
+      }
+    }
+
     .panel-toggle-name {
       margin-right: 10px;
     }

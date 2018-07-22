@@ -32,10 +32,16 @@
       margin-left: 0;
     }
 
-    .Select-value,
-    .Select-input {
-      &:not(:first-child) {
-        margin-left: 3px;
+    .Select-multi-value-wrapper {
+      .Select-value,
+      .Select-input {
+        &:not(:first-child) {
+          margin-left: 3px;
+        }
+      }
+
+      .Select-placeholder + .Select-input {
+        margin-left: 0 !important;
       }
     }
 

@@ -49,10 +49,12 @@
       width: 100%;
       color: inherit;
       border: 1px solid $cool-lightgray;
+      border-radius: 3px;
+      background: transparent;
 
       &::placeholder {
         color: inherit;
-        opacity: 0.5;
+        opacity: 0.75;
       }
     }
   }

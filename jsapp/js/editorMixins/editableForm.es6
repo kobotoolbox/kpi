@@ -675,10 +675,10 @@ export default assign({
 
           <bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__button
-              m={['panel-toggle']}
+              m={['panel-toggle', this.state.libraryAsideVisible ? 'active' : null]}
               onClick={this.toggleLibraryAside}
             >
-              <i className="k-icon k-icon-library" />
+              <i className={['k-icon', this.state.libraryAsideVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Add from Library')}</span>
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
@@ -687,10 +687,10 @@ export default assign({
 
           <bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__button
-              m={['panel-toggle']}
+              m={['panel-toggle', this.state.layoutSettingsAsideVisible ? 'active' : null]}
               onClick={this.toggleLayoutSettingsAside}
             >
-              <i className="k-icon k-icon-settings" />
+              <i className={['k-icon', this.state.layoutSettingsAsideVisible ? 'k-icon-close' : 'k-icon-settings' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Layout & Settings')}</span>
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
