@@ -43,31 +43,32 @@ class FormSettingsEditor extends React.Component {
     super(props);
     autoBind(this);
   }
+
   render () {
     return (
-          <div className="mdl-grid">
-            <div className="mdl-cell mdl-cell--4-col">
-              {this.props.meta.map((mtype) => {
-                if (!mtype.key) {
-                  mtype.key = `meta-${mtype.name}`;
-                }
-                return (
-                    <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
-                  );
-              })}
-            </div>
-            <div className="mdl-cell mdl-cell--4-col">
-              {this.props.phoneMeta.map((mtype) => {
-                if (!mtype.key) {
-                  mtype.key = `meta-${mtype.name}`;
-                }
-                return (
-                    <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
-                  );
-              })}
-            </div>
-          </div>
-      );
+      <bem.FormBuilderMeta>
+        <bem.FormBuilderMeta__column>
+          {this.props.meta.map((mtype) => {
+            if (!mtype.key) {
+              mtype.key = `meta-${mtype.name}`;
+            }
+            return (
+              <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+            );
+          })}
+        </bem.FormBuilderMeta__column>
+        <bem.FormBuilderMeta__column>
+          {this.props.phoneMeta.map((mtype) => {
+            if (!mtype.key) {
+              mtype.key = `meta-${mtype.name}`;
+            }
+            return (
+              <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+            );
+          })}
+        </bem.FormBuilderMeta__column>
+      </bem.FormBuilderMeta>
+    );
   }
   focusSelect () {
     this.refs.webformStyle.focus();
@@ -79,14 +80,20 @@ class FormCheckbox extends React.Component {
     super(props);
   }
   render () {
+    // TODO: use better written (styled) checkboxes from https://github.com/kobotoolbox/kpi/pull/1864 after merge
     return (
-        <div className="form-group">
-          <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
-          <label htmlFor={this.props.name}>
-            {this.props.label}
-          </label>
-        </div>
-      );
+      <bem.FormBuilderMeta__row>
+        <input
+          type="checkbox"
+          id={this.props.name}
+          checked={this.props.value}
+          onChange={this.props.onChange}
+        />
+        <label htmlFor={this.props.name}>
+          {this.props.label}
+        </label>
+      </bem.FormBuilderMeta__row>
+    );
   }
 };
 
@@ -95,28 +102,32 @@ class FormSettingsBox extends React.Component {
     super(props);
     var formId = this.props.survey.settings.get('form_id');
     this.state = {
-      formSettingsExpanded: false,
       xform_id_string: formId,
       meta: [],
-      phoneMeta: [],
-      styleValue: 'field-list'
+      phoneMeta: []
     };
+    this.META_PROPERTIES = ['start', 'end', 'today', 'deviceid'];
+    this.PHONE_META_PROPERTIES = ['username', 'simserial', 'subscriberid', 'phonenumber'];
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     this.updateState();
   }
-  updateState (newState={}) {
-    'start end today deviceid'.split(' ').forEach(this.passValueIntoObj('meta', newState));
-    'username simserial subscriberid phonenumber'.split(' ').map(this.passValueIntoObj('phoneMeta', newState));
+
+  updateState(newState={}) {
+    this.META_PROPERTIES.forEach(this.passValueIntoObj('meta', newState));
+    this.PHONE_META_PROPERTIES.map(this.passValueIntoObj('phoneMeta', newState));
     this.setState(newState);
   }
-  getSurveyDetail (sdId) {
+
+  getSurveyDetail(sdId) {
     return this.props.survey.surveyDetails.filter(function(sd){
       return sd.attributes.name === sdId;
     })[0];
   }
-  passValueIntoObj (category, newState) {
+
+  passValueIntoObj(category, newState) {
     newState[category] = [];
     return (id) => {
       var sd = this.getSurveyDetail(id);
@@ -125,66 +136,30 @@ class FormSettingsBox extends React.Component {
       }
     };
   }
-  onCheckboxChange (evt) {
+
+  onCheckboxChange(evt) {
     this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
     this.updateState({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
   }
-  onFieldChange (evt) {
-    var fieldId = evt.target.id,
-        value = evt.target.value;
+
+  onFieldChange(evt) {
+    const fieldId = evt.target.id;
+    const value = evt.target.value;
+
     if (fieldId === 'form_id') {
       this.props.survey.settings.set('form_id', value);
     }
+
     this.setState({
       xform_id_string: this.props.survey.settings.get('form_id')
     });
   }
-  toggleSettingsEdit () {
-    this.setState({
-      formSettingsExpanded: !this.state.formSettingsExpanded
-    });
-  }
-  onStyleChange (evt) {
-    // todo: test if this function is obsolete
-    var newStyle = evt.target.value;
-    this.props.survey.settings.set('style', newStyle);
-    this.setState({
-      styleValue: newStyle
-    });
-  }
-  render () {
-    var metaData = [...this.state.meta, ...this.state.phoneMeta].filter(function(item){
-      return item.value;
-    }).map(function(item){
-      return item.label;
-    }).join(', ');
 
-    if (metaData === '') {
-      metaData = t('none (0 metadata specified)');
-    }
-
-    var metaContent;
-    if (!this.state.formSettingsExpanded) {
-      metaContent = (
-        <bem.FormMeta__button m={'metasummary'} onClick={this.toggleSettingsEdit}>
-          {t('metadata:')}
-          {metaData}
-        </bem.FormMeta__button>
-      );
-    } else {
-      metaContent = (
-        <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange} />
-      );
-    }
+  render() {
     return (
-      <bem.FormMeta>
-        <bem.FormMeta__button m='expand' onClick={this.toggleSettingsEdit}>
-          <i />
-        </bem.FormMeta__button>
-        {metaContent}
-      </bem.FormMeta>
+      <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange.bind(this)} />
     );
   }
 };
@@ -609,10 +584,19 @@ export default assign({
       hasSettings
     } = this.buttonStates();
 
-    const isVisible = this.state.formStylePanelDisplayed;
+    const isFormSettingsBoxVisible = (
+      this.app &&
+      (
+        this.state.asset_type === 'survey' ||
+        this.state.asset_type === 'template' ||
+        this.state.desiredAssetType === 'template'
+      )
+    );
+
+    const isAsideVisible = this.state.formStylePanelDisplayed;
 
     return (
-      <bem.FormBuilderAside m={isVisible ? 'visible' : null}>
+      <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
         <bem.FormBuilderAside__content>
           <bem.FormBuilderAside__row>
             <bem.FormBuilderAside__header>
@@ -650,11 +634,15 @@ export default assign({
             />
           </bem.FormBuilderAside__row>
 
-          <bem.FormBuilderAside__row>
-            <bem.FormBuilderAside__header>
-              {t('Metadata')}
-            </bem.FormBuilderAside__header>
-          </bem.FormBuilderAside__row>
+          {isFormSettingsBoxVisible &&
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>
+                {t('Metadata')}
+              </bem.FormBuilderAside__header>
+
+              <FormSettingsBox survey={this.app.survey} {...this.state} />
+            </bem.FormBuilderAside__row>
+          }
 
           <bem.FormBuilderAside__row>
             <bem.FormBuilderAside__header>
@@ -787,15 +775,6 @@ export default assign({
   },
 
   render() {
-    const isFormSettingsBoxVisible = (
-      this.app &&
-      (
-        this.state.asset_type === 'survey' ||
-        this.state.asset_type === 'template' ||
-        this.state.desiredAssetType === 'template'
-      )
-    );
-
     var docTitle = this.state.name || t('Untitled');
 
     return (
@@ -809,9 +788,6 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
             <bem.FormBuilder__contents>
-              {isFormSettingsBoxVisible &&
-                <FormSettingsBox survey={this.app.survey} {...this.state} />
-              }
               <div ref="form-wrap" className='form-wrap'>
                 {!this.state.surveyAppRendered &&
                   this.renderNotLoadedMessage()

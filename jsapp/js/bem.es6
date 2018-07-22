@@ -28,6 +28,10 @@ bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
+bem.FormBuilderMeta = bem('form-builder-meta');
+bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
+bem.FormBuilderMeta__row = bem.FormBuilderMeta.__('row');
+
 bem.FormBuilderAside = bem('form-builder-aside');
 bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');

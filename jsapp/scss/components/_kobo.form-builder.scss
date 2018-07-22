@@ -391,13 +391,16 @@ $t-form-builder-aside-open: 200ms;
 
 // FORM META
 
-.form-meta {
-  margin: 8px 75px;
-  margin-bottom: 16px;
-  margin-right: 60px;
+.form-builder-meta {
+  display: flex;
+  flex-direction: row;
 
-  .form-group {
-    margin-bottom: 10px;
+  .form-builder-meta__column {
+    width: 50%;
+
+    .form-builder-meta__row {
+      margin-bottom: 10px;
+    }
   }
 }
 

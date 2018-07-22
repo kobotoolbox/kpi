@@ -734,18 +734,9 @@ span.svg-icon {
     padding-left: 35px;
     cursor: pointer;
     font-size: 1rem;
-    -webkit-user-select: none;
-
-    /* webkit (safari, chrome) browsers */
-    -moz-user-select: none;
-
-    /* mozilla browsers */
-    -khtml-user-select: none;
-
-    /* webkit (konqueror) browsers */
-    -ms-user-select: none;
-
-    /* IE10+ */
+    user-select: none;
+    line-height: 22px; // match checkbox rectangle size
+    display: inline-block;
   }
 
   + label:after {
