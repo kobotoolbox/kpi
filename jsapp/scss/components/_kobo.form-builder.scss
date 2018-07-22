@@ -351,11 +351,9 @@ $t-form-builder-aside-open: 200ms;
   position: absolute;
   right: 0px;
   bottom: 0px;
+  top: $s-form-builder-header;
   width: $s-form-builder-aside;
-  height: calc(100% - #{$s-form-builder-header});
   background-color: $cool-whitegray;
-  display: flex;
-  flex-direction: column;
   transition: right $t-form-builder-aside-open;
   box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
   z-index: $z-form-builder-aside;
@@ -367,8 +365,7 @@ $t-form-builder-aside-open: 200ms;
   .form-builder-aside__content {
     padding: 30px;
     overflow-y: auto;
-    flex-grow: 1;
-    height: 0;
+    height: 100%;
   }
 
   .form-builder-aside__header {
