@@ -765,59 +765,62 @@ export default assign({
 
     var docTitle = this.state.name || t('Untitled');
 
-    // TODO: refactor this to not use ternery operators so heavily
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <ui.Panel m={'transparent'}>
-            <AssetNavigator />
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <ui.Panel m={'transparent'}>
+          <AssetNavigator />
 
-            <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
-              {this.renderSaveAndPreviewButtons()}
+          <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
+            {this.renderSaveAndPreviewButtons()}
 
-              <bem.FormBuilder__contents>
-                {isFormSettingsBoxVisible &&
-                  <FormSettingsBox survey={this.app.survey} {...this.state} />
+            <bem.FormBuilder__contents>
+              {isFormSettingsBoxVisible &&
+                <FormSettingsBox survey={this.app.survey} {...this.state} />
+              }
+              <div ref="form-wrap" className='form-wrap'>
+                {!this.state.surveyAppRendered &&
+                  this.renderNotLoadedMessage()
                 }
-                <div ref="form-wrap" className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
-                  }
+              </div>
+            </bem.FormBuilder__contents>
+          </bem.FormBuilder>
+
+          {this.state.enketopreviewOverlay &&
+            <ui.Modal
+              open
+              large
+              onClose={this.hidePreview} title={t('Form Preview')}
+            >
+              <ui.Modal.Body>
+                <div className="enketo-holder">
+                  <iframe src={this.state.enketopreviewOverlay} />
                 </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
+              </ui.Modal.Body>
+            </ui.Modal>
+          }
 
-            {this.state.enketopreviewOverlay &&
-              <ui.Modal open large
-                  onClose={this.hidePreview} title={t('Form Preview')}>
-                <ui.Modal.Body>
-                  <div className="enketo-holder">
-                    <iframe src={this.state.enketopreviewOverlay} />
-                  </div>
-                </ui.Modal.Body>
-              </ui.Modal>
-            }
-            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-              <ui.Modal
-                open
-                error
-                onClose={this.clearPreviewError}
-                title={t('Error generating preview')}
-              >
-                <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
-              </ui.Modal>
-            }
+          {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+            <ui.Modal
+              open
+              error
+              onClose={this.clearPreviewError}
+              title={t('Error generating preview')}
+            >
+              <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
+            </ui.Modal>
+          }
 
-            {this.state.showCascadePopup &&
-              <ui.Modal
-                open
-                onClose={this.hideCascade}
-                title={t('Import Cascading Select Questions')}
-              >
-                <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
-              </ui.Modal>
-            }
-          </ui.Panel>
-        </DocumentTitle>
-      );
+          {this.state.showCascadePopup &&
+            <ui.Modal
+              open
+              onClose={this.hideCascade}
+              title={t('Import Cascading Select Questions')}
+            >
+              <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
+            </ui.Modal>
+          }
+        </ui.Panel>
+      </DocumentTitle>
+    );
   },
 }, cascadeMixin);
