@@ -17,7 +17,6 @@ var actions = {};
 actions.navigation = Reflux.createActions([
     'transitionStart',
     'transitionEnd',
-    'historyPush',
     'routeUpdate',
     'documentTitleUpdate'
   ]);
@@ -753,10 +752,6 @@ actions.resources.loadAsset.listen(function(params){
   dataInterface[dispatchMethodName](params)
       .done(actions.resources.loadAsset.completed)
       .fail(actions.resources.loadAsset.failed);
-});
-
-actions.resources.loadAsset.completed.listen(function(asset){
-  actions.navigation.historyPush(asset);
 });
 
 actions.resources.loadAssetContent.listen(function(params){

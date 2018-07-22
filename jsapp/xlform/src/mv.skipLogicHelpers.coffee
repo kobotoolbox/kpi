@@ -43,9 +43,10 @@ module.exports = do ->
     constructor: (@model, @view, @current_question, @survey, @view_factory) ->
       @view.presenter = @
       if @survey
-        update_choice_list = (cid) =>
+        update_choice_list = (choicelist_cid) =>
           question = @model._get_question()
-          if question._isSelectQuestion() && question.getList().cid == cid
+
+          if question && question._isSelectQuestion() && question.getList().cid == choicelist_cid
 
             current_response_value = @model.get('response_value').get('cid')
 
