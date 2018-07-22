@@ -20,6 +20,7 @@ import {
 } from '../utils';
 
 import {
+  ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
   update_states,
 } from '../constants';
@@ -31,14 +32,9 @@ import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 
-var FormStyle__panel = bem('form-style__panel'),
-    FormStyle__row = bem('form-style'),
-    FormStyle__panelheader = bem('form-style__panelheader'),
-    FormStyle__paneltext = bem('form-style__paneltext');
-
-var ErrorMessage = bem.create('error-message'),
-    ErrorMessage__strong = bem.create('error-message__header', '<strong>'),
-    ErrorMessage__link = bem.create('error-message__link', '<a>');
+const ErrorMessage = bem.create('error-message');
+const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
+const ErrorMessage__link = bem.create('error-message__link', '<a>');
 
 var webformStylesSupportUrl = "http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles";
 
@@ -421,7 +417,8 @@ export default assign({
   toggleLibraryNav() {
     stores.pageState.toggleAssetNavIntentOpen();
   },
-  renderSaveAndPreviewButtons () {
+
+  renderFormBuilderHeader () {
     let {
       allButtonsDisabled,
       previewDisabled,
@@ -429,8 +426,6 @@ export default assign({
       showAllOpen,
       showAllAvailable,
       name,
-      hasSettings,
-      styleValue,
       saveButtonText,
     } = this.buttonStates();
 
@@ -439,13 +434,16 @@ export default assign({
     let nameFieldLabel;
     switch (this.state.asset_type) {
       case 'template':
-        nameFieldLabel = t('Template');
+        nameFieldLabel = ASSET_TYPES.template;
         break;
       case 'survey':
-        nameFieldLabel = t('Project');
+        nameFieldLabel = ASSET_TYPES.survey;
+        break;
+      case 'block':
+        nameFieldLabel = ASSET_TYPES.block;
         break;
       case 'question':
-        nameFieldLabel = t('Question');
+        nameFieldLabel = ASSET_TYPES.question;
         break;
       default:
         nameFieldLabel = null;
@@ -599,23 +597,39 @@ export default assign({
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
+      </bem.FormBuilderHeader>
+    );
+  },
 
-        { this.state.formStylePanelDisplayed &&
-          <FormStyle__panel m='formstyle'>
-            <FormStyle__panelheader>
+  renderAside() {
+    let {
+      styleValue,
+      hasSettings
+    } = this.buttonStates();
+
+    const isVisible = this.state.formStylePanelDisplayed;
+
+    return (
+      <bem.FormBuilderAside m={isVisible ? 'visible' : null}>
+        <bem.FormBuilderAside__content>
+          <bem.FormBuilderAside__header>
               {t('form style')}
-              <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
-                <i className="k-icon-help"/>
+              <a
+                href={webformStylesSupportUrl}
+                target="_blank"
+                data-tip={t('Read more about form styles')}
+              >
+                <i className="k-icon k-icon-help"/>
               </a>
-            </FormStyle__panelheader>
+          </bem.FormBuilderAside__header>
 
-            <FormStyle__paneltext>
+            <p>
               { hasSettings ?
                 t('select the form style that you would like to use. this will only affect web forms.')
                 :
                 t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
               }
-            </FormStyle__paneltext>
+            </p>
 
             <Select
               name="webform-style"
@@ -627,13 +641,12 @@ export default assign({
               placeholder={AVAILABLE_FORM_STYLES[0].label}
               options={AVAILABLE_FORM_STYLES}
             />
-          </FormStyle__panel>
-        }
-      </bem.FormBuilderHeader>
-    );
+        </bem.FormBuilderAside__content>
+      </bem.FormBuilderAside>
+    )
   },
 
-  renderNotLoadedMessage () {
+  renderNotLoadedMessage() {
     if (this.state.surveyLoadError) {
       return (
         <ErrorMessage>
@@ -770,8 +783,10 @@ export default assign({
         <ui.Panel m={'transparent'}>
           <AssetNavigator />
 
-          <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
-            {this.renderSaveAndPreviewButtons()}
+          {this.renderAside()}
+
+          <bem.FormBuilder>
+            {this.renderFormBuilderHeader()}
 
             <bem.FormBuilder__contents>
               {isFormSettingsBoxVisible &&
@@ -789,7 +804,8 @@ export default assign({
             <ui.Modal
               open
               large
-              onClose={this.hidePreview} title={t('Form Preview')}
+              onClose={this.hidePreview}
+              title={t('Form Preview')}
             >
               <ui.Modal.Body>
                 <div className="enketo-holder">
