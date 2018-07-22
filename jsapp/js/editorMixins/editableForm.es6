@@ -824,7 +824,7 @@ export default assign({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ui.Panel m={'transparent'}>
+        <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
           <bem.FormBuilder>

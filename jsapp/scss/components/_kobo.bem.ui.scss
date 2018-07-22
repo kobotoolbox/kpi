@@ -58,6 +58,15 @@
 .ui-panel {
   height: 100%;
   margin: 0px 8px;
+
+  // useful if you want to avoid weird Flexbox bug with pushing things outside viewport
+  &.ui-panel--fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
 }
 
 .ui-panel__body {
