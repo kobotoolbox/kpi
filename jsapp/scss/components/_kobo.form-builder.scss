@@ -355,7 +355,7 @@ $t-form-builder-aside-open: 200ms;
   z-index: $z-form-builder-aside;
 
   &:not(.form-builder-aside--visible) {
-    right: -1 * $s-form-builder-aside;
+    right: -1 * $s-form-builder-aside - 10px;
   }
 
   .form-builder-aside__content {
@@ -396,7 +396,8 @@ $t-form-builder-aside-open: 200ms;
   flex-direction: row;
 
   .form-builder-meta__column {
-    width: 50%;
+    flex: 1;
+    margin-right: 10px;
 
     .form-builder-meta__row {
       margin-bottom: 10px;

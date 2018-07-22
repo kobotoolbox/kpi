@@ -188,6 +188,7 @@ export default assign({
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
   },
+
   componentWillUnmount () {
     if (this.app && this.app.survey) {
       document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
@@ -195,9 +196,11 @@ export default assign({
     }
     this.unpreventClosingTab();
   },
+
   surveyStateChanged (state) {
     this.setState(state);
   },
+
   onStyleChange (evt) {
     if (evt !== null) {
       this.setState({settings__style: evt.value});
@@ -205,6 +208,7 @@ export default assign({
       this.setState({settings__style: null});
     }
   },
+
   onSurveyChange: _.debounce(function () {
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
       this.preventClosingTab();
@@ -213,37 +217,38 @@ export default assign({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
   }, 75),
+
   preventClosingTab () {
     $(window).on('beforeunload.noclosetab', function(){
       return t('you have unsaved changes');
     });
   },
+
   unpreventClosingTab () {
     $(window).off('beforeunload.noclosetab');
   },
-  openFormStylePanel (evt) {
-    evt.target.blur();
-    this.setState({
-      formStylePanelDisplayed: !this.state.formStylePanelDisplayed,
-    });
-  },
+
   nameChange (evt) {
     var name = evt.target.value;
     this.setState({
       name: name,
     });
   },
+
   groupQuestions () {
     this.app.groupSelectedRows();
   },
+
   showAll (evt) {
     evt.preventDefault();
     evt.currentTarget.blur();
     this.app.expandMultioptions();
   },
+
   needsSave () {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
+
   previewForm (evt) {
     if (evt && evt.preventDefault) {
       evt.preventDefault();
@@ -281,6 +286,7 @@ export default assign({
       });
     });
   },
+
   saveForm (evt) {
     if (evt && evt.preventDefault) {
       evt.preventDefault();
@@ -344,6 +350,7 @@ export default assign({
       asset_updated: update_states.PENDING_UPDATE,
     });
   },
+
   handleScroll(evt) {
     var scrollTop = evt.target.scrollTop;
     if (!this.state.formHeaderFixed && scrollTop > 40) {
@@ -358,6 +365,7 @@ export default assign({
       });
     }
   },
+
   buttonStates () {
     var ooo = {};
     if (!this.app) {
@@ -391,9 +399,115 @@ export default assign({
     }
     return ooo;
   },
-  toggleLibraryNav() {
+
+  toggleLibraryAside() {
     stores.pageState.toggleAssetNavIntentOpen();
   },
+
+  toggleLayoutSettingsAside (evt) {
+    evt.target.blur();
+    this.setState({
+      formStylePanelDisplayed: !this.state.formStylePanelDisplayed,
+    });
+  },
+
+  hidePreview () {
+    this.setState({
+      enketopreviewOverlay: false
+    });
+  },
+
+  hideCascade () {
+    this.setState({
+      showCascadePopup: false
+    });
+  },
+
+  launchAppForSurveyContent (survey, _state={}) {
+    if (_state.name) {
+      _state.savedName = _state.name;
+    }
+
+    let isEmptySurvey = (
+        survey &&
+        Object.keys(survey.settings).length === 0 &&
+        survey.survey.length === 0
+      );
+
+    try {
+      if (!survey) {
+        survey = dkobo_xlform.model.Survey.create();
+      } else {
+        survey = dkobo_xlform.model.Survey.loadDict(survey);
+        if (isEmptySurvey) {
+          survey.surveyDetails.importDefaults();
+        }
+      }
+    } catch (err) {
+      _state.surveyLoadError = err.message;
+      _state.surveyAppRendered = false;
+    }
+
+    if (!_state.surveyLoadError) {
+      _state.surveyAppRendered = true;
+
+      var skp = new SurveyScope({
+        survey: survey
+      });
+      this.app = new dkobo_xlform.view.SurveyApp({
+        survey: survey,
+        stateStore: stores.surveyState,
+        ngScope: skp,
+      });
+      this.app.$el.appendTo(ReactDOM.findDOMNode(this.refs['form-wrap']));
+      this.app.render();
+      survey.rows.on('change', this.onSurveyChange);
+      survey.rows.on('sort', this.onSurveyChange);
+      survey.on('change', this.onSurveyChange);
+    }
+
+    this.setState(_state);
+  },
+
+  clearPreviewError () {
+    this.setState({
+      enketopreviewError: false,
+    });
+  },
+
+  safeNavigateToRoute(route) {
+    if (!this.needsSave()) {
+      hashHistory.push(route);
+    } else {
+      let dialog = alertify.dialog('confirm');
+      let opts = {
+        title: t('You have unsaved changes. Leave form without saving?'),
+        message: '',
+        labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
+        onok: (evt, val) => {
+          hashHistory.push(route);
+        },
+        oncancel: () => {
+          dialog.destroy();
+        }
+      };
+      dialog.set(opts).show();
+    }
+  },
+
+  safeNavigateToFormsList() {
+    this.safeNavigateToRoute('/forms/');
+  },
+
+  safeNavigateToForm() {
+    var backRoute = this.state.backRoute;
+    if (this.state.backRoute == '/forms') {
+      backRoute = `/forms/${this.state.asset_uid}`;
+    }
+    this.safeNavigateToRoute(backRoute);
+  },
+
+  // RENDERING METHODS
 
   renderFormBuilderHeader () {
     let {
@@ -555,7 +669,7 @@ export default assign({
           <bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__button
               m={['panel-toggle']}
-              onClick={this.toggleLibraryNav}
+              onClick={this.toggleLibraryAside}
             >
               <i className="k-icon k-icon-library" />
               <span className='panel-toggle-name'>{t('Add from Library')}</span>
@@ -567,7 +681,7 @@ export default assign({
           <bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__button
               m={['panel-toggle']}
-              onClick={this.openFormStylePanel}
+              onClick={this.toggleLayoutSettingsAside}
             >
               <i className="k-icon k-icon-settings" />
               <span className='panel-toggle-name'>{t('Layout & Settings')}</span>
@@ -584,7 +698,7 @@ export default assign({
       hasSettings
     } = this.buttonStates();
 
-    const isFormSettingsBoxVisible = (
+    const isMetadataVisible = (
       this.app &&
       (
         this.state.asset_type === 'survey' ||
@@ -634,7 +748,7 @@ export default assign({
             />
           </bem.FormBuilderAside__row>
 
-          {isFormSettingsBoxVisible &&
+          {isMetadataVisible &&
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
                 {t('Metadata')}
@@ -648,6 +762,8 @@ export default assign({
             <bem.FormBuilderAside__header>
               {t('Details')}
             </bem.FormBuilderAside__header>
+
+            <div>TODO</div>
           </bem.FormBuilderAside__row>
         </bem.FormBuilderAside__content>
       </bem.FormBuilderAside>
@@ -676,102 +792,6 @@ export default assign({
         </bem.Loading__inner>
       </bem.Loading>
     );
-  },
-
-  hidePreview () {
-    this.setState({
-      enketopreviewOverlay: false
-    });
-  },
-
-  hideCascade () {
-    this.setState({
-      showCascadePopup: false
-    });
-  },
-
-  launchAppForSurveyContent (survey, _state={}) {
-    if (_state.name) {
-      _state.savedName = _state.name;
-    }
-
-    let isEmptySurvey = (
-        survey &&
-        Object.keys(survey.settings).length === 0 &&
-        survey.survey.length === 0
-      );
-
-    try {
-      if (!survey) {
-        survey = dkobo_xlform.model.Survey.create();
-      } else {
-        survey = dkobo_xlform.model.Survey.loadDict(survey);
-        if (isEmptySurvey) {
-          survey.surveyDetails.importDefaults();
-        }
-      }
-    } catch (err) {
-      _state.surveyLoadError = err.message;
-      _state.surveyAppRendered = false;
-    }
-
-    if (!_state.surveyLoadError) {
-      _state.surveyAppRendered = true;
-
-      var skp = new SurveyScope({
-        survey: survey
-      });
-      this.app = new dkobo_xlform.view.SurveyApp({
-        survey: survey,
-        stateStore: stores.surveyState,
-        ngScope: skp,
-      });
-      this.app.$el.appendTo(ReactDOM.findDOMNode(this.refs['form-wrap']));
-      this.app.render();
-      survey.rows.on('change', this.onSurveyChange);
-      survey.rows.on('sort', this.onSurveyChange);
-      survey.on('change', this.onSurveyChange);
-    }
-
-    this.setState(_state);
-  },
-
-  clearPreviewError () {
-    this.setState({
-      enketopreviewError: false,
-    });
-  },
-
-  safeNavigateToRoute(route) {
-    if (!this.needsSave()) {
-      hashHistory.push(route);
-    } else {
-      let dialog = alertify.dialog('confirm');
-      let opts = {
-        title: t('You have unsaved changes. Leave form without saving?'),
-        message: '',
-        labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
-        onok: (evt, val) => {
-          hashHistory.push(route);
-        },
-        oncancel: () => {
-          dialog.destroy();
-        }
-      };
-      dialog.set(opts).show();
-    }
-  },
-
-  safeNavigateToFormsList() {
-    this.safeNavigateToRoute('/forms/');
-  },
-
-  safeNavigateToForm() {
-    var backRoute = this.state.backRoute;
-    if (this.state.backRoute == '/forms') {
-      backRoute = `/forms/${this.state.asset_uid}`;
-    }
-    this.safeNavigateToRoute(backRoute);
   },
 
   render() {
