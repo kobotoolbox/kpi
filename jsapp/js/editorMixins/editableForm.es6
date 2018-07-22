@@ -11,6 +11,7 @@ import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
+import {ProjectSettings} from '../components/formEditors';
 import {
   surveyToValidJson,
   notify,
@@ -22,6 +23,7 @@ import {
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
+  PROJECT_SETTINGS_CONTEXTS,
   update_states,
 } from '../constants';
 
@@ -197,11 +199,20 @@ export default assign({
     this.unpreventClosingTab();
   },
 
-  surveyStateChanged (state) {
+  onProjectDetailsChange(projectDetailsData) {
+    console.log('onProjectDetailsChange', projectDetailsData);
+    // NOTE TO SELF: this data is delayed by one state change because of moment it is being passed
+    // - pass dafa from input being changed directly
+    this.setState({
+      projectDetails: projectDetailsData
+    });
+  },
+
+  surveyStateChanged(state) {
     this.setState(state);
   },
 
-  onStyleChange (evt) {
+  onStyleChange(evt) {
     if (evt !== null) {
       this.setState({settings__style: evt.value});
     } else {
@@ -218,38 +229,38 @@ export default assign({
     });
   }, 75),
 
-  preventClosingTab () {
+  preventClosingTab() {
     $(window).on('beforeunload.noclosetab', function(){
       return t('you have unsaved changes');
     });
   },
 
-  unpreventClosingTab () {
+  unpreventClosingTab() {
     $(window).off('beforeunload.noclosetab');
   },
 
-  nameChange (evt) {
+  nameChange(evt) {
     var name = evt.target.value;
     this.setState({
       name: name,
     });
   },
 
-  groupQuestions () {
+  groupQuestions() {
     this.app.groupSelectedRows();
   },
 
-  showAll (evt) {
+  showAll(evt) {
     evt.preventDefault();
     evt.currentTarget.blur();
     this.app.expandMultioptions();
   },
 
-  needsSave () {
+  needsSave() {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
 
-  previewForm (evt) {
+  previewForm(evt) {
     if (evt && evt.preventDefault) {
       evt.preventDefault();
     }
@@ -287,7 +298,7 @@ export default assign({
     });
   },
 
-  saveForm (evt) {
+  saveForm(evt) {
     if (evt && evt.preventDefault) {
       evt.preventDefault();
     }
@@ -306,7 +317,7 @@ export default assign({
 
     if (this.state.editorState === 'new') {
       if (this.state.desiredAssetType) {
-        params.asset_type = this.state.desiredAssetType;
+        params.asset_type = this.state.desiredAssetType === 'template';
       } else {
         params.asset_type = 'block';
       }
@@ -366,7 +377,7 @@ export default assign({
     }
   },
 
-  buttonStates () {
+  buttonStates() {
     var ooo = {};
     if (!this.app) {
       ooo.allButtonsDisabled = true;
@@ -400,35 +411,35 @@ export default assign({
     return ooo;
   },
 
-  toggleLibraryAside(evt) {
+  toggleAsideLibrarySearch(evt) {
     evt.target.blur();
     this.setState({
-      layoutSettingsAsideVisible: false,
-      libraryAsideVisible: !this.state.libraryAsideVisible,
+      asideLayoutSettingsVisible: false,
+      asideLibrarySearchVisible: !this.state.asideLibrarySearchVisible,
     });
   },
 
-  toggleLayoutSettingsAside (evt) {
+  toggleAsideLayoutSettings(evt) {
     evt.target.blur();
     this.setState({
-      layoutSettingsAsideVisible: !this.state.layoutSettingsAsideVisible,
-      libraryAsideVisible: false
+      asideLayoutSettingsVisible: !this.state.asideLayoutSettingsVisible,
+      asideLibrarySearchVisible: false
     });
   },
 
-  hidePreview () {
+  hidePreview() {
     this.setState({
       enketopreviewOverlay: false
     });
   },
 
-  hideCascade () {
+  hideCascade() {
     this.setState({
       showCascadePopup: false
     });
   },
 
-  launchAppForSurveyContent (survey, _state={}) {
+  launchAppForSurveyContent(survey, _state={}) {
     if (_state.name) {
       _state.savedName = _state.name;
     }
@@ -474,7 +485,7 @@ export default assign({
     this.setState(_state);
   },
 
-  clearPreviewError () {
+  clearPreviewError() {
     this.setState({
       enketopreviewError: false,
     });
@@ -547,6 +558,10 @@ export default assign({
         nameFieldLabel = null;
     }
 
+    if (nameFieldLabel === null && this.state.desiredAssetType === 'template') {
+      nameFieldLabel = ASSET_TYPES.template;
+    }
+
     return (
       <bem.FormBuilderHeader>
         <bem.FormBuilderHeader__row m='primary'>
@@ -561,7 +576,9 @@ export default assign({
 
           <bem.FormBuilderHeader__cell m={'name'} >
             <bem.FormModal__item>
-              <label>{nameFieldLabel}</label>
+              {nameFieldLabel &&
+                <label>{nameFieldLabel}</label>
+              }
               <input
                 type="text"
                 onChange={this.nameChange}
@@ -675,10 +692,10 @@ export default assign({
 
           <bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__button
-              m={['panel-toggle', this.state.libraryAsideVisible ? 'active' : null]}
-              onClick={this.toggleLibraryAside}
+              m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
+              onClick={this.toggleAsideLibrarySearch}
             >
-              <i className={['k-icon', this.state.libraryAsideVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
+              <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Add from Library')}</span>
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
@@ -687,10 +704,10 @@ export default assign({
 
           <bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__button
-              m={['panel-toggle', this.state.layoutSettingsAsideVisible ? 'active' : null]}
-              onClick={this.toggleLayoutSettingsAside}
+              m={['panel-toggle', this.state.asideLayoutSettingsVisible ? 'active' : null]}
+              onClick={this.toggleAsideLayoutSettings}
             >
-              <i className={['k-icon', this.state.layoutSettingsAsideVisible ? 'k-icon-close' : 'k-icon-settings' ].join(' ')} />
+              <i className={['k-icon', this.state.asideLayoutSettingsVisible ? 'k-icon-close' : 'k-icon-settings' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Layout & Settings')}</span>
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
@@ -705,7 +722,7 @@ export default assign({
       hasSettings
     } = this.buttonStates();
 
-    const hasMetadataSettings = (
+    const hasMetadataAndDetails = (
       this.app &&
       (
         this.state.asset_type === 'survey' ||
@@ -715,13 +732,15 @@ export default assign({
     );
 
     const isAsideVisible = (
-      this.state.layoutSettingsAsideVisible ||
-      this.state.libraryAsideVisible
+      this.state.asideLayoutSettingsVisible ||
+      this.state.asideLibrarySearchVisible
     );
+
+    console.log('render aside', this.state);
 
     return (
       <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
-        { this.state.layoutSettingsAsideVisible &&
+        { this.state.asideLayoutSettingsVisible &&
           <bem.FormBuilderAside__content>
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
@@ -759,7 +778,7 @@ export default assign({
               />
             </bem.FormBuilderAside__row>
 
-            {hasMetadataSettings &&
+            {hasMetadataAndDetails &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Metadata')}
@@ -769,16 +788,21 @@ export default assign({
               </bem.FormBuilderAside__row>
             }
 
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>
-                {t('Details')}
-              </bem.FormBuilderAside__header>
+            {hasMetadataAndDetails &&
+              <bem.FormBuilderAside__row>
+                <bem.FormBuilderAside__header>
+                  {t('Details')}
+                </bem.FormBuilderAside__header>
 
-              <div>TODO</div>
-            </bem.FormBuilderAside__row>
+                <ProjectSettings
+                  context={PROJECT_SETTINGS_CONTEXTS.BUILDER}
+                  onProjectDetailsChange={this.onProjectDetailsChange}
+                />
+              </bem.FormBuilderAside__row>
+            }
           </bem.FormBuilderAside__content>
         }
-        { this.state.libraryAsideVisible &&
+        { this.state.asideLibrarySearchVisible &&
           <bem.FormBuilderAside__content>
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>

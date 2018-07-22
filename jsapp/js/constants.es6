@@ -13,7 +13,8 @@ const MODAL_TYPES = {
 const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
   EXISTING: 'existingForm',
-  REPLACE: 'replaceProject'
+  REPLACE: 'replaceProject',
+  BUILDER: 'formBuilderAside'
 };
 
 const update_states = {

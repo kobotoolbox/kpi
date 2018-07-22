@@ -50,6 +50,7 @@ This is used for multiple different purposes:
 1. When creating new project
 2. When replacing project with new one
 3. When editing project in /settings
+4. When editing or creating asset in Form Builder
 
 Identifying the purpose is done by checking `context` and `formAsset`.
 */
@@ -109,12 +110,25 @@ export class ProjectSettings extends React.Component {
     });
   }
 
+  onProjectDetailsFormChange(evt) {
+    console.log('onProjectDetailsFormChange', evt.target);
+    if (typeof this.props.onProjectDetailsChange === 'function') {
+      this.props.onProjectDetailsChange({
+        description: this.state.description,
+        country: this.state.country,
+        sector: this.state.sector,
+        shareMetadata: this.state['share-metadata']
+      });
+    }
+  }
+
   setInitialStep() {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return this.displayStep(this.STEPS.FORM_SOURCE);
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
+      case PROJECT_SETTINGS_CONTEXTS.BUILDER:
         return this.displayStep(this.STEPS.PROJECT_DETAILS);
       default:
         throw new Error(`Unknown context: ${this.props.context}!`);
@@ -128,6 +142,7 @@ export class ProjectSettings extends React.Component {
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return t('Replace project');
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
+      case PROJECT_SETTINGS_CONTEXTS.BUILDER:
       default:
         return t('Project settings');
     }
@@ -592,6 +607,7 @@ export class ProjectSettings extends React.Component {
     return (
       <bem.FormModal__form
         onSubmit={this.handleSubmit}
+        onChange={this.onProjectDetailsFormChange}
         className='project-settings'
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
@@ -607,17 +623,20 @@ export class ProjectSettings extends React.Component {
         }
 
         <bem.FormModal__item m='wrapper'>
-          <bem.FormModal__item>
-            <label htmlFor="name">
-              {t('Project Name')}
-            </label>
-            <input type="text"
-              id="name"
-              placeholder={t('Enter title of project here')}
-              value={this.state.name}
-              onChange={this.onNameChange}
-            />
-          </bem.FormModal__item>
+          {/* form builder displays name in different place */}
+          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
+            <bem.FormModal__item>
+              <label htmlFor="name">
+                {t('Project Name')}
+              </label>
+              <input type="text"
+                id="name"
+                placeholder={t('Enter title of project here')}
+                value={this.state.name}
+                onChange={this.onNameChange}
+              />
+            </bem.FormModal__item>
+          }
 
           <bem.FormModal__item>
             <label htmlFor="description">

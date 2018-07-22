@@ -549,6 +549,7 @@ iframe {
     border: 1px solid transparent;
     border-bottom-color: $divider-color;
     transition: border-color 0.3s;
+    background: transparent;
 
     &:focus {
       transition: border-color 0.3s;
@@ -760,7 +761,6 @@ span.svg-icon {
 
     /* .1s delay is for check animation */
     transition: border .25s, background-color .25s, width .20s .1s, height .20s .1s, top .20s .1s, left .20s .1s;
-    z-index: 1;
   }
 
   // Unchecked style
@@ -782,7 +782,6 @@ span.svg-icon {
     background-color: transparent;
     border: 1px solid lighten($cool-gray, 20%);
     top: 0px;
-    z-index: 0;
   }
 
   // Checked style
@@ -808,7 +807,7 @@ span.svg-icon {
       height: 20px;
       border: 1px solid $cool-blue;
       background-color: $cool-blue;
-      z-index: 0;
+      z-index: -1;
     }
   }
 }
