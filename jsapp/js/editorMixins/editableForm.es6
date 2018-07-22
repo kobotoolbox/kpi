@@ -400,14 +400,19 @@ export default assign({
     return ooo;
   },
 
-  toggleLibraryAside() {
-    stores.pageState.toggleAssetNavIntentOpen();
+  toggleLibraryAside(evt) {
+    evt.target.blur();
+    this.setState({
+      layoutSettingsAsideVisible: false,
+      libraryAsideVisible: !this.state.libraryAsideVisible,
+    });
   },
 
   toggleLayoutSettingsAside (evt) {
     evt.target.blur();
     this.setState({
-      formStylePanelDisplayed: !this.state.formStylePanelDisplayed,
+      layoutSettingsAsideVisible: !this.state.layoutSettingsAsideVisible,
+      libraryAsideVisible: false
     });
   },
 
@@ -475,6 +480,8 @@ export default assign({
     });
   },
 
+  // navigating out of form builder
+
   safeNavigateToRoute(route) {
     if (!this.needsSave()) {
       hashHistory.push(route);
@@ -507,7 +514,7 @@ export default assign({
     this.safeNavigateToRoute(backRoute);
   },
 
-  // RENDERING METHODS
+  // rendering methods
 
   renderFormBuilderHeader () {
     let {
@@ -698,7 +705,7 @@ export default assign({
       hasSettings
     } = this.buttonStates();
 
-    const isMetadataVisible = (
+    const hasMetadataSettings = (
       this.app &&
       (
         this.state.asset_type === 'survey' ||
@@ -707,13 +714,17 @@ export default assign({
       )
     );
 
-    const isAsideVisible = this.state.formStylePanelDisplayed;
+    const isAsideVisible = (
+      this.state.layoutSettingsAsideVisible ||
+      this.state.libraryAsideVisible
+    );
 
     return (
       <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
-        <bem.FormBuilderAside__content>
-          <bem.FormBuilderAside__row>
-            <bem.FormBuilderAside__header>
+        { this.state.layoutSettingsAsideVisible &&
+          <bem.FormBuilderAside__content>
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>
                 {t('Form style')}
                 <a
                   href={webformStylesSupportUrl}
@@ -722,50 +733,64 @@ export default assign({
                 >
                   <i className="k-icon k-icon-help"/>
                 </a>
-            </bem.FormBuilderAside__header>
-
-            <label
-              className='Select__label'
-              htmlFor='webform-style'
-            >
-              { hasSettings ?
-                t('select the form style that you would like to use. this will only affect web forms.')
-                :
-                t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
-              }
-            </label>
-
-            <Select
-              className='Select--underlined'
-              id='webform-style'
-              name="webform-style"
-              ref="webformStyle"
-              value={styleValue}
-              onChange={this.onStyleChange}
-              allowCreate
-              placeholder={AVAILABLE_FORM_STYLES[0].label}
-              options={AVAILABLE_FORM_STYLES}
-            />
-          </bem.FormBuilderAside__row>
-
-          {isMetadataVisible &&
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>
-                {t('Metadata')}
               </bem.FormBuilderAside__header>
 
-              <FormSettingsBox survey={this.app.survey} {...this.state} />
+              <label
+                className='Select__label'
+                htmlFor='webform-style'
+              >
+                { hasSettings ?
+                  t('select the form style that you would like to use. this will only affect web forms.')
+                  :
+                  t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+                }
+              </label>
+
+              <Select
+                className='Select--underlined'
+                id='webform-style'
+                name="webform-style"
+                ref="webformStyle"
+                value={styleValue}
+                onChange={this.onStyleChange}
+                allowCreate
+                placeholder={AVAILABLE_FORM_STYLES[0].label}
+                options={AVAILABLE_FORM_STYLES}
+              />
             </bem.FormBuilderAside__row>
-          }
 
-          <bem.FormBuilderAside__row>
-            <bem.FormBuilderAside__header>
-              {t('Details')}
-            </bem.FormBuilderAside__header>
+            {hasMetadataSettings &&
+              <bem.FormBuilderAside__row>
+                <bem.FormBuilderAside__header>
+                  {t('Metadata')}
+                </bem.FormBuilderAside__header>
 
-            <div>TODO</div>
-          </bem.FormBuilderAside__row>
-        </bem.FormBuilderAside__content>
+                <FormSettingsBox survey={this.app.survey} {...this.state} />
+              </bem.FormBuilderAside__row>
+            }
+
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>
+                {t('Details')}
+              </bem.FormBuilderAside__header>
+
+              <div>TODO</div>
+            </bem.FormBuilderAside__row>
+          </bem.FormBuilderAside__content>
+        }
+        { this.state.libraryAsideVisible &&
+          <bem.FormBuilderAside__content>
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>
+                {t('Search Library')}
+              </bem.FormBuilderAside__header>
+            </bem.FormBuilderAside__row>
+
+            <bem.FormBuilderAside__row>
+              <AssetNavigator/>
+            </bem.FormBuilderAside__row>
+          </bem.FormBuilderAside__content>
+        }
       </bem.FormBuilderAside>
     )
   },
@@ -800,8 +825,6 @@ export default assign({
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={'transparent'}>
-          <AssetNavigator />
-
           {this.renderAside()}
 
           <bem.FormBuilder>

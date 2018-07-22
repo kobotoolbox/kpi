@@ -29,25 +29,23 @@
       color: $cool-gray;
       font-size: 15px;
       padding-left: 0;
+      margin-left: 0;
+    }
+
+    .Select-value,
+    .Select-input {
+      &:not(:first-child) {
+        margin-left: 3px;
+      }
     }
 
     .Select-input {
       height: 33px;
-      width: 100%; // fix autosize
 
       input {
         padding-left: 0;
         padding-bottom: 10px;
-        width: 100% !important; // fix autosize
       }
-    }
-
-    .Select-placeholder {
-      max-width: calc(100% - 15px); // make space for button
-    }
-
-    .Select-value {
-      max-width: calc(100% - 30px); // make space for buttons
     }
   }
 

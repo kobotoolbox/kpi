@@ -61,7 +61,6 @@ bem.LibNav__search = bem.LibNav.__('search');
 bem.LibNav__expanded = bem.LibNav.__('expanded');
 bem.LibNav__count = bem.LibNav.__('count');
 bem.LibNav__expandedToggle = bem.LibNav.__('expandedToggle');
-bem.LibNav__logo = bem.LibNav.__('logo');
 
 bem.TemplatesList = BEM('templates-list');
 bem.TemplatesList__header = bem.TemplatesList.__('header');

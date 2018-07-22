@@ -90,14 +90,7 @@ var assetSearchStore = Reflux.createStore({
 
 var pageStateStore = Reflux.createStore({
   init () {
-    var navIsOpen = cookie.load('assetNavIntentOpen');
-    if (navIsOpen === undefined) {
-      // default assetNav value.
-      navIsOpen = false;
-    }
     this.state = {
-      assetNavIsOpen: navIsOpen,
-      assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
       headerHidden: false,
@@ -115,21 +108,6 @@ var pageStateStore = Reflux.createStore({
     var _changes = {};
     var newval = !this.state.showFixedDrawer;
     _changes.showFixedDrawer = newval;
-    assign(this.state, _changes);
-    this.trigger(_changes);
-  },
-  toggleAssetNavIntentOpen () {
-    var newIntent = !this.state.assetNavIntentOpen,
-        isOpen = this.state.assetNavIsOpen,
-        _changes = {
-          assetNavIntentOpen: newIntent
-        };
-    cookie.save('assetNavIntentOpen', newIntent);
-
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      _changes.assetNavIsOpen = !isOpen;
-    }
     assign(this.state, _changes);
     this.trigger(_changes);
   },
