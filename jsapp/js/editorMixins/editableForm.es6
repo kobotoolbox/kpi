@@ -182,6 +182,7 @@ export default assign({
           asset.content.translations &&
           asset.content.translations.slice(0)
         ) || [];
+
         this.launchAppForSurveyContent(asset.content, {
           name: asset.name,
           translations: translations,
@@ -571,10 +572,7 @@ export default assign({
 
     let translations = this.state.translations || [];
     // HACK FIX: filter out weird case of single `null` item array
-    if (
-      asset.content.translations.length === 1 &&
-      asset.content.translations[0] === null
-    ) {
+    if (translations.length === 1 && translations[0] === null) {
       translations = [];
     }
 
