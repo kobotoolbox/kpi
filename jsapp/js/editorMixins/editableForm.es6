@@ -199,12 +199,11 @@ export default assign({
     this.unpreventClosingTab();
   },
 
-  onProjectDetailsChange(projectDetailsData) {
-    console.log('onProjectDetailsChange', projectDetailsData);
-    // NOTE TO SELF: this data is delayed by one state change because of moment it is being passed
-    // - pass dafa from input being changed directly
+  onProjectDetailsChange({fieldName, fieldValue}) {
+    const newProjectDetails = this.state.projectDetails || {};
+    newProjectDetails[fieldName] = fieldValue;
     this.setState({
-      projectDetails: projectDetailsData
+      projectDetails: newProjectDetails
     });
   },
 
@@ -736,6 +735,7 @@ export default assign({
       this.state.asideLibrarySearchVisible
     );
 
+    // TODO get asset from uid here?
     console.log('render aside', this.state);
 
     return (

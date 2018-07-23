@@ -53,6 +53,8 @@ This is used for multiple different purposes:
 4. When editing or creating asset in Form Builder
 
 Identifying the purpose is done by checking `context` and `formAsset`.
+
+You can listen to field changes by `onProjectDetailsChange` prop function.
 */
 export class ProjectSettings extends React.Component {
   constructor(props){
@@ -110,18 +112,6 @@ export class ProjectSettings extends React.Component {
     });
   }
 
-  onProjectDetailsFormChange(evt) {
-    console.log('onProjectDetailsFormChange', evt.target);
-    if (typeof this.props.onProjectDetailsChange === 'function') {
-      this.props.onProjectDetailsChange({
-        description: this.state.description,
-        country: this.state.country,
-        sector: this.state.sector,
-        shareMetadata: this.state['share-metadata']
-      });
-    }
-  }
-
   setInitialStep() {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
@@ -167,24 +157,35 @@ export class ProjectSettings extends React.Component {
    * handling user input
    */
 
+  onAnyDataChange(fieldName, fieldValue) {
+    if (typeof this.props.onProjectDetailsChange === 'function') {
+      this.props.onProjectDetailsChange({fieldName, fieldValue});
+    }
+  }
+
   onNameChange(evt) {
     this.setState({name: evt.target.value});
+    this.onAnyDataChange('name', evt.target.value);
   }
 
   onDescriptionChange(evt) {
     this.setState({description: evt.target.value});
+    this.onAnyDataChange('description', evt.target.value);
   }
 
   onCountryChange(val) {
     this.setState({country: val});
+    this.onAnyDataChange('country', val);
   }
 
   onSectorChange(val) {
     this.setState({sector: val});
+    this.onAnyDataChange('sector', val);
   }
 
   onShareMetadataChange(evt) {
     this.setState({'share-metadata': evt.target.checked});
+    this.onAnyDataChange('share-metadata', evt.target.checked);
   }
 
   onImportUrlChange(value) {
