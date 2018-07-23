@@ -753,6 +753,10 @@ span.svg-icon {
     border-radius: 2px;
   }
 
+  + label:before {
+    z-index: 1;
+  }
+
   + label:before,
   + label:after {
     content: "";
@@ -807,7 +811,6 @@ span.svg-icon {
       height: 20px;
       border: 1px solid $cool-blue;
       background-color: $cool-blue;
-      z-index: -1;
     }
   }
 }

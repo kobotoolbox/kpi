@@ -173,6 +173,8 @@ export default assign({
     if (this.state.editorState === 'existing') {
       let uid = this.props.params.assetid;
       stores.allAssets.whenLoaded(uid, (asset) => {
+        this.setState({asset: asset});
+
         let translations = (asset.content && asset.content.translations
                             && asset.content.translations.slice(0)) || [];
         this.launchAppForSurveyContent(asset.content, {
@@ -200,10 +202,10 @@ export default assign({
   },
 
   onProjectDetailsChange({fieldName, fieldValue}) {
-    const newProjectDetails = this.state.projectDetails || {};
-    newProjectDetails[fieldName] = fieldValue;
+    const settingsNew = this.state.settingsNew || {};
+    settingsNew[fieldName] = fieldValue;
     this.setState({
-      projectDetails: newProjectDetails
+      settingsNew: settingsNew
     });
   },
 
@@ -305,18 +307,43 @@ export default assign({
     if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
-    var params = {
+
+    let params = {
       content: surveyToValidJson(this.app.survey),
     };
+
     if (this.state.name) {
       params.name = this.state.name;
+    }
+
+    // handle settings update (if any changed)
+    if (this.state.settingsNew) {
+      let settings = {};
+      if (this.state.asset) {
+        settings = this.state.asset.settings;
+      }
+
+      if (this.state.settingsNew.description) {
+        settings.description = this.state.settingsNew.description;
+      }
+      if (this.state.settingsNew.sector) {
+        settings.sector = this.state.settingsNew.sector;
+      }
+      if (this.state.settingsNew.country) {
+        settings.country = this.state.settingsNew.country;
+      }
+      if (this.state.settingsNew['share-metadata']) {
+        settings['share-metadata'] = this.state.settingsNew['share-metadata'];
+      }
+      params.settings = JSON.stringify(settings);
     }
 
     params = koboMatrixParser(params);
 
     if (this.state.editorState === 'new') {
+      // create new asset
       if (this.state.desiredAssetType) {
-        params.asset_type = this.state.desiredAssetType === 'template';
+        params.asset_type = this.state.desiredAssetType;
       } else {
         params.asset_type = 'block';
       }
@@ -325,7 +352,7 @@ export default assign({
           hashHistory.push(`/library`);
         })
     } else {
-      // update existing
+      // update existing asset
       var assetId = this.props.params.assetid;
 
       actions.resources.updateAsset.triggerAsync(assetId, params)
@@ -735,9 +762,6 @@ export default assign({
       this.state.asideLibrarySearchVisible
     );
 
-    // TODO get asset from uid here?
-    console.log('render aside', this.state);
-
     return (
       <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
         { this.state.asideLayoutSettingsVisible &&
@@ -797,6 +821,7 @@ export default assign({
                 <ProjectSettings
                   context={PROJECT_SETTINGS_CONTEXTS.BUILDER}
                   onProjectDetailsChange={this.onProjectDetailsChange}
+                  formAsset={this.state.asset}
                 />
               </bem.FormBuilderAside__row>
             }
