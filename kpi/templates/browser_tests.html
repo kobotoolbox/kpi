@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html>
-{% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load staticfiles %}
 <head lang="en">
     <meta charset="UTF-8">
-    <title>kpi tests</title>
+    <title>KPI tests</title>
     <link rel="stylesheet" href="{% static 'mocha/mocha.css' %}"/>
+    <script src="{% static 'mocha/mocha.js' %}"></script>
+    <script src="{% static 'chai/chai.js' %}"></script>
 </head>
 <body>
     <div id="mocha"></div>
-    <script src="{% static 'mocha/mocha.js' %}"></script>
-    <script>mocha.setup('bdd')</script>
+    <script>
+      expect = chai.expect;
+    </script>
     {% render_bundle 'tests' 'js' %}
     <script>
-        if (window.mochaPhantomJS) {
-            mochaPhantomJS.run();
-        } else {
-            mocha.run();
-        }
+      mocha.run();
     </script>
 </body>
 </html>
