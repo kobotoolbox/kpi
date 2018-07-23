@@ -263,6 +263,14 @@ export default assign({
     this.app.expandMultioptions();
   },
 
+  hasMetadataAndDetails() {
+    return this.app && (
+      this.state.asset_type === ASSET_TYPES.survey.id ||
+      this.state.asset_type === ASSET_TYPES.template.id ||
+      this.state.desiredAssetType === ASSET_TYPES.template.id
+    );
+  },
+
   needsSave() {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
@@ -747,7 +755,14 @@ export default assign({
               onClick={this.toggleAsideLayoutSettings}
             >
               <i className={['k-icon', this.state.asideLayoutSettingsVisible ? 'k-icon-close' : 'k-icon-settings' ].join(' ')} />
-              <span className='panel-toggle-name'>{t('Layout & Settings')}</span>
+              <span className='panel-toggle-name'>
+                {this.hasMetadataAndDetails() &&
+                  t('Layout & Settings')
+                }
+                {!this.hasMetadataAndDetails() &&
+                  t('Layout')
+                }
+              </span>
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
@@ -760,15 +775,6 @@ export default assign({
       styleValue,
       hasSettings
     } = this.buttonStates();
-
-    const hasMetadataAndDetails = (
-      this.app &&
-      (
-        this.state.asset_type === ASSET_TYPES.survey.id ||
-        this.state.asset_type === ASSET_TYPES.template.id ||
-        this.state.desiredAssetType === ASSET_TYPES.template.id
-      )
-    );
 
     const isAsideVisible = (
       this.state.asideLayoutSettingsVisible ||
@@ -815,7 +821,7 @@ export default assign({
               />
             </bem.FormBuilderAside__row>
 
-            {hasMetadataAndDetails &&
+            {this.hasMetadataAndDetails() &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Metadata')}
@@ -825,7 +831,7 @@ export default assign({
               </bem.FormBuilderAside__row>
             }
 
-            {hasMetadataAndDetails &&
+            {this.hasMetadataAndDetails() &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Details')}
