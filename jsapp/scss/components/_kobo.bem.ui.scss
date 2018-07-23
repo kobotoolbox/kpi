@@ -544,12 +544,11 @@ iframe {
   select,
   textarea {
     width: 100%;
-    padding: 4px 0px;
+    padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
     border-bottom-color: $divider-color;
     transition: border-color 0.3s;
-    background: transparent;
 
     &:focus {
       transition: border-color 0.3s;

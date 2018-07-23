@@ -15,11 +15,10 @@
   }
 
   .Select-control {
-    background: transparent;
+    background: white;
     border: none;
     border-bottom: 1px solid $divider-color;
-    border-radius: 0;
-    padding-left: 0;
+    border-radius: 2px;
     height: 33px;
     font-size: 15px;
 
@@ -28,28 +27,12 @@
     .Select-value {
       color: $cool-gray;
       font-size: 15px;
-      padding-left: 0;
-      margin-left: 0;
-    }
-
-    .Select-multi-value-wrapper {
-      .Select-value,
-      .Select-input {
-        &:not(:first-child) {
-          margin-left: 3px;
-        }
-      }
-
-      .Select-placeholder + .Select-input {
-        margin-left: 0 !important;
-      }
     }
 
     .Select-input {
       height: 33px;
 
       input {
-        padding-left: 0;
         padding-bottom: 10px;
       }
     }
