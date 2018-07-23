@@ -3,20 +3,15 @@
 {% load render_bundle from webpack_loader %}
 {% load staticfiles %}
 <head lang="en">
-    <meta charset="UTF-8">
-    <title>KPI tests</title>
-    <link rel="stylesheet" href="{% static 'mocha/mocha.css' %}"/>
-    <script src="{% static 'mocha/mocha.js' %}"></script>
-    <script src="{% static 'chai/chai.js' %}"></script>
+  <meta charset="UTF-8">
+  <title>KPI tests</title>
+  <link rel="stylesheet" href="{% static 'mocha/mocha.css' %}"/>
+  <script src="{% static 'mocha/mocha.js' %}"></script>
 </head>
 <body>
+    <script>mocha.setup('bdd')</script>
     <div id="mocha"></div>
-    <script>
-      expect = chai.expect;
-    </script>
-    <script src="{% static 'test/compiled/app.js' %}"></script>
-    <script>
-      mocha.run();
-    </script>
+    {% render_bundle 'tests' 'js' %}
+    <script>mocha.run();</script>
 </body>
 </html>

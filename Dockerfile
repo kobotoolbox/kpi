@@ -71,7 +71,7 @@ RUN mkdir "${BUILD_DIR}" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
-RUN npm run copy-fonts && npm run build && npm run test
+RUN npm run copy-fonts && npm run build
 
 ###############################################
 # Copy over this directory in its current state. #

@@ -6,7 +6,8 @@ const WebpackCommon = require('./webpack.common');
 module.exports = WebpackCommon({
   mode: "production",
   entry: {
-    app: './jsapp/js/main.es6'
+    app: './jsapp/js/main.es6',
+    tests: path.resolve(__dirname, '../test/index.js')
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),
