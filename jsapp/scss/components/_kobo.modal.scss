@@ -474,6 +474,16 @@
   }
 }
 
+@media screen and (min-height: 600px) {
+  // on bigger screens make templates-list scrollable to always display back/next buttons
+  .project-settings.project-settings--choose-template {
+    .templates-list {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+  }
+}
+
 @media screen and (max-width: 767px) {
   .modal--open {
     min-width: 90%;

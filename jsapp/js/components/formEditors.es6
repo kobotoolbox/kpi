@@ -477,7 +477,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <bem.FormModal__item className='project-settings'>
+      <bem.FormModal__item className='project-settings project-settings--form-source'>
         <bem.Modal__subheader>
           {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
         </bem.Modal__subheader>
@@ -511,7 +511,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__item className='project-settings'>
+      <bem.FormModal__item className='project-settings project-settings--choose-template'>
         <TemplatesList onSelectTemplate={this.onTemplateChange}/>
 
         <bem.Modal__footer>
@@ -532,7 +532,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__item className='project-settings'>
+      <bem.FormModal__item className='project-settings project-settings--upload-file'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
@@ -565,7 +565,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__item className='project-settings'>
+      <bem.FormModal__item className='project-settings project-settings--import-url'>
         <div className="intro">
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
           <a href={formViaUrlHelpLink} target="_blank">
@@ -612,6 +612,7 @@ export class ProjectSettings extends React.Component {
         onChange={this.onProjectDetailsFormChange}
         className={[
           'project-settings',
+          'project-settings--project-details',
           this.props.context === PROJECT_SETTINGS_CONTEXTS.BUILDER ? 'project-settings--narrow' : null
         ].join(' ')}
       >
