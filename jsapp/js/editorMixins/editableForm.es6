@@ -141,9 +141,10 @@ class FormSettingsBox extends React.Component {
 
   onCheckboxChange(evt) {
     this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
-    this.updateState({
-      asset_updated: update_states.UNSAVED_CHANGES,
-    });
+    this.updateState();
+    if (typeof this.props.onChange === 'function') {
+      this.props.onChange();
+    }
   }
 
   onFieldChange(evt) {
@@ -207,11 +208,18 @@ export default assign({
     this.unpreventClosingTab();
   },
 
+  onFormSettingsBoxChange() {
+    this.setState({
+      asset_updated: update_states.UNSAVED_CHANGES,
+    });
+  },
+
   onProjectDetailsChange({fieldName, fieldValue}) {
     const settingsNew = this.state.settingsNew || {};
     settingsNew[fieldName] = fieldValue;
     this.setState({
-      settingsNew: settingsNew
+      settingsNew: settingsNew,
+      asset_updated: update_states.UNSAVED_CHANGES,
     });
   },
 
@@ -220,11 +228,15 @@ export default assign({
   },
 
   onStyleChange(evt) {
+    let settingsStyle = null;
     if (evt !== null) {
-      this.setState({settings__style: evt.value});
-    } else {
-      this.setState({settings__style: null});
+      settingsStyle = evt.value;
     }
+
+    this.setState({
+      settings__style: settingsStyle,
+      asset_updated: update_states.UNSAVED_CHANGES,
+    });
   },
 
   onSurveyChange: _.debounce(function () {
@@ -645,7 +657,7 @@ export default assign({
                 savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
                 savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
                 savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
-                saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
+                saveneeded: this.needsSave(),
               }]}
               onClick={this.saveForm}
               disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
@@ -827,7 +839,11 @@ export default assign({
                   {t('Metadata')}
                 </bem.FormBuilderAside__header>
 
-                <FormSettingsBox survey={this.app.survey} {...this.state} />
+                <FormSettingsBox
+                  survey={this.app.survey}
+                  onChange={this.onFormSettingsBoxChange}
+                  {...this.state}
+                />
               </bem.FormBuilderAside__row>
             }
 
