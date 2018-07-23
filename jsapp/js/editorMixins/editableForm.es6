@@ -209,18 +209,16 @@ export default assign({
   },
 
   onFormSettingsBoxChange() {
-    this.setState({
-      asset_updated: update_states.UNSAVED_CHANGES,
-    });
+    this.onSurveyChange();
   },
 
   onProjectDetailsChange({fieldName, fieldValue}) {
     const settingsNew = this.state.settingsNew || {};
     settingsNew[fieldName] = fieldValue;
     this.setState({
-      settingsNew: settingsNew,
-      asset_updated: update_states.UNSAVED_CHANGES,
+      settingsNew: settingsNew
     });
+    this.onSurveyChange();
   },
 
   surveyStateChanged(state) {
@@ -234,9 +232,9 @@ export default assign({
     }
 
     this.setState({
-      settings__style: settingsStyle,
-      asset_updated: update_states.UNSAVED_CHANGES,
+      settings__style: settingsStyle
     });
+    this.onSurveyChange();
   },
 
   onSurveyChange: _.debounce(function () {
@@ -246,7 +244,7 @@ export default assign({
     this.setState({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
-  }, 75),
+  }, 200),
 
   preventClosingTab() {
     $(window).on('beforeunload.noclosetab', function(){
@@ -259,10 +257,10 @@ export default assign({
   },
 
   nameChange(evt) {
-    var name = evt.target.value;
     this.setState({
-      name: name,
+      name: evt.target.value,
     });
+    this.onSurveyChange();
   },
 
   groupQuestions() {
