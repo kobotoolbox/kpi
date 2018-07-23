@@ -610,7 +610,10 @@ export class ProjectSettings extends React.Component {
       <bem.FormModal__form
         onSubmit={this.handleSubmit}
         onChange={this.onProjectDetailsFormChange}
-        className='project-settings'
+        className={[
+          'project-settings',
+          this.props.context === PROJECT_SETTINGS_CONTEXTS.BUILDER ? 'project-settings--narrow' : null
+        ].join(' ')}
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>

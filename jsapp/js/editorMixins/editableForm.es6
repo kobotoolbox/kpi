@@ -796,9 +796,9 @@ export default assign({
                 htmlFor='webform-style'
               >
                 { hasSettings ?
-                  t('select the form style that you would like to use. this will only affect web forms.')
+                  t('Select the form style that you would like to use. This will only affect web forms.')
                   :
-                  t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+                  t('Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.')
                 }
               </label>
 

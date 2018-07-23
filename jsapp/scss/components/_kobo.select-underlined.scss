@@ -7,6 +7,10 @@
   line-height: 16px;
   font-weight: 400;
   opacity: 0.38;
+
+  & + .Select {
+    margin-top: 10px;
+  }
 }
 
 .Select.Select--underlined {
