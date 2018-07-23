@@ -14,7 +14,7 @@
     <script>
       expect = chai.expect;
     </script>
-    {% render_bundle 'tests' 'js' %}
+    <script src="{% static 'test/compiled/app.js' %}"></script>
     <script>
       mocha.run();
     </script>
