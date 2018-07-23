@@ -59,7 +59,7 @@ $t-form-builder-aside-open: 200ms;
 }
 
 .form-wrap {
-  padding: 0px 75px;
+  padding: 45px 75px;
   width: 100%;
 
   > .formbuilder-wrap > .survey-editor > .survey-editor__list {
@@ -478,10 +478,6 @@ $t-form-builder-aside-open: 200ms;
 }
 
 .survey-editor {
-  > ul > li:last-child {
-    padding-bottom: 48px;
-  }
-
   .ui-sortable-placeholder.lib-list__item {
     border: 1px dashed #d9dde1;
     visibility: visible !important;
@@ -509,7 +505,7 @@ $t-form-builder-aside-open: 200ms;
   }
 
   .form-wrap {
-    padding: 0px 25px;
+    padding: 30px 45px;
   }
 
   .form-meta {
@@ -566,7 +562,7 @@ $t-form-builder-aside-open: 200ms;
   }
 
   .form-wrap {
-    padding: 0px 15px;
+    padding: 15px 30px;
   }
 
   .btn--addrow {
