@@ -168,8 +168,13 @@ $t-form-builder-aside-open: 200ms;
       flex: 1;
       margin-left: 20px;
 
+      label::first-letter {
+        text-transform: uppercase;
+      }
+
       input {
         border-radius: 0px;
+        padding-left: 0;
       }
     }
 
@@ -193,7 +198,7 @@ $t-form-builder-aside-open: 200ms;
 
     &.formBuilder-header__cell--buttonsTopRight {
       text-align: right;
-      margin-right: 10px;
+      margin: 0 10px;
 
       button {
         margin-left: 10px;
