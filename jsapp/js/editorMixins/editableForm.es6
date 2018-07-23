@@ -175,8 +175,13 @@ export default assign({
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        let translations = (asset.content && asset.content.translations
-                            && asset.content.translations.slice(0)) || [];
+        // TODO investigate why the heck `slice(0)` is being used here,
+        // because it seems it's useless
+        let translations = (
+          asset.content &&
+          asset.content.translations &&
+          asset.content.translations.slice(0)
+        ) || [];
         this.launchAppForSurveyContent(asset.content, {
           name: asset.name,
           translations: translations,
@@ -565,6 +570,13 @@ export default assign({
     } = this.buttonStates();
 
     let translations = this.state.translations || [];
+    // HACK FIX: filter out weird case of single `null` item array
+    if (
+      asset.content.translations.length === 1 &&
+      asset.content.translations[0] === null
+    ) {
+      translations = [];
+    }
 
     let nameFieldLabel;
     switch (this.state.asset_type) {
@@ -699,7 +711,7 @@ export default assign({
             }
           </bem.FormBuilderHeader__cell>
 
-          { translations.length > 0 && !(translations.length === 1 && translations[0] === null) &&
+          { translations.length > 0 &&
             <bem.FormBuilderHeader__cell m='translations'>
               <p>
                 {translations[0]}
