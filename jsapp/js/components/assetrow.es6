@@ -148,9 +148,13 @@ class AssetRow extends React.Component {
             {/* "title" column */}
             <bem.AssetRow__cell
               m={'title'}
-              className={['mdl-cell', this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone']}
+              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone']}
             >
-              { this.props.asset_type && (this.props.asset_type == 'template' || this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
+              { this.props.asset_type && (
+                  this.props.asset_type == ASSET_TYPES.template.id ||
+                  this.props.asset_type == ASSET_TYPES.block.id ||
+                  this.props.asset_type == ASSET_TYPES.question.id
+                ) &&
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
               <Link
@@ -172,12 +176,16 @@ class AssetRow extends React.Component {
             </bem.AssetRow__cell>
 
             {/* "type" column for library types */}
-            { this.props.asset_type && (this.props.asset_type == 'template' || this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
+            { this.props.asset_type && (
+                this.props.asset_type == ASSET_TYPES.template.id ||
+                this.props.asset_type == ASSET_TYPES.block.id ||
+                this.props.asset_type == ASSET_TYPES.question.id
+              ) &&
               <bem.AssetRow__cell
                 m={'type'}
                 className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone']}
               >
-                {ASSET_TYPES[this.props.asset_type]}
+                {ASSET_TYPES[this.props.asset_type].label}
               </bem.AssetRow__cell>
             }
 
@@ -290,7 +298,9 @@ class AssetRow extends React.Component {
               <i className='k-icon-clone' />
             </bem.AssetRow__actionIcon>
 
-            { this.props.asset_type && this.props.asset_type === 'template' && userCanEdit &&
+            { this.props.asset_type &&
+              this.props.asset_type === ASSET_TYPES.template.id &&
+              userCanEdit &&
               <bem.AssetRow__actionIcon
                 m={'cloneAsSurvey'}
                 key='cloneAsSurvey'

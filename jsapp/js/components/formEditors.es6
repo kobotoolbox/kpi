@@ -39,7 +39,8 @@ import {
 
 import {
   update_states,
-  PROJECT_SETTINGS_CONTEXTS
+  PROJECT_SETTINGS_CONTEXTS,
+  ASSET_TYPES
 } from '../constants';
 
 var formViaUrlHelpLink = 'http://help.kobotoolbox.org/creating-forms/importing-an-xlsform-via-url';
@@ -1133,7 +1134,7 @@ export class AddToLibrary extends React.Component {
     };
 
     if (this.props.location.pathname === '/library/new/template') {
-      this.state.desiredAssetType = 'template';
+      this.state.desiredAssetType = ASSET_TYPES.template.id;
     }
 
     autoBind(this);

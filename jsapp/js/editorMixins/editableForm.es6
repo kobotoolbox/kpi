@@ -578,24 +578,27 @@ export default assign({
 
     let nameFieldLabel;
     switch (this.state.asset_type) {
-      case 'template':
-        nameFieldLabel = ASSET_TYPES.template;
+      case ASSET_TYPES.template.id:
+        nameFieldLabel = ASSET_TYPES.template.label;
         break;
-      case 'survey':
-        nameFieldLabel = ASSET_TYPES.survey;
+      case ASSET_TYPES.survey.id:
+        nameFieldLabel = ASSET_TYPES.survey.label;
         break;
-      case 'block':
-        nameFieldLabel = ASSET_TYPES.block;
+      case ASSET_TYPES.block.id:
+        nameFieldLabel = ASSET_TYPES.block.label;
         break;
-      case 'question':
-        nameFieldLabel = ASSET_TYPES.question;
+      case ASSET_TYPES.question.id:
+        nameFieldLabel = ASSET_TYPES.question.label;
         break;
       default:
         nameFieldLabel = null;
     }
 
-    if (nameFieldLabel === null && this.state.desiredAssetType === 'template') {
-      nameFieldLabel = ASSET_TYPES.template;
+    if (
+      nameFieldLabel === null &&
+      this.state.desiredAssetType === ASSET_TYPES.template.id
+    ) {
+      nameFieldLabel = ASSET_TYPES.template.label;
     }
 
     return (
@@ -761,9 +764,9 @@ export default assign({
     const hasMetadataAndDetails = (
       this.app &&
       (
-        this.state.asset_type === 'survey' ||
-        this.state.asset_type === 'template' ||
-        this.state.desiredAssetType === 'template'
+        this.state.asset_type === ASSET_TYPES.survey.id ||
+        this.state.asset_type === ASSET_TYPES.template.id ||
+        this.state.desiredAssetType === ASSET_TYPES.template.id
       )
     );
 

@@ -49,10 +49,22 @@ const VALIDATION_STATUSES = [
 ];
 
 const ASSET_TYPES = {
-  question: t('question'),
-  block: t('block'),
-  template: t('template'),
-  survey: t('project')
+  question: {
+    id: 'question',
+    label: t('question')
+  },
+  block: {
+    id: 'block',
+    label: t('block')
+  },
+  template: {
+    id: 'template',
+    label: t('template')
+  },
+  survey: {
+    id: 'survey',
+    label: t('project')
+  }
 }
 
 export default {

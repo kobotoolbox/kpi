@@ -45,8 +45,8 @@ mixins.dmix = {
 
     let dialog = alertify.dialog('prompt');
     let opts = {
-      title: `${t('Clone')} ${ASSET_TYPES.survey}`,
-      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey),
+      title: `${t('Clone')} ${ASSET_TYPES.survey.label}`,
+      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -77,7 +77,7 @@ mixins.dmix = {
     mixins.cloneAssetAsNewType.dialog({
       sourceUid: sourceUid,
       sourceName: sourceName,
-      targetType: 'template',
+      targetType: ASSET_TYPES.template.id,
       promptTitle: t('Create new template from this project'),
       promptMessage: t('Enter the name of the new template.')
     });
@@ -408,7 +408,7 @@ mixins.clickAssets = {
   click: {
     asset: {
       clone: function(uid, name){
-        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type] || '';
+        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
         let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
         let opts = {
@@ -440,7 +440,7 @@ mixins.clickAssets = {
         mixins.cloneAssetAsNewType.dialog({
           sourceUid: sourceUid,
           sourceName: sourceName,
-          targetType: 'template',
+          targetType: ASSET_TYPES.template.id,
           promptTitle: t('Create new template from this project'),
           promptMessage: t('Enter the name of the new template.')
         });
@@ -714,12 +714,12 @@ mixins.cloneAssetAsNewType = {
             this.refreshSearch && this.refreshSearch();
 
             switch (asset.asset_type) {
-              case 'survey':
+              case ASSET_TYPES.survey.id:
                 hashHistory.push(`/forms/${asset.uid}/landing`);
                 break;
-              case 'template':
-              case 'block':
-              case 'question':
+              case ASSET_TYPES.template.id:
+              case ASSET_TYPES.block.id:
+              case ASSET_TYPES.question.id:
                 hashHistory.push(`/library`);
                 break;
             }
