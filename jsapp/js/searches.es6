@@ -76,9 +76,16 @@ function SearchContext(opts={}) {
         searchState: 'none',
       };
 
-      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+      this.listenTo(actions.resources.deployAsset.completed, this.onDeployAsset);
+      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAsset);
     },
-    onDeleteAssetCompleted (asset) {
+    onDeployAsset(data, dialog_or_alert, redeployment) {
+      // ugly way of updating sidebar list after first asset deployment
+      if (redeployment === false) {
+        search();
+      }
+    },
+    onDeleteAsset(asset) {
       var filterOutDeletedAsset = ({listName}) => {
         if (this.state[listName] != undefined) {
           let uid = asset.uid;
