@@ -76,13 +76,21 @@ function SearchContext(opts={}) {
         searchState: 'none',
       };
 
+      this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAsset);
       this.listenTo(actions.resources.deployAsset.completed, this.onDeployAsset);
       this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAsset);
     },
-    onDeployAsset(data, dialog_or_alert, redeployment) {
-      // ugly way of updating sidebar list after first asset deployment
+    onUpdateAsset(asset, uid, values) {
+      const assetBefore = _.find(this.state.defaultQueryResultsList, (result) => {
+        return result.uid === asset.uid;
+      });
+      if (assetBefore && assetBefore.name !== asset.name) {
+        this.silentAssetNameUpdate(uid, asset.name);
+      }
+    },
+    onDeployAsset(data, dialog_or_alert, redeployment, uid) {
       if (redeployment === false) {
-        search();
+        this.silentAssetMoveToDeployed(uid);
       }
     },
     onDeleteAsset(asset) {
@@ -118,6 +126,61 @@ function SearchContext(opts={}) {
       filterOutDeletedAssetFromCategorizedList();
       if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
         filterOutDeletedAsset({listName: 'searchResultsList'});
+      }
+    },
+    silentAssetNameUpdate(uid, newName) {
+      const updateObj = {};
+
+      const defaultQueryResultsList = this.state.defaultQueryResultsList;
+      if (defaultQueryResultsList) {
+        for (const asset of defaultQueryResultsList) {
+          if (asset.uid === uid) {asset.name = newName;}
+        }
+        updateObj.defaultQueryResultsList = defaultQueryResultsList;
+      }
+
+      const defaultQueryCategorizedResultsLists = this.state.defaultQueryCategorizedResultsLists;
+      if (defaultQueryCategorizedResultsLists) {
+        for (const asset of defaultQueryCategorizedResultsLists.Draft) {
+          if (asset.uid === uid) {
+            asset.name = newName;
+          }
+        }
+        for (const asset of defaultQueryCategorizedResultsLists.Deployed) {
+          if (asset.uid === uid) {
+            asset.name = newName;
+          }
+        }
+        updateObj.defaultQueryCategorizedResultsLists = defaultQueryCategorizedResultsLists;
+      }
+
+      this.update(updateObj);
+    },
+    silentAssetMoveToDeployed(uid) {
+      let targetAsset;
+
+      console.log('silentAssetMoveToDeployed', uid);
+
+      const defaultQueryCategorizedResultsLists = this.state.defaultQueryCategorizedResultsLists;
+      if (defaultQueryCategorizedResultsLists) {
+        console.log('before', defaultQueryCategorizedResultsLists.Draft.length, defaultQueryCategorizedResultsLists.Deployed.length);
+
+        for (let i = 0; i < defaultQueryCategorizedResultsLists.Draft; i++) {
+          const asset = defaultQueryCategorizedResultsLists.Draft[i];
+          if (asset.uid === uid) {
+            // TODO LESZEK: fix here
+            targetAsset = defaultQueryCategorizedResultsLists.Draft.splice(i, 1)[0];
+          }
+        }
+        if (targetAsset) {
+          defaultQueryCategorizedResultsLists.Deployed.unshift(targetAsset);
+        }
+
+        console.log('after', defaultQueryCategorizedResultsLists.Draft.length, defaultQueryCategorizedResultsLists.Deployed.length);
+
+        this.update({
+          defaultQueryCategorizedResultsLists: defaultQueryCategorizedResultsLists
+        });
       }
     },
     update (items) {

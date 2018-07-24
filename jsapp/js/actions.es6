@@ -386,7 +386,7 @@ actions.resources.listTags.completed.listen(function(results){
 actions.resources.updateAsset.listen(function(uid, values){
   dataInterface.patchAsset(uid, values)
     .done(function(asset){
-      actions.resources.updateAsset.completed(asset);
+      actions.resources.updateAsset.completed(asset, uid, values);
       notify(t('successfully updated'));
     })
     .fail(function(resp){
@@ -402,13 +402,13 @@ actions.resources.deployAsset.listen(
     }
     dataInterface.deployAsset(asset, redeployment)
       .done((data) => {
-        actions.resources.deployAsset.completed(data, dialog_or_alert, redeployment);
+        actions.resources.deployAsset.completed(data, dialog_or_alert, redeployment, asset.uid);
         if (onComplete) {
           onComplete(asset);
         }
       })
       .fail((data) => {
-        actions.resources.deployAsset.failed(data, dialog_or_alert, redeployment);
+        actions.resources.deployAsset.failed(data, dialog_or_alert, redeployment, asset.uid);
       });
   }
 );
