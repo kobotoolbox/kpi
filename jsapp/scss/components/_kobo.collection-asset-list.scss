@@ -44,6 +44,8 @@
   display: block;
   font-size: 18px;
   font-weight: 500;
+  padding: 9px 0;
+  line-height: 1;
 
   span, i {
     vertical-align: middle;
@@ -65,24 +67,32 @@
   font-weight: 600;
 }
 
-.list__heading-aside {
-  float: right;
-  margin-left: 10px;
-  font-size: 13px;
-}
-
 .list__heading.is-edge + .list__subheading {
   margin-top: 0px;
 }
 
 // regular, non-grouped list for library
-div.library {
+.library {
   height: 100%;
   overflow: hidden;
 
   > .dropzone {
     height: calc(100% - 58px);
     min-height: calc(100% - 58px);
+  }
+
+  .library__type-filter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+
+    .Select {
+      display: inline-block;
+      vertical-align: middle;
+      min-width: 120px;
+      margin-left: 5px;
+    }
   }
 }
 
@@ -94,10 +104,10 @@ div.library {
   width: 100%;
 
   .asset-list {
-    height: calc(100% - 75px);
+    height: calc(100% - 92px);
     overflow-y: auto;
     width: 100%;
-    padding-bottom: 50px;
+    padding-bottom: 50px; // for dropdowns (?)
   }
 
   .asset-list, .asset-list-sorts {
@@ -182,7 +192,12 @@ div.library {
   }
 
   .list__heading, .list__subheading {
-    padding-left: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .library  .library__type-filter {
+    right: 12px;
   }
 }
 

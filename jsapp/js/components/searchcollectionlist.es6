@@ -14,8 +14,6 @@ import $ from 'jquery';
 import Dropzone from 'react-dropzone';
 import {t, validFileTypes} from '../utils';
 
-const defaultTypeFilterValue = 'all';
-
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
     super(props);
@@ -28,8 +26,7 @@ class SearchCollectionList extends Reflux.Component {
       selectedCategories: selectedCategories,
       ownedCollections: [],
       fixedHeadings: '',
-      fixedHeadingsWidth: 'auto',
-      typeFilter: defaultTypeFilterValue
+      fixedHeadingsWidth: 'auto'
     };
     this.store = stores.selectedAsset;
     autoBind(this);
@@ -40,15 +37,9 @@ class SearchCollectionList extends Reflux.Component {
   }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
-    if (searchStoreState.searchState === 'done')
+    if (searchStoreState.searchState === 'done') {
       this.queryCollections();
-  }
-  onTypeFilterChange(evt) {
-    let newValue = defaultTypeFilterValue;
-    if (evt.target) {
-      newValue = evt.target.value;
     }
-    this.setState({'typeFilter': newValue});
   }
   queryCollections () {
     if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
@@ -87,30 +78,16 @@ class SearchCollectionList extends Reflux.Component {
     var isSelected = stores.selectedAsset.uid === resource.uid;
     var ownedCollections = this.state.ownedCollections;
 
-    // filter out all resources that don't mach type filter
-    if (this.state.typeFilter !== 'all' && resource.asset_type !== this.state.typeFilter) {
-      return false;
-    } else {
-      return (
-        <this.props.assetRowClass key={resource.uid}
-          currentUsername={currentUsername}
-          onActionButtonClick={this.onActionButtonClick}
-          isSelected={isSelected}
-          ownedCollections={ownedCollections}
-          deleting={resource.deleting}
-          {...resource}
-        />
-      );
-    }
-  }
-  toggleCategory(c) {
-    return function (e) {
-    var selectedCategories = this.state.selectedCategories;
-    selectedCategories[c] = !selectedCategories[c];
-      this.setState({
-        selectedCategories: selectedCategories,
-      });
-    }.bind(this)
+    return (
+      <this.props.assetRowClass key={resource.uid}
+        currentUsername={currentUsername}
+        onActionButtonClick={this.onActionButtonClick}
+        isSelected={isSelected}
+        ownedCollections={ownedCollections}
+        deleting={resource.deleting}
+        {...resource}
+      />
+    );
   }
   renderHeadings () {
     return [
@@ -126,21 +103,6 @@ class SearchCollectionList extends Reflux.Component {
               <span>{this.state.parentName}</span>
             </span>
           }
-
-          <bem.List__headingAside>
-            <label htmlFor="type_filter">{t('Filter by type:')}&nbsp;</label>
-            <select
-              id="type_filter"
-              name="type_filter"
-              value={this.state.typeFilter}
-              onChange={this.onTypeFilterChange}
-            >
-              <option value="all">{t('Show All')}</option>
-              <option value="question">{t('Question')}</option>
-              <option value="block">{t('Block')}</option>
-              <option value="template">{t('Template')}</option>
-            </select>
-          </bem.List__headingAside>
         </bem.List__heading>
       ),
       (

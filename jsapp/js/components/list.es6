@@ -227,13 +227,9 @@ class ListExpandToggle extends React.Component {
     this.setState({assetNavExpanded: !this.state.assetNavExpanded});
   }
   render () {
-    var count,
-        isSearch = this.state.searchResultsDisplayed;
-
-    if (isSearch) {
+    let count = this.state.defaultQueryCount;
+    if (this.state.searchResultsDisplayed) {
       count = this.state.searchResultsCount;
-    } else {
-      count = this.state.defaultQueryCount;
     }
 
     return (
@@ -279,8 +275,10 @@ class ListSearchSummary extends React.Component {
     this.setState(state);
   }
   render () {
-    var messages = [], modifier,
-        s = this.state;
+    var messages = [];
+    var modifier;
+    var s = this.state;
+
     if (s.searchFor && s.searchFor.tags && s.searchFor.tags.length > 0) {
       var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
     }
@@ -316,12 +314,12 @@ class ListSearchSummary extends React.Component {
     }
 
     return (
-        <bem.Search__summary m={modifier}>
-          {messages.map(function(message, i){
-            return <div key={`prop-${i}`}>{message}</div>;
-          })}
-        </bem.Search__summary>
-      );
+      <bem.Search__summary m={modifier}>
+        {messages.map(function(message, i){
+          return <div key={`prop-${i}`}>{message}</div>;
+        })}
+      </bem.Search__summary>
+    );
   }
 };
 
