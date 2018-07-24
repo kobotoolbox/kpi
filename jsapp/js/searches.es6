@@ -85,101 +85,94 @@ function SearchContext(opts={}) {
         return result.uid === asset.uid;
       });
       if (assetBefore && assetBefore.name !== asset.name) {
-        this.silentAssetNameUpdate(uid, asset.name);
+        this.silentUpdateAssetName(uid, asset.name);
       }
     },
     onDeployAsset(data, dialog_or_alert, redeployment, uid) {
       if (redeployment === false) {
-        this.silentAssetMoveToDeployed(uid);
+        this.silentMoveAssetToDeployed(uid);
       }
     },
     onDeleteAsset(asset) {
-      var filterOutDeletedAsset = ({listName}) => {
-        if (this.state[listName] != undefined) {
-          let uid = asset.uid;
-          let listLength = this.state[listName].length;
-          let l = this.state[listName].filter(function(result){
-            return result.uid !== uid;
-          });
-          if (l.length !== listLength) {
-            let o = {};
-            o[listName] = l;
-            this.update(o);
-          }
-        }
-      };
-      var filterOutDeletedAssetFromCategorizedList = () => {
-        let list = this.state.defaultQueryCategorizedResultsLists;
-        if (list) {
-          var l = {};
-          for (var category in list) {
-            l[category] = list[category].filter(function(result){
-              return result.uid !== asset.uid;
-            });
-          }
-          let o = {};
-          o.defaultQueryCategorizedResultsLists = l;
-          this.update(o);
-        }
-      };
-      filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
-      filterOutDeletedAssetFromCategorizedList();
+      this.silentRemoveAssetFromList(asset.uid, 'defaultQueryResultsList');
+      this.silentRemoveAssetFromCategorizedList(asset.uid);
       if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
-        filterOutDeletedAsset({listName: 'searchResultsList'});
+        this.silentRemoveAssetFromList(asset.uid, 'searchResultsList');
       }
     },
-    silentAssetNameUpdate(uid, newName) {
+    silentRemoveAssetFromCategorizedList(uid) {
+      let list = this.state.defaultQueryCategorizedResultsLists;
+      if (list) {
+        var l = {};
+        for (var category in list) {
+          l[category] = list[category].filter(function(result){
+            return result.uid !== uid;
+          });
+        }
+        let o = {};
+        o.defaultQueryCategorizedResultsLists = l;
+        this.update(o);
+      }
+    },
+    silentRemoveAssetFromList(uid, listName) {
+      if (this.state[listName] != undefined) {
+        let uid = uid;
+        let listLength = this.state[listName].length;
+        let l = this.state[listName].filter(function(result){
+          return result.uid !== uid;
+        });
+        if (l.length !== listLength) {
+          let o = {};
+          o[listName] = l;
+          this.update(o);
+        }
+      }
+    },
+    silentUpdateAssetName(uid, newName) {
       const updateObj = {};
 
-      const defaultQueryResultsList = this.state.defaultQueryResultsList;
-      if (defaultQueryResultsList) {
-        for (const asset of defaultQueryResultsList) {
+      const results = this.state.defaultQueryResultsList;
+      if (results) {
+        for (const asset of results) {
           if (asset.uid === uid) {asset.name = newName;}
         }
-        updateObj.defaultQueryResultsList = defaultQueryResultsList;
+        updateObj.defaultQueryResultsList = results;
       }
 
-      const defaultQueryCategorizedResultsLists = this.state.defaultQueryCategorizedResultsLists;
-      if (defaultQueryCategorizedResultsLists) {
-        for (const asset of defaultQueryCategorizedResultsLists.Draft) {
+      const categorizedResults = this.state.defaultQueryCategorizedResultsLists;
+      if (categorizedResults) {
+        for (const asset of categorizedResults.Draft) {
           if (asset.uid === uid) {
             asset.name = newName;
           }
         }
-        for (const asset of defaultQueryCategorizedResultsLists.Deployed) {
+        for (const asset of categorizedResults.Deployed) {
           if (asset.uid === uid) {
             asset.name = newName;
           }
         }
-        updateObj.defaultQueryCategorizedResultsLists = defaultQueryCategorizedResultsLists;
+        updateObj.defaultQueryCategorizedResultsLists = categorizedResults;
       }
 
       this.update(updateObj);
     },
-    silentAssetMoveToDeployed(uid) {
-      let targetAsset;
+    silentMoveAssetToDeployed(uid) {
+      let assetsToMove = [];
 
-      console.log('silentAssetMoveToDeployed', uid);
-
-      const defaultQueryCategorizedResultsLists = this.state.defaultQueryCategorizedResultsLists;
-      if (defaultQueryCategorizedResultsLists) {
-        console.log('before', defaultQueryCategorizedResultsLists.Draft.length, defaultQueryCategorizedResultsLists.Deployed.length);
-
-        for (let i = 0; i < defaultQueryCategorizedResultsLists.Draft; i++) {
-          const asset = defaultQueryCategorizedResultsLists.Draft[i];
-          if (asset.uid === uid) {
-            // TODO LESZEK: fix here
-            targetAsset = defaultQueryCategorizedResultsLists.Draft.splice(i, 1)[0];
+      const results = this.state.defaultQueryCategorizedResultsLists;
+      if (results) {
+        for (let i = 0; i < results.Draft.length; i++) {
+          if (results.Draft[i].uid === uid) {
+            assetsToMove = results.Draft.splice(i, 1);
+            break;
           }
         }
-        if (targetAsset) {
-          defaultQueryCategorizedResultsLists.Deployed.unshift(targetAsset);
+        if (assetsToMove.length === 1) {
+          results.Deployed.unshift(assetsToMove[0]);
         }
 
-        console.log('after', defaultQueryCategorizedResultsLists.Draft.length, defaultQueryCategorizedResultsLists.Deployed.length);
-
         this.update({
-          defaultQueryCategorizedResultsLists: defaultQueryCategorizedResultsLists
+          defaultQueryCategorizedResultsLists: results
         });
       }
     },
