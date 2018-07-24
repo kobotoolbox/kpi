@@ -79,14 +79,19 @@
 div.library {
   height: 100%;
   overflow: hidden;
+
+  > .dropzone {
+    height: calc(100% - 58px);
+    min-height: calc(100% - 58px);
+  }
 }
 
 .list--regular {
   flex-flow: column;
   margin: 0px !important;
   position: relative;
-  height: calc(100% - 58px);
-  width: calc(100% - 6px);
+  height: 100%;
+  width: 100%;
 
   .asset-list {
     height: calc(100% - 75px);
