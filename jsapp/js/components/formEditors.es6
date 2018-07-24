@@ -340,7 +340,7 @@ export class ProjectSettings extends React.Component {
 
     this.setState({
       isApplyTemplatePending: true,
-      applyTemplateButton: t('Creating…')
+      applyTemplateButton: t('Please wait…')
     });
 
     actions.resources.cloneAsset({
@@ -497,9 +497,11 @@ export class ProjectSettings extends React.Component {
   renderStepFormSource() {
     return (
       <bem.FormModal__item className='project-settings project-settings--form-source'>
-        <bem.Modal__subheader>
-          {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
-        </bem.Modal__subheader>
+        {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+          <bem.Modal__subheader>
+            {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
+          </bem.Modal__subheader>
+        }
 
         <bem.FormModal__item m='form-source-buttons'>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
@@ -509,10 +511,12 @@ export class ProjectSettings extends React.Component {
             </button>
           }
 
-          <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-            <i className="k-icon-template" />
-            {t('Use a template')}
-          </button>
+          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+            <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
+              <i className="k-icon-template" />
+              {t('Use a template')}
+            </button>
+          }
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
             <i className="k-icon-upload" />
@@ -727,7 +731,7 @@ export class ProjectSettings extends React.Component {
                 className="mdl-js-button"
                 disabled={this.state.isSubmitPending}
               >
-                {this.state.isSubmitPending && t('Creating…')}
+                {this.state.isSubmitPending && t('Please wait…')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>

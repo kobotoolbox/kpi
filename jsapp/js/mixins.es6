@@ -700,7 +700,7 @@ mixins.cloneAssetAsNewType = {
       onok: (evt, value) => {
         // disable buttons
         dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
-        dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
+        dialog.elements.buttons.primary.children[0].innerText = t('Please wait…');
         dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
 
         actions.resources.cloneAsset({
