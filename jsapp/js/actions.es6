@@ -560,7 +560,13 @@ actions.resources.deleteAsset.listen(function(details, params={}){
         onComplete(details);
       }
     })
-    .fail(actions.resources.deleteAsset.failed);
+    .fail((err) => {
+      actions.resources.deleteAsset.failed(details);
+      alertify.alert(
+        t('Unable to delete asset!'),
+        `<p>${t('Error details:')}</p><pre style='max-height: 200px;'>${err.responseText}</pre>`
+      );
+    });
 });
 
 actions.resources.readCollection.listen(function(details){
