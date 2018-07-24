@@ -402,13 +402,13 @@ actions.resources.deployAsset.listen(
     }
     dataInterface.deployAsset(asset, redeployment)
       .done((data) => {
-        actions.resources.deployAsset.completed(data, dialog_or_alert);
+        actions.resources.deployAsset.completed(data, dialog_or_alert, redeployment);
         if (onComplete) {
           onComplete(asset);
         }
       })
       .fail((data) => {
-        actions.resources.deployAsset.failed(data, dialog_or_alert);
+        actions.resources.deployAsset.failed(data, dialog_or_alert, redeployment);
       });
   }
 );

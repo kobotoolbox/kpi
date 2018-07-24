@@ -99,8 +99,7 @@ mixins.dmix = {
         if (this.state && this.state.kind == 'asset') {
           asset = this.state;
         } else {
-          console.error(
-            'Neither the arguments nor the state supplied an asset.');
+          console.error('Neither the arguments nor the state supplied an asset.');
           return;
         }
     }
