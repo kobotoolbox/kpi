@@ -348,16 +348,21 @@ export class ProjectSettings extends React.Component {
       new_asset_type: 'survey'
     }, {
       onComplete: (asset) => {
-        this.setState({
-          formAsset: asset,
-          name: asset.name,
-          description: asset.settings.description,
-          sector: asset.settings.sector,
-          country: asset.settings.country,
-          'share-metadata': asset.settings['share-metadata'] || false,
-        });
-        this.resetApplyTemplateButton();
-        this.displayStep(this.STEPS.PROJECT_DETAILS);
+        if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+          // when replacing, we omit PROJECT_DETAILS step
+          this.handleReplaceDone();
+        } else {
+          this.setState({
+            formAsset: asset,
+            name: asset.name,
+            description: asset.settings.description,
+            sector: asset.settings.sector,
+            country: asset.settings.country,
+            'share-metadata': asset.settings['share-metadata'] || false,
+          });
+          this.resetApplyTemplateButton();
+          this.displayStep(this.STEPS.PROJECT_DETAILS);
+        }
       },
       onFailed: (asset) => {
         this.resetApplyTemplateButton();
@@ -383,19 +388,24 @@ export class ProjectSettings extends React.Component {
           this.applyUrlToAsset(this.state.importUrl, asset).then(
             (data) => {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
-                // try proposing something more meaningful than "Untitled"
-                const newName = decodeURIComponent(new URL(this.state.importUrl).pathname.split('/').pop().split('.')[0]);
+                if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+                  // when replacing, we omit PROJECT_DETAILS step
+                  this.handleReplaceDone();
+                } else {
+                  // try proposing something more meaningful than "Untitled"
+                  const newName = decodeURIComponent(new URL(this.state.importUrl).pathname.split('/').pop().split('.')[0]);
 
-                this.setState({
-                  formAsset: finalAsset,
-                  name: newName,
-                  description: finalAsset.settings.description,
-                  sector: finalAsset.settings.sector,
-                  country: finalAsset.settings.country,
-                  'share-metadata': finalAsset.settings['share-metadata'],
-                  isImportFromURLPending: false
-                });
-                this.displayStep(this.STEPS.PROJECT_DETAILS);
+                  this.setState({
+                    formAsset: finalAsset,
+                    name: newName,
+                    description: finalAsset.settings.description,
+                    sector: finalAsset.settings.sector,
+                    country: finalAsset.settings.country,
+                    'share-metadata': finalAsset.settings['share-metadata'],
+                    isImportFromURLPending: false
+                  });
+                  this.displayStep(this.STEPS.PROJECT_DETAILS);
+                }
               }).fail(() => {
                 this.resetImportUrlButton();
                 alertify.error(t('Failed to reload project after import!'));
@@ -423,18 +433,23 @@ export class ProjectSettings extends React.Component {
           this.applyFileToAsset(files[0], asset).then(
             (data) => {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
-                // try proposing something more meaningful than "Untitled"
-                const newName = files[0].name.split('.')[0];
-                this.setState({
-                  formAsset: finalAsset,
-                  name: newName,
-                  description: finalAsset.settings.description,
-                  sector: finalAsset.settings.sector,
-                  country: finalAsset.settings.country,
-                  'share-metadata': finalAsset.settings['share-metadata'],
-                  isUploadFilePending: false
-                });
-                this.displayStep(this.STEPS.PROJECT_DETAILS);
+                if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+                  // when replacing, we omit PROJECT_DETAILS step
+                  this.handleReplaceDone();
+                } else {
+                  // try proposing something more meaningful than "Untitled"
+                  const newName = files[0].name.split('.')[0];
+                  this.setState({
+                    formAsset: finalAsset,
+                    name: newName,
+                    description: finalAsset.settings.description,
+                    sector: finalAsset.settings.sector,
+                    country: finalAsset.settings.country,
+                    'share-metadata': finalAsset.settings['share-metadata'],
+                    isUploadFilePending: false
+                  });
+                  this.displayStep(this.STEPS.PROJECT_DETAILS);
+                }
               }).fail(() => {
                 this.setState({isUploadFilePending: false});
                 alertify.error(t('Failed to reload project after upload!'));
@@ -451,6 +466,10 @@ export class ProjectSettings extends React.Component {
         }
       );
     }
+  }
+
+  handleReplaceDone() {
+    this.updateAndOpenAsset();
   }
 
   handleSubmit(evt) {
