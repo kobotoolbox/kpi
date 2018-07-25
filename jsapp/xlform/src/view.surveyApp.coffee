@@ -88,6 +88,8 @@ module.exports = do ->
       $et.parents('.card__settings').find(".card__settings__fields--#{tabId}").addClass('card__settings__fields--active')
 
     surveyRowSortableStop: (evt)->
+      @survey.trigger('change')
+
       $et = $(evt.target)
       cid = $et.data('rowId')
 
@@ -171,6 +173,7 @@ module.exports = do ->
     forceSelectRow: (evt)->
       # forceSelectRow is used to mock the multiple-select key
       @selectRow($.extend({}, evt))
+
     deselect_all_rows: () ->
       @$('.survey__row').removeClass('survey__row--selected')
 
@@ -180,6 +183,7 @@ module.exports = do ->
       else
         @deselect_all_rows()
       return
+
     selectRow: (evt)->
       @is_selecting = true
       $et = $(evt.target)
@@ -196,8 +200,6 @@ module.exports = do ->
           selected_rows = $target.siblings('.survey__row--selected')
           if !$target.hasClass('survey__row--selected') || selected_rows.length > 1
             @deselect_all_rows()
-
-
 
         $target.toggleClass("survey__row--selected")
         if $target.hasClass('survey__row--group')
