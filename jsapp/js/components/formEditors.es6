@@ -329,8 +329,7 @@ export class ProjectSettings extends React.Component {
           if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
             this.goToFormLanding();
           }
-        },
-        hideDefaultDoneNotification: true
+        }
       }
     );
   }
