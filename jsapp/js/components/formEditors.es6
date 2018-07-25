@@ -344,31 +344,28 @@ export class ProjectSettings extends React.Component {
     });
 
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-      actions.resources.loadAssetContent({id: this.state.chosenTemplateUid}, {
-        onComplete: (response) => {
-          const params = {
-            content: JSON.stringify({
-              choices: response.data.choices,
-              settings: response.data.settings,
-              survey: response.data.survey
-            })
+      actions.resources.updateAsset(
+        this.state.formAsset.uid,
+        {
+          clone_from: this.state.chosenTemplateUid,
+          name: this.state.formAsset.name,
+          settings: JSON.stringify({
+            description: this.state.formAsset.description,
+            sector: this.state.formAsset.sector,
+            country: this.state.formAsset.country,
+            'share-metadata': this.state.formAsset['share-metadata']
+          })
+        }, {
+          onComplete: () => {
+            // when replacing, we omit PROJECT_DETAILS step
+            this.handleReplaceDone();
+          },
+          onFailed: () => {
+            this.resetApplyTemplateButton();
+            alertify.error(t('Could not replace project!'));
           }
-          actions.resources.updateAsset.triggerAsync(this.state.formAsset.uid, params)
-            .then((data) => {
-              console.log('done', data);
-              // when replacing, we omit PROJECT_DETAILS step
-              this.handleReplaceDone();
-            })
-            .catch(() => {
-              this.resetApplyTemplateButton();
-              alertify.error(t('Could not replace project!'));
-            });
-        },
-        onFailed: () => {
-          this.resetApplyTemplateButton();
-          alertify.error(t('Could not replace project!'));
         }
-      });
+      );
     } else {
       actions.resources.cloneAsset({
         uid: this.state.chosenTemplateUid,
