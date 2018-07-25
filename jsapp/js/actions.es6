@@ -760,13 +760,20 @@ actions.resources.loadAsset.listen(function(params){
       .fail(actions.resources.loadAsset.failed);
 });
 
-actions.resources.loadAssetContent.listen(function(params){
+actions.resources.loadAssetContent.listen(function(params, callbacks = {}){
   dataInterface.getAssetContent(params)
-      .done(function(data, ...args) {
-        // data.sheeted = new Sheeted([['survey', 'choices', 'settings'], data.data])
-        actions.resources.loadAssetContent.completed(data, ...args);
-      })
-      .fail(actions.resources.loadAssetContent.failed);
+    .done((...args) => {
+      actions.resources.loadAssetContent.completed(...args);
+      if (callbacks.onComplete) {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.resources.loadAssetContent.failed(...args);
+      if (callbacks.onFailed) {
+        callbacks.onFailed(...args);
+      }
+    });
 });
 
 actions.resources.listAssets.listen(function(){
