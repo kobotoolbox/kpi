@@ -347,10 +347,15 @@ export class ProjectSettings extends React.Component {
       actions.resources.loadAssetContent({id: this.state.chosenTemplateUid}, {
         onComplete: (response) => {
           const params = {
-            content: JSON.stringify({survey: response.data.survey})
+            content: JSON.stringify({
+              choices: response.data.choices,
+              settings: response.data.settings,
+              survey: response.data.survey
+            })
           }
           actions.resources.updateAsset.triggerAsync(this.state.formAsset.uid, params)
             .then((data) => {
+              console.log('done', data);
               // when replacing, we omit PROJECT_DETAILS step
               this.handleReplaceDone();
             })
@@ -363,7 +368,7 @@ export class ProjectSettings extends React.Component {
           this.resetApplyTemplateButton();
           alertify.error(t('Could not replace project!'));
         }
-      })
+      });
     } else {
       actions.resources.cloneAsset({
         uid: this.state.chosenTemplateUid,
