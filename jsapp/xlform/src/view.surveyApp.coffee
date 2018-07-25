@@ -618,6 +618,8 @@ module.exports = do ->
       evt.preventDefault()
       if confirm(_t("Are you sure you want to delete this question?") + " " +
           _t("This action cannot be undone."))
+        @survey.trigger('change')
+
         $et = $(evt.target)
         rowEl = $et.parents(".survey__row").eq(0)
         rowId = rowEl.data("rowId")
