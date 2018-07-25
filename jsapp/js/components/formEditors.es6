@@ -343,15 +343,33 @@ export class ProjectSettings extends React.Component {
       applyTemplateButton: t('Please wait…')
     });
 
-    actions.resources.cloneAsset({
-      uid: this.state.chosenTemplateUid,
-      new_asset_type: 'survey'
-    }, {
-      onComplete: (asset) => {
-        if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-          // when replacing, we omit PROJECT_DETAILS step
-          this.handleReplaceDone();
-        } else {
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      actions.resources.loadAssetContent({id: this.state.chosenTemplateUid}, {
+        onComplete: (response) => {
+          const params = {
+            content: JSON.stringify({survey: response.data.survey})
+          }
+          actions.resources.updateAsset.triggerAsync(this.state.formAsset.uid, params)
+            .then((data) => {
+              // when replacing, we omit PROJECT_DETAILS step
+              this.handleReplaceDone();
+            })
+            .catch(() => {
+              this.resetApplyTemplateButton();
+              alertify.error(t('Could not replace project!'));
+            });
+        },
+        onFailed: () => {
+          this.resetApplyTemplateButton();
+          alertify.error(t('Could not replace project!'));
+        }
+      })
+    } else {
+      actions.resources.cloneAsset({
+        uid: this.state.chosenTemplateUid,
+        new_asset_type: 'survey'
+      }, {
+        onComplete: (asset) => {
           this.setState({
             formAsset: asset,
             name: asset.name,
@@ -362,13 +380,13 @@ export class ProjectSettings extends React.Component {
           });
           this.resetApplyTemplateButton();
           this.displayStep(this.STEPS.PROJECT_DETAILS);
+        },
+        onFailed: (asset) => {
+          this.resetApplyTemplateButton();
+          alertify.error(t('Could not create project!'));
         }
-      },
-      onFailed: (asset) => {
-        this.resetApplyTemplateButton();
-        alertify.error(t('Could not create project!'));
-      }
-    });
+      });
+    }
   }
 
   importFromURL(evt) {
@@ -469,7 +487,7 @@ export class ProjectSettings extends React.Component {
   }
 
   handleReplaceDone() {
-    this.updateAndOpenAsset();
+    this.goToFormLanding();
   }
 
   handleSubmit(evt) {
@@ -511,12 +529,10 @@ export class ProjectSettings extends React.Component {
             </button>
           }
 
-          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-            <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-              <i className="k-icon-template" />
-              {t('Use a template')}
-            </button>
-          }
+          <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
+            <i className="k-icon-template" />
+            {t('Use a template')}
+          </button>
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
             <i className="k-icon-upload" />
