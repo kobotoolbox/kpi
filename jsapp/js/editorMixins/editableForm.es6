@@ -176,11 +176,10 @@ export default assign({
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        // TODO investigate why the heck `slice(0)` is being used here,
-        // because it seems it's useless
         let translations = (
           asset.content &&
           asset.content.translations &&
+          // slice makes shallow copy
           asset.content.translations.slice(0)
         ) || [];
 
