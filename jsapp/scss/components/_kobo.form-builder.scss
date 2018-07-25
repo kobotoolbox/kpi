@@ -214,9 +214,8 @@ $t-form-builder-aside-open: 200ms;
 
       button {
         color: $cool-gray;
-        overflow: visible;
-
         // for tooltip
+        overflow: visible;
         padding: 0;
 
         &[data-tip]::after {
