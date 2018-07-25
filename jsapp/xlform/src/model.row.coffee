@@ -458,7 +458,7 @@ module.exports = do ->
   class row.RowError extends row.BaseRow
     constructor: (obj, options)->
       @_error = options.error
-      unless global.xlfHideWarnings
+      unless window.xlfHideWarnings
         console?.error("Error creating row: [#{options.error}]", obj)
         alertify.error("Error creating row: [#{options.error}]");
       super(obj, options)
