@@ -78,8 +78,13 @@ module.exports = do ->
       parent = @_parent
       if parent == null
         return null
-      while parent._parent
-        parent = parent._parent
+      while parent._parent or parent.collection
+        if parent._parent
+          parent = parent._parent
+        else if parent.collection and parent.collection._parent
+          parent = parent.collection._parent
+        else
+          break
       parent
 
   _innerValue = (val)->
