@@ -43,7 +43,7 @@ module.exports = do ->
           deactivate: =>
             if @hasReordered
               @reordered()
-              @model.getSurvey().trigger('change')
+              @model.getSurvey()?.trigger('change')
             true
           change: => @hasReordered = true
         })
@@ -51,7 +51,7 @@ module.exports = do ->
       btn.click(() =>
         i = @model.options.length
         @addEmptyOption("Option #{i+1}")
-        @model.getSurvey().trigger('change')
+        @model.getSurvey()?.trigger('change')
       )
 
       @$el.append(btn)
@@ -162,7 +162,7 @@ module.exports = do ->
     remove: ()->
       $parent = @$el.parent()
 
-      @model.getSurvey().trigger('change')
+      @model.getSurvey()?.trigger('change')
 
       @$el.remove()
       @model.destroy()
@@ -190,6 +190,7 @@ module.exports = do ->
             validXmlTag: true
           @model.set("name", $modelUtils.sluggify(nval, sluggifyOpts))
         @$el.trigger("choice-list-update", @options.cl.cid)
+        @model.getSurvey()?.trigger('change')
         return
       else
         return newValue: @model.get "label"
