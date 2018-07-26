@@ -57,7 +57,7 @@ class MapColorPicker extends React.Component {
             <label>{label}</label>
           }
           <bem.GraphSettings__radio>
-            <input type="radio" name="chart_colors"
+            <input type='radio' name='chart_colors'
               value={set}
               checked={this.defaultValue(set)}
               onChange={this.onChange}
@@ -252,9 +252,9 @@ class MapSettings extends React.Component {
       <bem.GraphSettings>
         <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
         <ui.Modal.Body>
-          <div className="tabs-content map-settings">
+          <div className='tabs-content map-settings'>
             {activeTab === 'geoquestion' && (
-              <div className="map-settings__GeoQuestions">
+              <div className='map-settings__GeoQuestions'>
                 <p>
                   {t(
                     'Choose the Geopoint question you would like to display on the map:'
@@ -264,8 +264,8 @@ class MapSettings extends React.Component {
                   return (
                     <label htmlFor={'GeopointQuestion-' + i} key={i}>
                       <input
-                        type="radio"
-                        name="trnsltn"
+                        type='radio'
+                        name='trnsltn'
                         value={question.value}
                         onChange={this.geoPointQuestionChange}
                         checked={
@@ -283,37 +283,37 @@ class MapSettings extends React.Component {
               </div>
             )}
             {activeTab === 'overlays' && (
-              <div className="map-settings__overlay">
+              <div className='map-settings__overlay'>
                 {this.state.files.length > 0 && (
-                  <bem.FormModal__item m="list-files">
+                  <bem.FormModal__item m='list-files'>
                     <label>{t('Uploaded layers')}</label>
                     {this.state.files.map((file, i) => {
                       return (
-                        <div className="list-file-row" key={i}>
-                          <span className="file-type">
+                        <div className='list-file-row' key={i}>
+                          <span className='file-type'>
                             {file.metadata.type}
                           </span>
-                          <span className="file-layer-name">{file.name}</span>
+                          <span className='file-layer-name'>{file.name}</span>
                           <span
-                            className="file-delete"
+                            className='file-delete'
                             onClick={this.deleteFile}
                             data-tip={t('Delete layer')}
                             data-uid={file.uid}
                           >
-                            <i className="k-icon-trash" />
+                            <i className='k-icon-trash' />
                           </span>
                         </div>
                       );
                     })}
                   </bem.FormModal__item>
                 )}
-                <bem.FormModal__item m="layer-upload">
-                  <label htmlFor="name">
+                <bem.FormModal__item m='layer-upload'>
+                  <label htmlFor='name'>
                     {t('Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.')}
                   </label>
                   <input
-                    type="text"
-                    id="name"
+                    type='text'
+                    id='name'
                     placeholder={t('Layer name')}
                     value={this.state.layerName}
                     onChange={this.layerNameChange}
@@ -321,10 +321,10 @@ class MapSettings extends React.Component {
                   <Dropzone
                     onDrop={this.dropFiles}
                     multiple={false}
-                    className="dropzone"
+                    className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <button className="mdl-button mdl-button--raised mdl-button--colored">
+                    <button className='mdl-button mdl-button--raised mdl-button--colored'>
                       {t('Upload')}
                     </button>
                   </Dropzone>
@@ -333,7 +333,7 @@ class MapSettings extends React.Component {
             )}
             {activeTab === 'colors' && (
               <bem.FormModal__item>
-                <div className="map-settings__colors">
+                <div className='map-settings__colors'>
                   {t('Choose the color set for the disaggregated map markers.')}
                   <MapColorPicker onChange={this.colorChange} mapSettings={this.state.mapSettings}/>
                 </div>
@@ -346,13 +346,13 @@ class MapSettings extends React.Component {
           <ui.Modal.Footer>
             {this.userCan('change_asset', this.props.asset) &&
               <button
-                className="mdl-button mdl-button--colored"
+                className='mdl-button mdl-button--colored'
                 onClick={this.resetMapSettings}>
                 {t('Reset')}
               </button>
             }
             <button
-              className="mdl-button primary"
+              className='mdl-button primary'
               onClick={this.saveMapSettings}>
               {t('Save')}
             </button>

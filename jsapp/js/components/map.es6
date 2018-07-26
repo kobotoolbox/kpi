@@ -190,7 +190,7 @@ export class FormMap extends React.Component {
           })
           .then(JSZip.loadAsync)
           .then(function (zip) {
-            return zip.file("doc.kml").async("string");
+            return zip.file('doc.kml').async('string');
           })
           .then(function success(kml) {
             overlayLayer = omnivore.kml.parse(kml);
@@ -305,7 +305,7 @@ export class FormMap extends React.Component {
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
           labels: choice ? choice.label : undefined,
-          value: m != "undefined" ? m : undefined
+          value: m != 'undefined' ? m : undefined
         });
       });
 
@@ -425,7 +425,7 @@ export class FormMap extends React.Component {
 
   buildIcon(index = false) {
     let colorSet = this.calcColorSet() || 'a';
-    let iconClass = index ? `map-marker-${colorSet}${index}` : `map-marker-a`;
+    let iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a';
 
     return L.divIcon({
       className: `map-marker ${iconClass}`,
@@ -582,7 +582,7 @@ export class FormMap extends React.Component {
     let markers = this.state.markers,
         id = evt.target.getAttribute('data-id'),
         filteredByMarker = this.state.filteredByMarker,
-        unselectedClass = "unselected";
+        unselectedClass = 'unselected';
 
     if (!filteredByMarker)
       filteredByMarker = [id];
@@ -604,7 +604,7 @@ export class FormMap extends React.Component {
     let markers = this.state.markers;
     this.setState({filteredByMarker: false});
     markers.eachLayer( function(layer) {
-      layer._icon.classList.remove("unselected");
+      layer._icon.classList.remove('unselected');
     });
   }
 
@@ -678,36 +678,36 @@ export class FormMap extends React.Component {
     }
 
     return (
-      <bem.FormView m='map' className="right-tooltip">
+      <bem.FormView m='map' className='right-tooltip'>
         <bem.FormView__mapButton m={'expand'}
           onClick={this.toggleExpandedMap}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleExpandedMap ? 'active': ''}>
-          <i className="k-icon-expand" />
+          <i className='k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
-          <i className="k-icon-pins" />
+          <i className='k-icon-pins' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'layers'}
           onClick={this.showLayerControls}
           data-tip={t('Toggle layers')}>
-          <i className="k-icon-layer" />
+          <i className='k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings}
           data-tip={t('Map display settings')}>
-          <i className="k-icon-settings" />
+          <i className='k-icon-settings' />
         </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
-            <i className="k-icon-heatmap" />
+            <i className='k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
         <ui.PopoverMenu type='viewby-menu'
@@ -769,7 +769,7 @@ export class FormMap extends React.Component {
                       <span className={`map-marker map-marker-${colorSet}${index + 1}`}>
                         {m.count}
                       </span>
-                      <span className={`map-marker-label`}
+                      <span className={'map-marker-label'}
                             onClick={this.filterByMarker} data-id={m.id} title={label}>
                         {label}
                       </span>
@@ -777,7 +777,7 @@ export class FormMap extends React.Component {
                   );
               })}
             </div>
-            <div className="maplist-legend" onClick={this.toggleLegend}>
+            <div className='maplist-legend' onClick={this.toggleLegend}>
               <i className={classNames('fa', this.state.showExpandedLegend ? 'fa-angle-down' : 'fa-angle-up')} /> {t('Legend')}
             </div>
           </bem.FormView__mapList>
@@ -789,7 +789,6 @@ export class FormMap extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         }
-
         {this.state.showMapSettings && (
           <ui.Modal
             open
@@ -803,7 +802,7 @@ export class FormMap extends React.Component {
           </ui.Modal>
         )}
 
-        <div id="data-map" />
+        <div id='data-map' />
       </bem.FormView>
       );
   }

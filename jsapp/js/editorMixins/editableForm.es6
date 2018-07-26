@@ -40,7 +40,7 @@ var ErrorMessage = bem.create('error-message'),
     ErrorMessage__strong = bem.create('error-message__header', '<strong>'),
     ErrorMessage__link = bem.create('error-message__link', '<a>');
 
-var webformStylesSupportUrl = "http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles";
+var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
 
 class FormSettingsEditor extends React.Component {
   constructor(props) {
@@ -49,8 +49,8 @@ class FormSettingsEditor extends React.Component {
   }
   render () {
     return (
-          <div className="mdl-grid">
-            <div className="mdl-cell mdl-cell--4-col">
+          <div className='mdl-grid'>
+            <div className='mdl-cell mdl-cell--4-col'>
               {this.props.meta.map((mtype) => {
                 if (!mtype.key) {
                   mtype.key = `meta-${mtype.name}`;
@@ -60,7 +60,7 @@ class FormSettingsEditor extends React.Component {
                   );
               })}
             </div>
-            <div className="mdl-cell mdl-cell--4-col">
+            <div className='mdl-cell mdl-cell--4-col'>
               {this.props.phoneMeta.map((mtype) => {
                 if (!mtype.key) {
                   mtype.key = `meta-${mtype.name}`;
@@ -84,8 +84,8 @@ class FormCheckbox extends React.Component {
   }
   render () {
     return (
-        <div className="form-group">
-          <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+        <div className='form-group'>
+          <input type='checkbox' id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
           <label htmlFor={this.props.name}>
             {this.props.label}
           </label>
@@ -298,7 +298,12 @@ export default assign({
         enketopreviewOverlay: content.enketopreviewlink,
       });
     }).fail((jqxhr) => {
-      let err = jqxhr.responseJSON.error;
+      let err;
+      if (jqxhr && jqxhr.responseJSON && jqxhr.responseJSON.error) {
+        err = jqxhr.responseJSON.error
+      } else {
+        err = t('Unknown Enketo preview error');
+      }
       this.setState({
         enketopreviewError: err,
       });
@@ -325,7 +330,7 @@ export default assign({
       params.asset_type = 'block';
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
-          hashHistory.push(`/library`);
+          hashHistory.push('/library');
         })
     } else {
       // update existing
@@ -344,7 +349,7 @@ export default assign({
           if (resp.statusText != 'error')
             errorMsg = resp.statusText;
 
-          alertify.defaults.theme.ok = "ajs-cancel";
+          alertify.defaults.theme.ok = 'ajs-cancel';
           let dialog = alertify.dialog('alert');
           let opts = {
             title: t('Error saving form'),
@@ -434,18 +439,18 @@ export default assign({
 
             <bem.FormBuilderHeader__cell m={'project-icon'}
               data-tip={t('Return to list')}
-              className="left-tooltip"
+              className='left-tooltip'
               onClick={this.safeNavigateToFormsList}>
-              <i className="k-icon-projects" />
+              <i className='k-icon-projects' />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
               <bem.FormModal__item>
-                <input type="text" onChange={this.nameChange} value={this.state.name} id="nameField"/>
+                <input type='text' onChange={this.nameChange} value={this.state.name} id='nameField'/>
               </bem.FormModal__item>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
 
-              <bem.FormBuilderHeader__button m={['share']} className="is-edge">
+              <bem.FormBuilderHeader__button m={['share']} className='is-edge'>
                 {t('share')}
               </bem.FormBuilderHeader__button>
 
@@ -454,7 +459,7 @@ export default assign({
                     savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
                     savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
                     saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
-                  }]} onClick={this.saveForm} className="disabled"
+                  }]} onClick={this.saveForm} className='disabled'
                   disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}>
                 <i />
                 {saveButtonText}
@@ -463,7 +468,7 @@ export default assign({
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
                   }]} onClick={this.safeNavigateToForm}>
-                <i className="k-icon-close"/>
+                <i className='k-icon-close'/>
               </bem.FormBuilderHeader__close>
 
             </bem.FormBuilderHeader__cell>
@@ -476,7 +481,7 @@ export default assign({
                   }]} onClick={this.previewForm}
                   disabled={previewDisabled}
                   data-tip={t('Preview form')} >
-                <i className="k-icon-view" />
+                <i className='k-icon-view' />
               </bem.FormBuilderHeader__button>
               { showAllAvailable ?
                 <bem.FormBuilderHeader__button m={['show-all', {
@@ -484,7 +489,7 @@ export default assign({
                     }]}
                     onClick={this.showAll}
                     data-tip={t('Expand / collapse questions')}>
-                  <i className="k-icon-view-all-alt" />
+                  <i className='k-icon-view-all-alt' />
                 </bem.FormBuilderHeader__button>
               : null }
               <bem.FormBuilderHeader__button m={['group', {
@@ -492,12 +497,12 @@ export default assign({
                   }]} onClick={this.groupQuestions}
                   disabled={!groupable}
                   data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}>
-                <i className="k-icon-group" />
+                <i className='k-icon-group' />
               </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['download']}
                   data-tip={t('Download form')}
-                  className="is-edge">
-                <i className="k-icon-download" />
+                  className='is-edge'>
+                <i className='k-icon-download' />
               </bem.FormBuilderHeader__button>
 
               <bem.FormBuilderHeader__item>
@@ -506,27 +511,27 @@ export default assign({
                   formstyleactive: this.state.formStylePanelDisplayed,
                 }} onClick={this.openFormStylePanel}
                   data-tip={t('Web form layout')} >
-                  <i className="k-icon-grid" />
+                  <i className='k-icon-grid' />
                   <span>{t('Layout')}</span>
-                  <i className="fa fa-angle-down" />
+                  <i className='fa fa-angle-down' />
                 </bem.FormBuilderHeader__button>
               </bem.FormBuilderHeader__item>
 
               <bem.FormBuilderHeader__button m={['attach']}
                   data-tip={t('Attach media files')}
-                  className="is-edge">
-                <i className="k-icon-attach" />
+                  className='is-edge'>
+                <i className='k-icon-attach' />
               </bem.FormBuilderHeader__button>
               { this.toggleCascade !== undefined ?
                 <bem.FormBuilderHeader__button m={['cascading']}
                     onClick={this.toggleCascade}
                     data-tip={t('Insert cascading select')}>
-                  <i className="k-icon-cascading" />
+                  <i className='k-icon-cascading' />
                 </bem.FormBuilderHeader__button>
               : null }
 
             </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m="translations">
+            <bem.FormBuilderHeader__cell m='translations'>
               {
                 (translations.length < 2) ?
                 <p>
@@ -553,8 +558,8 @@ export default assign({
             <FormStyle__panel m='formstyle'>
               <FormStyle__panelheader>
                 {t('form style')}
-                <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
-                  <i className="k-icon-help"/>
+                <a href={webformStylesSupportUrl} target='_blank' data-tip={t('Read more about form styles')}>
+                  <i className='k-icon-help'/>
                 </a>
               </FormStyle__panelheader>
               <FormStyle__paneltext>
@@ -567,8 +572,8 @@ export default assign({
               </FormStyle__paneltext>
 
               <Select
-                name="webform-style"
-                ref="webformStyle"
+                name='webform-style'
+                ref='webformStyle'
                 value={styleValue}
                 onChange={this.onStyleChange}
                 addLabelText={t('custom form style: "{label}"')}
@@ -710,7 +715,7 @@ export default assign({
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }
-                  <div ref="form-wrap" className='form-wrap'>
+                  <div ref='form-wrap' className='form-wrap'>
                     { (!this.state.surveyAppRendered) ?
                         this.renderNotLoadedMessage()
                     : null }
@@ -721,7 +726,7 @@ export default assign({
               <ui.Modal open large
                   onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
-                  <div className="enketo-holder">
+                  <div className='enketo-holder'>
                     <iframe src={this.state.enketopreviewOverlay} />
                   </div>
                 </ui.Modal.Body>
