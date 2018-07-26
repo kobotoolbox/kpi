@@ -40,14 +40,13 @@ module.exports = do ->
       @line.parents(".survey-editor__null-top-row").addClass "expanded"
       @line.css "height", "inherit"
       @line.html $viewTemplates.$$render('xlfRowSelector.namer')
-      @$el.parents('.formBuilder__contents').eq(0).scrollTo @line, 200
+      @scrollFormBuilder('+=50')
 
       if (@options.surveyView.features.multipleQuestions)
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
           if evt.which == 27
             @shrink()
-
       else
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
@@ -71,7 +70,8 @@ module.exports = do ->
         menurow = $("<div>", class: "questiontypelist__row").appendTo $menu
         for mitem, i in mrow when mitem
           menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
-      @$el.parents('.formBuilder__contents').eq(0).scrollTo @line, 200
+
+      @scrollFormBuilder('+=220')
       @$('.questiontypelist__item').click _.bind(@selectMenuItem, @)
 
     shrink: ->
@@ -122,8 +122,15 @@ module.exports = do ->
       newRow = survey.addRow(rowDetails, options)
       newRow.linkUp(warnings: [], errors: [])
       @hide()
-      @options.surveyView.reset().then () =>
-        view = @options.surveyView.getViewForRow(newRow)
-        $.scrollTo view.$el, 200, offset: -300
+
+    scrollFormBuilder: (scrollBy)->
+      $row = @$el.parents('.survey__row')
+      if !$row.length
+        return
+
+      $fbC = @$el.parents('.formBuilder__contents')
+
+      if $row.height() + $row.position().top + 50 > $fbC.height() + $fbC.prop('scrollTop')
+        $fbC.animate scrollTop: scrollBy
 
   viewRowSelector

@@ -84,7 +84,7 @@ class UserPermDiv extends React.Component {
           {cans.join(', ')}
         </bem.UserRow__role>
         <bem.UserRow__cancel onClick={this.removePermissions}>
-          <i className="k-icon k-icon-trash" />
+          <i className='k-icon k-icon-trash' />
         </bem.UserRow__cancel>
       </bem.UserRow>
       );
@@ -129,29 +129,29 @@ class PublicPermDiv extends React.Component {
     return (
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='perms-link'>
-          <input  type="checkbox"
+          <input  type='checkbox'
                   checked={anonCanView ? true : false}
                   onChange={this.togglePerms}
-                  id="share-by-link"
-                  data-perm="view_asset"/>
-          <label htmlFor="share-by-link">{t('Share by link')}</label>
+                  id='share-by-link'
+                  data-perm='view_asset'/>
+          <label htmlFor='share-by-link'>{t('Share by link')}</label>
           { anonCanView &&
             <bem.FormModal__item m='shareable-link'>
               <label>
                 {t('Shareable link')}
               </label>
-              <input type="text" value={url} readOnly />
+              <input type='text' value={url} readOnly />
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
         { this.props.deploymentActive &&
           <bem.FormModal__item m='perms-public-data'>
-            <input type="checkbox"
+            <input type='checkbox'
                   checked={anonCanViewData ? true : false}
                   onChange={this.togglePerms}
-                  id="share-data-publicly"
-                  data-perm="view_submissions"/>
-            <label htmlFor="share-data-publicly">{t('Share data publicly')}</label>
+                  id='share-data-publicly'
+                  data-perm='view_submissions'/>
+            <label htmlFor='share-data-publicly'>{t('Share data publicly')}</label>
           </bem.FormModal__item>
         }
       </bem.FormModal__item>
@@ -322,13 +322,13 @@ class SharingForm extends React.Component {
 
         </bem.FormModal__item>
 
-        <bem.FormModal__form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
+        <bem.FormModal__form onSubmit={this.addInitialUserPermission} className='sharing-form__user'>
             <bem.FormView__cell m='label'>
               {t('Invite collaborators')}
             </bem.FormView__cell>
             <bem.FormModal__item m={['gray-row', 'invite-collaborators']}>
-              <input type="text"
-                  id="permsUser"
+              <input type='text'
+                  id='permsUser'
                   ref='usernameInput'
                   placeholder={t('Enter a username')}
                   onKeyUp={this.usernameCheck}

@@ -348,7 +348,7 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
-              $('.alertify-toggle input').prop("checked", false);
+              $('.alertify-toggle input').prop('checked', false);
             }
           });
         };
@@ -361,10 +361,10 @@ mixins.clickAssets = {
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
-            <div class="alertify-toggle"><input type="checkbox" id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type="checkbox" id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type="checkbox" id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
-            <div class="alertify-toggle alertify-toggle-important"><input type="checkbox" id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
+            <div class="alertify-toggle"><input type='checkbox' id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
+            <div class="alertify-toggle"><input type='checkbox' id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
+            <div class="alertify-toggle"><input type='checkbox' id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
+            <div class="alertify-toggle alertify-toggle-important"><input type='checkbox' id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -391,7 +391,7 @@ mixins.clickAssets = {
           onok: onok,
           oncancel: () => {
             dialog.destroy();
-            $('.alertify-toggle input').prop("checked", false);
+            $('.alertify-toggle input').prop('checked', false);
           }
         };
         dialog.set(opts).show();
@@ -542,7 +542,7 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder () {
-    if (this.context.router.isActive(`/library/new`))
+    if (this.context.router.isActive('/library/new'))
       return true;
 
     if (this.context.router.params.assetid == undefined)

@@ -74,9 +74,7 @@ class Modal extends React.Component {
         });
       break;
       case 'replace-xls':
-        this.setState({
-          title: t('Replace with XLS')
-        });
+        this.setState({title: t('Replace with XLS')});
         break;
       case 'table-columns':
         this.setState({
@@ -93,7 +91,7 @@ class Modal extends React.Component {
           modalClass: 'modal-large'
         });
       break;
-		}
+    }
   }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
@@ -161,12 +159,12 @@ class Modal extends React.Component {
     return title;
   }
   render() {
-  	return (
+    return (
       <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
         <ui.Modal.Body>
-	        	{ this.props.params.type == 'sharing' &&
-	          	<SharingForm uid={this.props.params.assetid} />
-	        	}
+            { this.props.params.type == 'sharing' &&
+              <SharingForm uid={this.props.params.assetid} />
+            }
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
                 onSubmit={this.createNewForm}

@@ -37,7 +37,7 @@ export class FormLanguages extends React.Component {
         <bem.FormView__cell m='languages-col2'>
           <bem.FormView__link m='add-edit-languages'
             data-tip={t('Manage Translations')}>
-            <i className="k-icon-globe" />
+            <i className='k-icon-globe' />
           </bem.FormView__link>
         </bem.FormView__cell>
       </bem.FormView__cell>

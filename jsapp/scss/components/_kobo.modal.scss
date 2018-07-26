@@ -439,11 +439,13 @@
       border-color: $cool-blue;
     }
 
-    &.dropzone-active {
+    &::after {display: none;}
+
+    &.dropzone--active {
       border-color: $cool-blue;
     }
 
-    &.dropzone-reject {
+    &.dropzone--reject {
       border-color: $cool-red;
     }
   }

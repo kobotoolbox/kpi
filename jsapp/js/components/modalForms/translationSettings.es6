@@ -54,13 +54,13 @@ class LanguageForm extends React.Component {
         <bem.FormView__cell>
           <bem.FormModal__item>
             <label>{t('Language name')}</label>
-            <input type="text" value={this.state.languageName} onChange={this.nameChange} />
+            <input type='text' value={this.state.languageName} onChange={this.nameChange} />
           </bem.FormModal__item>
         </bem.FormView__cell>
         <bem.FormView__cell m='lang-code'>
           <bem.FormModal__item>
             <label>{t('Language code')}</label>
-            <input type="text" value={this.state.languageCode} onChange={this.codeChange} />
+            <input type='text' value={this.state.languageCode} onChange={this.codeChange} />
           </bem.FormModal__item>
         </bem.FormView__cell>
         <bem.FormView__cell>
@@ -257,14 +257,14 @@ export class TranslationSettings extends React.Component {
                                         onClick={this.toggleRenameLanguageForm}
                                         data-index={i}
                                         data-tip={t('Edit language')}>
-                      <i className="k-icon-edit" />
+                      <i className='k-icon-edit' />
                     </bem.FormView__link>
                     {i > 0 &&
                       <bem.FormView__link m='translate'
                                           data-index={i}
                                           onClick={this.launchTranslationTableModal}
                                           data-tip={t('Update translations')}>
-                        <i className="k-icon-globe" />
+                        <i className='k-icon-globe' />
                       </bem.FormView__link>
                     }
                     {i > 0 &&
@@ -296,7 +296,7 @@ export class TranslationSettings extends React.Component {
           {this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language-form'>
               <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
-                <i className="k-icon-close" />
+                <i className='k-icon-close' />
               </bem.FormView__link>
               <bem.FormView__cell m='label'>
                 {t('Add a new language')}

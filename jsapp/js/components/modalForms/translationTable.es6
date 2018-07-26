@@ -107,7 +107,7 @@ export class TranslationTable extends React.Component {
           </table>
         </bem.FormModal__item>
         <bem.FormModal__item m='translation-table--actions'>
-          <button className="mdl-button mdl-button--raised mdl-button--colored" onClick={this.saveChanges.bind(this)}>
+          <button className='mdl-button mdl-button--raised mdl-button--colored' onClick={this.saveChanges.bind(this)}>
             {t('Save Changes')}
           </button>
         </bem.FormModal__item>

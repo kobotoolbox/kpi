@@ -8,7 +8,7 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
-import RefluxPromise from "./libs/reflux-promise";
+import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
@@ -17,9 +17,7 @@ var actions = {};
 actions.navigation = Reflux.createActions([
     'transitionStart',
     'transitionEnd',
-    'historyPush',
     'routeUpdate',
-
     'documentTitleUpdate'
   ]);
 
@@ -296,16 +294,37 @@ actions.misc.checkUsername.listen(function(username){
     .fail(actions.misc.checkUsername.failed_);
 });
 
-actions.misc.updateProfile.listen(function(data){
+actions.misc.updateProfile.listen(function(data, callbacks={}){
   dataInterface.patchProfile(data)
-    .done(actions.misc.updateProfile.completed)
-    .fail(actions.misc.updateProfile.failed);
+    .done((...args) => {
+      actions.misc.updateProfile.completed(...args)
+      if (callbacks.onComplete) {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.misc.updateProfile.failed(...args)
+      if (callbacks.onFail) {
+        callbacks.onFail(...args);
+      }
+    });
 });
 actions.misc.updateProfile.completed.listen(function(){
   notify(t('updated profile successfully'));
 });
-actions.misc.updateProfile.failed.listen(function(){
-  notify(t('failed to update profile'), 'error');
+actions.misc.updateProfile.failed.listen(function(data) {
+  let hadFieldsErrors = false;
+  for (const [errorProp, errorValue] of Object.entries(data.responseJSON)){
+    if (errorProp !== 'non_fields_error') {
+      hadFieldsErrors = true;
+    }
+  }
+
+  if (hadFieldsErrors) {
+    notify(t('Some fields contain errors'), 'error');
+  } else {
+    notify(t('failed to update profile'), 'error');
+  }
 });
 
 actions.misc.getServerEnvironment.listen(function(){
@@ -712,7 +731,6 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
-
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
@@ -728,10 +746,6 @@ actions.resources.loadAsset.listen(function(params){
   dataInterface[dispatchMethodName](params)
       .done(actions.resources.loadAsset.completed)
       .fail(actions.resources.loadAsset.failed);
-});
-
-actions.resources.loadAsset.completed.listen(function(asset){
-  actions.navigation.historyPush(asset);
 });
 
 actions.resources.loadAssetContent.listen(function(params){

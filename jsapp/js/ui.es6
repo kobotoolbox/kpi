@@ -23,7 +23,7 @@ class SearchBox extends React.Component {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
     return (
-        <input type="text" ref='inp' className="k-search__input" value={value}
+        <input type='text' ref='inp' className='k-search__input' value={value}
             onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
       );
   }
@@ -61,7 +61,7 @@ class Modal extends React.Component {
     } else if (this.props.small) {
       return (
           <div>
-            <h4 className="modal-title">
+            <h4 className='modal-title'>
               {this.props.title}
             </h4>
             <h6>
@@ -71,7 +71,7 @@ class Modal extends React.Component {
         );
     } else {
       return (
-          <h4 className="modal-title">
+          <h4 className='modal-title'>
             {this.props.title}
           </h4>
         );
@@ -90,10 +90,10 @@ class Modal extends React.Component {
             <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
           :null}
           <div className={classNames('modal-content')}>
-            <div className="modal-header">
+            <div className='modal-header'>
               {this.renderTitle()}
-              <a className="modal-x" type="button" onClick={this.props.onClose}>
-                <i className="k-icon-close"/>
+              <a className='modal-x' type='button' onClick={this.props.onClose}>
+                <i className='k-icon-close'/>
               </a>
             </div>
             {this.props.children}
@@ -109,7 +109,7 @@ class Footer extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-footer">{this.props.children}</div>;
+    return <div className='modal-footer'>{this.props.children}</div>;
   }
 };
 
@@ -120,7 +120,7 @@ class Body extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-body">{this.props.children}</div>;
+    return <div className='modal-body'>{this.props.children}</div>;
   }
 };
 
@@ -131,7 +131,7 @@ class Tabs extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-tabs">{this.props.children}</div>;
+    return <div className='modal-tabs'>{this.props.children}</div>;
   }
 };
 
