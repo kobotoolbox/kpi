@@ -64,7 +64,7 @@ class FormSidebar extends Reflux.Component {
   render () {
     return (
       <bem.FormSidebar__wrapper>
-        <button onClick={this.newFormModal} className="mdl-button mdl-button--raised mdl-button--colored">
+        <button onClick={this.newFormModal} className='mdl-button mdl-button--raised mdl-button--colored'>
           {t('new')}
         </button>
         <SidebarFormsList/>
@@ -98,7 +98,7 @@ class DrawerLink extends React.Component {
     }
   }
   render () {
-    var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
+    var icon_class = (this.props['ki-icon'] == undefined ? 'fa fa-globe' : `k-icon-${this.props['ki-icon']}`);
     var icon = (<i className={icon_class}/>);
     var classNames = [this.props.class, 'k-drawer__link'];
 
@@ -145,7 +145,7 @@ class Drawer extends Reflux.Component {
           <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' class='library' />
         </nav>
 
-        <div className="drawer__sidebar">
+        <div className='drawer__sidebar'>
           { this.isLibrary()
             ? <LibrarySidebar />
             : <FormSidebar />
@@ -156,24 +156,24 @@ class Drawer extends Reflux.Component {
           { stores.session.currentAccount &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
-              target="_blank"
+              target='_blank'
               data-tip={t('Projects (legacy)')}
             >
-              <i className="k-icon k-icon-globe" />
+              <i className='k-icon k-icon-globe' />
             </a>
           }
           { stores.serverEnvironment &&
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
-              className='k-drawer__link' target="_blank" data-tip={t('source')}>
-              <i className="k-icon k-icon-github" />
+              className='k-drawer__link' target='_blank' data-tip={t('source')}>
+              <i className='k-icon k-icon-github' />
             </a>
           }
           { stores.serverEnvironment &&
             stores.serverEnvironment.state.support_url &&
             <a href={stores.serverEnvironment.state.support_url}
-              className='k-drawer__link' target="_blank" data-tip={t('help')}>
-              <i className="k-icon k-icon-help" />
+              className='k-drawer__link' target='_blank' data-tip={t('help')}>
+              <i className='k-icon k-icon-help' />
             </a>
           }
         </div>

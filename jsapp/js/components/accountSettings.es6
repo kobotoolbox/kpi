@@ -186,7 +186,7 @@ export class AccountSettings extends React.Component {
             <bem.AccountSettings__item m='actions'>
               <button
                 onClick={this.updateProfile}
-                className="mdl-button mdl-button--raised mdl-button--colored"
+                className='mdl-button mdl-button--raised mdl-button--colored'
               >
                 {t('Save Changes')}
               </button>
@@ -203,17 +203,17 @@ export class AccountSettings extends React.Component {
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
                 <bem.AccountSettings__item>
-                  <label htmlFor="requireAuth">{t('Privacy')}</label>
+                  <label htmlFor='requireAuth'>{t('Privacy')}</label>
                 </bem.AccountSettings__item>
 
                 <input
                   type='checkbox'
-                  id="requireAuth"
+                  id='requireAuth'
                   checked={this.state.requireAuth}
                   onChange={this.requireAuthChange}
                 />
 
-                <label htmlFor="requireAuth">
+                <label htmlFor='requireAuth'>
                   {t('Require authentication to see forms and submit data')}
                 </label>
               </bem.AccountSettings__item>
@@ -241,7 +241,7 @@ export class AccountSettings extends React.Component {
               <bem.AccountSettings__item m='password'>
                 <a
                   href='/#/change-password'
-                  className="mdl-button mdl-button--raised mdl-button--colored"
+                  className='mdl-button mdl-button--raised mdl-button--colored'
                 >
                   {t('Modify Password')}
                 </a>
@@ -265,7 +265,7 @@ export class AccountSettings extends React.Component {
                   onChange={this.organizationWebsiteChange}
                 />
 
-                <bem.AccountSettings__desc className="is-edge">
+                <bem.AccountSettings__desc className='is-edge'>
                   {t('This will be used to create a hyperlink for your organization name. ')}
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
@@ -305,7 +305,7 @@ export class AccountSettings extends React.Component {
                   <TextareaAutosize
                     onChange={this.bioChange}
                     value={this.state.bio}
-                    id="bio"
+                    id='bio'
                   />
                 </label>
               </bem.AccountSettings__item>
@@ -349,7 +349,7 @@ export class AccountSettings extends React.Component {
                 </label>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item className="is-edge">
+              <bem.AccountSettings__item className='is-edge'>
                 <label>
                   {t('Default Form Language')}
 
@@ -365,30 +365,30 @@ export class AccountSettings extends React.Component {
                 <label>{t('Social')}</label>
 
                 <label>
-                  <i className="fa fa-twitter" />
+                  <i className='fa fa-twitter' />
 
                   <input
-                    type="text"
+                    type='text'
                     value={this.state.twitter}
                     onChange={this.twitterChange}
                   />
                 </label>
 
                 <label>
-                  <i className="fa fa-linkedin" />
+                  <i className='fa fa-linkedin' />
 
                   <input
-                    type="text"
+                    type='text'
                     value={this.state.linkedin}
                     onChange={this.linkedinChange}
                   />
                 </label>
 
                 <label>
-                  <i className="fa fa-instagram" />
+                  <i className='fa fa-instagram' />
 
                   <input
-                    type="text"
+                    type='text'
                     value={this.state.instagram}
                     onChange={this.instagramChange}
                   />
@@ -549,7 +549,7 @@ export class ChangePassword extends React.Component {
             <bem.ChangePassword__item  m='actions'>
               <button
                 onClick={this.changePassword}
-                className="mdl-button mdl-button--raised mdl-button--colored"
+                className='mdl-button mdl-button--raised mdl-button--colored'
               >
                 {t('Save Changes')}
               </button>
