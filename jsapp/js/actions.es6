@@ -731,7 +731,6 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
-
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {

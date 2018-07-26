@@ -85,7 +85,7 @@ class FormCheckbox extends React.Component {
   render () {
     return (
         <div className="form-group">
-          <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+          <input type='checkbox' id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
           <label htmlFor={this.props.name}>
             {this.props.label}
           </label>

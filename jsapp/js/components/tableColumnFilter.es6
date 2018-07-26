@@ -162,7 +162,7 @@ export class TableColumnFilter extends React.Component {
         </bem.FormModal__item>
         <bem.FormModal__item m='group-headings'>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={this.state.showGroupName}
             onChange={this.updateGroupHeaderDisplay}
             id='check-group-headings'/>
@@ -194,7 +194,7 @@ export class TableColumnFilter extends React.Component {
                   return (
                     <li key={col.value}>
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         value={col.value}
                         checked={_this.state.selectedColumns.includes(col.value)}
                         onChange={_this.toggleCheckboxChange}

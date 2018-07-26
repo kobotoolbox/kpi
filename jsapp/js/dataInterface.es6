@@ -167,7 +167,7 @@ var dataInterface;
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
         url: `${rootUrl}/assets/${targetUid}/permissions/`,
-        method: "PATCH",
+        method: 'PATCH',
         data: {
           clone_from: sourceUid
         }

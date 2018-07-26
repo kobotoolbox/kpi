@@ -128,7 +128,7 @@ class PublicPermDiv extends React.Component {
     return (
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='perms-link'>
-          <input  type="checkbox"
+          <input  type='checkbox'
                   checked={anonCanView ? true : false}
                   onChange={this.togglePerms}
                   id="share-by-link"
@@ -145,7 +145,7 @@ class PublicPermDiv extends React.Component {
         </bem.FormModal__item>
         { this.props.deploymentActive &&
           <bem.FormModal__item m='perms-public-data'>
-            <input type="checkbox"
+            <input type='checkbox'
                   checked={anonCanViewData ? true : false}
                   onChange={this.togglePerms}
                   id="share-data-publicly"
