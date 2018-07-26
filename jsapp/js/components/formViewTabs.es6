@@ -67,7 +67,7 @@ class FormViewTabs extends Reflux.Component {
           activeClassName='active'>
           {t('Form')}
         </Link>
-        <bem.FormView__tab className="is-edge" m='summary'>
+        <bem.FormView__tab className='is-edge' m='summary'>
           {t('Summary')}
         </bem.FormView__tab>
         { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) &&
@@ -87,9 +87,9 @@ class FormViewTabs extends Reflux.Component {
           </Link>
         }
         <Link
-          to={`/forms`}
+          to={'/forms'}
           className='form-view__link form-view__link--close'>
-          <i className="k-icon-close" />
+          <i className='k-icon-close' />
         </Link>
 
       </bem.FormView__toptabs>

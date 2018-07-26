@@ -133,7 +133,7 @@ class AssetRow extends React.Component {
                             'deleted': this.props.deleted,
                             'deleting': this.props.deleting,
                           }}
-                        className="mdl-grid"
+                        className='mdl-grid'
                         key={this.props.uid}
                         onMouseLeave={this.clearPopover}
                       >
@@ -184,20 +184,20 @@ class AssetRow extends React.Component {
             { this.props.asset_type == 'survey' &&
               <bem.AssetRow__cell m={'date-created'}
                   key={'date-created'}
-                  className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone"
+                  className='mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone'
                   >
-                <span className="date date--created">{formatTime(this.props.date_created)}</span>
+                <span className='date date--created'>{formatTime(this.props.date_created)}</span>
               </bem.AssetRow__cell>
             }
             <bem.AssetRow__cell m={'date-modified'}
                 key={'date-modified'}
                 className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
-              <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
+              <span className='date date--modified'>{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&
                 <bem.AssetRow__cell m={'submission-count'}
                     key={'submisson-count'}
-                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone"
+                    className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'
                     >
                   {
                     this.props.deployment__submission_count ?
@@ -209,7 +209,7 @@ class AssetRow extends React.Component {
           { this.state.displayTags &&
             <bem.AssetRow__cell m={'tags'}
                 key={'tags'}
-                className="mdl-cell mdl-cell--12-col"
+                className='mdl-cell mdl-cell--12-col'
                 >
               <TagInput uid={this.props.uid} tags={this.props.tags} />
             </bem.AssetRow__cell>
@@ -276,7 +276,7 @@ class AssetRow extends React.Component {
               })
             }
             <ui.PopoverMenu type='assetrow-menu'
-                        triggerLabel={<i className="k-icon-more" />}
+                        triggerLabel={<i className='k-icon-more' />}
                         triggerTip={t('More Actions')}
                         clearPopover={this.state.clearPopover}
                         popoverSetVisible={this.popoverSetVisible}>
@@ -286,7 +286,7 @@ class AssetRow extends React.Component {
                     m={'deploy'}
                     data-action={'deploy'}
                     data-asset-type={this.props.kind}>
-                  <i className="k-icon-deploy" />
+                  <i className='k-icon-deploy' />
                   {t('Deploy this project')}
                 </bem.PopoverMenu__link>
               }
@@ -296,7 +296,7 @@ class AssetRow extends React.Component {
                       data-action={'unarchive'}
                       data-asset-type={this.props.kind}
                     >
-                  <i className="k-icon-archived" />
+                  <i className='k-icon-archived' />
                   {t('Unarchive')}
                 </bem.PopoverMenu__link>
               }
@@ -305,7 +305,7 @@ class AssetRow extends React.Component {
                       m={'refresh'}
                       data-action={'refresh'}
                       data-asset-type={this.props.kind}>
-                  <i className="k-icon-replace" />
+                  <i className='k-icon-replace' />
                   {t('Replace with XLS')}
                 </bem.PopoverMenu__link>
               }
@@ -335,10 +335,10 @@ class AssetRow extends React.Component {
                           key={col.value}
                           title={col.label}
                           m='move-coll-item'>
-                            <i className="k-icon-folder" />
+                            <i className='k-icon-folder' />
                             {col.label}
                             {col.hasParent &&
-                              <span className="has-parent">&bull;</span>
+                              <span className='has-parent'>&bull;</span>
                             }
                         </bem.PopoverMenu__item>
                       );
@@ -351,7 +351,7 @@ class AssetRow extends React.Component {
                       data-action={'archive'}
                       data-asset-type={this.props.kind}
                     >
-                  <i className="k-icon-archived" />
+                  <i className='k-icon-archived' />
                   {t('Archive')}
                 </bem.PopoverMenu__link>
               }
@@ -361,7 +361,7 @@ class AssetRow extends React.Component {
                       data-action={'delete'}
                       data-asset-type={this.props.kind}
                     >
-                  <i className="k-icon-trash" />
+                  <i className='k-icon-trash' />
                   {t('Delete')}
                 </bem.PopoverMenu__link>
               }

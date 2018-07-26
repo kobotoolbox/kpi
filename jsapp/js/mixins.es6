@@ -348,7 +348,7 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
-              $('.alertify-toggle input').prop("checked", false);
+              $('.alertify-toggle input').prop('checked', false);
             }
           });
         };
@@ -391,7 +391,7 @@ mixins.clickAssets = {
           onok: onok,
           oncancel: () => {
             dialog.destroy();
-            $('.alertify-toggle input').prop("checked", false);
+            $('.alertify-toggle input').prop('checked', false);
           }
         };
         dialog.set(opts).show();
@@ -542,7 +542,7 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder () {
-    if (this.context.router.isActive(`/library/new`))
+    if (this.context.router.isActive('/library/new'))
       return true;
 
     if (this.context.router.params.assetid == undefined)

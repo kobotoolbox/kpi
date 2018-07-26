@@ -8,7 +8,7 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
-import RefluxPromise from "./libs/reflux-promise";
+import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
