@@ -132,15 +132,15 @@ export class TableColumnFilter extends React.Component {
     let _this = this;
 
     return (
-      <div className="tableColumn-modal">
+      <div className='tableColumn-modal'>
         <bem.FormModal__item m='translation-radios'>
           <bem.FormView__cell m='label'>
             {t('Display labels or XML values?')}
           </bem.FormView__cell>
           <div>
-            <label htmlFor={`trnsl-xml`}>
+            <label htmlFor={'trnsl-xml'}>
               <input type='radio' name='translation'
-                     value='-1' id={`trnsl-xml`}
+                     value='-1' id={'trnsl-xml'}
                      checked={this.state.translationIndex == '-1'}
                      onChange={this.onLabelChange} />
               {t('XML Values')}
@@ -213,12 +213,12 @@ export class TableColumnFilter extends React.Component {
         }
         <div className='tableColumn-modal--footer'>
           {this.userCan('change_asset', this.props.asset) &&
-            <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
+            <button className='mdl-button mdl-button--colored' onClick={this.resetTableSettings}>
               {t('Reset')}
             </button>
           }
 
-          <button className="mdl-button mdl-button--raised mdl-button--colored"
+          <button className='mdl-button mdl-button--raised mdl-button--colored'
                   onClick={this.saveTableColumns}>
             {t('Save')}
           </button>

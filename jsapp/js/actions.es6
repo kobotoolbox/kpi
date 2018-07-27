@@ -8,7 +8,7 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
-import RefluxPromise from "./libs/reflux-promise";
+import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
@@ -17,9 +17,7 @@ var actions = {};
 actions.navigation = Reflux.createActions([
     'transitionStart',
     'transitionEnd',
-    'historyPush',
     'routeUpdate',
-
     'documentTitleUpdate'
   ]);
 
@@ -787,10 +785,6 @@ actions.resources.loadAsset.listen(function(params){
   dataInterface[dispatchMethodName](params)
       .done(actions.resources.loadAsset.completed)
       .fail(actions.resources.loadAsset.failed);
-});
-
-actions.resources.loadAsset.completed.listen(function(asset){
-  actions.navigation.historyPush(asset);
 });
 
 actions.resources.loadAssetContent.listen(function(params){
