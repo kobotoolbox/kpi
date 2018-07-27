@@ -309,6 +309,7 @@ export class FormLanding extends React.Component {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
   renderButtons (userCanEdit) {
+    let translations = this.state.content.translations;
     var downloadable = false;
     var downloads = [];
     if (this.state.downloads) {
@@ -375,22 +376,27 @@ export class FormLanding extends React.Component {
               {userCanEdit && this.state.content.survey.length > 0 &&
                 <bem.PopoverMenu__link onClick={this.languagesModal}>
                   <i className='k-icon-language'/>
-                  {t('Add/Edit Languages')}
+                  {(!translations || translations.length < 2) ?
+                    t('Add Translations')
+                    :
+                    t('Manage Translations')
+                  }
                 </bem.PopoverMenu__link>
               }
           </ui.PopoverMenu>
         </bem.FormView__group>
       );
   }
-  renderLanguages () {
-    if (!this.state.content.translations || this.state.content.translations.length < 2)
+  renderLanguages (canEdit) {
+    let translations = this.state.content.translations;
+    if (!translations || translations.length < 2)
       return false;
 
     return (
       <bem.FormView__cell m={['columns', 'padding', 'bordertop', 'languages']}>
         <bem.FormView__cell m='languages-col1'>
           <strong>{t('Languages')}</strong>
-          {this.state.content.translations.map((l, i)=>{
+          {translations.map((l, i)=>{
             return (
               <bem.FormView__cell key={`lang-${i}`} m='langButton'>
                 {l}
@@ -398,13 +404,15 @@ export class FormLanding extends React.Component {
             );
           })}
         </bem.FormView__cell>
-        <bem.FormView__cell m='languages-col2'>
-          <bem.FormView__link m='add-edit-languages'
-            data-tip={t('Manage Translations')}
-            onClick={this.languagesModal}>
-            <i className='k-icon-language' />
-          </bem.FormView__link>
-        </bem.FormView__cell>
+        {canEdit &&
+          <bem.FormView__cell m='languages-col2'>
+            <bem.FormView__link m='add-edit-languages'
+              data-tip={t('Manage Translations')}
+              onClick={this.languagesModal}>
+              <i className='k-icon-language' />
+            </bem.FormView__link>
+          </bem.FormView__cell>
+        }
       </bem.FormView__cell>
     );
   }

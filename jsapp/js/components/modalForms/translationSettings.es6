@@ -238,13 +238,24 @@ export class TranslationSettings extends React.Component {
     );
   }
   render () {
+    let translations = this.state.translations;
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
-          <bem.FormView__cell m='label'>
-            {t('Current languages')}
-          </bem.FormView__cell>
-          {this.state.translations.map((l, i)=> {
+          {(translations && translations[0] === null) ?
+            <bem.FormView__cell m='translation-note'>
+              {t('Here you can add one more more languages to your project, and translate the strings in each language.')}
+              &nbsp;
+              <em>
+                {t('Note: make sure your default language has a name. If it doesn\'t, you will not be able to edit your form in the form builder.')}
+              </em>
+            </bem.FormView__cell>
+            :
+            <bem.FormView__cell m='label'>
+              {t('Current languages')}
+            </bem.FormView__cell>
+          }
+          {translations.map((l, i)=> {
             return (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
