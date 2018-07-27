@@ -18,6 +18,7 @@ import {
   assign, t, formatTime, formatDate, stringToColor
 } from '../utils';
 
+import {MODAL_TYPES} from '../constants';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -268,14 +269,14 @@ class FormSummary extends React.Component {
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: this.state.uid
     });
   }
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'enketo-preview',
+      type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid
     });
   }

@@ -9,7 +9,6 @@ import bem from '../bem';
 import ui from '../ui';
 import searches from '../searches';
 import stores from '../stores';
-import SearchCollectionList from '../components/searchcollectionlist';
 
 import {t, assign} from '../utils';
 

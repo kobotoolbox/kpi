@@ -13,8 +13,10 @@ import ui from '../ui';
 import alertify from 'alertifyjs';
 import icons from '../../xlform/src/view.icons';
 import Select from 'react-select';
+
 import {
-  VALIDATION_STATUSES
+  VALIDATION_STATUSES,
+  MODAL_TYPES
 } from '../constants';
 
 
@@ -188,7 +190,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
     const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: sid,
       asset: this.props.asset,
       ids: this.props.ids,
@@ -200,7 +202,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'prev'
     });
@@ -210,7 +212,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'next'
     });
