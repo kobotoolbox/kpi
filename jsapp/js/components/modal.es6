@@ -213,9 +213,10 @@ class Modal extends React.Component {
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
-        </ui.Modal.Body>
-      </ui.Modal>
-    )
+
+          </ui.Modal.Body>
+        </ui.Modal>
+      )
   }
 };
 

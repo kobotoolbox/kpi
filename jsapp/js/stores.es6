@@ -505,7 +505,7 @@ if (window.Intercom) {
       this.listenTo(actions.auth.logout.completed, this.loggedOut);
     },
     routeUpdate (routes) {
-      window.Intercom("update");
+      window.Intercom('update');
     },
     loggedIn (acct) {
       let name = acct.extra_details.name;
@@ -520,7 +520,7 @@ if (window.Intercom) {
           (new Date(acct.date_joined)).getTime() / 1000),
         'app_id': window.IntercomAppId
       }
-      window.Intercom("boot", userData);
+      window.Intercom('boot', userData);
     },
     loggedOut () {
       window.Intercom('shutdown');

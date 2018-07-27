@@ -98,7 +98,7 @@ class AssetNavigatorListView extends React.Component {
       }, 1);
 
       return (
-        <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref="liblist">
+        <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref='liblist'>
           {list.map((item)=> {
             var modifiers = [item.asset_type];
             var summ = item.summary;
@@ -206,7 +206,7 @@ class AssetNavigator extends Reflux.Component {
     if (qresults && qresults.count > 0) {
       // var alItems = qresults.results;
       return (
-        <bem.LibList ref="liblist">
+        <bem.LibList ref='liblist'>
           {qresults.results.map((item)=> {
             var modifiers = [item.asset_type];
             // var summ = item.summary;

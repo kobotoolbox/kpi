@@ -38,7 +38,7 @@ const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
 const ErrorMessage__link = bem.create('error-message__link', '<a>');
 
-var webformStylesSupportUrl = "http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles";
+var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
 
 class FormSettingsEditor extends React.Component {
   constructor(props) {
@@ -86,7 +86,7 @@ class FormCheckbox extends React.Component {
     return (
       <bem.FormBuilderMeta__row>
         <input
-          type="checkbox"
+          type='checkbox'
           id={this.props.name}
           checked={this.props.value}
           onChange={this.props.onChange}
@@ -372,7 +372,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
-          hashHistory.push(`/library`);
+          hashHistory.push('/library');
         })
     } else {
       // update existing asset
@@ -391,7 +391,7 @@ export default assign({
           if (resp.statusText != 'error')
             errorMsg = resp.statusText;
 
-          alertify.defaults.theme.ok = "ajs-cancel";
+          alertify.defaults.theme.ok = 'ajs-cancel';
           let dialog = alertify.dialog('alert');
           let opts = {
             title: t('Error saving form'),
@@ -624,10 +624,10 @@ export default assign({
           <bem.FormBuilderHeader__cell
             m={'logo'}
             data-tip={t('Return to list')}
-            className="left-tooltip"
+            className='left-tooltip'
             onClick={this.safeNavigateToFormsList}
           >
-            <i className="k-icon-kobo" />
+            <i className='k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'name'} >
@@ -636,16 +636,16 @@ export default assign({
                 <label>{nameFieldLabel}</label>
               }
               <input
-                type="text"
+                type='text'
                 onChange={this.nameChange}
                 value={this.state.name}
-                id="nameField"
+                id='nameField'
               />
             </bem.FormModal__item>
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
-            <bem.FormBuilderHeader__button m={['share']} className="is-edge">
+            <bem.FormBuilderHeader__button m={['share']} className='is-edge'>
               {t('share')}
             </bem.FormBuilderHeader__button>
 
@@ -667,7 +667,7 @@ export default assign({
               m={[{'close-warning': this.needsSave()}]}
               onClick={this.safeNavigateToForm}
             >
-              <i className="k-icon-close"/>
+              <i className='k-icon-close'/>
             </bem.FormBuilderHeader__close>
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
@@ -680,7 +680,7 @@ export default assign({
               disabled={previewDisabled}
               data-tip={t('Preview form')}
             >
-              <i className="k-icon-view" />
+              <i className='k-icon-view' />
             </bem.FormBuilderHeader__button>
 
             { showAllAvailable &&
@@ -689,7 +689,7 @@ export default assign({
                   }]}
                   onClick={this.showAll}
                   data-tip={t('Expand / collapse questions')}>
-                <i className="k-icon-view-all-alt" />
+                <i className='k-icon-view-all-alt' />
               </bem.FormBuilderHeader__button>
             }
 
@@ -699,23 +699,23 @@ export default assign({
               disabled={!groupable}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
-              <i className="k-icon-group" />
+              <i className='k-icon-group' />
             </bem.FormBuilderHeader__button>
 
             <bem.FormBuilderHeader__button
               m={['download']}
               data-tip={t('Download form')}
-              className="is-edge"
+              className='is-edge'
             >
-              <i className="k-icon-download" />
+              <i className='k-icon-download' />
             </bem.FormBuilderHeader__button>
 
             <bem.FormBuilderHeader__button
               m={['attach']}
               data-tip={t('Attach media files')}
-              className="is-edge"
+              className='is-edge'
             >
-              <i className="k-icon-attach" />
+              <i className='k-icon-attach' />
             </bem.FormBuilderHeader__button>
 
             { this.toggleCascade !== undefined &&
@@ -724,7 +724,7 @@ export default assign({
                 onClick={this.toggleCascade}
                 data-tip={t('Insert cascading select')}
               >
-                <i className="k-icon-cascading" />
+                <i className='k-icon-cascading' />
               </bem.FormBuilderHeader__button>
             }
           </bem.FormBuilderHeader__cell>
@@ -799,10 +799,10 @@ export default assign({
                 {t('Form style')}
                 <a
                   href={webformStylesSupportUrl}
-                  target="_blank"
+                  target='_blank'
                   data-tip={t('Read more about form styles')}
                 >
-                  <i className="k-icon k-icon-help"/>
+                  <i className='k-icon k-icon-help'/>
                 </a>
               </bem.FormBuilderAside__header>
 
@@ -820,8 +820,8 @@ export default assign({
               <Select
                 className='Select--underlined'
                 id='webform-style'
-                name="webform-style"
-                ref="webformStyle"
+                name='webform-style'
+                ref='webformStyle'
                 value={styleValue}
                 onChange={this.onStyleChange}
                 allowCreate

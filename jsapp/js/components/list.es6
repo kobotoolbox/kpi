@@ -32,7 +32,7 @@ class ListSearch extends React.Component {
     return (
       <bem.Search m={[this.state.searchState]} >
         <bem.Search__icon />
-        <ui.SearchBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+        <ui.SearchBox ref='formlist-search' placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
         <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
       </bem.Search>
     );
@@ -96,10 +96,10 @@ class ListTagFilter extends React.Component {
     if (!this.state.tagsLoaded) {
       return (
         <bem.tagSelect>
-          <i className="fa fa-search" />
+          <i className='fa fa-search' />
           <Select
-            name="tags"
-            value=""
+            name='tags'
+            value=''
             disabled
             multi={false}
             placeholder={t('Tags are loading...')}
@@ -110,9 +110,9 @@ class ListTagFilter extends React.Component {
     }
     return (
       <bem.tagSelect>
-        <i className="fa fa-search" />
+        <i className='fa fa-search' />
         <Select
-          name="tags"
+          name='tags'
           multi
           placeholder={t('Search Tags')}
           noResultsText={t('No results found')}
@@ -189,7 +189,7 @@ class ListCollectionFilter extends React.Component {
     return (
       <bem.collectionFilter>
         <Select
-          name="collections"
+          name='collections'
           placeholder={t('Select Collection Name')}
           options={this.state.availableCollections}
           onChange={this.onCollectionChange}

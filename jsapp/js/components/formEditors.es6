@@ -505,14 +505,14 @@ export class ProjectSettings extends React.Component {
         <bem.FormModal__item m='form-source-buttons'>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
             <button onClick={this.displayStep.bind(this, this.STEPS.PROJECT_DETAILS)}>
-              <i className="k-icon-edit" />
+              <i className='k-icon-edit' />
               {t('Build from scratch')}
             </button>
           }
 
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
             <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-              <i className="k-icon-template" />
+              <i className='k-icon-template' />
               {t('Use a template')}
             </button>
           }
@@ -654,11 +654,11 @@ export class ProjectSettings extends React.Component {
           {/* form builder displays name in different place */}
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
             <bem.FormModal__item>
-              <label htmlFor="name">
+              <label htmlFor='name'>
                 {t('Project Name')}
               </label>
-              <input type="text"
-                id="name"
+              <input type='text'
+                id='name'
                 placeholder={t('Enter title of project here')}
                 value={this.state.name}
                 onChange={this.onNameChange}
@@ -667,7 +667,7 @@ export class ProjectSettings extends React.Component {
           }
 
           <bem.FormModal__item>
-            <label htmlFor="description">
+            <label htmlFor='description'>
               {t('Description')}
             </label>
             <TextareaAutosize
@@ -689,7 +689,7 @@ export class ProjectSettings extends React.Component {
               {t('Sector')}
             </label>
             <Select
-              id="sector"
+              id='sector'
               value={this.state.sector}
               onChange={this.onSectorChange}
               options={sectors}
@@ -697,11 +697,11 @@ export class ProjectSettings extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item  m='country'>
-            <label htmlFor="country">
+            <label htmlFor='country'>
               {t('Country')}
             </label>
             <Select
-              id="country"
+              id='country'
               value={this.state.country}
               onChange={this.onCountryChange}
               options={countries}
@@ -710,12 +710,12 @@ export class ProjectSettings extends React.Component {
 
           <bem.FormModal__item m='metadata-share'>
             <input
-              type="checkbox"
-              id="share-metadata"
+              type='checkbox'
+              id='share-metadata'
               checked={this.state['share-metadata']}
               onChange={this.onShareMetadataChange}
             />
-            <label htmlFor="share-metadata">
+            <label htmlFor='share-metadata'>
               {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
               &nbsp;
               {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
@@ -727,7 +727,7 @@ export class ProjectSettings extends React.Component {
               <bem.Modal__footerButton
                 m='primary'
                 onClick={this.handleSubmit}
-                className="mdl-js-button"
+                className='mdl-js-button'
                 disabled={this.state.isSubmitPending}
               >
                 {this.state.isSubmitPending && t('Please wait…')}
@@ -995,27 +995,27 @@ export class ProjectDownloads extends React.Component {
                 <bem.FormModal__form onSubmit={this.handleSubmit}>
                   {[
                     <bem.FormModal__item key={'t'} m='export-type'>
-                      <label htmlFor="type">{t('Select export type')}</label>
-                      <select name="type" value={this.state.type}
+                      <label htmlFor='type'>{t('Select export type')}</label>
+                      <select name='type' value={this.state.type}
                           onChange={this.typeChange}>
-                        <option value="xls">{t('XLS')}</option>
-                        <option value="xls_legacy">{t('XLS (legacy)')}</option>
-                        <option value="csv">{t('CSV')}</option>
-                        <option value="csv_legacy">{t('CSV (legacy)')}</option>
-                        <option value="zip_legacy">{t('Media Attachments (ZIP)')}</option>
-                        <option value="kml_legacy">{t('GPS coordinates (KML)')}</option>
-                        <option value="analyser_legacy">{t('Excel Analyser')}</option>
-                        <option value="spss_labels">{t('SPSS Labels')}</option>
+                        <option value='xls'>{t('XLS')}</option>
+                        <option value='xls_legacy'>{t('XLS (legacy)')}</option>
+                        <option value='csv'>{t('CSV')}</option>
+                        <option value='csv_legacy'>{t('CSV (legacy)')}</option>
+                        <option value='zip_legacy'>{t('Media Attachments (ZIP)')}</option>
+                        <option value='kml_legacy'>{t('GPS coordinates (KML)')}</option>
+                        <option value='analyser_legacy'>{t('Excel Analyser')}</option>
+                        <option value='spss_labels'>{t('SPSS Labels')}</option>
                       </select>
                     </bem.FormModal__item>
                   , this.state.type == 'xls' || this.state.type == 'csv' ? [
                       <bem.FormModal__item key={'x'} m='export-format'>
-                        <label htmlFor="lang">{t('Value and header format')}</label>
-                        <select name="lang" value={this.state.lang}
+                        <label htmlFor='lang'>{t('Value and header format')}</label>
+                        <select name='lang' value={this.state.lang}
                             onChange={this.langChange}>
-                          <option value="xml">{t('XML values and headers')}</option>
+                          <option value='xml'>{t('XML values and headers')}</option>
                           { translations.length < 2 &&
-                            <option value="_default">{t('Labels')}</option>
+                            <option value='_default'>{t('Labels')}</option>
                           }
                           {
                             translations && translations.map((t, i) => {
@@ -1027,18 +1027,18 @@ export class ProjectDownloads extends React.Component {
                         </select>
                       </bem.FormModal__item>,
                       <bem.FormModal__item key={'h'} m='export-group-headers'>
-                        <input type="checkbox" id="hierarchy_in_labels"
+                        <input type='checkbox' id='hierarchy_in_labels'
                           value={this.state.hierInLabels}
                           onChange={this.hierInLabelsChange}
                         />
-                        <label htmlFor="hierarchy_in_labels">
+                        <label htmlFor='hierarchy_in_labels'>
                           {t('Include groups in headers')}
                         </label>
                       </bem.FormModal__item>,
                       this.state.hierInLabels ?
                         <bem.FormModal__item key={'g'}>
-                          <label htmlFor="group_sep">{t('Group separator')}</label>
-                          <input type="text" name="group_sep"
+                          <label htmlFor='group_sep'>{t('Group separator')}</label>
+                          <input type='text' name='group_sep'
                             value={this.state.groupSep}
                             onChange={this.groupSepChange}
                           />
@@ -1046,11 +1046,11 @@ export class ProjectDownloads extends React.Component {
                       : null,
                       dvcount > 1 ?
                         <bem.FormModal__item key={'v'} m='export-fields-from-all-versions'>
-                          <input type="checkbox" id="fields_from_all_versions"
+                          <input type='checkbox' id='fields_from_all_versions'
                             checked={this.state.fieldsFromAllVersions}
                             onChange={this.fieldFromAllVersionsChange}
                           />
-                          <label htmlFor="fields_from_all_versions">
+                          <label htmlFor='fields_from_all_versions'>
                             {t('Include fields from all ___ deployed versions').replace('___', dvcount)}
                           </label>
                         </bem.FormModal__item>
@@ -1065,9 +1065,9 @@ export class ProjectDownloads extends React.Component {
                     </bem.FormModal__item>
                   :
                     <bem.FormModal__item key={'s'} m='export-submit'>
-                      <input type="submit"
+                      <input type='submit'
                         value={t('Export')}
-                        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                        className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
                         disabled={this.state.formSubmitDisabled}/>
                     </bem.FormModal__item>
                   ]}
@@ -1091,7 +1091,7 @@ export class ProjectDownloads extends React.Component {
                   {this.state.exports.map((item, n) => {
                     let timediff = moment().diff(moment(item.date_created), 'seconds');
                     return (
-                      <bem.FormView__group m="items" key={item.uid}
+                      <bem.FormView__group m='items' key={item.uid}
                         className={timediff < 45 ? 'recent' : ''}>
                         <bem.FormView__label m='type'>
                           {item.data.type}
@@ -1100,23 +1100,23 @@ export class ProjectDownloads extends React.Component {
                           {formatTime(item.date_created)}
                         </bem.FormView__label>
                         <bem.FormView__label m='lang'>
-                        {item.data.lang === "_default" ? t('Default') : item.data.lang}
+                        {item.data.lang === '_default' ? t('Default') : item.data.lang}
                         </bem.FormView__label>
                         <bem.FormView__label m='include-groups'>
-                          {item.data.hierarchy_in_labels === "false" ? t('No') : t("Yes")}
+                          {item.data.hierarchy_in_labels === 'false' ? t('No') : t('Yes')}
                         </bem.FormView__label>
                         <bem.FormView__label m='multi-versioned'>
                           {
                             // Old exports won't have this field, and we should
                             // assume they *were* multi-versioned
-                            item.data.fields_from_all_versions === "false" ? t('No') : t('Yes')
+                            item.data.fields_from_all_versions === 'false' ? t('No') : t('Yes')
                           }
                         </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
-                            <a className="form-view__link form-view__link--export-download"
+                            <a className='form-view__link form-view__link--export-download'
                               href={item.result} data-tip={t('Download')}>
-                              <i className="k-icon-download" />
+                              <i className='k-icon-download' />
                             </a>
                           }
                           {item.status == 'error' &&
@@ -1125,11 +1125,11 @@ export class ProjectDownloads extends React.Component {
                             </span>
                           }
                           {item.status != 'error' && item.status != 'complete' &&
-                            <span className="animate-processing">{t('processing...')}</span>
+                            <span className='animate-processing'>{t('processing...')}</span>
                           }
-                          <a className="form-view__link form-view__link--export-delete"
+                          <a className='form-view__link form-view__link--export-delete'
                             onClick={this.deleteExport} data-euid={item.uid} data-tip={t('Delete')}>
-                            <i className="k-icon-trash" />
+                            <i className='k-icon-trash' />
                           </a>
 
                         </bem.FormView__label>

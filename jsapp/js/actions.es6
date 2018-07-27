@@ -8,7 +8,7 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
-import RefluxPromise from "./libs/reflux-promise";
+import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
@@ -733,7 +733,6 @@ actions.auth.getEnvironment.listen(function(){
 actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
-
 
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
