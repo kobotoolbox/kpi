@@ -189,7 +189,7 @@ mixins.dmix = {
 
 /*
  * helper function for apply*ToAsset droppable mixin methods
- * returns an interval-fueled promise
+ * returns an interval-driven promise
  */
 const applyImport = (params) => {
   const applyPromise = new Promise((resolve, reject) => {
@@ -230,7 +230,7 @@ const applyImport = (params) => {
 
 mixins.droppable = {
   /*
-   * returns an interval-fueled promise
+   * returns an interval-driven promise
    */
   applyFileToAsset(file, asset) {
     const applyPromise = new Promise((resolve, reject) => {
@@ -256,7 +256,7 @@ mixins.droppable = {
   },
 
   /*
-   * returns an interval-fueled promise
+   * returns an interval-driven promise
    */
   applyUrlToAsset(url, asset) {
     const applyPromise = new Promise((resolve, reject) => {
