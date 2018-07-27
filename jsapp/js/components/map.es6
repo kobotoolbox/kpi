@@ -279,10 +279,11 @@ export class FormMap extends React.Component {
     return colorSet;
   }
   buildMarkers(map) {
-    var _this = this;
-    var prepPoints = [];
-    var viewby = this.props.viewby || undefined;
-    var colorSet = this.calcColorSet();
+    var _this = this,
+        prepPoints = [],
+        viewby = this.props.viewby || undefined,
+        colorSet = this.calcColorSet(),
+        currentQuestionChoices = [];
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
@@ -292,12 +293,12 @@ export class FormMap extends React.Component {
 
       let question = survey.find(s => s.name === viewby || s.$autoname === viewby);
 
-      if (question && question.type == 'select_one') {
-        let currentQuestionChoices = choices.filter(ch => ch.list_name === question.select_from_list_name);
+      if (question && question.type === 'select_one') {
+        currentQuestionChoices = choices.filter(ch => ch.list_name === question.select_from_list_name);
       }
 
       Object.keys(mapMarkers).map(function(m, i) {
-        if (question && question.type == 'select_one') {
+        if (question && question.type === 'select_one') {
           var choice = currentQuestionChoices.find(ch => ch.name === m || ch.$autoname === m);
         }
 
