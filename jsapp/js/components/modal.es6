@@ -85,6 +85,14 @@ class Modal extends React.Component {
         this.setModalTitle(t('Table display options'));
         break;
 
+      case MODAL_TYPES.FORM_LANGUAGES:
+        this.setModalTitle(t('Manage languages'));
+        break;
+
+      case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
+        this.setModalTitle(t('Translations table'));
+        break;
+
       default:
         console.error(`Unknown modal type: "${type}"!`);
     }
@@ -212,10 +220,10 @@ class Modal extends React.Component {
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
-            { this.props.params.type == 'form-languages' &&
+            { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
               <TranslationSettings asset={this.props.params.asset}/>
             }
-            { this.props.params.type == 'form-translation-table' &&
+            { this.props.params.type == MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
               <TranslationTable asset={this.props.params.asset} langIndex={this.props.params.langIndex} />
             }
         </ui.Modal.Body>
