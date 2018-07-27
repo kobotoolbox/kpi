@@ -371,7 +371,7 @@ body .leaflet-control-layers,
 
     .dropzone {
       // !important used because strangely, in some browsers, there is in an inline position: relative on the element
-      position: absolute;
+      position: absolute !important;
       right: 0px;
       width: 120px;
       bottom: 0px;
