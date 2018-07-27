@@ -14,8 +14,10 @@ import {t, notify} from 'js/utils';
 import stores from 'js/stores';
 import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
-import {VALIDATION_STATUSES} from 'js/constants';
-
+import {
+  VALIDATION_STATUSES,
+  MODAL_TYPES
+} from 'js/constants';
 
 class Submission extends React.Component {
   constructor(props) {
@@ -187,7 +189,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
     const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: sid,
       asset: this.props.asset,
       ids: this.props.ids,
@@ -199,7 +201,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'prev'
     });
@@ -209,7 +211,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'next'
     });

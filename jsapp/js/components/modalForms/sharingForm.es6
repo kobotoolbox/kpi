@@ -298,9 +298,9 @@ class SharingForm extends React.Component {
     return (
       <bem.FormModal>
         <bem.FormModal__item>
-          <bem.FormView__cell m='asset-name'>
+          <bem.Modal__subheader>
             {name}
-          </bem.FormView__cell>
+          </bem.Modal__subheader>
           <bem.FormView__cell m='label'>
             {t('Who has access')}
           </bem.FormView__cell>

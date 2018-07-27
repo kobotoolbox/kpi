@@ -1,0 +1,51 @@
+// alternative react-select styling
+
+.Select__label {
+  display: block;
+  color: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  opacity: 0.38;
+
+  & + .Select {
+    margin-top: 10px;
+  }
+}
+
+.Select.Select--underlined {
+  &.is-focused .Select-control {
+    box-shadow: none;
+  }
+
+  .Select-control {
+    background: white;
+    border: none;
+    border-bottom: 1px solid $divider-color;
+    border-radius: 2px;
+    height: 33px;
+    font-size: 15px;
+
+    .Select-input,
+    .Select-placeholder,
+    .Select-value {
+      color: $cool-gray;
+      font-size: 15px;
+    }
+
+    .Select-input {
+      height: 33px;
+
+      input {
+        padding-bottom: 10px;
+      }
+    }
+  }
+
+  .Select-menu-outer {
+    font-size: 15px;
+    border: 1px solid lighten($divider-color, 20%);
+
+    @include box-shadow;
+  }
+}

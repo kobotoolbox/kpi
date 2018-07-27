@@ -290,18 +290,22 @@ class CustomReportForm extends React.Component {
         <div className='custom-report--questions'>
           {questionList}
         </div>
-        <div className='custom-report--footer'>
+        <bem.Modal__footer>
           {this.props.asset.report_custom[crid] &&
-            <button className='mdl-button mdl-button--colored mdl-button--danger' onClick={this.deleteCustomReport}>
+            <bem.Modal__footerButton
+              m='danger'
+              onClick={this.deleteCustomReport}
+            >
               {t('Delete')}
-            </button>
+            </bem.Modal__footerButton>
           }
-
-          <button className='mdl-button mdl-button--raised mdl-button--colored'
-                  onClick={this.saveCustomReport}>
+          <bem.Modal__footerButton
+            m='primary'
+            onClick={this.saveCustomReport}
+          >
             {t('Save')}
-          </button>
-        </div>
+          </bem.Modal__footerButton>
+        </bem.Modal__footer>
       </div>
     );
   }
@@ -707,15 +711,13 @@ class ReportStyleSettings extends React.Component {
                 }
               </div>
             }
-
           </div>
+          <ui.Modal.Footer>
+            <bem.Modal__footerButton m='primary' onClick={this.saveReportStyles}>
+              {t('Save')}
+            </bem.Modal__footerButton>
+          </ui.Modal.Footer>
         </ui.Modal.Body>
-
-        <ui.Modal.Footer>
-          <button className='mdl-button primary' onClick={this.saveReportStyles}>
-            {t('Save')}
-          </button>
-        </ui.Modal.Footer>
       </bem.GraphSettings>
     );
 
