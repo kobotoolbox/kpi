@@ -32,17 +32,6 @@ module.exports = do ->
       @choices = new $choices.ChoiceLists([], _parent: @)
       $inputParser.loadChoiceLists(options.choices || [], @choices)
 
-      if options.translations
-        @translations = options.translations
-      else
-        @translations = [null]
-
-      if options['_active_translation_name']
-        @active_translation_name = options['_active_translation_name']
-
-      @_translation_1 = @translations[0]
-      @_translation_2 = @translations[1]
-
       if options.survey
         if !$inputParser.hasBeenParsed(options)
           options.survey = $inputParser.parseArr(options.survey)
@@ -140,11 +129,6 @@ module.exports = do ->
 
       addlSheets =
         choices: new $choices.ChoiceLists()
-
-      if @active_translation_name
-        obj['#active_translation_name'] = @active_translation_name
-
-      obj.translations = [].concat(@translations)
 
       obj.survey = do =>
         out = []
