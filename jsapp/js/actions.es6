@@ -380,10 +380,6 @@ actions.resources.deployAsset.listen(
 );
 
 actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
-  // update main assets store
-});
-
-actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
   // close the dialog/alert.
   // (this was sometimes failing. possibly dialog already destroyed?)
   if (dialog_or_alert) {

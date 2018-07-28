@@ -261,10 +261,6 @@ function SearchContext(opts={}) {
     });
   });
 
-  search.completed.listen((searchParams, data, _opts) => {
-    console.log('search.completed', searchParams, data, _opts);
-  });
-
   search.completed.listen(function(searchParams, data, _opts){
     data.results = data.results.map(assetParserUtils.parsed);
     data.results.forEach(stores.allAssets.registerAssetOrCollection);
