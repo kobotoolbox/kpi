@@ -306,7 +306,7 @@ var allAssetsStore = Reflux.createStore({
     this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-    this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
+    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
     this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
   },
   whenLoaded (uid, cb) {
@@ -323,7 +323,7 @@ var allAssetsStore = Reflux.createStore({
   loadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
-  onCreateAssetCompleted (asset) {
+  onCloneAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
     this.byUid[asset.uid] = asset;
     this.data.unshift(asset);
@@ -369,9 +369,9 @@ var allAssetsStore = Reflux.createStore({
 var selectedAssetStore = Reflux.createStore({
   init () {
     this.uid = cookie.load('selectedAssetUid');
-    this.listenTo(actions.resources.createAsset.completed, this.onAssetCreated);
+    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
-  onAssetCreated (asset) {
+  onCloneAssetCompleted (asset) {
     this.uid = asset.uid;
     this.asset = allAssetsStore.byUid[asset.uid];
     if (!this.asset) {

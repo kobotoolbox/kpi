@@ -320,11 +320,6 @@ actions.resources.createImport.completed.listen(function(contents){
   }
 });
 
-actions.resources.createAsset.listen(function(){
-  console.error(`use actions.resources.createImport
-                  or actions.resources.createResource.`);
-});
-
 actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
 });
@@ -560,7 +555,6 @@ actions.resources.updateCollection.listen(function(uid, values){
 actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done(function(...args){
-      actions.resources.createAsset.completed(...args);
       actions.resources.cloneAsset.completed(...args);
       if (opts.onComplete) {
         opts.onComplete(...args);
