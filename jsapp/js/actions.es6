@@ -575,7 +575,7 @@ actions.resources.cloneAsset.listen(function(details, opts={}){
 
 actions.search.assets.listen(function(searchData, params={}){
   dataInterface.searchAssets(searchData)
-    .done(function(results){
+    .done(function(response){
       actions.search.assets.completed(searchData, response);
       if (typeof params.onComplete === 'function') {
         params.onComplete(searchData, response);
