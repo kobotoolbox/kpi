@@ -395,22 +395,6 @@ var selectedAssetStore = Reflux.createStore({
   }
 });
 
-var collectionAssetsStore = Reflux.createStore({
-  init () {
-    this.collections = {};
-    this.listenTo(actions.resources.readCollection.completed, this.readCollectionCompleted);
-  },
-  readCollectionCompleted (data) {
-    var children = data.children && data.children.results;
-
-    children.forEach((childAsset)=> {
-      stores.allAssets.registerAssetOrCollection(childAsset);
-    });
-    this.collections[data.uid] = data;
-    this.trigger(data, data.uid);
-  }
-});
-
 var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
@@ -525,7 +509,6 @@ assign(stores, {
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,
   asset: assetStore,
-  collectionAssets: collectionAssetsStore,
   allAssets: allAssetsStore,
   session: sessionStore,
   userExists: userExistsStore,

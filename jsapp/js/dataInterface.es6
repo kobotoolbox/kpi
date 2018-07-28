@@ -178,11 +178,6 @@ var dataInterface;
         method: 'GET'
       });
     },
-    readCollection ({uid}) {
-      return $ajax({
-        url: `${rootUrl}/collections/${uid}/`
-      });
-    },
     deleteCollection ({uid}) {
       return $ajax({
         url: `${rootUrl}/collections/${uid}/`,

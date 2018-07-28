@@ -139,17 +139,20 @@ class LibrarySidebar extends Reflux.Component {
       message: t('are you sure you want to delete this collection? this action is not reversible'),
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        dataInterface.deleteCollection({uid: collectionUid}).then((data)=> {
-          this.quietUpdateStore({
-            parentUid: false,
-            parentName: false,
-            allPublic: false
-          });
-          this.searchValue();
-          this.queryCollections();
-          dialog.destroy();
-        }).fail((jqxhr)=> {
-          alertify.error(t('Failed to delete collection.'));
+        actions.resources.deleteCollection({uid: collectionUid}, {
+          onComplete: (data) => {
+            this.quietUpdateStore({
+              parentUid: false,
+              parentName: false,
+              allPublic: false
+            });
+            this.searchValue();
+            this.queryCollections();
+            dialog.destroy();
+          },
+          onFailed: (jqxhr)=> {
+            alertify.error(t('Failed to delete collection.'));
+          }
         });
       },
       oncancel: () => {

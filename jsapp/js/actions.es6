@@ -148,12 +148,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  readCollection: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   updateCollection: {
     asyncResult: true
   },
@@ -525,20 +519,20 @@ actions.resources.deleteAsset.listen(function(details, params={}){
     });
 });
 
-actions.resources.readCollection.listen(function(details){
-  dataInterface.readCollection(details)
-      .done(actions.resources.readCollection.completed)
-      .fail(function(req, err, message){
-        actions.resources.readCollection.failed(details, req, err, message);
-      });
-});
-
-actions.resources.deleteCollection.listen(function(details){
+actions.resources.deleteCollection.listen(function(details, params = {}){
   dataInterface.deleteCollection(details)
-    .done(function(result){
+    .done(function(result) {
       actions.resources.deleteCollection.completed(details, result);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(details, result);
+      }
     })
-    .fail(actions.resources.deleteCollection.failed);
+    .fail(function(result) {
+      actions.resources.deleteCollection.failed(details, result);
+      if (typeof params.onFailed === 'function') {
+        params.onFailed(details, result);
+      }
+    });
 });
 
 actions.resources.updateCollection.listen(function(uid, values){
