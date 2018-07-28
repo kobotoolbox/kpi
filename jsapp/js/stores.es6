@@ -182,13 +182,6 @@ var assetStore = Reflux.createStore({
 var sessionStore = Reflux.createStore({
   init () {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
-    this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.login.passwordfail, ()=> {
-
-    });
-    this.listenTo(actions.auth.login.failed, () => {
-
-    });
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
       log('login confirmed anonymous', data.message);

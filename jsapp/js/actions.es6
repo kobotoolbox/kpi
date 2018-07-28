@@ -22,14 +22,6 @@ actions.navigation = Reflux.createActions([
   ]);
 
 actions.auth = Reflux.createActions({
-  login: {
-    children: [
-      'loggedin',
-      'passwordfail',
-      'anonymous',
-      'failed'
-    ]
-  },
   verifyLogin: {
     children: [
       'loggedin',
@@ -614,19 +606,6 @@ actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverab
 });
 actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
   actions.resources.loadAsset({url: val.url});
-});
-
-actions.auth.login.listen(function(creds){
-  dataInterface.login(creds).done(function(resp1){
-    dataInterface.selfProfile().done(function(data){
-        if(data.username) {
-          actions.auth.login.loggedin(data);
-        } else {
-          actions.auth.login.passwordfail(resp1);
-        }
-      }).fail(actions.auth.login.failed);
-  })
-    .fail(actions.auth.login.failed);
 });
 
 // reload so a new csrf token is issued
