@@ -1,3 +1,6 @@
+# DISABLED
+# CONSIDER DELETING BEFORE MERGING
+
 # {expect} = require('../helper/fauxChai')
 
 # $inputParser = require("../../jsapp/xlform/src/model.inputParser")

@@ -325,7 +325,7 @@ export class ProjectSettings extends React.Component {
         }),
       }, {
         onComplete: () => {
-          // no need to open asset from withing asset's settings view
+          // no need to open asset from within asset's settings view
           if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
             this.goToFormLanding();
           }
