@@ -73,24 +73,6 @@ actions.search = Reflux.createActions({
       'failed'
     ]
   },
-  assetsWithTags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  tags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  libraryDefaultQuery: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   collections: {
     children: [
       'completed',
@@ -100,18 +82,6 @@ actions.search = Reflux.createActions({
 });
 
 actions.resources = Reflux.createActions({
-  listAssets: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  listSurveys: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   listCollections: {
     children: [
       'completed',
@@ -393,22 +363,25 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
 
 actions.resources.deployAsset.listen(
   function(asset, redeployment, dialog_or_alert, params={}){
-    var onComplete;
-    if (params && params.onComplete) {
-      onComplete = params.onComplete;
-    }
     dataInterface.deployAsset(asset, redeployment)
       .done((data) => {
         actions.resources.deployAsset.completed(data, dialog_or_alert);
-        if (onComplete) {
-          onComplete(asset);
+        if (typeof params.onComplete === 'function') {
+          params.onComplete(data, dialog_or_alert);
         }
       })
       .fail((data) => {
         actions.resources.deployAsset.failed(data, dialog_or_alert);
+        if (typeof params.onFailed === 'function') {
+          params.onFailed(data, dialog_or_alert);
+        }
       });
   }
 );
+
+actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
+  // update main assets store
+});
 
 actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
   // close the dialog/alert.
@@ -600,32 +573,20 @@ actions.resources.cloneAsset.listen(function(details, opts={}){
     .fail(actions.resources.cloneAsset.failed);
 });
 
-actions.search.assets.listen(function(queryString){
-  dataInterface.searchAssets(queryString)
-    .done(function(...args){
-      actions.search.assets.completed.apply(this, [queryString, ...args]);
+actions.search.assets.listen(function(searchData, params={}){
+  dataInterface.searchAssets(searchData)
+    .done(function(results){
+      actions.search.assets.completed(searchData, response);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(searchData, response);
+      }
     })
-    .fail(function(...args){
-      actions.search.assets.failed.apply(this, [queryString, ...args]);
+    .fail(function(response){
+      actions.search.assets.failed(searchData, response);
+      if (typeof params.onFailed === 'function') {
+        params.onFailed(searchData, response);
+      }
     });
-});
-
-actions.search.libraryDefaultQuery.listen(function(){
-  dataInterface.libraryDefaultSearch()
-    .done(actions.search.libraryDefaultQuery.completed)
-    .fail(actions.search.libraryDefaultQuery.failed);
-});
-
-actions.search.assetsWithTags.listen(function(queryString){
-  dataInterface.assetSearch(queryString)
-    .done(actions.search.assetsWithTags.completed)
-    .fail(actions.search.assetsWithTags.failed);
-});
-
-actions.search.tags.listen(function(queryString){
-  dataInterface.searchTags(queryString)
-    .done(actions.search.searchTags.completed)
-    .fail(actions.search.searchTags.failed);
 });
 
 actions.permissions.assignPerm.listen(function(creds){
@@ -758,18 +719,6 @@ actions.resources.loadAssetContent.listen(function(params){
         actions.resources.loadAssetContent.completed(data, ...args);
       })
       .fail(actions.resources.loadAssetContent.failed);
-});
-
-actions.resources.listAssets.listen(function(){
-  dataInterface.listAllAssets()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
-});
-
-actions.resources.listSurveys.listen(function(){
-  dataInterface.listSurveys()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
 });
 
 actions.resources.listCollections.listen(function(){

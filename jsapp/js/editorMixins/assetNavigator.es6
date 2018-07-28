@@ -185,20 +185,6 @@ class AssetNavigator extends Reflux.Component {
   searchFieldValue () {
     return ReactDOM.findDOMNode(this.refs.navigatorSearchBox.refs.inp).value;
   }
-  liveSearch () {
-    var queryInput = this.searchFieldValue(),
-      r;
-    if (queryInput && queryInput.length > 2) {
-      r = stores.assetSearch.getRecentSearch(queryInput);
-      if (r) {
-        this.setState({
-          searchResults: r
-        });
-      } else {
-        actions.search.assets(queryInput);
-      }
-    }
-  }
   _displayAssetLibraryItems () {
     var qresults = this.state.assetLibraryItems;
     // var alItems;

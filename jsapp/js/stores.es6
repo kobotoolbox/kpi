@@ -32,7 +32,8 @@ var stores = {};
 var assetLibraryStore = Reflux.createStore({
   init () {
     this.results = [];
-    this.listenTo(actions.search.libraryDefaultQuery.completed, this.libraryDefaultDone);
+    // TODO: this was never called - it seems this whole state is a dead piece of code
+    // this.listenTo(actions.search.libraryDefaultQuery.completed, this.libraryDefaultDone);
   },
   libraryDefaultDone (res) {
     this.results = res;
@@ -68,7 +69,7 @@ var surveyStateStore = Reflux.createStore({
 var assetSearchStore = Reflux.createStore({
   init () {
     this.queries = {};
-    this.listenTo(actions.search.assets.completed, this.onAssetSearch);
+    this.listenTo(actions.search.assets.completed, this.onSearchAssetsCompleted);
   },
   getRecentSearch (queryString) {
     if (queryString in this.queries) {
@@ -79,11 +80,11 @@ var assetSearchStore = Reflux.createStore({
     }
     return false;
   },
-  onAssetSearch (queryString, results) {
-    results.query = queryString;
-    this.queries[queryString] = [results, new Date()];
-    if(results.count > 0) {
-      this.trigger(results);
+  onSearchAssetsCompleted (searchData, response) {
+    response.query = searchData.q;
+    this.queries[searchData.q] = [response, new Date()];
+    if(response.count > 0) {
+      this.trigger(response);
     }
   }
 });
@@ -313,8 +314,9 @@ var allAssetsStore = Reflux.createStore({
     this.data = [];
     this.byUid = {};
     this._waitingOn = {};
-    this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
-    this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
+
+    this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
+    this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
     this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
@@ -338,9 +340,6 @@ var allAssetsStore = Reflux.createStore({
     this.byUid[asset.uid] = asset;
     this.data.unshift(asset);
     this.trigger(this.data);
-  },
-  onListAssetsFailed: function (/*err*/) {
-    notify(t('failed to list assets'));
   },
   onDeleteAssetCompleted (asset) {
     this.byUid[asset.uid].deleted = 'true';
@@ -369,10 +368,13 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
-  onListAssetsCompleted: function(resp/*, req, jqxhr*/) {
-    resp.results.forEach(this.registerAssetOrCollection);
-    this.data = resp.results;
+  onListAssetsCompleted: function(searchData, response) {
+    response.results.forEach(this.registerAssetOrCollection);
+    this.data = response.results;
     this.trigger(this.data);
+  },
+  onListAssetsFailed: function (/*searchData, response*/) {
+    notify(t('failed to list assets'));
   }
 });
 
