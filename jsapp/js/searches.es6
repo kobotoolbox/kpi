@@ -396,10 +396,14 @@ var commonMethods = {
     this.searchValue();
   },
   searchChangeEvent (evt) {
-    this.quietUpdateStore({
-      searchString: evt.target.value,
-    });
-    this.debouncedSearch();
+    let searchString = evt.target.value.trim();
+    // don't trigger search on identical strings (e.g. multiple spaces)
+    if (this.searchStore.state.searchString !== searchString) {
+      this.quietUpdateStore({
+        searchString: searchString,
+      });
+      this.debouncedSearch();
+    }
   },
   refreshSearch () {
     this.debouncedSearch();
