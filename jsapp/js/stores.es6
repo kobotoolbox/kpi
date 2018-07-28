@@ -29,18 +29,6 @@ function changes(orig_obj, new_obj) {
 
 var stores = {};
 
-var assetLibraryStore = Reflux.createStore({
-  init () {
-    this.results = [];
-    // TODO: this was never called - it seems this whole state is a dead piece of code
-    // this.listenTo(actions.search.libraryDefaultQuery.completed, this.libraryDefaultDone);
-  },
-  libraryDefaultDone (res) {
-    this.results = res;
-    this.trigger(res);
-  }
-});
-
 var tagsStore = Reflux.createStore({
   init () {
     this.queries = {};
@@ -537,7 +525,6 @@ assign(stores, {
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,
   asset: assetStore,
-  assetLibrary: assetLibraryStore,
   collectionAssets: collectionAssetsStore,
   allAssets: allAssetsStore,
   session: sessionStore,

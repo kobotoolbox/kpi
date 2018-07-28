@@ -28,6 +28,9 @@ class ListSearch extends React.Component {
     }
     this.setState(searchStoreState);
   }
+  getValue() {
+    return this.refs['formlist-search'].getValue();
+  }
   render () {
     return (
       <bem.Search m={[this.state.searchState]} >
@@ -67,9 +70,12 @@ class ListTagFilter extends React.Component {
       this.setState(searchStoreState);
     } else {
       if (searchStoreState.searchTags) {
-        var tags = searchStoreState.searchTags.map(function(tag){
-          return tag.value;
-        }).join(',');
+        let tags = null;
+        if (searchStoreState.searchTags.length !== 0) {
+          tags = searchStoreState.searchTags.map(function(tag){
+            return tag.value;
+          }).join(',');
+        }
         this.setState({
           selectedTag: tags
         });
@@ -86,7 +92,7 @@ class ListTagFilter extends React.Component {
           value: tag.name.replace(/\s/g, '-'),
         };
       }),
-      selectedTag: ''
+      selectedTag: null
     });
   }
   onTagChange (tagString) {
