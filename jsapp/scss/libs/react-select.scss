@@ -276,7 +276,7 @@
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
   margin-top: -1px;
-  max-height: 200px;
+  max-height: 36px * 4.5 + 2px; // display 4.5 items
   position: absolute;
   top: 100%;
   width: 100%;
@@ -285,7 +285,7 @@
 }
 
 .Select-menu {
-  max-height: 198px;
+  max-height: 36px * 4.5; // display 4.5 items
   overflow-y: auto;
 }
 

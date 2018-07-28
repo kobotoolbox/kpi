@@ -47,9 +47,9 @@ class MainHeader extends Reflux.Component {
       currentLang: currentLang(),
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
         },
-        filterTags: 'asset_type:question OR asset_type:block',
+        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
       }),
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
@@ -136,28 +136,28 @@ class MainHeader extends Reflux.Component {
                     {accountMenuLabel}
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'mini-profile'}>
-                    <span className="account-username">{accountName}</span>
-                    <span className="account-email">{accountEmail}</span>
+                    <span className='account-username'>{accountName}</span>
+                    <span className='account-email'>{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
-                    <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
+                    <button onClick={this.accountSettings} className='mdl-button mdl-button--raised mdl-button--colored'>
                       {t('Account Settings')}
                     </button>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
                 {stores.session && stores.session.environment &&
-                  <bem.AccountBox__menuLI key='2' className="environment-links">
-                    <a href={stores.session.environment.terms_of_service_url} target="_blank">
+                  <bem.AccountBox__menuLI key='2' className='environment-links'>
+                    <a href={stores.session.environment.terms_of_service_url} target='_blank'>
                       {t('Terms of Service')}
                     </a>
-                    <a href={stores.session.environment.privacy_policy_url} target="_blank">
+                    <a href={stores.session.environment.privacy_policy_url} target='_blank'>
                       {t('Privacy Policy')}
                     </a>
                   </bem.AccountBox__menuLI>
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink>
-                    <i className="k-icon-language" />
+                    <i className='k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
                   <ul>
@@ -166,7 +166,7 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className="k-icon-logout" />
+                    <i className='k-icon-logout' />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
@@ -236,10 +236,10 @@ class MainHeader extends Reflux.Component {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
 
     return (
-        <header className="mdl-layout__header">
-          <div className="mdl-layout__header-row">
-            <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
-              <i className="fa fa-bars" />
+        <header className='mdl-layout__header'>
+          <div className='mdl-layout__header-row'>
+            <button className='mdl-button mdl-button--icon' onClick={this.toggleFixedDrawer}>
+              <i className='fa fa-bars' />
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
@@ -247,25 +247,25 @@ class MainHeader extends Reflux.Component {
               </a>
             </span>
             { this.isFormList() &&
-              <div className="mdl-layout__header-searchers">
+              <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
             { this.isLibrary() &&
-              <div className="mdl-layout__header-searchers">
+              <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               </div>
             }
             { this.isFormSingle() && this.state.asset &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
-                  <i className="k-icon-deploy" />
+                  <i className='k-icon-deploy' />
                 :
-                  <i className="k-icon-drafts" />
+                  <i className='k-icon-drafts' />
                 }
                 <bem.FormTitle__name>
-                  <input type="text"
-                        name="title"
+                  <input type='text'
+                        name='title'
                         placeholder={t('Project title')}
                         value={this.state.asset.name ? this.state.asset.name : ''}
                         onChange={this.assetTitleChange}

@@ -13,8 +13,10 @@ import ui from '../ui';
 import alertify from 'alertifyjs';
 import icons from '../../xlform/src/view.icons';
 import Select from 'react-select';
+
 import {
-  VALIDATION_STATUSES
+  VALIDATION_STATUSES,
+  MODAL_TYPES
 } from '../constants';
 
 
@@ -167,7 +169,7 @@ class Submission extends React.Component {
     if (type === 'image') {
       return <img src={attachmentUrl} />
     } else {
-      return <a href={attachmentUrl} target="_blank">{originalFilename}</a>
+      return <a href={attachmentUrl} target='_blank'>{originalFilename}</a>
     }
   }
 
@@ -188,7 +190,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
     const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: sid,
       asset: this.props.asset,
       ids: this.props.ids,
@@ -200,7 +202,7 @@ class Submission extends React.Component {
     this.setState({ loading: true});
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'prev'
     });
@@ -210,14 +212,14 @@ class Submission extends React.Component {
     this.setState({ loading: true});
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: false,
       page: 'next'
     });
   }
 
   validationStatusChange(e) {
-    const data = {"validation_status.uid": e.value};
+    const data = {'validation_status.uid': e.value};
     actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
   }
 
@@ -281,7 +283,7 @@ class Submission extends React.Component {
       if (q.type === 'begin_repeat') {
         return (
           <tr key={`row-${name}`}>
-            <td colSpan="3" className="submission--repeat-group">
+            <td colSpan='3' className='submission--repeat-group'>
               <h4>
                 {t('Repeat group: ')}
                 {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled')}
@@ -299,11 +301,11 @@ class Submission extends React.Component {
                       type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
                     response.push(
                       <tr key={`row-${pN}`}>
-                        <td className="submission--question-type">{type}</td>
-                        <td className="submission--question">
+                        <td className='submission--question-type'>{type}</td>
+                        <td className='submission--question'>
                           {subQ.label && subQ.label[translationIndex]}
                         </td>
-                        <td className="submission--response">
+                        <td className='submission--response'>
                           {_this.responseDisplayHelper(subQ, s, repQ[pN], pN)}
                         </td>
                       </tr>
@@ -330,7 +332,7 @@ class Submission extends React.Component {
         parentGroup = name;
         return (
           <tr key={`row-${name}`}>
-            <td colSpan="3" className="submission--group">
+            <td colSpan='3' className='submission--group'>
               <h4>
                 {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled group')}
               </h4>
@@ -343,7 +345,7 @@ class Submission extends React.Component {
         parentGroup = false;
         return (
           <tr key={`row-${name}-end`}>
-            <td colSpan="3" className="submission--end-group"/>
+            <td colSpan='3' className='submission--end-group'/>
           </tr>
         );
       }
@@ -361,9 +363,9 @@ class Submission extends React.Component {
 
       return (
         <tr key={`row-${name}`}>
-          <td className="submission--question-type">{type}</td>
-          <td className="submission--question">{q.label[translationIndex] || t('Unlabelled')}</td>
-          <td className="submission--response">{response}</td>
+          <td className='submission--question-type'>{type}</td>
+          <td className='submission--question'>{q.label[translationIndex] || t('Unlabelled')}</td>
+          <td className='submission--response'>{response}</td>
         </tr>
       );
     });
@@ -399,7 +401,7 @@ class Submission extends React.Component {
       <bem.FormModal>
         {this.state.hasBetaQuestion &&
           <div className='submission--warning'>
-            <i className="k-icon-alert" />
+            <i className='k-icon-alert' />
             <span>{t('Responses from a Question Matrix are not displayed in this screen.')}</span>
           </div>
         }
@@ -407,7 +409,7 @@ class Submission extends React.Component {
         {this.state.promptRefresh &&
           <div className='submission--warning'>
             <p>{t('Click on the button below to load the most recent data for this submission. ')}</p>
-            <a onClick={this.triggerRefresh} className="mdl-button mdl-button--raised mdl-button--colored">
+            <a onClick={this.triggerRefresh} className='mdl-button mdl-button--raised mdl-button--colored'>
               {t('Refresh submission')}
             </a>
           </div>
@@ -416,7 +418,7 @@ class Submission extends React.Component {
         {this.props.asset.deployment__active &&
           <bem.FormModal__group>
             {translationOptions.length > 1 &&
-              <div className="switch--label-language">
+              <div className='switch--label-language'>
                 <label>{t('Language:')}</label>
                 <Select
                   clearable={false}
@@ -425,7 +427,7 @@ class Submission extends React.Component {
                   onChange={this.languageChange} />
               </div>
             }
-            <div className="switch--validation-status">
+            <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
                 disabled={!this.userCan('validate_submissions', this.props.asset)}
@@ -437,20 +439,20 @@ class Submission extends React.Component {
           </bem.FormModal__group>
         }
         <bem.FormModal__group>
-          <div className="submission-pager">
+          <div className='submission-pager'>
             {this.state.previous > -1 &&
               <a onClick={this.switchSubmission}
-                    className="mdl-button mdl-button--colored"
+                    className='mdl-button mdl-button--colored'
                     data-sid={this.state.previous}>
-                <i className="k-icon-prev" />
+                <i className='k-icon-prev' />
                 {t('Previous')}
               </a>
             }
 
             {this.state.previous == -2 &&
               <a onClick={this.prevTablePage}
-                    className="mdl-button mdl-button--colored">
-                <i className="k-icon-prev" />
+                    className='mdl-button mdl-button--colored'>
+                <i className='k-icon-prev' />
                 {t('Previous')}
               </a>
             }
@@ -458,36 +460,36 @@ class Submission extends React.Component {
 
             {this.state.next > -1 &&
               <a onClick={this.switchSubmission}
-                    className="mdl-button mdl-button--colored"
+                    className='mdl-button mdl-button--colored'
                     data-sid={this.state.next}>
                 {t('Next')}
-                <i className="k-icon-next" />
+                <i className='k-icon-next' />
               </a>
             }
 
             {this.state.next == -2 &&
               <a onClick={this.nextTablePage}
-                    className="mdl-button mdl-button--colored">
+                    className='mdl-button mdl-button--colored'>
                 {t('Next')}
-                <i className="k-icon-next" />
+                <i className='k-icon-next' />
               </a>
             }
           </div>
 
-          <div className="submission-actions">
+          <div className='submission-actions'>
             {this.userCan('change_submissions', this.props.asset) && this.state.enketoEditLink &&
               <a href={this.state.enketoEditLink}
                 onClick={this.promptRefresh}
-                target="_blank"
-                className="mdl-button mdl-button--raised mdl-button--colored">
+                target='_blank'
+                className='mdl-button mdl-button--raised mdl-button--colored'>
                 {t('Edit')}
               </a>
             }
             {this.userCan('change_submissions', this.props.asset) &&
               <a onClick={this.deleteSubmission}
-                    className="mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip"
+                    className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'
                     data-tip={t('Delete submission')}>
-                <i className="k-icon-trash" />
+                <i className='k-icon-trash' />
               </a>
             }
           </div>
@@ -495,15 +497,15 @@ class Submission extends React.Component {
         <table>
           <thead>
           <tr>
-            <th className="submission--question-type">{t('Type')}</th>
-            <th className="submission--question">{t('Question')}</th>
-            <th className="submission--response">{t('Response')}</th>
+            <th className='submission--question-type'>{t('Type')}</th>
+            <th className='submission--question'>{t('Question')}</th>
+            <th className='submission--response'>{t('Response')}</th>
           </tr>
           </thead>
           <tbody>
             {this.renderRows()}
-            <tr key={`row-meta`}>
-              <td colSpan="3" className="submission--end-group"/>
+            <tr key={'row-meta'}>
+              <td colSpan='3' className='submission--end-group'/>
             </tr>
 
             {s.start &&

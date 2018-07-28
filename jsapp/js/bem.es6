@@ -28,6 +28,15 @@ bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
+bem.FormBuilderMeta = bem('form-builder-meta');
+bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
+bem.FormBuilderMeta__row = bem.FormBuilderMeta.__('row');
+
+bem.FormBuilderAside = bem('form-builder-aside');
+bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
+bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
+bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
+
 bem.FormBuilderHeader = bem('formBuilder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
 bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
@@ -52,7 +61,12 @@ bem.LibNav__search = bem.LibNav.__('search');
 bem.LibNav__expanded = bem.LibNav.__('expanded');
 bem.LibNav__count = bem.LibNav.__('count');
 bem.LibNav__expandedToggle = bem.LibNav.__('expandedToggle');
-bem.LibNav__logo = bem.LibNav.__('logo');
+
+bem.TemplatesList = BEM('templates-list');
+bem.TemplatesList__header = bem.TemplatesList.__('header');
+bem.TemplatesList__column = bem.TemplatesList.__('column');
+bem.TemplatesList__template = bem.TemplatesList.__('template', '<label>');
+bem.TemplatesList__templateRadio = bem.TemplatesList.__('template-radio', '<input>');
 
 bem.LibList = BEM('lib-list', '<ul>');
 bem.LibList__item = bem.LibList.__('item', '<li>');
@@ -75,7 +89,7 @@ bem.CollectionNav__searchcancel = bem.CollectionNav.__('searchcancel', '<i>');
 bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
 
 bem.Library = bem('library');
-bem.Library_breadcrumb = bem.Library.__('breadcrumb');
+bem.Library__typeFilter = bem.Library.__('type-filter', '<label>');
 
 bem.List = bem('list');
 bem.List__heading = bem.List.__('heading');
@@ -164,6 +178,17 @@ bem.FormModal = bem('form-modal');
 bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
 bem.FormModal__group = bem.FormModal.__('group');
+
+bem.Modal = bem('modal');
+bem.Modal__backdrop = bem.Modal.__('backdrop');
+bem.Modal__body = bem.Modal.__('body');
+bem.Modal__content = bem.Modal.__('content');
+bem.Modal__header = bem.Modal.__('header', '<header>');
+bem.Modal__title = bem.Modal.__('title', '<h4>');
+bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
+bem.Modal__footer = bem.Modal.__('footer', '<footer>');
+bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
+bem.Modal__tabs = bem.Modal.__('tabs');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__content = bem.PopoverMenu.__('content');

@@ -113,23 +113,23 @@ class App extends React.Component {
   render() {
     var assetid = this.props.params.assetid || null;
     return (
-      <DocumentTitle title="KoBoToolbox">
+      <DocumentTitle title='KoBoToolbox'>
         <Shortcuts
           name='APP_SHORTCUTS'
           handler={this._handleShortcuts}
-          className="mdl-wrapper"
+          className='mdl-wrapper'
           global
           isolate>
 
           { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
-            <div className="k-header__bar" />
+            <div className='k-header__bar' />
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
               'header-hidden': this.state.pageState.headerHidden,
               'drawer-hidden': this.state.pageState.drawerHidden,
               'in-formbuilder': this.isFormBuilder()
-                }} className="mdl-layout mdl-layout--fixed-header">
+                }} className='mdl-layout mdl-layout--fixed-header'>
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
@@ -238,7 +238,7 @@ class FormXform extends React.Component {
       return (
         <ui.Panel>
           <bem.FormView>
-            <div className="pygment" dangerouslySetInnerHTML={this.state.xformHtml} />
+            <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
           </bem.FormView>
         </ui.Panel>
         );
@@ -266,7 +266,7 @@ class FormNotFound extends React.Component {
 class SectionNotFound extends React.Component {
   render () {
     return (
-        <ui.Panel className="k404">
+        <ui.Panel className='k404'>
           <i />
           <em>section not found</em>
         </ui.Panel>
@@ -275,66 +275,67 @@ class SectionNotFound extends React.Component {
 };
 
 export var routes = (
-  <Route name="home" path="/" component={App}>
-    <Route path="account-settings" component={AccountSettings} />
-    <Route path="change-password" component={ChangePassword} />
+  <Route name='home' path='/' component={App}>
+    <Route path='account-settings' component={AccountSettings} />
+    <Route path='change-password' component={ChangePassword} />
 
-    <Route path="library" >
-      <Route path="new" component={AddToLibrary} />
-      <Route path="/library/:assetid">
+    <Route path='library' >
+      <Route path='new' component={AddToLibrary} />
+      <Route path='new/template' component={AddToLibrary} />
+      <Route path='/library/:assetid'>
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
-        <Route path="json" component={FormJson} />,
-        <Route path="xform" component={FormXform} />,
-        <Route path="edit" component={LibraryPage} />
+        <Route path='json' component={FormJson} />,
+        <Route path='xform' component={FormXform} />,
+        <Route path='edit' component={LibraryPage} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
     </Route>
 
-    <IndexRedirect to="forms" />
-    <Route path="forms" >
+    <IndexRedirect to='forms' />
+    <Route path='forms' >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path="/forms/:assetid">
+      <Route path='/forms/:assetid'>
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
-        <Route path="json" component={FormJson} />
-        <Route path="xform" component={FormXform} />
-        <Route path="edit" component={FormPage} />
+        <Route path='json' component={FormJson} />
+        <Route path='xform' component={FormXform} />
+        <Route path='edit' component={FormPage} />
 
-        <Route path="summary">
+        <Route path='summary'>
           <IndexRoute component={FormSummary} />
         </Route>
 
-        <Route path="landing">
+        <Route path='landing'>
           <IndexRoute component={FormLanding} />
         </Route>
 
-        <Route path="data">
-          <Route path="report" component={Reports} />
-          <Route path="report-legacy" component={FormSubScreens} />
-          <Route path="table" component={FormSubScreens} />
-          <Route path="downloads" component={FormSubScreens} />
-          <Route path="gallery" component={FormSubScreens} />
-          <Route path="map" component={FormSubScreens} />
-          <Route path="map/:viewby" component={FormSubScreens} />
-          <IndexRedirect to="report" />
+        <Route path='data'>
+          <Route path='report' component={Reports} />
+          <Route path='report-legacy' component={FormSubScreens} />
+          <Route path='table' component={FormSubScreens} />
+          <Route path='downloads' component={FormSubScreens} />
+          <Route path='gallery' component={FormSubScreens} />
+          <Route path='map' component={FormSubScreens} />
+          <Route path='map/:viewby' component={FormSubScreens} />
+          <IndexRedirect to='report' />
         </Route>
 
-        <Route path="settings">
+        <Route path='settings'>
           <IndexRoute component={FormSubScreens} />
-          <Route path="kobocat" component={FormSubScreens} />
-          <Route path="sharing" component={FormSubScreens} />
+          <Route path='kobocat' component={FormSubScreens} />
+          <Route path='sharing' component={FormSubScreens} />
         </Route>
 
         {/* used to force refresh form screens */}
-        <Route path="reset" component={FormSubScreens} />
+        <Route path='reset' component={FormSubScreens} />
 
-        <IndexRedirect to="landing" />
+        <IndexRedirect to='landing' />
       </Route>
 
-      <Route path="*" component={FormNotFound} />
+      <Route path='*' component={FormNotFound} />
     </Route>
 
-    <Route path="*" component={SectionNotFound} />
+    <Route path='*' component={SectionNotFound} />
   </Route>
 );
 

@@ -18,6 +18,8 @@ import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   assign,
   t,
@@ -95,10 +97,10 @@ export class FormMap extends React.Component {
     );
 
     var baseLayers = {
-        "OpenStreetMap": streets,
-        "OpenTopoMap": outdoors,
-        "ESRI World Imagery": satellite,
-        "Humanitarian": humanitarian
+        'OpenStreetMap': streets,
+        'OpenTopoMap': outdoors,
+        'ESRI World Imagery': satellite,
+        'Humanitarian': humanitarian
     };
 
     L.control.layers(baseLayers).addTo(map);
@@ -172,7 +174,7 @@ export class FormMap extends React.Component {
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
           labels: choice ? choice.label : undefined,
-          value: m != "undefined" ? m : undefined
+          value: m != 'undefined' ? m : undefined
         });
       });
 
@@ -342,7 +344,7 @@ export class FormMap extends React.Component {
     })
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: evt.layer.options.sId,
       asset: this.props.asset,
       ids: ids
@@ -369,7 +371,7 @@ export class FormMap extends React.Component {
     let markers = this.state.markers,
         id = evt.target.getAttribute('data-id'),
         filteredByMarker = this.state.filteredByMarker,
-        unselectedClass = "unselected";
+        unselectedClass = 'unselected';
 
     if (!filteredByMarker)
       filteredByMarker = [id];
@@ -391,7 +393,7 @@ export class FormMap extends React.Component {
     let markers = this.state.markers;
     this.setState({filteredByMarker: false});
     markers.eachLayer( function(layer) {
-      layer._icon.classList.remove("unselected");
+      layer._icon.classList.remove('unselected');
     });
   }
 
@@ -463,25 +465,25 @@ export class FormMap extends React.Component {
     }
 
     return (
-      <bem.FormView m='map' className="right-tooltip">
+      <bem.FormView m='map' className='right-tooltip'>
         <bem.FormView__mapButton m={'expand'}
           onClick={this.toggleExpandedMap}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleExpandedMap ? 'active': ''}>
-          <i className="k-icon-expand" />
+          <i className='k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
-          <i className="k-icon-pins" />
+          <i className='k-icon-pins' />
         </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
-            <i className="k-icon-heatmap" />
+            <i className='k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
         <ui.PopoverMenu type='viewby-menu' triggerLabel={label} m={'above'}>
@@ -533,7 +535,7 @@ export class FormMap extends React.Component {
                       <span className={`map-marker map-marker-${m.id}`}>
                         {m.count}
                       </span>
-                      <span className={`map-marker-label`}
+                      <span className={'map-marker-label'}
                             onClick={this.filterByMarker} data-id={m.id} title={label}>
                         {label}
                       </span>
@@ -541,7 +543,7 @@ export class FormMap extends React.Component {
                   );
               })}
             </div>
-            <div className="maplist-legend" onClick={this.toggleLegend}>
+            <div className='maplist-legend' onClick={this.toggleLegend}>
               <i className={classNames('fa', this.state.showExpandedLegend ? 'fa-angle-down' : 'fa-angle-up')} /> {t('Legend')}
             </div>
           </bem.FormView__mapList>
@@ -553,7 +555,7 @@ export class FormMap extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         }
-        <div id="data-map" />
+        <div id='data-map' />
       </bem.FormView>
       );
   }
