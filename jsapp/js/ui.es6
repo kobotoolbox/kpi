@@ -23,7 +23,7 @@ class SearchBox extends React.Component {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
     return (
-        <input type="text" ref='inp' className="k-search__input" value={value}
+        <input type='text' ref='inp' className='k-search__input' value={value}
             onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
       );
   }
@@ -90,8 +90,8 @@ class Modal extends React.Component {
           <bem.Modal__content>
             <bem.Modal__header>
               {this.renderTitle()}
-              <a className="modal__x" type="button" onClick={this.props.onClose}>
-                <i className="k-icon-close"/>
+              <a className='modal__x' type='button' onClick={this.props.onClose}>
+                <i className='k-icon-close'/>
               </a>
             </bem.Modal__header>
             {this.props.children}

@@ -69,13 +69,13 @@ export class DataTable extends React.Component {
       filterQuery = '';
 
     if (filter.length) {
-      filterQuery = `&query={`;
+      filterQuery = '&query={';
       filter.forEach(function(f, i) {
         filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
         if (i < filter.length - 1)
           filterQuery += ',';
       });
-      filterQuery += `}`;
+      filterQuery += '}';
       dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
         if (data.count) {
           this.setState({resultsTotal: data.count});
@@ -125,7 +125,7 @@ export class DataTable extends React.Component {
     var _this = this;
 
     return function(selection) {
-      const data = {"validation_status.uid": selection.value};
+      const data = {'validation_status.uid': selection.value};
       dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
         if (result.uid) {
           _this.state.tableData[index]._validation_status = result.uid;
@@ -176,12 +176,12 @@ export class DataTable extends React.Component {
     if (this.userCan('validate_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
-            <div className="table-header-checkbox">
-              <input type="checkbox"
-                id={`ch-head`}
+            <div className='table-header-checkbox'>
+              <input type='checkbox'
+                id={'ch-head'}
                 checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
                 onChange={this.bulkSelectAllRows} />
-              <label htmlFor={`ch-head`} />
+              <label htmlFor={'ch-head'} />
             </div>
           ),
         accessor: 'sub-checkbox',
@@ -194,7 +194,7 @@ export class DataTable extends React.Component {
         className: 'rt-checkbox',
         Cell: row => (
           <div>
-            <input type="checkbox"
+            <input type='checkbox'
                 id={`ch-${row.original._id}`}
                 checked={this.state.selectedRows[row.original._id] ? true : false}
                 onChange={this.bulkUpdateChange} data-sid={row.original._id} />
@@ -219,13 +219,13 @@ export class DataTable extends React.Component {
         <div>
           <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
                 className='table-link' data-tip={t('Open')}>
-            <i className="k-icon k-icon-view"/>
+            <i className='k-icon k-icon-view'/>
           </span>
 
           {userCanSeeEditIcon &&
             <span onClick={this.launchEditSubmission} data-sid={row.original._id}
                   className='table-link' data-tip={t('Edit')}>
-              <i className="k-icon k-icon-edit"/>
+              <i className='k-icon k-icon-edit'/>
             </span>
           }
         </div>
@@ -242,9 +242,9 @@ export class DataTable extends React.Component {
       Filter: ({ filter, onChange }) =>
         <select
           onChange={event => onChange(event.target.value)}
-          style={{ width: "100%" }}
-          value={filter ? filter.value : ""}>
-          <option value="">Show All</option>
+          style={{ width: '100%' }}
+          value={filter ? filter.value : ''}>
+          <option value=''>Show All</option>
           {VALIDATION_STATUSES.map((item, n) => {
             return (
               <option value={item.value} key={n}>{item.label}</option>
@@ -344,7 +344,7 @@ export class DataTable extends React.Component {
                 return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
               }
               if (q.type == 'select_multiple' && row.value) {
-                let values = row.value.split(" ");
+                let values = row.value.split(' ');
                 var labels = [];
                 values.forEach(function(v) {
                   let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
@@ -352,13 +352,13 @@ export class DataTable extends React.Component {
                     labels.push(choice.label[translationIndex]);
                 });
 
-                return labels.join(", ");
+                return labels.join(', ');
               }
               if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
                 return formatTimeDate(row.value);
               }
             }
-            return typeof(row.value) == "object" ? '' : row.value;
+            return typeof(row.value) == 'object' ? '' : row.value;
           }
       });
 
@@ -382,9 +382,9 @@ export class DataTable extends React.Component {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>
           <select onChange={event => onChange(event.target.value)}
-                  style={{ width: "100%" }}
-                  value={filter ? filter.value : ""}>
-            <option value="">Show All</option>
+                  style={{ width: '100%' }}
+                  value={filter ? filter.value : ''}>
+            <option value=''>Show All</option>
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
               return (
                 <option value={item.name} key={n}>{item.label[0]}</option>
@@ -398,7 +398,7 @@ export class DataTable extends React.Component {
           <DebounceInput
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
-            style={{ width: "100%" }}/>;
+            style={{ width: '100%' }}/>;
       }
 
       if (frozenColumn === col.id) {
@@ -513,7 +513,7 @@ export class DataTable extends React.Component {
   refreshSubmission(result, sid) {
     if (sid) {
       var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
-      if (typeof subIndex !== "undefined" && this.state.tableData[subIndex]) {
+      if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
         var newData = this.state.tableData;
         newData[subIndex]._validation_status = result;
         this.setState({tableData: newData});
@@ -659,14 +659,14 @@ export class DataTable extends React.Component {
     if (!selectAll) {
       d = {
         submissions_ids: Object.keys(this.state.selectedRows),
-        "validation_status.uid": val
+        'validation_status.uid': val
       };
     } else {
       const f = this.state.fetchState.filtered;
       if (f.length) {
         d = {
           query: {},
-          "validation_status.uid": val
+          'validation_status.uid': val
         };
         f.forEach(function(z) {
           d.query[z.id] = z.value;
@@ -674,7 +674,7 @@ export class DataTable extends React.Component {
       } else {
         d = {
           confirm: true,
-          "validation_status.uid": val
+          'validation_status.uid': val
         };
       }
     }
@@ -727,7 +727,7 @@ export class DataTable extends React.Component {
         {this.state.selectAll ?
           <span>
             {t('All ## selected. ').replace('##', resultsTotal)}
-            <a className="select-all" onClick={this.clearSelection}>
+            <a className='select-all' onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
@@ -737,7 +737,7 @@ export class DataTable extends React.Component {
               t('## selected. ').replace('##', Object.keys(selected).length)
             }
             {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
-              <a className="select-all" onClick={this.bulkSelectAll}>
+              <a className='select-all' onClick={this.bulkSelectAll}>
                 {t('Select all ##').replace('##', resultsTotal)}
               </a>
             }
@@ -768,22 +768,22 @@ export class DataTable extends React.Component {
       <bem.FormView m='table'>
         {this.state.promptRefresh &&
           <bem.FormView__cell m='table-warning'>
-            <i className="k-icon-alert" />
+            <i className='k-icon-alert' />
             {t('The data below may be out of date. ')}
-            <a className="select-all" onClick={this.refreshTable}>
+            <a className='select-all' onClick={this.refreshTable}>
               {t('Refresh')}
             </a>
 
-            <i className="k-icon-close" onClick={this.clearPromptRefresh} />
+            <i className='k-icon-close' onClick={this.clearPromptRefresh} />
           </bem.FormView__cell>
         }
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
-            <button className="mdl-button mdl-button--icon report-button__print is-edge"
+            <button className='mdl-button mdl-button--icon report-button__print is-edge'
                     onClick={this.launchPrinting}
                     data-tip={t('Print')}>
-              <i className="k-icon-print" />
+              <i className='k-icon-print' />
             </button>
 
             {Object.keys(this.state.selectedRows).length > 0 &&
@@ -801,16 +801,16 @@ export class DataTable extends React.Component {
               </ui.PopoverMenu>
             }
 
-            <button className="mdl-button mdl-button--icon report-button__expand"
+            <button className='mdl-button mdl-button--icon report-button__expand'
                     onClick={this.toggleExpandedTable}
                     data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
-              <i className="k-icon-expand" />
+              <i className='k-icon-expand' />
             </button>
 
-            <button className="mdl-button mdl-button--icon report-button__expand"
+            <button className='mdl-button mdl-button--icon report-button__expand'
                     onClick={this.launchTableColumnsModal}
                     data-tip={t('Display options')}>
-              <i className="k-icon-settings" />
+              <i className='k-icon-settings' />
             </button>
           </bem.FormView__item>
         </bem.FormView__group>
@@ -830,7 +830,7 @@ export class DataTable extends React.Component {
           nextText={t('Next')}
           loadingText={
             <span>
-              <i className="fa k-spin fa-circle-o-notch" />
+              <i className='fa k-spin fa-circle-o-notch' />
               {t('Loading...')}
             </span>
           }

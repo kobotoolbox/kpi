@@ -8,7 +8,7 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
-import RefluxPromise from "./libs/reflux-promise";
+import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
@@ -378,20 +378,12 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
-  let onComplete;
-  if (params && params.onComplete) {
-    onComplete = params.onComplete;
-  }
-
-  let hideDefaultDoneMessage = false;
-  if (params && params.hideDefaultDoneMessage) {
-    hideDefaultDoneNotification = Boolean(params.hideDefaultDoneNotification)
-  }
-
   dataInterface.patchAsset(uid, values)
     .done(function(asset){
       actions.resources.updateAsset.completed(asset);
-      if (onComplete) {onComplete(asset);}
+      if (params.onComplete) {
+        params.onComplete(asset);
+      }
       notify(t('successfully updated'));
     })
     .fail(function(resp){
@@ -741,7 +733,6 @@ actions.auth.getEnvironment.listen(function(){
 actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
-
 
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;

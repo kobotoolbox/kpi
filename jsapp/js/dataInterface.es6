@@ -160,7 +160,7 @@ var dataInterface;
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
         url: `${rootUrl}/assets/${targetUid}/permissions/`,
-        method: "PATCH",
+        method: 'PATCH',
         data: {
           clone_from: sourceUid
         }
@@ -383,7 +383,7 @@ var dataInterface;
     },
     getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='', count=false) {
       const query = `limit=${pageSize}&start=${page}`;
-      var s = `&sort={"_id":-1}`; // default sort
+      var s = '&sort={"_id":-1}'; // default sort
       var f = '';
       if (sort.length)
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;

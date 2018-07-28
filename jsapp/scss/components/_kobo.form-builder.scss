@@ -62,10 +62,6 @@ $t-form-builder-aside-open: 200ms;
   padding: 45px 75px;
   width: 100%;
 
-  .survey-header, .sub-header-bar {
-    display: none;
-  }
-
   input, textarea {
     box-shadow: none;
 
@@ -148,7 +144,7 @@ $t-form-builder-aside-open: 200ms;
       transition: background-color 0.2s, color 0.2s;
 
       &:hover {
-          background-color: darken($cool-green, 10%);
+        background-color: darken($cool-green, 10%);
       }
 
       i {
@@ -218,7 +214,8 @@ $t-form-builder-aside-open: 200ms;
 
       button {
         color: $cool-gray;
-        overflow: visible; // for tooltip
+        // for tooltip
+        overflow: visible;
         padding: 0;
 
         &[data-tip]::after {
@@ -382,6 +379,7 @@ $t-form-builder-aside-open: 200ms;
     .k-icon {
       font-size: 28px;
       vertical-align: bottom;
+
       &::before {
         vertical-align: inherit;
       }
@@ -501,7 +499,9 @@ $t-form-builder-aside-open: 200ms;
   }
 
   .formBuilder-header__button--panel-toggle {
-    .panel-toggle-name {display: none;}
+    .panel-toggle-name {
+      display: none;
+    }
   }
 
   .form-wrap {

@@ -1,6 +1,6 @@
 /*
  * Displays a list of templates with option to select one.
- * Add `onSelectTemplate` callback funciton to ge selected uid:
+ * Add `onSelectTemplate` callback function to get selected uid:
  * `<TemplatesList onSelectTemplate={this.handleTemplateSelected}/>`
  */
 
