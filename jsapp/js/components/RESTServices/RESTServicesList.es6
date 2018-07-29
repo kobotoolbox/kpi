@@ -8,6 +8,7 @@ import actions from '../../actions';
 import {dataInterface} from '../../dataInterface';
 import bem from '../../bem';
 import {t} from '../../utils';
+import {MODAL_TYPES} from '../../constants';
 
 const RESTServicesSupportUrl = 'http://help.kobotoolbox.org/managing-your-project-s-data/rest-services';
 
@@ -57,7 +58,7 @@ export default class RESTServicesList extends React.Component {
   editService(evt) {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
-      type: 'rest-services',
+      type: MODAL_TYPES.REST_SERVICES,
       esid: evt.currentTarget.dataset.esid
     });
   }
@@ -95,7 +96,7 @@ export default class RESTServicesList extends React.Component {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
       // esid: not provided intentionally
-      type: 'rest-services'
+      type: MODAL_TYPES.REST_SERVICES
     });
   }
 

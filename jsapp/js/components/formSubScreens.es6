@@ -94,7 +94,9 @@ export class FormSubScreens extends React.Component {
           return this.renderProjectDownloads();
           break;
         case `/forms/${this.state.uid}/settings`:
-          return this.renderSettingsEditor();
+          if (deployment__identifier != '')
+            iframeUrl = deployment__identifier+'/form_settings';
+          return this.renderSettingsEditor(iframeUrl);
           break;
         case `/forms/${this.state.uid}/settings/media`:
           iframeUrl = deployment__identifier+'/form_settings';
@@ -129,7 +131,7 @@ export class FormSubScreens extends React.Component {
         </DocumentTitle>
       );
   }
-  renderSettingsEditor() {
+  renderSettingsEditor(iframeUrl) {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>

@@ -223,7 +223,7 @@ class Modal extends React.Component {
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
 
-            { this.props.params.type == 'rest-services' &&
+            { this.props.params.type == MODAL_TYPES.REST_SERVICES &&
               <RESTServicesForm
                 assetUid={this.props.params.assetUid}
                 esid={this.props.params.esid}
