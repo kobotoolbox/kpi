@@ -6,6 +6,8 @@ import {dataInterface} from '../../dataInterface';
 import actions from '../../actions';
 import stores from '../../stores';
 import Select from 'react-select';
+import Checkbox from '../checkbox';
+import Radio from '../radio';
 import {t} from '../../utils';
 
 const EXPORT_TYPES = {
@@ -132,8 +134,12 @@ export default class RESTServicesForm extends React.Component {
     this.setState({[evt.target.name]: evt.target.value});
   }
 
-  handleActiveChange(evt) {
-    this.setState({isActive: evt.target.checked});
+  handleActiveChange(isChecked) {
+    this.setState({isActive: isChecked});
+  }
+
+  handleTypeRadioChange(name, value) {
+    this.setState({[name]: value});
   }
 
   handleCustomHeaderChange(evt) {
@@ -339,54 +345,37 @@ export default class RESTServicesForm extends React.Component {
             </bem.FormModal__item>
 
             <bem.FormModal__item m='active'>
-              <bem.FormModal__checkbox>
-                <bem.FormModal__checkboxInput
-                  type='checkbox'
-                  name='isActive'
-                  id='active-checkbox'
-                  onChange={this.handleActiveChange.bind(this)}
-                  checked={this.state.isActive}
-                />
-
-                <bem.FormModal__checkboxText htmlFor='active-checkbox'>
-                  {t('Enabled')}
-                </bem.FormModal__checkboxText>
-              </bem.FormModal__checkbox>
+              <Checkbox
+                name='isActive'
+                id='active-checkbox'
+                onChange={this.handleActiveChange.bind(this)}
+                checked={this.state.isActive}
+                label={t('Enabled')}
+                errors={['test', 'secn']}
+              />
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='type'>
+            <bem.FormModal__item m='type' className='clearfix'>
               <label>{t('Type')}</label>
 
               <bem.FormModal__item m={['half-width', 'half-width-left']}>
-                <bem.FormModal__radio>
-                  <bem.FormModal__radioInput
-                    type='radio'
-                    value={EXPORT_TYPES.JSON}
-                    name='type'
-                    onChange={this.handleFormItemChange.bind(this)}
-                    checked={this.state.type === EXPORT_TYPES.JSON}
-                  />
-
-                  <bem.FormModal__radioText>
-                    {t('JSON')}
-                  </bem.FormModal__radioText>
-                </bem.FormModal__radio>
+                <Radio
+                  value={EXPORT_TYPES.JSON}
+                  name='type'
+                  onChange={this.handleTypeRadioChange.bind(this)}
+                  checked={this.state.type === EXPORT_TYPES.JSON}
+                  label={t('JSON')}
+                />
               </bem.FormModal__item>
 
               <bem.FormModal__item m='half-width'>
-                <bem.FormModal__radio>
-                  <bem.FormModal__radioInput
-                    type='radio'
-                    value={EXPORT_TYPES.XML}
-                    name='type'
-                    onChange={this.handleFormItemChange.bind(this)}
-                    checked={this.state.type === EXPORT_TYPES.XML}
-                  />
-
-                  <bem.FormModal__radioText>
-                    {t('XML')}
-                  </bem.FormModal__radioText>
-                </bem.FormModal__radio>
+                <Radio
+                  value={EXPORT_TYPES.XML}
+                  name='type'
+                  onChange={this.handleTypeRadioChange.bind(this)}
+                  checked={this.state.type === EXPORT_TYPES.XML}
+                  label={t('XML')}
+                />
               </bem.FormModal__item>
             </bem.FormModal__item>
 

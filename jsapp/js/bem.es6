@@ -187,12 +187,6 @@ bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 bem.FormModal = bem('form-modal');
 bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
-bem.FormModal__radio = bem.FormModal.__('radio', '<label>');
-bem.FormModal__radioInput = bem.FormModal.__('radioInput', '<input>');
-bem.FormModal__radioText = bem.FormModal.__('radioText', '<span>');
-bem.FormModal__checkbox = bem.FormModal.__('checkbox', '<label>');
-bem.FormModal__checkboxInput = bem.FormModal.__('checkboxInput', '<input>');
-bem.FormModal__checkboxText = bem.FormModal.__('checkboxText', '<span>');
 bem.FormModal__group = bem.FormModal.__('group');
 
 bem.Modal = bem('modal');
@@ -256,6 +250,16 @@ bem.TextBox__label = bem.TextBox.__('label');
 bem.TextBox__input = bem.TextBox.__('input', '<input>');
 bem.TextBox__description = bem.TextBox.__('description');
 bem.TextBox__error = bem.TextBox.__('error');
+
+bem.Checkbox = bem('checkbox');
+bem.Checkbox__wrapper = bem.Checkbox.__('wrapper', '<label>');
+bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
+bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
+
+bem.Radio = bem('radio');
+bem.Radio__wrapper = bem.Radio.__('wrapper', '<label>');
+bem.Radio__input = bem.Radio.__('input', '<input>');
+bem.Radio__label = bem.Radio.__('label', '<span>');
 
 bem.PrintOnly = BEM('print-only');
 

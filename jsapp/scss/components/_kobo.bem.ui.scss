@@ -500,7 +500,7 @@ iframe {
     float: left;
 
     // using additional class, because it is possible that mulitple consecutive
-    // half-width paris can occur (so can't use smart & + & selectors)
+    // half-width pairs can occur (so can't use smart & + & selectors)
     &-left { padding-right: 15px; }
     &-left + & { padding-left: 15px; }
   }
@@ -620,119 +620,6 @@ iframe {
   &--actions {
     text-align: right;
     padding-top: 10px;
-  }
-
-  /*
-    checkbox and radio input styles - use as:
-
-    ```
-      <bem.FormModal__checkbox>
-        <bem.FormModal__checkboxInput/>
-        <bem.FormModal__checkboxText>…</bem.FormModal__checkboxText>
-      </bem.FormModal__checkbox>
-
-      <bem.FormModal__radio>
-        <bem.FormModal__radioInput/>
-        <bem.FormModal__radioText>…</bem.FormModal__radioText>
-      </bem.FormModal__radio>
-    ```
-  */
-  .form-modal__radio,
-  .form-modal__checkbox {
-    color: $black;
-    font-size: 14px;
-    padding: 4px 0;
-    cursor: pointer;
-
-    .form-modal__radioInput,
-    .form-modal__checkboxInput,
-    .form-modal__radioText,
-    .form-modal__checkboxText {
-      display: inline-block;
-      vertical-align: top;
-    }
-
-    .form-modal__radioText,
-    .form-modal__checkboxText {
-      max-width: calc(100% - 28px);
-    }
-
-    .form-modal__radioInput + .form-modal__radioText,
-    .form-modal__checkboxInput + .form-modal__checkboxText {
-      margin-left: 8px;
-    }
-
-    .form-modal__radioInput {
-      border-radius: 50%;
-      &::after {
-        content: "";
-        top: 4px;
-        left: 4px;
-        border-radius: 50%;
-        width: 10px;
-        height: 10px;
-        background-color: $cool-blue;
-      }
-    }
-
-    .form-modal__checkboxInput {
-      border-radius: 2px;
-      &::after {
-        content: "✓";
-        top: 0;
-        left: 0;
-        width: 18px;
-        height: 18px;
-        color: $white;
-        background-color: $cool-blue;
-        text-align: center;
-        line-height: 18px;
-        font-size: 18px;
-      }
-    }
-
-    .form-modal__radioInput,
-    .form-modal__checkboxInput {
-      appearance: none;
-      position: relative;
-      margin: 0;
-      border: 1px solid $cool-gray;
-      width: 20px;
-      height: 20px;
-      outline: 0;
-      background-color: transparent;
-      color: $cool-gray;
-      cursor: pointer;
-
-      &::after {
-        display: block;
-        position: absolute;
-        opacity: 0;
-      }
-
-      &:checked {
-        border-color: $cool-blue;
-
-        &::after {opacity: 1;}
-      }
-
-      &[disabled] {
-        pointer-events: none;
-        opacity: 0.5;
-      }
-    }
-
-    &:hover .form-modal__radioInput:not([disabled]),
-    &:hover .form-modal__checkboxInput:not([disabled]) {
-      &:checked::after { opacity: 0.8; }
-      &:not(:checked)::after { opacity: 0.1; }
-    }
-
-    &:active .form-modal__radioInput:not([disabled]),
-    &:active .form-modal__checkboxInput:not([disabled]) {
-      &:checked::after { opacity: 0.6; }
-      &:not(:checked)::after { opacity: 0.3; }
-    }
   }
 }
 
@@ -854,15 +741,15 @@ span.svg-icon {
 // Checkboxes
 
 // Remove default checkbox
-[type="checkbox"]:not(.form-modal__checkboxInput):not(:checked),
-[type="checkbox"]:not(.form-modal__checkboxInput):checked {
+[type="checkbox"]:not(.checkbox .checkbox__input):not(:checked),
+[type="checkbox"]:not(.checkbox .checkbox__input):checked {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
 
 // Checkbox Styles
-[type="checkbox"]:not(.form-modal__checkboxInput) {
+[type="checkbox"]:not(.checkbox .checkbox__input) {
   + label {
     position: relative;
     padding-left: 35px;
