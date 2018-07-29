@@ -15,6 +15,8 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   formatTime,
   currentLang,
@@ -42,7 +44,7 @@ export class FormLanding extends React.Component {
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'enketo-preview',
+      type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid
     });
   }
@@ -130,14 +132,14 @@ export class FormLanding extends React.Component {
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: this.state.uid
     });
   }
-  replaceXLSModal (evt) {
+  showReplaceProjectModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'replace-xls',
+      type: MODAL_TYPES.REPLACE_PROJECT,
       asset: this.state
     });
   }
@@ -345,64 +347,81 @@ export class FormLanding extends React.Component {
     }
 
     return (
-        <bem.FormView__group m='buttons'>
-          {userCanEdit ?
-            <Link to={`/forms/${this.state.uid}/edit`}
-                  className='form-view__link form-view__link--edit'
-                  data-tip={t('edit')}>
-              <i className='k-icon-edit' />
-            </Link>
-          :
-            <bem.FormView__link m={['edit', 'disabled']}
-              className='right-tooltip'
-              data-tip={t('Editing capabilities not granted, you can only view this form')}>
-              <i className='k-icon-edit' />
-            </bem.FormView__link>
-          }
-          <bem.FormView__link m='preview'
-            onClick={this.enketoPreviewModal}
-            data-tip={t('Preview')}>
-            <i className='k-icon-view' />
+      <bem.FormView__group m='buttons'>
+        {userCanEdit ?
+          <Link to={`/forms/${this.state.uid}/edit`}
+                className='form-view__link form-view__link--edit'
+                data-tip={t('edit')}>
+            <i className='k-icon-edit' />
+          </Link>
+        :
+          <bem.FormView__link m={['edit', 'disabled']}
+            className='right-tooltip'
+            data-tip={t('Editing capabilities not granted, you can only view this form')}>
+            <i className='k-icon-edit' />
           </bem.FormView__link>
-          {userCanEdit &&
-            <bem.FormView__link m='upload'
-                data-tip={t('Replace with XLS')}
-                onClick={this.replaceXLSModal}>
-              <i className='k-icon-replace' />
-            </bem.FormView__link>
-          }
-          <ui.PopoverMenu type='formLanding-menu'
-                      triggerLabel={<i className='k-icon-more' />}
-                      triggerTip={t('More Actions')}>
-              {downloads.map((dl)=>{
-                return (
-                    <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                        key={`dl-${dl.format}`}>
-                      <i className={`k-icon-${dl.format}-file`}/>
-                      {t('Download')}&nbsp;
-                      {dl.format.toString().toUpperCase()}
-                    </bem.PopoverMenu__link>
-                  );
-              })}
+        }
 
-              <bem.PopoverMenu__link href='#pdf' className='is-edge'>
-                <i className='k-icon-pdf'/>
-                {t('Download PDF')}
-              </bem.PopoverMenu__link>
+        <bem.FormView__link m='preview'
+          onClick={this.enketoPreviewModal}
+          data-tip={t('Preview')}>
+          <i className="k-icon-view" />
+        </bem.FormView__link>
 
-              {userCanEdit &&
-                <bem.PopoverMenu__link onClick={this.sharingModal}>
-                  <i className='k-icon-share'/>
-                  {t('Share this project')}
+        {userCanEdit &&
+          <bem.FormView__link
+            m='upload'
+            data-tip={t('Replace project')}
+            onClick={this.showReplaceProjectModal}
+          >
+            <i className="k-icon-replace" />
+          </bem.FormView__link>
+        }
+
+        <ui.PopoverMenu
+          type='formLanding-menu'
+          triggerLabel={<i className="k-icon-more" />}
+          triggerTip={t('More Actions')}
+        >
+          {downloads.map((dl)=>{
+            return (
+                <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                    key={`dl-${dl.format}`}>
+                  <i className={`k-icon-${dl.format}-file`}/>
+                  {t('Download')}&nbsp;
+                  {dl.format.toString().toUpperCase()}
                 </bem.PopoverMenu__link>
-              }
-              <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-                <i className='k-icon-clone'/>
-                {t('Clone this project')}
-              </bem.PopoverMenu__link>
-          </ui.PopoverMenu>
-        </bem.FormView__group>
-      );
+              );
+          })}
+
+          <bem.PopoverMenu__link href="#pdf" className="is-edge">
+            <i className="k-icon-pdf"/>
+            {t('Download PDF')}
+          </bem.PopoverMenu__link>
+
+          {userCanEdit &&
+            <bem.PopoverMenu__link onClick={this.sharingModal}>
+              <i className='k-icon-share'/>
+              {t('Share this project')}
+            </bem.PopoverMenu__link>
+          }
+
+          <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+            <i className='k-icon-clone'/>
+            {t('Clone this project')}
+          </bem.PopoverMenu__link>
+
+          <bem.PopoverMenu__link
+            onClick={this.cloneAsTemplate}
+            data-asset-uid={this.state.uid}
+            data-asset-name={this.state.name}
+          >
+            <i className='k-icon-template'/>
+            {t('Create template')}
+          </bem.PopoverMenu__link>
+        </ui.PopoverMenu>
+      </bem.FormView__group>
+    );
   }
   render () {
     var docTitle = this.state.name || t('Untitled');

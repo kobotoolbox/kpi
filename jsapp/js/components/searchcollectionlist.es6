@@ -37,11 +37,12 @@ class SearchCollectionList extends Reflux.Component {
   }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
-    if (searchStoreState.searchState === 'done')
+    if (searchStoreState.searchState === 'done') {
       this.queryCollections();
+    }
   }
   queryCollections () {
-    if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -78,30 +79,24 @@ class SearchCollectionList extends Reflux.Component {
     var ownedCollections = this.state.ownedCollections;
 
     return (
-        <this.props.assetRowClass key={resource.uid}
-                      currentUsername={currentUsername}
-                      onActionButtonClick={this.onActionButtonClick}
-                      isSelected={isSelected}
-                      ownedCollections={ownedCollections}
-                      deleting={resource.deleting}
-                      {...resource}
-                        />
-      );
-  }
-  toggleCategory(c) {
-    return function (e) {
-    var selectedCategories = this.state.selectedCategories;
-    selectedCategories[c] = !selectedCategories[c];
-      this.setState({
-        selectedCategories: selectedCategories,
-      });
-    }.bind(this)
+      <this.props.assetRowClass key={resource.uid}
+        currentUsername={currentUsername}
+        onActionButtonClick={this.onActionButtonClick}
+        isSelected={isSelected}
+        ownedCollections={ownedCollections}
+        deleting={resource.deleting}
+        {...resource}
+      />
+    );
   }
   renderHeadings () {
     return [
       (
         <bem.List__heading key='1'>
-          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          <span className={this.state.parentName ? 'parent' : ''}>
+            {t('My Library')}
+          </span>
+
           {this.state.parentName &&
             <span>
               <i className='k-icon-next' />
@@ -112,8 +107,11 @@ class SearchCollectionList extends Reflux.Component {
       ),
       (
         <bem.AssetListSorts className='mdl-grid' key='2'>
-          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--8-col mdl-cell--4-col-tablet mdl-cell--2-col-phone'>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone'>
             {t('Name')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'>
+            {t('Type')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Owner')}
@@ -140,7 +138,7 @@ class SearchCollectionList extends Reflux.Component {
             {t('Last Modified')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'submissions'} className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone' >
-              {t('Submissions')}
+            {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
@@ -162,7 +160,7 @@ class SearchCollectionList extends Reflux.Component {
           <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}
             {
-              (()=>{
+              (() => {
                 return this.state[[searchResultsBucket]][category].map(
                   this.renderAssetRow)
               })()

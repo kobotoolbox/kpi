@@ -137,10 +137,14 @@ class SearchFilter(filters.BaseFilterBackend):
         COMMON_QUERY_TO_ORM_FILTER = {
             'asset_type:block': {'asset_type': 'block'},
             'asset_type:question': {'asset_type': 'question'},
+            'asset_type:template': {'asset_type': 'template'},
             'asset_type:survey': {'asset_type': 'survey'},
             'asset_type:question OR asset_type:block': {
                 'asset_type__in': ('question', 'block')
-            }
+            },
+            'asset_type:question OR asset_type:block OR asset_type:template': {
+                'asset_type__in': ('question', 'block', 'template')
+            },
         }
         try:
             return queryset.filter(**COMMON_QUERY_TO_ORM_FILTER[q])
