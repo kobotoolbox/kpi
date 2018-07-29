@@ -5,7 +5,7 @@
   "devDependencies": {
     "alertifyjs": "^1.9.0",
     "async": "^1.4.2",
-    "autoprefixer": "^7.1.1",
+    "autoprefixer": "^9.0.1",
     "babel-core": "^6.26.3",
     "babel-eslint": "^8.2.3",
     "babel-loader": "^7.1.4",
@@ -51,7 +51,7 @@
     "object-assign": "^4.1.1",
     "opn-cli": "^3.1.0",
     "postcss": "^6.0.22",
-    "postcss-loader": "^2.1.5",
+    "postcss-loader": "^2.1.6",
     "prop-types": "^15.6.1",
     "q": "^1.4.1",
     "react": "^16.4.0",
