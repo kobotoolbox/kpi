@@ -7,7 +7,10 @@ var publicPath = 'http://localhost:3000/static/compiled/';
 
 module.exports = WebpackCommon({
   mode: "development",
-  entry: {app: ['react-hot-loader/patch', './jsapp/js/main.es6']},
+  entry: {
+    app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
+    tests: path.resolve(__dirname, '../test/index.js')
+  },
   output: {
     library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),

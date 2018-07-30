@@ -37,11 +37,12 @@ class SearchCollectionList extends Reflux.Component {
   }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
-    if (searchStoreState.searchState === 'done')
+    if (searchStoreState.searchState === 'done') {
       this.queryCollections();
+    }
   }
   queryCollections () {
-    if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -78,47 +79,44 @@ class SearchCollectionList extends Reflux.Component {
     var ownedCollections = this.state.ownedCollections;
 
     return (
-        <this.props.assetRowClass key={resource.uid}
-                      currentUsername={currentUsername}
-                      onActionButtonClick={this.onActionButtonClick}
-                      isSelected={isSelected}
-                      ownedCollections={ownedCollections}
-                      deleting={resource.deleting}
-                      {...resource}
-                        />
-      );
-  }
-  toggleCategory(c) {
-    return function (e) {
-    var selectedCategories = this.state.selectedCategories;
-    selectedCategories[c] = !selectedCategories[c];
-      this.setState({
-        selectedCategories: selectedCategories,
-      });
-    }.bind(this)
+      <this.props.assetRowClass key={resource.uid}
+        currentUsername={currentUsername}
+        onActionButtonClick={this.onActionButtonClick}
+        isSelected={isSelected}
+        ownedCollections={ownedCollections}
+        deleting={resource.deleting}
+        {...resource}
+      />
+    );
   }
   renderHeadings () {
     return [
       (
         <bem.List__heading key='1'>
-          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          <span className={this.state.parentName ? 'parent' : ''}>
+            {t('My Library')}
+          </span>
+
           {this.state.parentName &&
             <span>
-              <i className="k-icon-next" />
+              <i className='k-icon-next' />
               <span>{this.state.parentName}</span>
             </span>
           }
         </bem.List__heading>
       ),
       (
-        <bem.AssetListSorts className="mdl-grid" key='2'>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--8-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
+        <bem.AssetListSorts className='mdl-grid' key='2'>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
+          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'>
+            {t('Type')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Owner')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
+          <bem.AssetListSorts__item m={'modified'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Last Modified')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
@@ -126,21 +124,21 @@ class SearchCollectionList extends Reflux.Component {
   }
   renderGroupedHeadings () {
     return (
-        <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
+        <bem.AssetListSorts className='mdl-grid' style={{width: this.state.fixedHeadingsWidth}}>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone">
+          <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
             {t('Shared by')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone">
+          <bem.AssetListSorts__item m={'created'} className='mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone'>
             {t('Created')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
+          <bem.AssetListSorts__item m={'modified'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Last Modified')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone" >
-              {t('Submissions')}
+          <bem.AssetListSorts__item m={'submissions'} className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone' >
+            {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
@@ -162,7 +160,7 @@ class SearchCollectionList extends Reflux.Component {
           <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}
             {
-              (()=>{
+              (() => {
                 return this.state[[searchResultsBucket]][category].map(
                   this.renderAssetRow)
               })()
@@ -173,7 +171,7 @@ class SearchCollectionList extends Reflux.Component {
     );
 
     return [
-      <bem.List__heading key="h1" className="is-edge">
+      <bem.List__heading key='h1' className='is-edge'>
         {t('Active Projects')}
       </bem.List__heading>,
       results];
@@ -195,8 +193,8 @@ class SearchCollectionList extends Reflux.Component {
           onDrop={this.dropFiles}
           disableClick
           multiple
-          className="dropzone"
-          activeClassName="dropzone--active"
+          className='dropzone'
+          activeClassName='dropzone--active'
           accept={validFileTypes()}
         >
           <bem.List m={display} onScroll={this.handleScroll}>
@@ -251,8 +249,8 @@ class SearchCollectionList extends Reflux.Component {
                         return (
                           <bem.Loading>
                             <bem.Loading__inner>
-                              {t("Let's get started by creating your first project. Click the New button to create a new form.")}
-                              <div className="pro-tip">
+                              {t('Let\'s get started by creating your first project. Click the New button to create a new form.')}
+                              <div className='pro-tip'>
                               {t('Advanced users: You also drag and drop XLSForms here and they will be uploaded and converted to projects.')}
                               </div>
                             </bem.Loading__inner>
@@ -262,7 +260,7 @@ class SearchCollectionList extends Reflux.Component {
                         return (
                           <bem.Loading>
                             <bem.Loading__inner>
-                              {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")}
+                              {t('Let\'s get started by creating your first library question or question block. Click the New button to create a new question or block.')}
                             </bem.Loading__inner>
                           </bem.Loading>
                         );
@@ -281,8 +279,8 @@ class SearchCollectionList extends Reflux.Component {
               })()
             }
             </bem.AssetList>
-            <div className="dropzone-active-overlay">
-              <i className="k-icon-upload" />
+            <div className='dropzone-active-overlay'>
+              <i className='k-icon-upload' />
               {t('Drop files to upload')}
             </div>
           </bem.List>

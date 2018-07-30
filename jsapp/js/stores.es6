@@ -40,56 +40,6 @@ var assetLibraryStore = Reflux.createStore({
   }
 });
 
-
-var historyStore = Reflux.createStore({
-  __historyKey: 'user.history',
-  init () {
-    if (this.__historyKey in localStorage) {
-      try {
-        this.history = JSON.parse(localStorage.getItem(this.__historyKey));
-      } catch (e) {
-        console.error('could not load history from localStorage', e);
-      }
-    }
-    if (!this.history) {
-      this.history = [];
-    }
-    this.listenTo(actions.navigation.historyPush, this.historyPush);
-    this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-    this.listenTo(actions.auth.logout.completed, this.historyClear);
-    this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-  },
-  historyClear () {
-    localStorage.removeItem(this.__historyKey);
-  },
-  onDeleteAssetCompleted (deleted) {
-    var oneDeleted = false;
-    this.history = this.history.filter(function(asset){
-      var match = asset.uid === deleted.uid;
-      if (match) {
-        oneDeleted = true;
-      }
-      return !match;
-    });
-    if (oneDeleted) {
-      this.trigger(this.history);
-    }
-  },
-  historyPush (item) {
-    this.history = [
-      item, ...this.history.filter(function(xi){ return item.uid !== xi.uid; })
-    ];
-    localStorage.setItem(this.__historyKey, JSON.stringify(this.history));
-    this.trigger(this.history);
-  },
-  routeUpdate (routes) {
-    const routeName = routes.names[routes.names.length - 1] || routes.names[routes.names.length - 2];
-    if (this.currentRoute)
-      this.previousRoute = this.currentRoute;
-    this.currentRoute = routeName;
-  }
-});
-
 var tagsStore = Reflux.createStore({
   init () {
     this.queries = {};
@@ -140,14 +90,7 @@ var assetSearchStore = Reflux.createStore({
 
 var pageStateStore = Reflux.createStore({
   init () {
-    var navIsOpen = cookie.load('assetNavIntentOpen');
-    if (navIsOpen === undefined) {
-      // default assetNav value.
-      navIsOpen = false;
-    }
     this.state = {
-      assetNavIsOpen: navIsOpen,
-      assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
       headerHidden: false,
@@ -165,21 +108,6 @@ var pageStateStore = Reflux.createStore({
     var _changes = {};
     var newval = !this.state.showFixedDrawer;
     _changes.showFixedDrawer = newval;
-    assign(this.state, _changes);
-    this.trigger(_changes);
-  },
-  toggleAssetNavIntentOpen () {
-    var newIntent = !this.state.assetNavIntentOpen,
-        isOpen = this.state.assetNavIsOpen,
-        _changes = {
-          assetNavIntentOpen: newIntent
-        };
-    cookie.save('assetNavIntentOpen', newIntent);
-
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      _changes.assetNavIsOpen = !isOpen;
-    }
     assign(this.state, _changes);
     this.trigger(_changes);
   },
@@ -577,7 +505,7 @@ if (window.Intercom) {
       this.listenTo(actions.auth.logout.completed, this.loggedOut);
     },
     routeUpdate (routes) {
-      window.Intercom("update");
+      window.Intercom('update');
     },
     loggedIn (acct) {
       let name = acct.extra_details.name;
@@ -592,7 +520,7 @@ if (window.Intercom) {
           (new Date(acct.date_joined)).getTime() / 1000),
         'app_id': window.IntercomAppId
       }
-      window.Intercom("boot", userData);
+      window.Intercom('boot', userData);
     },
     loggedOut () {
       window.Intercom('shutdown');
@@ -601,7 +529,6 @@ if (window.Intercom) {
 }
 
 assign(stores, {
-  history: historyStore,
   tags: tagsStore,
   pageState: pageStateStore,
   assetSearch: assetSearchStore,

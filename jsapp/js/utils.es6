@@ -120,7 +120,11 @@ const originalSupportEmail = 'help@kobotoolbox.org';
 
 // use this utility function to replace hardcoded email in transifex translations
 export function replaceSupportEmail(str) {
-  return str.replace(originalSupportEmail, supportDetails.email);
+  if (typeof supportDetails !== 'undefined') {
+    return str.replace(originalSupportEmail, supportDetails.email);
+  } else {
+    return str;
+  }
 }
 
 export function currentLang() {
@@ -217,7 +221,7 @@ export function koboMatrixParser(params) {
       content.survey[i].type = 'begin_kobomatrix';
       content.survey[i].appearance = 'field-list';
       surveyLength++;
-      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${content.survey[i].$kuid}`});
+      content.survey.splice(i + 1, 0, {type: 'end_kobomatrix', '$kuid': `/${content.survey[i].$kuid}`});
     }
   }
 

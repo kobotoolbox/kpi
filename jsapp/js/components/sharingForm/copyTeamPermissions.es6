@@ -1,15 +1,15 @@
-import React from "react";
-import Reflux from "reflux";
-import reactMixin from "react-mixin";
-import autoBind from "react-autobind";
-import bem from "../../bem";
-import classNames from "classnames";
-import Select from "react-select";
-import alertify from "alertifyjs";
-import stores from "../../stores";
-import actions from "../../actions";
-import mixins from "../../mixins";
-import { t, notify } from "../../utils";
+import React from 'react';
+import Reflux from 'reflux';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
+import bem from '../../bem';
+import classNames from 'classnames';
+import Select from 'react-select';
+import alertify from 'alertifyjs';
+import stores from '../../stores';
+import actions from '../../actions';
+import mixins from '../../mixins';
+import { t, notify } from '../../utils';
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
@@ -58,14 +58,14 @@ class CopyTeamPermissions extends React.Component {
 
   safeCopyPermissionsFrom() {
     if (this.state.sourceUid) {
-      const dialog = alertify.dialog("confirm");
-      const finalMessage = t("You are about to copy permissions from ##source to ##target. This action cannot be undone.")
-        .replace("##source", `<strong>${this.state.sourceName}</strong>`)
-        .replace("##target", `<strong>${this.state.targetName}</strong>`);
+      const dialog = alertify.dialog('confirm');
+      const finalMessage = t('You are about to copy permissions from ##source to ##target. This action cannot be undone.')
+        .replace('##source', `<strong>${this.state.sourceName}</strong>`)
+        .replace('##target', `<strong>${this.state.targetName}</strong>`);
       let dialogOptions = {
-        title: t("Are you sure you want to copy permissions?"),
+        title: t('Are you sure you want to copy permissions?'),
         message: finalMessage,
-        labels: { ok: t("Proceed"), cancel: t("Cancel") },
+        labels: { ok: t('Proceed'), cancel: t('Cancel') },
         onok: () => {
           this.setState({ isAwaitingAssetChange: true });
           actions.permissions.copyPermissionsFrom(
@@ -86,10 +86,10 @@ class CopyTeamPermissions extends React.Component {
       this.state.sourceUid !== null && !this.state.isAwaitingAssetChange;
 
     const importButtonClasses = classNames(
-      "mdl-button",
-      "mdl-js-button",
-      "mdl-button--raised",
-      isImportButtonEnabled ? "mdl-button--colored" : "mdl-button--disabled"
+      'mdl-button',
+      'mdl-js-button',
+      'mdl-button--raised',
+      isImportButtonEnabled ? 'mdl-button--colored' : 'mdl-button--disabled'
     );
 
     const availableOptions = [];
@@ -108,36 +108,36 @@ class CopyTeamPermissions extends React.Component {
     return (
       <bem.FormView__cell>
         <bem.FormModal__item
-          m="copy-team-permissions-opener"
+          m='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
-          {t("Copy team from another project")}
+          {t('Copy team from another project')}
         </bem.FormModal__item>
 
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>
             <bem.FormModal__item>
               {t(
-                "This will overwrite any existing sharing settings defined in this project."
+                'This will overwrite any existing sharing settings defined in this project.'
               )}
             </bem.FormModal__item>
-            <bem.FormModal__item m={["gray-row", "copy-team-permissions"]}>
+            <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
               <Select
-                id="teamPermissions"
-                ref="sourceUid"
+                id='teamPermissions'
+                ref='sourceUid'
                 value={this.state.sourceUid}
                 clearable={false}
-                placeholder={t("Select source project…")}
+                placeholder={t('Select source project…')}
                 options={availableOptions}
                 onChange={this.updateTeamPermissionsInput}
               />
               <button
-                id="copyTeamPermissionsImportButton"
+                id='copyTeamPermissionsImportButton'
                 className={importButtonClasses}
                 disabled={!isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
-                {t("copy")}
+                {t('copy')}
               </button>
             </bem.FormModal__item>
           </bem.FormView__cell>

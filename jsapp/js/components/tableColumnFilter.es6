@@ -132,15 +132,15 @@ export class TableColumnFilter extends React.Component {
     let _this = this;
 
     return (
-      <div className="tableColumn-modal">
+      <div className='tableColumn-modal'>
         <bem.FormModal__item m='translation-radios'>
           <bem.FormView__cell m='label'>
             {t('Display labels or XML values?')}
           </bem.FormView__cell>
           <div>
-            <label htmlFor={`trnsl-xml`}>
+            <label htmlFor={'trnsl-xml'}>
               <input type='radio' name='translation'
-                     value='-1' id={`trnsl-xml`}
+                     value='-1' id={'trnsl-xml'}
                      checked={this.state.translationIndex == '-1'}
                      onChange={this.onLabelChange} />
               {t('XML Values')}
@@ -162,7 +162,7 @@ export class TableColumnFilter extends React.Component {
         </bem.FormModal__item>
         <bem.FormModal__item m='group-headings'>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={this.state.showGroupName}
             onChange={this.updateGroupHeaderDisplay}
             id='check-group-headings'/>
@@ -194,7 +194,7 @@ export class TableColumnFilter extends React.Component {
                   return (
                     <li key={col.value}>
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         value={col.value}
                         checked={_this.state.selectedColumns.includes(col.value)}
                         onChange={_this.toggleCheckboxChange}
@@ -211,18 +211,17 @@ export class TableColumnFilter extends React.Component {
             </bem.FormModal__item>
           </bem.FormModal__item>
         }
-        <div className='tableColumn-modal--footer'>
+        <bem.Modal__footer>
           {this.userCan('change_asset', this.props.asset) &&
-            <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
+            <bem.Modal__footerButton m='secondary' onClick={this.resetTableSettings}>
               {t('Reset')}
-            </button>
+            </bem.Modal__footerButton>
           }
 
-          <button className="mdl-button mdl-button--raised mdl-button--colored"
-                  onClick={this.saveTableColumns}>
+          <bem.Modal__footerButton m='primary' onClick={this.saveTableColumns}>
             {t('Save')}
-          </button>
-        </div>
+          </bem.Modal__footerButton>
+        </bem.Modal__footer>
 
       </div>
     )
