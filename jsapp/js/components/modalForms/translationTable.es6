@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactTable from 'react-table'
 import TextareaAutosize from 'react-autosize-textarea'
 
 import bem from 'js/bem'
@@ -22,10 +23,10 @@ export class TranslationTable extends React.Component {
       let row = survey[i];
       for (var j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j];
-        if (row[property]) {
+        if (row[property] && row[property][0]) {
           var tableRow = {
             original: row[property][0],
-            translation: row[property][props.langIndex],
+            value: row[property][props.langIndex],
             name: row.name || row.$autoname,
             itemProp: property,
             contentProp: 'survey'
@@ -40,24 +41,43 @@ export class TranslationTable extends React.Component {
     if (choices && choices.length) {
       for (var i = 0, len = choices.length; i < len; i++) {
         let choice = choices[i];
-        var tableRow = {
-          original: choice.label[0],
-          translation: choice.label[props.langIndex],
-          name: choice.name || choice.$autovalue,
-          itemProp: 'label',
-          contentProp: 'choices'
+        if (choice && choice.label[0]) {
+          var tableRow = {
+            original: choice.label[0],
+            value: choice.label[props.langIndex],
+            name: choice.name || choice.$autovalue,
+            itemProp: 'label',
+            contentProp: 'choices'
+          }
+          this.state.tableData.push(tableRow);
         }
-        this.state.tableData.push(tableRow);
       }
     }
+
+    let translationLabel = props.asset.content.translations[props.langIndex];
+    this.columns = [
+      {
+        Header: t('Original string'),
+        accessor: 'original',
+        minWidth: 130,
+        Cell: row => row.original.original
+      },{
+        Header: `${translationLabel} ${t('Translation')}`,
+        accessor: 'translation',
+        className: 'translation',
+        Cell: cellInfo => (
+          <TextareaAutosize
+            onChange={e => {
+              const data = [...this.state.tableData];
+              data[cellInfo.index].value = e.target.value;
+              this.setState({ data });
+            }}
+            value={this.state.tableData[cellInfo.index].value || ''}/>
+        )
+      }
+    ];
   }
-  onChange(value, index) {
-    let tD = this.state.tableData;
-    tD[index].translation = value;
-    this.setState({
-      tableData: tD
-    });
-  }
+
   saveChanges() {
     var content = this.props.asset.content;
     let rows = this.state.tableData,
@@ -67,8 +87,8 @@ export class TranslationTable extends React.Component {
       let item = content[rows[i].contentProp].find(o => o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name);
       var itemProp = rows[i].itemProp;
 
-      if (item[itemProp][langIndex] !== rows[i].translation) {
-        item[itemProp][langIndex] = rows[i].translation;
+      if (item[itemProp][langIndex] !== rows[i].value) {
+        item[itemProp][langIndex] = rows[i].value;
       }
     }
 
@@ -77,34 +97,26 @@ export class TranslationTable extends React.Component {
       {content: JSON.stringify(content)}
     );
   }
+
   render () {
-    let langIndex = this.props.langIndex,
-        translationLabel = this.props.asset.content.translations[langIndex];
     return (
       <bem.FormModal m='translation-table'>
         <bem.FormModal__item m='translation-table--container'>
-          <table>
-            <thead>
-              <tr>
-                <th>{t('Original string')}</th>
-                <th>{`${translationLabel} ${t('Translation')}`}</th>
-              </tr>
-            </thead>
-            <tbody>
-                {this.state.tableData.map((item, i)=>{
-                  return (
-                      <tr key={i}>
-                        <td>{item.original}</td>
-                        <td className={item.translation ? 'translation' : 'translation missing'}>
-                          <TextareaAutosize
-                            onChange={e => this.onChange(e.target.value, i)}
-                            value={item.translation || ''}/>
-                        </td>
-                      </tr>
-                    );
-                })}
-            </tbody>
-          </table>
+        <ReactTable
+          data={this.state.tableData}
+          columns={this.columns}
+          defaultPageSize={30}
+          showPageSizeOptions={false}
+          previousText={t('Prev')}
+          nextText={t('Next')}
+          minRows={1}
+          loadingText={
+            <span>
+              <i className='fa k-spin fa-circle-o-notch' />
+              {t('Loading...')}
+            </span>
+          }
+        />
         </bem.FormModal__item>
         <bem.FormModal__item m='translation-table--actions'>
           <button className='mdl-button mdl-button--raised mdl-button--colored' onClick={this.saveChanges.bind(this)}>

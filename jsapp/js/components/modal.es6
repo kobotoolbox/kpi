@@ -90,7 +90,10 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
-        this.setModalTitle(t('Translations table'));
+        this.setState({
+          title: t('Translations table'),
+          modalClass: 'modal--large'
+        });
         break;
 
       default:

@@ -170,7 +170,6 @@ export class TranslationSettings extends React.Component {
 
   }
   prepareTranslations(content) {
-    // prepare all translation arrays when adding a language
     let translated = content.translated,
         translationsLength = content.translations.length,
         survey = content.survey,
@@ -187,7 +186,7 @@ export class TranslationSettings extends React.Component {
       }
     }
 
-    // append null values to translations for each survey row
+    // append null values to translations for choices
     if (content.choices && content.choices.length) {
       for (var i = 0, len = choices.length; i < len; i++) {
         if (choices[i].label.length < translationsLength) {
@@ -198,7 +197,6 @@ export class TranslationSettings extends React.Component {
     return content;
   }
   deleteTranslations(content, langIndex) {
-    // delete items from translation arrays for this langIndex
     let translated = content.translated,
         translationsLength = content.translations.length,
         survey = content.survey,
