@@ -536,12 +536,12 @@ export class ProjectSettings extends React.Component {
           </button>
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
-            <i className="k-icon-upload" />
+            <i className='k-icon-upload' />
             {t('Upload an XLSForm')}
           </button>
 
           <button onClick={this.displayStep.bind(this, this.STEPS.IMPORT_URL)}>
-            <i className="k-icon-link" />
+            <i className='k-icon-link' />
             {t('Import an XLSForm via URL')}
           </button>
         </bem.FormModal__item>
@@ -559,7 +559,7 @@ export class ProjectSettings extends React.Component {
             m='primary'
             onClick={this.applyTemplate}
             disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
-            className="mdl-js-button"
+            className='mdl-js-button'
           >
             {this.state.applyTemplateButton}
           </bem.Modal__footerButton>
@@ -586,7 +586,7 @@ export class ProjectSettings extends React.Component {
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}
           >
-            <i className="k-icon-xls-file" />
+            <i className='k-icon-xls-file' />
             {t(' Drag and drop the XLSForm file here or click to browse')}
           </Dropzone>
         }
@@ -606,20 +606,20 @@ export class ProjectSettings extends React.Component {
   renderStepImportUrl() {
     return (
       <bem.FormModal__item className='project-settings project-settings--import-url'>
-        <div className="intro">
+        <div className='intro'>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
-          <a href={formViaUrlHelpLink} target="_blank">
+          <a href={formViaUrlHelpLink} target='_blank'>
             {t('Having issues? See this help article.')}
           </a>
         </div>
 
-        <label htmlFor="url">
+        <label htmlFor='url'>
           {t('URL')}
         </label>
 
         <DebounceInput
-          type="text"
-          id="importUrl"
+          type='text'
+          id='importUrl'
           debounceTimeout={300}
           value={this.state.importUrl}
           placeholder='https://'
@@ -631,7 +631,7 @@ export class ProjectSettings extends React.Component {
             m='primary'
             onClick={this.importFromURL}
             disabled={!this.state.importUrlButtonEnabled}
-            className="mdl-js-button"
+            className='mdl-js-button'
           >
             {this.state.importUrlButton}
           </bem.Modal__footerButton>
@@ -661,7 +661,7 @@ export class ProjectSettings extends React.Component {
             <bem.Modal__footerButton
               m='primary'
               onClick={this.handleSubmit}
-              className="mdl-js-button"
+              className='mdl-js-button'
             >
               {t('Save Changes')}
             </bem.Modal__footerButton>
@@ -696,14 +696,14 @@ export class ProjectSettings extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label className="long">
+            <label className='long'>
               {t('Please specify the country and the sector where this project will be deployed. ')}
               {/*t('This information will be used to help you filter results on the project list page.')*/}
             </label>
           </bem.FormModal__item>
 
           <bem.FormModal__item m='sector'>
-            <label htmlFor="sector">
+            <label htmlFor='sector'>
               {t('Sector')}
             </label>
             <Select

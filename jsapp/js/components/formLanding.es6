@@ -365,7 +365,7 @@ export class FormLanding extends React.Component {
         <bem.FormView__link m='preview'
           onClick={this.enketoPreviewModal}
           data-tip={t('Preview')}>
-          <i className="k-icon-view" />
+          <i className='k-icon-view' />
         </bem.FormView__link>
 
         {userCanEdit &&
@@ -374,13 +374,13 @@ export class FormLanding extends React.Component {
             data-tip={t('Replace project')}
             onClick={this.showReplaceProjectModal}
           >
-            <i className="k-icon-replace" />
+            <i className='k-icon-replace' />
           </bem.FormView__link>
         }
 
         <ui.PopoverMenu
           type='formLanding-menu'
-          triggerLabel={<i className="k-icon-more" />}
+          triggerLabel={<i className='k-icon-more' />}
           triggerTip={t('More Actions')}
         >
           {downloads.map((dl)=>{
@@ -394,8 +394,8 @@ export class FormLanding extends React.Component {
               );
           })}
 
-          <bem.PopoverMenu__link href="#pdf" className="is-edge">
-            <i className="k-icon-pdf"/>
+          <bem.PopoverMenu__link href='#pdf' className='is-edge'>
+            <i className='k-icon-pdf'/>
             {t('Download PDF')}
           </bem.PopoverMenu__link>
 
