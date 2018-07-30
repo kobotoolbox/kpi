@@ -755,10 +755,6 @@ span.svg-icon {
     padding-left: 35px;
     cursor: pointer;
     font-size: 1rem;
-    user-select: none;
-    // match checkbox rectangle size
-    line-height: 22px;
-    display: inline-block;
   }
 
   + label:after {
