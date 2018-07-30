@@ -16,6 +16,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
+from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 import jsonbfield.fields
@@ -101,7 +102,13 @@ class TagStringMixin:
 
     @property
     def tag_string(self):
-        return ','.join(self.tags.values_list('name', flat=True))
+        try:
+            tag_list = self.prefetched_tags
+        except AttributeError:
+            tag_names = self.tags.values_list('name', flat=True)
+        else:
+            tag_names = [t.name for t in tag_list]
+        return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
@@ -444,7 +451,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'asset'
 
     class Meta:
         ordering = ('-date_modified',)
@@ -675,9 +682,17 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        latest_version = self.latest_version
-        if latest_version:
-            return latest_version.uid
+        try:
+            latest_versions = self.prefetched_latest_versions
+        except AttributeError:
+            latest_version = self.latest_version
+            if latest_version:
+                return latest_version.uid
+        else:
+            try:
+                return latest_versions[0]
+            except IndexError:
+                return None
 
     @property
     def snapshot(self):
@@ -719,6 +734,41 @@ class Asset(ObjectPermissionMixin,
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
+
+    @staticmethod
+    def optimize_queryset_for_list(queryset):
+        ''' Used by serializers to improve performance when listing assets '''
+        queryset = queryset.defer(
+            # Avoid pulling these `JSONField`s from the database because:
+            #   * they are stored as plain text, and just deserializing them
+            #     to Python objects is CPU-intensive;
+            #   * they are often huge;
+            #   * we don't need them for list views.
+            'content', 'report_styles'
+        ).select_related(
+            'owner__username',
+        ).prefetch_related(
+            # We previously prefetched `permissions__content_object`, but that
+            # actually pulled the entirety of each permission's linked asset
+            # from the database! For now, the solution is to remove
+            # `content_object` here *and* from
+            # `ObjectPermissionNestedSerializer`.
+            'permissions__permission',
+            'permissions__user',
+            # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
+            # related objects in a list (`prefetched_list`) that we can use in
+            # other methods to avoid additional queries; see:
+            # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
+            Prefetch('tags', to_attr='prefetched_tags'),
+            Prefetch(
+                'asset_versions',
+                queryset=AssetVersion.objects.order_by(
+                    '-date_modified'
+                ).only('uid', 'asset', 'date_modified', 'deployed'),
+                to_attr='prefetched_latest_versions',
+            ),
+        )
+        return queryset
 
 
 class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):

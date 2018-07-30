@@ -16,6 +16,8 @@ import searches from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   t,
   assign,
@@ -64,9 +66,9 @@ class LibrarySidebar extends Reflux.Component {
       publicCollectionsVisible: false,
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
         },
-        filterTags: 'asset_type:question OR asset_type:block',
+        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
       })
     });
   }
@@ -127,7 +129,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   deleteCollection (evt) {
     evt.preventDefault();
@@ -156,7 +157,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   renameCollection (evt) {
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -183,7 +183,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   subscribeCollection (evt) {
     evt.preventDefault();
@@ -207,7 +206,7 @@ class LibrarySidebar extends Reflux.Component {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: collectionUid
     });
   }
@@ -255,24 +254,35 @@ class LibrarySidebar extends Reflux.Component {
   render () {
     return (
       <bem.CollectionsWrapper>
-        <ui.PopoverMenu type='new-menu'
-            triggerLabel={t('new')}>
-            <Link to={'/library/new'} className='popover-menu__link'>
-              <i className='k-icon-question' />
-              {t('Question')}
-            </Link>
-            <Dropzone onDrop={this.dropFiles}
-                          multiple={false}
-                          className='dropzone'
-                          accept={validFileTypes()}>
-              <bem.PopoverMenu__link>
-                <i className='k-icon-upload' />
-                {t('upload')}
-              </bem.PopoverMenu__link>
-            </Dropzone>
-            <bem.PopoverMenu__link onClick={this.createCollection}>
-              <i className='k-icon-folder' />
-              {t('collection')}
+        <ui.PopoverMenu
+          type='new-menu'
+          triggerLabel={t('new')}
+        >
+          <Link to={'/library/new'} className='popover-menu__link'>
+            <i className='k-icon-question' />
+            {t('Question')}
+          </Link>
+
+          <Link to={'/library/new/template'} className='popover-menu__link'>
+            <i className='k-icon-template' />
+            {t('Template')}
+          </Link>
+
+          <Dropzone
+            onDrop={this.dropFiles}
+            multiple={false}
+            className='dropzone'
+            accept={validFileTypes()}
+          >
+            <bem.PopoverMenu__link>
+              <i className='k-icon-upload' />
+              {t('upload')}
+            </bem.PopoverMenu__link>
+          </Dropzone>
+
+          <bem.PopoverMenu__link onClick={this.createCollection}>
+            <i className='k-icon-folder' />
+            {t('collection')}
           </bem.PopoverMenu__link>
         </ui.PopoverMenu>
 

@@ -118,12 +118,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  listQuestionsAndBlocks: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   createAsset: {
     children: [
       'completed',
@@ -389,10 +383,13 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values){
+actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done(function(asset){
       actions.resources.updateAsset.completed(asset);
+      if (params.onComplete) {
+        params.onComplete(asset);
+      }
       notify(t('successfully updated'));
     })
     .fail(function(resp){
@@ -586,7 +583,13 @@ actions.resources.deleteAsset.listen(function(details, params={}){
         onComplete(details);
       }
     })
-    .fail(actions.resources.deleteAsset.failed);
+    .fail((err) => {
+      actions.resources.deleteAsset.failed(details);
+      alertify.alert(
+        t('Unable to delete asset!'),
+        `<p>${t('Error details:')}</p><pre style='max-height: 200px;'>${err.responseText}</pre>`
+      );
+    });
 });
 
 actions.resources.readCollection.listen(function(details){
@@ -804,12 +807,6 @@ actions.resources.listCollections.listen(function(){
   dataInterface.listCollections()
       .done(actions.resources.listCollections.completed)
       .fail(actions.resources.listCollections.failed);
-});
-
-actions.resources.listQuestionsAndBlocks.listen(function(){
-  dataInterface.listQuestionsAndBlocks()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){

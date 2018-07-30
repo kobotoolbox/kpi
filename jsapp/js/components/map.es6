@@ -20,6 +20,8 @@ import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   assign,
   t,
@@ -542,7 +544,7 @@ export class FormMap extends React.Component {
     })
 
     stores.pageState.showModal({
-      type: 'submission',
+      type: MODAL_TYPES.SUBMISSION,
       sid: evt.layer.options.sId,
       asset: this.props.asset,
       ids: ids

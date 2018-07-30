@@ -21,7 +21,7 @@
   border: 1px solid $cool-lightgray;
   padding-left: 20px;
   position: relative;
-  margin: 5px 10px;
+  margin: 5px 0;
   background-color: #FFF;
 
   &.sortable-active {
@@ -51,7 +51,7 @@
 .lib-list__tags {
   line-height: 14px;
   font-size: 11px;
-  padding-bottom: 6px;
+  padding-left: 5px;
   @extend .clearfix;
 }
 

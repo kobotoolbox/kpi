@@ -864,17 +864,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     ### CURRENT ENDPOINT
     """
+
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = Asset.objects.select_related(
-        'owner', 'parent'
-    ).prefetch_related(
-        'permissions',
-        'permissions__permission',
-        'permissions__user',
-        'permissions__content_object',
-        # Getting the tag_string is making one query per object, but
-        # prefetch_related doesn't seem to help
-    ).all()
+    queryset = Asset.objects.all()
+
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
@@ -894,15 +887,13 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        ''' Really temporary way to exclude a taxing field from the database
-        query when the request instructs us to do so. '''
         queryset = super(AssetViewSet, self).get_queryset(*args, **kwargs)
-        # See also AssetSerializer.get_fields()
-        excludes = self.request.GET.get('exclude', '')
-        excludes = excludes.split(',')
-        if 'content' in excludes:
-            queryset = queryset.defer('content')
-        return queryset
+        if self.action == 'list':
+            return queryset.model.optimize_queryset_for_list(queryset)
+        else:
+            # This is called to retrieve an individual record. How much do we
+            # have to care about optimizations for that?
+            return queryset
 
     def _get_clone_serializer(self, current_asset=None):
         """

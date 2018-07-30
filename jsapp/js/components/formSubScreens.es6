@@ -17,9 +17,11 @@ import SharingForm from '../components/sharingForm';
 import DataTable from '../components/table';
 
 import {
-  ProjectSettingsEditor,
+  ProjectSettings,
   ProjectDownloads
 } from '../components/formEditors';
+
+import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 
 import FormMap from '../components/map';
 
@@ -121,7 +123,11 @@ export class FormSubScreens extends React.Component {
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m='form-settings'>
-            <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+            <ProjectSettings
+              context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
+              formAsset={this.state}
+              iframeUrl={iframeUrl}
+            />
           </bem.FormView>
         </DocumentTitle>
     );

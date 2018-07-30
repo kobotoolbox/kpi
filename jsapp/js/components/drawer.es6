@@ -17,6 +17,8 @@ import mixins from '../mixins';
 
 import LibrarySidebar from '../components/librarySidebar';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   t,
   assign,
@@ -58,7 +60,7 @@ class FormSidebar extends Reflux.Component {
   newFormModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'new-form'
+      type: MODAL_TYPES.NEW_FORM
     });
   }
   render () {
@@ -141,8 +143,8 @@ class Drawer extends Reflux.Component {
     return (
       <bem.Drawer className='k-drawer'>
         <nav className='k-drawer__icons'>
-          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' class='projects'/>
-          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' class='library' />
+          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' />
+          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' />
         </nav>
 
         <div className='drawer__sidebar'>
