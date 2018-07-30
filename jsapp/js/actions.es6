@@ -179,6 +179,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ],
   },
+  getAssetFiles: {
+    children: [
+      'completed',
+      'failed'
+    ],
+  },
   notFound: {}
 });
 
@@ -435,6 +441,14 @@ actions.resources.setDeploymentActive.listen(
   }
 );
 
+actions.resources.getAssetFiles.listen(function(assetId) {
+  dataInterface
+    .getAssetFiles(assetId)
+    .done(actions.resources.getAssetFiles.completed)
+    .fail(actions.resources.getAssetFiles.failed);
+});
+
+
 actions.reports = Reflux.createActions({
   setStyle: {
     children: [
@@ -479,6 +493,23 @@ actions.table.updateSettings.listen(function(assetId, settings){
   }).done(actions.table.updateSettings.completed)
     .fail(actions.table.updateSettings.failed);
 });
+
+
+actions.map = Reflux.createActions({
+  setMapSettings: {
+    children: ['completed', 'failed']
+  }
+});
+
+actions.map.setMapSettings.listen(function(assetId, details) {
+  dataInterface
+    .patchAsset(assetId, {
+      map_styles: JSON.stringify(details)
+    })
+    .done(actions.map.setMapSettings.completed)
+    .fail(actions.map.setMapSettings.failed);
+});
+
 
 actions.resources.createResource.listen(function(details){
   dataInterface.createResource(details)
