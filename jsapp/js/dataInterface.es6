@@ -435,6 +435,33 @@ var dataInterface;
         method: 'GET'
       });
     },
+    uploadAssetFile(uid, data) {
+      var formData = new FormData();
+      Object.keys(data).forEach(function(key) {
+        formData.append(key, data[key]);
+      });
+
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/files/`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false
+      });
+    },
+    getAssetFiles(uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/files`,
+        method: 'GET'
+      });
+    },
+    deleteAssetFile(assetUid, uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${assetUid}/files/${uid}`,
+        method: 'DELETE'
+      });
+    },
+
     setLanguage(data) {
       return $ajax({
         url: `${rootUrl}/i18n/setlang/`,

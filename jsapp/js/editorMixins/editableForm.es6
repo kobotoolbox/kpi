@@ -912,7 +912,7 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
             <bem.FormBuilder__contents>
-              <div ref="form-wrap" className='form-wrap'>
+              <div ref='form-wrap' className='form-wrap'>
                 {!this.state.surveyAppRendered &&
                   this.renderNotLoadedMessage()
                 }
@@ -928,7 +928,7 @@ export default assign({
               title={t('Form Preview')}
             >
               <ui.Modal.Body>
-                <div className="enketo-holder">
+                <div className='enketo-holder'>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </div>
               </ui.Modal.Body>

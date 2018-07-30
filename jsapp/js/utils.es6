@@ -189,6 +189,12 @@ export function isAValidUrl(url) {
   }
 }
 
+export function checkLatLng(geolocation) {
+  if (geolocation && geolocation[0] && geolocation[1]) return true;
+  else return false;
+}
+
+
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
     '.xls',

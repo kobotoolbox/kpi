@@ -310,7 +310,7 @@ class AssetRow extends React.Component {
                 data-asset-name={this.props.name}
                 data-disabled={false}
               >
-                <i className="k-icon-projects" />
+                <i className='k-icon-projects' />
               </bem.AssetRow__actionIcon>
             }
 
