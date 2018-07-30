@@ -119,8 +119,7 @@ class SearchFilter(filters.BaseFilterBackend):
     empty string; this restricts the queryset to objects without parents. '''
 
     library_collection_pattern = re.compile(
-        r'\(asset_type:question OR asset_type:block\) AND '
-        r'\(parent__uid:([^)]+)\)'
+        r'\(((?:asset_type:(?:[^ ]+)(?: OR )*)+)\) AND \(parent__uid:([^)]+)\)'
     )
 
     def filter_queryset(self, request, queryset, view):
@@ -156,10 +155,15 @@ class SearchFilter(filters.BaseFilterBackend):
         # common (and buggy when using Whoosh: see #1707)
         library_collection_match = self.library_collection_pattern.match(q)
         if library_collection_match:
+            asset_types = [
+                type_query.split(':')[1] for type_query in
+                    library_collection_match.groups()[0].split(' OR ')
+            ]
+            parent__uid = library_collection_match.groups()[1]
             try:
                 return queryset.filter(
-                    asset_type__in=('question', 'block'),
-                    parent__uid=library_collection_match.groups()[0]
+                    asset_type__in=asset_types,
+                    parent__uid=parent__uid
                 )
             except FieldError:
                 return queryset.none()
