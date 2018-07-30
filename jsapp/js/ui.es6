@@ -215,6 +215,8 @@ class PopoverMenu extends React.Component {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
 
+    if (isBlur && this.props.blurEventDisabled)
+      return false;
 
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
