@@ -46,13 +46,11 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
-<<<<<<< HEAD
 asset_routes.register(r'attachments',
                       AttachmentViewSet,
                       base_name='asset-attachment',
                       parents_query_lookups=['asset'],
                       )
-=======
 asset_routes.register(r'submissions',
                       SubmissionViewSet,
                       base_name='submission',
@@ -63,8 +61,6 @@ asset_routes.register(r'files',
                       base_name='asset-file',
                       parents_query_lookups=['asset'],
                       )
-
->>>>>>> master
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
@@ -110,22 +106,15 @@ urlpatterns = [
     ),
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
-<<<<<<< HEAD
-    url(r'^hub/switch_builder$', switch_builder,
-        name='toggle-preferred-builder'),
-=======
     url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
->>>>>>> master
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
-<<<<<<< HEAD
     # static media
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT}),
-=======
     url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
     url(r'^configurationfile/(?P<slug>[^/]+)/?',
         ConfigurationFile.redirect_view, name='configurationfile'),
@@ -135,5 +124,4 @@ urlpatterns = [
         'kobo.apps.superuser_stats.views.user_report'),
     url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
         'kobo.apps.superuser_stats.views.retrieve_user_report'),
->>>>>>> master
 ]

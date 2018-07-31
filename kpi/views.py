@@ -111,15 +111,10 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
-<<<<<<< HEAD
-from deployment_backends.kc_access.shadow_models import _models
 
-CLONE_ARG_NAME = 'clone_from'
-COLLECTION_CLONE_FIELDS = {'name'}
-=======
+from deployment_backends.kc_access.shadow_models import _models
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
 from kpi.exceptions import BadAssetTypeException
->>>>>>> master
 
 
 @login_required
