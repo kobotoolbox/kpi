@@ -1,13 +1,13 @@
-import React from "react";
+import React from 'react';
 import autoBind from 'react-autobind';
-import bem from "../../bem";
-import FormGalleryModal from "./formGalleryModal";
-import FormGalleryFilter from "./formGalleryFilter";
-import FormGalleryGridItem from "./formGalleryGridItem";
-import PaginatedModal from "./paginatedModal";
-import { dataInterface } from "../../dataInterface";
-import moment from "moment";
-import { t } from "../../utils";
+import bem from '../../bem';
+import FormGalleryModal from './formGalleryModal';
+import FormGalleryFilter from './formGalleryFilter';
+import FormGalleryGridItem from './formGalleryGridItem';
+import PaginatedModal from './paginatedModal';
+import { dataInterface } from '../../dataInterface';
+import moment from 'moment';
+import { t } from '../../utils';
 
 export class FormGallery extends React.Component {
   constructor(props) {
@@ -20,21 +20,21 @@ export class FormGallery extends React.Component {
       showModal: false,
       activeTitle: null,
       activeDate: null,
-      searchTerm: "",
+      searchTerm: '',
       filter: {
-        source: "question",
-        label: t("Group by question"),
+        source: 'question',
+        label: t('Group by question'),
         searchable: false,
         clearable: false
       },
       filterOptions: [
         {
-          value: "question",
-          label: t("Group by question")
+          value: 'question',
+          label: t('Group by question')
         },
         {
-          value: "submission",
-          label: t("Group by record")
+          value: 'submission',
+          label: t('Group by record')
         }
       ],
       assets: {
@@ -49,17 +49,17 @@ export class FormGallery extends React.Component {
       activeModalGallery: [],
       galleryIndex: 0,
       galleryItemIndex: 0,
-      galleryTitle: "",
-      galleryDate: ""
+      galleryTitle: '',
+      galleryDate: ''
     };
   }
 
   componentDidMount() {
     if (this.props.mediaQuestions.length)
-      this.loadGalleryData(this.props.uid, "question");
+      this.loadGalleryData(this.props.uid, 'question');
   }
   formatDate(myDate) {
-    let timestamp = moment(new Date(myDate)).format("DD-MMM-YYYY h:mm:ssa");
+    let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
     return timestamp;
   }
   loadGalleryData(uid, selectedFilter) {
@@ -103,7 +103,7 @@ export class FormGallery extends React.Component {
             label: label
           },
           assets: response,
-          hasMoreRecords: newFilter == "submission"
+          hasMoreRecords: newFilter == 'submission'
             ? response.next
             : this.state.hasMoreRecords //Check if more records exist!
         });
@@ -232,12 +232,12 @@ export class FormGallery extends React.Component {
 
           {this.state.assets.results.map(
             function(record, i) {
-              let galleryTitle = this.state.filter.source === "question"
+              let galleryTitle = this.state.filter.source === 'question'
                 ? record.label
-                : t("Record") + " " + parseInt(i + 1);
-              let searchRegEx = new RegExp(this.state.searchTerm, "i");
+                : t('Record') + ' ' + parseInt(i + 1);
+              let searchRegEx = new RegExp(this.state.searchTerm, 'i');
               let searchTermMatched =
-                this.state.searchTerm == "" ||
+                this.state.searchTerm == '' ||
                 galleryTitle.match(searchRegEx) ||
                 this.formatDate(record.date_created).match(
                   this.state.searchTerm
@@ -269,13 +269,13 @@ export class FormGallery extends React.Component {
             }.bind(this)
           )}
 
-          <div className="form-view__cell form-view__cell--centered loadmore-div">
+          <div className='form-view__cell form-view__cell--centered loadmore-div'>
             {this.state.hasMoreRecords &&
-              this.state.filter.source == "submission" &&
-              this.state.searchTerm == ""
+              this.state.filter.source == 'submission' &&
+              this.state.searchTerm == ''
               ? <button
                   onClick={this.loadMoreRecords}
-                  className="mdl-button mdl-button--colored loadmore-button"
+                  className='mdl-button mdl-button--colored loadmore-button'
                 >
                   Load more
                 </button>
@@ -346,24 +346,24 @@ export class FormGalleryGrid extends React.Component {
   toggleLoadMoreBtn() {
     let loadMoreBtnCode = null;
     if (
-      this.state.hasMoreAttachments && this.props.currentFilter === "question"
+      this.state.hasMoreAttachments && this.props.currentFilter === 'question'
     ) {
       if (this.state.galleryPage <= 2) {
         loadMoreBtnCode = (
           <button
             onClick={this.loadMoreAttachments}
-            className="mdl-button mdl-button--colored loadmore-button"
+            className='mdl-button mdl-button--colored loadmore-button'
           >
-            {t("Load More")}
+            {t('Load More')}
           </button>
         );
       } else {
         loadMoreBtnCode = (
           <button
             onClick={this.togglePaginatedModal}
-            className="mdl-button mdl-button--colored loadmore-button"
+            className='mdl-button mdl-button--colored loadmore-button'
           >
-            {t("See " + this.props.galleryAttachmentsCount + " Images")}
+            {t('See ' + this.props.galleryAttachmentsCount + ' Images')}
           </button>
         );
       }
@@ -385,17 +385,17 @@ export class FormGalleryGrid extends React.Component {
         <bem.AssetGallery__grid>
           {this.props.galleryItems.map(
             function(item, j) {
-              var timestamp = this.props.currentFilter === "question"
+              var timestamp = this.props.currentFilter === 'question'
                 ? item.submission.date_created
                 : this.props.gallery.date_created;
               return (
                 <FormGalleryGridItem
                   key={j}
-                  itemsPerRow="6"
+                  itemsPerRow='6'
                   date={this.props.formatDate(timestamp)}
                   itemTitle={
-                    this.props.currentFilter === "question"
-                      ? t("Record") + " " + parseInt(j + 1)
+                    this.props.currentFilter === 'question'
+                      ? t('Record') + ' ' + parseInt(j + 1)
                       : item.question.label
                   }
                   url={item.small_download_url}
@@ -408,7 +408,7 @@ export class FormGalleryGrid extends React.Component {
           )}
         </bem.AssetGallery__grid>
 
-        <div className="form-view__cell form-view__cell--centered loadmore-div">
+        <div className='form-view__cell form-view__cell--centered loadmore-div'>
           {this.toggleLoadMoreBtn()}
         </div>
 

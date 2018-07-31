@@ -1,12 +1,12 @@
-import React from "react";
+import React from 'react';
 // import Modal from 'react-modal';
-import bem from "../../bem";
-import ui from "../../ui";
-import FormGalleryGridItem from "./formGalleryGridItem";
-import { dataInterface } from "../../dataInterface";
-import { t } from "../../utils";
-import ReactPaginate from "react-paginate";
-import Select from "react-select";
+import bem from '../../bem';
+import ui from '../../ui';
+import FormGalleryGridItem from './formGalleryGridItem';
+import { dataInterface } from '../../dataInterface';
+import { t } from '../../utils';
+import ReactPaginate from 'react-paginate';
+import Select from 'react-select';
 
 export class PaginatedModal extends React.Component {
   constructor(props) {
@@ -34,21 +34,21 @@ export class PaginatedModal extends React.Component {
       ],
       sortOptions: [
         {
-          label: t("Show latest first"),
-          value: "desc"
+          label: t('Show latest first'),
+          value: 'desc'
         },
         {
-          label: t("Show oldest first"),
-          value: "asc"
+          label: t('Show oldest first'),
+          value: 'asc'
         }
       ],
-      sortValue: "asc",
+      sortValue: 'asc',
       paginated_attachments: [],
       flat_attachments: [],
       attachments_count: this.props.galleryAttachmentsCount,
       totalPages: 0,
       currentAttachmentsLoaded: 0,
-      activeAttachmentsIndex: 0      
+      activeAttachmentsIndex: 0
     };
   }
 
@@ -89,7 +89,7 @@ export class PaginatedModal extends React.Component {
     let attachmentNextPage = page.selected + 1;
     let newActiveIndex = page.selected;
     if (
-      this.state.paginated_attachments["page_" + attachmentNextPage] ==
+      this.state.paginated_attachments['page_' + attachmentNextPage] ==
       undefined
     ) {
       this.loadPaginatedAttachments(attachmentNextPage, () => {
@@ -103,7 +103,7 @@ export class PaginatedModal extends React.Component {
     dataInterface
       .loadQuestionAttachment(
         this.props.uid,
-        "question",
+        'question',
         this.props.galleryIndex,
         page,
         this.state.offset,
@@ -116,7 +116,7 @@ export class PaginatedModal extends React.Component {
           this.state.currentAttachmentsLoaded +
           response.attachments.results.length;
 
-        newPaginatedAttachments["page_" + page] = response.attachments.results;
+        newPaginatedAttachments['page_' + page] = response.attachments.results;
         let newAttachmentsKeys = Object.keys(
           this.state.paginated_attachments
         ).sort();
@@ -152,15 +152,15 @@ export class PaginatedModal extends React.Component {
         <ui.Modal open large onClose={this.props.togglePaginatedModal}>
           <ui.Modal.Body>
             <bem.PaginatedModal_heading>
-              <h2>{t("All photos of") + " " + this.props.galleryTitle}</h2>
+              <h2>{t('All photos of') + ' ' + this.props.galleryTitle}</h2>
               {/* <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4> */}
               <h4>
-                {t("Showing")}
-                {" "}
+                {t('Showing')}
+                {' '}
                 <b>{this.state.offset}</b>
-                {" "}
-                {t("of")}
-                {" "}
+                {' '}
+                {t('of')}
+                {' '}
                 <b>{this.props.galleryAttachmentsCount}</b>
               </h4>
             </bem.PaginatedModal_heading>
@@ -178,27 +178,27 @@ export class PaginatedModal extends React.Component {
                 changeSort={this.changeSort}
               />
 
-              <div className="paginated-modal__body__gallery-wrapper">
+              <div className='paginated-modal__body__gallery-wrapper'>
                 <bem.AssetGallery__grid>
                   {this.state.paginated_attachments[
-                    "page_" + (this.state.activeAttachmentsIndex + 1)
+                    'page_' + (this.state.activeAttachmentsIndex + 1)
                   ] != undefined
                     ? this.state.paginated_attachments[
-                        "page_" + (this.state.activeAttachmentsIndex + 1)
+                        'page_' + (this.state.activeAttachmentsIndex + 1)
                       ].map(
                         function(item, j) {
                           var timestamp = this.props.currentFilter ===
-                            "question"
+                            'question'
                             ? item.submission.date_created
                             : this.props.galleryDate;
                           return (
                             <FormGalleryGridItem
                               key={j}
-                              itemsPerRow="10"
+                              itemsPerRow='10'
                               date={this.props.formatDate(timestamp)}
                               itemTitle={
-                                this.props.currentFilter === "question"
-                                  ? t("Record") + " " + item.id
+                                this.props.currentFilter === 'question'
+                                  ? t('Record') + ' ' + item.id
                                   : item.question.label
                               }
                               url={item.small_download_url}
@@ -224,7 +224,7 @@ export class PaginatedModal extends React.Component {
                 sortOptions={this.state.sortOptions}
                 sortValue={this.state.sortValue}
                 changeSort={this.changeSort}
-                selectDirectionUp={true}
+                selectDirectionUp
               />
 
             </bem.PaginatedModal_body>
@@ -239,55 +239,55 @@ export class PaginatedModal extends React.Component {
 export class GalleryControls extends React.Component {
   render() {
     let selectDirectionClassName = this.props.selectDirectionUp
-      ? "select-direction-up"
-      : "";
+      ? 'select-direction-up'
+      : '';
     return (
       <div
         className={
-          "paginated-modal__body__gallery-controls " + selectDirectionClassName
+          'paginated-modal__body__gallery-controls ' + selectDirectionClassName
         }
       >
-        <div className="change-offset">
-          <label>{t("Per page:")}</label>
-          <div className="form-modal__item">
+        <div className='change-offset'>
+          <label>{t('Per page:')}</label>
+          <div className='form-modal__item'>
             <Select
-              className="icon-button-select"
+              className='icon-button-select'
               options={this.props.offsetOptions}
               simpleValue
-              name="selected-filter"
+              name='selected-filter'
               value={this.props.offsetValue}
               onChange={this.props.changeOffset}
-              autoBlur={true}
+              autoBlur
               searchable={false}
               clearable={false}
             />
           </div>
         </div>
-        <div className="form-modal__item">
+        <div className='form-modal__item'>
           <ReactPaginate
-            previousLabel={"Prev"}
-            nextLabel={"Next"}
-            breakLabel={"..."}
-            breakClassName={"break-me"}
+            previousLabel={'Prev'}
+            nextLabel={'Next'}
+            breakLabel={'...'}
+            breakClassName={'break-me'}
             pageCount={this.props.pageCount}
             marginPagesDisplayed={1}
             pageRangeDisplayed={3}
             onPageChange={this.props.goToPage}
-            containerClassName={"pagination"}
-            activeClassName={"active"}
+            containerClassName={'pagination'}
+            activeClassName={'active'}
             forcePage={this.props.activeAttachmentsIndex}
           />
         </div>
 
-        <div className="form-modal__item change-sort">
+        <div className='form-modal__item change-sort'>
           <Select
-            className="icon-button-select"
+            className='icon-button-select'
             options={this.props.sortOptions}
             simpleValue
-            name="selected-filter"
+            name='selected-filter'
             value={this.props.sortValue}
             onChange={this.props.changeSort}
-            autoBlur={true}
+            autoBlur
             searchable={false}
             clearable={false}
           />

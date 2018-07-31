@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 import autoBind from 'react-autobind';
-import Modal from "react-modal";
-import bem from "../../bem";
-import ui from "../../ui";
-import Slider from "react-slick";
-import { t } from "../../utils";
+import Modal from 'react-modal';
+import bem from '../../bem';
+import ui from '../../ui';
+import Slider from 'react-slick';
+import { t } from '../../utils';
 
 export class FormGalleryModal extends React.Component {
   constructor(props) {
@@ -29,7 +29,7 @@ export class FormGalleryModal extends React.Component {
       infinite: false,
       speed: 500,
       slidesToShow: 1,
-      slide: "slide",
+      slide: 'slide',
       slidesToScroll: 1,
       initialSlide: this.props.galleryItemIndex,
       nextArrow: <RightNavButton />,
@@ -37,13 +37,13 @@ export class FormGalleryModal extends React.Component {
     };
 
     return (
-      <Modal isOpen={true} contentLabel="Modal">
+      <Modal isOpen contentLabel='Modal'>
         <bem.AssetGallery__modal>
           <ui.Modal.Body>
 
-            <bem.AssetGallery__modalCarousel className="col8">
+            <bem.AssetGallery__modalCarousel className='col8'>
               <Slider
-                ref="slider"
+                ref='slider'
                 {...settings}
                 beforeChange={this.handleCarouselChange}
               >
@@ -87,43 +87,43 @@ export class FormGalleryModalSidebar extends React.Component {
     this.props.setSearchTerm(gridLabel);
   }
   render() {
-    let currentRecordIndex = this.props.filter === "question"
+    let currentRecordIndex = this.props.filter === 'question'
       ? this.props.galleryItemIndex + 1
       : this.props.galleryIndex + 1;
     let featuredItems = this.props.activeGalleryAttachments.slice();
     featuredItems.splice(this.props.galleryItemIndex, 1);
     return (
-      <bem.AssetGallery__modalSidebar className="col4 open">
-        <i className="toggle-info k-icon-close" onClick={this.props.closeModal} />
+      <bem.AssetGallery__modalSidebar className='col4 open'>
+        <i className='toggle-info k-icon-close' onClick={this.props.closeModal} />
         <bem.AssetGallery__modalSidebarInfo>
-            <p>{t("Record")} #{currentRecordIndex}</p>
+            <p>{t('Record')} #{currentRecordIndex}</p>
             <h3>{this.props.galleryTitle}</h3>
             <p>{this.props.date}</p>
         </bem.AssetGallery__modalSidebarInfo>
 
-        {this.props.activeGalleryAttachments != undefined && 
+        {this.props.activeGalleryAttachments != undefined &&
           <bem.AssetGallery__modalSidebarGridWrap>
             <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>
-              {t("More for") + " " + this.props.galleryTitle}
+              {t('More for') + ' ' + this.props.galleryTitle}
             </h5>
             <bem.AssetGallery__modalSidebarGrid>
               {featuredItems.filter((j, index) => index < 6).map(
                 function(item, j) {
                   var divStyle = {
-                    backgroundImage: "url(" +
+                    backgroundImage: 'url(' +
                       item.medium_download_url +
-                      ")",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "center center",
-                    backgroundSize: "cover"
+                      ')',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center center',
+                    backgroundSize: 'cover'
                   };
                   return (
                     <bem.AssetGallery__modalSidebarGridItem
                       key={j}
-                      className="col6"
+                      className='col6'
                       onClick={() => this.props.changeActiveGalleryIndex(j)}
                     >
-                      <div className="one-one" style={divStyle} />
+                      <div className='one-one' style={divStyle} />
                     </bem.AssetGallery__modalSidebarGridItem>
                   );
                 }.bind(this)
@@ -141,7 +141,7 @@ export class RightNavButton extends React.Component {
     const { className, onClick } = this.props;
     return (
       <button onClick={onClick} className={className}>
-        <i className="k-icon-next" />
+        <i className='k-icon-next' />
       </button>
     );
   }
@@ -152,7 +152,7 @@ export class LeftNavButton extends React.Component {
     const { className, onClick } = this.props;
     return (
       <button onClick={onClick} className={className}>
-        <i className="k-icon-prev" />
+        <i className='k-icon-prev' />
       </button>
     );
   }

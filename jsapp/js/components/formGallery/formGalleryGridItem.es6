@@ -1,16 +1,16 @@
-import React from "react";
-import bem from "../../bem";
+import React from 'react';
+import bem from '../../bem';
 
 export class FormGalleryGridItem extends React.Component {
   render() {
     let itemStyle = {
-      backgroundImage: "url(" + this.props.url + ")",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "center center",
-      backgroundSize: "cover"
+      backgroundImage: 'url(' + this.props.url + ')',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center center',
+      backgroundSize: 'cover'
     };
     let perRow = this.props.itemsPerRow ? this.props.itemsPerRow : 6;
-    let itemClass = "per-row" + perRow + " one-one";
+    let itemClass = 'per-row' + perRow + ' one-one';
     return (
       <bem.AssetGallery__gridItem
         className={itemClass}
@@ -23,7 +23,7 @@ export class FormGalleryGridItem extends React.Component {
           )}
       >
         <bem.AssetGallery__gridItemOverlay>
-          <div className="text">
+          <div className='text'>
             <h5>{this.props.itemTitle}</h5>
             <p>{this.props.date}</p>
           </div>
