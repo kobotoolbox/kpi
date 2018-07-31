@@ -46,11 +46,6 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
-asset_routes.register(r'attachments',
-                      AttachmentViewSet,
-                      base_name='asset-attachment',
-                      parents_query_lookups=['asset'],
-                      )
 asset_routes.register(r'submissions',
                       SubmissionViewSet,
                       base_name='submission',
