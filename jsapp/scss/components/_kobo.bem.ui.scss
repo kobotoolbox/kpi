@@ -7,6 +7,7 @@
 .mdl-layout {
   max-width: 1440px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 .mdl-layout__content {
@@ -23,6 +24,11 @@
     height: calc(100% - 102px);
     margin-right: 18px;
   }
+
+  > .dropzone {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 @media screen and (max-width: 767px) {
@@ -38,9 +44,28 @@
   }
 }
 
+// full screen overrides (for expanded reports, table, maps, etc.)
+.mdl-layout.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  max-width: 100%;
+
+  .mdl-layout__content.page-wrapper__content--form-landing {
+    box-shadow: none;
+    height: calc(100% - 40px);
+  }
+}
+
 .ui-panel {
   height: 100%;
   margin: 0px 8px;
+
+  // useful if you want to avoid weird Flexbox bug with pushing things outside viewport
+  &.ui-panel--fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
 }
 
 .ui-panel__body {
@@ -74,7 +99,7 @@
 }
 
 // Focus mode for form builder, disable drawer, header
-.mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
+.mdl-layout.page-wrapper--in-formbuilder {
   .mdl-layout__content {
     margin: 0px;
     width: 100%;
@@ -100,8 +125,6 @@
   font-size: 0.85em;
   opacity: .75;
 }
-
-.message {}
 
 .message--error {
   text-decoration: uppercase;
@@ -136,13 +159,25 @@
     display: table-cell;
     vertical-align: middle;
     text-align: center;
+    padding-left: 20px;
+    padding-right: 20px;
 
     code {
       margin: 20px;
       padding: 15px;
       font-size: 13px;
-      display: inline-block;
+      display: block;
       background: white;
+      width: 80%;
+      max-height: 300px;
+      overflow: auto;
+      word-wrap: break-word;
+      text-align: left;
+    }
+
+    .pro-tip {
+      font-size: 14px;
+      margin-top: 30px;
     }
   }
 
@@ -208,8 +243,10 @@
   top: 100%;
 }
 
-.popover-menu--above .popover-menu__content {
+.popover-menu--above .popover-menu__content,
+.popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;
+  top: auto;
 }
 
 .popover-menu__link,
@@ -222,6 +259,8 @@
   color: $cool-gray;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   > i:first-child {
     margin-right: 4px;
@@ -242,10 +281,14 @@
   &.active {
     color: $cool-blue;
   }
+
+  &.divider {
+    border-top: 1px solid lighten($cool-gray, 25%);
+  }
 }
 
 .popover-menu__moveTo {
-  max-height: 180px;
+  max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
   background-color: #F9F9F9;
@@ -257,8 +300,8 @@
   position: relative;
   text-align: left;
   padding-right: 35px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 
   span {
     display: inline-block;
@@ -286,7 +329,10 @@
   margin: 0px;
 }
 
-.popover-menu--assetrow-menu,
+.popover-menu--assetrow-menu .popover-menu__content {
+  right: 0px;
+}
+
 .popover-menu--formLanding-menu {
   margin-left: 4px;
 
@@ -311,6 +357,10 @@
   width: 100%;
 }
 
+.popover-menu--bulkUpdate-menu .popover-menu__toggle {
+  @extend .mdl-button, .mdl-button--colored;
+}
+
 .popover-menu--question-language {
   .popover-menu__toggle {
     @extend .mdl-button;
@@ -318,25 +368,25 @@
     text-transform: uppercase;
     padding-left: 0px;
 
-    &:after {
-      content: '\f107';
-      font-family: 'FontAwesome';
+    &::after {
+      content: "\f107";
+      font-family: "FontAwesome";
       font-size: 18px;
       margin-left: 5px;
     }
   }
 }
 
-.popover-menu--groupby-menu {
+.popover-menu--custom-reports {
   .popover-menu__toggle {
     @extend .mdl-button;
 
     text-transform: uppercase;
     padding-left: 0px;
 
-    &:after {
-      content: '\f107';
-      font-family: 'FontAwesome';
+    &::after {
+      content: "\f107";
+      font-family: "FontAwesome";
       font-size: 18px;
       margin-left: 5px;
     }
@@ -368,28 +418,30 @@
       color: $cool-gray;
     }
 
-    &:after {
+    &::after {
       position: absolute;
       right: 10px;
       top: 8px;
-      content: '\f0d7';
-      font-family: 'FontAwesome';
+      content: "\f0d7";
+      font-family: "FontAwesome";
       font-size: 16px;
     }
   }
 
   .popover-menu__content {
-    min-width: 520px;
-    max-width: 660px;
+    min-width: 550px;
+    max-width: 780px;
     top: auto;
-    bottom: -100px;
+    bottom: -150px;
     right: auto;
-    left: 10px;
+    left: 30px;
+    max-height: 400px;
+    overflow: auto;
 
     .popover-menu__link {
       max-width: 100%;
       white-space: normal;
-      padding: 16px;
+      padding: 12px;
       border-bottom: 1px solid $divider-color;
       border-left: 2px solid transparent;
 
@@ -403,7 +455,8 @@
       }
 
       .collect-data-desc {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 16px;
       }
 
       &:hover {
@@ -438,7 +491,9 @@ iframe {
 
 // modal forms
 .form-modal__item {
-  margin-bottom: 20px;
+  &:not(:last-child) {
+    margin-bottom: 15px;
+  }
 
   &--sector, &--country {
     width: 50%;
@@ -450,7 +505,7 @@ iframe {
   }
 
   &--metadata-share {
-    padding-top: 20px;
+    padding-top: 15px;
     clear: both;
 
     input[type="checkbox"] {
@@ -484,10 +539,11 @@ iframe {
   input[type="text"],
   input[type="email"],
   input[type="password"],
+  input[type="url"],
   select,
   textarea {
     width: 100%;
-    padding: 6px 0px;
+    padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
     border-bottom-color: $divider-color;
@@ -510,12 +566,7 @@ iframe {
     vertical-align: top;
   }
 
-  .Select.is-focused {
-    .Select-control {
-      box-shadow: none;
-    }
-  }
-
+  // TODO REFACTOR: use _kobo.select-underlined styles instead of these
   .Select-control {
     border: none;
     border-bottom: 1px solid $divider-color;
@@ -524,15 +575,17 @@ iframe {
     height: 33px;
     font-size: 15px;
 
+    .Select.is-focused & {
+      box-shadow: none;
+    }
+
     .Select-placeholder {
-      padding-left: 0px;
       color: $cool-gray;
       font-size: 15px;
     }
 
     .Select-value {
       color: $cool-gray;
-      padding-left: 0px;
       font-size: 15px;
     }
 
@@ -554,11 +607,6 @@ iframe {
     border: 1px solid lighten($divider-color, 20%);
 
     @include box-shadow;
-  }
-
-  &--actions {
-    text-align: right;
-    padding-top: 10px;
   }
 }
 
@@ -607,6 +655,10 @@ span.svg-icon {
   width: 0.8em;
 }
 
+::-webkit-scrollbar:horizontal {
+  height: 0.8em;
+}
+
 ::-webkit-scrollbar-track {
   background-color: #DEDEDE;
   background-color: transparent;
@@ -617,6 +669,60 @@ span.svg-icon {
   background-color: #DEDEDE;
   outline: none;
   border-radius: 8px;
+}
+
+// active dropzone element (above list while dragging)
+.dropzone-active-overlay {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 120px;
+  top: 50%;
+  margin-top: -60px;
+  left: 0;
+  z-index: 2;
+  text-align: center;
+  font-size: 18px;
+
+  i {
+    font-size: 64px;
+    display: block;
+    margin: 0 auto;
+    margin-bottom: 10px;
+    color: $cool-blue;
+  }
+}
+
+.dropzone {
+  position: relative;
+  min-height: calc(100% - 4px);
+
+  &::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    content: '';
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid $cool-blue;
+    z-index: 1;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.2s;
+  }
+
+  &.dropzone--active {
+    &::after {
+      opacity: 1;
+      visibility: visible;
+      transition: 0.2s;
+    }
+
+    .dropzone-active-overlay {
+      display: block;
+    }
+  }
 }
 
 // Checkboxes
@@ -636,33 +742,24 @@ span.svg-icon {
     padding-left: 35px;
     cursor: pointer;
     font-size: 1rem;
-    -webkit-user-select: none;
-
-    /* webkit (safari, chrome) browsers */
-    -moz-user-select: none;
-
-    /* mozilla browsers */
-    -khtml-user-select: none;
-
-    /* webkit (konqueror) browsers */
-    -ms-user-select: none;
-
-    /* IE10+ */
   }
 
   + label:after {
     border-radius: 2px;
   }
 
+  + label:before {
+    z-index: 1;
+  }
+
   + label:before,
   + label:after {
-    content: '';
+    content: "";
     left: 0;
     position: absolute;
 
     /* .1s delay is for check animation */
     transition: border .25s, background-color .25s, width .20s .1s, height .20s .1s, top .20s .1s, left .20s .1s;
-    z-index: 1;
   }
 
   // Unchecked style
@@ -684,7 +781,6 @@ span.svg-icon {
     background-color: transparent;
     border: 1px solid lighten($cool-gray, 20%);
     top: 0px;
-    z-index: 0;
   }
 
   // Checked style
@@ -704,13 +800,12 @@ span.svg-icon {
       transform-origin: 100% 100%;
     }
 
-    + label:after {
+    + label::after {
       top: 0;
       width: 20px;
       height: 20px;
       border: 1px solid $cool-blue;
       background-color: $cool-blue;
-      z-index: 0;
     }
   }
 }

@@ -7,6 +7,7 @@
     {% load staticfiles %}
     {% load render_bundle from webpack_loader %}
     {% render_bundle 'app' 'css' %}
+    {% render_bundle 'app' 'js' %}
 
 <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
 <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
@@ -24,11 +25,30 @@
 {% block head %}{% endblock %}
 </head>
 <body>
+<div class="registration__bg">
 {% block content %}{% endblock %}
 {% if livereload_address %}
 <script src="{{livereload_address}}"></script>
 {% endif %}
-{% block foot %}{% endblock %}
+
+{% load i18n %}
+{% block foot %}
+  <div class="registration__footer">
+    <div class="registration__legal">
+      {% if config.TERMS_OF_SERVICE_URL %}
+      <a href="{{config.TERMS_OF_SERVICE_URL}}" target="_blank">{% trans "Terms and Conditions" %}</a>
+      {% endif %}
+      {% if config.PRIVACY_POLICY_URL %}
+      <a href="{{config.PRIVACY_POLICY_URL}}" target="_blank">{% trans "Privacy Policy" %}</a>
+      {% endif %}
+    </div>
+    {% block background_credit %}
+      {{ block.super }}
+    {% endblock %}
+  </div>
+{% endblock %}
+</div>
+
 {% if google_analytics_token %}
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

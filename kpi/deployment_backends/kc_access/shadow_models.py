@@ -82,12 +82,16 @@ class LazyModelGroup:
             xml = models.TextField()
             json = models.TextField(default=u'')
             user = models.ForeignKey(User, related_name='xforms', null=True)
+            shared = models.BooleanField(default=False)
+            shared_data = models.BooleanField(default=False)
             downloadable = models.BooleanField(default=True)
             id_string = models.SlugField()
             title = models.CharField(max_length=XFORM_TITLE_LENGTH)
             date_created = models.DateTimeField()
             date_modified = models.DateTimeField()
             uuid = models.CharField(max_length=32, default=u'')
+            last_submission_time = models.DateTimeField(blank=True, null=True)
+            num_of_submissions = models.IntegerField(default=0)
 
             @property
             def hash(self):

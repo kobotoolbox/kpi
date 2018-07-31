@@ -6,7 +6,6 @@ node_modules
 kpi/static/components
 misc
 jsapp/compiled
-jsapp/xlform/components
 jsapp/tmp
 jsapp/js/libs/xlform.js
 jsapp/js/refactored.es6
@@ -21,3 +20,7 @@ staticfiles
 webpack-stats.json
 sensitive_data.json
 test/compiled/*
+.idea/
+celerybeat-schedule
+deployments.json
+.DS_Store

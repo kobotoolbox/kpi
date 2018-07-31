@@ -3,5 +3,5 @@ set -e
 
 source /etc/profile
 
-python manage.py test
+pytest
 npm run test

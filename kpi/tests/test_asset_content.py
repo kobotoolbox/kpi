@@ -463,6 +463,7 @@ def kobomatrix_content():
                 'kobo--matrix_list': 'car_bike_tv',
              },
             {'type': 'select_one', 'select_from_list_name': 'yn',
+             'constraint': '. = "yes"',
              'label': 'Possess?', 'name': 'possess', 'required': True},
             {'type': 'select_one', 'select_from_list_name': 'yn',
              'label': 'Necessary?', 'name': 'necess', 'required': True},
@@ -474,9 +475,60 @@ def kobomatrix_content():
             {'list_name': 'car_bike_tv', 'label': 'Car', 'name': 'car'},
             {'list_name': 'car_bike_tv', 'label': 'Bike', 'name': 'bike'},
             {'list_name': 'car_bike_tv', 'label': 'TV', 'name': 'tv'},
+            {'list_name': 'yn', 'label': 'Yes', 'name': 'yes'},
+            {'list_name': 'yn', 'label': 'No', 'name': 'no'},
         ],
         'settings': {},
     }
+
+
+def kobomatrix_content_with_custom_fields():
+    _content = kobomatrix_content()
+    _survey = _content['survey']
+    _survey[2].update({'required': "${possess} = 'yes'"})
+    _survey[3].update({'constraint': '. > 3'})
+    return _content
+
+
+def reverse_str(s):
+    return ''.join(reversed(s))
+
+
+def kobomatrix_content_with_translations():
+    _content = kobomatrix_content()
+    for _s in ['survey', 'choices']:
+        _sheet = _content[_s]
+        for _row in _sheet:
+            try:
+                _label = _row['label']
+            except KeyError:
+                continue
+            _row['label::English'] = _label
+            _row['label::' + reverse_str('English')] = reverse_str(_label)
+            del _row['label']
+    return _content
+
+
+def kobomatrix_content_with_missing_translations():
+    _content = kobomatrix_content_with_translations()
+    for _s in ['survey', 'choices']:
+        _sheet = _content[_s]
+        found_first_translation = False
+        for _row in _sheet:
+            try:
+                _label = _row['label::English']
+            except KeyError:
+                continue
+            if not found_first_translation:
+                # leave the first translation alone
+                found_first_translation = True
+                continue
+            _row['label::' + reverse_str('English')] = None
+    return _content
+
+
+def _span_display_none(item):
+    return '<span style="display:none">{}</span>'.format(item)
 
 
 def test_kobomatrix_content():
@@ -484,9 +536,13 @@ def test_kobomatrix_content():
     pattern = ['w7', 'w1', 'w2', 'w2', 'w2', '']
     _survey = content.get('survey')
     _names = [r.get('name') for r in _survey]
+    _constraints = [r.get('constraint') for r in _survey]
     _labls = [r.get('label', [None])[0] for r in _survey]
     _none_labels = [label is None for label in _labls]
     _reqds = [r.get('required', None) for r in _survey]
+
+    # assert constraints are not dropped
+    assert set(_constraints) == set([None, u'. = "yes"'])
 
     # appearance fields match
     assert [r.get('appearance', '').split(' ')[0] for r in _survey] == (
@@ -542,24 +598,233 @@ def test_kobomatrix_content():
                            '**Number**',
                            ]
 
-    def _span(item):
-        return '<span style="display:none">{}</span>'.format(item)
-
     assert _labls[7:11] == ['##### Car',
-                            _span('car-Possess?'),
-                            _span('car-Necessary?'),
-                            _span('car-Number'),
+                            _span_display_none('car-Possess?'),
+                            _span_display_none('car-Necessary?'),
+                            _span_display_none('car-Number'),
                             ]
     assert _labls[13:17] == ['##### Bike',
-                             _span('bike-Possess?'),
-                             _span('bike-Necessary?'),
-                             _span('bike-Number'),
+                             _span_display_none('bike-Possess?'),
+                             _span_display_none('bike-Necessary?'),
+                             _span_display_none('bike-Number'),
                              ]
     assert _labls[19:23] == ['##### TV',
-                             _span('tv-Possess?'),
-                             _span('tv-Necessary?'),
-                             _span('tv-Number'),
+                             _span_display_none('tv-Possess?'),
+                             _span_display_none('tv-Necessary?'),
+                             _span_display_none('tv-Number'),
                              ]
     assert _reqds == [None, False, False, False, False, None] + (
                         [None, False, True, True, True, None] * 3
                     )
+
+
+def test_kobomatrix_labels_with_translations():
+    content = _compile_asset_content(
+        kobomatrix_content_with_translations())
+    labels = [r.get('label', [None]) for r in content['survey']]
+
+    expected_labels = [
+        '**It\xe9ms**',
+        '**Possess?**',
+        '**Necessary?**',
+        '**Number**'
+    ]
+    assert labels[1:5] == [[l, reverse_str(l)] for l in expected_labels]
+
+    def _make_expected_labels(row):
+        labels = [['##### ' + row, '##### ' + reverse_str(row)]]
+        for col in ['Possess?', 'Necessary?', 'Number']:
+            labels.append([
+                _span_display_none(row.lower() + '-' + col),
+                _span_display_none(row.lower() + '-' + reverse_str(col))
+            ])
+        return labels
+
+    assert labels[7:11] == _make_expected_labels('Car')
+    assert labels[13:17] == _make_expected_labels('Bike')
+    assert labels[19:23] == _make_expected_labels('TV')
+
+
+def test_kobomatrix_labels_with_missing_translations():
+    content = _compile_asset_content(
+        kobomatrix_content_with_missing_translations())
+    labels = [r.get('label', [None]) for r in content['survey']]
+    assert labels[1:5] == [
+        ['**It\xe9ms**', '**sm\xe9tI**'],
+        ['**Possess?**', None],
+        ['**Necessary?**', None],
+        ['**Number**', None]
+    ]
+    assert labels[7:11] == [
+        ['##### Car', '##### raC'],
+        [_span_display_none('car-Possess?'), None],
+        [_span_display_none('car-Necessary?'), None],
+        [_span_display_none('car-Number'), None]
+    ]
+    assert labels[13:17] == [
+        ['##### Bike', None],
+        [_span_display_none('bike-Possess?'), None],
+        [_span_display_none('bike-Necessary?'), None],
+        [_span_display_none('bike-Number'), None]
+    ]
+    assert labels[19:23] == [
+        ['##### TV', None],
+        [_span_display_none('tv-Possess?'), None],
+        [_span_display_none('tv-Necessary?'), None],
+        [_span_display_none('tv-Number'), None]
+    ]
+
+
+def test_xpath_fields_in_kobomatrix_are_preserved():
+    _content = kobomatrix_content_with_custom_fields()
+    (r0, r1, r2, r3, r4) = _content['survey']
+    assert r2['required'] == "${possess} = 'yes'"
+    assert r3['constraint'] == '. > 3'
+
+    compiled_content = _compile_asset_content(_content)
+    assert len(compiled_content['survey']) == 24
+    _survey_content = compiled_content['survey']
+
+    def _necess_reqs(_set, item):
+        _req = item.get('required')
+        if item.get('name', '').endswith('_necess') and _req:
+            _set.update([_req])
+        return _set
+
+    def _possess_constraints(_set, item):
+        _constraint = item.get('constraint')
+        _set.update([_constraint])
+        return _set
+
+    assert reduce(_possess_constraints, _survey_content, set()) == set([
+        None,
+        '. = "yes"',
+        '. > 3',
+    ])
+
+    assert reduce(_necess_reqs, _survey_content, set()) == set([
+        "${m1_bike_possess} = 'yes'",
+        "${m1_car_possess} = 'yes'",
+        "${m1_tv_possess} = 'yes'",
+    ])
+
+
+def test_kobomatrix_missing_or_empty_names():
+    '''
+    Test a mixture of survey elements containing:
+        * An `$autoname` but no `name`;
+        * An `$autoname` and an empty `name`;
+        * An `$autovalue` and an empty `name`;
+        * An `$autovalue` and no `name`.
+    '''
+    content = {
+        'survey': [
+            {'type': 'begin_kobomatrix', 'kobo--matrix_list': 'matrix_qt2dy33',
+             'label': ['Which of the following do you have in this Community'],
+             'appearance': 'field-list', '$autoname': 'group_za0zh02',
+             '$kuid': '22ddef30', 'name': 'group_za0zh02'},
+            {'type': 'text', 'hint': [''], 'label': ['Yes'],
+             'appearance': 'w1', '$autoname': 'Yes', '$kuid': '369ccabe',
+             'required': False},
+            {'type': 'text', 'hint': [''], 'label': ['No'], 'appearance': 'w1',
+             '$autoname': 'No', '$kuid': 'ea3ddb55', 'required': False},
+            {'type': 'text', 'hint': [''], 'label': ["Don't Know"],
+             'appearance': 'w1', '$autoname': 'Don_t_Know',
+             '$kuid': '86f5ce6e', 'required': False, 'name': ''},
+            {'type': 'end_kobomatrix', '$kuid': 'ab229229'},
+        ],
+        'choices': [
+            {'label': ['Local Market'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Local_Market', '$kuid': 'jw0bj37', 'name': ''},
+            {'label': ['Primary school'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Primary_school', '$kuid': 'tm79f82', 'name': ''},
+            {'label': ['Secondary school'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Secondary_school', '$kuid': 'pv5yb79',
+             'name': ''},
+            {'label': ['Health Centre'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Health_Centre', '$kuid': 'rt02z25'},
+            {'label': ['Public Tap Water '], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Public_Tap_Water_', '$kuid': 'iz2kb60'},
+            {'label': ['Bank'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Bank', '$kuid': 'gm98s12'},
+        ]
+    }
+    standardized = _compile_asset_content(content)
+    types_names = [(x['type'], x.get('name')) for x in standardized['survey']]
+    expected_types_names = [
+        ('begin_group', 'group_za0zh02_header'),
+        ('note', 'group_za0zh02_header_note'),
+        ('note', 'group_za0zh02_header_Yes'),
+        ('note', 'group_za0zh02_header_No'),
+        ('note', 'group_za0zh02_header_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Local_Market'),
+        ('note', 'group_za0zh02_Local_Market_note'),
+        ('text', 'group_za0zh02_Local_Market_Yes'),
+        ('text', 'group_za0zh02_Local_Market_No'),
+        ('text', 'group_za0zh02_Local_Market_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Primary_school'),
+        ('note', 'group_za0zh02_Primary_school_note'),
+        ('text', 'group_za0zh02_Primary_school_Yes'),
+        ('text', 'group_za0zh02_Primary_school_No'),
+        ('text', 'group_za0zh02_Primary_school_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Secondary_school'),
+        ('note', 'group_za0zh02_Secondary_school_note'),
+        ('text', 'group_za0zh02_Secondary_school_Yes'),
+        ('text', 'group_za0zh02_Secondary_school_No'),
+        ('text', 'group_za0zh02_Secondary_school_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Health_Centre'),
+        ('note', 'group_za0zh02_Health_Centre_note'),
+        ('text', 'group_za0zh02_Health_Centre_Yes'),
+        ('text', 'group_za0zh02_Health_Centre_No'),
+        ('text', 'group_za0zh02_Health_Centre_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Public_Tap_Water_'),
+        ('note', 'group_za0zh02_Public_Tap_Water__note'),
+        ('text', 'group_za0zh02_Public_Tap_Water__Yes'),
+        ('text', 'group_za0zh02_Public_Tap_Water__No'),
+        ('text', 'group_za0zh02_Public_Tap_Water__Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Bank'),
+        ('note', 'group_za0zh02_Bank_note'),
+        ('text', 'group_za0zh02_Bank_Yes'),
+        ('text', 'group_za0zh02_Bank_No'),
+        ('text', 'group_za0zh02_Bank_Don_t_Know'),
+        ('end_group', None)
+    ]
+    assert types_names == expected_types_names
+
+
+def test_required_value_can_be_a_string():
+    content = _compile_asset_content({
+        'survey': [
+            {'type': 'text', 'name': 'abc'},
+            {'type': 'text', 'name': 'req_if_abc', 'required': "${abc} != ''"},
+        ],
+    })
+    r2 = content['survey'][1]
+    assert r2['required'] == "${abc} != ''"
+
+
+def test_kuid_persists():
+    initial_kuid_1 = 'aaaa1111'
+    initial_kuid_2 = 'bbbb2222'
+
+    asset = Asset(content={
+        'survey': [
+            {'type': 'text', 'name': 'abc', '$kuid': initial_kuid_1},
+            {'type': 'text', 'name': 'def', '$kuid': initial_kuid_2},
+        ],
+    })
+    # kobo_specific_types=True avoids calling _strip_kuids
+    # so, can we assume that kuids are supposed to remain?
+    content = asset.ordered_xlsform_content(kobo_specific_types=True)
+    # kuids are stripped in "kobo_to_xlsform.to_xlsform_structure(...)"
+
+    assert '$kuid' in content['survey'][0]
+    assert content['survey'][0].get('$kuid') == initial_kuid_1
+    assert '$kuid' in content['survey'][1]
+    assert content['survey'][1].get('$kuid') == initial_kuid_2

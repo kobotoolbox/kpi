@@ -11,12 +11,16 @@ import posixpath
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
-from rest_framework import exceptions, status
+from rest_framework import exceptions, status, serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import detail_route, list_route
 
 from base_backend import BaseDeploymentBackend
-from .kc_access.utils import instance_count
+from .kc_access.utils import instance_count, last_submission_time
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -123,8 +127,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 writer.writerow([None] + out_row)
         return csv_io
 
-    def _kobocat_request(self, method, url, data):
-        ''' Make a POST or PATCH request and return parsed JSON '''
+    def _kobocat_request(self, method, url, **kwargs):
+        '''
+        Make a POST or PATCH request and return parsed JSON. Keyword arguments,
+        e.g. `data` and `files`, are passed through to `requests.request()`.
+        '''
 
         expected_status_codes = {
             'POST': 201,
@@ -140,12 +147,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Get or create the API authorization token for the asset's owner
         (token, is_new) = Token.objects.get_or_create(user=self.asset.owner)
-        headers = {u'Authorization':'Token ' + token.key}
+        headers = kwargs.pop('headers', {})
+        headers[u'Authorization'] = 'Token ' + token.key
 
         # Make the request to KC
         try:
             response = requests.request(
-                method, url, headers=headers, data=data)
+                method, url, headers=headers, **kwargs)
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
@@ -197,13 +205,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        try:
-            backend_response = self.asset._deployment_data['backend_response']
-            users = backend_response['users']
-            owner = filter(lambda u: u['role'] == 'owner', users)[0]['user']
-            return '{}_{}'.format(owner, self.xform_id_string)
-        except KeyError:
-            return None
+        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
     def connect(self, identifier=None, active=False):
         '''
@@ -249,13 +251,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise Exception('The identifier is not properly formatted.')
 
         url = self.external_to_internal_url(u'{}/api/v1/forms'.format(server))
-        csv_io = self.to_csv_io(self.asset.to_xls_io(versioned=True), id_string)
-        valid_xlsform_csv_repr = csv_io.getvalue()
-        payload = {
-            u'text_xls_form': valid_xlsform_csv_repr,
-            u'downloadable': active
-        }
-        json_response = self._kobocat_request('POST', url, payload)
+        xls_io = self.asset.to_xls_io(
+            versioned=True, append={
+                'settings': {
+                    'id_string': id_string,
+                    'form_title': self.asset.name,
+                }
+            }
+        )
+        payload = {u'downloadable': active}
+        files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
+        json_response = self._kobocat_request(
+            'POST', url, data=payload, files=files)
         self.store_data({
             'backend': 'kobocat',
             'identifier': self.internal_to_external_url(identifier),
@@ -273,14 +280,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             active = self.active
         url = self.external_to_internal_url(self.backend_response['url'])
         id_string = self.backend_response['id_string']
-        csv_io = self.to_csv_io(self.asset.to_xls_io(versioned=True), id_string)
-        valid_xlsform_csv_repr = csv_io.getvalue()
+        xls_io = self.asset.to_xls_io(
+            versioned=True, append={
+                'settings': {
+                    'id_string': id_string,
+                    'form_title': self.asset.name,
+                }
+            }
+        )
         payload = {
-            u'text_xls_form': valid_xlsform_csv_repr,
-            u'downloadable': active
+            u'downloadable': active,
+            u'title': self.asset.name
         }
+        files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         try:
-            json_response = self._kobocat_request('PATCH', url, payload)
+            json_response = self._kobocat_request(
+                'PATCH', url, data=payload, files=files)
             self.store_data({
                 'active': json_response['downloadable'],
                 'backend_response': json_response,
@@ -305,7 +320,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = {
             u'downloadable': bool(active)
         }
-        json_response = self._kobocat_request('PATCH', url, payload)
+        json_response = self._kobocat_request('PATCH', url, data=payload)
         assert(json_response['downloadable'] == bool(active))
         self.store_data({
             'active': json_response['downloadable'],
@@ -316,7 +331,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         ''' WARNING! Deletes all submitted data! '''
         url = self.external_to_internal_url(self.backend_response['url'])
         try:
-            self._kobocat_request('DELETE', url, None)
+            self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
             if hasattr(e, 'response') and e.response.status_code == 404:
                 # The KC project is already gone!
@@ -400,3 +415,167 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return instance_count(xform_id_string=id_string,
                               user_id=self.asset.owner.pk,
                               )
+
+    @property
+    def submission_list_url(self):
+        url = '{kc_base}/api/v1/data/{formid}'.format(
+            kc_base=settings.KOBOCAT_INTERNAL_URL,
+            formid=self.backend_response['formid']
+        )
+        return url
+
+    def get_submission_detail_url(self, submission_pk):
+        url = '{list_url}/{pk}'.format(
+            list_url=self.submission_list_url,
+            pk=submission_pk
+        )
+        return url
+
+    def get_submission_edit_url(self, submission_pk):
+        url = '{detail_url}/enketo'.format(
+            detail_url=self.get_submission_detail_url(submission_pk)
+        )
+        return url
+
+    def _last_submission_time(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        return last_submission_time(
+            xform_id_string=id_string, user_id=self.asset.owner.pk)
+
+
+    def get_submission_validation_status_url(self, submission_pk):
+        url = '{detail_url}/validation_status'.format(
+            detail_url=self.get_submission_detail_url(submission_pk)
+        )
+        return url
+
+class KobocatDataProxyViewSetMixin(object):
+    '''
+    List, retrieve, and delete submission data for a deployed asset via the
+    KoBoCAT API.
+    '''
+    def _get_deployment(self, request):
+        '''
+        Presupposing the use of `NestedViewSetMixin`, return the deployment for
+        the asset specified by the KPI request
+        '''
+        asset_uid = self.get_parents_query_dict()['asset']
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
+        if not asset.has_deployment:
+            raise serializers.ValidationError(
+                _('The specified asset has not been deployed'))
+        if not isinstance(asset.deployment, KobocatDeploymentBackend):
+            raise NotImplementedError(
+                'This viewset can only be used with the KoBoCAT deployment '
+                'backend')
+        return asset.deployment
+
+    @staticmethod
+    def _kobocat_proxy_request(kpi_request, kc_request):
+        '''
+        Send `kc_request`, which must specify `method` and `url` at a minimum.
+        If `kpi_request`, i.e. the incoming request to be proxied, is
+        authenticated, logged-in user's API token will be added to
+        `kc_request.headers`
+        '''
+        user = kpi_request.user
+        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
+            token, created = Token.objects.get_or_create(user=user)
+            kc_request.headers['Authorization'] = 'Token %s' % token.key
+        session = requests.Session()
+        return session.send(kc_request.prepare())
+
+    @staticmethod
+    def _requests_response_to_django_response(requests_response):
+        '''
+        Convert a `requests.models.Response` into a `django.http.HttpResponse`
+        '''
+        HEADERS_TO_COPY = ('Content-Type', 'Content-Language')
+        django_response = HttpResponse()
+        for header in HEADERS_TO_COPY:
+            try:
+                django_response[header] = requests_response.headers[header]
+            except KeyError:
+                continue
+        django_response.status_code = requests_response.status_code
+        django_response.write(requests_response.content)
+        return django_response
+
+
+    def list(self, kpi_request, *args, **kwargs):
+        return self.retrieve(kpi_request, None, *args, **kwargs)
+
+    def retrieve(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        if pk is None:
+            kc_url = deployment.submission_list_url
+        else:
+            kc_url = deployment.get_submission_detail_url(pk)
+        kc_request = requests.Request(
+            method='GET',
+            url=kc_url,
+            params=kpi_request.GET
+        )
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
+
+    def delete(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.get_submission_detail_url(pk)
+        kc_request = requests.Request(method='DELETE', url=kc_url)
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
+
+    @detail_route(methods=['GET'])
+    def edit(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.get_submission_edit_url(pk)
+        kc_request = requests.Request(
+            method='GET',
+            url=kc_url,
+            params=kpi_request.GET
+        )
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
+
+    @detail_route(methods=["GET", "PATCH"])
+    def validation_status(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.get_submission_validation_status_url(pk)
+
+        requests_params = {
+            "method": kpi_request.method,
+            "url": kc_url
+        }
+
+        # According to HTTP method,
+        # params are passed to Request object in different ways.
+        http_method_params = {}
+        if kpi_request.method == "PATCH":
+            http_method_params = {"json": kpi_request.data}
+        else:
+            http_method_params = {"params": kpi_request.GET}
+
+        requests_params.update(http_method_params)
+        kc_request = requests.Request(**requests_params)
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+
+        return self._requests_response_to_django_response(kc_response)
+
+
+    @list_route(methods=["PATCH"])
+    def validation_statuses(self, kpi_request, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.submission_list_url
+
+        requests_params = {
+            "method": kpi_request.method,
+            "url": kc_url,
+            "json": kpi_request.data
+        }
+
+        kc_request = requests.Request(**requests_params)
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+
+        return self._requests_response_to_django_response(kc_response)

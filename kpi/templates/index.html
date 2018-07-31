@@ -9,6 +9,13 @@
     <meta name="kpi-root-url" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
 
+    {% if raven_js_dsn %}
+      <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
+      <script>
+        Raven.config('{{raven_js_dsn}}').install()
+      </script>
+    {% endif %}
+
     {% load render_bundle from webpack_loader %}
     {% load staticfiles %}
 
@@ -17,6 +24,24 @@
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
       <script>window.html5 || document.write('<script src="{% static 'js/vendor/html5shiv.js' %}"><\/script>')</script>
     <![endif]-->
+
+    {% if config.logo %}
+      <style>
+        .mdl-layout__header .header__logo {
+          background-image: url("{{ config.logo }}") !important;
+        }
+      </style>
+    {% endif %}
+    {% if config.logo_small %}
+      <style>
+        @media screen and (max-width: 767px) {
+          .mdl-layout__header .header__logo {
+            background-image: url("{{ config.logo_small }}") !important;
+          }
+        }
+      </style>
+    {% endif %}
+
     {% if intercom_app_id %}
     <script>
       window.IntercomAppId = '{{intercom_app_id}}';
@@ -69,10 +94,15 @@
 
     {% endblock footer %}
 
-    {% if trackjs_token %}
-    <script type="text/javascript" src="//d2zah9y47r7bi2.cloudfront.net/releases/current/tracker.js"
-      data-token="{{trackjs_token}}" defer></script>
+    {% if google_analytics_token %}
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', '{{google_analytics_token}}', 'auto');
+      ga('send', 'pageview');
+    </script>
     {% endif %}
-
   </body>
 </html>

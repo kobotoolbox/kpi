@@ -7,7 +7,7 @@
 
 .form-view__sidetabs {
   border-right: 1px solid $divider-color;
-  width: 180px;
+  width: 170px;
   height: 100%;
   overflow: hidden;
   float: left;
@@ -18,15 +18,32 @@
 .form-view {
   width: 100%;
   height: calc(100% - 48px);
-  overflow: auto;
+  overflow-y: auto;
   background: #F8F8F8;
 }
 
 .form-view__sidetabs + .form-view,
-.form-view__sidetabs + .report-view {
-  width: calc(100% - 180px);
+.form-view__sidetabs + .report-view,
+.form-view__sidetabs + .loading {
+  width: calc(100% - 170px);
   height: calc(100% - 48px);
   overflow: auto;
+  overflow-x: hidden;
+}
+
+.form-view__sidetabs + .loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+  .loading__inner code {
+    margin: 20px auto;
+  }
+}
+
+.form-view__sidetabs + .form-view--table {
+  overflow: hidden;
 }
 
 .form-view__toptabs {
@@ -74,6 +91,7 @@
     position: relative;
     color: lighten($cool-gray, 10%);
     font-weight: normal;
+    letter-spacing: -0.01em;
     display: block;
 
     &.active {
@@ -88,12 +106,30 @@
     i {
       font-size: 36px;
       vertical-align: middle;
-      margin-right: 6px;
+      margin-right: 4px;
     }
 
     span {
       vertical-align: middle;
     }
+  }
+}
+
+.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  .form-view__sidetabs {
+    width: 0px;
+    border-right: none;
+  }
+
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view {
+    width: calc(100% - 1px);
+    height: 100%;
+    background: #F8F8F8;
+  }
+
+  .form-view__toptabs {
+    display: none;
   }
 }
 
@@ -141,7 +177,7 @@
   }
 
   &--bordertop {
-    border-top: 1px solid #DDD;
+    border-top: 1px solid $cool-lightgray;
   }
 
   &--padding {
@@ -153,6 +189,12 @@
     color: $black;
     font-weight: 500;
     padding-bottom: 20px;
+
+    span {
+      display: block;
+      color: $cool-gray;
+      font-size: 12px;
+    }
   }
 
   &--first {
@@ -207,6 +249,14 @@
 
   &--langButton.active {
     background: #E6E6E8;
+  }
+
+  &--thin-label {
+    color: $cool-gray;
+    opacity: 0.6;
+    font-size: 12px;
+    line-height: 18px;
+    margin-bottom: 10px;
   }
 
   &--questions {
@@ -316,7 +366,7 @@
     }
 
     + .form-view__cell--collect-row {
-      border-top: 1px solid #DDD;
+      border-top: 1px solid $cool-lightgray;
     }
 
     code {
@@ -324,7 +374,7 @@
       background: #F8F8F8;
       padding: 10px;
       margin-top: 15px;
-      border: 1px solid #DDD;
+      border: 1px solid $cool-lightgray;
       font-size: 0.9em;
     }
   }
@@ -348,6 +398,38 @@
   }
 }
 
+@keyframes recent {
+  0% {
+    background-color: #FFF;
+  }
+
+  10% {
+    background-color: lighten($cool-blue, 20%);
+  }
+
+  100% {
+    background-color: lighten($cool-blue, 40%);
+  }
+}
+
+@keyframes processing {
+  0% {
+    opacity: 1;
+  }
+
+  25% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 .form-view__group {
   .dropzone {
     display: inline;
@@ -356,10 +438,11 @@
   &--items {
     padding: 0px;
     border-top: 1px solid $divider-color;
+    display: flex;
+    align-items: center;
 
     > .form-view__label {
       text-align: right;
-      display: inline-block;
       width: 30%;
       padding: 10px;
       vertical-align: middle;
@@ -371,26 +454,58 @@
     }
 
     .form-view__link {
-      opacity: 0.4;
+      opacity: 0.8;
     }
 
-    &:hover {
-      background: $hover-asset-row;
+    .form-view__link--export-download {
+      opacity: 0.9;
+      font-size: 42px;
+    }
 
-      .form-view__link {
+    .form-view__link--export-delete {
+      opacity: 0.9;
+      vertical-align: middle;
+      color: lighten($cool-red, 10%);
+      font-size: 24px;
+
+      &:hover {
+        color: $cool-red;
         opacity: 1;
       }
+    }
+
+    &.recent {
+      background-color: lighten($cool-blue, 40%);
+      animation: recent 5s 1;
+    }
+
+    .animate-processing {
+      animation: processing 1.5s infinite;
     }
   }
 
   &--headings {
     font-weight: 600;
   }
+
+  &--deployments {
+    .form-view__group--items:hover {
+      background: $hover-asset-row;
+    }
+  }
+
+  &--headings {
+    font-weight: 600;
+    border-top: none;
+
+    &:hover {
+      background: transparent;
+    }
+  }
 }
 
 .form-view--form-settings,
-.form-view--settings-sharing,
-.form-view--form-data-downloads {
+.form-view--settings-sharing {
   background: #FFF;
   padding: 40px;
 }
@@ -407,6 +522,68 @@
 
       .form-view__cell--iframe {
         height: 820px;
+      }
+    }
+  }
+}
+
+.form-view.form-view--form-data-downloads {
+  .form-modal__item {
+    &:last-child {
+      margin-bottom: 0px;
+    }
+
+    &--export-type,
+    &--export-format {
+      width: 48%;
+      float: left;
+    }
+
+    &--export-format {
+      margin-left: 2%;
+    }
+
+    &--export-fields-from-all-versions,
+    &--export-group-headers,
+    &--export-submit {
+      clear: both;
+    }
+  }
+
+  .form-view__cell--exports-table {
+    .form-view__label {
+      text-align: left;
+      padding: 4px 10px;
+
+      &--type {
+        width: 10%;
+        text-transform: uppercase;
+      }
+
+      &--action {
+        flex-grow: 1;
+        text-align: right;
+        line-height: 40px;
+      }
+
+      &--lang {
+        flex-shrink: 1;
+      }
+    }
+
+    .form-view__group--headings {
+      padding: 8px 0px;
+
+      .form-view__label--type {
+        text-transform: none;
+      }
+    }
+
+    @media screen and (max-width: 980px) {
+      .form-view__label--date,
+      .form-view__label--include-groups,
+      .form-view__label--multi-versioned {
+        display: none;
       }
     }
   }
@@ -480,10 +657,12 @@
     padding-top: 0px;
 
     a.form-view__tab {
-      padding: 4px;
-      font-size: 11px;
+      padding: 3px;
+      padding-left: 1px;
+      font-size: 10px;
       text-align: center;
       display: block;
+      letter-spacing: -0.05em;
 
       span {
         display: none;
@@ -495,7 +674,7 @@
     height: 39px;
 
     a.form-view__tab {
-      font-size: 13px;
+      font-size: 12px;
       padding: 8px 14px;
     }
 
@@ -529,8 +708,7 @@
   }
 
   .form-view--form-settings,
-  .form-view--settings-sharing,
-  .form-view--form-data-downloads {
+  .form-view--settings-sharing {
     padding: 20px;
   }
 

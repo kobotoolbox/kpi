@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import cookie from 'react-cookie';
+import alertify from 'alertifyjs';
 
 import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
@@ -9,7 +10,6 @@ import {
   t,
   notify,
   assign,
-  setSupportDetails,
 } from './utils';
 
 function changes(orig_obj, new_obj) {
@@ -37,56 +37,6 @@ var assetLibraryStore = Reflux.createStore({
   libraryDefaultDone (res) {
     this.results = res;
     this.trigger(res);
-  }
-});
-
-
-var historyStore = Reflux.createStore({
-  __historyKey: 'user.history',
-  init () {
-    if (this.__historyKey in localStorage) {
-      try {
-        this.history = JSON.parse(localStorage.getItem(this.__historyKey));
-      } catch (e) {
-        console.error('could not load history from localStorage', e);
-      }
-    }
-    if (!this.history) {
-      this.history = [];
-    }
-    this.listenTo(actions.navigation.historyPush, this.historyPush);
-    this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-    this.listenTo(actions.auth.logout.completed, this.historyClear);
-    this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-  },
-  historyClear () {
-    localStorage.removeItem(this.__historyKey);
-  },
-  onDeleteAssetCompleted (deleted) {
-    var oneDeleted = false;
-    this.history = this.history.filter(function(asset){
-      var match = asset.uid === deleted.uid;
-      if (match) {
-        oneDeleted = true;
-      }
-      return !match;
-    });
-    if (oneDeleted) {
-      this.trigger(this.history);
-    }
-  },
-  historyPush (item) {
-    this.history = [
-      item, ...this.history.filter(function(xi){ return item.uid !== xi.uid; })
-    ];
-    localStorage.setItem(this.__historyKey, JSON.stringify(this.history));
-    this.trigger(this.history);
-  },
-  routeUpdate (routes) {
-    const routeName = routes.names[routes.names.length - 1] || routes.names[routes.names.length - 2];
-    if (this.currentRoute)
-      this.previousRoute = this.currentRoute;
-    this.currentRoute = routeName;
   }
 });
 
@@ -140,14 +90,7 @@ var assetSearchStore = Reflux.createStore({
 
 var pageStateStore = Reflux.createStore({
   init () {
-    var navIsOpen = cookie.load('assetNavIntentOpen');
-    if (navIsOpen === undefined) {
-      // default assetNav value.
-      navIsOpen = false;
-    }
     this.state = {
-      assetNavIsOpen: navIsOpen,
-      assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
       headerHidden: false,
@@ -165,21 +108,6 @@ var pageStateStore = Reflux.createStore({
     var _changes = {};
     var newval = !this.state.showFixedDrawer;
     _changes.showFixedDrawer = newval;
-    assign(this.state, _changes);
-    this.trigger(_changes);
-  },
-  toggleAssetNavIntentOpen () {
-    var newIntent = !this.state.assetNavIntentOpen,
-        isOpen = this.state.assetNavIsOpen,
-        _changes = {
-          assetNavIntentOpen: newIntent
-        };
-    cookie.save('assetNavIntentOpen', newIntent);
-
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      _changes.assetNavIsOpen = !isOpen;
-    }
     assign(this.state, _changes);
     this.trigger(_changes);
   },
@@ -264,6 +192,7 @@ var assetStore = Reflux.createStore({
 
 var sessionStore = Reflux.createStore({
   init () {
+    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.login.passwordfail, ()=> {
 
@@ -279,9 +208,8 @@ var sessionStore = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
-    // dataInterface.selfProfile().then(function success(acct){
-    //   actions.auth.login.completed(acct);
-    // });
+    actions.auth.getEnvironment();
+
   },
   getInitialState () {
     return {
@@ -290,6 +218,9 @@ var sessionStore = Reflux.createStore({
     };
   },
   triggerAnonymous (/*data*/) {},
+  triggerEnv (environment) {
+    this.environment = environment;
+  },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
     if (acct.upcoming_downtime) {
@@ -312,9 +243,6 @@ var sessionStore = Reflux.createStore({
       if ('downtimeNoticeSeen' in window.localStorage) {
         localStorage.removeItem('downtimeNoticeSeen');
       }
-    }
-    if (acct.support) {
-      setSupportDetails(acct.support)
     }
     var nestedArrToChoiceObjs = function (_s) {
       return {
@@ -441,18 +369,6 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
-  byKind (kind) {
-    var kinds = [].concat(kind);
-    return this.data.filter(function(asset){
-      return kinds.indexOf(asset.kind) !== -1;
-    });
-  },
-  byAssetType (asset_type) {
-    var asset_types = [].concat(asset_type);
-    return this.data.filter(function(asset){
-      return asset_types.indexOf(asset.asset_type) !== -1;
-    });
-  },
   onListAssetsCompleted: function(resp/*, req, jqxhr*/) {
     resp.results.forEach(this.registerAssetOrCollection);
     this.data = resp.results;
@@ -563,6 +479,24 @@ stores.collections = Reflux.createStore({
   }
 });
 
+var serverEnvironmentStore = Reflux.createStore({
+  init() {
+    this.state = {};
+    this.listenTo(actions.misc.getServerEnvironment.completed,
+                  this.updateEnvironment);
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+  updateEnvironment(response) {
+    this.setState(response);
+  },
+});
+
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -571,7 +505,7 @@ if (window.Intercom) {
       this.listenTo(actions.auth.logout.completed, this.loggedOut);
     },
     routeUpdate (routes) {
-      window.Intercom("update");
+      window.Intercom('update');
     },
     loggedIn (acct) {
       let name = acct.extra_details.name;
@@ -586,7 +520,7 @@ if (window.Intercom) {
           (new Date(acct.date_joined)).getTime() / 1000),
         'app_id': window.IntercomAppId
       }
-      window.Intercom("boot", userData);
+      window.Intercom('boot', userData);
     },
     loggedOut () {
       window.Intercom('shutdown');
@@ -595,7 +529,6 @@ if (window.Intercom) {
 }
 
 assign(stores, {
-  history: historyStore,
   tags: tagsStore,
   pageState: pageStateStore,
   assetSearch: assetSearchStore,
@@ -608,6 +541,7 @@ assign(stores, {
   session: sessionStore,
   userExists: userExistsStore,
   surveyState: surveyStateStore,
+  serverEnvironment: serverEnvironmentStore,
 });
 
 module.exports = stores;

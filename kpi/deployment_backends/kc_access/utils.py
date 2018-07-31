@@ -1,4 +1,6 @@
+import logging
 import json
+import logging
 from collections import Iterable
 
 from django.conf import settings
@@ -13,21 +15,60 @@ import requests
 from .shadow_models import _models, safe_kc_read
 from functools import wraps
 
+class _KoboCatProfileException(Exception):
+    pass
+
+def _trigger_kc_profile_creation(user):
+    '''
+    Get the user's profile via the KC API, causing KC to create a KC
+    UserProfile if none exists already
+    '''
+    url = settings.KOBOCAT_URL + '/api/v1/user'
+    token, _ = Token.objects.get_or_create(user=user)
+    response = requests.get(
+        url, headers={'Authorization': 'Token ' + token.key})
+    if not response.status_code == 200:
+        raise _KoboCatProfileException(
+            'Bad HTTP status code `{}` when retrieving KoBoCAT user profile'
+            ' for `{}`.'.format(response.status_code, user.username))
+    return response
+
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
-    return _models.Instance.objects.filter(deleted_at__isnull=True,
-                                           xform__user_id=user_id,
-                                           xform__id_string=xform_id_string,
-                                           ).count()
+    try:
+        return _models.XForm.objects.only('num_of_submissions').get(
+            id_string=xform_id_string,
+            user_id=user_id
+        ).num_of_submissions
+    except _models.XForm.DoesNotExist:
+        return 0
+
+@safe_kc_read
+def last_submission_time(xform_id_string, user_id):
+    return _models.XForm.objects.get(
+        user_id=user_id, id_string=xform_id_string
+    ).last_submission_time
 
 @safe_kc_read
 def get_kc_profile_data(user_id):
-    ''' Retrieve all fields from the user's KC profile (if it exists) and
-    return them in a dictionary '''
+    '''
+    Retrieve all fields from the user's KC profile and  return them in a
+    dictionary
+    '''
     try:
-        profile = _models.UserProfile.objects.get(user_id=user_id)
+        profile_model = _models.UserProfile.objects.get(user_id=user_id)
+        # Use a dict instead of the object in case we enter the next exception.
+        # The response will return a json.
+        # We want the variable to have the same type in both cases.
+        profile = profile_model.__dict__
     except _models.UserProfile.DoesNotExist:
-        return {}
+        try:
+            response = _trigger_kc_profile_creation(User.objects.get(pk=user_id))
+            profile = response.json()
+        except _KoboCatProfileException:
+            logging.exception('Failed to create KoBoCAT user profile')
+            return {}
+
     fields = [
         # Use a (kc_name, new_name) tuple to rename a field
         'name',
@@ -42,13 +83,17 @@ def get_kc_profile_data(user_id):
         'twitter',
         'metadata',
     ]
+
     result = {}
+
     for field in fields:
+
         if isinstance(field, tuple):
             kc_name, field = field
         else:
             kc_name = field
-        value = getattr(profile, kc_name)
+
+        value = profile.get(kc_name)
         # When a field contains JSON (e.g. `metadata`), it gets loaded as a
         # `dict`. Convert it back to a string representation
         if isinstance(value, dict):
@@ -59,33 +104,26 @@ def get_kc_profile_data(user_id):
 
 def set_kc_require_auth(user_id, require_auth):
     '''
-    Configure whether or not authentication is required to see and submit data to a user's projects.
+    Configure whether or not authentication is required to see and submit data
+    to a user's projects.
     WRITES to KC's UserProfile.require_auth
 
     :param int user_id: ID/primary key of the :py:class:`User` object.
     :param bool require_auth: The desired setting.
     '''
-
-    # Get/generate the user's auth. token.
     user = User.objects.get(pk=user_id)
-    token, is_new = Token.objects.get_or_create(user=user)
-
-    # Trigger the user's KoBoCAT profile to be generated if it doesn't exist.
-    url = settings.KOBOCAT_URL + '/api/v1/user'
-    response = requests.get(url, headers={'Authorization': 'Token ' + token.key})
-    if not response.status_code == 200:
-        raise RuntimeError('Bad HTTP status code `{}` when retrieving KoBoCAT user profile'
-                           ' for `{}`.'.format(response.status_code, user.username))
-
-    try:
-        profile = _models.UserProfile.objects.get(
-            user_id=user_id)
-        if profile.require_auth != require_auth:
-            profile.require_auth = require_auth
-            profile.save()
-    except ProgrammingError as e:
-        raise ProgrammingError(u'set_kc_require_auth error accessing kobocat '
-                               u'tables: {}'.format(e.message))
+    _trigger_kc_profile_creation(user)
+    token, _ = Token.objects.get_or_create(user=user)
+    with transaction.atomic():
+        try:
+            profile = _models.UserProfile.objects.get(user_id=user_id)
+        except ProgrammingError as e:
+            raise ProgrammingError(u'set_kc_require_auth error accessing '
+                                   u'kobocat tables: {}'.format(repr(e)))
+        else:
+            if profile.require_auth != require_auth:
+                profile.require_auth = require_auth
+                profile.save()
 
 def check_obj(f):
     @wraps(f)
@@ -119,10 +157,11 @@ def _get_content_type_kwargs(obj):
 
 def _get_applicable_kc_permissions(obj, kpi_codenames):
     r"""
-        Given one KPI permission codename as a single string, or many codenames
-        as an iterable, return the corresponding KC permissions as a list of
-        `Permission` objects.
+        Given a KPI object and one KPI permission codename as a single string,
+        or many codenames as an iterable, return the corresponding KC
+        permissions as a list of `Permission` objects.
         :param obj: Object with `KC_PERMISSIONS_MAP` dictionary attribute
+        :param kpi_codenames: One or more codenames for KPI permissions
         :type kpi_codenames: str or list(str)
         :rtype list(:py:class:`Permission`)
     """
@@ -132,6 +171,8 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
         perm_map = obj.KC_PERMISSIONS_MAP
     except AttributeError:
         # This model doesn't have any associated KC permissions
+        logging.warning(
+            '{} object missing KC_PERMISSIONS_MAP'.format(type(obj)))
         return []
     if isinstance(kpi_codenames, basestring):
         kpi_codenames = [kpi_codenames]
@@ -154,6 +195,45 @@ def _get_xform_id_for_asset(asset):
         return None
     return asset.deployment.backend_response['formid']
 
+def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
+                                             remove=False):
+    r"""
+        Given a KPI object, one or more KPI permission codenames and the PK of
+        a KC `XForm`, assume the KPI permisisons have been assigned to or
+        removed from the anonymous user. Then, modify any corresponding flags
+        on the `XForm` accordingly.
+        :param obj: Object with `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+            dictionary attribute
+        :param kpi_codenames: One or more codenames for KPI permissions
+        :type kpi_codenames: str or list(str)
+        :param xform_id: PK of the KC `XForm` associated with `obj`
+        :param remove: If `True`, apply the Boolean `not` operator to each
+            value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+    """
+    if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+        return
+    try:
+        perms_to_flags = obj.KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS
+    except AttributeError:
+        logging.warning(
+            '{} object missing KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS'.format(
+                type(obj)))
+        return
+    if isinstance(kpi_codenames, basestring):
+        kpi_codenames = [kpi_codenames]
+    # Find which KC `XForm` flags need to be switched
+    xform_updates = {}
+    for kpi_codename in kpi_codenames:
+        try:
+            flags = perms_to_flags[kpi_codename]
+        except KeyError:
+            # This permission doesn't map to anything in KC
+            continue
+        if remove:
+            flags = {flag: not value for flag, value in flags.iteritems()}
+        xform_updates.update(flags)
+    # Write to the KC database
+    _models.XForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 @transaction.atomic()
 def assign_applicable_kc_permissions(obj, user, kpi_codenames):
@@ -174,6 +254,9 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
+    if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
+        return set_kc_anonymous_permissions_xform_flags(
+            obj, kpi_codenames, xform_id)
     xform_content_type = ContentType.objects.get(**obj.KC_CONTENT_TYPE_KWARGS)
     kc_permissions_already_assigned = UserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
@@ -212,6 +295,9 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
+    if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
+        return set_kc_anonymous_permissions_xform_flags(
+            obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs(obj)
     # Do NOT try to `print` or do anything else that would `repr()` this
     # queryset, or you'll be greeted by

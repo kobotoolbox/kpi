@@ -2,11 +2,14 @@
 branches:
   only: 
     - master
-sudo:
-  false
+dist: xenial
+sudo: required
 language: python
+services:
+    - postgresql
 addons:
-  postgresql: 9.4
+  postgresql: "9.5"
+  chrome: stable
   apt:
     packages:
       - build-essential
@@ -23,21 +26,34 @@ cache:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
 script:
-  - gulp copy
+  - npm run copy-fonts
   - npm run build
-  - coverage run --source='hub,kpi,kobo' --omit='*/tests/*,*/migrations/*,*/management/commands/*' manage.py test
+  - pytest -vv --cov
   - npm run test
 after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
   - coveralls
 env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo.settings DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test" TRAVIS_NODE_VERSION="6"
+  # All about YAML line breaks: https://stackoverflow.com/a/21699210
+  - >-
+       PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache
+       DJANGO_DEBUG=False
+       DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM
+       DJANGO_SETTINGS_MODULE=kobo.settings
+       DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
+       TRAVIS_NODE_VERSION="8"
+       PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
 install:
-  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  -  >-
+        rm -rf ~/.nvm &&
+        git clone https://github.com/creationix/nvm.git ~/.nvm &&
+        (cd ~/.nvm &&
+        git checkout `git describe --abbrev=0 --tags`) &&
+        source ~/.nvm/nvm.sh &&
+        nvm install $TRAVIS_NODE_VERSION
   - npm install -g install npm@latest
   - npm config set strict-ssl false && npm install --save-dev
-  - bower install
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
   - pip-sync dependencies/pip/requirements.txt
-  - pip install coverage codacy-coverage python-coveralls
+  - pip install coverage codacy-coverage python-coveralls pytest-cov

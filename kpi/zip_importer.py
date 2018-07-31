@@ -125,10 +125,13 @@ class ImportFile(object):
                 if zipfile.is_zipfile(self.readable):
                     with zipfile.ZipFile(self.readable) as tmp_zf:
                         has_xlsx_contentfile = '[Content_Types].xml' in tmp_zf.namelist()
+                    self.readable.seek(0)
                     self._is_xls = has_xlsx_contentfile
                     return self._is_xls
                 self.wb = open_workbook(file_contents=self.readable.read())
+                self.readable.seek(0)
                 self._is_xls = True
+            # FIXME
             except Exception as e:
                 self._is_xls = False
         return self._is_xls
@@ -139,7 +142,9 @@ class ImportFile(object):
             if isinstance(self._readable, zipfile.ZipInfo):
                 self._is_zip = False
             else:
-                self._is_zip = zipfile.is_zipfile(self._readable) and not self.is_xls()
+                self._is_zip = zipfile.is_zipfile(self._readable)
+                self._readable.seek(0)
+                self._is_zip = self._is_zip and not self.is_xls()
         return self._is_zip
 
 

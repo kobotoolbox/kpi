@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 from backends import DEPLOYMENT_BACKENDS
+from kpi.exceptions import BadAssetTypeException
+from kpi.constants import ASSET_TYPE_SURVEY
 
 
 class DeployableMixin:
@@ -18,11 +19,16 @@ class DeployableMixin:
 
     def deploy(self, backend=False, active=True):
         '''this method could be called "deploy_latest_version()".'''
-        if not self.has_deployment:
-            self.connect_deployment(backend=backend, active=active)
+
+        if self.can_be_deployed:
+            if not self.has_deployment:
+                self.connect_deployment(backend=backend, active=active)
+            else:
+                self.deployment.redeploy(active=active)
+            self._mark_latest_version_as_deployed()
         else:
-            self.deployment.redeploy(active=active)
-        self._mark_latest_version_as_deployed()
+            raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
+                self.asset_type))
 
     def _mark_latest_version_as_deployed(self):
         ''' `sync_kobocat_xforms` calls this, since it manipulates
@@ -45,3 +51,7 @@ class DeployableMixin:
             return DEPLOYMENT_BACKENDS[backend](self)
         except KeyError, e:
             raise KeyError('cannot retrieve asset backend: {}'.format(backend))
+
+    @property
+    def can_be_deployed(self):
+        return self.asset_type and self.asset_type == ASSET_TYPE_SURVEY

@@ -1,9 +1,14 @@
+import copy
 from collections import OrderedDict
 
 from django.db import models
-from rest_framework.serializers import ReadOnlyField
-from rest_framework.pagination import LimitOffsetPagination
+from django.core.exceptions import FieldError
+
 from shortuuid import ShortUUID
+from rest_framework import serializers
+from rest_framework.reverse import reverse
+from jsonbfield.fields import JSONField as JSONBField
+from rest_framework.pagination import LimitOffsetPagination
 
 # should be 22 per shortuuid documentation, but keeping at 21 to avoid having
 # to migrate dkobo (see SurveyDraft.kpi_asset_uid)
@@ -37,7 +42,54 @@ class KpiUidField(models.CharField):
         return value
 
 
-class PaginatedApiField(ReadOnlyField):
+class LazyDefaultJSONBField(JSONBField):
+    '''
+    Allows specifying a default value for a new field without having to rewrite
+    every row in the corresponding table when migrating the database.
+
+    Whenever the database contains a null:
+        1. The field will present the default value instead of None;
+        2. The field will overwrite the null with the default value if the
+           instance it belongs to is saved.
+    '''
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('null', False):
+            raise FieldError('Do not manually specify null=True for a '
+                             'LazyDefaultJSONBField')
+        self.lazy_default = kwargs.get('default')
+        if self.lazy_default is None:
+            raise FieldError('LazyDefaultJSONBField requires a default that '
+                             'is not None')
+        kwargs['null'] = True
+        kwargs['default'] = None
+        super(LazyDefaultJSONBField, self).__init__(*args, **kwargs)
+
+    def _get_lazy_default(self):
+        if callable(self.lazy_default):
+            return self.lazy_default()
+        else:
+            return self.lazy_default
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(
+            LazyDefaultJSONBField, self).deconstruct()
+        kwargs['default'] = self.lazy_default
+        del kwargs['null']
+        return name, path, args, kwargs
+
+    def from_db_value(self, value, *args, **kwargs):
+        if value is None:
+            return self._get_lazy_default()
+        return value
+
+    def pre_save(self, model_instance, add):
+        value = getattr(model_instance, self.attname)
+        if value is None:
+            setattr(model_instance, self.attname, self._get_lazy_default())
+        return value
+
+
+class PaginatedApiField(serializers.ReadOnlyField):
     '''
     Serializes a manager or queryset `source` to a paginated representation
     '''
@@ -82,3 +134,22 @@ class PaginatedApiField(ReadOnlyField):
             ('previous', self.paginator.get_previous_link()),
             ('results', serializer.data)
         ])
+
+
+class SerializerMethodFileField(serializers.FileField):
+    '''
+    A `FileField` that gets its representation from calling a method on the
+    parent serializer class, like a `SerializerMethodField`. The method called
+    will be of the form "get_{field_name}", and should take a single argument,
+    which is the object being serialized.
+    '''
+    def __init__(self, *args, **kwargs):
+        self._serializer_method_field = serializers.SerializerMethodField()
+        super(SerializerMethodFileField, self).__init__(*args, **kwargs)
+
+    def bind(self, *args, **kwargs):
+        self._serializer_method_field.bind(*args, **kwargs)
+        super(SerializerMethodFileField, self).bind(*args, **kwargs)
+
+    def to_representation(self, obj):
+        return self._serializer_method_field.to_representation(obj.instance)

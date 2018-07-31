@@ -1,11 +1,11 @@
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
-require('jquery.scrollto');
-require('jquery-ui/sortable');
+require('jquery-ui/ui/widgets/sortable');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
@@ -25,7 +25,6 @@ import {
 import Select from 'react-select';
 import moment from 'moment';
 
-import searches from './searches';
 import actions from './actions';
 
 import stores from './stores';
@@ -43,6 +42,7 @@ import {
 
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
+import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import Modal from './components/modal';
@@ -51,19 +51,15 @@ import {ChangePassword, AccountSettings} from './components/accountSettings';
 import {
   getAnonymousUserPermission,
   anonUsername,
-  parsePermissions,
   log,
   t,
   assign,
-  isLibrary,
   currentLang
 } from './utils';
 
-import hotkey from 'react-hotkey';
-hotkey.activate();
-
-var assetStore = stores.asset;
-var sessionStore = stores.session;
+import keymap from './keymap'
+import { ShortcutManager, Shortcuts } from 'react-shortcuts'
+const shortcutManager = new ShortcutManager(keymap)
 
 
 function stringifyRoutes(contextRouter) {
@@ -87,30 +83,58 @@ class App extends React.Component {
     // slide out drawer overlay on every page change (better mobile experience)
     if (this.state.pageState.showFixedDrawer)
       stores.pageState.setState({showFixedDrawer: false});
+    // hide modal on every page change
+    if (this.state.pageState.modal)
+      stores.pageState.hideModal();
   }
-  handleHotkey (e) {
-    if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
-      document.body.classList.toggle('hide-edge');
+  componentDidMount () {
+    actions.misc.getServerEnvironment();
+
+    // TODO: this operation should be removed after March 1, 2019
+    // To avoid issues with localStorage limits, delete user.history from browser's localStorage
+    // user.history was an unusued store, it was removed in https://github.com/kobotoolbox/kpi/pull/1878
+    if (localStorage && localStorage['user.history']) {
+      localStorage.removeItem('user.history');
     }
+  }
+  _handleShortcuts(action) {
+    switch (action) {
+      case 'EDGE':
+        document.body.classList.toggle('hide-edge')
+        break
+      case 'CLOSE_MODAL':
+        stores.pageState.hideModal()
+        break
+    }
+  }
+  getChildContext() {
+    return { shortcuts: shortcutManager }
   }
   render() {
     var assetid = this.props.params.assetid || null;
     return (
-      <DocumentTitle title="KoBoToolbox">
-        <div className="mdl-wrapper">
-          { !this.state.pageState.headerHidden && 
-            <div className="k-header__bar"></div>
+      <DocumentTitle title='KoBoToolbox'>
+        <Shortcuts
+          name='APP_SHORTCUTS'
+          handler={this._handleShortcuts}
+          className='mdl-wrapper'
+          global
+          isolate>
+
+          { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
+            <div className='k-header__bar' />
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'header-hidden': (this.isFormBuilder() || this.state.pageState.headerHidden),
-              'drawer-hidden': (this.isFormBuilder() || this.state.pageState.drawerHidden),
-                }} className="mdl-layout mdl-layout--fixed-header">
+              'header-hidden': this.state.pageState.headerHidden,
+              'drawer-hidden': this.state.pageState.drawerHidden,
+              'in-formbuilder': this.isFormBuilder()
+                }} className='mdl-layout mdl-layout--fixed-header'>
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.isFormBuilder() && !this.state.pageState.headerHidden && 
+              { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
                 <MainHeader assetid={assetid}/>
               }
               { !this.isFormBuilder() && !this.state.pageState.drawerHidden &&
@@ -127,7 +151,7 @@ class App extends React.Component {
 
               </bem.PageWrapper__content>
           </bem.PageWrapper>
-        </div>
+        </Shortcuts>
       </DocumentTitle>
     );
   }
@@ -137,8 +161,11 @@ App.contextTypes = {
   router: PropTypes.object
 };
 
+App.childContextTypes = {
+  shortcuts: PropTypes.object.isRequired
+}
+
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
-reactMixin(App.prototype, hotkey.Mixin('handleHotkey'));
 reactMixin(App.prototype, mixins.contextRouter);
 
 class FormJson extends React.Component {
@@ -167,7 +194,7 @@ class FormJson extends React.Component {
             <code>
               { this.state.assetcontent ?
                 JSON.stringify(this.state.assetcontent, null, 4)
-             : null }
+                : null }
             </code>
             </pre>
           </bem.FormView>
@@ -211,7 +238,7 @@ class FormXform extends React.Component {
       return (
         <ui.Panel>
           <bem.FormView>
-            <div className="pygment" dangerouslySetInnerHTML={this.state.xformHtml} />
+            <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
           </bem.FormView>
         </ui.Panel>
         );
@@ -239,7 +266,7 @@ class FormNotFound extends React.Component {
 class SectionNotFound extends React.Component {
   render () {
     return (
-        <ui.Panel className="k404">
+        <ui.Panel className='k404'>
           <i />
           <em>section not found</em>
         </ui.Panel>
@@ -247,71 +274,87 @@ class SectionNotFound extends React.Component {
   }
 };
 
-var routes = (
-  <Route name="home" path="/" component={App}>
-    <Route path="account-settings" component={AccountSettings} />
-    <Route path="change-password" component={ChangePassword} />
+export var routes = (
+  <Route name='home' path='/' component={App}>
+    <Route path='account-settings' component={AccountSettings} />
+    <Route path='change-password' component={ChangePassword} />
 
-    <Route path="library" >
-      <Route path="new" component={AddToLibrary} />
-      <Route path="/library/:assetid">
+    <Route path='library' >
+      <Route path='new' component={AddToLibrary} />
+      <Route path='new/template' component={AddToLibrary} />
+      <Route path='/library/:assetid'>
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
-        <Route path="json" component={FormJson} />,
-        <Route path="xform" component={FormXform} />,
-        <Route path="edit" component={LibraryPage} />
+        <Route path='json' component={FormJson} />,
+        <Route path='xform' component={FormXform} />,
+        <Route path='edit' component={LibraryPage} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
     </Route>
 
-    <IndexRedirect to="forms" />
-    <Route path="forms" >
+    <IndexRedirect to='forms' />
+    <Route path='forms' >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path="/forms/:assetid"> 
+      <Route path='/forms/:assetid'>
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
-        <Route path="json" component={FormJson} />
-        <Route path="xform" component={FormXform} />
-        <Route path="edit" component={FormPage} />
+        <Route path='json' component={FormJson} />
+        <Route path='xform' component={FormXform} />
+        <Route path='edit' component={FormPage} />
 
-        <Route path="landing">
+        <Route path='summary'>
+          <IndexRoute component={FormSummary} />
+        </Route>
+
+        <Route path='landing'>
           <IndexRoute component={FormLanding} />
         </Route>
 
-        <Route path="data">
-          <Route path="report" component={Reports} />
-          <Route path="report-legacy" component={FormSubScreens} />
-          <Route path="table" component={FormSubScreens} />
-          <Route path="downloads" component={FormSubScreens} />
-          <Route path="gallery" component={FormSubScreens} />
-          <Route path="map" component={FormSubScreens} />
-          <IndexRedirect to="report" />
+        <Route path='data'>
+          <Route path='report' component={Reports} />
+          <Route path='report-legacy' component={FormSubScreens} />
+          <Route path='table' component={FormSubScreens} />
+          <Route path='downloads' component={FormSubScreens} />
+          <Route path='gallery' component={FormSubScreens} />
+          <Route path='map' component={FormSubScreens} />
+          <Route path='map/:viewby' component={FormSubScreens} />
+          <IndexRedirect to='report' />
         </Route>
 
-        <Route path="settings">
+        <Route path='settings'>
           <IndexRoute component={FormSubScreens} />
-          <Route path="kobocat" component={FormSubScreens} />
-          <Route path="sharing" component={FormSubScreens} />
+          <Route path='kobocat' component={FormSubScreens} />
+          <Route path='sharing' component={FormSubScreens} />
         </Route>
 
         {/* used to force refresh form screens */}
-        <Route path="reset" component={FormSubScreens} />
+        <Route path='reset' component={FormSubScreens} />
 
-        <IndexRedirect to="landing" />
+        <IndexRedirect to='landing' />
       </Route>
 
-      <Route path="*" component={FormNotFound} />
+      <Route path='*' component={FormNotFound} />
     </Route>
 
-    <Route path="*" component={SectionNotFound} />
+    <Route path='*' component={SectionNotFound} />
   </Route>
 );
 
+/* Send a pageview to Google Analytics for every change in routes */
+hashHistory.listen(function(loc) {
+  if (typeof ga == 'function') {
+    ga('send', 'pageview', window.location.hash);
+  }
+});
+
 class RunRoutes extends React.Component {
+  componentDidMount(){
+    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
+    this.router.componentWillReceiveProps = function(){}
+  }
+
   render() {
     return (
-      <Router history={hashHistory}>
-        {routes}
-      </Router>
+      <Router history={hashHistory} ref={ref=>this.router = ref} routes={this.props.routes} />
     );
   }
 }

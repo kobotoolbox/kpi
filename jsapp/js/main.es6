@@ -1,8 +1,10 @@
-import RunRoutes from './app';
+import RunRoutes, {routes} from './app';
+import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
+import 'babel-polyfill'; // required to support Array.prototypes.includes in IE11
 import cookie from 'react-cookie';
 import React from 'react';
-import ReactDOM from 'react-dom';
+import {render} from 'react-dom';
 
 require('../scss/main.scss');
 
@@ -27,7 +29,15 @@ $.ajaxSetup({
 });
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
-  ReactDOM.render(<RunRoutes />, el);
+
+  render(<RunRoutes routes={routes} />, el);
+
+  if (module.hot) {
+    module.hot.accept('./app', () => {
+      let RunRoutes = require('./app').default;
+      render(<AppContainer><RunRoutes routes={routes} /></AppContainer>, el);
+    });
+  }
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }

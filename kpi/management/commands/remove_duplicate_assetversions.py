@@ -201,14 +201,22 @@ class Command(BaseCommand):
                 self.stdout.write(('{}\t' * len(output)).format(*output))
 
                 if not options.get('dry_run'):
+                    # Store the UIDs of all duplicate versions in the original
+                    # version's `uid_aliases` field
+                    for (pk, new_uid_aliases) in duplicate_uids.iteritems():
+                        version_qs = AssetVersion.objects.filter(pk=pk)
+                        uid_aliases = version_qs.values_list(
+                            'uid_aliases', flat=True)[0]
+                        if not uid_aliases:
+                            uid_aliases = new_uid_aliases
+                        else:
+                            uid_aliases.extend(new_uid_aliases)
+                        version_qs.update(uid_aliases=uid_aliases)
                     # Haha, silly programmer: you thought you could delete all
                     # these versions at once without memory exhaustion?!
                     # There are FKs (e.g. from `AssetSnapshot`) that require
                     # Django to take the slow path for cascade deletion
                     start = 0
-                    for (pk, uid_aliases) in duplicate_uids.iteritems():
-                        AssetVersion.objects.filter(id=pk).update(
-                            uid_aliases=uid_aliases)
                     while True:
                         this_batch_version_pks = pks_to_delete[
                             start:start + batch_size]

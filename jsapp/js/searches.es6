@@ -16,6 +16,8 @@ import assetParserUtils from './assetParserUtils';
 var searchDataInterface = (function(){
   return {
     assets: function(data) {
+      // raise limit temporarily to 200
+      data.limit = 200;
       return $.ajax({
         url: `${dataInterface.rootUrl}/assets/`,
         dataType: 'json',
@@ -73,11 +75,11 @@ function SearchContext(opts={}) {
       this.state = {
         searchState: 'none',
       };
+
       this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     },
     onDeleteAssetCompleted (asset) {
       var filterOutDeletedAsset = ({listName}) => {
-        // TODO: look into why sometimes this.state[listName] is not defined
         if (this.state[listName] != undefined) {
           let uid = asset.uid;
           let listLength = this.state[listName].length;
@@ -91,7 +93,22 @@ function SearchContext(opts={}) {
           }
         }
       };
+      var filterOutDeletedAssetFromCategorizedList = () => {
+        let list = this.state.defaultQueryCategorizedResultsLists;
+        if (list) {
+          var l = {};
+          for (var category in list) {
+            l[category] = list[category].filter(function(result){
+              return result.uid !== asset.uid;
+            });
+          }
+          let o = {};
+          o.defaultQueryCategorizedResultsLists = l;
+          this.update(o);
+        }
+      };
       filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
+      filterOutDeletedAssetFromCategorizedList();
       if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
         filterOutDeletedAsset({listName: 'searchResultsList'});
       }

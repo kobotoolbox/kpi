@@ -7,7 +7,7 @@ import Reflux from 'reflux';
 import _ from 'underscore';
 import bem from '../bem';
 import stores from '../stores';
-import { Link, hashHistory } from 'react-router'; 
+import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 
 import {
@@ -19,10 +19,6 @@ class FormViewTabs extends Reflux.Component {
   constructor(props){
     super(props);
     this.state = {};
-    this.stores = [
-      stores.session,
-      stores.pageState
-    ];
     autoBind(this);
   }
   componentDidMount() {
@@ -37,19 +33,10 @@ class FormViewTabs extends Reflux.Component {
       }
     ));
   }
-  userCanEditAsset() {
-    if (stores.session.currentAccount && this.state.asset) {
-      const currentAccount = stores.session.currentAccount;
-      if (currentAccount.is_superuser || currentAccount.username == this.state.asset.owner__username || this.state.asset.access.change[currentAccount.username])
-        return true;
-    }
-
-    return false;
-  }
   triggerRefresh (evt) {
     if ($(evt.target).hasClass('active')) {
       hashHistory.push(`/forms/${this.state.assetid}/reset`);
-      
+
       var path = evt.target.getAttribute('data-path');
       window.setTimeout(function(){
         hashHistory.push(path);
@@ -59,38 +46,50 @@ class FormViewTabs extends Reflux.Component {
     }
   }
   renderTopTabs () {
+    if (this.state.asset === undefined)
+      return false;
+
+    let a = this.state.asset;
+
     return (
       <bem.FormView__toptabs>
-        <Link 
+        { a.deployment__identifier != undefined && a.has_deployment && this.userCan('view_submissions', a) &&
+          <Link
+            to={`/forms/${this.state.assetid}/summary`}
+            className='form-view__tab'
+            activeClassName='active'>
+            {t('Summary')}
+          </Link>
+        }
+        <Link
           to={`/forms/${this.state.assetid}/landing`}
           className='form-view__tab'
           activeClassName='active'>
           {t('Form')}
         </Link>
-        <bem.FormView__tab className="is-edge" m='summary'>
+        <bem.FormView__tab className='is-edge' m='summary'>
           {t('Summary')}
         </bem.FormView__tab>
-        { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment && this.state.asset.deployment__submission_count > 0 && 
-          <Link 
+        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) &&
+          <Link
             to={`/forms/${this.state.assetid}/data`}
             className='form-view__tab'
             activeClassName='active'>
             {t('Data')}
           </Link>
         }
-        {this.userCanEditAsset() && 
-          <Link 
+        {this.userCan('change_asset', a) &&
+          <Link
             to={`/forms/${this.state.assetid}/settings`}
             className='form-view__tab'
             activeClassName='active'>
             {t('Settings')}
           </Link>
         }
-
-        <Link 
-          to={`/forms`}
+        <Link
+          to={'/forms'}
           className='form-view__link form-view__link--close'>
-          <i className="k-icon-close" />
+          <i className='k-icon-close' />
         </Link>
 
       </bem.FormView__toptabs>
@@ -100,7 +99,7 @@ class FormViewTabs extends Reflux.Component {
     var sideTabs = [];
 
     if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
-     sideTabs = [
+      sideTabs = [
         {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
         {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report-legacy`, className: 'is-edge'},
         {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.assetid}/data/table`},
@@ -111,22 +110,22 @@ class FormViewTabs extends Reflux.Component {
     }
 
     // if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
-       // sideTabs = [
-       //    {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
-       //    {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
-       //    {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
-       //  ];
+    //   sideTabs = [
+    //     {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
+    //     {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
+    //     {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
+    //   ];
     // }
 
     if (sideTabs.length > 0) {
-    	return (
-    		<bem.FormView__sidetabs> 
-          { sideTabs.map((item, ind) => 
-            <Link 
+      return (
+        <bem.FormView__sidetabs>
+          { sideTabs.map((item, ind) =>
+            <Link
               to={item.path}
-              key={ind} 
+              key={ind}
               activeClassName='active'
-              onlyActiveOnIndex={true}
+              onlyActiveOnIndex
               className={`form-view__tab ${item.className}`}
               data-path={item.path}
               onClick={this.triggerRefresh}>
@@ -134,8 +133,8 @@ class FormViewTabs extends Reflux.Component {
                 {item.label}
             </Link>
           )}
-    		</bem.FormView__sidetabs>
-    	);
+        </bem.FormView__sidetabs>
+      );
     }
 
     return false;
@@ -143,22 +142,23 @@ class FormViewTabs extends Reflux.Component {
   render() {
     if (!this.props.show)
       return false;
-  	if (this.props.type == 'top') {
-  		return (
-  			this.renderTopTabs()
-	  	);
-	  }
-  	if (this.props.type == 'side') {
-  		return (
-  			this.renderFormSideTabs()
-	  	);
-	  }
+    if (this.props.type == 'top') {
+      return (
+        this.renderTopTabs()
+      );
+    }
+    if (this.props.type == 'side') {
+      return (
+        this.renderFormSideTabs()
+      );
+    }
   }
 
 };
 
 reactMixin(FormViewTabs.prototype, Reflux.ListenerMixin);
 reactMixin(FormViewTabs.prototype, mixins.contextRouter);
+reactMixin(FormViewTabs.prototype, mixins.permissions);
 
 FormViewTabs.contextTypes = {
   router: PropTypes.object

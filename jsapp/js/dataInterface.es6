@@ -27,6 +27,7 @@ var dataInterface;
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
+    serverEnvironment: ()=> $ajax({ url: `${rootUrl}/environment/` }),
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
       $ajax({ url: `${rootUrl}/users/${username}/` })
@@ -61,13 +62,9 @@ var dataInterface;
         url: `${rootUrl}/assets/?q=asset_type:block`
       });
     },
-    listQuestionsAndBlocks() {
+    listTemplates () {
       return $ajax({
-        url: `${rootUrl}/assets/`,
-        data: {
-          q: 'asset_type:question OR asset_type:block'
-        },
-        method: 'GET'
+        url: `${rootUrl}/assets/?q=asset_type:template`
       });
     },
     listSurveys() {
@@ -132,16 +129,13 @@ var dataInterface;
         }
       });
     },
-    cloneAsset ({uid, name, version_id}) {
+    cloneAsset ({uid, name, version_id, new_asset_type}) {
       let data = {
         clone_from: uid,
       };
-      if (name) {
-        data.name = name;
-      }
-      if (version_id) {
-        data.clone_from_version_id = version_id;
-      }
+      if (name) { data.name = name; }
+      if (version_id) { data.clone_from_version_id = version_id; }
+      if (new_asset_type) { data.asset_type = new_asset_type; }
       return $ajax({
         method: 'POST',
         url: `${rootUrl}/assets/`,
@@ -163,11 +157,20 @@ var dataInterface;
         url: permUrl
       });
     },
+    copyPermissionsFrom(sourceUid, targetUid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${targetUid}/permissions/`,
+        method: 'PATCH',
+        data: {
+          clone_from: sourceUid
+        }
+      })
+    },
     assignPerm (creds) {
       // Do we already have these URLs stored somewhere?
       var objectUrl = creds.objectUrl || `${rootUrl}/${creds.kind}s/${creds.uid}/`;
       var userUrl = `${rootUrl}/users/${creds.username}/`;
-      var codename = `${creds.role}_${creds.kind}`;
+      var codename = creds.role.includes('_submissions') ? creds.role : `${creds.role}_${creds.kind}`;
       return $ajax({
         url: `${rootUrl}/permissions/`,
         method: 'POST',
@@ -191,7 +194,7 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/`,
         data: {
-          q: 'asset_type:question OR asset_type:block'
+          q: 'asset_type:question OR asset_type:block OR asset_type:template'
         },
         method: 'GET'
       });
@@ -263,6 +266,20 @@ var dataInterface;
       } else {
         return $.getJSON(`${rootUrl}/assets/${params.id}/`);
       }
+    },
+    getAssetExports (uid) {
+      return $ajax({
+        url: `${rootUrl}/exports/`,
+        data: {
+          q: `source:${uid}`
+        }
+      });
+    },
+    deleteAssetExport (euid) {
+      return $ajax({
+        url: `${rootUrl}/exports/${euid}/`,
+        method: 'DELETE'
+      });
     },
     getAssetXformView (uid) {
       return $ajax({
@@ -393,7 +410,7 @@ var dataInterface;
         }
       });
     },
-    postCreateBase64EncodedImport (contents) {
+    postCreateImport (contents) {
       var formData = new FormData();
       Object.keys(contents).forEach(function(key){
         formData.append(key, contents[key]);
@@ -410,6 +427,97 @@ var dataInterface;
       // how can we avoid pulling asset type from the 1st character of the uid?
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
+    },
+    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='', count=false) {
+      const query = `limit=${pageSize}&start=${page}`;
+      var s = '&sort={"_id":-1}'; // default sort
+      var f = '';
+      if (sort.length)
+        s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
+      if (fields.length)
+        f = `&fields=${JSON.stringify(fields)}`;
+      if (count)
+        filter += '&count=1';
+
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
+        method: 'GET'
+      });
+    },
+    getSubmission(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'GET'
+      });
+    },
+    patchSubmissions(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        method: 'PATCH',
+        data: {'payload': JSON.stringify(data)}
+      });
+    },
+    updateSubmissionValidationStatus(uid, sid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        method: 'PATCH',
+        data: data
+      });
+    },
+    getSubmissionsQuery(uid, query='') {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions?${query}`,
+        method: 'GET'
+      });
+    },
+    deleteSubmission(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'DELETE'
+      });
+    },
+    getEnketoEditLink(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=false`,
+        method: 'GET'
+      });
+    },
+    uploadAssetFile(uid, data) {
+      var formData = new FormData();
+      Object.keys(data).forEach(function(key) {
+        formData.append(key, data[key]);
+      });
+
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/files/`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false
+      });
+    },
+    getAssetFiles(uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/files`,
+        method: 'GET'
+      });
+    },
+    deleteAssetFile(assetUid, uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${assetUid}/files/${uid}`,
+        method: 'DELETE'
+      });
+    },
+
+    setLanguage(data) {
+      return $ajax({
+        url: `${rootUrl}/i18n/setlang/`,
+        method: 'POST',
+        data: data
+      });
+    },
+    environment() {
+      return $ajax({url: `${rootUrl}/environment/`,method: 'GET'});
     },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});

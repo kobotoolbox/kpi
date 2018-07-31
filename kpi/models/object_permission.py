@@ -198,7 +198,7 @@ class ObjectPermission(models.Model):
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'objectpermission'
 
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',
@@ -243,6 +243,32 @@ class ObjectPermissionMixin(object):
             return apps.get_model(
                 self._meta.app_label, self._meta.model_name
             ).ASSIGNABLE_PERMISSIONS
+
+    @transaction.atomic
+    def copy_permissions_from(self, source_object):
+        """
+        Copies permissions from `source_object` to `self` object.
+        Both objects must have the same type.
+
+        :param source_object: mixed (Asset, Collection)
+        :return: Boolean
+        """
+
+        # We can only copy permissions between objects from the same type.
+        if type(source_object) is type(self):
+            # First delete all permissions of the target asset.
+            self.permissions.all().delete()
+            # Then copy all permissions from source to target asset
+            source_permissions = list(source_object.permissions.all())
+            for source_permission in source_permissions:
+                self.assign_perm(
+                    user_obj=source_permission.user,
+                    perm=source_permission.permission.codename,
+                    deny=source_permission.deny)
+            self._recalculate_inherited_perms()
+            return True
+        else:
+            return False
 
     @transaction.atomic
     def save(self, *args, **kwargs):

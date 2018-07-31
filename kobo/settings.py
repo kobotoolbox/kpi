@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import subprocess
 
+import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
@@ -20,7 +21,7 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from static_lists import NATIVE_LANGUAGE_NAMES
+from static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -54,8 +55,6 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
-TEMPLATE_DEBUG = (os.environ.get('TEMPLATE_DEBUG', 'True') == 'True')
-
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = '/'
@@ -75,6 +74,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'mptt',
     'haystack',
+    'private_storage',
     'kobo.apps.KpiConfig',
     'hub',
     'loginas',
@@ -88,6 +88,10 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
+    'kobo.apps.superuser_stats',
+    'kobo.apps.service_health',
+    'constance',
+    'constance.backends.database',
     'guardian', # For access to KC permissions ONLY
 )
 
@@ -104,6 +108,45 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
+
+if os.environ.get('DEFAULT_FROM_EMAIL'):
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Configuration options that superusers can modify in the Django admin
+# interface. Please note that it's not as simple as moving a setting into the
+# `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
+# must use `constance.config.THE_SETTING` instead of
+# `django.conf.settings.THE_SETTING`
+CONSTANCE_CONFIG = {
+    'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
+                                'themselves'),
+    'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
+                            'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
+                          'URL for privacy policy'),
+    'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
+                        'URL of source code repository. When empty, a link '
+                        'will not be shown in the user interface'),
+    'SUPPORT_URL': (os.environ.get('KOBO_SUPPORT_URL',
+                                   'http://help.kobotoolbox.org/'),
+                    'URL of user support portal. When empty, a link will not '
+                    'be shown in the user interface'),
+    'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
+                        os.environ.get('DEFAULT_FROM_EMAIL',
+                                       'help@kobotoolbox.org'),
+                      'Email address for users to contact, e.g. when they '
+                      'encounter unhandled errors in the application'),
+
+}
+# Tell django-constance to use a database model instead of Redis
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+# Warn developers to use `pytest` instead of `./manage.py test`
+class DoNotUseRunner(object):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError('Please run tests with `pytest` instead')
+TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
 # used in kpi.models.sitewide_messages
 MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
@@ -129,6 +172,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_collection',
     'kpi.view_asset',
+    'kpi.view_submissions',
 )
 
 # run heavy migration scripts by default
@@ -150,20 +194,10 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-def get_native_language_name(lang_code):
-    try:
-        return get_language_info(lang_code)['name_local']
-    except KeyError:
-        pass
-    try:
-        return NATIVE_LANGUAGE_NAMES[lang_code]
-    except KeyError:
-        raise KeyError(u'Please add an entry for {} to '
-                       u'kobo.static_lists.NATIVE_LANGUAGE_NAMES and try '
-                       u'again.'.format(lang_code))
+django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 LANGUAGES = [
-    (lang_code, get_native_language_name(lang_code))
+    (lang_code, get_language_info(lang_code)['name_local'])
         for lang_code in os.environ.get(
             'DJANGO_LANGUAGE_CODES', 'en').split(' ')
 ]
@@ -182,12 +216,21 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
+# REMOVE the oldest if a user exceeds this many exports for a particular form
+MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
+
+# Private media file configuration
+PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
+PRIVATE_STORAGE_AUTH_FUNCTION = \
+    'kpi.utils.private_storage.superuser_or_username_matches_prefix'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/' + os.environ.get('KPI_MEDIA_URL', 'media').strip('/') + '/'
 
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
@@ -200,6 +243,7 @@ else:
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
+    MEDIA_URL = KPI_PREFIX + '/' + MEDIA_URL.lstrip('/')
     LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
     LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
@@ -228,20 +272,41 @@ REST_FRAMEWORK = {
     ],
 }
 
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
-    'kpi.context_processors.external_service_tokens',
-    'kpi.context_processors.email',
-    'kpi.context_processors.sitewide_messages',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Default processors per
+                # https://docs.djangoproject.com/en/1.8/ref/templates/upgrading/#the-templates-settings
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                # Additional processors
+                'kpi.context_processors.external_service_tokens',
+                'kpi.context_processors.email',
+                'kpi.context_processors.sitewide_messages',
+                'kpi.context_processors.config',
+            ],
+            'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
+        },
+    },
+]
 
 # This is very brittle (can't handle references to missing images in CSS);
 # TODO: replace later with grunt gzipping?
 #if not DEBUG:
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 INTERCOM_APP_ID = os.environ.get('INTERCOM_APP_ID')
+RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
@@ -288,6 +353,8 @@ HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
+ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
+
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
 # The number of hours to keep a kobo survey preview (generated for enketo)
@@ -392,30 +459,25 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-if os.environ.get('DEFAULT_FROM_EMAIL'):
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
-    SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://support.kobotoolbox.org/')
-KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL') or os.environ.get('DEFAULT_FROM_EMAIL', 'support@kobotoolbox.org')
-
 if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
-'''
-    S3 configuration
-    Set to match Kobocat's config
-'''
-if os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE'):
-    DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
-    AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
-    AWS_DEFAULT_ACL = 'private'
+if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+    # To use S3 storage, set this to `storages.backends.s3boto.S3BotoStorage`
+    DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
+        AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
+        AWS_DEFAULT_ACL = 'private'
+        # django-private-storage needs its own S3 configuration
+        PRIVATE_STORAGE_CLASS = \
+            'private_storage.storage.s3boto3.PrivateS3BotoStorage'
+        AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
 
 ''' Sentry configuration '''
-if 'RAVEN_DSN' in os.environ:
+if os.environ.get('RAVEN_DSN', False):
     import raven
     INSTALLED_APPS = INSTALLED_APPS + (
         'raven.contrib.django.raven_compat',
@@ -538,7 +600,7 @@ else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s" % MONGO_DATABASE
 
 MONGO_CONNECTION = MongoClient(
-    MONGO_CONNECTION_URL, j=True, tz_aware=True)
+    MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 # Set MEDIA_URL to be Kobocat storage location

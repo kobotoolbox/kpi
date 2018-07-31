@@ -3,6 +3,7 @@
 # 😬
 
 import re
+import sys
 import copy
 import json
 import logging
@@ -15,6 +16,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
+from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 import jsonbfield.fields
@@ -27,13 +29,16 @@ from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
+from asset_version import AssetVersion
 from kpi.utils.standardize_content import (standardize_content,
                                            needs_standardization,
                                            standardize_content_in_place)
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
+from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
+    ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE
 from .object_permission import ObjectPermission, ObjectPermissionMixin
-from ..fields import KpiUidField
+from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.sluggify import sluggify_label
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
@@ -54,17 +59,6 @@ from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
-
-
-ASSET_TYPES = [
-    ('text', 'text'),               # uncategorized, misc
-
-    ('question', 'question'),       # has no name
-    ('block', 'block'),             # has a name, but no settings
-    ('survey', 'survey'),           # has name, settings
-
-    ('empty', 'empty'),             # useless, probably should be pruned
-]
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -108,7 +102,13 @@ class TagStringMixin:
 
     @property
     def tag_string(self):
-        return ','.join(self.tags.values_list('name', flat=True))
+        try:
+            tag_list = self.prefetched_tags
+        except AttributeError:
+            tag_names = self.tags.values_list('name', flat=True)
+        else:
+            tag_names = [t.name for t in tag_list]
+        return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
@@ -118,16 +118,11 @@ class TagStringMixin:
 FLATTEN_OPTS = {
     'remove_columns': {
         'survey': [
-            '$autoname',
-            '$kuid',
             '$prev',
             'select_from_list_name',
             '_or_other',
         ],
-        'choices': [
-            '$autovalue',
-            '$kuid',
-        ]
+        'choices': []
     },
     'remove_sheets': [
         'schema',
@@ -175,15 +170,21 @@ class FormpackXLSFormUtils(object):
             if sht in content:
                 content[sht] += rows
 
-    def _xlsform_structure(self, content, ordered=True):
+    def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
+        opts = copy.deepcopy(FLATTEN_OPTS)
+        if not kobo_specific:
+            opts['remove_columns']['survey'].append('$kuid')
+            opts['remove_columns']['survey'].append('$autoname')
+            opts['remove_columns']['choices'].append('$kuid')
+            opts['remove_columns']['choices'].append('$autovalue')
         if ordered:
             if not isinstance(content, OrderedDict):
                 raise TypeError('content must be an ordered dict if '
                                 'ordered=True')
             flatten_to_spreadsheet_content(content, in_place=True,
-                                           **FLATTEN_OPTS)
+                                           **opts)
         else:
-            flatten_content(content, in_place=True, **FLATTEN_OPTS)
+            flatten_content(content, in_place=True, **opts)
 
     def _assign_kuids(self, content):
         for row in content['survey']:
@@ -211,8 +212,8 @@ class FormpackXLSFormUtils(object):
     def _unlink_list_items(self, content):
         arr = content['survey']
         for row in arr:
-            if '$kuid' in row:
-                del row['$kuid']
+            if '$prev' in row:
+                del row['$prev']
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
@@ -344,14 +345,6 @@ class FormpackXLSFormUtils(object):
 
 
 class XlsExportable(object):
-    def flattened_content_copy(self):
-        _c = self.standardized_content_copy()
-        flatten_content(_c, in_place=True)
-        return to_xlsform_structure(_c, move_autonames=True)
-
-    def valid_xlsform_content(self):
-        return self.flattened_content_copy()
-
     def ordered_xlsform_content(self,
                                 kobo_specific_types=False,
                                 append=None):
@@ -366,24 +359,26 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
-        self._xlsform_structure(content, ordered=True)
+        self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
     def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
-        dictionary of dictionaries in the following format:
+        dictionary of lists of dictionaries in the following format:
             `{'sheet name': [{'column name': 'cell value'}]}`
         Extra settings may be included as a dictionary in the same
         parameter.
             `{'settings': {'setting name': 'setting value'}}` '''
         if versioned:
-            kwargs['append'
-                   ] = {'survey': [
-                        {'name': '__version__',
-                         'calculation': '\'{}\''.format(self.version_id),
-                         'type': 'calculate'}
-                        ],
-                        'settings': {'version': self.version_id}}
+            append = kwargs['append'] = kwargs.get('append', {})
+            append_survey = append['survey'] = append.get('survey', [])
+            append_settings = append['settings'] = append.get('settings', {})
+            append_survey.append(
+                {'name': '__version__',
+                 'calculation': '\'{}\''.format(self.version_id),
+                 'type': 'calculate'}
+            )
+            append_settings.update({'version': self.version_id})
         try:
             def _add_contents_to_sheet(sheet, contents):
                 cols = []
@@ -408,8 +403,13 @@ class XlsExportable(object):
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
-            raise Exception("asset.content improperly formatted for XLS "
-                            "export: %s" % repr(e))
+            six.reraise(
+                Exception,
+                "asset.content improperly formatted for XLS "
+                "export: %s" % repr(e),
+                sys.exc_info()[2]
+            )
+
         string_io = StringIO.StringIO()
         workbook.save(string_io)
         string_io.seek(0)
@@ -428,8 +428,11 @@ class Asset(ObjectPermissionMixin,
     content = JSONField(null=True)
     summary = JSONField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
+    report_custom = JSONBField(default=dict)
+    map_styles = LazyDefaultJSONBField(default=dict)
+    map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default='survey')
+        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey(
         'Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
@@ -448,7 +451,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'asset'
 
     class Meta:
         ordering = ('-date_modified',)
@@ -465,6 +468,7 @@ class Asset(ObjectPermissionMixin,
             ('delete_submissions', _('Can delete submitted data for asset')),
             ('share_submissions', _("Can change sharing settings for "
                                     "asset's submitted data")),
+            ('validate_submissions', _("Can validate submitted data asset")),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -477,7 +481,8 @@ class Asset(ObjectPermissionMixin,
         'change_asset',
         'add_submissions',
         'view_submissions',
-        'change_submissions'
+        'change_submissions',
+        'validate_submissions',
     )
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
@@ -498,15 +503,21 @@ class Asset(ObjectPermissionMixin,
         'change_asset': ('view_asset',),
         'add_submissions': ('view_asset',),
         'view_submissions': ('view_asset',),
-        'change_submissions': ('view_submissions',)
+        'change_submissions': ('view_submissions',),
+        'validate_submissions': ('view_submissions',)
     }
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
         'change_submissions': 'change_xform', # "Can Edit" in KC UI
         'view_submissions': 'view_xform', # "Can View" in KC UI
         'add_submissions': 'report_xform', # "Can submit to" in KC UI
+        'validate_submissions': 'validate_xform',  # "Can Validate" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
+    # KC records anonymous access as flags on the `XForm`
+    KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
+        'view_submissions': {'shared': True, 'shared_data': True}
+    }
 
     # todo: test and implement this method
     # def restore_version(self, uid):
@@ -552,7 +563,7 @@ class Asset(ObjectPermissionMixin,
                 settings['id_string'] = id_string
             if not _title:
                 _title = filename
-        if self.asset_type != 'survey':
+        if not self.asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
 
@@ -572,12 +583,12 @@ class Asset(ObjectPermissionMixin,
         self._populate_summary()
 
         # infer asset_type only between question and block
-        if self.asset_type in ['question', 'block']:
+        if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
             row_count = self.summary.get('row_count')
             if row_count == 1:
-                self.asset_type = 'question'
+                self.asset_type = ASSET_TYPE_QUESTION
             elif row_count > 1:
-                self.asset_type = 'block'
+                self.asset_type = ASSET_TYPE_BLOCK
 
         self._populate_report_styles()
 
@@ -598,11 +609,21 @@ class Asset(ObjectPermissionMixin,
             raise ValueError('no translations available')
         self._rename_translation(self.content, _from, _to)
 
-    def to_clone_dict(self, version_uid=None):
-        if version_uid:
-            version = self.asset_versions.get(uid=version_uid)
-        else:
-            version = self.asset_versions.first()
+    def to_clone_dict(self, version_uid=None, version=None):
+        """
+        Returns a dictionary of the asset based on version_uid or version.
+        If `version` is specified, there are no needs to provide `version_uid` and make another request to DB.
+        :param version_uid: string
+        :param version: AssetVersion
+        :return: dict
+        """
+
+        if not isinstance(version, AssetVersion):
+            if version_uid:
+                version = self.asset_versions.get(uid=version_uid)
+            else:
+                version = self.asset_versions.first()
+
         return {
             'name': version.name,
             'content': version.version_content,
@@ -661,9 +682,17 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        latest_version = self.latest_version
-        if latest_version:
-            return latest_version.uid
+        try:
+            latest_versions = self.prefetched_latest_versions
+        except AttributeError:
+            latest_version = self.latest_version
+            if latest_version:
+                return latest_version.uid
+        else:
+            try:
+                return latest_versions[0]
+            except IndexError:
+                return None
 
     @property
     def snapshot(self):
@@ -672,11 +701,6 @@ class Asset(ObjectPermissionMixin,
     @transaction.atomic
     def _snapshot(self, regenerate=True):
         asset_version = self.asset_versions.first()
-
-        _note = None
-        if self.asset_type in ['question', 'block']:
-            _note = ('Note: This item is a {} and must be included in '
-                     'a form before deploying'.format(self.asset_type))
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -710,6 +734,41 @@ class Asset(ObjectPermissionMixin,
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
+
+    @staticmethod
+    def optimize_queryset_for_list(queryset):
+        ''' Used by serializers to improve performance when listing assets '''
+        queryset = queryset.defer(
+            # Avoid pulling these `JSONField`s from the database because:
+            #   * they are stored as plain text, and just deserializing them
+            #     to Python objects is CPU-intensive;
+            #   * they are often huge;
+            #   * we don't need them for list views.
+            'content', 'report_styles'
+        ).select_related(
+            'owner__username',
+        ).prefetch_related(
+            # We previously prefetched `permissions__content_object`, but that
+            # actually pulled the entirety of each permission's linked asset
+            # from the database! For now, the solution is to remove
+            # `content_object` here *and* from
+            # `ObjectPermissionNestedSerializer`.
+            'permissions__permission',
+            'permissions__user',
+            # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
+            # related objects in a list (`prefetched_list`) that we can use in
+            # other methods to avoid additional queries; see:
+            # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
+            Prefetch('tags', to_attr='prefetched_tags'),
+            Prefetch(
+                'asset_versions',
+                queryset=AssetVersion.objects.order_by(
+                    '-date_modified'
+                ).only('uid', 'asset', 'date_modified', 'deployed'),
+                to_attr='prefetched_latest_versions',
+            ),
+        )
+        return queryset
 
 
 class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):

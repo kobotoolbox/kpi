@@ -4,30 +4,40 @@ from django.conf import settings
 from hub.views import ExtraDetailRegistrationView
 from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
+import private_storage.urls
 
 from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
     AssetSnapshotViewSet,
-    AttachmentViewSet,
+    AssetFileViewSet,
+    SubmissionViewSet,
     UserViewSet,
     CurrentUserViewSet,
     CollectionViewSet,
     TagViewSet,
     ImportTaskViewSet,
+    ExportTaskViewSet,
     ObjectPermissionViewSet,
     SitewideMessageViewSet,
     AuthorizedApplicationUserViewSet,
     OneTimeAuthenticationKeyViewSet,
     UserCollectionSubscriptionViewSet,
     TokenView,
+    EnvironmentView,
 )
 
 from kpi.views import home, one_time_login, browser_tests
 from kobo.apps.reports.views import ReportsViewSet
+from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
+from hub.models import ConfigurationFile
+
+# TODO: Give other apps their own `urls.py` files instead of importing their
+# views directly! See
+# https://docs.djangoproject.com/en/1.8/intro/tutorial03/#namespacing-url-names
 
 router = ExtendedDefaultRouter()
 asset_routes = router.register(r'assets', AssetViewSet)
@@ -36,11 +46,25 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
+<<<<<<< HEAD
 asset_routes.register(r'attachments',
                       AttachmentViewSet,
                       base_name='asset-attachment',
                       parents_query_lookups=['asset'],
                       )
+=======
+asset_routes.register(r'submissions',
+                      SubmissionViewSet,
+                      base_name='submission',
+                      parents_query_lookups=['asset'],
+                      )
+asset_routes.register(r'files',
+                      AssetFileViewSet,
+                      base_name='asset-file',
+                      parents_query_lookups=['asset'],
+                      )
+
+>>>>>>> master
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
@@ -51,6 +75,7 @@ router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'reports', ReportsViewSet, base_name='reports')
 router.register(r'imports', ImportTaskViewSet)
+router.register(r'exports', ExportTaskViewSet)
 router.register(r'sitewide_messages', SitewideMessageViewSet)
 
 router.register(r'authorized_application/users',
@@ -85,13 +110,30 @@ urlpatterns = [
     ),
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
+<<<<<<< HEAD
     url(r'^hub/switch_builder$', switch_builder,
         name='toggle-preferred-builder'),
+=======
+    url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
+    url(r'^i18n/', include('django.conf.urls.i18n')),
+>>>>>>> master
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
+<<<<<<< HEAD
     # static media
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT}),
+=======
+    url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
+    url(r'^configurationfile/(?P<slug>[^/]+)/?',
+        ConfigurationFile.redirect_view, name='configurationfile'),
+    url(r'^private-media/', include(private_storage.urls)),
+    # Statistics for superusers
+    url(r'^superuser_stats/user_report/$',
+        'kobo.apps.superuser_stats.views.user_report'),
+    url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+        'kobo.apps.superuser_stats.views.retrieve_user_report'),
+>>>>>>> master
 ]

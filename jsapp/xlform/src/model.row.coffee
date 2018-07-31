@@ -57,7 +57,7 @@ module.exports = do ->
       questions = []
       limit = false
 
-      non_selectable = ['datetime', 'time', 'note', 'calculate', 'group']
+      non_selectable = ['datetime', 'time', 'note', 'calculate', 'group', 'kobomatrix', 'repeat', 'rank', 'score']
 
       survey = @getSurvey()
       if survey == null
@@ -154,7 +154,7 @@ module.exports = do ->
 
         r2 = new row.Row(attributes, options)
         r2._isCloned = true
-  
+
         if rr._rankRows
           # if rr is a rank question
           for rankRow in rr._rankRows.models
@@ -321,11 +321,12 @@ module.exports = do ->
       if '$kuid' not of @attributes
         @set '$kuid', $utils.txtid()
 
-      if @attributes.type is 'score'
-        new ScoreMixin(@)
-      else if @attributes.type is 'rank'
-        new RankMixin(@)
+      _type = @getValue('type')
 
+      if _type is 'score'
+        new ScoreMixin(@)
+      else if _type is 'rank'
+        new RankMixin(@)
       @convertAttributesToRowDetails()
 
       typeDetail = @get("type")
@@ -457,7 +458,7 @@ module.exports = do ->
   class row.RowError extends row.BaseRow
     constructor: (obj, options)->
       @_error = options.error
-      unless global.xlfHideWarnings
+      unless window.xlfHideWarnings
         console?.error("Error creating row: [#{options.error}]", obj)
         alertify.error("Error creating row: [#{options.error}]");
       super(obj, options)

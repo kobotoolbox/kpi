@@ -14,6 +14,10 @@ module.exports = do ->
         "begin_repeat"
         "end_repeat"
       ]
+    kobomatrix: [
+        "begin_kobomatrix"
+        "end_kobomatrix"
+      ]
     score: [
         "begin score",
         "end score",
@@ -26,12 +30,22 @@ module.exports = do ->
         "begin rank",
         "end rank",
       ]
+    kobomatrix: [
+        "begin_kobomatrix",
+        "end_kobomatrix",
+      ]
 
   aliases = (name)-> aliases_dict[name] or [name]
 
   q = {}
   q.groupable = ()->
-    _.flatten [aliases('group'), aliases('repeat'), aliases('score'), aliases('rank')]
+    _.flatten [
+                aliases('group')
+                aliases('repeat')
+                aliases('score')
+                aliases('rank')
+                aliases('kobomatrix')
+              ]
 
   q.groupsOrRepeats = ()->
     _.flatten [aliases('group'), aliases('repeat')]
@@ -51,6 +65,8 @@ module.exports = do ->
       out = {type: 'score'}
     else if type in aliases_dict.rank
       out = {type: 'rank'}
+    else if type in aliases_dict.kobomatrix
+      out = {type: 'kobomatrix'}
     if out and out.type
       out.begin = !type.match(/end/)
     out

@@ -482,7 +482,7 @@ describe 'kuids', ->
 
       r0 = survey.rows.at(0)
       r1 = r0._rankRows.at(0)
-      r2 = r0._rankRows.at(1) 
+      r2 = r0._rankRows.at(1)
       expect(r0.getValue('$kuid')).toBe('abc')
       expect(r1.attributes.$kuid).toBe('def')
       expect(r2.attributes.$kuid).toBe('ghi')

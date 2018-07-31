@@ -136,6 +136,7 @@ $headerAccountTextColor: #dbedf7;
 .popover-menu--account-menu {
   .popover-menu__content {
     min-width: 240px;
+    z-index: 1001;
   }
 }
 
@@ -196,6 +197,16 @@ $headerAccountTextColor: #dbedf7;
         color: $cool-blue;
       }
     }
+
+    &.environment-links {
+      text-align: right;
+
+      a {
+        display: inline-block;
+        margin-left: 15px;
+        font-size: 12px;
+      }
+    }
   }
 
   .account-box__menu-li--lang {
@@ -246,7 +257,7 @@ $headerAccountTextColor: #dbedf7;
   display: none;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 999px) {
   .mdl-layout__header {
     .mdl-button--icon {
       display: block;
@@ -269,12 +280,6 @@ $headerAccountTextColor: #dbedf7;
       width: 160px;
     }
 
-    .search {
-      width: 80%;
-      position: absolute;
-      display: none;
-    }
-
     .mdl-layout__header-row {
       padding: 0px 12px;
     }
@@ -283,6 +288,14 @@ $headerAccountTextColor: #dbedf7;
       width: calc(100% - 240px);
       overflow: hidden;
       margin-right: 10px;
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .mdl-layout__header {
+    .search {
+      display: none;
     }
   }
 }
@@ -364,7 +377,7 @@ $headerAccountTextColor: #dbedf7;
   }
 }
 
-@media screen and (max-width: 959px) {
+@media screen and (max-width: 999px) {
   .form-view__title {
     .form-view__name {
       width: 80%;
