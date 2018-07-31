@@ -86,6 +86,8 @@ module.exports = do ->
       $et.parents('.card__settings').find(".card__settings__fields--#{tabId}").addClass('card__settings__fields--active')
 
     surveyRowSortableStop: (evt)->
+      @survey.trigger('change')
+
       $et = $(evt.target)
       cid = $et.data('rowId')
 
@@ -200,8 +202,6 @@ module.exports = do ->
           selected_rows = $target.siblings('.survey__row--selected')
           if !$target.hasClass('survey__row--selected') || selected_rows.length > 1
             @deselect_all_rows()
-
-
 
         $target.toggleClass("survey__row--selected")
         if $target.hasClass('survey__row--group')
@@ -604,6 +604,8 @@ module.exports = do ->
       evt.preventDefault()
       if confirm(_t("Are you sure you want to delete this question?") + " " +
           _t("This action cannot be undone."))
+        @survey.trigger('change')
+
         $et = $(evt.target)
         rowEl = $et.parents(".survey__row").eq(0)
         rowId = rowEl.data("rowId")
