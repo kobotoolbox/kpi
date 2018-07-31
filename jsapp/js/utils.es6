@@ -189,6 +189,12 @@ export function isAValidUrl(url) {
   }
 }
 
+export function checkLatLng(geolocation) {
+  if (geolocation && geolocation[0] && geolocation[1]) return true;
+  else return false;
+}
+
+
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
     '.xls',
@@ -221,7 +227,7 @@ export function koboMatrixParser(params) {
       content.survey[i].type = 'begin_kobomatrix';
       content.survey[i].appearance = 'field-list';
       surveyLength++;
-      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${content.survey[i].$kuid}`});
+      content.survey.splice(i + 1, 0, {type: 'end_kobomatrix', '$kuid': `/${content.survey[i].$kuid}`});
     }
   }
 

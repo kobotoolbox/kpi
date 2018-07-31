@@ -1,4 +1,8 @@
-.modal-backdrop {
+// -----------------------------------------------------------------------------
+// common modal parts
+// -----------------------------------------------------------------------------
+
+.modal__backdrop {
   position: fixed;
   height: 100%;
   width: 100%;
@@ -8,132 +12,182 @@
   background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
-.modal-open {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  min-width: 40%;
-  max-width: 90%;
-  max-height: 95%;
-  overflow-x: auto;
-  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
-}
-
-.modal-content {
-  background-color: #FFF;
-  padding: 15px 20px;
-}
-
-.modal-large {
-  .modal-open {
-    height: 80%;
-    width: 80%;
-    max-width: 1240px;
-    align-items: stretch;
-    display: flex;
+.modal {
+  &.modal--open {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 40%;
+    max-width: 90%;
+    max-height: 95%;
+    overflow-x: auto;
+    box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
   }
 
-  .modal-content {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
+  &.modal--large {
+    &.modal--open {
+      height: 80%;
+      width: 80%;
+      max-width: 1240px;
+      align-items: stretch;
+      display: flex;
+    }
 
-  .modal-body {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-
-    .enketo-holder {
-      flex-grow: 1;
+    .modal__content {
+      height: 100%;
+      width: 100%;
       display: flex;
       flex-direction: column;
     }
 
-    iframe {
+    .modal__body {
       flex-grow: 1;
-      border: 1px solid white;
-      width: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .enketo-holder {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      iframe {
+        flex-grow: 1;
+        border: 1px solid white;
+        width: 100%;
+      }
     }
   }
 }
 
-.modal-title {
-  margin: 0px;
-  padding: 24px 30px;
-  font-size: 18px;
+.modal__body {
+  // we use margin for bottom to make it stack with modal__footer
+  padding: 30px 30px 0;
+  margin-bottom: 30px;
+
+  // in some cases adding custom footer requires it to be inside modal__body and
+  // then padding is not needed
+  .modal__footer {
+    padding: 0;
+  }
 }
 
-.modal-header {
-  min-height: 70px;
-  margin: -15px -20px 0;
+.modal__content {
+  overflow: auto;
+  background-color: #FFF;
+}
+
+.modal__tabs {
   background: $cool-blue;
   color: #FFF;
 }
 
-.modal-body {
-  padding: 15px;
-  padding-top: 30px;
+.modal__header {
+  position: relative;
+  min-height: 70px;
+  background: $cool-blue;
+  color: #FFF;
 }
 
-.modal-footer {
-  min-height: 60px;
-  padding-top: 10px;
-  padding-right: 10px;
+.modal__title {
+  margin: 0px;
+  padding: 24px 30px;
+  font-size: 18px;
+  line-height: 22px;
 }
 
-.modal-x {
+.modal__x {
   position: absolute;
   background-color: transparent;
   top: 0;
   right: 0;
-  padding: 20px;
+  padding: 19px;
   font-size: 20px;
   color: #FFF;
   cursor: pointer;
 
-  i {
-    font-size: 32px;
-  }
+  i {font-size: 32px;}
 
-  &:hover {
-    opacity: 0.7;
+  &:hover {opacity: 0.7;}
+}
+
+.modal__subheader {
+  background: #f8f8f8;
+  padding: 20px 30px;
+  margin: -30px -30px 20px;
+  color: $cool-silver;
+
+  i {
+    margin: 2px 10px 10px 0;
+    font-size: 32px;
+    float: left;
   }
 }
 
-.modal-footer {
+.modal__footer {
+  padding: 0 30px 30px;
+  margin-top: 20px;
+  overflow: hidden; // clearfix
   text-align: right;
 
-  button {
-    @extend .mdl-button;
+  &:first-child {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
 
-    &.primary {
-      @extend .mdl-button--colored, .mdl-button--raised;
+  .modal__footer-button {
+    @extend .mdl-button;
+    text-transform: uppercase;
+
+    &:not(:first-of-type) {
+      margin-left: 10px;
     }
 
-    &.reset {
+    &.modal__footer-button--primary {
+      @extend .mdl-button--colored, .mdl-button--raised;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+
+    &.modal__footer-button--secondary {
+      @extend .mdl-button--colored;
+    }
+
+    &.modal__footer-button--danger {
       @extend .mdl-button--colored, .mdl-button--danger;
     }
 
-    text-transform: uppercase;
-    padding-left: 40px;
-    padding-right: 40px;
+    &.modal__footer-button--back {
+      border-radius: 2px;
+      color: $cool-blue;
+      border: 1px solid currentColor;
+      opacity: 1;
+      float: left;
+
+      &:hover {
+        opacity: 0.8;
+        color: $cool-blue;
+      }
+    }
   }
 }
 
+// -----------------------------------------------------------------------------
+// custom parts and overrides
+// -----------------------------------------------------------------------------
+
 .modal-submission {
-  .modal-open {
+  .modal--open {
     background-color: #FFF;
   }
 
-  .modal-header {
+  .modal__header {
     background-color: #F8F8F8;
     color: $layout-text-color;
   }
 
-  .modal-x {
+  .modal__x {
     color: $layout-text-color;
   }
 
@@ -273,7 +327,7 @@
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: #F5F5F5;
+    background: $cool-whitegray;
     text-align: center;
     line-height: 1em;
 
@@ -299,16 +353,9 @@
   }
 }
 
-// modal tabs
-.modal-tabs {
-  background: $cool-blue;
-  color: #FFF;
-  margin: 0px -20px;
-}
-
 .enketo-holder {
   // resets modal window paddings
-  margin: -30px -35px;
+  margin: -30px -30px;
 
   .enketo-loading-message {
     p {
@@ -321,14 +368,14 @@
       font-size: 20px;
     }
   }
-}
 
-.touch .enketo-holder {
-  width: 94%;
-  left: 3%;
-  margin-left: 0px;
-  -webkit-overflow-scrolling: touch;
-  overflow-y: scroll;
+  .touch & {
+    width: 94%;
+    left: 3%;
+    margin-left: 0px;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+  }
 }
 
 .enketo-iframe-icon {
@@ -346,50 +393,45 @@
   cursor: pointer;
 }
 
-// create new project modal steps
-.form-modal__item--upload-note {
-  background: #F8F8F8;
-  padding: 20px 30px 10px 30px;
-  margin: -30px -35px;
-  margin-bottom: 20px;
-
-  i {
-    margin-right: 10px;
-    margin-top: 2px;
-    font-size: 32px;
-    vertical-align: top;
-    display: inline-block;
-  }
-
-  label.long {
-    font-size: 15px;
-    vertical-align: middle;
-    display: inline-block;
-    width: calc(100% - 48px);
-  }
-}
-
-.form-modal__item--newForm-step2 {
+.project-settings {
   .intro {
-    padding-bottom: 20px;
+    margin-bottom: 20px;
     text-align: left;
   }
 
-  .form-modal__item--new-project--buttons {
-    margin: 30px 0px 20px 0px;
+  // override two columns to rows
+  &.project-settings--narrow {
+    .form-modal__item--sector,
+    .form-modal__item--country {
+      width: 100%;
+      float: none;
+
+      .Select {
+        margin-right: 0;
+      }
+    }
+  }
+
+  $buttons-spacing: 10px;
+
+  .form-modal__item--form-source-buttons {
+    margin: 0 auto;
+    max-width: 600px;
     display: flex;
-    justify-content: space-around;
+    flex-wrap: wrap;
+    justify-content: center;
 
     button {
       border: 1px solid $divider-color;
-      padding: 20px 10px;
+      padding: 2*$buttons-spacing $buttons-spacing;
       background: #F8F8F8;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
-      margin: 0px 10px;
+      margin: $buttons-spacing;
       flex-basis: 0;
       flex-grow: 1;
+      max-width: calc(50% - #{2*$buttons-spacing});
 
       @media screen and (min-width: 768px) {
         min-width: 200px;
@@ -397,7 +439,7 @@
 
       @media screen and (min-width: 960px) {
         min-width: 220px;
-        padding: 20px;
+        padding: 2*$buttons-spacing;
       }
 
       i {
@@ -409,19 +451,13 @@
       &:hover {
         color: $cool-blue;
         border-color: $cool-blue;
-
-        i {
-          color: $cool-blue;
-        }
+        i {color: $cool-blue;}
       }
     }
   }
-}
 
-.form-modal__item--newForm-step3 {
   .dropzone {
-    background: #F5F5F5;
-    margin: 20px 0px 40px 0;
+    background: $cool-whitegray;
     padding: 30px;
     border: 2px dashed $divider-color;
     cursor: pointer;
@@ -435,43 +471,34 @@
       opacity: 0.5;
     }
 
-    &:hover {
-      border-color: $cool-blue;
+    .loading {
+      font-size: inherit;
     }
 
-    &::after {display: none;}
-
-    &.dropzone--active {
-      border-color: $cool-blue;
-    }
-
-    &.dropzone--reject {
-      border-color: $cool-red;
-    }
-  }
-
-  .form-modal__item--url-import {
-    margin: 30px 0px;
-
-    button {
+    .loading i {
+      font-size: 36px;
       margin-top: 20px;
-      float: right;
+      margin-bottom: 16px;
     }
+
+    &:hover {border-color: $cool-blue;}
+    &.dropzone-active {border-color: $cool-blue;}
+    &.dropzone-reject {border-color: $cool-red;}
   }
+}
 
-  .form-view__link--step3-back {
-    font-size: 14px;
-    color: $cool-blue;
-    opacity: 1;
-
-    &:hover {
-      opacity: 0.8;
+@media screen and (min-height: 600px) {
+  // on bigger screens make templates-list scrollable to always display back/next buttons
+  .project-settings.project-settings--choose-template {
+    .templates-list {
+      max-height: 380px;
+      overflow-y: auto;
     }
   }
 }
 
 @media screen and (max-width: 767px) {
-  .modal-open {
+  .modal--open {
     min-width: 90%;
     max-width: 90%;
   }

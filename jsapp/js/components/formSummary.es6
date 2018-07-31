@@ -18,6 +18,7 @@ import {
   assign, t, formatTime, formatDate, stringToColor
 } from '../utils';
 
+import {MODAL_TYPES} from '../constants';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -151,16 +152,16 @@ class FormSummary extends React.Component {
                 {t('Past 31 days')}
               </a>
             </bem.FormView__cell>
-            <bem.FormView__cell m={`summary-chart`} className={this.state.subsCurrentPeriod ? 'active' : 'inactive'}>
-              <canvas ref="canvas" className={this.state.chartVisible ? 'visible' : ''}/>
+            <bem.FormView__cell m={'summary-chart'} className={this.state.subsCurrentPeriod ? 'active' : 'inactive'}>
+              <canvas ref='canvas' className={this.state.chartVisible ? 'visible' : ''}/>
             </bem.FormView__cell>
-            <bem.FormView__cell m={`chart-no-data`}>
+            <bem.FormView__cell m={'chart-no-data'}>
               <span>{t('No chart data available for current period.')}</span>
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__group m={['submission-stats']}>
             <bem.FormView__cell>
-              <span className="subs-graph-number">{this.state.subsCurrentPeriod}</span>
+              <span className='subs-graph-number'>{this.state.subsCurrentPeriod}</span>
               <bem.FormView__label>
                 {this.state.chartPeriod=='week' &&
                   `${t('Today')} - ${formatDate(moment().subtract(6, 'days'))}`
@@ -171,7 +172,7 @@ class FormSummary extends React.Component {
               </bem.FormView__label>
             </bem.FormView__cell>
             <bem.FormView__cell>
-              <span className="subs-graph-number">{this.state.subsPreviousPeriod}</span>
+              <span className='subs-graph-number'>{this.state.subsPreviousPeriod}</span>
               <bem.FormView__label>
                 {this.state.chartPeriod=='week' &&
                   `${formatDate(moment().subtract(7, 'days'))} - ${formatDate(moment().subtract(13, 'days'))}`
@@ -182,7 +183,7 @@ class FormSummary extends React.Component {
               </bem.FormView__label>
             </bem.FormView__cell>
             <bem.FormView__cell>
-              <span className="subs-graph-number">{this.state.deployment__submission_count}</span>
+              <span className='subs-graph-number'>{this.state.deployment__submission_count}</span>
               <bem.FormView__label>{t('Total')}</bem.FormView__label>
             </bem.FormView__cell>
           </bem.FormView__group>
@@ -202,7 +203,7 @@ class FormSummary extends React.Component {
         <Link
           to={`/forms/${this.state.uid}/landing`}
           key={'landing'}
-          className={`form-view__tab`}
+          className={'form-view__tab'}
           data-path={`/forms/${this.state.uid}/landing`}
           onClick={this.triggerRefresh}>
             <i className='k-icon-projects' />
@@ -211,7 +212,7 @@ class FormSummary extends React.Component {
         </Link>
         {this.userCan('change_asset', this.state) &&
           <bem.PopoverMenu__link onClick={this.sharingModal}>
-            <i className="k-icon-share"/>
+            <i className='k-icon-share'/>
             {t('Share form')}
             <i className='fa fa-angle-right' />
           </bem.PopoverMenu__link>
@@ -220,7 +221,7 @@ class FormSummary extends React.Component {
           <Link
             to={`/forms/${this.state.uid}/edit`}
             key={'edit'}
-            className={`form-view__tab`}
+            className={'form-view__tab'}
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}>
               <i className='k-icon-edit' />
@@ -229,7 +230,7 @@ class FormSummary extends React.Component {
           </Link>
         }
         <bem.PopoverMenu__link onClick={this.enketoPreviewModal}>
-          <i className="k-icon-view" />
+          <i className='k-icon-view' />
           {t('Preview form')}
           <i className='fa fa-angle-right' />
         </bem.PopoverMenu__link>
@@ -268,14 +269,14 @@ class FormSummary extends React.Component {
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: this.state.uid
     });
   }
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'enketo-preview',
+      type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid
     });
   }
@@ -296,7 +297,7 @@ class FormSummary extends React.Component {
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
-            <i className="k-icon-share" />
+            <i className='k-icon-share' />
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>
@@ -375,17 +376,6 @@ class FormSummary extends React.Component {
               </bem.FormView__row>
             }
             {this.renderSubmissionsGraph()}
-          </bem.FormView__column>
-
-          <bem.FormView__column m='right'>
-            <bem.FormView__row m='quick-links'>
-              <bem.FormView__cell m='label'>
-                {t('Quick Links')}
-              </bem.FormView__cell>
-              <bem.FormView__cell m='box'>
-                {this.renderQuickLinks()}
-              </bem.FormView__cell>
-            </bem.FormView__row>
             <bem.FormView__row m='summary-details'>
               <bem.FormView__cell m='label'>
                 {t('Form details')}
@@ -424,6 +414,18 @@ class FormSummary extends React.Component {
                 </bem.FormView__group>
               </bem.FormView__cell>
             </bem.FormView__row>
+          </bem.FormView__column>
+
+          <bem.FormView__column m='right'>
+            <bem.FormView__row m='quick-links'>
+              <bem.FormView__cell m='label'>
+                {t('Quick Links')}
+              </bem.FormView__cell>
+              <bem.FormView__cell m='box'>
+                {this.renderQuickLinks()}
+              </bem.FormView__cell>
+            </bem.FormView__row>
+
             {this.state.deployment__submission_count > 0 &&
               <bem.FormView__row m='data-links'>
                 <bem.FormView__cell m='label'>

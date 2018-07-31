@@ -30,12 +30,12 @@ class ListSearch extends React.Component {
   }
   render () {
     return (
-          <bem.Search m={[this.state.searchState]} >
-            <bem.Search__icon />
-            <ui.SearchBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
-            <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
-          </bem.Search>
-        );
+      <bem.Search m={[this.state.searchState]} >
+        <bem.Search__icon />
+        <ui.SearchBox ref='formlist-search' placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+        <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
+      </bem.Search>
+    );
   }
 };
 
@@ -59,7 +59,7 @@ class ListTagFilter extends React.Component {
   componentDidMount () {
     this.listenTo(stores.tags, this.tagsLoaded);
     this.listenTo(this.searchStore, this.searchStoreChanged);
-    actions.resources.listTags(this.searchStore.filterTagQueryData());
+    actions.resources.listTags(this.searchStore.filterTagQueryData);
   }
   searchStoreChanged (searchStoreState) {
     if (searchStoreState.cleared) {
@@ -67,9 +67,12 @@ class ListTagFilter extends React.Component {
       this.setState(searchStoreState);
     } else {
       if (searchStoreState.searchTags) {
-        var tags = searchStoreState.searchTags.map(function(tag){
-          return tag.value;
-        }).join(',');
+        let tags = null;
+        if (searchStoreState.searchTags.length !== 0) {
+          tags = searchStoreState.searchTags.map(function(tag){
+            return tag.value;
+          }).join(',');
+        }
         this.setState({
           selectedTag: tags
         });
@@ -86,7 +89,7 @@ class ListTagFilter extends React.Component {
           value: tag.name.replace(/\s/g, '-'),
         };
       }),
-      selectedTag: ''
+      selectedTag: null
     });
   }
   onTagChange (tagString) {
@@ -96,31 +99,31 @@ class ListTagFilter extends React.Component {
     if (!this.state.tagsLoaded) {
       return (
         <bem.tagSelect>
-          <i className="fa fa-search" />
+          <i className='fa fa-search' />
           <Select
-              name="tags"
-              value=""
-              disabled
-              multi={false}
-              placeholder={t('Tags are loading...')}
-              className={this.props.hidden ? 'hidden' : null}
-            />
+            name='tags'
+            value=''
+            disabled
+            multi={false}
+            placeholder={t('Tags are loading...')}
+            className={[this.props.hidden ? 'hidden' : null, 'Select--underlined'].join(' ')}
+          />
         </bem.tagSelect>
         );
     }
     return (
       <bem.tagSelect>
-        <i className="fa fa-search" />
+        <i className='fa fa-search' />
         <Select
-            name="tags"
-            multi
-            placeholder={t('Search Tags')}
-            noResultsText={t('No results found')}
-            options={this.state.availableTags}
-            onChange={this.onTagChange}
-            className={this.props.hidden ? 'hidden' : null}
-            value={this.state.selectedTag}
-          />
+          name='tags'
+          multi
+          placeholder={t('Search Tags')}
+          noResultsText={t('No results found')}
+          options={this.state.availableTags}
+          onChange={this.onTagChange}
+          className={[this.props.hidden ? 'hidden' : null, 'Select--underlined'].join(' ')}
+          value={this.state.selectedTag}
+        />
       </bem.tagSelect>
     );
   }
@@ -184,20 +187,18 @@ class ListCollectionFilter extends React.Component {
         <bem.collectionFilter>
           {t('Collections are loading...')}
         </bem.collectionFilter>
-        );
+      );
     }
     return (
       <bem.collectionFilter>
-        <label>
-          {t('Filter by')}
-        </label>
         <Select
-            name="collections"
-            placeholder={t('Select Collection Name')}
-            options={this.state.availableCollections}
-            onChange={this.onCollectionChange}
-            value={this.state.selectedCollection}
-          />
+          name='collections'
+          placeholder={t('Select Collection Name')}
+          options={this.state.availableCollections}
+          onChange={this.onCollectionChange}
+          value={this.state.selectedCollection}
+          className='Select--underlined'
+        />
       </bem.collectionFilter>
     );
   }
@@ -224,18 +225,14 @@ class ListExpandToggle extends React.Component {
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
-  handleChange (/*event*/) {
+  onExpandedToggleChange (/*event*/) {
     stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded});
     this.setState({assetNavExpanded: !this.state.assetNavExpanded});
   }
   render () {
-    var count,
-        isSearch = this.state.searchResultsDisplayed;
-
-    if (isSearch) {
+    let count = this.state.defaultQueryCount;
+    if (this.state.searchResultsDisplayed) {
       count = this.state.searchResultsCount;
-    } else {
-      count = this.state.defaultQueryCount;
     }
 
     return (
@@ -244,7 +241,13 @@ class ListExpandToggle extends React.Component {
           {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
-          <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
+          <input
+            type='checkbox'
+            className='mdl-checkbox__input'
+            id='expandedToggleCheckbox'
+            checked={this.state.assetNavExpanded}
+            onChange={this.onExpandedToggleChange}
+          />
           <label htmlFor='expandedToggleCheckbox'>
             {t('expand details')}
           </label>
@@ -275,8 +278,10 @@ class ListSearchSummary extends React.Component {
     this.setState(state);
   }
   render () {
-    var messages = [], modifier,
-        s = this.state;
+    var messages = [];
+    var modifier;
+    var s = this.state;
+
     if (s.searchFor && s.searchFor.tags && s.searchFor.tags.length > 0) {
       var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
     }
@@ -312,12 +317,12 @@ class ListSearchSummary extends React.Component {
     }
 
     return (
-        <bem.Search__summary m={modifier}>
-          {messages.map(function(message, i){
-            return <div key={`prop-${i}`}>{message}</div>;
-          })}
-        </bem.Search__summary>
-      );
+      <bem.Search__summary m={modifier}>
+        {messages.map(function(message, i){
+          return <div key={`prop-${i}`}>{message}</div>;
+        })}
+      </bem.Search__summary>
+    );
   }
 };
 

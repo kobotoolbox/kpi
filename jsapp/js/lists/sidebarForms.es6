@@ -9,7 +9,6 @@ import bem from '../bem';
 import ui from '../ui';
 import searches from '../searches';
 import stores from '../stores';
-import SearchCollectionList from '../components/searchcollectionlist';
 
 import {t, assign} from '../utils';
 
@@ -52,7 +51,7 @@ class SidebarFormsList extends Reflux.Component {
 
     return (
       <bem.FormSidebar__item key={asset.uid} className={asset.uid == this.currentAssetID() ? 'active' : ''}>
-        <Link to={href} className={`form-sidebar__itemlink`}>
+        <Link to={href} className={'form-sidebar__itemlink'}>
           <ui.SidebarAssetName {...asset} />
         </Link>
       </bem.FormSidebar__item>
@@ -74,7 +73,7 @@ class SidebarFormsList extends Reflux.Component {
     // sync sidebar with main list when it is not a search query, allows for deletes to update the sidebar as well
     // this is a temporary fix, a proper fix needs to update defaultQueryCategorizedResultsLists when deleting/archiving/cloning
     if (s.searchState === 'done' &&
-        (s.searchString === false || s.searchString === "") &&
+        (s.searchString === false || s.searchString === '') &&
         s.searchResultsFor &&
         s.searchResultsFor.assetType === 'asset_type:survey')
       activeItems = 'searchResultsCategorizedResultsLists';
@@ -94,8 +93,8 @@ class SidebarFormsList extends Reflux.Component {
       <bem.FormSidebar>
         {
           s.defaultQueryState === 'done' &&
-          <bem.FormSidebar__label m={'active-projects'} className="is-edge">
-            <i className="k-icon-projects" />
+          <bem.FormSidebar__label m={'active-projects'} className='is-edge'>
+            <i className='k-icon-projects' />
             {t('Active Projects')}
           </bem.FormSidebar__label>
         }
@@ -139,8 +138,8 @@ class SidebarFormsList extends Reflux.Component {
             }
           })()
         }
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-trash" />
+        <bem.FormSidebar__label className='is-edge'>
+          <i className='k-icon-trash' />
           {t('Deleted')} (#)
         </bem.FormSidebar__label>
       </bem.FormSidebar>

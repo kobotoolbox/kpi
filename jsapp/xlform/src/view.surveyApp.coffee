@@ -56,13 +56,11 @@ module.exports = do ->
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
       "click .js-select-row--force": "forceSelectRow"
-      "click .js-group-rows": "groupSelectedRows"
       "click .js-toggle-card-settings": "toggleCardSettings"
       "click .js-toggle-group-expansion": "toggleGroupExpansion"
       "click .js-toggle-row-multioptions": "toggleRowMultioptions"
       "click .js-close-warning": "closeWarningBox"
       "click .js-expand-row-selector": "expandRowSelector"
-      "click .js-expand-multioptions--all": "expandMultioptions"
       "click .rowselector_toggle-library": "toggleLibrary"
       "mouseenter .card__buttons__button": "buttonHoverIn"
       "mouseleave .card__buttons__button": "buttonHoverOut"
@@ -176,16 +174,20 @@ module.exports = do ->
 
     deselect_all_rows: () ->
       @$('.survey__row').removeClass('survey__row--selected')
+      @activateGroupButton(false)
+      return
 
     deselect_rows: (evt) =>
-      if @is_selecting
-        @is_selecting = false
+      # clicking on survey__row is aleady handled, so we ignore it - we only want
+      # to deselet rows when clicking elsewhere
+      $etp = $(evt.target).parents('.survey__row')
+      if !!$etp.length
+        return
       else
         @deselect_all_rows()
       return
 
     selectRow: (evt)->
-      @is_selecting = true
       $et = $(evt.target)
       if $et.hasClass('js-blur-on-select-row') || $et.hasClass('editable-wrapper')
         return
@@ -220,15 +222,14 @@ module.exports = do ->
       if $group.length > 0
         @select_group_if_all_items_selected($group)
 
-    questionSelect: (evt)->
+    questionSelect: () ->
       @activateGroupButton(@$el.find('.survey__row--selected').length > 0)
       return
 
-    activateGroupButton: (active=true)->
-      @surveyStateStore.setState({
-          groupButtonIsActive: active
-        })
-      @$('.btn--group-questions').toggleClass('btn--disabled', !active)
+    activateGroupButton: (active) ->
+      @surveyStateStore.setState({groupButtonIsActive: active})
+      $('.formBuilder-header__button--group').attr('disabled', !active)
+      return
 
     getApp: -> @
 
@@ -280,7 +281,6 @@ module.exports = do ->
     toggleRowMultioptions: (evt)->
       view = @_getViewForTarget(evt)
       view.toggleMultioptions()
-      @set_multioptions_label()
 
     expandRowSelector: (evt)->
       $ect = $(evt.currentTarget)
@@ -411,20 +411,7 @@ module.exports = do ->
       @$el.removeClass("survey-editor--loading")
       @
 
-    set_multioptions_label: () ->
-      $expand_multioptions = @$(".js-expand-multioptions--all")
-      if @expand_all_multioptions()
-        $expand_multioptions.html($expand_multioptions.html().replace("Show", "Hide"));
-        icon = $expand_multioptions.find('i')
-        icon.removeClass('fa-caret-right')
-        icon.addClass('fa-caret-down')
-      else
-        $expand_multioptions.html($expand_multioptions.html().replace("Hide", "Show"));
-        icon = $expand_multioptions.find('i')
-        icon.removeClass('fa-caret-down')
-        icon.addClass('fa-caret-right')
     expandMultioptions: ->
-      $expand_multioptions = @$(".js-expand-multioptions--all")
       if @expand_all_multioptions()
         @$(".card--expandedchoices").each (i, el)=>
           @_getViewForTarget(currentTarget: el).hideMultioptions()
@@ -439,7 +426,6 @@ module.exports = do ->
       @surveyStateStore.trigger({
           multioptionsExpanded: _expanded
         })
-      @set_multioptions_label()
       return
 
     closeWarningBox: (evt)->
@@ -596,8 +582,6 @@ module.exports = do ->
           @ensureElInView(row, @, @formEditorEl).render()
         ), includeErrors: true, includeGroups: true, flat: true)
 
-      @set_multioptions_label()
-
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
 
@@ -651,7 +635,6 @@ module.exports = do ->
             if !parent_view
               Raven?.captureException("parent view is not defined", matchingRow.get('name').get('value'))
             parent_view._deleteGroup()
-        @set_multioptions_label()
 
     groupSelectedRows: ->
       rows = @selectedRows()
@@ -662,7 +645,6 @@ module.exports = do ->
       if rows.length > 0
         @survey._addGroup(__rows: rows)
         @reset()
-        @$('.js-group-rows').blur()
         true
       else
         false

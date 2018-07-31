@@ -16,6 +16,8 @@ import searches from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   t,
   assign,
@@ -64,9 +66,9 @@ class LibrarySidebar extends Reflux.Component {
       publicCollectionsVisible: false,
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
         },
-        filterTags: 'asset_type:question OR asset_type:block',
+        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
       })
     });
   }
@@ -127,7 +129,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   deleteCollection (evt) {
     evt.preventDefault();
@@ -156,7 +157,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   renameCollection (evt) {
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -183,7 +183,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   subscribeCollection (evt) {
     evt.preventDefault();
@@ -207,7 +206,7 @@ class LibrarySidebar extends Reflux.Component {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     stores.pageState.showModal({
-      type: 'sharing',
+      type: MODAL_TYPES.SHARING,
       assetid: collectionUid
     });
   }
@@ -255,24 +254,35 @@ class LibrarySidebar extends Reflux.Component {
   render () {
     return (
       <bem.CollectionsWrapper>
-        <ui.PopoverMenu type='new-menu'
-            triggerLabel={t('new')}>
-            <Link to={`/library/new`} className='popover-menu__link'>
-              <i className="k-icon-question" />
-              {t('Question')}
-            </Link>
-            <Dropzone onDrop={this.dropFiles}
-                          multiple={false}
-                          className='dropzone'
-                          accept={validFileTypes()}>
-              <bem.PopoverMenu__link>
-                <i className="k-icon-upload" />
-                {t('upload')}
-              </bem.PopoverMenu__link>
-            </Dropzone>
-            <bem.PopoverMenu__link onClick={this.createCollection}>
-              <i className="k-icon-folder" />
-              {t('collection')}
+        <ui.PopoverMenu
+          type='new-menu'
+          triggerLabel={t('new')}
+        >
+          <Link to={'/library/new'} className='popover-menu__link'>
+            <i className='k-icon-question' />
+            {t('Question')}
+          </Link>
+
+          <Link to={'/library/new/template'} className='popover-menu__link'>
+            <i className='k-icon-template' />
+            {t('Template')}
+          </Link>
+
+          <Dropzone
+            onDrop={this.dropFiles}
+            multiple={false}
+            className='dropzone'
+            accept={validFileTypes()}
+          >
+            <bem.PopoverMenu__link>
+              <i className='k-icon-upload' />
+              {t('upload')}
+            </bem.PopoverMenu__link>
+          </Dropzone>
+
+          <bem.PopoverMenu__link onClick={this.createCollection}>
+            <i className='k-icon-folder' />
+            {t('collection')}
           </bem.PopoverMenu__link>
         </ui.PopoverMenu>
 
@@ -282,7 +292,7 @@ class LibrarySidebar extends Reflux.Component {
               key='allitems'
               m={{selected: !this.state.publicCollectionsVisible}}
               onClick={this.clickFilterByCollection}>
-                  <i className="k-icon-library" />
+                  <i className='k-icon-library' />
                   {t('My Library')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarCollections.length}
@@ -316,13 +326,13 @@ class LibrarySidebar extends Reflux.Component {
                       </bem.FormSidebar__itemlink>
                       { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
                         <ui.PopoverMenu type='collectionSidebarPublic-menu'
-                            triggerLabel={<i className="k-icon-more" />}>
+                            triggerLabel={<i className='k-icon-more' />}>
                           { collection.access_type === 'owned' && collection.discoverable_when_public &&
                             <bem.PopoverMenu__link
                                 m={'make-private'}
                                 onClick={this.setCollectionDiscoverability(false, collection)}
                                 >
-                              <i className="k-icon-globe" />
+                              <i className='k-icon-globe' />
                               {t('Make Private')}
                             </bem.PopoverMenu__link>
                           }
@@ -331,7 +341,7 @@ class LibrarySidebar extends Reflux.Component {
                                 m={'make-public'}
                                 onClick={this.setCollectionDiscoverability(true, collection)}
                                 >
-                              <i className="k-icon-globe" />
+                              <i className='k-icon-globe' />
                               {t('Make Public')}
                             </bem.PopoverMenu__link>
                           }
@@ -341,7 +351,7 @@ class LibrarySidebar extends Reflux.Component {
                                 onClick={this.sharingModal}
                                 data-collection-uid={collection.uid}
                                 >
-                              <i className="k-icon-share" />
+                              <i className='k-icon-share' />
                               {t('Share')}
                             </bem.PopoverMenu__link>
                           }
@@ -353,7 +363,7 @@ class LibrarySidebar extends Reflux.Component {
                                 data-collection-uid={collection.uid}
                                 data-collection-name={collection.name}
                                 >
-                              <i className="k-icon-edit" />
+                              <i className='k-icon-edit' />
                               {t('Rename')}
                             </bem.PopoverMenu__link>
                           }
@@ -363,7 +373,7 @@ class LibrarySidebar extends Reflux.Component {
                                 onClick={this.deleteCollection}
                                 data-collection-uid={collection.uid}
                                 >
-                              <i className="k-icon-trash" />
+                              <i className='k-icon-trash' />
                               {t('Delete')}
                             </bem.PopoverMenu__link>
                           }
@@ -374,7 +384,7 @@ class LibrarySidebar extends Reflux.Component {
                                 onClick={this.unsubscribeCollection}
                                 data-collection-uid={collection.uid}
                                 >
-                              <i className="k-icon-trash" />
+                              <i className='k-icon-trash' />
                               {t('Unsubscribe')}
                             </bem.PopoverMenu__link>
                           }
@@ -389,7 +399,7 @@ class LibrarySidebar extends Reflux.Component {
               key='public'
               m={{selected: this.state.publicCollectionsVisible}}
               onClick={this.clickShowPublicCollections}>
-              <i className="k-icon-globe" />
+              <i className='k-icon-globe' />
               {t('Public Collections')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarPublicCollections.length}
@@ -412,7 +422,7 @@ class LibrarySidebar extends Reflux.Component {
                         onClick={this.clickFilterByCollection}
                         data-collection-uid={collection.uid}
                         data-public-collection>
-                          <i className="k-icon-folder-public" />
+                          <i className='k-icon-folder-public' />
                           <bem.FormSidebar__iteminner>
                             {collection.name}
                             <bem.FormSidebar__itembyline>
@@ -422,19 +432,19 @@ class LibrarySidebar extends Reflux.Component {
                       </bem.FormSidebar__itemlink>
                       {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection &&
                         <ui.PopoverMenu type='collectionSidebar-menu'
-                            triggerLabel={<i className="k-icon-more" />}>
+                            triggerLabel={<i className='k-icon-more' />}>
                             { collection.access_type === 'subscribed' ?
                                 <bem.PopoverMenu__link href={'#'}
                                   onClick={this.unsubscribeCollection}
                                   data-collection-uid={collection.uid}>
-                                  <i className="k-icon-next" />
+                                  <i className='k-icon-next' />
                                   {t('unsubscribe')}
                                 </bem.PopoverMenu__link>
                               :
                                 <bem.PopoverMenu__link href={'#'}
                                   onClick={this.subscribeCollection}
                                   data-collection-uid={collection.uid}>
-                                  <i className="k-icon-next" />
+                                  <i className='k-icon-next' />
                                   {t('subscribe')}
                                 </bem.PopoverMenu__link>
                             }

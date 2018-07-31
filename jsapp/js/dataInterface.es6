@@ -62,13 +62,9 @@ var dataInterface;
         url: `${rootUrl}/assets/?q=asset_type:block`
       });
     },
-    listQuestionsAndBlocks() {
+    listTemplates () {
       return $ajax({
-        url: `${rootUrl}/assets/`,
-        data: {
-          q: 'asset_type:question OR asset_type:block'
-        },
-        method: 'GET'
+        url: `${rootUrl}/assets/?q=asset_type:template`
       });
     },
     listSurveys() {
@@ -133,16 +129,13 @@ var dataInterface;
         }
       });
     },
-    cloneAsset ({uid, name, version_id}) {
+    cloneAsset ({uid, name, version_id, new_asset_type}) {
       let data = {
         clone_from: uid,
       };
-      if (name) {
-        data.name = name;
-      }
-      if (version_id) {
-        data.clone_from_version_id = version_id;
-      }
+      if (name) { data.name = name; }
+      if (version_id) { data.clone_from_version_id = version_id; }
+      if (new_asset_type) { data.asset_type = new_asset_type; }
       return $ajax({
         method: 'POST',
         url: `${rootUrl}/assets/`,
@@ -167,7 +160,7 @@ var dataInterface;
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
         url: `${rootUrl}/assets/${targetUid}/permissions/`,
-        method: "PATCH",
+        method: 'PATCH',
         data: {
           clone_from: sourceUid
         }
@@ -201,7 +194,7 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/`,
         data: {
-          q: 'asset_type:question OR asset_type:block'
+          q: 'asset_type:question OR asset_type:block OR asset_type:template'
         },
         method: 'GET'
       });
@@ -390,7 +383,7 @@ var dataInterface;
     },
     getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='', count=false) {
       const query = `limit=${pageSize}&start=${page}`;
-      var s = `&sort={"_id":-1}`; // default sort
+      var s = '&sort={"_id":-1}'; // default sort
       var f = '';
       if (sort.length)
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
@@ -442,6 +435,33 @@ var dataInterface;
         method: 'GET'
       });
     },
+    uploadAssetFile(uid, data) {
+      var formData = new FormData();
+      Object.keys(data).forEach(function(key) {
+        formData.append(key, data[key]);
+      });
+
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/files/`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false
+      });
+    },
+    getAssetFiles(uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/files`,
+        method: 'GET'
+      });
+    },
+    deleteAssetFile(assetUid, uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${assetUid}/files/${uid}`,
+        method: 'DELETE'
+      });
+    },
+
     setLanguage(data) {
       return $ajax({
         url: `${rootUrl}/i18n/setlang/`,

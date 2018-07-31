@@ -35,10 +35,13 @@ def _trigger_kc_profile_creation(user):
 
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
-    return _models.Instance.objects.filter(deleted_at__isnull=True,
-                                           xform__user_id=user_id,
-                                           xform__id_string=xform_id_string,
-                                           ).count()
+    try:
+        return _models.XForm.objects.only('num_of_submissions').get(
+            id_string=xform_id_string,
+            user_id=user_id
+        ).num_of_submissions
+    except _models.XForm.DoesNotExist:
+        return 0
 
 @safe_kc_read
 def last_submission_time(xform_id_string, user_id):

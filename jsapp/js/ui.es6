@@ -23,7 +23,7 @@ class SearchBox extends React.Component {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
     return (
-        <input type="text" ref='inp' className="k-search__input" value={value}
+        <input type='text' ref='inp' className='k-search__input' value={value}
             onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
       );
   }
@@ -55,51 +55,49 @@ class Modal extends React.Component {
       this.props.onClose.call(evt);
     }
   }
-  renderTitle () {
+  renderTitle() {
     if (!this.props.title) {
       return null;
     } else if (this.props.small) {
       return (
-          <div>
-            <h4 className="modal-title">
-              {this.props.title}
-            </h4>
-            <h6>
-              {this.props.small}
-            </h6>
-          </div>
-        );
+        <div>
+          <bem.Modal__title>{this.props.title}</bem.Modal__title>
+          <h6>{this.props.small}</h6>
+        </div>
+      );
     } else {
       return (
-          <h4 className="modal-title">
-            {this.props.title}
-          </h4>
-        );
+        <bem.Modal__title>{this.props.title}</bem.Modal__title>
+      );
     }
   }
-  render () {
+  render() {
     return (
-      // m={['done', isSearch ? 'search' : 'default']}
-      <div className={classNames('modal-backdrop', this.props.className,
-            this.props.large ? 'modal-large' : null,
-            this.props.error ? 'modal-error' : null,
-            this.props.title ? 'modal-titled' : null)}
-          onClick={this.backdropClick}>
-        <div className={classNames(this.props.open ? 'modal-open' : 'modal', this.props.icon ? 'modal--withicon' : null)}>
-          {this.props.icon ?
+      <bem.Modal__backdrop
+        className='modal__backdrop'
+        onClick={this.backdropClick}
+      >
+        <div className={classNames(
+          'modal',
+          this.props.className,
+          this.props.open ? 'modal--open' : null,
+          this.props.large ? 'modal--large' : null,
+          this.props.icon ? 'modal--withicon' : null
+        )}>
+          {this.props.icon &&
             <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
-          :null}
-          <div className={classNames('modal-content')}>
-            <div className="modal-header">
+          }
+          <bem.Modal__content>
+            <bem.Modal__header>
               {this.renderTitle()}
-              <a className="modal-x" type="button" onClick={this.props.onClose}>
-                <i className="k-icon-close"/>
+              <a className='modal__x' type='button' onClick={this.props.onClose}>
+                <i className='k-icon-close'/>
               </a>
-            </div>
+            </bem.Modal__header>
             {this.props.children}
-          </div>
+          </bem.Modal__content>
         </div>
-      </div>
+      </bem.Modal__backdrop>
     );
   }
 };
@@ -108,8 +106,12 @@ class Footer extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
-    return <div className="modal-footer">{this.props.children}</div>;
+  render() {
+    return (
+      <bem.Modal__footer>
+        {this.props.children}
+      </bem.Modal__footer>
+    );
   }
 };
 
@@ -119,8 +121,12 @@ class Body extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
-    return <div className="modal-body">{this.props.children}</div>;
+  render() {
+    return (
+      <bem.Modal__body>
+        {this.props.children}
+      </bem.Modal__body>
+    );
   }
 };
 
@@ -131,7 +137,7 @@ class Tabs extends React.Component {
     super(props);
   }
   render () {
-    return <div className="modal-tabs">{this.props.children}</div>;
+    return <bem.Modal__tabs>{this.props.children}</bem.Modal__tabs>;
   }
 };
 
@@ -209,6 +215,8 @@ class PopoverMenu extends React.Component {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
 
+    if (isBlur && this.props.blurEventDisabled)
+      return false;
 
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');

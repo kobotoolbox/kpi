@@ -8,7 +8,7 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
-import RefluxPromise from "./libs/reflux-promise";
+import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
@@ -118,12 +118,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  listQuestionsAndBlocks: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   createAsset: {
     children: [
       'completed',
@@ -224,6 +218,12 @@ actions.resources = Reflux.createActions({
     asyncResult: true
   },
   updateSubmissionValidationStatus: {
+    children: [
+      'completed',
+      'failed'
+    ],
+  },
+  getAssetFiles: {
     children: [
       'completed',
       'failed'
@@ -383,10 +383,13 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values){
+actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done(function(asset){
       actions.resources.updateAsset.completed(asset);
+      if (params.onComplete) {
+        params.onComplete(asset);
+      }
       notify(t('successfully updated'));
     })
     .fail(function(resp){
@@ -488,6 +491,14 @@ actions.resources.setDeploymentActive.listen(
   }
 );
 
+actions.resources.getAssetFiles.listen(function(assetId) {
+  dataInterface
+    .getAssetFiles(assetId)
+    .done(actions.resources.getAssetFiles.completed)
+    .fail(actions.resources.getAssetFiles.failed);
+});
+
+
 actions.reports = Reflux.createActions({
   setStyle: {
     children: [
@@ -533,6 +544,23 @@ actions.table.updateSettings.listen(function(assetId, settings){
     .fail(actions.table.updateSettings.failed);
 });
 
+
+actions.map = Reflux.createActions({
+  setMapSettings: {
+    children: ['completed', 'failed']
+  }
+});
+
+actions.map.setMapSettings.listen(function(assetId, details) {
+  dataInterface
+    .patchAsset(assetId, {
+      map_styles: JSON.stringify(details)
+    })
+    .done(actions.map.setMapSettings.completed)
+    .fail(actions.map.setMapSettings.failed);
+});
+
+
 actions.resources.createResource.listen(function(details){
   dataInterface.createResource(details)
     .done(function(asset){
@@ -555,7 +583,13 @@ actions.resources.deleteAsset.listen(function(details, params={}){
         onComplete(details);
       }
     })
-    .fail(actions.resources.deleteAsset.failed);
+    .fail((err) => {
+      actions.resources.deleteAsset.failed(details);
+      alertify.alert(
+        t('Unable to delete asset!'),
+        `<p>${t('Error details:')}</p><pre style='max-height: 200px;'>${err.responseText}</pre>`
+      );
+    });
 });
 
 actions.resources.readCollection.listen(function(details){
@@ -731,7 +765,6 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
-
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
@@ -774,12 +807,6 @@ actions.resources.listCollections.listen(function(){
   dataInterface.listCollections()
       .done(actions.resources.listCollections.completed)
       .fail(actions.resources.listCollections.failed);
-});
-
-actions.resources.listQuestionsAndBlocks.listen(function(){
-  dataInterface.listQuestionsAndBlocks()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){

@@ -44,11 +44,15 @@
   padding: 0px;
 }
 
+.alertify .ajs-body {
+  min-height: 20px;
+}
+
 .alertify .ajs-body .ajs-content {
   padding: 0px;
 
   pre {
-    max-height: 300px;
+    max-height: 250px;
     overflow: auto;
     word-wrap: break-word;
     max-width: 100%;
@@ -89,6 +93,30 @@
         background: transparent;
       }
     }
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .alertify .ajs-dialog {
+    margin-top: 4%;
+    margin-bottom: 4%;
+  }
+
+  .alertify .ajs-body .ajs-content pre {
+    max-height: 150px;
+    font-size: 11px;
+  }
+}
+
+@media screen and (max-height: 475px) {
+  .alertify .ajs-dialog {
+    margin-top: 2%;
+    margin-bottom: 2%;
+  }
+
+  .alertify .ajs-body .ajs-content pre {
+    max-height: 100px;
+    font-size: 10px;
   }
 }
 
