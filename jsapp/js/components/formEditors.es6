@@ -51,6 +51,7 @@ export class ProjectSettings extends React.Component {
       sector: '',
       country: '',
       'share-metadata': false,
+      'share-submit': false,
       step3: false,
       importUrl: '',
       importUrlButtonEnabled: false,
@@ -92,6 +93,11 @@ export class ProjectSettings extends React.Component {
   shareMetadataChange (evt) {
     this.setState({
       'share-metadata': evt.target.checked
+    });
+  }
+  shareFormSubmitChange (evt) {
+    this.setState({
+      'share-submit': evt.target.checked
     });
   }
   importUrlChange (value) {
@@ -260,6 +266,17 @@ export class ProjectSettings extends React.Component {
               </label>
             </bem.FormModal__item>
 
+            <bem.FormModal__item m='submit-share'>
+              <input type="checkbox"
+                  id="share-submit"
+                  checked={this.state['share-submit']}
+                  onChange={this.shareFormSubmitChange}
+                />
+              <label htmlFor="share-submit">
+                {t('Accept data from any user.')}
+              </label>
+            </bem.FormModal__item>
+
             {this.props.context != 'existingForm' &&
               <bem.FormModal__item m='actions'>
                 <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
@@ -386,7 +403,8 @@ export class ProjectSettingsEditor extends React.Component {
           description: settingsComponent.state.description,
           sector: settingsComponent.state.sector,
           country: settingsComponent.state.country,
-          'share-metadata': settingsComponent.state['share-metadata']
+          'share-metadata': settingsComponent.state['share-metadata'],
+          'share-submit': settingsComponent.state['share-submit']
         }),
       }
     );

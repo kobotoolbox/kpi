@@ -8,7 +8,7 @@ module.exports = WebpackConfig({
   extractCss: true,
   publicPath: publicPath,
   debug: false,
-  optimize: true,
+  optimize: false,
   saveStats: true,
   failOnError: true
 });
