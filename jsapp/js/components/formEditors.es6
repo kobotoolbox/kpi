@@ -609,6 +609,8 @@ export class ProjectSettings extends React.Component {
         />
 
         <bem.Modal__footer>
+          {this.renderBackButton()}
+
           <bem.Modal__footerButton
             m='primary'
             onClick={this.importFromURL}
@@ -617,8 +619,6 @@ export class ProjectSettings extends React.Component {
           >
             {this.state.importUrlButton}
           </bem.Modal__footerButton>
-
-          {this.renderBackButton()}
         </bem.Modal__footer>
       </bem.FormModal__item>
     );
@@ -724,6 +724,11 @@ export class ProjectSettings extends React.Component {
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.Modal__footer>
+              {/* Don't allow going back if asset already exist */}
+              {!this.state.formAsset &&
+                this.renderBackButton()
+              }
+
               <bem.Modal__footerButton
                 m='primary'
                 onClick={this.handleSubmit}
@@ -734,11 +739,6 @@ export class ProjectSettings extends React.Component {
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
-
-              {/* Don't allow going back if asset already exist */}
-              {!this.state.formAsset &&
-                this.renderBackButton()
-              }
             </bem.Modal__footer>
           }
 

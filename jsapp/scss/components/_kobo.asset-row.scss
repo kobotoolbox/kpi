@@ -1,10 +1,11 @@
-$hover-asset-row: #F2F2F3;
+$hover-asset-row: $cool-whitegray;
 $hover-transition: 0.3s opacity;
+$asset-row-spacing: 6px;
 
 .asset-row {
   list-style-type: none;
   border-top: 1px solid $divider-color;
-  padding: 6px 12px;
+  padding: $asset-row-spacing $asset-row-spacing * 2;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
   min-height: 52px;
@@ -22,7 +23,7 @@ $hover-transition: 0.3s opacity;
   > .asset-row__cell {
     width: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 
     > .asset-row__cell {
       min-width: 0;
@@ -93,6 +94,7 @@ $hover-transition: 0.3s opacity;
   }
 
   .asset-row__description {
+    margin-top: $asset-row-spacing;
     display: block;
     color: $cool-gray;
     font-size: 13px;
@@ -103,6 +105,7 @@ $hover-transition: 0.3s opacity;
 
   .asset-row__cell--tags {
     white-space: normal;
+    margin-top: 0;
   }
 
   .asset-row__cell--date-created,
@@ -115,19 +118,26 @@ $hover-transition: 0.3s opacity;
     text-align: right;
   }
 
+  // buttons are aligned to the asset title regardless of description or tags being present
   > .asset-row__buttons {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 6px;
+    top: 0;
+    right: 0;
+    padding: $asset-row-spacing $asset-row-spacing 4px;
     width: auto;
     text-align: right;
     opacity: 0;
     visibility: hidden;
     transition: $hover-transition;
     background: $hover-asset-row;
-    padding-left: 4px;
     box-shadow: -5px 0px 15px 0px $hover-asset-row;
+  }
+
+  .asset-row__action-icon,
+  .popover-menu {
+    height: 36px;
+    display: inline-block;
+    vertical-align: top;
   }
 
   .asset-row__action-icon {
@@ -135,8 +145,6 @@ $hover-transition: 0.3s opacity;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
-    display: inline-block;
-    vertical-align: middle;
 
     &:hover {
       background-color: transparent;
@@ -159,7 +167,7 @@ $hover-transition: 0.3s opacity;
   }
 
   a.asset-row__celllink {
-    color: lighten($black, 20%);
+    color: $cool-darkgray;
     display: block;
   }
 
