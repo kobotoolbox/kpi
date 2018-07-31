@@ -62,7 +62,15 @@
 }
 
 .modal__body {
-  padding: 30px;
+  // we use margin for bottom to make it stack with modal__footer
+  padding: 30px 30px 0;
+  margin-bottom: 30px;
+
+  // in some cases adding custom footer requires it to be inside modal__body and
+  // then padding is not needed
+  .modal__footer {
+    padding: 0;
+  }
 }
 
 .modal__content {
@@ -118,6 +126,7 @@
 }
 
 .modal__footer {
+  padding: 0 30px 30px;
   margin-top: 20px;
   overflow: hidden; // clearfix
   text-align: right;
@@ -130,6 +139,10 @@
   .modal__footer-button {
     @extend .mdl-button;
     text-transform: uppercase;
+
+    &:not(:first-of-type) {
+      margin-left: 10px;
+    }
 
     &.modal__footer-button--primary {
       @extend .mdl-button--colored, .mdl-button--raised;
