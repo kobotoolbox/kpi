@@ -1,4 +1,5 @@
 const webfontsGenerator = require('webfonts-generator');
+const replaceInFile = require('replace-in-file');
 const fs = require('fs');
 const sourceDir = 'jsapp/svg-icons/';
 const destDir = 'jsapp/fonts/';
@@ -61,6 +62,13 @@ webfontsGenerator(
     } else {
       try {
         fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}_k-icons.scss`);
+        // add '#', because for some reason query string gets removed somewhere
+        // in the frontend building process
+        replaceInFile.sync({
+          files: `${destDir}_k-icons.scss`,
+          from: ['woff2?',  'woff?',  'ttf?',  'eot?',  'svg?',  '?#iefix', '#k-icons'],
+          to:   ['woff2?#', 'woff?#', 'ttf?#', 'eot?#', 'svg?#', '',        '']
+        });
         console.info('Copied k-icons.css to _k-icons.scss in fonts folder.');
       } catch(e){
         console.warn(
