@@ -7,6 +7,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 import private_storage.urls
 
 from kpi.views import (
+    AttachmentViewSet,
     AssetViewSet,
     AssetVersionViewSet,
     AssetSnapshotViewSet,
@@ -44,6 +45,11 @@ asset_routes = router.register(r'assets', AssetViewSet)
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       base_name='asset-version',
+                      parents_query_lookups=['asset'],
+                      )
+asset_routes.register(r'attachments',
+                      AttachmentViewSet,
+                      base_name='asset-attachment',
                       parents_query_lookups=['asset'],
                       )
 asset_routes.register(r'submissions',
