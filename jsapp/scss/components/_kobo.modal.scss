@@ -419,31 +419,25 @@
 
   .form-modal__item--form-source-buttons {
     margin: 0 auto;
-    max-width: 600px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    max-width: 500px;
 
     button {
+      display: inline-block;
+      vertical-align: top;
       border: 1px solid $divider-color;
-      padding: 2*$buttons-spacing $buttons-spacing;
       background: #F8F8F8;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
-      margin: $buttons-spacing;
-      flex-basis: 0;
-      flex-grow: 1;
-      max-width: calc(50% - #{2*$buttons-spacing});
-      min-width: 120px;
+      margin: 0.5*$buttons-spacing;
+      padding: $buttons-spacing;
+      width: calc(50% - #{$buttons-spacing});
+      min-height: 120px;
 
       @media screen and (min-width: 768px) {
-        min-width: 200px;
-      }
-
-      @media screen and (min-width: 960px) {
-        min-width: 220px;
+        margin: $buttons-spacing;
         padding: 2*$buttons-spacing;
+        width: calc(50% - #{2*$buttons-spacing});
       }
 
       i {
