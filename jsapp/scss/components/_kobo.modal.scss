@@ -394,6 +394,9 @@
 }
 
 .project-settings {
+  width: 600px;
+  max-width: 100%;
+
   .intro {
     margin-bottom: 20px;
     text-align: left;
@@ -432,6 +435,7 @@
       flex-basis: 0;
       flex-grow: 1;
       max-width: calc(50% - #{2*$buttons-spacing});
+      min-width: 120px;
 
       @media screen and (min-width: 768px) {
         min-width: 200px;
@@ -498,7 +502,7 @@
 }
 
 @media screen and (max-width: 767px) {
-  .modal--open {
+  .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
   }
