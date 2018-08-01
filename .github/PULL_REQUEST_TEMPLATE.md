@@ -3,7 +3,7 @@
 1. [ ] If you've added code that should be tested, add tests
 2. [ ] If you've changed APIs, update (or create!) the documentation
 3. [ ] Ensure the tests pass
-4. [ ] Make sure your code lints and you followed [our coding style](./github/CONTRIBUTING.md)
+4. [ ] Make sure your code lints and you followed [our coding style](../CONTRIBUTING.md)
 5. [ ] If this is a big feature, make sure to prefix the title with `Feature:` and add a thorough description for non-dev folk
 
 ## Description
