@@ -308,7 +308,7 @@ export class ProjectSettings extends React.Component {
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail(function(r){
-      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+      alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
 

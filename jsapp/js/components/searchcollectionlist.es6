@@ -107,10 +107,10 @@ class SearchCollectionList extends Reflux.Component {
       ),
       (
         <bem.AssetListSorts className='mdl-grid' key='2'>
-          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone'>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'>
+          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
             {t('Type')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
