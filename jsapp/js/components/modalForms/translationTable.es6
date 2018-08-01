@@ -10,59 +10,48 @@ import {t, getLangAsObject, getLangString, notify} from 'utils'
 export class TranslationTable extends React.Component {
   constructor(props){
     super(props);
-    this.state = {
-      tableData: []
-    }
-
-    let translated = props.asset.content.translated,
-        survey = props.asset.content.survey,
-        choices = props.asset.content.choices;
+    this.state = {tableData: []};
+    let {translated, survey, choices, translations} = props.asset.content,
+        langIndex = props.langIndex;
 
     // add each translatable property for survey items to translation table
-    for (var i = 0, len = survey.length; i < len; i++) {
-      let row = survey[i];
-      for (var j = 0, len2 = translated.length; j < len2; j++) {
-        var property = translated[j];
+    survey.forEach(row => {
+      translated.forEach(property => {
         if (row[property] && row[property][0]) {
-          var tableRow = {
+          this.state.tableData.push({
             original: row[property][0],
-            value: row[property][props.langIndex],
+            value: row[property][langIndex],
             name: row.name || row.$autoname,
             itemProp: property,
             contentProp: 'survey'
-          }
-
-          this.state.tableData.push(tableRow);
+          });
         }
-      }
-    }
+      });
+    });
 
     // add choice options to translation table
     if (choices && choices.length) {
-      for (var i = 0, len = choices.length; i < len; i++) {
-        let choice = choices[i];
-        if (choice && choice.label[0]) {
-          var tableRow = {
+      choices.forEach(choice => {
+        if (choice.label && choice.label[0]) {
+          this.state.tableData.push({
             original: choice.label[0],
-            value: choice.label[props.langIndex],
+            value: choice.label[langIndex],
             name: choice.name || choice.$autovalue,
             itemProp: 'label',
             contentProp: 'choices'
-          }
-          this.state.tableData.push(tableRow);
+          });
         }
-      }
+      });
     }
 
-    let translationLabel = props.asset.content.translations[props.langIndex];
     this.columns = [
       {
         Header: t('Original string'),
         accessor: 'original',
         minWidth: 130,
-        Cell: row => row.original.original
+        Cell: cellInfo => cellInfo.original.original
       },{
-        Header: `${translationLabel} ${t('Translation')}`,
+        Header: `${translations[langIndex]} ${t('Translation')}`,
         accessor: 'translation',
         className: 'translation',
         Cell: cellInfo => (
@@ -79,13 +68,13 @@ export class TranslationTable extends React.Component {
   }
 
   saveChanges() {
-    var content = this.props.asset.content;
-    let rows = this.state.tableData,
+    let content = this.props.asset.content,
+        rows = this.state.tableData,
         langIndex = this.props.langIndex;
     for (var i = 0, len = rows.length; i < len; i++) {
-      let contentProp = rows[i].contentProp;
-      let item = content[rows[i].contentProp].find(o => o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name);
-      var itemProp = rows[i].itemProp;
+      let contentProp = rows[i].contentProp,
+          item = content[rows[i].contentProp].find(o => o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name),
+          itemProp = rows[i].itemProp;
 
       if (item[itemProp][langIndex] !== rows[i].value) {
         item[itemProp][langIndex] = rows[i].value;
