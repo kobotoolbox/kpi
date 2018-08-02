@@ -67,13 +67,13 @@ export default class RESTServicesList extends React.Component {
     const serviceName = evt.currentTarget.dataset.serviceName;
     const serviceEsid = evt.currentTarget.dataset.esid;
     if (this.state.assetUid) {
-      const dialog = alertify.dialog("confirm");
-      const message = t("You are about to delete ##target. This action cannot be undone.")
-        .replace("##target", `<strong>${serviceName}</strong>`);
+      const dialog = alertify.dialog('confirm');
+      const message = t('You are about to delete ##target. This action cannot be undone.')
+        .replace('##target', `<strong>${serviceName}</strong>`);
       let dialogOptions = {
         title: t(`Are you sure you want to delete ${serviceName}?`),
         message: message,
-        labels: { ok: t("Confirm"), cancel: t("Cancel") },
+        labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {
           actions.externalServices.delete(
             this.state.assetUid,
@@ -147,7 +147,7 @@ export default class RESTServicesList extends React.Component {
               href={RESTServicesSupportUrl}
               target='_blank'
             >
-              <i className="k-icon k-icon-help" />
+              <i className='k-icon k-icon-help' />
               {t('Need help?')}
             </a>
           </header>
