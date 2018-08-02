@@ -15,6 +15,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
+from rest_framework.authtoken.models import Token
 
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
