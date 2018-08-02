@@ -13,7 +13,10 @@ export class FormGallery extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.state = {
+    this.state = this.getInitialState();
+  }
+  getInitialState() {
+    return {
       defaultPageSize: 6,
       hasMoreRecords: false,
       nextRecordsPage: 2,
@@ -204,7 +207,7 @@ export class FormGallery extends React.Component {
               <bem.Loading__inner>
                 {t('This form does not have any media questions.')}
               </bem.Loading__inner>
-            : 
+            :
               <bem.Loading__inner>
                 <i />
                 {t('loading...')}
