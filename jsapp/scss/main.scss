@@ -5,15 +5,16 @@
 @import "~font-awesome/scss/font-awesome";
 @import "~select2/select2.css";
 @import "~react-table/react-table.css";
+@import "~alertifyjs/build/css/alertify.css";
+@import "~react-select/dist/react-select.css";
 
-@import "./libs/alertify";
+@import "./libs/alertify.overrides";
+@import "./libs/react-select.overrides";
 @import "./libs/react-tagsinput";
-@import "./libs/react-select";
 
 @import "./components/kobo.bem.ui";
 @import "./components/kobo.checkbox-and-radio";
 @import "./components/kobo.modal";
-@import "./components/kobo.alertify-overrides";
 @import "./components/kobo.tooltips";
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";

@@ -2,10 +2,13 @@
 
 $black: #414453;
 $white: #fff;
+$cool-charcoal: lighten($black, 10%);
+$cool-darkgray: lighten($black, 20%);
 $cool-gray: lighten($black, 30%);
+$cool-silver: lighten($black, 40%);
 $cool-lightgray: lighten($black, 60%);
-$cool-whitegray: lighten($black, 68%);
 $divider-color: lighten($black, 63%);
+$cool-whitegray: lighten($black, 67%);
 $cool-blue: #2095f3;
 $cool-green: #52c5d0;
 $warm-green: #52ce7b;
@@ -37,11 +40,11 @@ $layout-desktop-header-height: 64px;
 }
 
 html {
-  color: lighten($black, 20%);
+  color: $cool-darkgray;
 }
 
 body {
-  background: #F5F5F5;
+  background: $cool-whitegray;
 }
 
 html, body, input, textarea, select, button {
