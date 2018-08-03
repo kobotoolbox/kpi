@@ -361,7 +361,7 @@ class KoboMatrix extends React.Component {
   render () {
     const data = this.state.data;
     const cols = data.get('cols'),
-          choices = data.get('choices'),
+          choices = data.get('choices').toArray(),
           expandedCol = this.state.expandedColKuid,
           expandedRow = this.state.expandedRowKuid;
     var _this = this;
@@ -432,8 +432,9 @@ class KoboMatrix extends React.Component {
                       <span>{t('Data Column Name')}</span>
                     </div>
                     {
-                      choices.map(function(choice, ch) {
-                        if (choice.get('list_name') == _this.getCol(expandedCol, 'select_from_list_name')) {
+                      choices.map((choice) => {
+                        if (choice.get('list_name') == this.getCol(expandedCol, 'select_from_list_name')) {
+                          let ch = choice.get('$kuid');
                           return (
                             <div className='matrix-cols__options--row' key={ch}>
                               <span>

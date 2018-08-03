@@ -9,6 +9,7 @@ import editableFormMixin from '../editorMixins/editableForm';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import moment from 'moment';
+import TextBox from './textBox';
 import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
@@ -192,7 +193,7 @@ export class ProjectSettings extends React.Component {
   onImportUrlChange(value) {
     this.setState({
       importUrl: value,
-      importUrlButtonEnabled: value.length > 6 ? true : false,
+      importUrlButtonEnabled: isAValidUrl(value),
       importUrlButton: t('Import')
     });
   }
@@ -495,7 +496,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--form-source'>
+      <bem.FormModal__form className='project-settings project-settings--form-source'>
         {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
           <bem.Modal__subheader>
             {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
@@ -527,34 +528,35 @@ export class ProjectSettings extends React.Component {
             {t('Import an XLSForm via URL')}
           </button>
         </bem.FormModal__item>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--choose-template'>
+      <bem.FormModal__form className='project-settings project-settings--choose-template'>
         <TemplatesList onSelectTemplate={this.onTemplateChange}/>
 
         <bem.Modal__footer>
+          {this.renderBackButton()}
+
           <bem.Modal__footerButton
             m='primary'
+            type='submit'
             onClick={this.applyTemplate}
             disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
             className='mdl-js-button'
           >
             {this.state.applyTemplateButton}
           </bem.Modal__footerButton>
-
-          {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings project-settings--upload-file'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
@@ -581,13 +583,13 @@ export class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--import-url'>
+      <bem.FormModal__form className='project-settings project-settings--import-url'>
         <div className='intro'>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
           <a href={formViaUrlHelpLink} target='_blank'>
@@ -595,24 +597,22 @@ export class ProjectSettings extends React.Component {
           </a>
         </div>
 
-        <label htmlFor='url'>
-          {t('URL')}
-        </label>
-
-        <DebounceInput
-          type='text'
-          id='importUrl'
-          debounceTimeout={300}
-          value={this.state.importUrl}
-          placeholder='https://'
-          onChange={event => this.onImportUrlChange(event.target.value)}
-        />
+        <bem.FormModal__item>
+          <TextBox
+            type='url'
+            label={t('URL')}
+            placeholder='https://'
+            value={this.state.importUrl}
+            onChange={this.onImportUrlChange}
+          />
+        </bem.FormModal__item>
 
         <bem.Modal__footer>
           {this.renderBackButton()}
 
           <bem.Modal__footerButton
             m='primary'
+            type='submit'
             onClick={this.importFromURL}
             disabled={!this.state.importUrlButtonEnabled}
             className='mdl-js-button'
@@ -620,7 +620,7 @@ export class ProjectSettings extends React.Component {
             {this.state.importUrlButton}
           </bem.Modal__footerButton>
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
@@ -731,6 +731,7 @@ export class ProjectSettings extends React.Component {
 
               <bem.Modal__footerButton
                 m='primary'
+                type='submit'
                 onClick={this.handleSubmit}
                 className='mdl-js-button'
                 disabled={this.state.isSubmitPending}
@@ -763,6 +764,7 @@ export class ProjectSettings extends React.Component {
       return (
         <bem.Modal__footerButton
           m='back'
+          type='button'
           onClick={this.displayPreviousStep}
           disabled={isBackButtonDisabled}
         >
