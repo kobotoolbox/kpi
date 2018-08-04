@@ -3,8 +3,10 @@
 import copy
 import json
 import requests
+import StringIO
 
 from django.conf import settings
+from django.contrib.auth import get_user
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from lxml import etree
@@ -13,6 +15,7 @@ from rest_framework.test import APITestCase
 from private_storage.storage.files import PrivateFileSystemStorage
 
 from kpi.models import Asset
+from kpi.models import AssetFile
 from kpi.models import AssetVersion
 from kpi.models import Collection
 from kpi.models import ExportTask
@@ -510,3 +513,214 @@ class AssetExportTaskTest(APITestCase):
             # uses query parameters in the URL for access control
             response = self.client.get(detail_response.data['result'])
             self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class AssetFileTest(APITestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        self.current_username = 'someuser'
+        self.asset = Asset.objects.filter(owner__username='someuser').first()
+        self.list_url = reverse('asset-file-list', args=[self.asset.uid])
+        # TODO: change the fixture so every asset's owner has all expected
+        # permissions?  For now, call `save()` to recalculate permissions and
+        # verify the result
+        self.asset.save()
+        self.assertListEqual(
+            sorted(list(self.asset.get_perms(self.asset.owner))),
+            sorted(list(Asset.ASSIGNABLE_PERMISSIONS +
+                        Asset.CALCULATED_PERMISSIONS))
+        )
+
+    @staticmethod
+    def absolute_reverse(*args, **kwargs):
+        return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
+
+    def get_asset_file_content(self, url):
+        response = self.client.get(url)
+        return ''.join(response.streaming_content)
+
+    @property
+    def asset_file_payload(self):
+        return {
+            'file_type': 'map_layer',
+            'name': 'Dinagat Islands',
+            'content':
+                StringIO.StringIO(json.dumps(
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [125.6, 10.1]
+                        },
+                        "properties": {
+                            "name": "Dinagat Islands"
+                        }
+                    }
+                )),
+            'metadata': json.dumps({'source': 'http://geojson.org/'}),
+        }
+
+    def switch_user(self, *args, **kwargs):
+        self.client.logout()
+        self.client.login(*args, **kwargs)
+        self.current_username = kwargs['username']
+
+    def create_asset_file(self):
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content)['count'], 0)
+        response = self.client.post(self.list_url, self.asset_file_payload)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        return response
+
+    def verify_asset_file(self, response):
+        posted_payload = self.asset_file_payload
+        response_dict = json.loads(response.content)
+        self.assertEqual(
+            response_dict['asset'],
+            self.absolute_reverse('asset-detail', args=[self.asset.uid])
+        )
+        self.assertEqual(
+            response_dict['user'],
+            self.absolute_reverse('user-detail',
+                                  args=[self.current_username])
+        )
+        self.assertEqual(
+            response_dict['user__username'],
+            self.current_username,
+        )
+        self.assertEqual(
+            json.dumps(response_dict['metadata']),
+            posted_payload['metadata']
+        )
+        for field in 'file_type', 'name':
+            self.assertEqual(response_dict[field], posted_payload[field])
+        # Content via the direct URL to the file
+        posted_payload['content'].seek(0)
+        expected_content = posted_payload['content'].read()
+        self.assertEqual(
+            self.get_asset_file_content(response_dict['content']),
+            expected_content
+        )
+        return response_dict['uid']
+
+    def test_owner_can_create_file(self):
+        self.verify_asset_file(self.create_asset_file())
+
+    def test_owner_can_delete_file(self):
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        detail_url = reverse('asset-file-detail',
+                             args=(self.asset.uid, af_uid))
+        response = self.client.delete(detail_url)
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        # TODO: test that the file itself is removed
+
+    def test_editor_can_create_file(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, 'change_asset')
+        self.assertTrue(self.asset.has_perm(anotheruser, 'change_asset'))
+        self.switch_user(username='anotheruser', password='anotheruser')
+        self.verify_asset_file(self.create_asset_file())
+
+    def test_editor_can_delete_file(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, 'change_asset')
+        self.assertTrue(self.asset.has_perm(anotheruser, 'change_asset'))
+        self.switch_user(username='anotheruser', password='anotheruser')
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        detail_url = reverse('asset-file-detail',
+                             args=(self.asset.uid, af_uid))
+        response = self.client.delete(detail_url)
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_viewer_can_access_file(self):
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        detail_url = reverse('asset-file-detail',
+                             args=(self.asset.uid, af_uid))
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, 'view_asset')
+        self.assertTrue(self.asset.has_perm(anotheruser, 'view_asset'))
+        self.switch_user(username='anotheruser', password='anotheruser')
+        response = self.client.get(detail_url)
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+
+    def test_viewer_cannot_create_file(self):
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content)['count'], 0)
+
+        self.switch_user(username='anotheruser', password='anotheruser')
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, 'view_asset')
+        self.assertTrue(self.asset.has_perm(anotheruser, 'view_asset'))
+        response = self.client.post(self.list_url, self.asset_file_payload)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.switch_user(username='someuser', password='someuser')
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content)['count'], 0)
+
+    def test_viewer_cannot_delete_file(self):
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content)['count'], 1)
+        detail_url = reverse('asset-file-detail',
+                             args=(self.asset.uid, af_uid))
+
+        self.switch_user(username='anotheruser', password='anotheruser')
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, 'view_asset')
+        self.assertTrue(self.asset.has_perm(anotheruser, 'view_asset'))
+        response = self.client.delete(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.switch_user(username='someuser', password='someuser')
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content)['count'], 1)
+
+    def test_unprivileged_user_cannot_access_file(self):
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        detail_url = reverse('asset-file-detail',
+                             args=(self.asset.uid, af_uid))
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.switch_user(username='anotheruser', password='anotheruser')
+        response = self.client.get(detail_url)
+        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_anon_cannot_access_file(self):
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        detail_url = reverse('asset-file-detail',
+                             args=(self.asset.uid, af_uid))
+
+        self.client.logout()
+        response = self.client.get(detail_url)
+        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_files_are_filtered_by_parent_asset(self):
+        af1_uid = self.verify_asset_file(self.create_asset_file())
+        af1 = AssetFile.objects.get(uid=af1_uid)
+        af1.asset = self.asset.clone()
+        af1.asset.owner = self.asset.owner
+        af1.asset.save()
+        af1.save()
+        af2_uid = self.verify_asset_file(self.create_asset_file())
+        af2 = AssetFile.objects.get(uid=af2_uid)
+
+        for af in af1, af2:
+            response = self.client.get(
+                reverse('asset-file-list', args=[af.asset.uid]))
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            asset_files = json.loads(response.content)['results']
+            self.assertEqual(len(asset_files), 1)
+            self.assertEqual(asset_files[0]['uid'], af.uid)

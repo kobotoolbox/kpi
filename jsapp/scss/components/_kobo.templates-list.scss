@@ -47,7 +47,7 @@
   .templates-list__template {
     font-size: inherit;
     position: relative;
-    color: lighten($black, 20%);
+    color: $cool-darkgray;
     border: 1px solid transparent;
 
     &:hover, &.selected {

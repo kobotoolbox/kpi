@@ -148,7 +148,7 @@ class AssetRow extends React.Component {
             {/* "title" column */}
             <bem.AssetRow__cell
               m={'title'}
-              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone']}
+              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone']}
             >
               { this.props.asset_type && (
                   this.props.asset_type == ASSET_TYPES.template.id ||
@@ -183,7 +183,7 @@ class AssetRow extends React.Component {
               ) &&
               <bem.AssetRow__cell
                 m={'type'}
-                className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone']}
+                className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}
               >
                 {ASSET_TYPES[this.props.asset_type].label}
               </bem.AssetRow__cell>

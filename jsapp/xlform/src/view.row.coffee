@@ -139,6 +139,7 @@ module.exports = do ->
     _deleteGroup: () =>
       @model.splitApart()
       @model._parent._parent.trigger('remove', @model)
+      @surveyView.survey.trigger('change')
       @$el.detach()
 
     render: ->

@@ -62,7 +62,15 @@
 }
 
 .modal__body {
-  padding: 30px;
+  // we use margin for bottom to make it stack with modal__footer
+  padding: 30px 30px 0;
+  margin-bottom: 30px;
+
+  // in some cases adding custom footer requires it to be inside modal__body and
+  // then padding is not needed
+  .modal__footer {
+    padding: 0;
+  }
 }
 
 .modal__content {
@@ -73,10 +81,10 @@
 .modal__tabs {
   background: $cool-blue;
   color: #FFF;
-  margin: 0px -20px;
 }
 
 .modal__header {
+  position: relative;
   min-height: 70px;
   background: $cool-blue;
   color: #FFF;
@@ -108,7 +116,7 @@
   background: #f8f8f8;
   padding: 20px 30px;
   margin: -30px -30px 20px;
-  color: lighten($black, 40%);
+  color: $cool-silver;
 
   i {
     margin: 2px 10px 10px 0;
@@ -118,6 +126,7 @@
 }
 
 .modal__footer {
+  padding: 0 30px 30px;
   margin-top: 20px;
   overflow: hidden; // clearfix
   text-align: right;
@@ -130,6 +139,10 @@
   .modal__footer-button {
     @extend .mdl-button;
     text-transform: uppercase;
+
+    &:not(:first-of-type) {
+      margin-left: 10px;
+    }
 
     &.modal__footer-button--primary {
       @extend .mdl-button--colored, .mdl-button--raised;
@@ -314,7 +327,7 @@
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: #F5F5F5;
+    background: $cool-whitegray;
     text-align: center;
     line-height: 1em;
 
@@ -381,6 +394,12 @@
 }
 
 .project-settings {
+  // make sure it doesn't get too small (but only inside modal)
+  .modal & {
+    width: 600px;
+    max-width: 100%;
+  }
+
   .intro {
     margin-bottom: 20px;
     text-align: left;
@@ -403,30 +422,25 @@
 
   .form-modal__item--form-source-buttons {
     margin: 0 auto;
-    max-width: 600px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    max-width: 500px;
 
     button {
+      display: inline-block;
+      vertical-align: top;
       border: 1px solid $divider-color;
-      padding: 2*$buttons-spacing $buttons-spacing;
       background: #F8F8F8;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
-      margin: $buttons-spacing;
-      flex-basis: 0;
-      flex-grow: 1;
-      max-width: calc(50% - #{2*$buttons-spacing});
+      margin: 0.5*$buttons-spacing;
+      padding: $buttons-spacing;
+      width: calc(50% - #{$buttons-spacing});
+      min-height: 120px;
 
       @media screen and (min-width: 768px) {
-        min-width: 200px;
-      }
-
-      @media screen and (min-width: 960px) {
-        min-width: 220px;
+        margin: $buttons-spacing;
         padding: 2*$buttons-spacing;
+        width: calc(50% - #{2*$buttons-spacing});
       }
 
       i {
@@ -444,7 +458,7 @@
   }
 
   .dropzone {
-    background: #F5F5F5;
+    background: $cool-whitegray;
     padding: 30px;
     border: 2px dashed $divider-color;
     cursor: pointer;
@@ -760,7 +774,7 @@
 }
 
 @media screen and (max-width: 767px) {
-  .modal--open {
+  .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
   }
