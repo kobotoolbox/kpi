@@ -14,12 +14,10 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/modalForms/sharingForm';
+import ProjectSettings from '../components/modalForms/projectSettings';
 import DataTable from '../components/table';
 
-import {
-  ProjectSettings,
-  ProjectDownloads
-} from '../components/formEditors';
+import {ProjectDownloads} from '../components/formEditors';
 
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 

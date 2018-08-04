@@ -11,7 +11,7 @@ import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
-import {ProjectSettings} from '../components/formEditors';
+import ProjectSettings from '../components/modalForms/projectSettings';
 import {
   surveyToValidJson,
   notify,

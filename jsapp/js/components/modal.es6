@@ -18,7 +18,7 @@ import {
   MODAL_TYPES
 } from '../constants';
 
-import {ProjectSettings} from '../components/formEditors';
+import ProjectSettings from '../components/modalForms/projectSettings';
 import SharingForm from '../components/modalForms/sharingForm';
 import Submission from '../components/modalForms/submission';
 import TableColumnFilter from '../components/modalForms/tableColumnFilter';
