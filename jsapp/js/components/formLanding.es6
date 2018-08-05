@@ -109,10 +109,10 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
-  languagesModal (evt) {
+  showLanguagesModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'form-languages',
+      type: MODAL_TYPES.FORM_LANGUAGES,
       asset: this.state
     });
   }
@@ -393,7 +393,7 @@ export class FormLanding extends React.Component {
             {t('Create template')}
           </bem.PopoverMenu__link>
           {userCanEdit && this.state.content.survey.length > 0 &&
-            <bem.PopoverMenu__link onClick={this.languagesModal}>
+            <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
               <i className='k-icon-language'/>
               {(!translations || translations.length < 2) ?
                 t('Add Translations')
@@ -427,7 +427,7 @@ export class FormLanding extends React.Component {
           <bem.FormView__cell m='languages-col2'>
             <bem.FormView__link m='add-edit-languages'
               data-tip={t('Manage Translations')}
-              onClick={this.languagesModal}>
+              onClick={this.showLanguagesModal}>
               <i className='k-icon-language' />
             </bem.FormView__link>
           </bem.FormView__cell>

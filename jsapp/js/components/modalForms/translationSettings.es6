@@ -12,6 +12,7 @@ import stores from 'js/stores';
 import mixins from 'js/mixins';
 import ui from 'js/ui';
 import actions from 'js/actions';
+import {MODAL_TYPES} from 'js/constants'
 
 import {t, getLangAsObject, getLangString, notify} from 'utils';
 
@@ -96,7 +97,7 @@ export class TranslationSettings extends React.Component {
     })
 
     stores.pageState.showModal({
-      type: 'form-languages',
+      type: MODAL_TYPES.FORM_LANGUAGES,
       asset: asset[uid]
     });
   }
@@ -125,14 +126,11 @@ export class TranslationSettings extends React.Component {
   launchTranslationTableModal(e) {
     let index = parseInt($(e.target).closest('[data-index]').get(0).getAttribute('data-index')),
         asset = this.props.asset;
-    stores.pageState.hideModal();
-    window.setTimeout(function(){
-      stores.pageState.showModal({
-        type: 'form-translation-table',
-        asset: asset,
-        langIndex: index
-      });
-    }, 300);
+    stores.pageState.switchModal({
+      type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
+      asset: asset,
+      langIndex: index
+    });
   }
   addOrUpdateLanguage(lang, index) {
     let content = this.props.asset.content;

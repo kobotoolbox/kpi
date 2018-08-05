@@ -4,7 +4,9 @@ import TextareaAutosize from 'react-autosize-textarea'
 
 import bem from 'js/bem'
 import actions from 'js/actions'
+import stores from 'js/stores'
 
+import {MODAL_TYPES} from 'js/constants'
 import {t, getLangAsObject, getLangString, notify} from 'utils'
 
 export class TranslationTable extends React.Component {
@@ -87,6 +89,13 @@ export class TranslationTable extends React.Component {
     );
   }
 
+  showManageLanguagesModal() {
+    stores.pageState.switchModal({
+      type: MODAL_TYPES.FORM_LANGUAGES,
+      asset: this.props.asset
+    });
+  }
+
   render () {
     return (
       <bem.FormModal m='translation-table'>
@@ -107,11 +116,16 @@ export class TranslationTable extends React.Component {
           }
         />
         </bem.FormModal__item>
-        <bem.FormModal__item m='translation-table--actions'>
-          <button className='mdl-button mdl-button--raised mdl-button--colored' onClick={this.saveChanges.bind(this)}>
+
+        <bem.Modal__footer>
+          <bem.Modal__footerButton m='back' onClick={this.showManageLanguagesModal.bind(this)}>
+            {t('Back')}
+          </bem.Modal__footerButton>
+
+          <bem.Modal__footerButton m='primary' onClick={this.saveChanges.bind(this)}>
             {t('Save Changes')}
-          </button>
-        </bem.FormModal__item>
+          </bem.Modal__footerButton>
+        </bem.Modal__footer>
       </bem.FormModal>
     );
   }

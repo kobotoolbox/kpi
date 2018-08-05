@@ -128,8 +128,14 @@
 .modal__footer {
   padding: 0 30px 30px;
   margin-top: 20px;
-  overflow: hidden; // clearfix
   text-align: right;
+
+  &::before,
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
 
   &:first-child {
     margin-top: 0;
@@ -574,8 +580,8 @@
   margin: 0;
 
   .form-modal__item--translation-table--container {
-    height: calc(100% - 80px);
-    overflow: auto;
+    flex: 1;
+    overflow-y: auto;
     border: 1px solid $divider-color;
   }
 
@@ -617,13 +623,6 @@
       }
     }
   }
-
-  .form-modal__item--translation-table--actions {
-    width: 100%;
-    text-align: right;
-    padding-top: 20px;
-    height: 80px;
-  }
 }
 
 // alertify overrides
@@ -662,8 +661,7 @@
 }
 
 .alertify.ajs-closable .ajs-commands button.ajs-close:before {
-  content: '\E806';
-  font-family: 'k-icons';
+  content: '\00d7';
 }
 
 .alertify.ajs-closable .ajs-commands {
