@@ -99,7 +99,7 @@ export class TranslationTable extends React.Component {
   render () {
     return (
       <bem.FormModal m='translation-table'>
-        <bem.FormModal__item m='translation-table--container'>
+        <bem.FormModal__item m='translation-table-container'>
         <ReactTable
           data={this.state.tableData}
           columns={this.columns}

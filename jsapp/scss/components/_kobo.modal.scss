@@ -555,7 +555,7 @@
     .form-view__cell {
       min-width: 100px;
 
-      &--lang-code {
+      .form-view__cell--lang-code {
         max-width: 50px;
       }
 
@@ -579,7 +579,7 @@
   width: 100%;
   margin: 0;
 
-  .form-modal__item--translation-table--container {
+  .form-modal__item--translation-table-container {
     flex: 1;
     overflow-y: auto;
     border: 1px solid $divider-color;

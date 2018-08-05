@@ -165,7 +165,6 @@ export class TranslationSettings extends React.Component {
     } else {
       notify('Error: translation index mismatch. Cannot delete language.');
     }
-
   }
   prepareTranslations(content) {
     let translated = content.translated,
