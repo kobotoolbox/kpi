@@ -50,7 +50,7 @@ class LanguageForm extends React.Component {
     var btnClasses = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', fieldsNotEmpty ? 'mdl-button--colored' : 'mdl-button--disabled');
 
     return (
-      <bem.FormView__cell m='add-language-fields'>
+      <bem.FormView__form m='add-language-fields'>
         <bem.FormView__cell>
           <bem.FormModal__item>
             <label>{t('Language name')}</label>
@@ -64,11 +64,11 @@ class LanguageForm extends React.Component {
           </bem.FormModal__item>
         </bem.FormView__cell>
         <bem.FormView__cell>
-          <button className={btnClasses} onClick={this.submit}>
+          <button className={btnClasses} onClick={this.submit} type='submit'>
             {this.props.langIndex !== undefined ? t('Update') : t('Add')}
           </button>
         </bem.FormView__cell>
-      </bem.FormView__cell>
+      </bem.FormView__form>
       );
   }
 };
