@@ -33,7 +33,8 @@ class LanguageForm extends React.Component {
     }
     autoBind(this);
   }
-  submit() {
+  onSubmit(evt) {
+    evt.preventDefault();
     if (this.props.langIndex !== undefined) {
       this.props.addOrUpdateLanguage(this.state, this.props.langIndex);
     } else {
@@ -65,7 +66,7 @@ class LanguageForm extends React.Component {
           </bem.FormModal__item>
         </bem.FormView__cell>
         <bem.FormView__cell>
-          <button className={btnClasses} onClick={this.submit} type='submit'>
+          <button className={btnClasses} onClick={this.onSubmit} type='submit'>
             {this.props.langIndex !== undefined ? t('Update') : t('Add')}
           </button>
         </bem.FormView__cell>
@@ -145,8 +146,7 @@ export class TranslationSettings extends React.Component {
   }
   deleteLanguage(e) {
     let index = parseInt($(e.target).closest('[data-index]').get(0).getAttribute('data-index'));
-    let content = this.props.asset.content;
-    content = this.deleteTranslations(content, index);
+    const content = this.deleteTranslations(this.props.asset.content, index);
     if (content) {
       content.translations.splice(index, 1);
       let dialog = alertify.dialog('confirm');
