@@ -33,7 +33,7 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
-from hook.views import HookViewSet, HookLogViewSet
+from kobo.apps.hook.views import HookViewSet, HookLogViewSet
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See

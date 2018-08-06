@@ -3,7 +3,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 
-from hook.models.hook import Hook
+from kobo.apps.hook.models.hook import Hook
 from taggit.models import Tag
 from .models import TagUid
 from .model_utils import grant_default_model_level_perms
