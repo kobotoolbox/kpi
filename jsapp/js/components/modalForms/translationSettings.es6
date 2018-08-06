@@ -232,8 +232,18 @@ export class TranslationSettings extends React.Component {
       {content: JSON.stringify(content)}
     );
   }
-  render () {
-    let translations = this.state.translations;
+  renderEmptyMessage() {
+    return (
+      <bem.FormModal m='translation-settings'>
+        <bem.FormModal__item>
+          <bem.FormView__cell>
+            {t('Your form is empty. There is nothing to translate.')}
+          </bem.FormView__cell>
+        </bem.FormModal__item>
+      </bem.FormModal>
+    );
+  }
+  renderTranslationsSettings() {
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
@@ -313,6 +323,14 @@ export class TranslationSettings extends React.Component {
         </bem.FormModal__item>
       </bem.FormModal>
     );
+  }
+  render () {
+    let translations = this.state.translations;
+    if (translations.length === 0) {
+      return this.renderEmptyMessage();
+    } else {
+      return this.renderTranslationsSettings();
+    }
   }
 };
 
