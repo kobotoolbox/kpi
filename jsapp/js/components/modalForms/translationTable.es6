@@ -9,10 +9,16 @@ import stores from 'js/stores'
 import {MODAL_TYPES} from 'js/constants'
 import {t, getLangAsObject, getLangString, notify} from 'utils'
 
+const SAVE_CHANGES_BUTTON_TEXT_DEFAULT = t('Save Changes');
+
 export class TranslationTable extends React.Component {
   constructor(props){
     super(props);
-    this.state = {tableData: []};
+    this.state = {
+      saveChangesButtonText: SAVE_CHANGES_BUTTON_TEXT_DEFAULT,
+      isSaveChangesButtonPending: false,
+      tableData: []
+    };
     let {translated, survey, choices, translations} = props.asset.content,
         langIndex = props.langIndex;
 
@@ -69,6 +75,20 @@ export class TranslationTable extends React.Component {
     ];
   }
 
+  markSaveButtonPending() {
+    this.setState({
+      saveChangesButtonText: t('Saving…'),
+      isSaveChangesButtonPending: true,
+    })
+  }
+
+  markSaveButtonIdle() {
+    this.setState({
+      saveChangesButtonText: SAVE_CHANGES_BUTTON_TEXT_DEFAULT,
+      isSaveChangesButtonPending: false,
+    })
+  }
+
   saveChanges() {
     let content = this.props.asset.content,
         rows = this.state.tableData,
@@ -83,9 +103,18 @@ export class TranslationTable extends React.Component {
       }
     }
 
+    this.markSaveButtonPending();
     actions.resources.updateAsset(
       this.props.asset.uid,
-      {content: JSON.stringify(content)}
+      {content: JSON.stringify(content)},
+      {
+        onComplete: () => {
+          this.markSaveButtonIdle();
+        },
+        onFailed: () => {
+          this.markSaveButtonIdle();
+        }
+      }
     );
   }
 
@@ -122,8 +151,12 @@ export class TranslationTable extends React.Component {
             {t('Back')}
           </bem.Modal__footerButton>
 
-          <bem.Modal__footerButton m='primary' onClick={this.saveChanges.bind(this)}>
-            {t('Save Changes')}
+          <bem.Modal__footerButton
+            m='primary'
+            onClick={this.saveChanges.bind(this)}
+            disabled={this.state.isSaveChangesButtonPending}
+          >
+            {this.state.saveChangesButtonText}
           </bem.Modal__footerButton>
         </bem.Modal__footer>
       </bem.FormModal>
