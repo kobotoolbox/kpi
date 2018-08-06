@@ -99,23 +99,23 @@ export class TranslationTable extends React.Component {
   render () {
     return (
       <bem.FormModal m='translation-table'>
-        <bem.FormModal__item m='translation-table-container'>
-        <ReactTable
-          data={this.state.tableData}
-          columns={this.columns}
-          defaultPageSize={30}
-          showPageSizeOptions={false}
-          previousText={t('Prev')}
-          nextText={t('Next')}
-          minRows={1}
-          loadingText={
-            <span>
-              <i className='fa k-spin fa-circle-o-notch' />
-              {t('Loading...')}
-            </span>
-          }
-        />
-        </bem.FormModal__item>
+        <div className='translation-table-container'>
+          <ReactTable
+            data={this.state.tableData}
+            columns={this.columns}
+            defaultPageSize={30}
+            showPageSizeOptions={false}
+            previousText={t('Prev')}
+            nextText={t('Next')}
+            minRows={1}
+            loadingText={
+              <span>
+                <i className='fa k-spin fa-circle-o-notch' />
+                {t('Loading...')}
+              </span>
+            }
+          />
+        </div>
 
         <bem.Modal__footer>
           <bem.Modal__footerButton m='back' onClick={this.showManageLanguagesModal.bind(this)}>
