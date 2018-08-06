@@ -74,6 +74,36 @@ export default class RESTServiceLogs extends React.Component {
     });
   }
 
+  retryAllSubmissions(evt) {
+    const pendingRetries = {};
+    this.state.logs.forEach((log) => {
+      pendingRetries[log.uid] = true;
+    });
+    this.setState({
+      pendingRetries: pendingRetries
+    });
+
+    actions.externalServices.retryLogs(
+      this.state.assetUid,
+      this.state.esid,
+      {
+        onComplete: () => {
+          this.setState({
+            pendingRetries: {}
+          });
+          alertify.warning(t('Retrying all submissions will take a while…'));
+        },
+        onFail: () => {
+          this.setState({
+            pendingRetries: {}
+          });
+
+          alertify.error(t('Failed retrying all submissions'));
+        }
+      }
+    );
+  }
+
   retrySubmission(submission, evt) {
     this.setState({
       pendingRetries: {[submission.uid]: true}
@@ -90,7 +120,7 @@ export default class RESTServiceLogs extends React.Component {
           });
 
           if (data.success === false) {
-            alertify.error(t('Submission retry failed'));
+            alertify.error(t('Failed retrying submission'));
           }
         },
         onFail: (data) => {
@@ -98,7 +128,7 @@ export default class RESTServiceLogs extends React.Component {
             pendingRetries: {[submission.uid]: false}
           });
 
-          alertify.error(t('Submission retry failed'));
+          alertify.error(t('Failed retrying submission'));
         }
       }
     );
@@ -114,6 +144,16 @@ export default class RESTServiceLogs extends React.Component {
 
   isStatusSuccessful(statusCode) {
     return (200 <= statusCode && statusCode <= 299);
+  }
+
+  hasAnyFailedSubmission() {
+    let hasAny = false;
+    this.state.logs.forEach((log) => {
+      if (!this.isStatusSuccessful(log.status_code)) {
+        hasAny = true;
+      }
+    });
+    return hasAny;
   }
 
   /*
@@ -160,7 +200,17 @@ export default class RESTServiceLogs extends React.Component {
         <bem.FormView__cell m={['box']}>
           <bem.ServiceRow m='header'>
             <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
-            <bem.ServiceRow__column m='status'>{t('Status')}</bem.ServiceRow__column>
+            <bem.ServiceRow__column m='status'>
+              {t('Status')}
+              { this.hasAnyFailedSubmission() &&
+                <bem.ServiceRow__actionButton
+                  onClick={this.retryAllSubmissions.bind(this)}
+                  data-tip={t('Retry all submissions')}
+                >
+                  <i className='k-icon-replace-all'/>
+                </bem.ServiceRow__actionButton>
+              }
+            </bem.ServiceRow__column>
             <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
           </bem.ServiceRow>
 

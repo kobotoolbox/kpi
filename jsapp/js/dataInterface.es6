@@ -161,6 +161,12 @@ var dataInterface;
         method: 'GET'
       })
     },
+    retryExternalServiceLogs(uid, esid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${esid}/retry/`,
+        method: 'PATCH'
+      })
+    },
     retryExternalServiceLog(uid, esid, lid) {
       return $ajax({
         url: `/assets/${uid}/hooks/${esid}/logs/${lid}/retry/`,
