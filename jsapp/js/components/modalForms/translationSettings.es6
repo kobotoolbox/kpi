@@ -124,12 +124,11 @@ export class TranslationSettings extends React.Component {
       });
     }
   }
-  launchTranslationTableModal(e) {
-    let index = parseInt($(e.target).closest('[data-index]').get(0).getAttribute('data-index')),
-        asset = this.props.asset;
+  launchTranslationTableModal(evt) {
+    const index = evt.currentTarget.dataset.index;
     stores.pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
-      asset: asset,
+      asset: this.props.asset,
       langIndex: index
     });
   }
@@ -144,13 +143,13 @@ export class TranslationSettings extends React.Component {
 
     this.updateAsset(content);
   }
-  deleteLanguage(e) {
-    let index = parseInt($(e.target).closest('[data-index]').get(0).getAttribute('data-index'));
+  deleteLanguage(evt) {
+    const index = evt.currentTarget.dataset.index;
     const content = this.deleteTranslations(this.props.asset.content, index);
     if (content) {
       content.translations.splice(index, 1);
-      let dialog = alertify.dialog('confirm');
-      let opts = {
+      const dialog = alertify.dialog('confirm');
+      const opts = {
         title: t('Delete language?'),
         message: t('Are you sure you want to delete this language? This action is not reversible.'),
         labels: {ok: t('Delete'), cancel: t('Cancel')},
@@ -161,7 +160,6 @@ export class TranslationSettings extends React.Component {
         oncancel: () => {dialog.destroy()}
       };
       dialog.set(opts).show();
-
     } else {
       notify('Error: translation index mismatch. Cannot delete language.');
     }
