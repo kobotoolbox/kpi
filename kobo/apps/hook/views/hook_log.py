@@ -61,12 +61,6 @@ class HookLogViewSet(NestedViewSetMixin,
     >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/retry/
 
 
-    #### Retries all failed attempts <span class='label label-danger'>Not implemented yet</span>
-    <pre class="prettyprint">
-    <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/retry/
-    </pre>
-
-
     ### CURRENT ENDPOINT
     """
     model = HookLog
@@ -93,8 +87,8 @@ class HookLogViewSet(NestedViewSetMixin,
         asset = get_object_or_404(Asset, uid=asset_uid, owner=request.user)
         return super(HookLogViewSet, self).list(request, *args, **kwargs)
 
-    @detail_route(methods=["PATCH"], url_path="retry")
-    def retry_detail(self, request, uid=None, *args, **kwargs):
+    @detail_route(methods=["PATCH"])
+    def retry(self, request, uid=None, *args, **kwargs):
         """
         Retries to send data to external service.
         :param request: rest_framework.request.Request
@@ -105,12 +99,6 @@ class HookLogViewSet(NestedViewSetMixin,
         data = self.__get_data(request, hook_log)
         status_code, response = hook_log.retry(data)
         return Response(response, status=status_code)
-
-    @list_route(methods=["POST"], url_path="retry")
-    def retry_list(self, request, *args, **kwargs):
-        #TODO implement Celery task
-        return Response("Retry list")
-
 
     def __get_data(self, request, hook_log):
         """

@@ -118,6 +118,12 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X DELETE https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
 
+    #### Retries all failed attempts <span class='label label-danger'>Not implemented yet</span>
+    <pre class="prettyprint">
+    <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/retry/
+    </pre>
+
+
     ### CURRENT ENDPOINT
     """
     model = Hook
@@ -148,3 +154,9 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         asset = get_object_or_404(Asset, uid=asset_uid)
         serializer.save(asset=asset)
 
+    @detail_route(methods=["PATCH"])
+    def retry(self, request, uid=None, *args, **kwargs):
+        hook = self.get_object()
+        print(hook)
+        #TODO implement Celery task
+        return Response("Retry list")
