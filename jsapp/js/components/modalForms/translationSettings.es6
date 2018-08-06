@@ -237,7 +237,7 @@ export class TranslationSettings extends React.Component {
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
           <bem.FormView__cell>
-            {t('Your form is empty. There is nothing to translate.')}
+            {t('There is nothing to translate in this form.')}
           </bem.FormView__cell>
         </bem.FormModal__item>
       </bem.FormModal>
