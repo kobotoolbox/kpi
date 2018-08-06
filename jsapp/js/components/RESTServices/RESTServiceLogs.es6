@@ -146,6 +146,16 @@ export default class RESTServiceLogs extends React.Component {
     return (200 <= statusCode && statusCode <= 299);
   }
 
+  hasAnyFailedSubmission() {
+    let hasAny = false;
+    this.state.logs.forEach((log) => {
+      if (!this.isStatusSuccessful(log.status_code)) {
+        hasAny = true;
+      }
+    });
+    return hasAny;
+  }
+
   /*
    * rendering methods
    */
@@ -192,7 +202,7 @@ export default class RESTServiceLogs extends React.Component {
             <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
             <bem.ServiceRow__column m='status'>
               {t('Status')}
-              { Object.keys(this.state.pendingRetries).length !== 0 &&
+              { this.hasAnyFailedSubmission() &&
                 <bem.ServiceRow__actionButton
                   onClick={this.retryAllSubmissions.bind(this)}
                   data-tip={t('Retry all submissions')}
