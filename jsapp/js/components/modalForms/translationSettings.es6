@@ -243,7 +243,7 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     );
   }
-  renderTranslationsSettings() {
+  renderTranslationsSettings(translations) {
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
@@ -329,7 +329,7 @@ export class TranslationSettings extends React.Component {
     if (translations.length === 0) {
       return this.renderEmptyMessage();
     } else {
-      return this.renderTranslationsSettings();
+      return this.renderTranslationsSettings(translations);
     }
   }
 };
