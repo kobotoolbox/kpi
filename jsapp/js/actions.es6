@@ -266,42 +266,13 @@ actions.permissions = Reflux.createActions({
 });
 
 actions.externalServices = Reflux.createActions({
-  getAll: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  add: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  update: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  delete: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getLogs: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  retryLog: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
+  getAll: {children: ['completed', 'failed']},
+  add: {children: ['completed', 'failed']},
+  update: {children: ['completed', 'failed']},
+  delete: {children: ['completed', 'failed']},
+  getLogs: {children: ['completed', 'failed']},
+  retryLog: {children: ['completed', 'failed']},
+  retryLogs: {children: ['completed', 'failed']},
 });
 
 actions.misc = Reflux.createActions({
@@ -951,6 +922,23 @@ actions.externalServices.retryLog.listen((assetUid, esid, lid, callbacks = {}) =
     })
     .fail((...args) => {
       actions.externalServices.retryLog.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.externalServices.retryLogs.listen((assetUid, esid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLogs(assetUid, esid)
+    .done((...args) => {
+      actions.externalServices.getLogs(assetUid, esid);
+      actions.externalServices.retryLogs.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.externalServices.retryLogs.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
