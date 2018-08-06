@@ -105,7 +105,7 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.mixin import KobocatDataProxyViewSetMixin
-from hook.utils import HookUtils
+from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
 
 
