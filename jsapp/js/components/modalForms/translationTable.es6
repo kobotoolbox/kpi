@@ -19,8 +19,8 @@ export class TranslationTable extends React.Component {
       isSaveChangesButtonPending: false,
       tableData: []
     };
-    let {translated, survey, choices, translations} = props.asset.content,
-        langIndex = props.langIndex;
+    const {translated, survey, choices, translations} = props.asset.content;
+    const langIndex = props.langIndex;
 
     // add each translatable property for survey items to translation table
     survey.forEach(row => {
