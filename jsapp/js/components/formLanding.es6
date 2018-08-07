@@ -412,19 +412,15 @@ export class FormLanding extends React.Component {
       return false;
 
     return (
-      <bem.FormView__cell m={['columns', 'padding', 'bordertop', 'languages']}>
-        <bem.FormView__cell m='languages-col1'>
-          <strong>{t('Languages')}</strong>
-          {translations.map((l, i)=>{
-            return (
-              <bem.FormView__cell key={`lang-${i}`} m='langButton'>
-                {l}
-              </bem.FormView__cell>
-            );
-          })}
+      <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
+        <bem.FormView__cell>
+          <strong>{t('Languages:')}</strong>
+          &nbsp;
+          {translations.join(', ')}
         </bem.FormView__cell>
+
         {canEdit &&
-          <bem.FormView__cell m='languages-col2'>
+          <bem.FormView__cell>
             <bem.FormView__link m='add-edit-languages'
               data-tip={t('Manage Translations')}
               onClick={this.showLanguagesModal}>
