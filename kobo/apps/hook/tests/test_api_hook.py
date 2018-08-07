@@ -169,12 +169,7 @@ class ApiHookTestCase(KpiTestCase):
             "uid": first_hooklog.get("uid")
         })
 
-        # It should be a success
-        response = self.client.patch(retry_url, format="json")
-        self.assertTrue(response.data.get("success"))
-
-
-        # Force status to failed (because celery only changes it after 3 failed attempts)
+        # Fakes Celery n retries by forcing status to `failed` (where n is `settings.HOOKLOG_MAX_RETRIES`)
         fhl = HookLog.objects.get(uid=first_hooklog.get("uid"))
         fhl.status = HOOK_LOG_FAILED
         fhl.save(reset_status=True)

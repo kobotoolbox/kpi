@@ -85,8 +85,6 @@ class HookLog(models.Model):
             return "Failed"
         elif self.status == HOOK_LOG_SUCCESS:
             return "Success"
-        elif self.status == HOOK_LOG_CREATED:
-            return "Created"
 
     def __unicode__(self):
         return "<HookLog {uid}>".format(uid=self.uid)
