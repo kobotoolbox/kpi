@@ -519,6 +519,12 @@
   .form-view__cell--translation-actions {
     min-width: 150px;
     text-align: right;
+
+    // helps to avoid clicking on button from row above
+    [data-tip]::before,
+    [data-tip]::after {
+      pointer-events: none;
+    }
   }
 
   .form-view__cell--add-language {
@@ -553,21 +559,10 @@
     justify-content: space-between;
 
     .form-view__cell {
-      min-width: 100px;
-
-      .form-view__cell--lang-code {
-        max-width: 50px;
-      }
-
-      input {
-        padding-left: 5px;
-        max-width: 95%;
-      }
-
-      button {
-        margin-left: 10px;
-        margin-top: 5px;
-      }
+      &:not(:first-child) {margin-left: 10px;}
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+      &.form-view__cell--submit-button {padding-top: 10px;}
     }
   }
 }
