@@ -59,6 +59,12 @@ $c-service-row-hover: #f2f2f3;
       vertical-align: bottom;
       font-size: 36px;
 
+      &[data-tip]::before,
+      &[data-tip]::after {
+        // to align with action buttons
+        margin-top: 9px;
+      }
+
       i {
         color: $cool-gray;
         vertical-align: inherit;
