@@ -81,16 +81,12 @@ export default class RESTServiceLogs extends React.Component {
     });
   }
 
-  retryAllSubmissions(evt) {
-    const currentLogs = this.state.logs;
+  retryAll(evt) {
     currentLogs.forEach((log) => {
-      if (this.isSubmissionFailed(log)) {
-        log.status = this.STATUSES.PENDING;
+      if (log.status === this.STATUSES.FAILED) {
+        this.overrideLogStatus(log, this.STATUSES.PENDING);
       }
     });
-    this.setState({
-      logs: currentLogs
-    })
 
     actions.externalServices.retryLogs(
       this.state.assetUid,
@@ -100,72 +96,67 @@ export default class RESTServiceLogs extends React.Component {
           alertify.warning(t('Retrying all submissions will take a while…'));
         },
         onFail: () => {
-          alertify.error(t('Failed retrying all submissions'));
+          if (data.responseJSON && data.responseJSON.detail) {
+            alertify.error(data.responseJSON.detail);
+          } else {
+            alertify.error(t('Failed retrying all submissions'));
+          }
         }
       }
     );
   }
 
-  retrySubmission(submission, evt) {
+  retryLog(log, evt) {
+    // make sure to allow only retrying failed logs
+    if (log.status !== this.STATUSES.FAILED) {
+      return;
+    }
+
+    this.overrideLogStatus(log, this.STATUSES.PENDING);
+
+    actions.externalServices.retryLog(
+      this.state.assetUid,
+      this.state.esid,
+      log.uid,
+      {
+        onComplete: (data) => {
+          if (data.status === this.STATUSES.FAILED) {
+            alertify.error(t('Failed retrying submission'));
+          }
+        },
+        onFail: (data) => {
+          if (data.responseJSON && data.responseJSON.detail) {
+            alertify.error(data.responseJSON.detail);
+          } else {
+            alertify.error(t('Failed retrying submission'));
+          }
+        }
+      }
+    );
+  }
+
+  // useful to mark log as pending, before BE tells about it
+  overrideLogStatus(log, status) {
     const currentLogs = this.state.logs;
-    currentLogs.forEach((log) => {
-      if (log.uid === submission.uid) {
-        log.status = this.STATUSES.PENDING;
+    currentLogs.forEach((currentLog) => {
+      if (currentLog.uid === log.uid) {
+        currentLog.status = this.STATUSES.PENDING;
       }
     });
     this.setState({
       logs: currentLogs
     })
-
-    actions.externalServices.retryLog(
-      this.state.assetUid,
-      this.state.esid,
-      submission.uid,
-      {
-        onComplete: (data) => {
-          this.setState({
-            pendingRetries: {[submission.uid]: false}
-          });
-
-          if (data.success === false) {
-            alertify.error(t('Failed retrying submission'));
-          }
-        },
-        onFail: (data) => {
-          this.setState({
-            pendingRetries: {[submission.uid]: false}
-          });
-
-          alertify.error(t('Failed retrying submission'));
-        }
-      }
-    );
   }
 
-  showSubmissionInfo(submission, evt) {
-    const escapedMessage = $('<div/>').text(submission.message).html();
-    alertify.alert(
-      submission.uid,
-      `<pre>${escapedMessage}</pre>`
-    );
+  showLogInfo(log, evt) {
+    const escapedMessage = $('<div/>').text(log.message).html();
+    alertify.alert(log.uid, `<pre>${escapedMessage}</pre>`);
   }
 
-  isSubmissionSuccess(log) {
-    return log.status === this.STATUSES.SUCCESS;
-  }
-
-  isSubmissionPending(log) {
-    return log.status === this.STATUSES.PENDING;
-  }
-
-  isSubmissionFailed(log) {
-    return log.status === this.STATUSES.FAILED;
-  }
-
-  hasAnyFailedSubmission() {
+  hasAnyFailedLogs() {
     let hasAny = false;
     this.state.logs.forEach((log) => {
-      if (this.isSubmissionFailed(log)) {
+      if (log.status === this.STATUSES.FAILED) {
         hasAny = true;
       }
     });
@@ -218,9 +209,9 @@ export default class RESTServiceLogs extends React.Component {
             <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
             <bem.ServiceRow__column m='status'>
               {t('Status')}
-              { this.hasAnyFailedSubmission() &&
+              { this.hasAnyFailedLogs() &&
                 <bem.ServiceRow__actionButton
-                  onClick={this.retryAllSubmissions.bind(this)}
+                  onClick={this.retryAll.bind(this)}
                   data-tip={t('Retry all submissions')}
                   disabled={!this.state.isServiceActive}
                 >
@@ -240,23 +231,23 @@ export default class RESTServiceLogs extends React.Component {
 
                 <bem.ServiceRow__column
                   m='status'
-                  className={this.isSubmissionFailed(log) ? 'service-row__error' : ''}
+                  className={log.status === this.STATUSES.FAILED ? 'service-row__error' : ''}
                 >
                   {log.status_code}
 
-                  {!this.isSubmissionSuccess(log) &&
+                  {log.status !== this.STATUSES.SUCCESS &&
                     <bem.ServiceRow__actionButton
-                      disabled={this.isSubmissionPending(log) || !this.state.isServiceActive}
-                      onClick={this.retrySubmission.bind(this, log)}
+                      disabled={log.status === this.STATUSES.PENDING || !this.state.isServiceActive}
+                      onClick={this.retryLog.bind(this, log)}
                       data-tip={t('Retry submission')}
                     >
                       <i className='k-icon-replace' />
                     </bem.ServiceRow__actionButton>
                   }
 
-                  {this.isSubmissionFailed(log) && log.message.length > 0 &&
+                  {log.status === this.STATUSES.FAILED && log.message.length > 0 &&
                     <bem.ServiceRow__actionButton
-                      onClick={this.showSubmissionInfo.bind(this, log)}
+                      onClick={this.showLogInfo.bind(this, log)}
                       data-tip={t('More info')}
                     >
                       <i className='k-icon-information' />
