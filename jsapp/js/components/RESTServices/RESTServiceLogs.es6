@@ -223,6 +223,17 @@ export default class RESTServiceLogs extends React.Component {
           </bem.ServiceRow>
 
           {this.state.logs.map((log, n) => {
+            let statusMod = '';
+            if (log.status === this.STATUSES.SUCCESS) {
+              statusMod = 'success'
+            }
+            if (log.status === this.STATUSES.PENDING) {
+              statusMod = 'pending'
+            }
+            if (log.status === this.STATUSES.FAILED) {
+              statusMod = 'failed'
+            }
+
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
@@ -230,14 +241,21 @@ export default class RESTServiceLogs extends React.Component {
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
-                  m='status'
-                  className={log.status === this.STATUSES.FAILED ? 'service-row__error' : ''}
+                  m={['status', statusMod]}
                 >
-                  {log.status_code}
+                  {log.status === this.STATUSES.SUCCESS &&
+                    t('Success')
+                  }
+                  {log.status === this.STATUSES.PENDING &&
+                    t('Pending')
+                  }
+                  {log.status === this.STATUSES.FAILED &&
+                    t('Failed')
+                  }
 
-                  {log.status !== this.STATUSES.SUCCESS &&
+                  {log.status === this.STATUSES.FAILED &&
                     <bem.ServiceRow__actionButton
-                      disabled={log.status === this.STATUSES.PENDING || !this.state.isHookActive}
+                      disabled={!this.state.isHookActive}
                       onClick={this.retryLog.bind(this, log)}
                       data-tip={t('Retry submission')}
                     >

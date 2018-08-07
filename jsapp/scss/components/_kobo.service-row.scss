@@ -95,10 +95,18 @@ $c-service-row-hover: #f2f2f3;
     flex: 5;
     padding: $s-service-row-column-spacing;
   }
-}
 
-.service-row__error {
-  color: $cool-red;
+  &.service-row__column--success {
+    color: $cool-gray;
+  }
+
+  &.service-row__column--pending {
+    color: $cool-green;
+  }
+
+  &.service-row__column--failed {
+    color: $cool-red;
+  }
 }
 
 .service-row__action-button {
