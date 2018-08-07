@@ -33,7 +33,7 @@ export default class RESTServicesForm extends React.Component {
       isSubmitPending: false,
       assetUid: props.assetUid,
       // will be empty if creating new service
-      esid: props.esid,
+      hookUid: props.hookUid,
       name: '',
       url: '',
       type: EXPORT_TYPES.JSON,
@@ -57,8 +57,8 @@ export default class RESTServicesForm extends React.Component {
    */
 
   componentDidMount() {
-    if (this.state.esid) {
-      dataInterface.getExternalService(this.state.assetUid, this.state.esid)
+    if (this.state.hookUid) {
+      dataInterface.getExternalService(this.state.assetUid, this.state.hookUid)
         .done((data) => {
           const stateUpdate = {
             isLoadingExternalService: false,
@@ -209,10 +209,10 @@ export default class RESTServicesForm extends React.Component {
     };
 
     this.setState({isSubmitPending: true});
-    if (this.state.esid) {
+    if (this.state.hookUid) {
       actions.externalServices.update(
         this.state.assetUid,
-        this.state.esid,
+        this.state.hookUid,
         data,
         callbacks
       );
@@ -303,7 +303,7 @@ export default class RESTServicesForm extends React.Component {
    */
 
   render() {
-    const isEditingExistingService = Boolean(this.state.esid);
+    const isEditingExistingService = Boolean(this.state.hookUid);
 
     if (this.state.isLoadingExternalService) {
       return (

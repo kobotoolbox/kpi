@@ -14,11 +14,11 @@ export default class RESTServices extends React.Component {
 
   render() {
     const docTitle = this.props.asset.name || t('Untitled');
-    if (this.props.esid) {
+    if (this.props.hookUid) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m={'form-settings'} className='rest-services'>
-            <RESTServiceLogs assetUid={this.props.asset.uid} esid={this.props.esid} />
+            <RESTServiceLogs assetUid={this.props.asset.uid} hookUid={this.props.hookUid} />
           </bem.FormView>
         </DocumentTitle>
       );

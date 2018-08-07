@@ -21,7 +21,7 @@ export default class RESTServiceLogs extends React.Component {
       serviceName: null,
       isServiceActive: false,
       assetUid: props.assetUid,
-      esid: props.esid,
+      hookUid: props.hookUid,
       isLoadingService: true,
       isLoadingLogs: true,
       logs: []
@@ -40,7 +40,7 @@ export default class RESTServiceLogs extends React.Component {
       this.onLogsUpdated
     );
 
-    dataInterface.getExternalService(this.state.assetUid, this.state.esid)
+    dataInterface.getExternalService(this.state.assetUid, this.state.hookUid)
       .done((data) => {
         this.setState({
           isLoadingService: false,
@@ -57,7 +57,7 @@ export default class RESTServiceLogs extends React.Component {
 
     actions.externalServices.getLogs(
       this.state.assetUid,
-      this.state.esid,
+      this.state.hookUid,
       {
         onComplete: (data) => {
           this.setState({
@@ -90,7 +90,7 @@ export default class RESTServiceLogs extends React.Component {
 
     actions.externalServices.retryLogs(
       this.state.assetUid,
-      this.state.esid,
+      this.state.hookUid,
       {
         onComplete: () => {
           alertify.warning(t('Retrying all submissions will take a while…'));
@@ -116,7 +116,7 @@ export default class RESTServiceLogs extends React.Component {
 
     actions.externalServices.retryLog(
       this.state.assetUid,
-      this.state.esid,
+      this.state.hookUid,
       log.uid,
       {
         onComplete: (data) => {

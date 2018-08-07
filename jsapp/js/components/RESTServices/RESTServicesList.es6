@@ -59,13 +59,13 @@ export default class RESTServicesList extends React.Component {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
       type: MODAL_TYPES.REST_SERVICES,
-      esid: evt.currentTarget.dataset.esid
+      hookUid: evt.currentTarget.dataset.hookUid
     });
   }
 
   deleteServiceSafe(evt) {
     const serviceName = evt.currentTarget.dataset.serviceName;
-    const serviceEsid = evt.currentTarget.dataset.esid;
+    const servicehookUid = evt.currentTarget.dataset.hookUid;
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
       const message = t('You are about to delete ##target. This action cannot be undone.')
@@ -77,7 +77,7 @@ export default class RESTServicesList extends React.Component {
         onok: () => {
           actions.externalServices.delete(
             this.state.assetUid,
-            serviceEsid, {
+            servicehookUid, {
               onFail: () => {
                 alertify.error(t('Could not delete REST Service'));
               }
@@ -95,7 +95,7 @@ export default class RESTServicesList extends React.Component {
   openNewRESTServiceModal() {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
-      // esid: not provided intentionally
+      // hookUid: not provided intentionally
       type: MODAL_TYPES.REST_SERVICES
     });
   }
@@ -178,7 +178,7 @@ export default class RESTServicesList extends React.Component {
                   <bem.ServiceRow__column m='actions'>
                     <bem.ServiceRow__actionButton
                       onClick={this.editService}
-                      data-esid={item.uid}
+                      data-hook-uid={item.uid}
                       data-tip={t('Edit')}
                     >
                       <i className='k-icon-edit' />
@@ -187,7 +187,7 @@ export default class RESTServicesList extends React.Component {
                     <bem.ServiceRow__actionButton
                       onClick={this.deleteServiceSafe.bind(this)}
                       data-service-name={item.name}
-                      data-esid={item.uid}
+                      data-hook-uid={item.uid}
                       data-tip={t('Delete')}
                     >
                       <i className='k-icon-trash' />

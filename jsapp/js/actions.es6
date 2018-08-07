@@ -861,8 +861,8 @@ actions.externalServices.add.listen((assetUid, data, callbacks = {}) => {
     });
 });
 
-actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) => {
-  dataInterface.updateExternalService(assetUid, esid, data)
+actions.externalServices.update.listen((assetUid, hookUid, data, callbacks = {}) => {
+  dataInterface.updateExternalService(assetUid, hookUid, data)
     .done((...args) => {
       actions.externalServices.getAll(assetUid);
       actions.externalServices.update.completed(...args);
@@ -878,8 +878,8 @@ actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) =>
     });
 });
 
-actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.deleteExternalService(assetUid, esid)
+actions.externalServices.delete.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.deleteExternalService(assetUid, hookUid)
     .done((...args) => {
       actions.externalServices.getAll(assetUid);
       actions.externalServices.delete.completed(...args);
@@ -895,8 +895,8 @@ actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
     });
 });
 
-actions.externalServices.getLogs.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.getExternalServiceLogs(assetUid, esid)
+actions.externalServices.getLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.getExternalServiceLogs(assetUid, hookUid)
     .done((...args) => {
       actions.externalServices.getLogs.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
@@ -911,10 +911,10 @@ actions.externalServices.getLogs.listen((assetUid, esid, callbacks = {}) => {
     });
 });
 
-actions.externalServices.retryLog.listen((assetUid, esid, lid, callbacks = {}) => {
-  dataInterface.retryExternalServiceLog(assetUid, esid, lid)
+actions.externalServices.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLog(assetUid, hookUid, lid)
     .done((...args) => {
-      actions.externalServices.getLogs(assetUid, esid);
+      actions.externalServices.getLogs(assetUid, hookUid);
       actions.externalServices.retryLog.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
@@ -928,10 +928,10 @@ actions.externalServices.retryLog.listen((assetUid, esid, lid, callbacks = {}) =
     });
 });
 
-actions.externalServices.retryLogs.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.retryExternalServiceLogs(assetUid, esid)
+actions.externalServices.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLogs(assetUid, hookUid)
     .done((...args) => {
-      actions.externalServices.getLogs(assetUid, esid);
+      actions.externalServices.getLogs(assetUid, hookUid);
       actions.externalServices.retryLogs.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
