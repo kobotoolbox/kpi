@@ -80,7 +80,7 @@ class Modal extends React.Component {
       break;
 
       case MODAL_TYPES.REST_SERVICES:
-        if (this.props.params.esid) {
+        if (this.props.params.hookUid) {
           this.setState({title: t('Edit REST Service')});
         } else {
           this.setState({title: t('New REST Service')});
@@ -226,7 +226,7 @@ class Modal extends React.Component {
             { this.props.params.type == MODAL_TYPES.REST_SERVICES &&
               <RESTServicesForm
                 assetUid={this.props.params.assetUid}
-                esid={this.props.params.esid}
+                hookUid={this.props.params.hookUid}
               />
             }
 

@@ -113,15 +113,15 @@ var dataInterface;
      * external services
      */
 
-    getExternalServices(uid) {
+    getHooks(uid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/`,
         method: 'GET'
       });
     },
-    getExternalService(uid, esid) {
+    getHook(uid, hookUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
         method: 'GET'
       });
     },
@@ -134,42 +134,42 @@ var dataInterface;
         contentType: 'application/json'
       });
     },
-    updateExternalService(uid, esid, data) {
+    updateExternalService(uid, hookUid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
         method: 'PATCH',
         data: JSON.stringify(data),
         dataType: 'json',
         contentType: 'application/json'
       });
     },
-    deleteExternalService(uid, esid) {
+    deleteExternalService(uid, hookUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${esid}`,
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
         method: 'DELETE'
       });
     },
-    getExternalServiceLogs(uid, esid) {
+    getHookLogs(uid, hookUid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${esid}/logs/`,
+        url: `/assets/${uid}/hooks/${hookUid}/logs/`,
         method: 'GET'
       })
     },
-    getExternalServiceLog(uid, esid, lid) {
+    getHookLog(uid, hookUid, lid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${esid}/logs/${lid}/`,
+        url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
         method: 'GET'
       })
     },
-    retryExternalServiceLogs(uid, esid) {
+    retryExternalServiceLogs(uid, hookUid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${esid}/retry/`,
+        url: `/assets/${uid}/hooks/${hookUid}/retry/`,
         method: 'PATCH'
       })
     },
-    retryExternalServiceLog(uid, esid, lid) {
+    retryExternalServiceLog(uid, hookUid, lid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${esid}/logs/${lid}/retry/`,
+        url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
         method: 'PATCH'
       })
     },

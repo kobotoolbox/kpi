@@ -265,7 +265,7 @@ actions.permissions = Reflux.createActions({
   },
 });
 
-actions.externalServices = Reflux.createActions({
+actions.hooks = Reflux.createActions({
   getAll: {children: ['completed', 'failed']},
   add: {children: ['completed', 'failed']},
   update: {children: ['completed', 'failed']},
@@ -828,117 +828,117 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
   });
 });
 
-actions.externalServices.getAll.listen((assetUid, callbacks = {}) => {
-  dataInterface.getExternalServices(assetUid)
+actions.hooks.getAll.listen((assetUid, callbacks = {}) => {
+  dataInterface.getHooks(assetUid)
     .done((...args) => {
-      actions.externalServices.getAll.completed(...args);
+      actions.hooks.getAll.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.getAll.failed(...args);
+      actions.hooks.getAll.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
 });
 
-actions.externalServices.add.listen((assetUid, data, callbacks = {}) => {
+actions.hooks.add.listen((assetUid, data, callbacks = {}) => {
   dataInterface.addExternalService(assetUid, data)
     .done((...args) => {
-      actions.externalServices.getAll(assetUid);
-      actions.externalServices.add.completed(...args);
+      actions.hooks.getAll(assetUid);
+      actions.hooks.add.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.add.failed(...args);
+      actions.hooks.add.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
 });
 
-actions.externalServices.update.listen((assetUid, esid, data, callbacks = {}) => {
-  dataInterface.updateExternalService(assetUid, esid, data)
+actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
+  dataInterface.updateExternalService(assetUid, hookUid, data)
     .done((...args) => {
-      actions.externalServices.getAll(assetUid);
-      actions.externalServices.update.completed(...args);
+      actions.hooks.getAll(assetUid);
+      actions.hooks.update.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.update.failed(...args);
+      actions.hooks.update.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
 });
 
-actions.externalServices.delete.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.deleteExternalService(assetUid, esid)
+actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.deleteExternalService(assetUid, hookUid)
     .done((...args) => {
-      actions.externalServices.getAll(assetUid);
-      actions.externalServices.delete.completed(...args);
+      actions.hooks.getAll(assetUid);
+      actions.hooks.delete.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.delete.failed(...args);
+      actions.hooks.delete.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
 });
 
-actions.externalServices.getLogs.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.getExternalServiceLogs(assetUid, esid)
+actions.hooks.getLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.getHookLogs(assetUid, hookUid)
     .done((...args) => {
-      actions.externalServices.getLogs.completed(...args);
+      actions.hooks.getLogs.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.getLogs.failed(...args);
+      actions.hooks.getLogs.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
 });
 
-actions.externalServices.retryLog.listen((assetUid, esid, lid, callbacks = {}) => {
-  dataInterface.retryExternalServiceLog(assetUid, esid, lid)
+actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLog(assetUid, hookUid, lid)
     .done((...args) => {
-      actions.externalServices.getLogs(assetUid, esid);
-      actions.externalServices.retryLog.completed(...args);
+      actions.hooks.getLogs(assetUid, hookUid);
+      actions.hooks.retryLog.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.retryLog.failed(...args);
+      actions.hooks.retryLog.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
 });
 
-actions.externalServices.retryLogs.listen((assetUid, esid, callbacks = {}) => {
-  dataInterface.retryExternalServiceLogs(assetUid, esid)
+actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLogs(assetUid, hookUid)
     .done((...args) => {
-      actions.externalServices.getLogs(assetUid, esid);
-      actions.externalServices.retryLogs.completed(...args);
+      actions.hooks.getLogs(assetUid, hookUid);
+      actions.hooks.retryLogs.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
       }
     })
     .fail((...args) => {
-      actions.externalServices.retryLogs.failed(...args);
+      actions.hooks.retryLogs.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }

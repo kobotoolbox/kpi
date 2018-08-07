@@ -16,31 +16,31 @@ export default class RESTServicesList extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      isLoadingServices: true,
+      isLoadingHooks: true,
       assetUid: props.assetUid,
-      services: []
+      hooks: []
     };
     autoBind(this);
   }
 
   componentDidMount() {
     this.listenTo(
-      actions.externalServices.getAll.completed,
-      this.onExternalServicesUpdate
+      actions.hooks.getAll.completed,
+      this.onHooksUpdate
     );
 
-    actions.externalServices.getAll(
+    actions.hooks.getAll(
       this.state.assetUid,
       {
         onComplete: (data) => {
           this.setState({
-            isLoadingServices: false,
-            services: data.results
+            isLoadingHooks: false,
+            hooks: data.results
           });
         },
         onFail: (data) => {
           this.setState({
-            isLoadingServices: false
+            isLoadingHooks: false
           });
           alertify.error(t('Could not load REST Services'));
         }
@@ -48,36 +48,36 @@ export default class RESTServicesList extends React.Component {
     );
   }
 
-  onExternalServicesUpdate(data) {
+  onHooksUpdate(data) {
     this.setState({
-      isLoadingServices: false,
-      services: data.results
+      isLoadingHooks: false,
+      hooks: data.results
     })
   }
 
-  editService(evt) {
+  editHook(evt) {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
       type: MODAL_TYPES.REST_SERVICES,
-      esid: evt.currentTarget.dataset.esid
+      hookUid: evt.currentTarget.dataset.hookUid
     });
   }
 
-  deleteServiceSafe(evt) {
-    const serviceName = evt.currentTarget.dataset.serviceName;
-    const serviceEsid = evt.currentTarget.dataset.esid;
+  deleteHookSafe(evt) {
+    const hookName = evt.currentTarget.dataset.hookName;
+    const hookUid = evt.currentTarget.dataset.hookUid;
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
       const message = t('You are about to delete ##target. This action cannot be undone.')
-        .replace('##target', `<strong>${serviceName}</strong>`);
+        .replace('##target', `<strong>${hookName}</strong>`);
       let dialogOptions = {
-        title: t(`Are you sure you want to delete ${serviceName}?`),
+        title: t(`Are you sure you want to delete ${hookName}?`),
         message: message,
         labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {
-          actions.externalServices.delete(
+          actions.hooks.delete(
             this.state.assetUid,
-            serviceEsid, {
+            hookUid, {
               onFail: () => {
                 alertify.error(t('Could not delete REST Service'));
               }
@@ -95,7 +95,7 @@ export default class RESTServicesList extends React.Component {
   openNewRESTServiceModal() {
     stores.pageState.showModal({
       assetUid: this.state.assetUid,
-      // esid: not provided intentionally
+      // hookUid: not provided intentionally
       type: MODAL_TYPES.REST_SERVICES
     });
   }
@@ -139,7 +139,7 @@ export default class RESTServicesList extends React.Component {
         <bem.FormView__cell m='rest-services-list'>
           <header className='rest-services-list__header'>
             <h2 className='rest-services-list__header-label'>
-              {t('REST Services: ##number##').replace('##number##', this.state.services.length)}
+              {t('REST Services: ##number##').replace('##number##', this.state.hooks.length)}
             </h2>
 
             <a
@@ -159,35 +159,35 @@ export default class RESTServicesList extends React.Component {
               <bem.ServiceRow__column m='actions' />
             </bem.ServiceRow>
 
-            {this.state.services.map((item, n) => {
+            {this.state.hooks.map((hook, n) => {
               return (
-                <bem.ServiceRow key={item.uid} m={item.active ? 'active' : 'inactive'}>
+                <bem.ServiceRow key={hook.uid} m={hook.active ? 'active' : 'inactive'}>
                   <bem.ServiceRow__column m='name'>
-                    <a href={`/#/forms/${this.state.assetUid}/settings/rest/${item.uid}`}>{item.name}</a>
+                    <a href={`/#/forms/${this.state.assetUid}/settings/rest/${hook.uid}`}>{hook.name}</a>
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='count'>
-                    {item.success_count + item.failed_count}
-                    {item.failed_count > 1 &&
+                    {hook.success_count + hook.failed_count}
+                    {hook.failed_count > 1 &&
                       <span className='service-row__error'>
-                        {t(' (##number## failed)').replace('##number##', item.failed_count)}
+                        {t(' (##number## failed)').replace('##number##', hook.failed_count)}
                       </span>
                     }
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='actions'>
                     <bem.ServiceRow__actionButton
-                      onClick={this.editService}
-                      data-esid={item.uid}
+                      onClick={this.editHook}
+                      data-hook-uid={hook.uid}
                       data-tip={t('Edit')}
                     >
                       <i className='k-icon-edit' />
                     </bem.ServiceRow__actionButton>
 
                     <bem.ServiceRow__actionButton
-                      onClick={this.deleteServiceSafe.bind(this)}
-                      data-service-name={item.name}
-                      data-esid={item.uid}
+                      onClick={this.deleteHookSafe.bind(this)}
+                      data-hook-name={hook.name}
+                      data-hook-uid={hook.uid}
                       data-tip={t('Delete')}
                     >
                       <i className='k-icon-trash' />
@@ -205,7 +205,7 @@ export default class RESTServicesList extends React.Component {
   }
 
   render() {
-    if (this.state.isLoadingServices) {
+    if (this.state.isLoadingHooks) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -214,7 +214,7 @@ export default class RESTServicesList extends React.Component {
           </bem.Loading__inner>
         </bem.Loading>
       )
-    } else if (this.state.services.length === 0) {
+    } else if (this.state.hooks.length === 0) {
       return this.renderEmptyView();
     } else {
       return this.renderListView();

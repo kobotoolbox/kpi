@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
@@ -17,40 +18,46 @@ export default class RESTServiceLogs extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      serviceName: null,
+      hookName: null,
+      isHookActive: false,
       assetUid: props.assetUid,
-      esid: props.esid,
-      isLoadingService: true,
+      hookUid: props.hookUid,
+      isLoadingHook: true,
       isLoadingLogs: true,
-      logs: [],
-      pendingRetries: {}
+      logs: []
     };
+    this.STATUSES = {
+      SUCCESS: 2,
+      PENDING: 1,
+      FAILED: 0
+    }
     autoBind(this);
   }
 
   componentDidMount() {
     this.listenTo(
-      actions.externalServices.getLogs.completed,
+      actions.hooks.getLogs.completed,
       this.onLogsUpdated
     );
 
-    dataInterface.getExternalService(this.state.assetUid, this.state.esid)
+    dataInterface.getHook(this.state.assetUid, this.state.hookUid)
       .done((data) => {
         this.setState({
-          isLoadingService: false,
-          serviceName: data.name
+          isLoadingHook: false,
+          hookName: data.name,
+          isHookActive: data.active
         });
       })
       .fail((data) => {
         this.setState({
-          isLoadingService: false
+          isLoadingHook: false
         });
         alertify.error(t('Could not load REST Service'));
       });
 
-    actions.externalServices.getLogs(
+    actions.hooks.getLogs(
       this.state.assetUid,
-      this.state.esid,
+      this.state.hookUid,
       {
         onComplete: (data) => {
           this.setState({
@@ -74,82 +81,82 @@ export default class RESTServiceLogs extends React.Component {
     });
   }
 
-  retryAllSubmissions(evt) {
-    const pendingRetries = {};
-    this.state.logs.forEach((log) => {
-      pendingRetries[log.uid] = true;
-    });
-    this.setState({
-      pendingRetries: pendingRetries
+  retryAll(evt) {
+    currentLogs.forEach((log) => {
+      if (log.status === this.STATUSES.FAILED) {
+        this.overrideLogStatus(log, this.STATUSES.PENDING);
+      }
     });
 
-    actions.externalServices.retryLogs(
+    actions.hooks.retryLogs(
       this.state.assetUid,
-      this.state.esid,
+      this.state.hookUid,
       {
         onComplete: () => {
-          this.setState({
-            pendingRetries: {}
-          });
           alertify.warning(t('Retrying all submissions will take a while…'));
         },
         onFail: () => {
-          this.setState({
-            pendingRetries: {}
-          });
-
-          alertify.error(t('Failed retrying all submissions'));
+          if (data.responseJSON && data.responseJSON.detail) {
+            alertify.error(data.responseJSON.detail);
+          } else {
+            alertify.error(t('Failed retrying all submissions'));
+          }
         }
       }
     );
   }
 
-  retrySubmission(submission, evt) {
-    this.setState({
-      pendingRetries: {[submission.uid]: true}
-    });
+  retryLog(log, evt) {
+    // make sure to allow only retrying failed logs
+    if (log.status !== this.STATUSES.FAILED) {
+      return;
+    }
 
-    actions.externalServices.retryLog(
+    this.overrideLogStatus(log, this.STATUSES.PENDING);
+
+    actions.hooks.retryLog(
       this.state.assetUid,
-      this.state.esid,
-      submission.uid,
+      this.state.hookUid,
+      log.uid,
       {
         onComplete: (data) => {
-          this.setState({
-            pendingRetries: {[submission.uid]: false}
-          });
-
-          if (data.success === false) {
+          if (data.status === this.STATUSES.FAILED) {
             alertify.error(t('Failed retrying submission'));
           }
         },
         onFail: (data) => {
-          this.setState({
-            pendingRetries: {[submission.uid]: false}
-          });
-
-          alertify.error(t('Failed retrying submission'));
+          if (data.responseJSON && data.responseJSON.detail) {
+            alertify.error(data.responseJSON.detail);
+          } else {
+            alertify.error(t('Failed retrying submission'));
+          }
         }
       }
     );
   }
 
-  showSubmissionInfo(submission, evt) {
-    const escapedMessage = $('<div/>').text(submission.message).html();
-    alertify.alert(
-      submission.uid,
-      `<pre>${escapedMessage}</pre>`
-    );
+  // useful to mark log as pending, before BE tells about it
+  overrideLogStatus(log, status) {
+    const currentLogs = this.state.logs;
+    currentLogs.forEach((currentLog) => {
+      if (currentLog.uid === log.uid) {
+        currentLog.status = this.STATUSES.PENDING;
+      }
+    });
+    this.setState({
+      logs: currentLogs
+    })
   }
 
-  isStatusSuccessful(statusCode) {
-    return (200 <= statusCode && statusCode <= 299);
+  showLogInfo(log, evt) {
+    const escapedMessage = $('<div/>').text(log.message).html();
+    alertify.alert(log.uid, `<pre>${escapedMessage}</pre>`);
   }
 
-  hasAnyFailedSubmission() {
+  hasAnyFailedLogs() {
     let hasAny = false;
     this.state.logs.forEach((log) => {
-      if (!this.isStatusSuccessful(log.status_code)) {
+      if (log.status === this.STATUSES.FAILED) {
         hasAny = true;
       }
     });
@@ -172,7 +179,7 @@ export default class RESTServiceLogs extends React.Component {
         </a>
 
         <h2 className='rest-services-list__header-label rest-services-list__header-right'>
-          {this.state.serviceName}
+          {this.state.hookName}
         </h2>
       </header>
     )
@@ -202,10 +209,11 @@ export default class RESTServiceLogs extends React.Component {
             <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
             <bem.ServiceRow__column m='status'>
               {t('Status')}
-              { this.hasAnyFailedSubmission() &&
+              { this.hasAnyFailedLogs() &&
                 <bem.ServiceRow__actionButton
-                  onClick={this.retryAllSubmissions.bind(this)}
+                  onClick={this.retryAll.bind(this)}
                   data-tip={t('Retry all submissions')}
+                  disabled={!this.state.isHookActive}
                 >
                   <i className='k-icon-replace-all'/>
                 </bem.ServiceRow__actionButton>
@@ -214,32 +222,32 @@ export default class RESTServiceLogs extends React.Component {
             <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
           </bem.ServiceRow>
 
-          {this.state.logs.map((item, n) => {
+          {this.state.logs.map((log, n) => {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
-                  {item.uid}
+                  {log.uid}
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
                   m='status'
-                  className={this.isStatusSuccessful(item.status_code) ? '' : 'service-row__error'}
+                  className={log.status === this.STATUSES.FAILED ? 'service-row__error' : ''}
                 >
-                  {item.status_code}
+                  {log.status_code}
 
-                  {!this.isStatusSuccessful(item.status_code) &&
+                  {log.status !== this.STATUSES.SUCCESS &&
                     <bem.ServiceRow__actionButton
-                      disabled={this.state.pendingRetries[item.uid] === true}
-                      onClick={this.retrySubmission.bind(this, item)}
+                      disabled={log.status === this.STATUSES.PENDING || !this.state.isHookActive}
+                      onClick={this.retryLog.bind(this, log)}
                       data-tip={t('Retry submission')}
                     >
                       <i className='k-icon-replace' />
                     </bem.ServiceRow__actionButton>
                   }
 
-                  {!this.isStatusSuccessful(item.status_code) && item.message.length > 0 &&
+                  {log.status === this.STATUSES.FAILED && log.message.length > 0 &&
                     <bem.ServiceRow__actionButton
-                      onClick={this.showSubmissionInfo.bind(this, item)}
+                      onClick={this.showLogInfo.bind(this, log)}
                       data-tip={t('More info')}
                     >
                       <i className='k-icon-information' />
@@ -248,7 +256,7 @@ export default class RESTServiceLogs extends React.Component {
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column m='date'>
-                  {formatTime(item.date_modified)}
+                  {formatTime(log.date_modified)}
                 </bem.ServiceRow__column>
               </bem.ServiceRow>
             );
@@ -259,7 +267,7 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   render() {
-    if (this.state.isLoadingService || this.state.isLoadingLogs) {
+    if (this.state.isLoadingHook || this.state.isLoadingLogs) {
       return (
         <bem.Loading>
           <bem.Loading__inner>

@@ -29,11 +29,11 @@ export default class RESTServicesForm extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      isLoadingExternalService: true,
+      isLoadingHook: true,
       isSubmitPending: false,
       assetUid: props.assetUid,
       // will be empty if creating new service
-      esid: props.esid,
+      hookUid: props.hookUid,
       name: '',
       url: '',
       type: EXPORT_TYPES.JSON,
@@ -57,11 +57,11 @@ export default class RESTServicesForm extends React.Component {
    */
 
   componentDidMount() {
-    if (this.state.esid) {
-      dataInterface.getExternalService(this.state.assetUid, this.state.esid)
+    if (this.state.hookUid) {
+      dataInterface.getHook(this.state.assetUid, this.state.hookUid)
         .done((data) => {
           const stateUpdate = {
-            isLoadingExternalService: false,
+            isLoadingHook: false,
             name: data.name,
             url: data.endpoint,
             isActive: data.active,
@@ -87,7 +87,7 @@ export default class RESTServicesForm extends React.Component {
           alertify.error(t('Could not load REST Service'));
         });
     } else {
-      this.setState({isLoadingExternalService: false});
+      this.setState({isLoadingHook: false});
     }
   }
 
@@ -209,15 +209,15 @@ export default class RESTServicesForm extends React.Component {
     };
 
     this.setState({isSubmitPending: true});
-    if (this.state.esid) {
-      actions.externalServices.update(
+    if (this.state.hookUid) {
+      actions.hooks.update(
         this.state.assetUid,
-        this.state.esid,
+        this.state.hookUid,
         data,
         callbacks
       );
     } else {
-      actions.externalServices.add(
+      actions.hooks.add(
         this.state.assetUid,
         data,
         callbacks
@@ -303,9 +303,9 @@ export default class RESTServicesForm extends React.Component {
    */
 
   render() {
-    const isEditingExistingService = Boolean(this.state.esid);
+    const isEditingExistingHook = Boolean(this.state.hookUid);
 
-    if (this.state.isLoadingExternalService) {
+    if (this.state.isLoadingHook) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -429,7 +429,7 @@ export default class RESTServicesForm extends React.Component {
                 disabled={this.state.isSubmitPending}
                 className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
               >
-                { isEditingExistingService ? t('Save') : t('Create') }
+                { isEditingExistingHook ? t('Save') : t('Create') }
               </button>
             </bem.FormModal__item>
           </bem.FormModal__item>
