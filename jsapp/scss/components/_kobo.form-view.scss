@@ -233,6 +233,19 @@
     margin-left: 6px;
   }
 
+  &--translation-list {
+    ul {
+      list-style: none;
+      display: inline;
+      li {
+        display: inline;
+        &:not(:last-child)::after {
+          content: ', ';
+        }
+      }
+    }
+  }
+
   &--thin-label {
     color: $cool-gray;
     opacity: 0.6;
