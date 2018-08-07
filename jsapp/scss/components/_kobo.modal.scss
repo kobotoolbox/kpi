@@ -618,6 +618,7 @@
           padding: 8px;
           border: none;
           background: transparent;
+          width: 100%;
           &:focus {
             background: lighten($cool-green, 35%);
           }
