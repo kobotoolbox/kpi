@@ -167,12 +167,10 @@ export default class RESTServicesList extends React.Component {
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='count'>
-                    {hook.success_count + hook.failed_count}
-                    {hook.failed_count > 1 &&
-                      <span className='service-row__error'>
-                        {t(' (##number## failed)').replace('##number##', hook.failed_count)}
-                      </span>
-                    }
+                    {hook.success_count + hook.pending_count + hook.failed_count}
+                    <span className='count-information-wrapper' data-tip={`success: ${hook.success_count}, pending: ${hook.pending_count}, failed: ${hook.failed_count}`}>
+                      <i className='k-icon-information'/>
+                    </span>
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='actions'>

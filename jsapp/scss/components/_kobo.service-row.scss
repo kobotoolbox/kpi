@@ -52,7 +52,26 @@ $c-service-row-hover: #f2f2f3;
   &.service-row__column--count {
     flex: 1;
     padding: $s-service-row-column-spacing;
+    line-height: 18px;
+
+    .count-information-wrapper {
+      display: inline-block;
+      vertical-align: bottom;
+      font-size: 30px;
+
+      i {
+        color: $cool-gray;
+        vertical-align: inherit;
+        line-height: inherit;
+
+        &::before {
+          vertical-align: inherit;
+          line-height: inherit;
+        }
+      }
+    }
   }
+
 
   &.service-row__column--actions {
     flex: 1;
