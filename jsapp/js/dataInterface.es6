@@ -113,13 +113,13 @@ var dataInterface;
      * external services
      */
 
-    getExternalServices(uid) {
+    getHooks(uid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/`,
         method: 'GET'
       });
     },
-    getExternalService(uid, hookUid) {
+    getHook(uid, hookUid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
         method: 'GET'
@@ -149,13 +149,13 @@ var dataInterface;
         method: 'DELETE'
       });
     },
-    getExternalServiceLogs(uid, hookUid) {
+    getHookLogs(uid, hookUid) {
       return $ajax({
         url: `/assets/${uid}/hooks/${hookUid}/logs/`,
         method: 'GET'
       })
     },
-    getExternalServiceLog(uid, hookUid, lid) {
+    getHookLog(uid, hookUid, lid) {
       return $ajax({
         url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
         method: 'GET'

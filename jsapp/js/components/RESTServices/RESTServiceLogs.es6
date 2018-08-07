@@ -18,11 +18,11 @@ export default class RESTServiceLogs extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      serviceName: null,
-      isServiceActive: false,
+      hookName: null,
+      isHookActive: false,
       assetUid: props.assetUid,
       hookUid: props.hookUid,
-      isLoadingService: true,
+      isLoadingHook: true,
       isLoadingLogs: true,
       logs: []
     };
@@ -36,26 +36,26 @@ export default class RESTServiceLogs extends React.Component {
 
   componentDidMount() {
     this.listenTo(
-      actions.externalServices.getLogs.completed,
+      actions.hooks.getLogs.completed,
       this.onLogsUpdated
     );
 
-    dataInterface.getExternalService(this.state.assetUid, this.state.hookUid)
+    dataInterface.getHook(this.state.assetUid, this.state.hookUid)
       .done((data) => {
         this.setState({
-          isLoadingService: false,
-          serviceName: data.name,
-          isServiceActive: data.active
+          isLoadingHook: false,
+          hookName: data.name,
+          isHookActive: data.active
         });
       })
       .fail((data) => {
         this.setState({
-          isLoadingService: false
+          isLoadingHook: false
         });
         alertify.error(t('Could not load REST Service'));
       });
 
-    actions.externalServices.getLogs(
+    actions.hooks.getLogs(
       this.state.assetUid,
       this.state.hookUid,
       {
@@ -88,7 +88,7 @@ export default class RESTServiceLogs extends React.Component {
       }
     });
 
-    actions.externalServices.retryLogs(
+    actions.hooks.retryLogs(
       this.state.assetUid,
       this.state.hookUid,
       {
@@ -114,7 +114,7 @@ export default class RESTServiceLogs extends React.Component {
 
     this.overrideLogStatus(log, this.STATUSES.PENDING);
 
-    actions.externalServices.retryLog(
+    actions.hooks.retryLog(
       this.state.assetUid,
       this.state.hookUid,
       log.uid,
@@ -179,7 +179,7 @@ export default class RESTServiceLogs extends React.Component {
         </a>
 
         <h2 className='rest-services-list__header-label rest-services-list__header-right'>
-          {this.state.serviceName}
+          {this.state.hookName}
         </h2>
       </header>
     )
@@ -213,7 +213,7 @@ export default class RESTServiceLogs extends React.Component {
                 <bem.ServiceRow__actionButton
                   onClick={this.retryAll.bind(this)}
                   data-tip={t('Retry all submissions')}
-                  disabled={!this.state.isServiceActive}
+                  disabled={!this.state.isHookActive}
                 >
                   <i className='k-icon-replace-all'/>
                 </bem.ServiceRow__actionButton>
@@ -237,7 +237,7 @@ export default class RESTServiceLogs extends React.Component {
 
                   {log.status !== this.STATUSES.SUCCESS &&
                     <bem.ServiceRow__actionButton
-                      disabled={log.status === this.STATUSES.PENDING || !this.state.isServiceActive}
+                      disabled={log.status === this.STATUSES.PENDING || !this.state.isHookActive}
                       onClick={this.retryLog.bind(this, log)}
                       data-tip={t('Retry submission')}
                     >
@@ -267,7 +267,7 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   render() {
-    if (this.state.isLoadingService || this.state.isLoadingLogs) {
+    if (this.state.isLoadingHook || this.state.isLoadingLogs) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
