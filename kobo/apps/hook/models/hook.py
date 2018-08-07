@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 from jsonbfield.fields import JSONField as JSONBField
 
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 from kpi.fields import KpiUidField
 
 
@@ -64,26 +65,33 @@ class Hook(models.Model):
     def success_count(self):
         if not self.__totals:
             self._get_totals()
-        return self.__totals.get(True)
+        return self.__totals.get(HOOK_LOG_SUCCESS)
 
     @property
     def failed_count(self):
         if not self.__totals:
             self._get_totals()
-        return self.__totals.get(False)
+        return self.__totals.get(HOOK_LOG_FAILED)
+
+    @property
+    def pending_count(self):
+        if not self.__totals:
+            self._get_totals()
+        return self.__totals.get(HOOK_LOG_PENDING)
 
     def _get_totals(self):
         # TODO add some cache
-        queryset = self.logs.values("success").annotate(values_count=models.Count("success"))
+        queryset = self.logs.values("status").annotate(values_count=models.Count("status"))
         queryset.query.clear_ordering(True)
 
         # Initialize totals
         self.__totals = {
-            False: 0,
-            True: 0
+            HOOK_LOG_SUCCESS: 0,
+            HOOK_LOG_FAILED: 0,
+            HOOK_LOG_PENDING: 0
         }
         for record in queryset:
-            self.__totals[record.get("success")] = record.get("values_count")
+            self.__totals[record.get("status")] = record.get("values_count")
 
     def reset_totals(self):
         # TODO remove cache when it's enabled

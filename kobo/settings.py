@@ -643,3 +643,6 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+# Number of tries Celery can do to send data to external endpoint
+HOOK_MAX_RETRIES = 3

@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -156,7 +157,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     @detail_route(methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):
-        hook = self.get_object()
-        print(hook)
+        #hook = self.get_object()
+        # ?query = {"_id": {"$in": [<failed_ids_csv>]}}
         #TODO implement Celery task
         return Response("Retry list")

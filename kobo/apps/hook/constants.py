@@ -1,0 +1,5 @@
+# -*- coding: utf-8 -*-
+
+HOOK_LOG_FAILED = 0
+HOOK_LOG_PENDING = 1
+HOOK_LOG_SUCCESS = 2

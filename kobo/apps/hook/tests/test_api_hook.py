@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
+from ..constants import HOOK_LOG_FAILED
+from ..models.hook_log import HookLog
 from kpi.tests.kpi_test_case import KpiTestCase
 
 
@@ -166,6 +168,16 @@ class ApiHookTestCase(KpiTestCase):
             "parent_lookup_hook": hook.uid,
             "uid": first_hooklog.get("uid")
         })
+
+        # It should be a success
+        response = self.client.patch(retry_url, format="json")
+        self.assertTrue(response.data.get("success"))
+
+
+        # Force status to failed (because celery only changes it after 3 failed attempts)
+        fhl = HookLog.objects.get(uid=first_hooklog.get("uid"))
+        fhl.status = HOOK_LOG_FAILED
+        fhl.save(reset_status=True)
 
         # It should be a success
         response = self.client.patch(retry_url, format="json")

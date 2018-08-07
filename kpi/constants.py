@@ -1,6 +1,4 @@
 
-
-
 ASSET_TYPE_TEXT = 'text'
 ASSET_TYPE_EMPTY = 'empty'
 ASSET_TYPE_QUESTION = 'question'

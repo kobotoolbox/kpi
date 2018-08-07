@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 import requests
 
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 from kpi.fields import KpiUidField
 
 
@@ -18,8 +19,8 @@ class HookLog(models.Model):
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
     data_id = models.IntegerField(default=0, db_index=True)  # `kc.logger.Instance.id`. Useful to retrieve data on retry
-    tries = models.IntegerField(default=0)
-    success = models.BooleanField(default=True)  # Could use status_code, but will speed-up queries.
+    tries = models.PositiveSmallIntegerField(default=0)
+    status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
     status_code = models.IntegerField(default=200)
     message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
@@ -28,14 +29,19 @@ class HookLog(models.Model):
     class Meta:
         ordering = ["-date_created"]
 
+    def mark_as_pending(self):
+        self.status = HOOK_LOG_PENDING
+        self.save(reset_status=True)
+
     def retry(self, data):
         """
-        Retry to send data to external service
+        Retries to send data to external service
         only if it has failed before this try.
         :param data: mixed.
         :return: tuple. status_code, response dict
         """
-        if self.success is not True:
+        if self.status == HOOK_LOG_FAILED:
+            self.mark_as_pending()
             if data:
                 try:
                     ServiceDefinition = self.hook.get_service_definition()
@@ -59,15 +65,28 @@ class HookLog(models.Model):
             }
 
         return status.HTTP_400_BAD_REQUEST, {
-            "detail": _("Instance has already been sent to external endpoint successfully.")
+            "detail": _("Data is being or has already been processed")
         }
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
         self.date_modified = timezone.now()
-        self.tries += 1
-        self.hook.reset_totals()
+        # We don't want to alter tries when we only change the status
+        if kwargs.pop("reset_status", False) is False:
+            self.tries += 1
+            self.hook.reset_totals()
         super(HookLog, self).save(*args, **kwargs)
+
+    @property
+    def status_str(self):
+        if self.status == HOOK_LOG_PENDING:
+            return "Pending"
+        elif self.status == HOOK_LOG_FAILED:
+            return "Failed"
+        elif self.status == HOOK_LOG_SUCCESS:
+            return "Success"
+        elif self.status == HOOK_LOG_CREATED:
+            return "Created"
 
     def __unicode__(self):
         return "<HookLog {uid}>".format(uid=self.uid)

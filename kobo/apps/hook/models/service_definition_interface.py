@@ -3,9 +3,12 @@ from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod
 import logging
+
 import requests
+from django.conf import settings
 from rest_framework import status
 
+from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED
 from .hook_log import HookLog
 
 
@@ -94,8 +97,8 @@ class ServiceDefinitionInterface(object):
                 str(e))
         except Exception as e:
             logger = logging.getLogger("console_logger")
-            logger.error("service_json.ServiceDefinition.send - HookLog #{} - {}".format(
-                self.uid, str(e)), exc_info=True)
+            logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
+                self._hook.uid, self._data.get("id"), str(e)), exc_info=True)
             self.save_log(
                 False,
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -123,7 +126,11 @@ class ServiceDefinitionInterface(object):
         except HookLog.DoesNotExist:
             log = HookLog(**fields)
 
-        log.success = success
+        if success:
+            log.status = HOOK_LOG_SUCCESS
+        elif log.tries > settings.HOOK_MAX_RETRIES:
+            log.status = HOOK_LOG_FAILED
+
         log.status_code = status_code
         log.message = message
 
