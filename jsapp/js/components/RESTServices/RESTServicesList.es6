@@ -172,7 +172,7 @@ export default class RESTServicesList extends React.Component {
                       className='count-information-wrapper'
                       data-tip={`${t('Success')} ${hook.success_count} · ${t('Pending')} ${hook.pending_count} · ${t('Failed')} ${hook.failed_count}`}
                     >
-                      <i className='k-icon-information'/>
+                      <i className='k-icon-help'/>
                     </span>
                   </bem.ServiceRow__column>
 
