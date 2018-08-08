@@ -93,7 +93,8 @@
     "vinyl-source-stream": "^1.1.0",
     "webpack": "^1.15.0",
     "webpack-bundle-tracker": "0.0.93",
-    "webpack-dev-server": "^3.1.5"
+    "webpack-dev-server": "^3.1.5",
+    "estraverse": "^4.2.0"
   },
   "scripts": {
     "build": "webpack --config webpack/prod.config.js --progress --colors",
@@ -111,8 +112,5 @@
   "bugs": {
     "url": "https://github.com/kobotoolbox/kpi/issues"
   },
-  "homepage": "https://github.com/kobotoolbox/kpi",
-  "dependencies": {
-    "estraverse": "^4.2.0"
-  }
+  "homepage": "https://github.com/kobotoolbox/kpi"
 }
