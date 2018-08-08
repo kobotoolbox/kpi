@@ -519,12 +519,6 @@
   .form-view__cell--translation-actions {
     min-width: 150px;
     text-align: right;
-
-    // helps to avoid clicking on button from row above
-    [data-tip]::before,
-    [data-tip]::after {
-      pointer-events: none;
-    }
   }
 
   .form-view__cell--add-language {
