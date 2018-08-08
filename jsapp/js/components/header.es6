@@ -152,12 +152,6 @@ class MainHeader extends Reflux.Component {
 
         //console.log(stores.session);
 
-        return (
-            <a href="http://ciren.asimov.cl">
-                <div className="header__close"></div>
-            </a>
-        );
-
         if (stores.session.currentAccount) {
             var accountName = stores.session.currentAccount.username;
             var accountEmail = stores.session.currentAccount.email;
