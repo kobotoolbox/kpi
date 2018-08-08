@@ -15,3 +15,5 @@ require('./xlform/translations.tests')
 require('./xlform/model.tests')
 require('./xlform/survey.tests')
 require('./xlform/utils.tests')
+
+require('../jsapp/js/utils.tests')
