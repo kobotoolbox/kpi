@@ -151,6 +151,7 @@ class MainHeader extends Reflux.Component {
         var langs = [];
 
         //console.log(stores.session);
+        return ();
 
         if (stores.session.currentAccount) {
             var accountName = stores.session.currentAccount.username;
