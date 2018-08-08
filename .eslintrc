@@ -28,7 +28,6 @@
     "no-underscore-dangle": 0,
     "camelcase": [2, {"properties": "never"}],
     "new-cap": 0,
-    "react/jsx-boolean-value": 2,
     "jsx-quotes": 0,
     "react/jsx-no-undef": 2,
     "react/jsx-sort-props": 0,
