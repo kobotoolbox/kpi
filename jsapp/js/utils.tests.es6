@@ -10,13 +10,33 @@ describe('utils', () => {
       chai.expect(langObj.name).to.equal('English');
       chai.expect(langObj.code).to.equal('en');
     });
+
+    it('should return undefined for invalid langString', () => {
+      chai.expect(getLangAsObject('English')).to.equal(undefined);
+      chai.expect(getLangAsObject('(en)')).to.equal(undefined);
+      chai.expect(getLangAsObject('English [en]')).to.equal(undefined);
+      chai.expect(getLangAsObject('English, en')).to.equal(undefined);
+      chai.expect(getLangAsObject('English: en')).to.equal(undefined);
+      chai.expect(getLangAsObject('(en) English')).to.equal(undefined);
+      chai.expect(getLangAsObject('English (en) (fr) (de)')).to.equal(undefined);
+      chai.expect(getLangAsObject('Pizza time!')).to.equal(undefined);
+    });
+
+    it('should work properly with getLangString', () => {
+      const langObj = getLangAsObject(getLangString({
+        name: 'English',
+        code: 'en'
+      }));
+      chai.expect(langObj.name).to.equal('English');
+      chai.expect(langObj.code).to.equal('en');
+    });
   });
 
   describe('getLangString', () => {
     it('should return valid langString from langObj', () => {
       const langString = getLangString({
-        languageName: 'English',
-        languageCode: 'en'
+        name: 'English',
+        code: 'en'
       });
       chai.expect(langString).to.equal('English (en)');
     });
@@ -27,6 +47,11 @@ describe('utils', () => {
         delivery: false
       });
       chai.expect(langString).to.equal(undefined);
+    });
+
+    it('should work properly with getLangAsObject', () => {
+      const langString = getLangString(getLangAsObject('English (en)'));
+      chai.expect(langString).to.equal('English (en)');
     });
   });
 });

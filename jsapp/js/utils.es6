@@ -131,28 +131,35 @@ export function currentLang() {
   return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
+// langString contains name and code e.g. "English (en)"
 export function getLangAsObject(langString) {
-  var lang = {
-    code: '',
-    name: ''
-  };
-  let opening = langString.indexOf('(');
-  let closing = langString.indexOf(')');
-  let langCode = langString.substring(opening + 1, closing);
+  const openingIndex = langString.indexOf('(');
+  const closingIndex = langString.indexOf(')');
 
-  if (langCode) {
-    lang.code = langCode;
-    lang.name = langString.substring(0, opening).trim();
+  const langCode = langString.substring(openingIndex + 1, closingIndex);
+
+  const langName = langString.substring(0, openingIndex).trim();
+
+  if (
+    langCode &&
+    langName &&
+    // make sure langString contains just name and bracket-wrapped code
+    langName.length + langCode.length + 3 === langString.length
+  ) {
+    return {
+      code: langCode,
+      name: langName
+    };
   } else {
-    lang.name = langString;
+    return undefined;
   }
-
-  return lang;
 }
 
 export function getLangString(obj) {
-  if (obj.languageName && obj.languageCode) {
-    return `${obj.languageName} (${obj.languageCode})`;
+  if (typeof obj === 'object' && obj.name && obj.code) {
+    return `${obj.name} (${obj.code})`;
+  } else {
+    return undefined;
   }
 }
 

@@ -20,26 +20,26 @@ import {t, getLangAsObject, getLangString, notify} from 'utils';
 
 /*
 Properties:
-- langString <string>
+- langString <string>: follows pattern "NAME (CODE)"
 - langIndex <string>
 - onLanguageChange <function>: required
-- existingLanguages <string[]>: for validation purposes
+- existingLanguages <langString[]>: for validation purposes
 */
 class LanguageForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      languageName: '',
-      languageNameError: null,
-      languageCode: '',
-      languageCodeError: null
+      name: '',
+      nameError: null,
+      code: '',
+      codeError: null
     }
 
     if (this.props.langString) {
       const lang = getLangAsObject(this.props.langString);
       this.state = {
-        languageName: lang.name || '',
-        languageCode: lang.code || ''
+        name: lang.name || '',
+        code: lang.code || ''
       }
     }
     autoBind(this);
@@ -52,7 +52,7 @@ class LanguageForm extends React.Component {
           // skip comparing to itself (editing language context)
         } else if (langString !== null) {
           const langObj = getLangAsObject(langString);
-          if (langObj.name === this.state.languageName) {
+          if (langObj.name === this.state.name) {
             isNameUnique = false;
           }
         }
@@ -70,7 +70,7 @@ class LanguageForm extends React.Component {
           // skip comparing to itself (editing language context)
         } else if (langString !== null) {
           const langObj = getLangAsObject(langString);
-          if (langObj.code === this.state.languageCode) {
+          if (langObj.code === this.state.code) {
             isCodeUnique = false;
           }
         }
@@ -85,34 +85,33 @@ class LanguageForm extends React.Component {
 
     const isNameValid = this.isLanguageNameValid();
     if (!isNameValid) {
-      this.setState({languageNameError: t('Name must be unique!')});
+      this.setState({nameError: t('Name must be unique!')});
     } else {
-      this.setState({languageNameError: null});
+      this.setState({nameError: null});
     }
 
     const isCodeValid = this.isLanguageCodeValid();
     if (!isCodeValid) {
-      this.setState({languageCodeError: t('Code must be unique!')});
+      this.setState({codeError: t('Code must be unique!')});
     } else {
-      this.setState({languageCodeError: null});
+      this.setState({codeError: null});
     }
 
     if (isNameValid && isCodeValid) {
-      if (this.props.langIndex !== undefined) {
-        this.props.onLanguageChange(this.state, this.props.langIndex);
-      } else {
-        this.props.onLanguageChange(this.state, -1);
-      }
+      this.props.onLanguageChange({
+        name: this.state.name,
+        code: this.state.code
+      }, this.props.langIndex || -1);
     }
   }
   onNameChange (newName) {
-    this.setState({languageName: newName});
+    this.setState({name: newName.trim()});
   }
   onCodeChange (newCode) {
-    this.setState({languageCode: newCode});
+    this.setState({code: newCode.trim()});
   }
   render () {
-    let isAnyFieldEmpty = this.state.languageName.length === 0 || this.state.languageCode.length === 0;
+    let isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
 
     return (
       <bem.FormView__form m='add-language-fields'>
@@ -120,9 +119,9 @@ class LanguageForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Language name')}</label>
             <TextBox
-              value={this.state.languageName}
+              value={this.state.name}
               onChange={this.onNameChange}
-              errors={this.state.languageNameError}
+              errors={this.state.nameError}
             />
           </bem.FormModal__item>
         </bem.FormView__cell>
@@ -131,9 +130,9 @@ class LanguageForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Language code')}</label>
             <TextBox
-              value={this.state.languageCode}
+              value={this.state.code}
               onChange={this.onCodeChange}
-              errors={this.state.languageCodeError}
+              errors={this.state.codeError}
             />
           </bem.FormModal__item>
         </bem.FormView__cell>

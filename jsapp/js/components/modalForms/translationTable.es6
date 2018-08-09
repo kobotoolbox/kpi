@@ -7,7 +7,7 @@ import actions from 'js/actions'
 import stores from 'js/stores'
 
 import {MODAL_TYPES} from 'js/constants'
-import {t, getLangAsObject, getLangString, notify} from 'utils'
+import {t} from 'utils'
 
 const SAVE_CHANGES_BUTTON_TEXT_DEFAULT = t('Save Changes');
 
