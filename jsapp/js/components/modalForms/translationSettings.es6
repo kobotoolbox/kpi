@@ -291,13 +291,15 @@ export class TranslationSettings extends React.Component {
       }
     }
 
-    for (var i = 0, len = choices.length; i < len; i++) {
-      if (choices[i].label) {
-        if (choices[i].label.length === translationsLength) {
-          choices[i].label.splice(langIndex, 1);
-        } else {
-          console.error('Translations index mismatch');
-          return false;
+    if (content.choices && content.choices.length) {
+      for (var i = 0, len = choices.length; i < len; i++) {
+        if (choices[i].label) {
+          if (choices[i].label.length === translationsLength) {
+            choices[i].label.splice(langIndex, 1);
+          } else {
+            console.error('Translations index mismatch');
+            return false;
+          }
         }
       }
     }
