@@ -392,14 +392,11 @@ export class FormLanding extends React.Component {
             <i className='k-icon-template'/>
             {t('Create template')}
           </bem.PopoverMenu__link>
+
           {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
               <i className='k-icon-language'/>
-              {(!translations || translations.length < 2) ?
-                t('Add Translations')
-                :
-                t('Manage Translations')
-              }
+              {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
         </ui.PopoverMenu>
