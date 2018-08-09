@@ -39,7 +39,7 @@ module.exports = do ->
             lang_str = key
           item[lang_str] = _translated_val
         )
-    item
+    return item
 
   parseArr = (type='survey', sArr, translations=false)->
     counts = {
@@ -105,8 +105,7 @@ module.exports = do ->
         if _existing_active_translation_name
           throw new Error('active translation set, but cannot be found')
         o._active_translation_name = translations[0]
-        translations[0] = null
-      else if translations.indexOf(null) > 0
+      else if translations.indexOf(null) isnt -1
         throw new Error("""
                         There is an unnamed translation in your form definition.
                         Please give a name to all translations in your form.
