@@ -98,10 +98,14 @@ class LanguageForm extends React.Component {
     }
 
     if (isNameValid && isCodeValid) {
+      let langIndex = -1;
+      if (this.props.langIndex !== undefined) {
+        langIndex = this.props.langIndex;
+      }
       this.props.onLanguageChange({
         name: this.state.name,
         code: this.state.code
-      }, this.props.langIndex || -1);
+      }, langIndex);
     }
   }
   onNameChange (newName) {
