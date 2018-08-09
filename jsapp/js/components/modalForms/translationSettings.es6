@@ -223,6 +223,9 @@ export class TranslationSettings extends React.Component {
 
     this.updateAsset(content);
   }
+  canAddLanguages() {
+    return !(this.state.translations.length === 1 && this.state.translations[0] === null);
+  }
   getAllLanguages(thisLanguage) {
     return this.state.translations;
   }
@@ -335,7 +338,7 @@ export class TranslationSettings extends React.Component {
               {t('Here you can add more languages to your project, and translate the strings in each of them.')}
               &nbsp;
               <em>
-                {t('Note: make sure your default language has a name. If it doesn\'t, you will not be able to edit your form in the form builder.')}
+                {t('Note: make sure to configure your default language before adding more.')}
               </em>
             </bem.FormView__cell>
             :
@@ -399,8 +402,11 @@ export class TranslationSettings extends React.Component {
           })}
           {!this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language'>
-              <button className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
-                      onClick={this.showAddLanguageForm}>
+              <button
+                className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+                onClick={this.showAddLanguageForm}
+                disabled={!this.canAddLanguages()}
+              >
                 {t('Add language')}
               </button>
             </bem.FormView__cell>
