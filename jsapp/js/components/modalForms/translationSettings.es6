@@ -326,7 +326,7 @@ export class TranslationSettings extends React.Component {
         <bem.FormModal__item>
           {(translations && translations[0] === null) ?
             <bem.FormView__cell m='translation-note'>
-              {t('Here you can add one more more languages to your project, and translate the strings in each language.')}
+              {t('Here you can add more languages to your project, and translate the strings in each of them.')}
               &nbsp;
               <em>
                 {t('Note: make sure your default language has a name. If it doesn\'t, you will not be able to edit your form in the form builder.')}
