@@ -414,9 +414,9 @@ export class FormLanding extends React.Component {
           <strong>{t('Languages:')}</strong>
           &nbsp;
           <ul>
-            {translations.map((langString)=>{
+            {translations.map((langString, n)=>{
               return (
-                <li>
+                <li key={n}>
                   {langString || t('Unnamed language')}
                 </li>
               );
