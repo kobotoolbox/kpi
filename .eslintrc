@@ -62,7 +62,6 @@
     "react/no-did-mount-set-state":0,
     "no-extra-semi":0,
     "no-extra-strict":0,
-    "camelcase":0,
     "no-new-object":0,
     "no-debugger":0
 
