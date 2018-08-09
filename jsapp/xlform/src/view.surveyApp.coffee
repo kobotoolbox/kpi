@@ -86,6 +86,8 @@ module.exports = do ->
       $et.parents('.card__settings').find(".card__settings__fields--#{tabId}").addClass('card__settings__fields--active')
 
     surveyRowSortableStop: (evt)->
+      @survey.trigger('change')
+
       $et = $(evt.target)
       cid = $et.data('rowId')
 
@@ -169,17 +171,23 @@ module.exports = do ->
     forceSelectRow: (evt)->
       # forceSelectRow is used to mock the multiple-select key
       @selectRow($.extend({}, evt))
+
     deselect_all_rows: () ->
       @$('.survey__row').removeClass('survey__row--selected')
+      @activateGroupButton(false)
+      return
 
     deselect_rows: (evt) =>
-      if @is_selecting
-        @is_selecting = false
+      # clicking on survey__row is aleady handled, so we ignore it - we only want
+      # to deselet rows when clicking elsewhere
+      $etp = $(evt.target).parents('.survey__row')
+      if !!$etp.length
+        return
       else
         @deselect_all_rows()
       return
+
     selectRow: (evt)->
-      @is_selecting = true
       $et = $(evt.target)
       if $et.hasClass('js-blur-on-select-row') || $et.hasClass('editable-wrapper')
         return
@@ -194,8 +202,6 @@ module.exports = do ->
           selected_rows = $target.siblings('.survey__row--selected')
           if !$target.hasClass('survey__row--selected') || selected_rows.length > 1
             @deselect_all_rows()
-
-
 
         $target.toggleClass("survey__row--selected")
         if $target.hasClass('survey__row--group')
@@ -216,15 +222,14 @@ module.exports = do ->
       if $group.length > 0
         @select_group_if_all_items_selected($group)
 
-    questionSelect: (evt)->
+    questionSelect: () ->
       @activateGroupButton(@$el.find('.survey__row--selected').length > 0)
       return
 
-    activateGroupButton: (active=true)->
-      @surveyStateStore.setState({
-          groupButtonIsActive: active
-        })
-      @$('.btn--group-questions').toggleClass('btn--disabled', !active)
+    activateGroupButton: (active) ->
+      @surveyStateStore.setState({groupButtonIsActive: active})
+      $('.formBuilder-header__button--group').attr('disabled', !active)
+      return
 
     getApp: -> @
 
@@ -599,6 +604,8 @@ module.exports = do ->
       evt.preventDefault()
       if confirm(_t("Are you sure you want to delete this question?") + " " +
           _t("This action cannot be undone."))
+        @survey.trigger('change')
+
         $et = $(evt.target)
         rowEl = $et.parents(".survey__row").eq(0)
         rowId = rowEl.data("rowId")

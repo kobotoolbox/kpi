@@ -81,6 +81,9 @@ module.exports = do ->
       @button.bind_event 'click', () =>
         @$handCode.replaceWith($destination)
         @context.use_mode_selector_helper()
+      @$handCode.on('change', () =>
+        @context.view_factory.survey.trigger('change')
+      )
     serialize: () ->
       @textarea.val()
     constructor: () ->

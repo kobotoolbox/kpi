@@ -1,0 +1,11 @@
+Select-input > input {
+  line-height: 14px;
+}
+
+.Select-menu-outer {
+  max-height: 36px * 4.5 + 2px; // display 4.5 items
+}
+
+.Select-menu {
+  max-height: 36px * 4.5; // display 4.5 items
+}

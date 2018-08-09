@@ -15,6 +15,7 @@ module.exports = do ->
       $($.parseHTML $viewTemplates.row.selectQuestionExpansion()).insertAfter @rowView.$('.card__header')
       @$el = @rowView.$(".list-view")
       @ulClasses = @$("ul").prop("className")
+
     render: ->
       cardText = @rowView.$el.find('.card__text')
       if cardText.find('.card__buttons__multioptions.js-expand-multioptions').length is 0
@@ -42,16 +43,20 @@ module.exports = do ->
           deactivate: =>
             if @hasReordered
               @reordered()
+              @model.getSurvey()?.trigger('change')
             true
           change: => @hasReordered = true
         })
       btn = $($viewTemplates.$$render('xlfListView.addOptionButton'))
-      btn.click ()=>
+      btn.click(() =>
         i = @model.options.length
         @addEmptyOption("Option #{i+1}")
+        @model.getSurvey()?.trigger('change')
+      )
 
       @$el.append(btn)
-      @
+      return @
+
     addEmptyOption: (label)->
       emptyOpt = new $choices.Option(label: label)
       @model.options.add(emptyOpt)
@@ -153,8 +158,11 @@ module.exports = do ->
         ifield.addClass("empty")
       else
         ifield.removeClass("empty")
+
     remove: ()->
       $parent = @$el.parent()
+
+      @model.getSurvey()?.trigger('change')
 
       @$el.remove()
       @model.destroy()
@@ -162,6 +170,7 @@ module.exports = do ->
       lis = $parent.find('li')
       if lis.length == 1
         lis.find('.js-remove-option').addClass('hidden')
+
     saveValue: (nval)->
       # if new value has no non-space characters, it is invalid
       unless "#{nval}".match /\S/
@@ -181,6 +190,7 @@ module.exports = do ->
             validXmlTag: true
           @model.set("name", $modelUtils.sluggify(nval, sluggifyOpts))
         @$el.trigger("choice-list-update", @options.cl.cid)
+        @model.getSurvey()?.trigger('change')
         return
       else
         return newValue: @model.get "label"
