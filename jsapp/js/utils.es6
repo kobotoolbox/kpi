@@ -49,6 +49,32 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
+// TRANSLATIONS HACK (Part 2/2):
+// this function reverses nullifying default language - use it just before saving
+export function unnullifyDefaultLanguage(surveyDataJSON, defaultLang, translatedProp) {
+  if (typeof defaultLang !== 'string' || typeof translatedProp !== 'string') {
+    return surveyDataJSON;
+  }
+
+  let surveyData = JSON.parse(surveyDataJSON);
+
+  // replace every "translatedProp" with "translatedProp::defaultLang"
+  surveyData.choices.forEach((choice) => {
+    if (typeof choice[translatedProp] !== 'undefined') {
+      choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
+      delete choice[translatedProp];
+    }
+  });
+  surveyData.survey.forEach((surveyRow) => {
+    if (typeof surveyRow[translatedProp] !== 'undefined') {
+      surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
+      delete surveyRow[translatedProp];
+    }
+  });
+
+  return JSON.stringify(surveyData);
+}
+
 export function redirectTo(href) {
   window.location.href = href;
 }

@@ -99,6 +99,15 @@ module.exports = do ->
     if translations
       if translations.length > 1 and translations.indexOf(null) isnt -1
         throw new Error("There is an unnamed translation in your form definition. Please give a name to all translations in your form.")
+
+      ###
+      TRANSLATIONS HACK (Part 1/2):
+      all the coffee code assumes first language to be null, and we don't want
+      to introduce potential code-breaking refactor in old code, so we store
+      first language, then replace with null and reverse this just before saving
+      ###
+      o.translations_0 = translations[0]
+      translations[0] = null
     else
       translations = [null]
 
