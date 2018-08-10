@@ -25,7 +25,7 @@ module.exports = do ->
       @ngScope = opts.ngScope
       @surveyView = @options.surveyView
       @model.on "detail-change", (key, value, ctxt)=>
-        customEventName = "row-detail-change-#{key}"
+        customEventName = $viewUtils.normalizeEventName("row-detail-change-#{key}")
         @$(".on-#{customEventName}").trigger(customEventName, key, value, ctxt)
 
     drop: (evt, index)->
