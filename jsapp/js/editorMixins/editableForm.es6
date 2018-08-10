@@ -304,11 +304,7 @@ export default assign({
       this.app.survey.settings.set('title', this.state.name);
 
     let surveyJSON = surveyToValidJson(this.app.survey)
-    surveyJSON = unnullifyDefaultLanguage(
-      surveyJSON,
-      this.state.asset.content.translations_0,
-      this.state.asset.content.translated[0]
-    );
+    surveyJSON = unnullifyDefaultLanguage(surveyJSON, this.state.asset.content);
     let params = {source: surveyJSON};
 
     params = koboMatrixParser(params);
@@ -344,11 +340,7 @@ export default assign({
     }
 
     let surveyJSON = surveyToValidJson(this.app.survey)
-    surveyJSON = unnullifyDefaultLanguage(
-      surveyJSON,
-      this.state.asset.content.translations_0,
-      this.state.asset.content.translated[0]
-    );
+    surveyJSON = unnullifyDefaultLanguage(surveyJSON, this.state.asset.content);
     let params = {source: surveyJSON};
 
     if (this.state.name) {
