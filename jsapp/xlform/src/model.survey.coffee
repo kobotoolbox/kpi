@@ -52,6 +52,7 @@ module.exports = do ->
 
     @create: (options={}, addlOpts) ->
       return new Survey(options, addlOpts)
+
     linkUpChoiceLists: ->
       # In case of cascading selects, this will ensure choiceLists are connected to
       # sub choice lists through a private "__cascadeList" property
@@ -62,7 +63,7 @@ module.exports = do ->
           throw new Error("cascading choices can only reference one choice list")
         else if overlapping_choice_keys.length is 1
           choiceList.__cascadedList = @choices.get(overlapping_choice_keys[0])
-      null
+      return
 
     insert_row: (row, index) ->
       if row._isCloned

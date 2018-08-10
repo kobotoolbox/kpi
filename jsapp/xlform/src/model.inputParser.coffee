@@ -96,22 +96,9 @@ module.exports = do ->
   inputParser.parseArr = parseArr
   inputParser.parse = (o)->
     translations = o.translations
-    if o['#active_translation_name']
-      _existing_active_translation_name = o['#active_translation_name']
-      delete o['#active_translation_name']
-
     if translations
-      if translations.indexOf(null) is -1 # there is no unnamed translation
-        if _existing_active_translation_name
-          throw new Error('active translation set, but cannot be found')
-        o._active_translation_name = translations[0]
-      else if translations.indexOf(null) isnt -1
-        throw new Error("""
-                        There is an unnamed translation in your form definition.
-                        Please give a name to all translations in your form.
-                        """)
-      else if _existing_active_translation_name # there is already an active null translation
-        o._active_translation_name = _existing_active_translation_name
+      if translations.length > 1 and translations.indexOf(null) isnt -1
+        throw new Error("There is an unnamed translation in your form definition. Please give a name to all translations in your form.")
     else
       translations = [null]
 
@@ -128,7 +115,7 @@ module.exports = do ->
 
     o.translations = translations
 
-    o
+    return o
 
   inputParser.loadChoiceLists = (passedChoices, choices)->
     tmp = {}
