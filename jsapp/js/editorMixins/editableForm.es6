@@ -341,7 +341,7 @@ export default assign({
 
     let surveyJSON = surveyToValidJson(this.app.survey)
     surveyJSON = unnullifyDefaultLanguage(surveyJSON, this.state.asset.content);
-    let params = {source: surveyJSON};
+    let params = {content: surveyJSON};
 
     if (this.state.name) {
       params.name = this.state.name;
