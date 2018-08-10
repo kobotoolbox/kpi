@@ -20,6 +20,7 @@ import {
   LANGUAGE_COOKIE_NAME,
   stringToColor,
 } from '../utils';
+import {ASSET_TYPES} from '../constants';
 import searches from '../searches';
 
 import {
@@ -256,7 +257,7 @@ class MainHeader extends Reflux.Component {
                 <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               </div>
             }
-            { this.isFormSingle() && this.state.asset &&
+            { this.isFormSingle() && this.state.asset && this.state.asset.asset_type === ASSET_TYPES.survey.id &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
                   <i className='k-icon-deploy' />

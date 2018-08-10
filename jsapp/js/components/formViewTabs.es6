@@ -10,6 +10,8 @@ import stores from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 
+import {ASSET_TYPES} from '../constants';
+
 import {
   t,
   assign,
@@ -140,8 +142,13 @@ class FormViewTabs extends Reflux.Component {
     return false;
   }
   render() {
+    if (this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return false
+    }
+
     if (!this.props.show)
       return false;
+
     if (this.props.type == 'top') {
       return (
         this.renderTopTabs()

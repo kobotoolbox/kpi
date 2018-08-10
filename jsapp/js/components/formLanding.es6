@@ -15,7 +15,10 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import {MODAL_TYPES} from '../constants';
+import {
+  MODAL_TYPES,
+  ASSET_TYPES
+} from '../constants';
 
 import {
   formatTime,
@@ -437,6 +440,10 @@ export class FormLanding extends React.Component {
           </bem.Loading>
         </ui.Panel>
       );
+    }
+
+    if (this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return false
     }
 
     return (

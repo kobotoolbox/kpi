@@ -21,16 +21,14 @@ import {
   ProjectDownloads
 } from '../components/formEditors';
 
-import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
+import {
+  PROJECT_SETTINGS_CONTEXTS,
+  ASSET_TYPES
+} from '../constants';
 
 import FormMap from '../components/map';
 
-import {
-  assign,
-  t,
-  log,
-  notify,
-} from '../utils';
+import {t} from '../utils';
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -52,6 +50,10 @@ export class FormSubScreens extends React.Component {
   render () {
     if (!this.state.permissions)
       return false;
+
+    if (this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return false
+    }
 
     if (this.props.location.pathname != `/forms/${this.state.uid}/settings` &&
         !this.userCan('view_submissions', this.state)) {
