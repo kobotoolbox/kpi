@@ -142,7 +142,7 @@ class FormViewTabs extends Reflux.Component {
     return false;
   }
   render() {
-    if (this.state.asset_type !== ASSET_TYPES.survey.id) {
+    if (this.state.asset && this.state.asset.asset_type !== ASSET_TYPES.survey.id) {
       return false
     }
 

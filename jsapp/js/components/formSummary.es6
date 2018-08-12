@@ -18,7 +18,10 @@ import {
   assign, t, formatTime, formatDate, stringToColor
 } from '../utils';
 
-import {MODAL_TYPES} from '../constants';
+import {
+  MODAL_TYPES,
+  ASSET_TYPES
+} from '../constants';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -316,6 +319,10 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+
+    if (this.state.asset_type && this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return false;
+    }
 
     if (!this.state.permissions) {
       return (
