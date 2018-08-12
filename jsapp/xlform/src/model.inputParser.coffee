@@ -108,7 +108,7 @@ module.exports = do ->
       to introduce potential code-breaking refactor in old code, so we store
       first language, then replace with null and reverse this just before saving
       NOTE: when importing assets from Library into form, we need to make sure
-      the default language is the same (or force baseSurve default language)
+      the default language is the same (or force baseSurvey default language)
       ###
       if baseSurvey
         formDefaultLang = baseSurvey._initialParams.translations_0
