@@ -158,8 +158,16 @@ class LanguageForm extends React.Component {
 export class TranslationSettings extends React.Component {
   constructor(props){
     super(props);
+
+    let translations = [];
+    if (props.asset) {
+      translations = props.asset.content.translations;
+    }
+
     this.state = {
-      translations: props.asset.content.translations || [],
+      assetUid: props.assetUid,
+      asset: props.asset,
+      translations: translations,
       showAddLanguageForm: false,
       renameLanguageIndex: -1
     }
@@ -167,9 +175,18 @@ export class TranslationSettings extends React.Component {
   }
   componentDidMount () {
     this.listenTo(stores.asset, this.assetStoreChange);
+
+    if (!this.state.asset && this.state.assetUid) {
+      stores.allAssets.whenLoaded(this.props.assetUid, this.assetStoreChange);
+    }
   }
   assetStoreChange(asset) {
-    let uid = this.props.asset.uid;
+    let uid;
+    if (this.state.asset) {
+      uid = this.state.asset.uid;
+    } else if (this.state.assetUid) {
+      uid = this.state.assetUid;
+    }
 
     this.setState({
       translations: asset[uid].content.translations,
@@ -208,12 +225,12 @@ export class TranslationSettings extends React.Component {
     const index = evt.currentTarget.dataset.index;
     stores.pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
-      asset: this.props.asset,
+      asset: this.state.asset,
       langIndex: index
     });
   }
   onLanguageChange(lang, index) {
-    let content = this.props.asset.content;
+    let content = this.state.asset.content;
     if (index > -1) {
       content.translations[index] = getLangString(lang);
     } else {
@@ -231,7 +248,7 @@ export class TranslationSettings extends React.Component {
   }
   deleteLanguage(evt) {
     const index = evt.currentTarget.dataset.index;
-    const content = this.deleteTranslations(this.props.asset.content, index);
+    const content = this.deleteTranslations(this.state.asset.content, index);
     if (content) {
       content.translations.splice(index, 1);
       const dialog = alertify.dialog('confirm');
@@ -314,7 +331,7 @@ export class TranslationSettings extends React.Component {
   }
   updateAsset (content) {
     actions.resources.updateAsset(
-      this.props.asset.uid,
+      this.state.asset.uid,
       {content: JSON.stringify(content)}
     );
   }

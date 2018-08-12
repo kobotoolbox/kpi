@@ -364,6 +364,15 @@ class AssetRow extends React.Component {
                   {t('Replace project')}
                 </bem.PopoverMenu__link>
               }
+              { userCanEdit &&
+                <bem.PopoverMenu__link
+                  data-action={'translations'}
+                  data-asset-uid={this.props.uid}
+                >
+                  <i className='k-icon-language' />
+                  {t('Manage translations')}
+                </bem.PopoverMenu__link>
+              }
               {this.props.downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}

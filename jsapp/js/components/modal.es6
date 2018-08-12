@@ -224,7 +224,10 @@ class Modal extends React.Component {
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
             { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
-              <TranslationSettings asset={this.props.params.asset}/>
+              <TranslationSettings
+                asset={this.props.params.asset}
+                assetUid={this.props.params.assetUid}
+              />
             }
             { this.props.params.type == MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
               <TranslationTable asset={this.props.params.asset} langIndex={this.props.params.langIndex} />
