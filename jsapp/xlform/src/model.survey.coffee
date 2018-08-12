@@ -296,8 +296,8 @@ module.exports = do ->
   Survey.load.md = (md)->
     sObj = $markdownTable.mdSurveyStructureToObject(md)
     new Survey(sObj)
-  Survey.loadDict = (obj)->
-    _parsed = $inputParser.parse obj
+  Survey.loadDict = (obj, baseSurvey)->
+    _parsed = $inputParser.parse(obj, baseSurvey)
     new Survey(_parsed)
 
   _is_csv = (csv_repr)->

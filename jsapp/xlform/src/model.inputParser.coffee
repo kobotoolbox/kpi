@@ -94,7 +94,9 @@ module.exports = do ->
     _curGrp().export().__rows
 
   inputParser.parseArr = parseArr
-  inputParser.parse = (o)->
+
+  # pass baseSurvey whenever you import other asset into existing form
+  inputParser.parse = (o, baseSurvey)->
     translations = o.translations
     if translations
       if translations.length > 1 and translations.indexOf(null) isnt -1
