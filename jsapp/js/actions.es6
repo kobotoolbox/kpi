@@ -777,9 +777,13 @@ actions.resources.loadAsset.listen(function(params){
     }[params.id[0]];
   }
 
-  dataInterface[dispatchMethodName](params)
-      .done(actions.resources.loadAsset.completed)
-      .fail(actions.resources.loadAsset.failed);
+  if (dispatchMethodName) {
+    dataInterface[dispatchMethodName](params)
+        .done(actions.resources.loadAsset.completed)
+        .fail(actions.resources.loadAsset.failed);
+  } else {
+    actions.resources.loadAsset.failed()
+  }
 });
 
 actions.resources.loadAssetContent.listen(function(params){
