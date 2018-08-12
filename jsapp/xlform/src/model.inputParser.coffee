@@ -107,7 +107,32 @@ module.exports = do ->
       all the coffee code assumes first language to be null, and we don't want
       to introduce potential code-breaking refactor in old code, so we store
       first language, then replace with null and reverse this just before saving
+      NOTE: when importing assets from Library into form, we need to make sure
+      the default language is the same (or force baseSurve default language)
       ###
+      if baseSurvey
+        formDefaultLang = baseSurvey._initialParams.translations_0
+        translatedProp = o.translated[0]
+        # case 1: nothing to do - same default language in both
+        if translations[0] is formDefaultLang
+        # case 2: imported asset has form default language but not as first, so
+        # we need to reorder things
+        else if o.translations.includes(formDefaultLang)
+          defaultLangIndex = o.translations.indexOf(formDefaultLang)
+          translations.unshift(translations.pop(defaultLangIndex))
+          for row in o.survey
+            transletedPropArr = row[translatedProp]
+            if transletedPropArr
+              transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex))
+        # case 3: imported assed doesn't have form default language, so we
+        # add it as first and we force it onto the asset as the first language
+        # and duplicate first language property as default language property
+        if translations[0] isnt formDefaultLang
+          translations.unshift(formDefaultLang)
+          for row in o.survey
+            if row[translatedProp]
+              row[translatedProp].unshift(row[translatedProp][0])
+
       o.translations_0 = translations[0]
       translations[0] = null
     else
