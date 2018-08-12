@@ -14,7 +14,7 @@ import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import {
   surveyToValidJson,
-  unnullifyDefaultLanguage,
+  unnullifyTranslations,
   notify,
   assign,
   t,
@@ -304,8 +304,10 @@ export default assign({
       this.app.survey.settings.set('title', this.state.name);
 
     let surveyJSON = surveyToValidJson(this.app.survey)
-    surveyJSON = unnullifyDefaultLanguage(surveyJSON, this.state.asset.content);
-    let params = {source: surveyJSON};
+    if (this.state.asset) {
+      surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
+    }
+    let params = {content: surveyJSON};
 
     params = koboMatrixParser(params);
 
@@ -340,7 +342,9 @@ export default assign({
     }
 
     let surveyJSON = surveyToValidJson(this.app.survey)
-    surveyJSON = unnullifyDefaultLanguage(surveyJSON, this.state.asset.content);
+    if (this.state.asset) {
+      surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
+    }
     let params = {content: surveyJSON};
 
     if (this.state.name) {
