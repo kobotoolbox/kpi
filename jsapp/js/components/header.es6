@@ -252,6 +252,11 @@ class MainHeader extends Reflux.Component {
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
+            { this.isFormSingle() && this.state.asset && this.state.asset.asset_type !== ASSET_TYPES.survey.id &&
+              <div className='mdl-layout__header-searchers'>
+                <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
+              </div>
+            }
             { this.isLibrary() &&
               <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
