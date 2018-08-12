@@ -14,6 +14,7 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import {FormNotFound} from '../app';
 
 import {
   MODAL_TYPES,
@@ -442,8 +443,8 @@ export class FormLanding extends React.Component {
       );
     }
 
-    if (this.state.asset_type !== ASSET_TYPES.survey.id) {
-      return false
+    if (this.state.asset_type && this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return (<FormNotFound/>);
     }
 
     return (

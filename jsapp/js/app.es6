@@ -249,17 +249,17 @@ class FormXform extends React.Component {
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
 
-class FormNotFound extends React.Component {
+export class FormNotFound extends React.Component {
   render () {
     return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('path not found / recognized')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
-      );
+      <ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
+            {t('path not found / recognized')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      </ui.Panel>
+    );
   }
 };
 

@@ -15,6 +15,7 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/sharingForm';
 import DataTable from '../components/table';
+import {FormNotFound} from '../app';
 
 import {
   ProjectSettings,
@@ -51,8 +52,8 @@ export class FormSubScreens extends React.Component {
     if (!this.state.permissions)
       return false;
 
-    if (this.state.asset_type !== ASSET_TYPES.survey.id) {
-      return false
+    if (this.state.asset_type && this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return (<FormNotFound/>);
     }
 
     if (this.props.location.pathname != `/forms/${this.state.uid}/settings` &&

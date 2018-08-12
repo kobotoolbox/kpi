@@ -9,6 +9,7 @@ import {dataInterface} from '../dataInterface';
 import stores from '../stores';
 import mixins from '../mixins';
 import bem from '../bem';
+import {FormNotFound} from '../app';
 
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
@@ -320,10 +321,6 @@ class FormSummary extends React.Component {
   render () {
     let docTitle = this.state.name || t('Untitled');
 
-    if (this.state.asset_type && this.state.asset_type !== ASSET_TYPES.survey.id) {
-      return false;
-    }
-
     if (!this.state.permissions) {
       return (
         <bem.Loading>
@@ -333,6 +330,10 @@ class FormSummary extends React.Component {
           </bem.Loading__inner>
         </bem.Loading>
       );
+    }
+
+    if (this.state.asset_type && this.state.asset_type !== ASSET_TYPES.survey.id) {
+      return (<FormNotFound/>);
     }
 
     if (!this.userCan('view_submissions', this.state)) {
