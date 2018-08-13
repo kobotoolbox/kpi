@@ -45,6 +45,7 @@ export class TranslationSettings extends React.Component {
   }
   onAssetChange(asset) {
     this.setState({
+      asset: asset,
       translations: asset.content.translations,
       showAddLanguageForm: false,
       renameLanguageIndex: -1
@@ -211,6 +212,16 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     );
   }
+  renderLoadingMessage() {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('loading...')}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
   renderTranslationsSettings(translations) {
     return (
       <bem.FormModal m='translation-settings'>
@@ -312,6 +323,10 @@ export class TranslationSettings extends React.Component {
     );
   }
   render () {
+    if (!this.state.asset) {
+      return this.renderLoadingMessage();
+    }
+
     let translations = this.state.translations;
     if (translations.length === 0) {
       return this.renderEmptyMessage();
