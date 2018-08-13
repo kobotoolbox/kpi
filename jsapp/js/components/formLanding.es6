@@ -95,7 +95,7 @@ export class FormLanding extends React.Component {
         </bem.FormView__cell>
       );
   }
-  sharingModal (evt) {
+  showSharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: MODAL_TYPES.SHARING,
@@ -373,7 +373,7 @@ export class FormLanding extends React.Component {
           </bem.PopoverMenu__link>
 
           {userCanEdit &&
-            <bem.PopoverMenu__link onClick={this.sharingModal}>
+            <bem.PopoverMenu__link onClick={this.showSharingModal}>
               <i className='k-icon-share'/>
               {t('Share this project')}
             </bem.PopoverMenu__link>
