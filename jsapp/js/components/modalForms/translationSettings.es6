@@ -46,7 +46,7 @@ export class TranslationSettings extends React.Component {
   onAssetChange(asset) {
     this.setState({
       asset: asset,
-      translations: asset.content.translations,
+      translations: asset.content.translations || [],
       showAddLanguageForm: false,
       renameLanguageIndex: -1
     })
