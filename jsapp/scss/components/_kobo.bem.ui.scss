@@ -253,8 +253,7 @@
 .popover-menu__item {
   background-color: #FFF;
   display: block;
-  padding: 6px 10px;
-  padding-right: 16px;
+  padding: 6px 16px 6px 10px;
   position: relative;
   color: $cool-gray;
   cursor: pointer;
@@ -284,6 +283,13 @@
 
   &.divider {
     border-top: 1px solid lighten($cool-gray, 25%);
+  }
+}
+
+@media screen and (max-height: 475px) {
+  .popover-menu__link,
+  .popover-menu__item {
+    padding: 3px 8px 3px 5px;
   }
 }
 

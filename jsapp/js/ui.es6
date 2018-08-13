@@ -242,12 +242,11 @@ class PopoverMenu extends React.Component {
 
     if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
       this.props.popoverSetVisible();
-      var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
-      var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
-      if ($assetListHeight - $assetRowOffset < this.MAX_ASSETROW_MENU_HEIGHT) {
-        this.setState({
-          placement: 'above',
-        });
+      const $assetRowTopOffset = $(evt.target).parents('.asset-row').offset().top;
+      if ($assetRowTopOffset > this.MAX_ASSETROW_MENU_HEIGHT) {
+        this.setState({placement: 'above'});
+      } else {
+        this.setState({placement: 'below'});
       }
     }
   }
