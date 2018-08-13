@@ -37,30 +37,32 @@ export class TranslationSettings extends React.Component {
     autoBind(this);
   }
   componentDidMount () {
-    this.listenTo(stores.asset, this.assetStoreChange);
+    this.listenTo(stores.asset, this.onAssetsChange);
 
     if (!this.state.asset && this.state.assetUid) {
-      stores.allAssets.whenLoaded(this.props.assetUid, this.assetStoreChange);
+      stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
     }
   }
-  assetStoreChange(asset) {
-    let uid;
-    if (this.state.asset) {
-      uid = this.state.asset.uid;
-    } else if (this.state.assetUid) {
-      uid = this.state.assetUid;
-    }
-
+  onAssetChange(asset) {
     this.setState({
-      translations: asset[uid].content.translations,
+      translations: asset.content.translations,
       showAddLanguageForm: false,
       renameLanguageIndex: -1
     })
 
     stores.pageState.showModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: asset[uid]
+      asset: asset
     });
+  }
+  onAssetsChange(assetsList) {
+    let uid;
+    if (this.state.asset) {
+      uid = this.state.asset.uid;
+    } else if (this.state.assetUid) {
+      uid = this.state.assetUid;
+    }
+    this.onAssetChange(assetsList[uid]);
   }
   showAddLanguageForm() {
     this.setState({
