@@ -202,6 +202,7 @@ class PopoverMenu extends React.Component {
       popoverHiding: false,
       placement: 'below'
     });
+    this.MAX_ASSETROW_MENU_HEIGHT = 300;
     this._mounted = false;
     autoBind(this);
   }
@@ -243,7 +244,7 @@ class PopoverMenu extends React.Component {
       this.props.popoverSetVisible();
       var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
       var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
-      if ($assetListHeight - $assetRowOffset < 150) {
+      if ($assetListHeight - $assetRowOffset < this.MAX_ASSETROW_MENU_HEIGHT) {
         this.setState({
           placement: 'above',
         });
