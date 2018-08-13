@@ -82,10 +82,14 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   retryAll(evt) {
+    const currentLogs = this.state.logs;
     currentLogs.forEach((log) => {
       if (log.status === this.STATUSES.FAILED) {
         this.overrideLogStatus(log, this.STATUSES.PENDING);
       }
+    });
+    this.setState({
+      logs: currentLogs
     });
 
     actions.hooks.retryLogs(
@@ -145,7 +149,7 @@ export default class RESTServiceLogs extends React.Component {
     });
     this.setState({
       logs: currentLogs
-    })
+    });
   }
 
   showLogInfo(log, evt) {
