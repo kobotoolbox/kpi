@@ -527,12 +527,11 @@
   .form-view__label--default-language {
     display: inline-block;
     vertical-align: middle;
-    padding: 5px;
+    text-align: center;
     font-style: italic;
-    color: $cool-green;
+    color: $cool-silver;
     // 3 * .form-view__icon-button width
     min-width: 96px;
-    text-align: center;
   }
 
   .form-view__cell--add-language {
