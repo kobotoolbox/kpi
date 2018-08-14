@@ -32,6 +32,7 @@ export class TranslationSettings extends React.Component {
       asset: props.asset,
       translations: translations || [],
       showAddLanguageForm: false,
+      isUpdatingDefaultLanguage: false,
       renameLanguageIndex: -1
     }
     autoBind(this);
@@ -48,6 +49,7 @@ export class TranslationSettings extends React.Component {
       asset: asset,
       translations: asset.content.translations || [],
       showAddLanguageForm: false,
+      isUpdatingDefaultLanguage: false,
       renameLanguageIndex: -1
     })
 
@@ -196,8 +198,12 @@ export class TranslationSettings extends React.Component {
     return content;
   }
   changeDefaultLanguage(evt) {
+    this.setState({isUpdatingDefaultLanguage: true});
     const index = evt.currentTarget.dataset.index;
-    console.log('TODO make langage default:', index);
+    const langString = this.state.translations[index];
+    const content = this.state.asset.content;
+    content.settings.default_language = langString;
+    this.updateAsset(content);
   }
   updateAsset (content) {
     actions.resources.updateAsset(
@@ -253,8 +259,9 @@ export class TranslationSettings extends React.Component {
 
                   <bem.FormView__cell m='translation-actions'>
                     <bem.FormView__iconButton
-                      onClick={this.toggleRenameLanguageForm}
                       data-index={i}
+                      onClick={this.toggleRenameLanguageForm}
+                      disabled={this.state.isUpdatingDefaultLanguage}
                       data-tip={t('Edit language')}
                     >
                       {this.state.renameLanguageIndex === i &&
@@ -276,6 +283,7 @@ export class TranslationSettings extends React.Component {
                         <bem.FormView__iconButton
                           data-index={i}
                           onClick={this.changeDefaultLanguage}
+                          disabled={this.state.isUpdatingDefaultLanguage}
                           data-tip={t('Make default')}
                         >
                           <i className='k-icon-language-default' />
@@ -284,6 +292,7 @@ export class TranslationSettings extends React.Component {
                         <bem.FormView__iconButton
                           data-index={i}
                           onClick={this.launchTranslationTableModal}
+                          disabled={this.state.isUpdatingDefaultLanguage}
                           data-tip={t('Update translations')}
                           className='right-tooltip'
                         >
@@ -291,8 +300,9 @@ export class TranslationSettings extends React.Component {
                         </bem.FormView__iconButton>
 
                         <bem.FormView__iconButton
-                          onClick={this.deleteLanguage}
                           data-index={i}
+                          onClick={this.deleteLanguage}
+                          disabled={this.state.isUpdatingDefaultLanguage}
                           data-tip={t('Delete language')}
                           className='right-tooltip'
                         >
