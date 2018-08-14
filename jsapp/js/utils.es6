@@ -52,17 +52,21 @@ export function surveyToValidJson(survey) {
 // TRANSLATIONS HACK (Part 2/2):
 // this function reverses nullifying default language - use it just before saving
 export function unnullifyTranslations(surveyDataJSON, assetContent) {
-  const defaultLang = assetContent.translations_0;
+  let surveyData = JSON.parse(surveyDataJSON);
+
   let translatedProp;
   if (assetContent.translated) {
      translatedProp = assetContent.translated[0];
   }
 
-  if (typeof defaultLang !== 'string' || typeof translatedProp !== 'string') {
-    return surveyDataJSON;
+  // set default_language
+  let defaultLang = assetContent.translations_0;
+  if (!defaultLang) {
+    defaultLang = null;
   }
-
-  let surveyData = JSON.parse(surveyDataJSON);
+  if (!surveyData.settings[0].default_language && typeof defaultLang !== 'undefined') {
+    surveyData.settings[0].default_language = defaultLang;
+  }
 
   // replace every "translatedProp" with "translatedProp::defaultLang"
   if (surveyData.choices) {
