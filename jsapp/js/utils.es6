@@ -59,13 +59,13 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
      translatedProp = assetContent.translated[0];
   }
 
-  // set default_translation
+  // set default_language
   let defaultLang = assetContent.translations_0;
   if (!defaultLang) {
     defaultLang = null;
   }
-  if (!surveyData.settings[0].default_translation && typeof defaultLang !== 'undefined') {
-    surveyData.settings[0].default_translation = defaultLang;
+  if (!surveyData.settings[0].default_language && typeof defaultLang !== 'undefined') {
+    surveyData.settings[0].default_language = defaultLang;
   }
 
   // replace every "translatedProp" with "translatedProp::defaultLang"
