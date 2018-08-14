@@ -22,7 +22,7 @@ export class TranslationSettings extends React.Component {
   constructor(props){
     super(props);
 
-    let translations = [];
+    let translations;
     if (props.asset) {
       translations = props.asset.content.translations;
     }
@@ -30,7 +30,7 @@ export class TranslationSettings extends React.Component {
     this.state = {
       assetUid: props.assetUid,
       asset: props.asset,
-      translations: translations,
+      translations: translations || [],
       showAddLanguageForm: false,
       renameLanguageIndex: -1
     }
