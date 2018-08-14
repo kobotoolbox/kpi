@@ -75,8 +75,8 @@ export class TranslationSettings extends React.Component {
       showAddLanguageForm: false
     })
   }
-  toggleRenameLanguageForm(e) {
-    let index = parseInt($(e.target).closest('[data-index]').get(0).getAttribute('data-index'));
+  toggleRenameLanguageForm(evt) {
+    const index = parseInt(evt.currentTarget.dataset.index);
     if (this.state.renameLanguageIndex === index) {
       this.setState({
         renameLanguageIndex: -1
@@ -195,6 +195,10 @@ export class TranslationSettings extends React.Component {
     }
     return content;
   }
+  changeDefaultLanguage(evt) {
+    const index = evt.currentTarget.dataset.index;
+    console.log('TODO make langage default:', index);
+  }
   updateAsset (content) {
     actions.resources.updateAsset(
       this.state.asset.uid,
@@ -245,41 +249,60 @@ export class TranslationSettings extends React.Component {
                 <bem.FormView__cell m='translation'>
                   <bem.FormView__cell>
                     {l ? l : t('Unnamed language')}
-                    <em>{i === 0 ? ` ${t('default')}` : ''}</em>
                   </bem.FormView__cell>
+
                   <bem.FormView__cell m='translation-actions'>
-                    <bem.FormView__link
-                      m='rename'
+                    <bem.FormView__iconButton
                       onClick={this.toggleRenameLanguageForm}
                       data-index={i}
                       data-tip={t('Edit language')}
                     >
-                      <i className='k-icon-edit' />
-                    </bem.FormView__link>
+                      {this.state.renameLanguageIndex === i &&
+                        <i className='k-icon-close' />
+                      }
+                      {this.state.renameLanguageIndex !== i &&
+                        <i className='k-icon-edit' />
+                      }
+                    </bem.FormView__iconButton>
 
-                    {i > 0 &&
-                      <bem.FormView__link
-                        m='translate'
-                        data-index={i}
-                        onClick={this.launchTranslationTableModal}
-                        data-tip={t('Update translations')}
-                      >
-                        <i className='k-icon-globe' />
-                      </bem.FormView__link>
+                    {i === 0 &&
+                      <bem.FormView__label m='default-language'>
+                        {t('default')}
+                      </bem.FormView__label>
                     }
 
-                    {i > 0 &&
-                      <bem.FormView__link
-                        m='translate'
-                        onClick={this.deleteLanguage}
-                        data-index={i}
-                        data-tip={t('Delete language')}
-                      >
-                        <i className='k-icon-trash' />
-                      </bem.FormView__link>
+                    {i !== 0 &&
+                      <React.Fragment>
+                        <bem.FormView__iconButton
+                          data-index={i}
+                          onClick={this.changeDefaultLanguage}
+                          data-tip={t('Make default')}
+                        >
+                          <i className='k-icon-language-default' />
+                        </bem.FormView__iconButton>
+
+                        <bem.FormView__iconButton
+                          data-index={i}
+                          onClick={this.launchTranslationTableModal}
+                          data-tip={t('Update translations')}
+                          className='right-tooltip'
+                        >
+                          <i className='k-icon-globe-alt' />
+                        </bem.FormView__iconButton>
+
+                        <bem.FormView__iconButton
+                          onClick={this.deleteLanguage}
+                          data-index={i}
+                          data-tip={t('Delete language')}
+                          className='right-tooltip'
+                        >
+                          <i className='k-icon-trash' />
+                        </bem.FormView__iconButton>
+                      </React.Fragment>
                     }
                   </bem.FormView__cell>
                 </bem.FormView__cell>
+
                 {this.state.renameLanguageIndex === i &&
                   <bem.FormView__cell m='update-language-form'>
                     <LanguageForm

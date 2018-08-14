@@ -136,7 +136,7 @@ bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
 bem.FormView__item = bem.FormView.__('item');
-bem.FormView__button = bem.FormView.__('button', '<button>');
+bem.FormView__iconButton = bem.FormView.__('icon-button', '<button>');
 
 bem.FormView__row = bem.FormView.__('row');
 bem.FormView__cell = bem.FormView.__('cell');

@@ -337,6 +337,12 @@
   }
 }
 
+.form-view__icon-button {
+  @extend .mdl-button, .mdl-button--icon;
+  overflow: visible;
+  padding: 0;
+}
+
 // buttons in forms
 .form-view__link {
   font-size: 36px;
