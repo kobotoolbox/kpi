@@ -6,6 +6,7 @@ import {
   notify,
   replaceSupportEmail,
 } from './utils';
+import {HOOK_LOG_STATUSES} from './constants';
 
 var Reflux = require('reflux');
 import RefluxPromise from './libs/reflux-promise';
@@ -860,6 +861,12 @@ actions.hooks.add.listen((assetUid, data, callbacks = {}) => {
       }
     });
 });
+actions.hooks.add.completed.listen((response) => {
+  notify(t('REST Service added successfully'));
+});
+actions.hooks.add.failed.listen((response) => {
+  notify(t('Failed adding REST Service'), 'error');
+});
 
 actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
   dataInterface.updateExternalService(assetUid, hookUid, data)
@@ -877,6 +884,12 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
       }
     });
 });
+actions.hooks.update.completed.listen((response) => {
+  notify(t('REST Service updated successfully'));
+});
+actions.hooks.update.failed.listen((response) => {
+  notify(t('Failed saving REST Service'), 'error');
+});
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
   dataInterface.deleteExternalService(assetUid, hookUid)
@@ -893,6 +906,12 @@ actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
         callbacks.onFail(...args);
       }
     });
+});
+actions.hooks.delete.completed.listen((response) => {
+  notify(t('REST Service deleted permanently'));
+});
+actions.hooks.delete.failed.listen((response) => {
+  notify(t('Could not delete REST Service'), 'error');
 });
 
 actions.hooks.getLogs.listen((assetUid, hookUid, callbacks = {}) => {
@@ -927,6 +946,18 @@ actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
       }
     });
 });
+actions.hooks.retryLog.completed.listen((response) => {
+  if (response.status === HOOK_LOG_STATUSES.FAILED) {
+    notify(t('Failed retrying submission'), 'error');
+  }
+});
+actions.hooks.retryLog.failed.listen((response) => {
+  if (response.responseJSON && response.responseJSON.detail) {
+    notify(data.responseJSON.detail, 'error');
+  } else {
+    notify(t('Failed retrying submission'), 'error');
+  }
+});
 
 actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
   dataInterface.retryExternalServiceLogs(assetUid, hookUid)
@@ -938,11 +969,18 @@ actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
       }
     })
     .fail((...args) => {
+      actions.hooks.getLogs(assetUid, hookUid);
       actions.hooks.retryLogs.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);
       }
     });
+});
+actions.hooks.retryLogs.completed.listen((response) => {
+  notify(t('Retrying all submissions will take a while…'), 'warning');
+});
+actions.hooks.retryLogs.failed.listen((response) => {
+  notify(t('Failed retrying all submissions'), 'error');
 });
 
 module.exports = actions;

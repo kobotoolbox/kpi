@@ -204,7 +204,6 @@ export default class RESTServicesForm extends React.Component {
       },
       onFail: () => {
         this.setState({isSubmitPending: false});
-        alertify.error(t('Failed saving REST Service'));
       },
     };
 

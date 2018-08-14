@@ -75,14 +75,7 @@ export default class RESTServicesList extends React.Component {
         message: message,
         labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {
-          actions.hooks.delete(
-            this.state.assetUid,
-            hookUid, {
-              onFail: () => {
-                alertify.error(t('Could not delete REST Service'));
-              }
-            }
-          );
+          actions.hooks.delete(this.state.assetUid, hookUid);
         },
         oncancel: () => {
           dialog.destroy();

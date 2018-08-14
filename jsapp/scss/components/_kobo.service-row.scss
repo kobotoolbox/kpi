@@ -87,18 +87,19 @@ $c-service-row-hover: #f2f2f3;
   }
 
   &.service-row__column--submission {
-    flex: 15;
+    flex: 3;
     padding: $s-service-row-column-spacing;
   }
 
   &.service-row__column--status {
-    flex: 4;
+    flex: 1;
     padding: 0 $s-service-row-column-spacing;
     line-height: $s-service-row-action-button;
+    white-space: nowrap;
   }
 
   &.service-row__column--date {
-    flex: 5;
+    flex: 1;
     padding: $s-service-row-column-spacing;
   }
 
