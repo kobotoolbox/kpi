@@ -938,6 +938,7 @@ actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
       }
     })
     .fail((...args) => {
+      actions.hooks.getLogs(assetUid, hookUid);
       actions.hooks.retryLogs.failed(...args);
       if (typeof callbacks.onFail === 'function') {
         callbacks.onFail(...args);

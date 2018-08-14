@@ -136,11 +136,11 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   // useful to mark log as pending, before BE tells about it
-  overrideLogStatus(log, status) {
+  overrideLogStatus(log, newStatus) {
     const currentLogs = this.state.logs;
     currentLogs.forEach((currentLog) => {
       if (currentLog.uid === log.uid) {
-        currentLog.status = this.STATUSES.PENDING;
+        currentLog.status = newStatus;
       }
     });
     this.setState({
