@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-
 from datetime import datetime
+import json
+
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ..constants import HOOK_LOG_FAILED, HOOK_EXPORT_TYPE_JSON
 from ..models.hook import Hook
 from ..serializers.hook import HookSerializer
 from kpi.models import Asset
-from kpi.views import AssetOwnerFilterBackend
+from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -157,7 +160,41 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     @detail_route(methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):
-        #hook = self.get_object()
-        # ?query = {"_id": {"$in": [<failed_ids_csv>]}}
-        #TODO implement Celery task
+        hook = self.get_object()
+        if hook.active:
+            logs = hook.logs.filter(status=HOOK_LOG_FAILED)
+            if len(logs):
+                instances_ids = [log.data_id for log in logs]
+                data = self.__data_to_dict(self.__get_data(request, hook, instances_ids))
+                for hook_log in logs:
+                    hook_log.retry(data.get(hook_log.data_id))
+
         return Response("Retry list")
+
+    def __get_data(self, request, hook, failed_instances_ids):
+        """
+        Retrieves `kc` instances data through `kpi` proxy viewset.
+        Only retrieves JSON format.
+
+        :param request: HttpRequest
+        :param hook_log: Hook
+        :return: str
+        """
+        if hook.export_type == HOOK_EXPORT_TYPE_JSON:
+            kwargs = {
+                "parent_lookup_asset": hook.asset.uid,
+                "format": hook.export_type,
+                "?query": json.dumps({"_id":{"$in":failed_instances_ids}})
+            }
+            request.method = "GET"  # Force request to be a GET instead of PATCH
+            view = SubmissionViewSet.as_view({"get": "list"})(request, **kwargs)
+            if view.status_code == status.HTTP_200_OK:
+                try:
+                    return json.loads(view.content)
+                except ValueError as e:
+                    pass
+
+        return None
+
+    def __data_to_dict(self, data):
+        return {instance.get("_id"): instance for instance in data}

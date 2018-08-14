@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-
 from datetime import datetime
+import json
+
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import detail_route
@@ -116,6 +117,9 @@ class HookLogViewSet(NestedViewSetMixin,
         request.method = "GET"  # Force request to be a GET instead of PATCH
         view = SubmissionViewSet.as_view({"get": "retrieve"})(request, **kwargs)
         if view.status_code == status.HTTP_200_OK:
-            return view.content
+            try:
+                return json.loads(view.content)
+            except ValueError as e:
+                pass
         else:
             return None

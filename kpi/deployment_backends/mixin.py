@@ -10,6 +10,7 @@ import requests
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
+from requests.utils import quote
 
 from .backends import DEPLOYMENT_BACKENDS
 from .kobocat_backend import KobocatDeploymentBackend
@@ -166,6 +167,22 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
             else:
                 kc_url = deployment.get_submission_detail_url(pk)
 
+            # We need to append query string parameters to url
+            # if any.
+            query_string_params = []
+            for key, value in kwargs.items():
+                if key.startswith("?"):
+                    query_string_params.append("{}={}".format(
+                        key[1:],
+                        value
+                    ))
+                    kwargs.pop(key)
+            if query_string_params:
+                kc_url = "{}?{}".format(
+                    kc_url,
+                    "&".join(query_string_params)
+                )
+
             # We can now retrieve XML or JSON format from `kc`
             # Request can be:
             # - /assets/<parent_lookup_asset>/submissions/<pk>/
@@ -175,7 +192,6 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
 
             # - /assets/<parent_lookup_asset>/submissions/<pk>?format=<format>/
             #   where `format` is among `request.GET`
-
             format = kwargs.pop("format", None)
             params = kpi_request.GET.copy()
             if format:

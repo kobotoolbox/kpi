@@ -29,8 +29,8 @@ class HookLog(models.Model):
     class Meta:
         ordering = ["-date_created"]
 
-    def mark_as_pending(self):
-        self.status = HOOK_LOG_PENDING
+    def change_status(self, status=HOOK_LOG_PENDING):
+        self.status = status
         self.save(reset_status=True)
 
     def retry(self, data):
@@ -41,7 +41,7 @@ class HookLog(models.Model):
         :return: tuple. status_code, response dict
         """
         if self.status == HOOK_LOG_FAILED:
-            self.mark_as_pending()
+            self.change_status()
             if data:
                 try:
                     ServiceDefinition = self.hook.get_service_definition()
@@ -56,10 +56,11 @@ class HookLog(models.Model):
                 except Exception as e:
                     logger = logging.getLogger("console_logger")
                     logger.error("HookLog.retry - {}".format(str(e)), exc_info=True)
+                    self.change_status(HOOK_LOG_FAILED)
                     return status.HTTP_500_INTERNAL_SERVER_ERROR, {
                         "detail": _("An error has occurred when sending the data. Please try again later.")
                     }
-
+            self.change_status(HOOK_LOG_FAILED)
             return status.HTTP_500_INTERNAL_SERVER_ERROR, {
                 "detail": _("Could not retrieve data.")
             }

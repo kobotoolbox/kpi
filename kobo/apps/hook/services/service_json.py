@@ -12,7 +12,7 @@ class ServiceDefinition(ServiceDefinitionInterface):
 
     def _parse(self, data, id):
         return {
-            "json": json.loads(data),
+            "json": data,
             "id": id
         }
 

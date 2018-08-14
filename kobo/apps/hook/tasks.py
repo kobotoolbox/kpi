@@ -7,10 +7,12 @@ from django.conf import settings
 def service_definition_task(self, hook, data):
     """
     Tries to send data to the endpoint of the hook
-    It retries 3 times maximum.
+    It retries n times (n = `settings.HOOK_MAX_RETRIES`)
+
     - after 1 minutes,
     - after 10 minutes,
     - after 100 minutes
+    etc ...
 
     :param self: Celery.Task.
     :param hook: Hook.
@@ -22,7 +24,7 @@ def service_definition_task(self, hook, data):
     service_definition = ServiceDefinition(hook, data)
     if not service_definition.send():
         # Countdown is in seconds
-        countdown = 60 #60 * (10 ** self.request.retries)
+        countdown = 60 * (10 ** self.request.retries)
         raise self.retry(countdown=countdown, max_retries=settings.HOOK_MAX_RETRIES)
 
     return True
