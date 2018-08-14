@@ -125,13 +125,18 @@ module.exports = do ->
             if transletedPropArr
               transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex))
         # case 3: imported asset doesn't have form default language, so we
-        # force it onto the asset as the first language and duplicate first
-        # language property as default language property
+        # force it onto the asset as the first language and try setting some
+        # meaningful property value
         if translations[0] isnt formDefaultLang
           translations.unshift(formDefaultLang)
           for row in o.survey
             if row[translatedProp]
-              row[translatedProp].unshift(row[translatedProp][0])
+              propVal = null
+              if row.name
+                propVal = row.name
+              else if row.$autoname
+                propVal = row.$autoname
+              row[translatedProp].unshift(propVal)
 
       o.translations_0 = translations[0]
       translations[0] = null
