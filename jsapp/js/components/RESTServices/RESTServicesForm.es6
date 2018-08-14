@@ -8,7 +8,10 @@ import stores from '../../stores';
 import Select from 'react-select';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
-import {t} from '../../utils';
+import {
+  t,
+  notify
+} from '../../utils';
 
 const EXPORT_TYPES = {
   JSON: 'json',
@@ -201,6 +204,11 @@ export default class RESTServicesForm extends React.Component {
       onComplete: () => {
         stores.pageState.hideModal();
         actions.resources.loadAsset({id: this.state.assetUid});
+        if (this.state.hookUid) {
+          notify(t('REST Service saved successfully'));
+        } else {
+          notify(t('REST Service created successfully'));
+        }
       },
       onFail: () => {
         this.setState({isSubmitPending: false});
