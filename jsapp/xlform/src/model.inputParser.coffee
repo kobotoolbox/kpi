@@ -111,7 +111,7 @@ module.exports = do ->
       the default language is the same (or force baseSurvey default language)
       ###
       if baseSurvey
-        formDefaultLang = baseSurvey._initialParams.translations_0
+        formDefaultLang = baseSurvey._initialParams.translations_0 or null
         translatedProp = o.translated[0]
         # case 1: nothing to do - same default language in both
         if translations[0] is formDefaultLang
