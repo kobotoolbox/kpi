@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from datetime import datetime
 import json
 
 from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext as _
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
@@ -96,30 +96,21 @@ class HookLogViewSet(NestedViewSetMixin,
         :param uid: str
         :return: Response
         """
+        response = {"detail": "success"}
+        status_code = status.HTTP_200_OK
         hook_log = self.get_object()
-        data = self.__get_data(request, hook_log)
-        status_code, response = hook_log.retry(data)
-        return Response(response, status=status_code)
 
-    def __get_data(self, request, hook_log):
-        """
-        Retrieves `kc` instance data through `kpi` proxy viewset.
-
-        :param request: HttpRequest
-        :param hook_log: Hook
-        :return: str
-        """
-        kwargs = {
-            "pk": hook_log.data_id,
-            "parent_lookup_asset": hook_log.hook.asset.uid,
-            "format": hook_log.hook.export_type
-        }
-        request.method = "GET"  # Force request to be a GET instead of PATCH
-        view = SubmissionViewSet.as_view({"get": "retrieve"})(request, **kwargs)
-        if view.status_code == status.HTTP_200_OK:
-            try:
-                return json.loads(view.content)
-            except ValueError as e:
-                pass
+        if hook_log.can_retry():
+            data = hook_log.hook.asset.deployment.get_submission(hook_log.data_id, request, hook_log.hook.export_type)
+            success, message = hook_log.retry(data)
+            if success:
+                response["detail"] = hook_log.message
+                status_code = hook_log.status_code
+            else:
+                response["detail"] = message
+                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            return None
+            response["detail"] = _("Data is being or has already been processed")
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(response, status=status_code)

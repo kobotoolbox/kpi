@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import datetime
 from importlib import import_module
 import logging
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
@@ -29,6 +31,23 @@ class HookLog(models.Model):
     class Meta:
         ordering = ["-date_created"]
 
+    def can_retry(self):
+        """
+        Returns whether instance can be resent to external endpoint.
+        Notice: even if returns false, `self.retry()` can be triggered.
+
+        :return: bool
+        """
+        if self.hook.active:
+            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L60`
+            new_time = timezone.now() - datetime.timedelta(seconds=seconds)
+            # We can retry only if system has already tried 3 times.
+            # If log is still pending after 3 times, there was an issue, we allow the retry
+            return self.status == HOOK_LOG_FAILED or \
+                (self.date_modified < new_time and self.status == HOOK_LOG_PENDING)
+
+        return False
+
     def change_status(self, status=HOOK_LOG_PENDING):
         self.status = status
         self.save(reset_status=True)
@@ -36,38 +55,24 @@ class HookLog(models.Model):
     def retry(self, data):
         """
         Retries to send data to external service
-        only if it has failed before this try.
         :param data: mixed.
-        :return: tuple. status_code, response dict
+        :return: tuple. status_code, localized message
         """
-        if self.status == HOOK_LOG_FAILED:
+        if data:
             self.change_status()
-            if data:
-                try:
-                    ServiceDefinition = self.hook.get_service_definition()
-                    service_definition = ServiceDefinition(self.hook, data, self.data_id)
-                    success = service_definition.send()
-                    self.refresh_from_db()
-                    return status.HTTP_200_OK, {
-                        "success": success,
-                        "message": self.message,
-                        "status_code": self.status_code
-                    }
-                except Exception as e:
-                    logger = logging.getLogger("console_logger")
-                    logger.error("HookLog.retry - {}".format(str(e)), exc_info=True)
-                    self.change_status(HOOK_LOG_FAILED)
-                    return status.HTTP_500_INTERNAL_SERVER_ERROR, {
-                        "detail": _("An error has occurred when sending the data. Please try again later.")
-                    }
-            self.change_status(HOOK_LOG_FAILED)
-            return status.HTTP_500_INTERNAL_SERVER_ERROR, {
-                "detail": _("Could not retrieve data.")
-            }
+            try:
+                ServiceDefinition = self.hook.get_service_definition()
+                service_definition = ServiceDefinition(self.hook, data, self.data_id)
+                service_definition.send()
+                self.refresh_from_db()
+                return True, None
+            except Exception as e:
+                logger = logging.getLogger("console_logger")
+                logger.error("HookLog.retry - {}".format(str(e)), exc_info=True)
+                self.change_status(HOOK_LOG_FAILED)
+                return False, _("An error has occurred when sending the data. Please try again later.")
 
-        return status.HTTP_400_BAD_REQUEST, {
-            "detail": _("Data is being or has already been processed")
-        }
+        return False, _("Could not retrieve data.")
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved

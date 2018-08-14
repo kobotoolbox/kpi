@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import cStringIO
 import logging
+import json
 import re
 import requests
 import unicodecsv
@@ -15,10 +16,13 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
+from rest_framework.request import Request
 from rest_framework.authtoken.models import Token
 
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
+from ..exceptions import BadFormatException
+from kobo.apps.hook.constants import HOOK_EXPORT_TYPE_JSON, HOOK_EXPORT_TYPE_XML
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -472,3 +476,53 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             detail_url=self.get_submission_detail_url(submission_pk)
         )
         return url
+
+    def get_submissions(self, request, format=HOOK_EXPORT_TYPE_JSON, instances_ids=[]):
+        """
+
+        :param request: DRF.Request. Useless with mock data
+        :param format: str. xml or json
+        :param instances_ids: list. Ids of instances to retrieve
+        :return: list
+        """
+        if len(instances_ids) > 0:
+            if format == HOOK_EXPORT_TYPE_JSON:
+                kwargs = {
+                    "pk": None,
+                    "?query": json.dumps({"_id":{"$in":instances_ids}}),
+                    "format": format
+                }
+                return self.__get_data(request, **kwargs)
+            else:
+                raise BadFormatException("Can't retrieve multiple instances in XML")
+
+        return []
+
+    def get_submission(self, pk, request, format=HOOK_EXPORT_TYPE_JSON):
+        if pk:
+            kwargs = {
+                "format": format,
+                "pk": pk
+            }
+            return self.__get_data(request, **kwargs)
+        else:
+            raise ValueError("Primary key must be provided")
+
+    def __get_data(self, request, **kwargs):
+
+        from kpi.views import SubmissionViewSet  # Circular import
+
+        kwargs.update({"parent_lookup_asset": self.asset.uid})
+        format = kwargs.get("format")
+
+        request.method = "GET"  # Force request to be a GET
+        view = SubmissionViewSet.as_view({"get": "retrieve"})(request, **kwargs)
+        if view.status_code == status.HTTP_200_OK:
+            if format == HOOK_EXPORT_TYPE_JSON:
+                try:
+                    return json.loads(view.content)
+                except ValueError as e:
+                    logger = logging.getLogger("console_logger")
+                    logger.error("KobocatDeploymentBackend.__get_data - {}".format(str(e)), exc_info=True)
+            else:
+                return view.content

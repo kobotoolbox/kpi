@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from base_backend import BaseDeploymentBackend
+from kobo.apps.hook.constants import HOOK_EXPORT_TYPE_JSON
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
@@ -56,8 +57,23 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'submissions': submissions,
             })
 
-    def _get_submissions(self):
-        return self.asset._deployment_data.get('submissions', [])
+    def get_submissions(self, request=None, format=HOOK_EXPORT_TYPE_JSON, instances_ids=[]):
+        """
+        Returns a list of json representation of instances.
+
+        :param request: DRF.Request. Useless with mock data. Same signature as KobocatBackend
+        :param format: str. xml or json
+        :param instances_ids: list. Ids of instances to retrieve
+        :return: list
+        """
+        submissions = self.asset._deployment_data.get('submissions', [])
+        if len(instances_ids) > 0:
+            submissions = [submission for submission in submissions if submission.get("id") in instances_ids]
+
+        return submissions
+
+    def get_submission(self, pk, request=None, format=HOOK_EXPORT_TYPE_JSON):
+         return self.get_submissions(format=format, instances_ids=[pk])[0]
 
     def set_has_kpi_hooks(self):
         """

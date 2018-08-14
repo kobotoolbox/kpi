@@ -79,10 +79,10 @@ class MockDataProxyViewSetMixin(object):
             raise serializers.ValidationError(
                 _('The specified asset has not been deployed'))
         elif pk is None:
-            return HttpResponse(json.dumps(asset.deployment._get_submissions()),
+            return HttpResponse(json.dumps(asset.deployment.get_submissions()),
                                 content_type="application/json")
         else:
-            data = (submission for submission in asset.deployment._get_submissions()
+            data = (submission for submission in asset.deployment.get_submissions()
                     if submission.get("id") == pk).next()
             return HttpResponse(json.dumps(data), content_type="application/json")
 

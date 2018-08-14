@@ -162,39 +162,16 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def retry(self, request, uid=None, *args, **kwargs):
         hook = self.get_object()
         if hook.active:
-            logs = hook.logs.filter(status=HOOK_LOG_FAILED)
+            logs = hook.logs.filter(status=HOOK_LOG_FAILED)  # TODO AND PENDING FOR A LONG TIME
             if len(logs):
                 instances_ids = [log.data_id for log in logs]
-                data = self.__data_to_dict(self.__get_data(request, hook, instances_ids))
+                data = self.__data_to_dict(
+                    hook.asset.deployment.get_submissions(request, hook.export_type, instances_ids))
+
                 for hook_log in logs:
                     hook_log.retry(data.get(hook_log.data_id))
 
         return Response("Retry list")
-
-    def __get_data(self, request, hook, failed_instances_ids):
-        """
-        Retrieves `kc` instances data through `kpi` proxy viewset.
-        Only retrieves JSON format.
-
-        :param request: HttpRequest
-        :param hook_log: Hook
-        :return: str
-        """
-        if hook.export_type == HOOK_EXPORT_TYPE_JSON:
-            kwargs = {
-                "parent_lookup_asset": hook.asset.uid,
-                "format": hook.export_type,
-                "?query": json.dumps({"_id":{"$in":failed_instances_ids}})
-            }
-            request.method = "GET"  # Force request to be a GET instead of PATCH
-            view = SubmissionViewSet.as_view({"get": "list"})(request, **kwargs)
-            if view.status_code == status.HTTP_200_OK:
-                try:
-                    return json.loads(view.content)
-                except ValueError as e:
-                    pass
-
-        return None
 
     def __data_to_dict(self, data):
         return {instance.get("_id"): instance for instance in data}

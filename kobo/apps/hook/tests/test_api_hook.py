@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from ..constants import HOOK_LOG_FAILED
+from ..constants import HOOK_LOG_FAILED, HOOK_EXPORT_TYPE_JSON
 from ..models.hook_log import HookLog
 from kpi.tests.kpi_test_case import KpiTestCase
 
@@ -44,7 +44,7 @@ class ApiHookTestCase(KpiTestCase):
                 }
             }
         }
-        response = self.client.post(url, data, format="json")
+        response = self.client.post(url, data, format=HOOK_EXPORT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                          msg=response.data)
         hook = self.asset.hooks.last()
@@ -121,7 +121,7 @@ class ApiHookTestCase(KpiTestCase):
             "name": "some disabled external service",
             "active": False
         }
-        response = self.client.patch(url, data, format="json")
+        response = self.client.patch(url, data, format=HOOK_EXPORT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=response.data)
         hook.refresh_from_db()
@@ -133,7 +133,7 @@ class ApiHookTestCase(KpiTestCase):
         hook = self._create_hook()
 
         ServiceDefinition = hook.get_service_definition()
-        submissions = self.asset.deployment._get_submissions()
+        submissions = self.asset.deployment.get_submissions()
         service_definition = ServiceDefinition(hook, submissions[0])
         first_mock_response = {"error": "not found"}
 
@@ -155,7 +155,7 @@ class ApiHookTestCase(KpiTestCase):
             "parent_lookup_hook": hook.uid
         })
 
-        response = self.client.get(url, format="json")
+        response = self.client.get(url, format=HOOK_EXPORT_TYPE_JSON)
         first_hooklog = response.data.get("results")[0]
 
         # Result should match first try
@@ -171,12 +171,11 @@ class ApiHookTestCase(KpiTestCase):
 
         # Fakes Celery n retries by forcing status to `failed` (where n is `settings.HOOKLOG_MAX_RETRIES`)
         fhl = HookLog.objects.get(uid=first_hooklog.get("uid"))
-        fhl.status = HOOK_LOG_FAILED
-        fhl.save(reset_status=True)
+        fhl.change_status(HOOK_LOG_FAILED)
 
         # It should be a success
-        response = self.client.patch(retry_url, format="json")
-        self.assertTrue(response.data.get("success"))
+        response = self.client.patch(retry_url, format=HOOK_EXPORT_TYPE_JSON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Let's check if logs has 2 tries
         detail_url = reverse("hook-log-detail", kwargs={
@@ -185,5 +184,5 @@ class ApiHookTestCase(KpiTestCase):
             "uid": first_hooklog.get("uid")
         })
 
-        response = self.client.get(detail_url, format="json")
+        response = self.client.get(detail_url, format=HOOK_EXPORT_TYPE_JSON)
         self.assertEqual(response.data.get("tries"), 2)
