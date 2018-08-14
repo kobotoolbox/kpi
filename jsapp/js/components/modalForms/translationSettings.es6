@@ -202,7 +202,7 @@ export class TranslationSettings extends React.Component {
     const index = evt.currentTarget.dataset.index;
     const langString = this.state.translations[index];
     const content = this.state.asset.content;
-    content.settings.default_language = langString;
+    content.settings.default_translation = langString;
     this.updateAsset(content);
   }
   updateAsset (content) {
