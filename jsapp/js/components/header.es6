@@ -186,11 +186,20 @@ class MainHeader extends Reflux.Component {
       return (
         <bem.GitRev>
           <bem.GitRev__item>
-            branch: {gitRev.branch}
+            branch <strong>{gitRev.branch}</strong>
           </bem.GitRev__item>
+          &nbsp;&middot;&nbsp;
           <bem.GitRev__item>
-            commit: {gitRev.short}
+            commit <strong>{gitRev.short}</strong>
           </bem.GitRev__item>
+          {typeof __FRONTEND_COMMIT__ !== 'undefined' &&
+            <React.Fragment>
+              &nbsp;&middot;&nbsp;
+              <bem.GitRev__item>
+                FE commit <strong>{__FRONTEND_COMMIT__}</strong>
+              </bem.GitRev__item>
+            </React.Fragment>
+          }
         </bem.GitRev>
       );
     }

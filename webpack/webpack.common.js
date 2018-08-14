@@ -7,7 +7,7 @@ var defaultOptions = {
   module: {
     rules: [
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         loader: 'eslint-loader',
@@ -18,8 +18,8 @@ var defaultOptions = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["env","react"],
-            plugins: ["add-module-exports", "react-hot-loader/babel"]
+            presets: ['env','react'],
+            plugins: ['add-module-exports', 'react-hot-loader/babel']
           }
         }
       },

@@ -453,18 +453,27 @@ $headerAccountTextColor: #dbedf7;
   .git-rev {
     display: block;
     position: fixed;
-    bottom: 0px;
-    left: 80px;
+    top: 0;
+    right: 0;
     z-index: 100;
+    padding: 6px;
+    color: white;
+    background: $cool-red;
+    opacity: 0.33;
+    font-size: 12px;
+    line-height: 1;
+    font-family: monospace;
+    transition-property: opacity;
+    transition-duration: 250ms;
+    transition-delay: 0;
+
+    &:hover {
+      opacity: 1;
+      transition-delay: 500ms;
+    }
 
     .git-rev__item {
-      color: white;
-      opacity: 0.85;
-      background: darken($cool-green, 10%);
-      margin-top: 5px;
-      padding: 6px 12px;
-      display: block;
-      font-size: 12px;
+      display: inline;
     }
   }
 }

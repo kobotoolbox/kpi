@@ -5,8 +5,10 @@ const WebpackCommon = require('./webpack.common');
 const BundleTracker = require('webpack-bundle-tracker');
 var publicPath = 'http://localhost:3000/static/compiled/';
 
+var commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
+
 module.exports = WebpackCommon({
-  mode: "development",
+  mode: 'development',
   entry: {
     app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
     tests: path.resolve(__dirname, '../test/index.js')
@@ -15,7 +17,7 @@ module.exports = WebpackCommon({
     library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
-    filename: "[name]-[hash].js"
+    filename: '[name]-[hash].js'
   },
   devServer: {
     publicPath: publicPath,
@@ -27,6 +29,9 @@ module.exports = WebpackCommon({
   plugins: [
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
     new webpack.NamedModulesPlugin(),
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.DefinePlugin({
+      __FRONTEND_COMMIT__: JSON.stringify(commitHash)
+    }),
   ]
 });
