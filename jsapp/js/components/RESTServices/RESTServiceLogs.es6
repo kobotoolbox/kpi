@@ -13,6 +13,7 @@ import {
   t,
   formatTime
 } from '../../utils';
+import {HOOK_LOG_STATUSES} from '../../constants';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){
@@ -26,11 +27,6 @@ export default class RESTServiceLogs extends React.Component {
       isLoadingLogs: true,
       logs: []
     };
-    this.STATUSES = {
-      SUCCESS: 2,
-      PENDING: 1,
-      FAILED: 0
-    }
     autoBind(this);
   }
 
@@ -84,8 +80,8 @@ export default class RESTServiceLogs extends React.Component {
   retryAll(evt) {
     const currentLogs = this.state.logs;
     currentLogs.forEach((log) => {
-      if (log.status === this.STATUSES.FAILED) {
-        this.overrideLogStatus(log, this.STATUSES.PENDING);
+      if (log.status === HOOK_LOG_STATUSES.FAILED) {
+        this.overrideLogStatus(log, HOOK_LOG_STATUSES.PENDING);
       }
     });
     this.setState({
@@ -94,44 +90,22 @@ export default class RESTServiceLogs extends React.Component {
 
     actions.hooks.retryLogs(
       this.state.assetUid,
-      this.state.hookUid,
-      {
-        onComplete: () => {
-          alertify.warning(t('Retrying all submissions will take a while…'));
-        },
-        onFail: () => {
-          alertify.error(t('Failed retrying all submissions'));
-        }
-      }
+      this.state.hookUid
     );
   }
 
   retryLog(log, evt) {
     // make sure to allow only retrying failed logs
-    if (log.status !== this.STATUSES.FAILED) {
+    if (log.status !== HOOK_LOG_STATUSES.FAILED) {
       return;
     }
 
-    this.overrideLogStatus(log, this.STATUSES.PENDING);
+    this.overrideLogStatus(log, HOOK_LOG_STATUSES.PENDING);
 
     actions.hooks.retryLog(
       this.state.assetUid,
       this.state.hookUid,
-      log.uid,
-      {
-        onComplete: (data) => {
-          if (data.status === this.STATUSES.FAILED) {
-            alertify.error(t('Failed retrying submission'));
-          }
-        },
-        onFail: (data) => {
-          if (data.responseJSON && data.responseJSON.detail) {
-            alertify.error(data.responseJSON.detail);
-          } else {
-            alertify.error(t('Failed retrying submission'));
-          }
-        }
-      }
+      log.uid
     );
   }
 
@@ -156,7 +130,7 @@ export default class RESTServiceLogs extends React.Component {
   hasAnyFailedLogs() {
     let hasAny = false;
     this.state.logs.forEach((log) => {
-      if (log.status === this.STATUSES.FAILED) {
+      if (log.status === HOOK_LOG_STATUSES.FAILED) {
         hasAny = true;
       }
     });
@@ -224,13 +198,13 @@ export default class RESTServiceLogs extends React.Component {
 
           {this.state.logs.map((log, n) => {
             let statusMod = '';
-            if (log.status === this.STATUSES.SUCCESS) {
+            if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
               statusMod = 'success'
             }
-            if (log.status === this.STATUSES.PENDING) {
+            if (log.status === HOOK_LOG_STATUSES.PENDING) {
               statusMod = 'pending'
             }
-            if (log.status === this.STATUSES.FAILED) {
+            if (log.status === HOOK_LOG_STATUSES.FAILED) {
               statusMod = 'failed'
             }
 
@@ -243,17 +217,17 @@ export default class RESTServiceLogs extends React.Component {
                 <bem.ServiceRow__column
                   m={['status', statusMod]}
                 >
-                  {log.status === this.STATUSES.SUCCESS &&
+                  {log.status === HOOK_LOG_STATUSES.SUCCESS &&
                     t('Success')
                   }
-                  {log.status === this.STATUSES.PENDING &&
+                  {log.status === HOOK_LOG_STATUSES.PENDING &&
                     t('Pending')
                   }
-                  {log.status === this.STATUSES.FAILED &&
+                  {log.status === HOOK_LOG_STATUSES.FAILED &&
                     t('Failed')
                   }
 
-                  {log.status === this.STATUSES.FAILED &&
+                  {log.status === HOOK_LOG_STATUSES.FAILED &&
                     <bem.ServiceRow__actionButton
                       disabled={!this.state.isHookActive}
                       onClick={this.retryLog.bind(this, log)}
@@ -263,7 +237,7 @@ export default class RESTServiceLogs extends React.Component {
                     </bem.ServiceRow__actionButton>
                   }
 
-                  {log.status === this.STATUSES.FAILED && log.message.length > 0 &&
+                  {log.status === HOOK_LOG_STATUSES.FAILED && log.message.length > 0 &&
                     <bem.ServiceRow__actionButton
                       onClick={this.showLogInfo.bind(this, log)}
                       data-tip={t('More info')}

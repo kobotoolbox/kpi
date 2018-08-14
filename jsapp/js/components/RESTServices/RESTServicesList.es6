@@ -7,10 +7,7 @@ import stores from '../../stores';
 import actions from '../../actions';
 import {dataInterface} from '../../dataInterface';
 import bem from '../../bem';
-import {
-  t,
-  notify
-} from '../../utils';
+import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
 const RESTServicesSupportUrl = 'http://help.kobotoolbox.org/managing-your-project-s-data/rest-services';
@@ -78,17 +75,7 @@ export default class RESTServicesList extends React.Component {
         message: message,
         labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {
-          actions.hooks.delete(
-            this.state.assetUid,
-            hookUid, {
-              onComplete: () => {
-                notify(t('REST Service deleted permanently'));
-              },
-              onFail: () => {
-                alertify.error(t('Could not delete REST Service'));
-              }
-            }
-          );
+          actions.hooks.delete(this.state.assetUid, hookUid);
         },
         oncancel: () => {
           dialog.destroy();
