@@ -100,11 +100,7 @@ export default class RESTServiceLogs extends React.Component {
           alertify.warning(t('Retrying all submissions will take a while…'));
         },
         onFail: () => {
-          if (data.responseJSON && data.responseJSON.detail) {
-            alertify.error(data.responseJSON.detail);
-          } else {
-            alertify.error(t('Failed retrying all submissions'));
-          }
+          alertify.error(t('Failed retrying all submissions'));
         }
       }
     );
