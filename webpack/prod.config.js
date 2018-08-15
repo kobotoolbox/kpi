@@ -12,7 +12,7 @@ try {
     })
   );
 } catch (e) {
-  console.warn('Could not generate frontend commit hash, due to: ' + JSON.stringify(e));
+  console.warn('Could not generate frontend commit hash, due to errors. Continuing…');
 }
 
 
