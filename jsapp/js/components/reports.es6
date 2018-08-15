@@ -1015,9 +1015,11 @@ class Reports extends React.Component {
           </button>
         }
 
-        <button className='mdl-button mdl-button--icon report-button__expand'
-                onClick={this.toggleFullscreen}
-                data-tip={t('Toggle fullscreen')}>
+        <button
+          className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+          onClick={this.toggleFullscreen}
+          data-tip={t('Toggle fullscreen')}
+        >
           <i className='k-icon-expand' />
         </button>
 

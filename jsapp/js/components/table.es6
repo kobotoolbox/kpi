@@ -794,7 +794,7 @@ export class DataTable extends React.Component {
             }
 
             <button
-              className='mdl-button mdl-button--icon report-button__expand'
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
               onClick={this.toggleFullscreen}
               data-tip={t('Toggle fullscreen')}
             >
