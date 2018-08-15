@@ -3,6 +3,8 @@ from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod
 import logging
+import json
+import re
 
 import requests
 from django.conf import settings
@@ -132,6 +134,14 @@ class ServiceDefinitionInterface(object):
             log.status = HOOK_LOG_FAILED
 
         log.status_code = status_code
+
+        # Try to create a json object.
+        # In case of failure, it should be HTML, we can remove tags
+        try:
+            json.loads(message)
+        except ValueError as e:
+            message = re.sub(r"<[^>]*>", "", message)
+
         log.message = message
 
         try:
