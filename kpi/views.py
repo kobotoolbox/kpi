@@ -41,6 +41,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 import constance
 from taggit.models import Tag
+from private_storage.views import PrivateStorageDetailView
 
 from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import AssetOwnerFilterBackend
@@ -53,6 +54,7 @@ from .models import (
     Asset,
     AssetVersion,
     AssetSnapshot,
+    AssetFile,
     ImportTask,
     ExportTask,
     ObjectPermission,
@@ -79,6 +81,7 @@ from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetVersionListSerializer,
     AssetVersionSerializer,
+    AssetFileSerializer,
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -645,6 +648,54 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return Response(response_data, template_name='preview_error.html')
 
 
+class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
+    model = AssetFile
+    lookup_field = 'uid'
+    filter_backends = (RelatedAssetPermissionsFilter,)
+    serializer_class = AssetFileSerializer
+
+    def get_queryset(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
+        return _queryset
+
+    def perform_create(self, serializer):
+        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
+        if not self.request.user.has_perm('change_asset', asset):
+            raise exceptions.PermissionDenied()
+        serializer.save(
+            asset=asset,
+            user=self.request.user
+        )
+
+    def perform_destroy(self, *args, **kwargs):
+        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
+        if not self.request.user.has_perm('change_asset', asset):
+            raise exceptions.PermissionDenied()
+        return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
+
+    class PrivateContentView(PrivateStorageDetailView):
+        model = AssetFile
+        model_file_field = 'content'
+        def can_access_file(self, private_file):
+            return private_file.request.user.has_perm(
+                'view_asset', private_file.parent_object.asset)
+
+    @detail_route(methods=['get'])
+    def content(self, *args, **kwargs):
+        view = self.PrivateContentView.as_view(
+            model=AssetFile,
+            slug_url_kwarg='uid',
+            slug_field='uid',
+            model_file_field='content'
+        )
+        af = self.get_object()
+        # TODO: simply redirect if external storage with expiring tokens (e.g.
+        # Amazon S3) is used?
+        #   return HttpResponseRedirect(af.content.url)
+        return view(self.request, uid=af.uid)
+
+
 class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                         KobocatDataProxyViewSetMixin):
     '''
@@ -813,17 +864,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     ### CURRENT ENDPOINT
     """
+
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = Asset.objects.select_related(
-        'owner', 'parent'
-    ).prefetch_related(
-        'permissions',
-        'permissions__permission',
-        'permissions__user',
-        'permissions__content_object',
-        # Getting the tag_string is making one query per object, but
-        # prefetch_related doesn't seem to help
-    ).all()
+    queryset = Asset.objects.all()
+
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
@@ -843,15 +887,13 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        ''' Really temporary way to exclude a taxing field from the database
-        query when the request instructs us to do so. '''
         queryset = super(AssetViewSet, self).get_queryset(*args, **kwargs)
-        # See also AssetSerializer.get_fields()
-        excludes = self.request.GET.get('exclude', '')
-        excludes = excludes.split(',')
-        if 'content' in excludes:
-            queryset = queryset.defer('content')
-        return queryset
+        if self.action == 'list':
+            return queryset.model.optimize_queryset_for_list(queryset)
+        else:
+            # This is called to retrieve an individual record. How much do we
+            # have to care about optimizations for that?
+            return queryset
 
     def _get_clone_serializer(self, current_asset=None):
         """

@@ -671,7 +671,7 @@ mixins.contextRouter = {
     if (this.context.router.isActive('/library/new'))
       return true;
 
-    if (this.context.router.isActive(`/library/new/template`))
+    if (this.context.router.isActive('/library/new/template'))
       return true;
 
     if (this.context.router.params.assetid == undefined)
@@ -719,7 +719,7 @@ mixins.cloneAssetAsNewType = {
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                hashHistory.push(`/library`);
+                hashHistory.push('/library');
                 break;
             }
           },

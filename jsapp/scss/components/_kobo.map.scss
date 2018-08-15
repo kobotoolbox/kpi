@@ -20,7 +20,7 @@
     position: absolute;
     right: 12px;
     top: 65px;
-    padding: 4px;
+    padding: 2px 4px 0px 4px;
 
     @include box-shadow;
 
@@ -28,16 +28,28 @@
     background: white;
     z-index: 700;
     cursor: pointer;
-    color: lighten($black, 40%);
+    color: $cool-silver;
 
     &--heatmap {
       top: 118px;
       z-index: 699;
     }
 
+    &--layers {
+      top: 12px;
+      right: 65px;
+      z-index: 701;
+    }
+
     &--expand {
       top: 12px;
       z-index: 701;
+    }
+
+    &--map-settings {
+      top: 12px;
+      z-index: 699;
+      right: 120px;
     }
 
     &.active,
@@ -47,6 +59,7 @@
 
     i {
       font-size: 36px;
+      line-height: 1em;
     }
   }
 }
@@ -55,6 +68,23 @@
   margin-right: 56px;
 
   // right margin plus icon size
+}
+
+.leaflet-control-layers-toggle {
+  display: none;
+
+  &.leaflet-control-layers-expanded {
+    display: block;
+  }
+}
+
+.leaflet-popup-content {
+  pre {
+    font-family: $font;
+    white-space: pre-line;
+    max-height: 200px;
+    overflow-x: auto;
+  }
 }
 
 .popover-menu--viewby-menu {
@@ -184,7 +214,7 @@ body .leaflet-control-layers,
     }
 
     &.selected {
-      background: #F5F5F5;
+      background: $cool-whitegray;
 
       &:after {
         // fa-circle
@@ -234,6 +264,8 @@ body .leaflet-control-layers,
     height: 24px;
     padding: 0px 3px;
     position: relative;
+    text-shadow: 0px 0px 1px #FFF;
+    color: $black;
 
     &:after {
       position: absolute;
@@ -269,72 +301,108 @@ body .leaflet-control-layers,
   }
 }
 
-// autolayers, hide unneeded elements
-.leaflet-control-layers-expanded {
-  .leaflet-control-autolayers-title,
-  .leaflet-control-layers-tab .map-filter,
-  .leaflet-control-layers-separator {
-    display: none;
+.leaflet-control-layers-overlays [type='checkbox']:not(:checked),
+.leaflet-control-layers-overlays [type='checkbox']:checked {
+  position: static;
+  left: auto;
+  opacity: 1;
+}
+
+.map-settings {
+  .form-modal__item--layer-upload label {
+    display: block;
+    padding: 8px 0px;
+    position: relative;
+    font-size: 14px;
+  }
+
+  .form-modal__item--list-files {
+    border: 1px solid $divider-color;
+    padding: 10px;
+    max-width: 600px;
+    margin-bottom: 20px;
+
+    .list-file-row {
+      border-top: 1px solid $divider-color;
+      padding: 5px;
+
+      > span {
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .file-type {
+        width: 15%;
+        text-transform: uppercase;
+      }
+
+      .file-layer-name {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 80%;
+        font-weight: 600;
+      }
+
+      .file-delete {
+        width: 5%;
+        text-align: right;
+        cursor: pointer;
+
+        i {
+          font-size: 24px;
+          color: $cool-red;
+        }
+      }
+    }
+  }
+
+  .form-modal__item--layer-upload {
+    position: relative;
+
+    label {
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    input {
+      width: calc(100% - 140px);
+    }
+
+    .dropzone {
+      // !important used because strangely, in some browsers, there is in an inline position: relative on the element
+      position: absolute !important;
+      right: 0px;
+      width: 120px;
+      bottom: 0px;
+      text-align: right;
+      min-height: 30px;
+    }
   }
 }
 
-// marker colors
+.map-settings__colors {
+  text-align: center;
 
-.map-marker {
-  width: 24px;
-  height: 24px;
-  background: rgba(255, 50, 0, 0.4);
-  border: 1px solid #FFF;
-  border-radius: 50%;
-  position: relative;
+  .map-marker {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+  }
 
-  &.unselected {
-    visibility: hidden;
+  .form-modal__item--map-color-item {
+    margin-bottom: 0px;
   }
 }
 
-.map-marker[class*="map-marker-"] {
-  background: rgba(0, 0, 0, 0.25);
-  border-color: rgba(255, 255, 255, 0.75);
-}
+.map-settings__GeoQuestions {
+  label {
+    display: block;
+    margin-bottom: 10px;
 
-// OLD COLOR LIST
-// $color-collection: rgba(255, 50, 0, 0.4), rgba(78, 203, 255, 0.4), rgba(255, 180, 50, 0.4), rgba(113, 230, 33, 0.4), rgba(253, 35, 4, 0.4), rgba(33, 231, 184, 0.4), rgba(55, 40, 210, 0.4), rgba(200, 80, 246, 0.4), rgba(208, 165, 50, 0.4), rgba(232, 65, 14, 0.4), rgba(216, 150, 216, 0.4), rgba(200, 233, 150, 0.4), rgba(200, 233, 150, 0.4), rgba(122, 187, 200, 0.4), rgba(90, 90, 90, 0.4), rgba(60, 223, 219, 0.4), rgba(52, 106, 200, 0.4), rgba(88, 20, 100, 0.4), rgba(50, 90, 10, 0.4), rgba(10, 180, 80, 0.4), rgba(230, 175, 25, 0.4);
-
-$color-collection: rgba(255, 50, 0, 0.4), rgba(125, 245, 46, 0.4), rgba(86, 0, 178, 0.4), rgba(0, 236, 118, 0.4), rgba(202, 0, 188, 0.4), rgba(104, 155, 0, 0.4), rgba(161, 107, 255, 0.4), rgba(191, 184, 0, 0.4), rgba(0, 66, 187, 0.4), rgba(197, 231, 113, 0.4), rgba(239, 0, 161, 0.4), rgba(2, 231, 203, 0.4), rgba(239, 0, 69, 0.4), rgba(2, 153, 148, 0.4), rgba(43, 130, 255, 0.4), rgba(183, 142, 0, 0.4), rgba(60, 46, 126, 0.4), rgba(35, 106, 0, 0.4), rgba(175, 158, 255, 0.4), rgba(198, 116, 0, 0.4), rgba(0, 140, 218, 0.4), rgba(255, 109, 60, 0.4), rgba(1, 76, 140, 0.4), rgba(184, 69, 0, 0.4), rgba(165, 228, 255, 0.4), rgba(112, 31, 9, 0.4), rgba(163, 231, 229, 0.4), rgba(133, 0, 75, 0.4), rgba(167, 234, 188, 0.4), rgba(96, 33, 97, 0.4), rgba(21, 70, 0, 0.4), rgba(255, 110, 148, 0.4), rgba(0, 87, 84, 0.4), rgba(255, 157, 210, 0.4), rgba(51, 64, 37, 0.4), rgba(255, 153, 153, 0.4), rgba(12, 64, 93, 0.4), rgba(255, 194, 186, 0.4), rgba(96, 42, 58, 0.4), rgba(134, 0, 40, 0.4);
-
-// generated with http://tools.medialab.sciences-po.fr/iwanthue/
-
-$class-slug: map-marker !default;
-
-$colorLength: length($color-collection);
-
-@for $i from 1 through $colorLength {
-  .map-marker.#{$class-slug}-#{$i},
-  .map-marker.#{$class-slug}-#{$i + $colorLength},
-  .map-marker.#{$class-slug}-#{$i + $colorLength * 2},
-  .map-marker.#{$class-slug}-#{$i + $colorLength * 3},
-  .map-marker.#{$class-slug}-#{$i + $colorLength * 4} {
-    background: nth($color-collection, $i);
-  }
-
-  .map-marker.#{$class-slug}-#{$i + $colorLength * 2} {
-    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.4) 50%, transparent 50%), linear-gradient(rgba(255, 255, 255, 0.4) 50%, transparent 50%);
-    background-size: 6px 6px;
-    background-position: center center;
-  }
-
-  .map-marker.#{$class-slug}-#{$i + $colorLength} {
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255, 255, 255, 0.3) 3px, rgba(255, 255, 255, 0.3) 6px);
-  }
-
-  .map-marker.#{$class-slug}-#{$i + $colorLength * 3} {
-    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255, 255, 255, 0.3) 3px, rgba(255, 255, 255, 0.3) 6px);
-  }
-
-  .map-marker.#{$class-slug}-#{$i + $colorLength * 4} {
-    background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 50%, transparent 50%), linear-gradient(rgba(0, 0, 0, 0.1) 50%, transparent 50%);
-    background-size: 6px 6px;
+    input {
+      margin-right: 8px;
+    }
   }
 }
 

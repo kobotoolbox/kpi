@@ -9,6 +9,7 @@ import editableFormMixin from '../editorMixins/editableForm';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import moment from 'moment';
+import TextBox from './textBox';
 import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
@@ -192,7 +193,7 @@ export class ProjectSettings extends React.Component {
   onImportUrlChange(value) {
     this.setState({
       importUrl: value,
-      importUrlButtonEnabled: value.length > 6 ? true : false,
+      importUrlButtonEnabled: isAValidUrl(value),
       importUrlButton: t('Import')
     });
   }
@@ -308,7 +309,7 @@ export class ProjectSettings extends React.Component {
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail(function(r){
-      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+      alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
 
@@ -454,8 +455,12 @@ export class ProjectSettings extends React.Component {
                 alertify.error(t('Failed to reload project after upload!'));
               });
             },
-            () => {
-              alertify.error(t('Could not initialize XLSForm upload!'));
+            (response) => {
+              if (response && response.messages && response.messages.error) {
+                alertify.error(response.messages.error);
+              } else {
+                alertify.error(t('Could not initialize XLSForm upload!'));
+              }
             }
           );
         },
@@ -495,7 +500,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--form-source'>
+      <bem.FormModal__form className='project-settings project-settings--form-source'>
         {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
           <bem.Modal__subheader>
             {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
@@ -518,43 +523,44 @@ export class ProjectSettings extends React.Component {
           }
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
-            <i className="k-icon-upload" />
+            <i className='k-icon-upload' />
             {t('Upload an XLSForm')}
           </button>
 
           <button onClick={this.displayStep.bind(this, this.STEPS.IMPORT_URL)}>
-            <i className="k-icon-link" />
+            <i className='k-icon-link' />
             {t('Import an XLSForm via URL')}
           </button>
         </bem.FormModal__item>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--choose-template'>
+      <bem.FormModal__form className='project-settings project-settings--choose-template'>
         <TemplatesList onSelectTemplate={this.onTemplateChange}/>
 
         <bem.Modal__footer>
+          {this.renderBackButton()}
+
           <bem.Modal__footerButton
             m='primary'
+            type='submit'
             onClick={this.applyTemplate}
             disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
-            className="mdl-js-button"
+            className='mdl-js-button'
           >
             {this.state.applyTemplateButton}
           </bem.Modal__footerButton>
-
-          {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings project-settings--upload-file'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
@@ -568,7 +574,7 @@ export class ProjectSettings extends React.Component {
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}
           >
-            <i className="k-icon-xls-file" />
+            <i className='k-icon-xls-file' />
             {t(' Drag and drop the XLSForm file here or click to browse')}
           </Dropzone>
         }
@@ -581,46 +587,44 @@ export class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--import-url'>
-        <div className="intro">
+      <bem.FormModal__form className='project-settings project-settings--import-url'>
+        <div className='intro'>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
-          <a href={formViaUrlHelpLink} target="_blank">
+          <a href={formViaUrlHelpLink} target='_blank'>
             {t('Having issues? See this help article.')}
           </a>
         </div>
 
-        <label htmlFor="url">
-          {t('URL')}
-        </label>
-
-        <DebounceInput
-          type="text"
-          id="importUrl"
-          debounceTimeout={300}
-          value={this.state.importUrl}
-          placeholder='https://'
-          onChange={event => this.onImportUrlChange(event.target.value)}
-        />
+        <bem.FormModal__item>
+          <TextBox
+            type='url'
+            label={t('URL')}
+            placeholder='https://'
+            value={this.state.importUrl}
+            onChange={this.onImportUrlChange}
+          />
+        </bem.FormModal__item>
 
         <bem.Modal__footer>
+          {this.renderBackButton()}
+
           <bem.Modal__footerButton
             m='primary'
+            type='submit'
             onClick={this.importFromURL}
             disabled={!this.state.importUrlButtonEnabled}
-            className="mdl-js-button"
+            className='mdl-js-button'
           >
             {this.state.importUrlButton}
           </bem.Modal__footerButton>
-
-          {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
@@ -643,7 +647,7 @@ export class ProjectSettings extends React.Component {
             <bem.Modal__footerButton
               m='primary'
               onClick={this.handleSubmit}
-              className="mdl-js-button"
+              className='mdl-js-button'
             >
               {t('Save Changes')}
             </bem.Modal__footerButton>
@@ -678,14 +682,14 @@ export class ProjectSettings extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label className="long">
+            <label className='long'>
               {t('Please specify the country and the sector where this project will be deployed. ')}
               {/*t('This information will be used to help you filter results on the project list page.')*/}
             </label>
           </bem.FormModal__item>
 
           <bem.FormModal__item m='sector'>
-            <label htmlFor="sector">
+            <label htmlFor='sector'>
               {t('Sector')}
             </label>
             <Select
@@ -724,8 +728,14 @@ export class ProjectSettings extends React.Component {
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.Modal__footer>
+              {/* Don't allow going back if asset already exist */}
+              {!this.state.formAsset &&
+                this.renderBackButton()
+              }
+
               <bem.Modal__footerButton
                 m='primary'
+                type='submit'
                 onClick={this.handleSubmit}
                 className='mdl-js-button'
                 disabled={this.state.isSubmitPending}
@@ -734,11 +744,6 @@ export class ProjectSettings extends React.Component {
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
-
-              {/* Don't allow going back if asset already exist */}
-              {!this.state.formAsset &&
-                this.renderBackButton()
-              }
             </bem.Modal__footer>
           }
 
@@ -763,6 +768,7 @@ export class ProjectSettings extends React.Component {
       return (
         <bem.Modal__footerButton
           m='back'
+          type='button'
           onClick={this.displayPreviousStep}
           disabled={isBackButtonDisabled}
         >

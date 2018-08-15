@@ -167,9 +167,13 @@ class FormSettingsBox extends React.Component {
   }
 };
 
+const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
+
 export default assign({
   componentDidMount() {
     document.body.classList.add('hide-edge');
+
+    this.loadAsideSettings();
 
     if (this.state.editorState === 'existing') {
       let uid = this.props.params.assetid;
@@ -205,6 +209,17 @@ export default assign({
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
+  },
+
+  loadAsideSettings() {
+    const asideSettings = sessionStorage.getItem(ASIDE_CACHE_NAME);
+    if (asideSettings) {
+      this.setState(JSON.parse(asideSettings));
+    }
+  },
+
+  saveAsideSettings(asideSettings) {
+    sessionStorage.setItem(ASIDE_CACHE_NAME, JSON.stringify(asideSettings));
   },
 
   onFormSettingsBoxChange() {
@@ -462,18 +477,22 @@ export default assign({
 
   toggleAsideLibrarySearch(evt) {
     evt.target.blur();
-    this.setState({
+    const asideSettings = {
       asideLayoutSettingsVisible: false,
       asideLibrarySearchVisible: !this.state.asideLibrarySearchVisible,
-    });
+    };
+    this.setState(asideSettings);
+    this.saveAsideSettings(asideSettings);
   },
 
   toggleAsideLayoutSettings(evt) {
     evt.target.blur();
-    this.setState({
+    const asideSettings = {
       asideLayoutSettingsVisible: !this.state.asideLayoutSettingsVisible,
       asideLibrarySearchVisible: false
-    });
+    };
+    this.setState(asideSettings);
+    this.saveAsideSettings(asideSettings);
   },
 
   hidePreview() {
@@ -912,7 +931,7 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
             <bem.FormBuilder__contents>
-              <div ref="form-wrap" className='form-wrap'>
+              <div ref='form-wrap' className='form-wrap'>
                 {!this.state.surveyAppRendered &&
                   this.renderNotLoadedMessage()
                 }
@@ -928,7 +947,7 @@ export default assign({
               title={t('Form Preview')}
             >
               <ui.Modal.Body>
-                <div className="enketo-holder">
+                <div className='enketo-holder'>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </div>
               </ui.Modal.Body>

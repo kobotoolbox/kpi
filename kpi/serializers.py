@@ -20,10 +20,11 @@ from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
-from .fields import PaginatedApiField
+from .fields import PaginatedApiField, SerializerMethodFileField
 from .models import Asset
 from .models import AssetSnapshot
 from .models import AssetVersion
+from .models import AssetFile
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
@@ -270,6 +271,24 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             return content_object.assign_perm(user, perm)
 
 
+class ObjectPermissionNestedSerializer(ObjectPermissionSerializer):
+    '''
+    When serializing a list of permissions inside the object to which they are
+    assigned, omit `content_object` to improve performance significantly
+    '''
+    class Meta(ObjectPermissionSerializer.Meta):
+        fields = (
+            'uid',
+            'kind',
+            'url',
+            'user',
+            'permission',
+            #'content_object',
+            'deny',
+            'inherited',
+        )
+
+
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='collection-detail')
@@ -378,6 +397,44 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                   )
 
 
+class AssetFileSerializer(serializers.ModelSerializer):
+    uid = serializers.ReadOnlyField()
+    url = serializers.SerializerMethodField()
+    asset = RelativePrefixHyperlinkedRelatedField(
+        view_name='asset-detail', lookup_field='uid', read_only=True)
+    user = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail', lookup_field='username', read_only=True)
+    user__username = serializers.ReadOnlyField(source='user.username')
+    file_type = serializers.ChoiceField(choices=AssetFile.TYPE_CHOICES)
+    name = serializers.CharField()
+    date_created = serializers.ReadOnlyField()
+    content = SerializerMethodFileField()
+    metadata = WritableJSONField(required=False)
+
+    def get_url(self, obj):
+        return reverse('asset-file-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+    def get_content(self, obj, *args, **kwargs):
+        return reverse('asset-file-content', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+    class Meta:
+        model = AssetFile
+        fields = (
+            'uid',
+            'url',
+            'asset',
+            'user',
+            'user__username',
+            'file_type',
+            'name',
+            'date_created',
+            'content',
+            'metadata',
+        )
+
+
 class AssetVersionListSerializer(serializers.Serializer):
     # If you change these fields, please update the `only()` and
     # `select_related()` calls  in `AssetVersionViewSet.get_queryset()`
@@ -442,7 +499,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    permissions = ObjectPermissionSerializer(many=True, read_only=True)
+    permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
@@ -591,17 +648,25 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return
-        if obj.asset_versions.filter(deployed=True).exists():
-            if isinstance(obj.deployment.version_id, int):
-                # this can be removed once the 'replace_deployment_ids'
-                # migration has been run
-                v_id = obj.deployment.version_id
-                try:
-                    return obj.asset_versions.get(_reversion_version_id=v_id).uid
-                except ObjectDoesNotExist, e:
-                    return obj.asset_versions.filter(deployed=True).first().uid
-            else:
-                return obj.deployment.version_id
+        if isinstance(obj.deployment.version_id, int):
+            asset_versions_uids_only = obj.asset_versions.only('uid')
+            # this can be removed once the 'replace_deployment_ids'
+            # migration has been run
+            v_id = obj.deployment.version_id
+            try:
+                return asset_versions_uids_only.get(
+                    _reversion_version_id=v_id
+                ).uid
+            except AssetVersion.DoesNotExist:
+                deployed_version = asset_versions_uids_only.filter(
+                    deployed=True
+                ).first()
+                if deployed_version:
+                    return deployed_version.uid
+                else:
+                    return None
+        else:
+            return obj.deployment.version_id
 
     def get_deployment__identifier(self, obj):
         if obj.has_deployment:
@@ -767,6 +832,9 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
+        # WARNING! If you're changing something here, please update
+        # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
+        # additional database query for each asset in the list.
         fields = ('url',
                   'date_modified',
                   'date_created',
@@ -1009,14 +1077,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         # (http://www.django-rest-framework.org/api-guide/fields/#source).
         source='*',
         source_processor=lambda source: CollectionChildrenQuerySet(
-            source).select_related(
-                'owner', 'parent'
-            ).prefetch_related(
-                'permissions',
-                'permissions__permission',
-                'permissions__user',
-                'permissions__content_object',
-            ).all()
+            source
+        ).optimize_for_list()
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
