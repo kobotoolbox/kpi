@@ -952,11 +952,7 @@ actions.hooks.retryLog.completed.listen((response) => {
   }
 });
 actions.hooks.retryLog.failed.listen((response) => {
-  if (response.responseJSON && response.responseJSON.detail) {
-    notify(data.responseJSON.detail, 'error');
-  } else {
-    notify(t('Failed retrying submission'), 'error');
-  }
+  notify(t('Failed retrying submission'), 'error');
 });
 
 actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
