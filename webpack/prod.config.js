@@ -2,9 +2,19 @@ const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
-const lsla = require('child_process').execSync('ls -la').toString();
-console.error(lsla);
-const commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
+
+const plugins = [];
+try {
+  const commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
+  plugins.push(
+    new webpack.DefinePlugin({
+      __FRONTEND_COMMIT__: JSON.stringify(commitHash)
+    })
+  );
+} catch (e) {
+  console.warn('Could not generate frontend commit hash, due to: ' + JSON.stringify(e));
+}
+
 
 module.exports = WebpackCommon({
   mode: 'production',
@@ -17,9 +27,5 @@ module.exports = WebpackCommon({
     publicPath: publicPath,
     filename: '[name]-[hash].js'
   },
-  plugins: [
-    new webpack.DefinePlugin({
-      __FRONTEND_COMMIT__: JSON.stringify(commitHash)
-    })
-  ]
+  plugins: plugins
 });
