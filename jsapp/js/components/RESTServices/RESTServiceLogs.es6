@@ -105,7 +105,11 @@ export default class RESTServiceLogs extends React.Component {
     actions.hooks.retryLog(
       this.state.assetUid,
       this.state.hookUid,
-      log.uid
+      log.uid, {
+        onFail: () => {
+          this.overrideLogStatus(log, HOOK_LOG_STATUSES.FAILED);
+        }
+      }
     );
   }
 
