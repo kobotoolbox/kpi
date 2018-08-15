@@ -6,7 +6,6 @@ import {
   notify,
   replaceSupportEmail,
 } from './utils';
-import {HOOK_LOG_STATUSES} from './constants';
 
 var Reflux = require('reflux');
 import RefluxPromise from './libs/reflux-promise';
@@ -947,9 +946,7 @@ actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
     });
 });
 actions.hooks.retryLog.completed.listen((response) => {
-  if (response.status === HOOK_LOG_STATUSES.FAILED) {
-    notify(t('Failed retrying submission'), 'error');
-  }
+  notify(t('Submission retried successfully'));
 });
 actions.hooks.retryLog.failed.listen((response) => {
   notify(t('Failed retrying submission'), 'error');

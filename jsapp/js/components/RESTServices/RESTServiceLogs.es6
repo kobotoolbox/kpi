@@ -221,15 +221,7 @@ export default class RESTServiceLogs extends React.Component {
                 <bem.ServiceRow__column
                   m={['status', statusMod]}
                 >
-                  {log.status === HOOK_LOG_STATUSES.SUCCESS &&
-                    t('Success')
-                  }
-                  {log.status === HOOK_LOG_STATUSES.PENDING &&
-                    t('Pending')
-                  }
-                  {log.status === HOOK_LOG_STATUSES.FAILED &&
-                    t('Failed')
-                  }
+                  {t(log.status_str)}
 
                   {log.status === HOOK_LOG_STATUSES.FAILED &&
                     <bem.ServiceRow__actionButton
