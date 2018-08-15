@@ -140,7 +140,7 @@ class ServiceDefinitionInterface(object):
         try:
             json.loads(message)
         except ValueError as e:
-            message = re.sub(r"<[^>]*>", "", message)
+            message = re.sub(r"<[^>]*>", " ", message).strip()
 
         log.message = message
 
