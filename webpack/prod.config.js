@@ -1,7 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
-const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
 const WebpackCommon = require('./webpack.common');
+const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
+const commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
 
 module.exports = WebpackCommon({
   mode: 'production',
@@ -14,4 +15,9 @@ module.exports = WebpackCommon({
     publicPath: publicPath,
     filename: '[name]-[hash].js'
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      __FRONTEND_COMMIT__: JSON.stringify(commitHash)
+    })
+  ]
 });
