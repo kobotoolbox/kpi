@@ -48,8 +48,15 @@ class HookLog(models.Model):
 
         return False
 
-    def change_status(self, status=HOOK_LOG_PENDING):
+    def change_status(self, status=HOOK_LOG_PENDING, message=None, status_code=None):
         self.status = status
+
+        if message:
+            self.message = message
+
+        if status_code:
+            self.status_code = status_code
+
         self.save(reset_status=True)
 
     def retry(self, data):
@@ -72,6 +79,9 @@ class HookLog(models.Model):
                 self.change_status(HOOK_LOG_FAILED)
                 return False, _("An error has occurred when sending the data. Please try again later.")
 
+        self.change_status(status=HOOK_LOG_FAILED,
+                           message="Could not retrieve data ",
+                           status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return False, _("Could not retrieve data.")
 
     def save(self, *args, **kwargs):
