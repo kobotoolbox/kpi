@@ -11,7 +11,9 @@ $z-form-view-fullscreen: 101;
   border-right: 1px solid $divider-color;
   width: 170px;
   height: 100%;
-  overflow: hidden;
+  max-height: calc(100% - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
   float: left;
   background: white;
   padding-top: 20px;
@@ -648,6 +650,17 @@ $z-form-view-fullscreen: 101;
 
   .form-view__cell {
     margin-top: 25px;
+  }
+}
+
+@media screen and (max-height: 420px) {
+  .form-view__sidetabs {
+    padding-top: 0;
+
+    a.form-view__tab {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   }
 }
 
