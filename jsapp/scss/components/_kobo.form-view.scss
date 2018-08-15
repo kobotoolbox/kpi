@@ -1,3 +1,5 @@
+$z-form-view-fullscreen: 101;
+
 .form-view__toptabs {
   background: white;
   text-align: center;
@@ -20,9 +22,20 @@
   height: calc(100% - 48px);
   overflow-y: auto;
   background: #F8F8F8;
+
+  &.form-view--fullscreen {
+    position: fixed;
+    z-index: $z-form-view-fullscreen;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+  }
 }
 
-.form-view__sidetabs + .form-view,
+.form-view__sidetabs + .form-view:not(.form-view--fullscreen),
 .form-view__sidetabs + .report-view,
 .form-view__sidetabs + .loading {
   width: calc(100% - 170px);

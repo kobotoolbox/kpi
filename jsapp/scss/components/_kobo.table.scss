@@ -252,18 +252,6 @@
   }
 }
 
-.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
-  .form-view--table {
-    padding: 0px;
-    overflow: hidden;
-    background: transparent !important;
-
-    .form-view__group--table-header {
-      padding-top: 0px;
-    }
-  }
-}
-
 .tableColumn-modal {
   .form-view__cell--label {
     padding-bottom: 10px;
