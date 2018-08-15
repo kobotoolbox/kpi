@@ -55,7 +55,7 @@ $z-form-view-fullscreen: 101;
   }
 }
 
-.form-view__sidetabs + .form-view--table {
+.form-view__sidetabs + .form-view.form-view--table {
   overflow: hidden;
 }
 
@@ -125,24 +125,6 @@ $z-form-view-fullscreen: 101;
     span {
       vertical-align: middle;
     }
-  }
-}
-
-.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
-  .form-view__sidetabs {
-    width: 0px;
-    border-right: none;
-  }
-
-  .form-view__sidetabs + .form-view,
-  .form-view__sidetabs + .report-view {
-    width: calc(100% - 1px);
-    height: 100%;
-    background: #F8F8F8;
-  }
-
-  .form-view__toptabs {
-    display: none;
   }
 }
 

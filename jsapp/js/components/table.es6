@@ -41,7 +41,7 @@ export class DataTable extends React.Component {
       selectedColumns: false,
       frozenColumn: false,
       sids: [],
-      showExpandedTable: false,
+      isFullscreen: false,
       defaultPageSize: 30,
       pageSize: 30,
       currentPage: 0,
@@ -490,8 +490,8 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     });
   }
-  toggleExpandedTable () {
-    this.setState({showExpandedTable: !this.state.showExpandedTable});
+  toggleFullscreen () {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
@@ -753,7 +753,7 @@ export class DataTable extends React.Component {
         tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
 
     const formViewModifiers = ['table'];
-    if (this.state.showExpandedTable) {
+    if (this.state.isFullscreen) {
       formViewModifiers.push('fullscreen');
     }
     return (
@@ -795,8 +795,9 @@ export class DataTable extends React.Component {
 
             <button
               className='mdl-button mdl-button--icon report-button__expand'
-              onClick={this.toggleExpandedTable}
-              data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+              onClick={this.toggleFullscreen}
+              data-tip={t('Toggle fullscreen')}
+            >
               <i className='k-icon-expand' />
             </button>
 
