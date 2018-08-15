@@ -3,9 +3,8 @@ const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const BundleTracker = require('webpack-bundle-tracker');
-var publicPath = 'http://localhost:3000/static/compiled/';
-
-var commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
+const publicPath = 'http://localhost:3000/static/compiled/';
+const commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
 
 module.exports = WebpackCommon({
   mode: 'development',
@@ -32,6 +31,6 @@ module.exports = WebpackCommon({
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       __FRONTEND_COMMIT__: JSON.stringify(commitHash)
-    }),
+    })
   ]
 });
