@@ -2,6 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
+const lsla = require('child_process').execSync('ls -la').toString();
+console.error(lsla);
 const commitHash = require('child_process').execSync('git rev-parse --short HEAD').toString();
 
 module.exports = WebpackCommon({
