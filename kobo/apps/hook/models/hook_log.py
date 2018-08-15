@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from datetime import datetime, timedelta
 from importlib import import_module
 import logging
 
@@ -40,11 +40,11 @@ class HookLog(models.Model):
         """
         if self.hook.active:
             seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L60`
-            new_time = timezone.now() - datetime.timedelta(seconds=seconds)
+            threshold = timezone.now() - timedelta(seconds=seconds)
             # We can retry only if system has already tried 3 times.
             # If log is still pending after 3 times, there was an issue, we allow the retry
             return self.status == HOOK_LOG_FAILED or \
-                (self.date_modified < new_time and self.status == HOOK_LOG_PENDING)
+                (self.date_modified < threshold and self.status == HOOK_LOG_PENDING)
 
         return False
 

@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
+from django.conf import settings
+from django.utils import timezone
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ..constants import HOOK_LOG_FAILED, HOOK_EXPORT_TYPE_JSON
+from ..constants import HOOK_LOG_FAILED, HOOK_EXPORT_TYPE_JSON, HOOK_LOG_PENDING
 from ..models.hook import Hook
 from ..serializers.hook import HookSerializer
 from kpi.models import Asset
@@ -162,16 +166,19 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def retry(self, request, uid=None, *args, **kwargs):
         hook = self.get_object()
         if hook.active:
-            logs = hook.logs.filter(status=HOOK_LOG_FAILED)  # TODO AND PENDING FOR A LONG TIME
+            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L60`
+            threshold = timezone.now() - timedelta(seconds=seconds)
+
+            logs = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
+                                    Q(status=HOOK_LOG_FAILED))
             if len(logs):
                 instances_ids = [log.data_id for log in logs]
                 data = self.__data_to_dict(
                     hook.asset.deployment.get_submissions(request, hook.export_type, instances_ids))
-
                 for hook_log in logs:
                     hook_log.retry(data.get(hook_log.data_id))
 
-        return Response("Retry list")
+        return Response({"detail": _("Task successfully scheduled")})
 
     def __data_to_dict(self, data):
         return {instance.get("_id"): instance for instance in data}
