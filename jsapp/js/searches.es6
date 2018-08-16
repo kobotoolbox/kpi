@@ -51,113 +51,107 @@ function SearchContext(opts={}) {
       'refresh',
     ]
   });
-  var latestSearchData;
 
-  var searchStore = ctx.store = Reflux.createStore({
+  let latestSearchData;
+
+  const searchStore = ctx.store = Reflux.createStore({
     init () {
       this.filterParams = {};
       this.state = {
         searchState: 'none',
       };
 
-      this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAsset);
-      this.listenTo(actions.resources.deployAsset.completed, this.onDeployAsset);
-      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAsset);
+      this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
+      this.listenTo(actions.resources.deployAsset.completed, this.onDeployAssetCompleted);
+      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+      this.listenTo(actions.resources.createResource.completed, this.onCreateResourceCompleted);
+      this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
+      this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     },
-    onUpdateAsset(asset, uid, values) {
-      const assetBefore = _.find(this.state.defaultQueryResultsList, (result) => {
-        return result.uid === asset.uid;
-      });
-      if (assetBefore && assetBefore.name !== asset.name) {
-        this.silentUpdateAssetName(uid, asset.name);
-      }
+    onUpdateAssetCompleted(asset) {
+      this.setAsset(asset);
     },
-    onDeployAsset(data, dialog_or_alert, redeployment, uid) {
-      if (redeployment === false) {
-        this.silentMoveAssetToDeployed(uid);
-      }
+    onDeployAssetCompleted(/*data, redeployment, uid*/) {
+      // TODO: deploying asset temporarily triggers loadAsset (already handled
+      // here), so use this event after
+      // https://github.com/kobotoolbox/kpi/issues/1940 is implemented
     },
-    onDeleteAsset(asset) {
-      this.silentRemoveAssetFromList(asset.uid, 'defaultQueryResultsList');
-      this.silentRemoveAssetFromCategorizedList(asset.uid);
-      if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
-        this.silentRemoveAssetFromList(asset.uid, 'searchResultsList');
-      }
+    onDeleteAssetCompleted(asset) {
+      this.removeAsset(asset.uid);
     },
-    silentRemoveAssetFromCategorizedList(uid) {
-      let list = this.state.defaultQueryCategorizedResultsLists;
-      if (list) {
-        var l = {};
-        for (var category in list) {
-          l[category] = list[category].filter(function(result){
-            return result.uid !== uid;
-          });
-        }
-        let o = {};
-        o.defaultQueryCategorizedResultsLists = l;
-        this.update(o);
-      }
+    onCreateResourceCompleted(asset) {
+      this.setAsset(asset);
     },
-    silentRemoveAssetFromList(uid, listName) {
-      if (this.state[listName] != undefined) {
-        let uid = uid;
-        let listLength = this.state[listName].length;
-        let l = this.state[listName].filter(function(result){
-          return result.uid !== uid;
-        });
-        if (l.length !== listLength) {
-          let o = {};
-          o[listName] = l;
-          this.update(o);
-        }
-      }
+    onCloneAssetCompleted(asset) {
+      this.setAsset(asset);
     },
-    silentUpdateAssetName(uid, newName) {
-      const updateObj = {};
-
-      const results = this.state.defaultQueryResultsList;
-      if (results) {
-        for (const asset of results) {
-          if (asset.uid === uid) {asset.name = newName;}
-        }
-        updateObj.defaultQueryResultsList = results;
-      }
-
-      const categorizedResults = this.state.defaultQueryCategorizedResultsLists;
-      if (categorizedResults) {
-        for (const asset of categorizedResults.Draft) {
-          if (asset.uid === uid) {
-            asset.name = newName;
-          }
-        }
-        for (const asset of categorizedResults.Deployed) {
-          if (asset.uid === uid) {
-            asset.name = newName;
-          }
-        }
-        updateObj.defaultQueryCategorizedResultsLists = categorizedResults;
-      }
-
-      this.update(updateObj);
+    onLoadAssetCompleted(asset) {
+      this.setAsset(asset);
     },
-    silentMoveAssetToDeployed(uid) {
-      let assetsToMove = [];
-
-      const results = this.state.defaultQueryCategorizedResultsLists;
-      if (results) {
-        for (let i = 0; i < results.Draft.length; i++) {
-          if (results.Draft[i].uid === uid) {
-            assetsToMove = results.Draft.splice(i, 1);
+    // add/update asset in all search store lists
+    setAsset(asset) {
+      this.setAssetInList(asset, 'defaultQueryResultsList');
+      this.setAssetInList(asset, 'searchResultsList');
+      this.rebuildCategorizedList(
+        this.state.defaultQueryResultsList,
+        'defaultQueryCategorizedResultsLists'
+      );
+      this.rebuildCategorizedList(
+        this.state.searchResultsList,
+        'searchResultsCategorizedResultsLists'
+      );
+    },
+    setAssetInList(asset, listName) {
+      const list = this.state[listName];
+      if (list && list.length !== 0) {
+        const updateObj = {};
+        let isNewAsset = true;
+        for (let i = 0; i < list.length; i++) {
+          if (list[i].uid === asset.uid) {
+            list[i] = asset;
+            isNewAsset = false;
             break;
           }
         }
-        if (assetsToMove.length === 1) {
-          results.Deployed.unshift(assetsToMove[0]);
+        if (isNewAsset) {
+          // we add asset on top, because it's update event (freshly modified)
+          list.unshift(asset);
         }
-
-        this.update({
-          defaultQueryCategorizedResultsLists: results
+        updateObj[listName] = list;
+        this.update(updateObj);
+      }
+    },
+    rebuildCategorizedList(sourceResults, listName) {
+      const catList = this.state[listName];
+      const defaultResults = this.state.defaultQueryResultsList;
+      if (catList && sourceResults && sourceResults.length !== 0) {
+        const updateObj = {};
+        updateObj[listName] = splitResultsToCategorized(sourceResults);
+        this.update(updateObj);
+      }
+    },
+    // remove asset from all search store lists
+    removeAsset(assetUid) {
+      this.removeAssetFromList(assetUid, 'defaultQueryResultsList');
+      this.removeAssetFromList(assetUid, 'searchResultsList');
+      this.rebuildCategorizedList(
+        this.state.defaultQueryResultsList,
+        'defaultQueryCategorizedResultsLists'
+      );
+      this.rebuildCategorizedList(
+        this.state.searchResultsList,
+        'searchResultsCategorizedResultsLists'
+      );
+    },
+    removeAssetFromList(assetUid, listName) {
+      let list = this.state[listName];
+      if (list && list.length !== 0) {
+        const updateObj = {};
+        list = list.filter((asset) => {
+          return asset.uid !== uid;
         });
+        updateObj[listName] = list;
+        this.update(updateObj);
       }
     },
     update (items) {
@@ -251,6 +245,20 @@ function SearchContext(opts={}) {
     },
   });
 
+  const splitResultsToCategorized = function (results) {
+    return {
+      Deployed: results.filter((asset) => {
+        return asset.has_deployment && asset.deployment__active;
+      }),
+      Draft: results.filter((asset) => {
+        return !asset.has_deployment;
+      }),
+      Archived: results.filter((asset) => {
+        return asset.has_deployment && !asset.deployment__active;
+      })
+    }
+  };
+
   search.listen(function(_opts={}){
     /*
     search will query whatever values are in the store
@@ -341,18 +349,7 @@ function SearchContext(opts={}) {
         defaultQueryResults: data,
         defaultQueryResultsList: data.results,
         defaultQueryCount: count,
-        defaultQueryCategorizedResultsLists: {
-          'Deployed': data.results.filter((asset) => {
-            return asset.has_deployment && asset.deployment__active;
-          }),
-          'Draft': data.results.filter((asset) => {
-            return !asset.has_deployment;
-          }),
-          'Archived': data.results.filter((asset) => {
-            return asset.has_deployment && !asset.deployment__active;
-          }),
-          'Deleted': [], // not implemented yet
-        }
+        defaultQueryCategorizedResultsLists: splitResultsToCategorized(data.results)
       };
     } else {
       newState = {
@@ -369,18 +366,7 @@ function SearchContext(opts={}) {
         // when to show search results (as opposed to default query)
         searchResultsDisplayed: true,
         searchResultsSuccess: count > 0,
-        searchResultsCategorizedResultsLists: {
-          'Deployed': data.results.filter((asset) => {
-            return asset.has_deployment && asset.deployment__active;
-          }),
-          'Draft': data.results.filter((asset) => {
-            return !asset.has_deployment;
-          }),
-          'Archived': data.results.filter((asset) => {
-            return asset.has_deployment && !asset.deployment__active;
-          }),
-          'Deleted': [], // not implemented yet
-        }
+        searchResultsCategorizedResultsLists: splitResultsToCategorized(data.results)
       };
     }
     searchStore.update(newState);

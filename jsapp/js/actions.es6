@@ -348,8 +348,10 @@ actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
   dataInterface.deployAsset(asset, redeployment)
     .done((data) => {
       actions.resources.deployAsset.completed(data, redeployment);
-      // TODO: make backend return updated asset here to not require another call
+      // TODO: get whole fresh asset to update it in stores
+      // remove it after https://github.com/kobotoolbox/kpi/issues/1940 is done
       actions.resources.loadAsset({id: asset.uid});
+      // ENDTODO
       if (typeof params.onDone === 'function') {
         params.onDone(data, redeployment);
       }
