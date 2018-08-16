@@ -162,13 +162,11 @@ class AssetRow extends React.Component {
                 data-kind={this.props.kind}
                 data-asset-type={this.props.kind}
                 draggable={false}
-                className={`asset-row__celllink asset-row__celllink-name ${linkClassName}`}
+                className={`asset-row__celllink asset-row__celllink--name ${linkClassName}`}
               >
-                <bem.AssetRow__name>
-                  <ui.AssetName {...this.props} />
-                </bem.AssetRow__name>
+                <ui.AssetName {...this.props} />
               </Link>
-              { this.props.asset_type && this.props.asset_type === 'survey' &&
+              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.settings.description &&
                 <bem.AssetRow__description>
                   {this.props.settings.description}
                 </bem.AssetRow__description>
