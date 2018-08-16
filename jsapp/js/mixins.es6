@@ -82,8 +82,26 @@ mixins.dmix = {
       promptMessage: t('Enter the name of the new template.')
     });
   },
-  reDeployConfirm (asset, onComplete) {
-    let dialog = alertify.dialog('confirm');
+  _deployAssetFirstTime (asset) {
+    let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
+    actions.resources.deployAsset(asset, false, {
+      onDone: () => {
+        notify(t('deployed form'));
+        actions.resources.loadAsset({id: asset.uid});
+        hashHistory.push(`/forms/${asset.uid}`);
+        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
+          deployment_alert.dismiss();
+        }
+      },
+      onFail: () => {
+        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
+          deployment_alert.dismiss();
+        }
+      }
+    });
+  },
+  _deployAssetNextTime (asset) {
+    const dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Overwrite existing deployment'),
       message: t(
@@ -96,10 +114,18 @@ mixins.dmix = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
         ok_button.innerText = t('Deploying...');
-        actions.resources.deployAsset(asset, true, dialog, {
-          onComplete: () => {
+        actions.resources.deployAsset(asset, true, {
+          onDone: () => {
             notify(t('redeployed form'));
             actions.resources.loadAsset({id: asset.uid});
+            if (dialog && typeof dialog.destroy === 'function') {
+              dialog.destroy();
+            }
+          },
+          onFail: () => {
+            if (dialog && typeof dialog.destroy === 'function') {
+              dialog.destroy();
+            }
           }
         });
         // keep the dialog open
@@ -111,7 +137,7 @@ mixins.dmix = {
     };
     dialog.set(opts).show();
   },
-  deployAsset (asset, onComplete) {
+  deployAsset (asset) {
     if (!asset || asset.kind != 'asset') {
         if (this.state && this.state.kind == 'asset') {
           asset = this.state;
@@ -122,17 +148,10 @@ mixins.dmix = {
     }
     if (!asset.has_deployment) {
       // There's no existing deployment for this asset
-      let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
-      actions.resources.deployAsset(asset, false, deployment_alert, {
-        onComplete: () => {
-          notify(t('deployed form'));
-          actions.resources.loadAsset({id: asset.uid});
-          hashHistory.push(`/forms/${asset.uid}`);
-        }
-      });
+      this._deployAssetFirstTime(asset);
     } else {
       // We are about to overwrite(!) an existing deployment
-      this.reDeployConfirm(asset, onComplete);
+      this._deployAssetNextTime(asset);
     }
   },
   unarchiveAsset () {

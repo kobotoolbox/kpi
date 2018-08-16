@@ -348,46 +348,23 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
     });
 });
 
-actions.resources.deployAsset.listen(
-  function(asset, redeployment, dialog_or_alert, params={}){
-    dataInterface.deployAsset(asset, redeployment)
-      .done((data) => {
-        actions.resources.deployAsset.completed(data, dialog_or_alert, redeployment, asset.uid);
-        if (typeof params.onComplete === 'function') {
-          params.onComplete(data, dialog_or_alert, redeployment, asset.uid);
-        }
-      })
-      .fail((data) => {
-        actions.resources.deployAsset.failed(data, dialog_or_alert, redeployment, asset.uid);
-        if (typeof params.onFailed === 'function') {
-          params.onFailed(data, dialog_or_alert, redeployment, asset.uid);
-        }
-      });
-  }
-);
-
-actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
-  // close the dialog/alert.
-  // (this was sometimes failing. possibly dialog already destroyed?)
-  if (dialog_or_alert) {
-    if (typeof dialog_or_alert.destroy === 'function') {
-        dialog_or_alert.destroy();
-    } else if (typeof dialog_or_alert.dismiss === 'function') {
-        dialog_or_alert.dismiss();
-    }
-  }
+actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
+  dataInterface.deployAsset(asset, redeployment)
+    .done((data) => {
+      actions.resources.deployAsset.completed(data, redeployment, asset.uid);
+      if (typeof params.onDone === 'function') {
+        params.onDone(data, redeployment, asset.uid);
+      }
+    })
+    .fail((data) => {
+      actions.resources.deployAsset.failed(data, redeployment, asset.uid);
+      if (typeof params.onFail === 'function') {
+        params.onFail(data,  redeployment, asset.uid);
+      }
+    });
 });
 
-actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
-  // close the dialog/alert.
-  // (this was sometimes failing. possibly dialog already destroyed?)
-  if (dialog_or_alert) {
-    if (typeof dialog_or_alert.destroy === 'function') {
-        dialog_or_alert.destroy();
-    } else if (typeof dialog_or_alert.dismiss === 'function') {
-        dialog_or_alert.dismiss();
-    }
-  }
+actions.resources.deployAsset.failed.listen(function(data, redeployment, assetUid){
   // report the problem to the user
   let failure_message = null;
 
