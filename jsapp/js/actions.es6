@@ -312,10 +312,6 @@ actions.resources.createImport.completed.listen(function(contents){
   }
 });
 
-actions.resources.createResource.failed.listen(function(){
-  log('createResourceFailed');
-});
-
 actions.resources.createSnapshot.listen(function(details){
   dataInterface.createAssetSnapshot(details)
     .done(actions.resources.createSnapshot.completed)
