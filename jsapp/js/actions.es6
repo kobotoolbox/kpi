@@ -332,10 +332,10 @@ actions.resources.listTags.completed.listen(function(results){
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
-    .done(function(asset){
+    .done((asset) => {
       actions.resources.updateAsset.completed(asset, uid, values);
-      if (params.onComplete) {
-        params.onComplete(asset);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(asset, uid, values);
       }
       notify(t('successfully updated'));
     })
@@ -347,20 +347,22 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
 actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
   dataInterface.deployAsset(asset, redeployment)
     .done((data) => {
-      actions.resources.deployAsset.completed(data, redeployment, asset.uid);
+      actions.resources.deployAsset.completed(data, redeployment);
+      // TODO: make backend return updated asset here to not require another call
+      actions.resources.loadAsset({id: asset.uid});
       if (typeof params.onDone === 'function') {
-        params.onDone(data, redeployment, asset.uid);
+        params.onDone(data, redeployment);
       }
     })
     .fail((data) => {
-      actions.resources.deployAsset.failed(data, redeployment, asset.uid);
+      actions.resources.deployAsset.failed(data, redeployment);
       if (typeof params.onFail === 'function') {
-        params.onFail(data,  redeployment, asset.uid);
+        params.onFail(data,  redeployment);
       }
     });
 });
 
-actions.resources.deployAsset.failed.listen(function(data, redeployment, assetUid){
+actions.resources.deployAsset.failed.listen(function(data, redeployment){
   // report the problem to the user
   let failure_message = null;
 
@@ -397,22 +399,16 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment, assetUi
   alertify.alert(t('unable to deploy'), failure_message);
 });
 
-actions.resources.setDeploymentActive.listen(
-  function(details, params={}) {
-    var onComplete;
-    if (params && params.onComplete) {
-      onComplete = params.onComplete;
-    }
-    dataInterface.setDeploymentActive(details)
-      .done(function(/*result*/){
-        actions.resources.setDeploymentActive.completed(details);
-        if (onComplete) {
-          onComplete(details);
-        }
-      })
-      .fail(actions.resources.setDeploymentActive.failed);
-  }
-);
+actions.resources.setDeploymentActive.listen(function(details, params={}) {
+  dataInterface.setDeploymentActive(details)
+    .done((result) => {
+      actions.resources.setDeploymentActive.completed(details, result.active);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(details, result.active);
+      }
+    })
+    .fail(actions.resources.setDeploymentActive.failed);
+});
 
 actions.resources.getAssetFiles.listen(function(assetId) {
   dataInterface
@@ -495,15 +491,11 @@ actions.resources.createResource.listen(function(details){
 });
 
 actions.resources.deleteAsset.listen(function(details, params={}){
-  var onComplete;
-  if (params && params.onComplete) {
-    onComplete = params.onComplete;
-  }
   dataInterface.deleteAsset(details)
-    .done(function(/*result*/){
+    .done(() => {
       actions.resources.deleteAsset.completed(details);
-      if (onComplete) {
-        onComplete(details);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(details);
       }
     })
     .fail((err) => {
@@ -542,12 +534,12 @@ actions.resources.updateCollection.listen(function(uid, values){
     });
 });
 
-actions.resources.cloneAsset.listen(function(details, opts={}){
+actions.resources.cloneAsset.listen(function(details, params={}){
   dataInterface.cloneAsset(details)
-    .done(function(...args){
-      actions.resources.cloneAsset.completed(...args);
-      if (opts.onComplete) {
-        opts.onComplete(...args);
+    .done((asset) => {
+      actions.resources.cloneAsset.completed(asset);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(asset);
       }
     })
     .fail(actions.resources.cloneAsset.failed);
