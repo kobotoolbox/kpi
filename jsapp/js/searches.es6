@@ -9,26 +9,10 @@ import $ from 'jquery';
 
 import stores from './stores';
 import actions from './actions';
-import {dataInterface} from './dataInterface';
 import {assign} from './utils';
 import assetParserUtils from './assetParserUtils';
 
-var searchDataInterface = (function(){
-  return {
-    assets: function(data) {
-      // raise limit temporarily to 200
-      data.limit = 200;
-      return $.ajax({
-        url: `${dataInterface.rootUrl}/assets/`,
-        dataType: 'json',
-        data: data,
-        method: 'GET'
-      });
-    }
-  };
-})();
-
-const clearSearchState = {
+const emptySearchState = {
   searchState: 'none',
   searchResults: false,
   searchResultsList: [],
@@ -52,7 +36,7 @@ const initialState = assign({
   defaultQueryResults: '',
   defaultQueryResultsList: [],
   defaultQueryCount: 0,
-}, clearSearchState);
+}, emptySearchState);
 
 function SearchContext(opts={}) {
   var ctx = this;
@@ -302,15 +286,16 @@ function SearchContext(opts={}) {
       }
     }
     latestSearchData = {params: qData, dataObject: dataObject};
-    var req = searchDataInterface.assets(qData)
-      .done(function(data){
-        search.completed(dataObject, data, {
+    var req = actions.search.assets(qData, {
+      onComplete: function(searchData, response) {
+        search.completed(dataObject, response, {
           cacheAsDefaultSearch: _opts.cacheAsDefaultSearch,
         });
-      })
-      .fail(function(xhr){
-        search.failed(xhr, dataObject);
-      });
+      },
+      onFailed: function(searchData, response) {
+        search.failed(response, dataObject);
+      }
+    })
 
     jqxhrs[ isSearch ? 'search' : 'default' ] = req;
 
@@ -327,15 +312,16 @@ function SearchContext(opts={}) {
     }
   });
   search.refresh.listen(function(){
-    searchDataInterface.assets(latestSearchData.params)
-      .done(function(data){
-        search.completed(latestSearchData.dataObject, data, {
+    actions.search.assets(latestSearchData.params, {
+      onComplete: function(searchData, response) {
+        search.completed(latestSearchData.dataObject, response, {
           cacheAsDefaultSearch: false,
         });
-      })
-      .fail(function(xhr){
-        search.failed(xhr, latestSearchData.dataObject);
-      });
+      },
+      onFailed: function(searchData, response) {
+        search.failed(response, latestSearchData.dataObject);
+      }
+    });
   });
 
   search.completed.listen(function(searchParams, data, _opts){
@@ -399,7 +385,7 @@ function SearchContext(opts={}) {
     }
     searchStore.update(newState);
   });
-  search.failed.listen(function(/*xhr, searchParams*/){
+  search.failed.listen(function(/*searchData, response*/){
     // if (xhr.searchAborted) {
     //   log('search was canceled because a new search came up')
     // }
@@ -413,7 +399,7 @@ function SearchContext(opts={}) {
     }
     searchStore.update(assign({
       cleared: true
-    }, clearSearchState));
+    }, emptySearchState));
   });
   this.mixin = {
     debouncedSearch: ( debounceTime ? _.debounce(search, debounceTime) : search ),
@@ -429,7 +415,7 @@ function SearchContext(opts={}) {
       searchStore.quietUpdate(assign({
         cleared: true,
         searchString: false,
-      }, clearSearchState));
+      }, emptySearchState));
 
       search({
         cacheAsDefaultSearch: true
@@ -473,10 +459,14 @@ var commonMethods = {
     this.searchValue();
   },
   searchChangeEvent (evt) {
-    this.quietUpdateStore({
-      searchString: evt.target.value,
-    });
-    this.debouncedSearch();
+    let searchString = evt.target.value.trim();
+    // don't trigger search on identical strings (e.g. multiple spaces)
+    if (this.searchStore.state.searchString !== searchString) {
+      this.quietUpdateStore({
+        searchString: searchString,
+      });
+      this.debouncedSearch();
+    }
   },
   refreshSearch () {
     this.debouncedSearch();
