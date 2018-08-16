@@ -99,7 +99,6 @@ class AssetVersionTestCase(TestCase):
         self.assertEqual(new_asset.latest_version.content_hash, expected_hash)
         return new_asset
 
-    @unittest.skip('https://github.com/kobotoolbox/kpi/issues/1833')
     def test_version_content_hash_same_after_non_content_change(self):
         new_asset = self.test_version_content_hash()
         expected_hash = new_asset.latest_version.content_hash
