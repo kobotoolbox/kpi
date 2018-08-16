@@ -53,16 +53,6 @@
     }
 
     .rt-thead {
-      // allow wrapping labels for long column names
-      .rt-resizable-header-content {
-        overflow: initial;
-        text-overflow: initial;
-        white-space: initial;
-        word-wrap: break-word;
-        line-height: 16px;
-        padding: 7px 0 4px;
-      }
-
       &.-filters input {
         padding: 2px 4px;
       }
