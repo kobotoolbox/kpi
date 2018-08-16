@@ -10,15 +10,10 @@ import stores from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {ASSET_TYPES} from '../constants';
-
 import TagInput from '../components/tagInput';
-
 import {
   formatTime,
-  anonUsername,
-  t,
-  assign,
-  validFileTypes
+  t
 } from '../utils';
 
 class AssetRow extends React.Component {
@@ -31,17 +26,6 @@ class AssetRow extends React.Component {
     };
     autoBind(this);
   }
-  // clickAsset (evt) {
-  //   // this click was not intended for a button
-  //   evt.nativeEvent.preventDefault();
-  //   evt.nativeEvent.stopImmediatePropagation();
-  //   evt.preventDefault();
-
-  //   // if no asset is selected, then this asset
-  //   // otherwise, toggle selection (unselect if already selected)
-  //   // let forceSelect = (stores.selectedAsset.uid === false);
-  //   // stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
-  // }
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
