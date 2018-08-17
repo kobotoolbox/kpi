@@ -394,8 +394,11 @@
 }
 
 .project-settings {
-  width: 600px;
-  max-width: 100%;
+  // make sure it doesn't get too small (but only inside modal)
+  .modal & {
+    width: 600px;
+    max-width: 100%;
+  }
 
   .intro {
     margin-bottom: 20px;
