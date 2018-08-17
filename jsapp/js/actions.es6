@@ -619,16 +619,21 @@ actions.resources.updateCollection.listen(function(uid, values){
     });
 });
 
-actions.resources.cloneAsset.listen(function(details, opts={}){
+actions.resources.cloneAsset.listen(function(details, callbacks={}){
   dataInterface.cloneAsset(details)
-    .done(function(...args){
+    .done((...args) => {
       actions.resources.createAsset.completed(...args);
       actions.resources.cloneAsset.completed(...args);
-      if (opts.onComplete) {
-        opts.onComplete(...args);
+      if (callbacks.onCompleted) {
+        callbacks.onCompleted(...args);
       }
     })
-    .fail(actions.resources.cloneAsset.failed);
+    .fail((...args) => {
+      actions.resources.cloneAsset.failed(...args)
+      if (callbacks.onFailed) {
+        callbacks.onFailed(...args);
+      }
+    });
 });
 
 actions.search.assets.listen(function(queryString){

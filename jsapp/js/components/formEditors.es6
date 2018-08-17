@@ -371,7 +371,7 @@ export class ProjectSettings extends React.Component {
         uid: this.state.chosenTemplateUid,
         new_asset_type: 'survey'
       }, {
-        onComplete: (asset) => {
+        onCompleted: (asset) => {
           this.setState({
             formAsset: asset,
             name: asset.name,

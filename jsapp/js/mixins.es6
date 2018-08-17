@@ -56,7 +56,7 @@ mixins.dmix = {
           name: value,
           version_id: version_id,
         }, {
-          onComplete: (asset) => {
+          onCompleted: (asset) => {
             dialog.destroy();
             hashHistory.push(`/forms/${asset.uid}`);
           }
@@ -421,7 +421,7 @@ mixins.clickAssets = {
               uid: uid,
               name: value,
             }, {
-            onComplete: (asset) => {
+            onCompleted: (asset) => {
               dialog.destroy();
               notify(t('cloned project created'));
               this.refreshSearch && this.refreshSearch();
@@ -708,7 +708,7 @@ mixins.cloneAssetAsNewType = {
           name: value,
           new_asset_type: params.targetType
         }, {
-          onComplete: (asset) => {
+          onCompleted: (asset) => {
             dialog.destroy();
 
             this.refreshSearch && this.refreshSearch();
