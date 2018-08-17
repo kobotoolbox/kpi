@@ -144,8 +144,12 @@ export class FormLanding extends React.Component {
     });
   }
   isFormNeedingRedeployment() {
-    return this.userCan('change_asset', this.state) && this.state.deployed_versions.count > 0 &&
-      this.state.deployed_version_id != this.state.version_id && this.state.deployment__active;
+    return (
+      this.userCan('change_asset', this.state) &&
+      this.state.deployment__active &&
+      this.state.deployed_versions.count > 0 &&
+      this.state.deployed_version_id != this.state.version_id
+    );
   }
   renderHistory () {
     var dvcount = this.state.deployed_versions.count;
