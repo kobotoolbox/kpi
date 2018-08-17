@@ -78,19 +78,22 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   retryAll(evt) {
-    const currentLogs = this.state.logs;
-    currentLogs.forEach((log) => {
+    const failedLogUids = [];
+    this.state.logs.forEach((log) => {
       if (log.status === HOOK_LOG_STATUSES.FAILED) {
-        this.status = HOOK_LOG_STATUSES.PENDING;
+        failedLogUids.push(log.uid);
       }
     });
-    this.setState({
-      logs: currentLogs
-    });
+    this.overrideLogsStatus(failedLogUids, HOOK_LOG_STATUSES.PENDING);
 
     actions.hooks.retryLogs(
       this.state.assetUid,
-      this.state.hookUid
+      this.state.hookUid,
+      {
+        onComplete: (response) => {
+          this.overrideLogsStatus(response.pending_uids, HOOK_LOG_STATUSES.PENDING);
+        }
+      }
     );
   }
 
@@ -100,7 +103,7 @@ export default class RESTServiceLogs extends React.Component {
       return;
     }
 
-    this.overrideLogStatus(log, HOOK_LOG_STATUSES.PENDING);
+    this.overrideLogsStatus([log.uid], HOOK_LOG_STATUSES.PENDING);
 
     actions.hooks.retryLog(
       this.state.assetUid,
@@ -108,18 +111,18 @@ export default class RESTServiceLogs extends React.Component {
       log.uid, {
         onFail: (response) => {
           if (response.responseJSON && response.responseJSON.detail) {
-            this.overrideLogMessage(log, response.responseJSON.detail);
+            this.overrideLogMessage(log.uid, response.responseJSON.detail);
           }
-          this.overrideLogStatus(log, HOOK_LOG_STATUSES.FAILED);
+          this.overrideLogsStatus([log.uid], HOOK_LOG_STATUSES.FAILED);
         }
       }
     );
   }
 
-  overrideLogMessage(log, newMessage) {
+  overrideLogMessage(logUid, newMessage) {
     const currentLogs = this.state.logs;
     currentLogs.forEach((currentLog) => {
-      if (currentLog.uid === log.uid) {
+      if (currentLog.uid === logUid) {
         currentLog.message = newMessage;
       }
     });
@@ -128,11 +131,12 @@ export default class RESTServiceLogs extends React.Component {
     });
   }
 
-  // useful to mark log as pending, before BE tells about it
-  overrideLogStatus(log, newStatus) {
+  // useful to mark logs as pending, before BE tells about it
+  // NOTE: logUids is an array
+  overrideLogsStatus(logUids, newStatus) {
     const currentLogs = this.state.logs;
     currentLogs.forEach((currentLog) => {
-      if (currentLog.uid === log.uid) {
+      if (logUids.includes(currentLog.uid)) {
         currentLog.status = newStatus;
       }
     });

@@ -955,7 +955,6 @@ actions.hooks.retryLog.failed.listen((response) => {
 actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
   dataInterface.retryExternalServiceLogs(assetUid, hookUid)
     .done((...args) => {
-      actions.hooks.getLogs(assetUid, hookUid);
       actions.hooks.retryLogs.completed(...args);
       if (typeof callbacks.onComplete === 'function') {
         callbacks.onComplete(...args);
@@ -970,7 +969,7 @@ actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
     });
 });
 actions.hooks.retryLogs.completed.listen((response) => {
-  notify(t('Retrying all submissions will take a while…'), 'warning');
+  notify(t(response.detail), 'warning');
 });
 actions.hooks.retryLogs.failed.listen((response) => {
   notify(t('Retrying all submissions failed'), 'error');
