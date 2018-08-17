@@ -165,6 +165,8 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @detail_route(methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):
         hook = self.get_object()
+        response = {"detail": _("Task successfully scheduled")}
+        status_code = status.HTTP_200_OK
         if hook.active:
             seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L60`
             threshold = timezone.now() - timedelta(seconds=seconds)
@@ -173,12 +175,23 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                                     Q(status=HOOK_LOG_FAILED))
             if len(logs):
                 instances_ids = [log.data_id for log in logs]
+                # TODO send to Celery
                 data = self.__data_to_dict(
                     hook.asset.deployment.get_submissions(request, hook.export_type, instances_ids))
                 for hook_log in logs:
                     hook_log.retry(data.get(hook_log.data_id))
+                response.update({
+                    "pending_uids": [log.uid for log in logs]
+                })
 
-        return Response({"detail": _("Task successfully scheduled")})
+            else:
+                response["detail"] = _("No data to retry")
+                status_code = status.HTTP_304_NOT_MODIFIED
+        else:
+            response["detail"] = _("Can not retry on disabled hooks")
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(response, status=status_code)
 
     def __data_to_dict(self, data):
         return {instance.get("_id"): instance for instance in data}
