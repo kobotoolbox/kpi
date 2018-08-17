@@ -535,7 +535,7 @@ export class ProjectSettings extends React.Component {
           }
 
           <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-            <i className="k-icon-template" />
+            <i className='k-icon-template' />
             {t('Use a template')}
           </button>
 
