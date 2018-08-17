@@ -669,23 +669,20 @@ actions.resources.loadAsset.listen(function(params){
   }
 
   dataInterface[dispatchMethodName](params)
-      .done(actions.resources.loadAsset.completed)
-      .fail(actions.resources.loadAsset.failed);
+    .done(actions.resources.loadAsset.completed)
+    .fail(actions.resources.loadAsset.failed);
 });
 
 actions.resources.loadAssetContent.listen(function(params){
   dataInterface.getAssetContent(params)
-      .done(function(data, ...args) {
-        // data.sheeted = new Sheeted([['survey', 'choices', 'settings'], data.data])
-        actions.resources.loadAssetContent.completed(data, ...args);
-      })
-      .fail(actions.resources.loadAssetContent.failed);
+    .done(actions.resources.loadAssetContent.completed)
+    .fail(actions.resources.loadAssetContent.failed);
 });
 
 actions.resources.listCollections.listen(function(){
   dataInterface.listCollections()
-      .done(actions.resources.listCollections.completed)
-      .fail(actions.resources.listCollections.failed);
+    .done(actions.resources.listCollections.completed)
+    .fail(actions.resources.listCollections.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
