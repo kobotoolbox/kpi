@@ -81,7 +81,7 @@ export default class RESTServiceLogs extends React.Component {
     const currentLogs = this.state.logs;
     currentLogs.forEach((log) => {
       if (log.status === HOOK_LOG_STATUSES.FAILED) {
-        this.overrideLogStatus(log, HOOK_LOG_STATUSES.PENDING);
+        this.status = HOOK_LOG_STATUSES.PENDING;
       }
     });
     this.setState({
@@ -106,11 +106,26 @@ export default class RESTServiceLogs extends React.Component {
       this.state.assetUid,
       this.state.hookUid,
       log.uid, {
-        onFail: () => {
+        onFail: (response) => {
+          if (response.responseJSON && response.responseJSON.detail) {
+            this.overrideLogMessage(log, response.responseJSON.detail);
+          }
           this.overrideLogStatus(log, HOOK_LOG_STATUSES.FAILED);
         }
       }
     );
+  }
+
+  overrideLogMessage(log, newMessage) {
+    const currentLogs = this.state.logs;
+    currentLogs.forEach((currentLog) => {
+      if (currentLog.uid === log.uid) {
+        currentLog.message = newMessage;
+      }
+    });
+    this.setState({
+      logs: currentLogs
+    });
   }
 
   // useful to mark log as pending, before BE tells about it
@@ -202,14 +217,18 @@ export default class RESTServiceLogs extends React.Component {
 
           {this.state.logs.map((log, n) => {
             let statusMod = '';
+            let statusLabel = '';
             if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
-              statusMod = 'success'
+              statusMod = 'success';
+              statusLabel = t('Success');
             }
             if (log.status === HOOK_LOG_STATUSES.PENDING) {
-              statusMod = 'pending'
+              statusMod = 'pending';
+              statusLabel = t('Pending');
             }
             if (log.status === HOOK_LOG_STATUSES.FAILED) {
-              statusMod = 'failed'
+              statusMod = 'failed';
+              statusLabel = t('Failed');
             }
 
             return (
@@ -221,7 +240,7 @@ export default class RESTServiceLogs extends React.Component {
                 <bem.ServiceRow__column
                   m={['status', statusMod]}
                 >
-                  {t(log.status_str)}
+                  {statusLabel}
 
                   {log.status === HOOK_LOG_STATUSES.FAILED &&
                     <bem.ServiceRow__actionButton

@@ -949,7 +949,7 @@ actions.hooks.retryLog.completed.listen((response) => {
   notify(t('Submission retried successfully'));
 });
 actions.hooks.retryLog.failed.listen((response) => {
-  notify(t('Failed retrying submission'), 'error');
+  notify(t('Retrying submission failed'), 'error');
 });
 
 actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
@@ -973,7 +973,7 @@ actions.hooks.retryLogs.completed.listen((response) => {
   notify(t('Retrying all submissions will take a while…'), 'warning');
 });
 actions.hooks.retryLogs.failed.listen((response) => {
-  notify(t('Failed retrying all submissions'), 'error');
+  notify(t('Retrying all submissions failed'), 'error');
 });
 
 module.exports = actions;
