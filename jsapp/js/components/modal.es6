@@ -25,6 +25,7 @@ import {ProjectSettings} from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 import TableColumnFilter from '../components/tableColumnFilter';
+import GalleryModal from '../components/modalForms/galleryModal';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -80,6 +81,12 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.REPLACE_PROJECT:
         // title is set by formEditors
+        break;
+
+      case MODAL_TYPES.GALLERY:
+        this.setState({
+          modalClass: 'modal--blank modal--large'
+        });
         break;
 
       case MODAL_TYPES.TABLE_COLUMNS:
@@ -212,6 +219,9 @@ class Modal extends React.Component {
                                  columns={this.props.params.columns}
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
+            }
+            { this.props.params.type == MODAL_TYPES.GALLERY &&
+              <GalleryModal/>
             }
 
           </ui.Modal.Body>

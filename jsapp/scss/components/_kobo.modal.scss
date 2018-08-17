@@ -25,6 +25,21 @@
     box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
   }
 
+  // empty modal without paddings, but with close button
+  &.modal--blank {
+    .modal__header {
+      min-height: 0;
+      position: static;
+    }
+    .modal__x {
+      color: $black;
+    }
+    .modal__body {
+      padding: 0;
+      margin: 0;
+    }
+  }
+
   &.modal--large {
     &.modal--open {
       height: 80%;

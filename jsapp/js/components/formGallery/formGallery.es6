@@ -6,8 +6,10 @@ import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGridItem from './formGalleryGridItem';
 import PaginatedModal from './paginatedModal';
 import { dataInterface } from '../../dataInterface';
+import stores from '../../stores';
 import moment from 'moment';
 import { t } from '../../utils';
+import {MODAL_TYPES} from '../../constants';
 
 export class FormGallery extends React.Component {
   constructor(props) {
@@ -162,6 +164,10 @@ export class FormGallery extends React.Component {
     });
   }
   openModal(gallery, galleryItemIndex, setGalleryTitleAndDate = true) {
+    stores.pageState.showModal({
+      type: MODAL_TYPES.GALLERY
+    });
+
     if (setGalleryTitleAndDate) {
       let galleryTitle =
         gallery.label ||

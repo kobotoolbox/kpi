@@ -7,7 +7,8 @@ const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_COLUMNS: 'table-columns'
+  TABLE_COLUMNS: 'table-columns',
+  GALLERY: 'gallery'
 }
 
 const PROJECT_SETTINGS_CONTEXTS = {
