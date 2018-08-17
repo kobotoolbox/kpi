@@ -325,7 +325,7 @@ export class ProjectSettings extends React.Component {
           'share-metadata': this.state['share-metadata']
         }),
       }, {
-        onComplete: () => {
+        onCompleted: () => {
           // no need to open asset from within asset's settings view
           if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
             this.goToFormLanding();
@@ -356,13 +356,12 @@ export class ProjectSettings extends React.Component {
             'share-metadata': this.state.formAsset['share-metadata']
           })
         }, {
-          onComplete: () => {
+          onCompleted: () => {
             // when replacing, we omit PROJECT_DETAILS step
             this.handleReplaceDone();
           },
           onFailed: () => {
             this.resetApplyTemplateButton();
-            alertify.error(t('Could not replace project!'));
           }
         }
       );

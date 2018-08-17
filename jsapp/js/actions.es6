@@ -383,17 +383,21 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values, params={}) {
+actions.resources.updateAsset.listen(function(uid, values, callbacks={}) {
   dataInterface.patchAsset(uid, values)
-    .done(function(asset){
+    .done((asset) => {
       actions.resources.updateAsset.completed(asset);
-      if (params.onComplete) {
-        params.onComplete(asset);
+      if (callbacks.onCompleted) {
+        callbacks.onCompleted(asset);
       }
       notify(t('successfully updated'));
     })
-    .fail(function(resp){
+    .fail((resp) => {
       actions.resources.updateAsset.failed(resp);
+      if (callbacks.onFailed) {
+        callbacks.onFailed(asset);
+      }
+      notify(t('Could not replace project!'), 'error');
     });
 });
 
