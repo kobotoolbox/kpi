@@ -455,8 +455,12 @@ export class ProjectSettings extends React.Component {
                 alertify.error(t('Failed to reload project after upload!'));
               });
             },
-            () => {
-              alertify.error(t('Could not initialize XLSForm upload!'));
+            (response) => {
+              if (response && response.messages && response.messages.error) {
+                alertify.error(response.messages.error);
+              } else {
+                alertify.error(t('Could not initialize XLSForm upload!'));
+              }
             }
           );
         },
