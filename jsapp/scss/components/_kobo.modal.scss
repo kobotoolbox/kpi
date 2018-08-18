@@ -211,7 +211,7 @@
       width: 50%;
       text-align: left;
 
-      label, div.Select {
+      label, .kobo-select {
         display: inline-block;
         vertical-align: middle;
       }
@@ -234,8 +234,7 @@
       min-width: 100px;
     }
 
-    .Select {
-      text-align: left;
+    .kobo-select {
       min-width: 120px;
     }
   }
@@ -412,7 +411,7 @@
       width: 100%;
       float: none;
 
-      .Select {
+      .kobo-select {
         margin-right: 0;
       }
     }

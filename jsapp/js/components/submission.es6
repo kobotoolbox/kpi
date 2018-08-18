@@ -424,7 +424,10 @@ class Submission extends React.Component {
                   clearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
-                  onChange={this.languageChange} />
+                  onChange={this.languageChange}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                />
               </div>
             }
             <div className='switch--validation-status'>
@@ -434,7 +437,10 @@ class Submission extends React.Component {
                 clearable={false}
                 value={s._validation_status ? s._validation_status.uid : ''}
                 options={VALIDATION_STATUSES}
-                onChange={this.validationStatusChange} />
+                onChange={this.validationStatusChange}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+              />
             </div>
           </bem.FormModal__group>
         }

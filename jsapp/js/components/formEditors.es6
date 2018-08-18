@@ -697,6 +697,8 @@ export class ProjectSettings extends React.Component {
               value={this.state.sector}
               onChange={this.onSectorChange}
               options={sectors}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
             />
           </bem.FormModal__item>
 
@@ -709,6 +711,8 @@ export class ProjectSettings extends React.Component {
               value={this.state.country}
               onChange={this.onCountryChange}
               options={countries}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
             />
           </bem.FormModal__item>
 

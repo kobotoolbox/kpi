@@ -182,7 +182,10 @@ export class TableColumnFilter extends React.Component {
               <Select
                 value={this.state.frozenColumn}
                 options={this.listColumns()}
-                onChange={this.setFrozenColumn} />
+                onChange={this.setFrozenColumn}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+              />
             </bem.FormModal__item>
             <bem.FormModal__item>
               <bem.FormView__cell m='label'>

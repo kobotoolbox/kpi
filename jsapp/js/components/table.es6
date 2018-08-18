@@ -257,7 +257,10 @@ export class DataTable extends React.Component {
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.original._id, row.index)} />
+          onChange={this.validationStatusChange(row.original._id, row.index)}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+        />
       )
     });
 

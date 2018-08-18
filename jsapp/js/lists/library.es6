@@ -82,7 +82,8 @@ class LibrarySearchableList extends React.Component {
           {t('Filter by type:')}
           &nbsp;
           <Select
-            className='Select--underlined'
+            className='kobo-select'
+            classNamePrefix='kobo-select'
             value={this.state.typeFilterVal}
             clearable={false}
             searchable={false}

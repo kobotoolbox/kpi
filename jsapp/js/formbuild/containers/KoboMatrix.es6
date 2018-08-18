@@ -395,10 +395,14 @@ class KoboMatrix extends React.Component {
               <bem.MatrixCols__settings_inner>
                 <label>
                   <span>{t('Response Type')}</span>
-                  <Select value={this.getCol(expandedCol, 'type')}
+                  <Select
+                    value={this.getCol(expandedCol, 'type')}
                     clearable={false}
                     options={this.state.typeChoices}
-                    onChange={this.colChangeType} />
+                    onChange={this.colChangeType}
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
+                  />
                 </label>
                 <label>
                   <span>{t('Label')}</span>

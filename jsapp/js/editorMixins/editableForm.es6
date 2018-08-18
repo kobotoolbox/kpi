@@ -837,7 +837,8 @@ export default assign({
               </label>
 
               <Select
-                className='Select--underlined'
+                className='kobo-select'
+                classNamePrefix='kobo-select'
                 id='webform-style'
                 name='webform-style'
                 ref='webformStyle'

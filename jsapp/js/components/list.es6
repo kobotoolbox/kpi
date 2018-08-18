@@ -106,7 +106,7 @@ class ListTagFilter extends React.Component {
             disabled
             multi={false}
             placeholder={t('Tags are loading...')}
-            className={[this.props.hidden ? 'hidden' : null, 'Select--underlined'].join(' ')}
+            className={[this.props.hidden ? 'hidden' : null, 'kobo-react-select'].join(' ')}
           />
         </bem.tagSelect>
         );
@@ -121,7 +121,7 @@ class ListTagFilter extends React.Component {
           noResultsText={t('No results found')}
           options={this.state.availableTags}
           onChange={this.onTagChange}
-          className={[this.props.hidden ? 'hidden' : null, 'Select--underlined'].join(' ')}
+          className={[this.props.hidden ? 'hidden' : null, 'kobo-react-select'].join(' ')}
           value={this.state.selectedTag}
         />
       </bem.tagSelect>
@@ -197,7 +197,8 @@ class ListCollectionFilter extends React.Component {
           options={this.state.availableCollections}
           onChange={this.onCollectionChange}
           value={this.state.selectedCollection}
-          className='Select--underlined'
+          className='kobo-select'
+          classNamePrefix='kobo-select'
         />
       </bem.collectionFilter>
     );

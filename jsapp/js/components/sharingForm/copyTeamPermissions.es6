@@ -130,6 +130,8 @@ class CopyTeamPermissions extends React.Component {
                 placeholder={t('Select source project…')}
                 options={availableOptions}
                 onChange={this.updateTeamPermissionsInput}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
               />
               <button
                 id='copyTeamPermissionsImportButton'

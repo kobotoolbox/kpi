@@ -500,7 +500,7 @@ iframe {
     float: left;
   }
 
-  &--sector .Select {
+  &--sector .kobo-select {
     margin-right: 30px;
   }
 
@@ -564,49 +564,6 @@ iframe {
   input[type="checkbox"] {
     font-size: 20px;
     vertical-align: top;
-  }
-
-  // TODO REFACTOR: use _kobo.select-underlined styles instead of these
-  .Select-control {
-    border: none;
-    border-bottom: 1px solid $divider-color;
-    border-radius: 0px;
-    padding-left: 0px;
-    height: 33px;
-    font-size: 15px;
-
-    .Select.is-focused & {
-      box-shadow: none;
-    }
-
-    .Select-placeholder {
-      color: $cool-gray;
-      font-size: 15px;
-    }
-
-    .Select-value {
-      color: $cool-gray;
-      font-size: 15px;
-    }
-
-    input {
-      padding-left: 0px;
-    }
-
-    .Select-input {
-      height: 33px;
-
-      > input {
-        padding-bottom: 10px;
-      }
-    }
-  }
-
-  .Select-menu-outer {
-    font-size: 15px;
-    border: 1px solid lighten($divider-color, 20%);
-
-    @include box-shadow;
   }
 }
 
