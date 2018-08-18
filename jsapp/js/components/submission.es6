@@ -427,6 +427,7 @@ class Submission extends React.Component {
                   onChange={this.languageChange}
                   className='kobo-select'
                   classNamePrefix='kobo-select'
+                  menuPlacement='auto'
                 />
               </div>
             }
@@ -440,6 +441,7 @@ class Submission extends React.Component {
                 onChange={this.validationStatusChange}
                 className='kobo-select'
                 classNamePrefix='kobo-select'
+                menuPlacement='auto'
               />
             </div>
           </bem.FormModal__group>

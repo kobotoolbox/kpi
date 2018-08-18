@@ -109,6 +109,7 @@ class ListTagFilter extends React.Component {
           className={[this.props.hidden ? 'hidden' : null, 'kobo-select'].join(' ')}
           classNamePrefix='kobo-select'
           value={this.state.selectedTags}
+          menuPlacement='auto'
         />
       </bem.tagSelect>
     );
@@ -180,6 +181,7 @@ class ListCollectionFilter extends React.Component {
           value={this.state.selectedCollection}
           className='kobo-select'
           classNamePrefix='kobo-select'
+          menuPlacement='auto'
         />
       </bem.collectionFilter>
     );

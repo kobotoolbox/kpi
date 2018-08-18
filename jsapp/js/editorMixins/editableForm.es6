@@ -852,6 +852,7 @@ export default assign({
                 onChange={this.onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
+                menuPlacement='auto'
               />
             </bem.FormBuilderAside__row>
 

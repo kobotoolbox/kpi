@@ -265,6 +265,7 @@ export class DataTable extends React.Component {
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           className='kobo-select'
           classNamePrefix='kobo-select'
+          menuPlacement='auto'
         />
       )
     });

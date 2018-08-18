@@ -410,6 +410,7 @@ class KoboMatrix extends React.Component {
                     onChange={this.colChangeType}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
                 <label>

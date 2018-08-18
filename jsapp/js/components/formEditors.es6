@@ -699,6 +699,7 @@ export class ProjectSettings extends React.Component {
               options={sectors}
               className='kobo-select'
               classNamePrefix='kobo-select'
+              menuPlacement='auto'
             />
           </bem.FormModal__item>
 
@@ -713,6 +714,7 @@ export class ProjectSettings extends React.Component {
               options={countries}
               className='kobo-select'
               classNamePrefix='kobo-select'
+              menuPlacement='auto'
             />
           </bem.FormModal__item>
 

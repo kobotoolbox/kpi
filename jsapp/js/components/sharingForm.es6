@@ -340,9 +340,9 @@ class SharingForm extends React.Component {
                   isClearable={false}
                   options={availablePermissions}
                   onChange={this.updatePermInput}
-                  menuPlacement='auto'
                   className='kobo-select'
                   classNamePrefix='kobo-select'
+                  menuPlacement='auto'
               />
               <button className={btnKls}>
                   {t('invite')}

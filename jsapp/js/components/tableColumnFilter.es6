@@ -185,6 +185,7 @@ export class TableColumnFilter extends React.Component {
                 onChange={this.setFrozenColumn}
                 className='kobo-select'
                 classNamePrefix='kobo-select'
+                menuPlacement='auto'
               />
             </bem.FormModal__item>
             <bem.FormModal__item>

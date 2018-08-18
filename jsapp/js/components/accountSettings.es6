@@ -280,6 +280,7 @@ export class AccountSettings extends React.Component {
                     onChange={this.primarySectorChange}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
 
@@ -298,6 +299,7 @@ export class AccountSettings extends React.Component {
                     onChange={this.genderChange}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
               </bem.AccountSettings__item>
@@ -351,6 +353,7 @@ export class AccountSettings extends React.Component {
                     onChange={this.countryChange}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
               </bem.AccountSettings__item>
@@ -365,6 +368,7 @@ export class AccountSettings extends React.Component {
                     onChange={this.defaultLanguageChange}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
               </bem.AccountSettings__item>
