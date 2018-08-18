@@ -84,9 +84,8 @@ class LibrarySearchableList extends React.Component {
           <Select
             className='kobo-select'
             classNamePrefix='kobo-select'
-            value={this.state.typeFilterVal}
-            clearable={false}
-            searchable={false}
+            isClearable={false}
+            isSearchable={false}
             options={typeFilterOptions}
             onChange={this.onTypeFilterChange}
           />
