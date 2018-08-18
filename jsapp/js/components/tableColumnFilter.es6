@@ -180,6 +180,7 @@ export class TableColumnFilter extends React.Component {
                 {t('Set a frozen first column in the table.')}
               </bem.FormView__cell>
               <Select
+                value={this.state.frozenColumn}
                 options={this.listColumns()}
                 onChange={this.setFrozenColumn}
                 className='kobo-select'
