@@ -1,3 +1,16 @@
+.kobo-select-label {
+  display: block;
+  color: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  opacity: 0.38;
+
+  & + .kobo-select {
+    margin-top: 10px;
+  }
+}
+
 .kobo-select {
   .kobo-select__control {
     box-shadow: none;
