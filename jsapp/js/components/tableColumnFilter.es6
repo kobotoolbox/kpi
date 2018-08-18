@@ -83,7 +83,7 @@ export class TableColumnFilter extends React.Component {
   }
   setFrozenColumn(col) {
     this.setState({
-      frozenColumn: col && col.value ? col.value : false
+      frozenColumn: col ? col : false
     })
   }
   updateGroupHeaderDisplay(e) {

@@ -421,7 +421,7 @@ class Submission extends React.Component {
               <div className='switch--label-language'>
                 <label>{t('Language:')}</label>
                 <Select
-                  clearable={false}
+                  isClearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
                   onChange={this.languageChange}
@@ -433,9 +433,9 @@ class Submission extends React.Component {
             <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
-                disabled={!this.userCan('validate_submissions', this.props.asset)}
-                clearable={false}
-                value={s._validation_status ? s._validation_status.uid : ''}
+                isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+                isClearable={false}
+                value={s._validation_status ? s._validation_status : false}
                 options={VALIDATION_STATUSES}
                 onChange={this.validationStatusChange}
                 className='kobo-select'

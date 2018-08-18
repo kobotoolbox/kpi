@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
 import { bemComponents } from 'js/libs/reactBemComponents';
@@ -241,6 +242,13 @@ class KoboMatrix extends React.Component {
     return this.state.data.getIn([colKuid, field]);
   }
 
+  getSelectTypeVal(expandedCol) {
+    const typeVal = this.getCol(expandedCol, 'type');
+    return _.find(this.state.typeChoices, (option) => {
+      return option.value === typeVal;
+    });
+  }
+
   getChoiceField(kuid, field) {
     return this.state.data.getIn(['choices', kuid, field]);
   }
@@ -396,8 +404,8 @@ class KoboMatrix extends React.Component {
                 <label>
                   <span>{t('Response Type')}</span>
                   <Select
-                    value={this.getCol(expandedCol, 'type')}
-                    clearable={false}
+                    value={this.getSelectTypeVal(expandedCol)}
+                    isClearable={false}
                     options={this.state.typeChoices}
                     onChange={this.colChangeType}
                     className='kobo-select'

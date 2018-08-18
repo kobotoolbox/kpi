@@ -69,12 +69,10 @@ class ListTagFilter extends React.Component {
       if (searchStoreState.searchTags) {
         let tags = null;
         if (searchStoreState.searchTags.length !== 0) {
-          tags = searchStoreState.searchTags.map(function(tag){
-            return tag.value;
-          }).join(',');
+          tags = searchStoreState.searchTags;
         }
         this.setState({
-          selectedTag: tags
+          selectedTags: tags
         });
       }
     }
@@ -89,40 +87,28 @@ class ListTagFilter extends React.Component {
           value: tag.name.replace(/\s/g, '-'),
         };
       }),
-      selectedTag: null
+      selectedTags: null
     });
   }
-  onTagChange (tagString) {
-    this.searchTagsChange(tagString);
+  onTagsChange (tagsList) {
+    this.searchTagsChange(tagsList);
   }
   render () {
-    if (!this.state.tagsLoaded) {
-      return (
-        <bem.tagSelect>
-          <i className='fa fa-search' />
-          <Select
-            name='tags'
-            value=''
-            disabled
-            multi={false}
-            placeholder={t('Tags are loading...')}
-            className={[this.props.hidden ? 'hidden' : null, 'kobo-react-select'].join(' ')}
-          />
-        </bem.tagSelect>
-        );
-    }
     return (
       <bem.tagSelect>
         <i className='fa fa-search' />
         <Select
           name='tags'
-          multi
+          isMulti
+          isLoading={!this.state.tagsLoaded}
+          loadingMessage={() => {return t('Tags are loading...')}}
           placeholder={t('Search Tags')}
-          noResultsText={t('No results found')}
+          noOptionsMessage={() => {return t('No results found')}}
           options={this.state.availableTags}
-          onChange={this.onTagChange}
-          className={[this.props.hidden ? 'hidden' : null, 'kobo-react-select'].join(' ')}
-          value={this.state.selectedTag}
+          onChange={this.onTagsChange}
+          className={[this.props.hidden ? 'hidden' : null, 'kobo-select'].join(' ')}
+          classNamePrefix='kobo-select'
+          value={this.state.selectedTags}
         />
       </bem.tagSelect>
     );
@@ -163,37 +149,32 @@ class ListCollectionFilter extends React.Component {
             value: collection.uid,
           };
         }),
-        selectedCollection: ''
+        selectedCollection: false
       });
 
     });
   }
-  onCollectionChange (collectionUid) {
-    if (collectionUid) {
-      this.searchCollectionChange(collectionUid.value);
+  onCollectionChange (evt) {
+    if (evt) {
+      this.searchCollectionChange(evt.value);
       this.setState({
-        selectedCollection: collectionUid.value
+        selectedCollection: evt
       });
     } else {
       this.searchClear();
       this.setState({
-        selectedCollection: ''
+        selectedCollection: false
       });
     }
   }
   render () {
-    if (!this.state.collectionsLoaded) {
-      return (
-        <bem.collectionFilter>
-          {t('Collections are loading...')}
-        </bem.collectionFilter>
-      );
-    }
     return (
       <bem.collectionFilter>
         <Select
           name='collections'
           placeholder={t('Select Collection Name')}
+          isLoading={!this.state.collectionsLoaded}
+          loadingMessage={() => {return t('Collections are loading...');}}
           options={this.state.availableCollections}
           onChange={this.onCollectionChange}
           value={this.state.selectedCollection}
