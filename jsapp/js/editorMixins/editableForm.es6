@@ -826,7 +826,7 @@ export default assign({
               </bem.FormBuilderAside__header>
 
               <label
-                className='kobo-select-label'
+                className='Select__label'
                 htmlFor='webform-style'
               >
                 { hasSettings ?
@@ -842,7 +842,9 @@ export default assign({
                 id='webform-style'
                 name='webform-style'
                 ref='webformStyle'
+                value={styleValue}
                 onChange={this.onStyleChange}
+                allowCreate
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
               />
