@@ -1,6 +1,5 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import Modal from 'react-modal';
 import bem from '../../bem';
 import ui from '../../ui';
 import Slider from 'react-slick';
@@ -37,46 +36,40 @@ export default class FormGalleryModal extends React.Component {
     };
 
     return (
-      <Modal isOpen contentLabel='Modal'>
-        <bem.AssetGallery__modal>
-          <ui.Modal.Body>
+      <bem.AssetGallery__modal>
+        <bem.AssetGallery__modalCarousel>
+          <Slider
+            ref='slider'
+            {...settings}
+            beforeChange={this.handleCarouselChange}
+          >
+            {this.props.activeGalleryAttachments.map(
+              function(item, i) {
+                return (
+                  <div key={i}>
+                    <img
+                      alt={this.props.galleryTitle}
+                      src={item.large_download_url}
+                    />
+                  </div>
+                );
+              }.bind(this)
+            )}
+          </Slider>
+        </bem.AssetGallery__modalCarousel>
 
-            <bem.AssetGallery__modalCarousel className='col8'>
-              <Slider
-                ref='slider'
-                {...settings}
-                beforeChange={this.handleCarouselChange}
-              >
-                {this.props.activeGalleryAttachments.map(
-                  function(item, i) {
-                    return (
-                      <div key={i}>
-                        <img
-                          alt={this.props.galleryTitle}
-                          src={item.large_download_url}
-                        />
-                      </div>
-                    );
-                  }.bind(this)
-                )}
-              </Slider>
-            </bem.AssetGallery__modalCarousel>
-
-            <FormGalleryModalSidebar
-              activeGalleryAttachments={this.props.activeGalleryAttachments}
-              filter={this.props.filter}
-              galleryItemIndex={this.props.galleryItemIndex}
-              galleryTitle={this.props.galleryTitle}
-              galleryIndex={this.props.activeGallery.index}
-              date={this.props.galleryDate}
-              changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
-              closeModal={this.props.closeModal}
-              onFilterQueryChange={this.props.onFilterQueryChange}
-            />
-
-          </ui.Modal.Body>
-        </bem.AssetGallery__modal>
-      </Modal>
+        <FormGalleryModalSidebar
+          activeGalleryAttachments={this.props.activeGalleryAttachments}
+          filter={this.props.filter}
+          galleryItemIndex={this.props.galleryItemIndex}
+          galleryTitle={this.props.galleryTitle}
+          galleryIndex={this.props.activeGallery.index}
+          date={this.props.galleryDate}
+          changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
+          closeModal={this.props.closeModal}
+          onFilterQueryChange={this.props.onFilterQueryChange}
+        />
+      </bem.AssetGallery__modal>
     );
   }
 };
@@ -93,7 +86,7 @@ class FormGalleryModalSidebar extends React.Component {
     let featuredItems = this.props.activeGalleryAttachments.slice();
     featuredItems.splice(this.props.galleryItemIndex, 1);
     return (
-      <bem.AssetGallery__modalSidebar className='col4 open'>
+      <bem.AssetGallery__modalSidebar className='open'>
         <i className='toggle-info k-icon-close' onClick={this.props.closeModal} />
         <bem.AssetGallery__modalSidebarInfo>
             <p>{t('Record')} #{currentRecordIndex}</p>

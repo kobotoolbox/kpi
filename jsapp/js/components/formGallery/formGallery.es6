@@ -20,11 +20,11 @@ export default class FormGallery extends React.Component {
     autoBind(this);
     this.state = this.getInitialState();
   }
+
   getInitialState() {
     return {
       hasMoreRecords: false,
       nextRecordsPage: 2,
-      showModal: false,
       activeTitle: null,
       activeDate: null,
       searchTerm: '',
@@ -51,7 +51,6 @@ export default class FormGallery extends React.Component {
           }
         ]
       },
-      activeModalGallery: [],
       galleryIndex: 0,
       galleryItemIndex: 0,
       galleryTitle: '',
@@ -63,6 +62,7 @@ export default class FormGallery extends React.Component {
     if (this.props.mediaQuestions.length)
       this.loadGalleryData(this.props.uid, 'question');
   }
+
   loadGalleryData(uid, selectedFilter) {
     dataInterface
       .filterGalleryImages(uid, selectedFilter, DEFAULT_PAGE_SIZE)
@@ -73,12 +73,13 @@ export default class FormGallery extends React.Component {
         });
       });
   }
+
   setAssets(newAssets) {
     this.setState({
       assets: newAssets
     });
   }
-  // FILTER
+
   onFilterGroupChange(value) {
     var label;
     var newFilter = value;
@@ -111,6 +112,7 @@ export default class FormGallery extends React.Component {
         });
       });
   }
+
   onFilterQueryChange(filter) {
     let term = filter.target ? filter.target.value : filter; //Check if an event was passed or string
     this.setState({ searchTerm: term });
@@ -135,6 +137,7 @@ export default class FormGallery extends React.Component {
         this.setState({ assets });
       });
   }
+
   loadMoreRecords() {
     this.state.assets.loaded = false;
     return dataInterface.loadMoreRecords(
@@ -154,53 +157,50 @@ export default class FormGallery extends React.Component {
         });
       });
   }
+
   setActiveGalleryDateAndTitle(title, date) {
     this.setState({
       galleryTitle: title,
       galleryDate: date
     });
   }
-  openModal(gallery, galleryItemIndex, setGalleryTitleAndDate = true) {
-    stores.pageState.showModal({
-      type: MODAL_TYPES.GALLERY
+
+  openModal(gallery, galleryItemIndex) {
+    const galleryTitle =
+      gallery.label ||
+      gallery.attachments.results[galleryItemIndex].question.label;
+    const galleryDate = formatTimeDate(
+      gallery.date_created ||
+      gallery.attachments.results[galleryItemIndex].submission.date_created
+    );
+    const modalFriendlyAttachments = gallery.attachments ? gallery.attachments.results : gallery;
+
+    this.setState({
+      galleryItemIndex: galleryItemIndex,
+      galleryTitle: galleryTitle,
+      galleryDate: galleryDate
     });
 
-    if (setGalleryTitleAndDate) {
-      let galleryTitle =
-        gallery.label ||
-        gallery.attachments.results[this.state.galleryItemIndex].question.label;
-      let galleryDate = formatTimeDate(
-        gallery.date_created ||
-          gallery.attachments.results[this.state.galleryItemIndex].submission
-            .date_created
-      );
-      this.setState({
-        showModal: true,
-        activeModalGallery: gallery,
-        galleryItemIndex: galleryItemIndex,
-        galleryTitle: galleryTitle,
-        galleryDate: galleryDate
-      });
-    } else {
-      this.setState({
-        showModal: true,
-        activeModalGallery: gallery,
-        galleryItemIndex: galleryItemIndex
-      });
-    }
-  }
-  closeModal() {
-    this.setState({
-      showModal: false,
-      activeModalGallery: [],
-      galleryItemIndex: 0
+    stores.pageState.showModal({
+      type: MODAL_TYPES.GALLERY,
+      activeGallery: gallery,
+      changeActiveGalleryIndex: this.changeActiveGalleryIndex,
+      updateActiveAsset: this.updateActiveAsset,
+      onFilterQueryChange: this.onFilterQueryChange,
+      filter: this.state.filter.source,
+      galleryItemIndex: galleryItemIndex,
+      galleryTitle: galleryTitle,
+      galleryDate: galleryDate,
+      activeGalleryAttachments: modalFriendlyAttachments
     });
   }
+
   changeActiveGalleryIndex(newIndex) {
     this.setState({
       galleryItemIndex: newIndex
     });
   }
+
   render() {
     if (!this.state.assets.loaded) {
       return (
@@ -222,9 +222,6 @@ export default class FormGallery extends React.Component {
     }
 
     if (this.state.assets.loaded && this.props.mediaQuestions.length) {
-      let modalFriendlyAttachments = this.state.activeModalGallery.attachments
-        ? this.state.activeModalGallery.attachments.results
-        : this.state.activeModalGallery;
       return (
         <bem.AssetGallery>
           <FormGalleryFilter
@@ -286,21 +283,6 @@ export default class FormGallery extends React.Component {
                 </button>
               : null}
           </div>
-
-          {this.state.showModal
-            ? <FormGalleryModal
-                activeGallery={this.state.activeModalGallery}
-                closeModal={this.closeModal}
-                changeActiveGalleryIndex={this.changeActiveGalleryIndex}
-                updateActiveAsset={this.updateActiveAsset}
-                onFilterQueryChange={this.onFilterQueryChange}
-                filter={this.state.filter.source}
-                galleryItemIndex={this.state.galleryItemIndex}
-                galleryTitle={this.state.galleryTitle}
-                galleryDate={this.state.galleryDate}
-                activeGalleryAttachments={modalFriendlyAttachments}
-              />
-            : null}
         </bem.AssetGallery>
       );
     }

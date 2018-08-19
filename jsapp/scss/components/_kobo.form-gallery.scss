@@ -96,10 +96,6 @@ $icon-font-size: 40px;
       font-weight: normal;
     }
 
-    // >div{
-    //     width: 100%;
-    //     padding-top: 30px;
-    // }
     .asset-gallery__grid-item {
       $root: &;
 
@@ -206,99 +202,86 @@ $icon-font-size: 40px;
 
 .asset-gallery__modal {
   height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  flex-direction: row;
 
-  .modal__body {
+  .slick-slider {
     height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0;
 
-    .col8 {
-      width: 75%;
-      background: #000;
-      display: inline-block;
-    }
-
-    .col4 {
-      width: 25%;
-      background: #fff;
-      display: inline-block;
-    }
-
-    .slick-slider {
+    .slick-list {
       height: 100%;
 
-      .slick-list {
+      .slick-track {
         height: 100%;
 
-        .slick-track {
-          height: 100%;
+        .slick-slide {
+          height: auto;
+          top: 50%;
+          transform: translateY(-50%);
+          position: absolute;
+          width: 100%;
 
-          .slick-slide {
-            height: auto;
-            top: 50%;
-            transform: translateY(-50%);
-            position: absolute;
-            width: 100%;
-
-            img {
-              // vertical-align: middle;
-              // display: inline-block;
-              // width: 100%;
-              // height: auto;
-              // max-width: 100%;
-              display: block;
-              height: 100%;
-              margin: 0 auto;
-              max-width: 100%;
-              object-fit: contain;
-            }
+          img {
+            // vertical-align: middle;
+            // display: inline-block;
+            // width: 100%;
+            // height: auto;
+            // max-width: 100%;
+            display: block;
+            height: 100%;
+            margin: 0 auto;
+            max-width: 100%;
+            object-fit: contain;
           }
         }
       }
+    }
 
-      /* SLICK ARROWS */
-      .slick-arrow {
-        display: block;
-        height: 100%;
-        width: 60px;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 8;
+    /* SLICK ARROWS */
+    .slick-arrow {
+      display: block;
+      height: 100%;
+      width: 60px;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 8;
 
+      .k-icon-next, .k-icon-prev {
+        color: #fff;
+        font-size: 60px;
+      }
+
+      &.slick-disabled {
         .k-icon-next, .k-icon-prev {
-          color: #fff;
-          font-size: 60px;
+          opacity: 0.3;
         }
+      }
 
-        &.slick-disabled {
-          .k-icon-next, .k-icon-prev {
-            opacity: 0.3;
-          }
+      &.slick-next {
+        right: 0;
+
+        &::before {
+          content: '';
         }
+      }
 
-        &.slick-next {
-          right: 0;
+      &.slick-prev {
+        left: 0;
 
-          &::before {
-            content: '';
-          }
-        }
-
-        &.slick-prev {
-          left: 0;
-
-          &::before {
-            content: '';
-          }
+        &::before {
+          content: '';
         }
       }
     }
   }
 
   .asset-gallery__modal__carousel {
+    width: 75%;
     position: relative;
     height: 100%;
+    background: #000;
 
     .asset-gallery__modal__carousel__topbar {
       position: absolute;
@@ -328,6 +311,9 @@ $icon-font-size: 40px;
   }
 
   .asset-gallery__modal__sidebar {
+    width: 25%;
+    background: #fff;
+
     h3 {
       font-weight: 400;
       font-size: 18px;

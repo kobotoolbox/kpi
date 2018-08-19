@@ -25,7 +25,7 @@ import {ProjectSettings} from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 import TableColumnFilter from '../components/tableColumnFilter';
-import GalleryModal from '../components/modalForms/galleryModal';
+import FormGalleryModal from '../components/formGallery/formGalleryModal';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -221,7 +221,17 @@ class Modal extends React.Component {
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
             { this.props.params.type == MODAL_TYPES.GALLERY &&
-              <GalleryModal/>
+              <FormGalleryModal
+                activeGallery={this.props.params.activeGallery}
+                changeActiveGalleryIndex={this.props.params.changeActiveGalleryIndex}
+                updateActiveAsset={this.props.params.updateActiveAsset}
+                onFilterQueryChange={this.props.params.onFilterQueryChange}
+                filter={this.props.params.filter}
+                galleryItemIndex={this.props.params.galleryItemIndex}
+                galleryTitle={this.props.params.galleryTitle}
+                galleryDate={this.props.params.galleryDate}
+                activeGalleryAttachments={this.props.params.activeGalleryAttachments}
+              />
             }
 
           </ui.Modal.Body>
