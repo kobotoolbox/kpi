@@ -246,7 +246,6 @@ bem.PrintOnly = BEM('print-only');
 bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
-// used in subsections gallery
 bem.AssetGallery = BEM('asset-gallery');
 bem.AssetGallery__heading = bem.AssetGallery.__('heading');
 bem.AssetGallery__headingSearchFilter = bem.AssetGallery.__('heading__search-filter');
@@ -264,10 +263,9 @@ bem.AssetGallery__modalSidebarGridWrap = bem.AssetGallery.__('modal__sidebar-gri
 bem.AssetGallery__modalSidebarGrid = bem.AssetGallery.__('modal__sidebar__grid', '<div>');
 bem.AssetGallery__modalSidebarGridItem = bem.AssetGallery.__('modal__sidebar__grid-item', '<div>');
 
-// Paginated Modal Elements:
-bem.PaginatedModal = BEM('paginated-modal');
-bem.PaginatedModal_heading = bem.PaginatedModal.__('heading');
-bem.PaginatedModal_body = bem.PaginatedModal.__('body');
+bem.PaginatedGalleryModal = BEM('paginated-gallery-modal');
+bem.PaginatedGalleryModal_heading = bem.PaginatedGalleryModal.__('heading');
+bem.PaginatedGalleryModal_body = bem.PaginatedGalleryModal.__('body');
 
 bem.create = BEM;
 

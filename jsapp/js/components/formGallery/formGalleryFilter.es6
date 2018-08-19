@@ -18,6 +18,7 @@ export default class FormGalleryFilter extends React.Component {
 
         <bem.AssetGallery__headingSearchFilter className='section'>
           <input
+            type='search'
             className='text-display'
             placeholder={t('Filter results')}
             onChange={this.props.onFilterQueryChange}

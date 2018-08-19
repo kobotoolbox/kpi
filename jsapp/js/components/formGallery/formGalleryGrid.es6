@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import bem from '../../bem';
 import FormGalleryGridItem from './formGalleryGridItem';
-import PaginatedModal from './paginatedModal';
+import PaginatedGalleryModal from './paginatedGalleryModal';
 import {
   t,
   formatTimeDate
@@ -15,7 +15,7 @@ export default class FormGalleryGrid extends React.Component {
     this.state = {
       galleryPage: 1,
       hasMoreAttachments: false,
-      showPaginatedModal: false,
+      showPaginatedGalleryModal: false,
       currentlyLoadedGalleryAttachments: 0
     };
   }
@@ -64,7 +64,7 @@ export default class FormGalleryGrid extends React.Component {
       } else {
         loadMoreBtnCode = (
           <button
-            onClick={this.togglePaginatedModal}
+            onClick={this.togglePaginatedGalleryModal}
             className='mdl-button mdl-button--colored loadmore-button'
           >
             {t('See all ##count## images').replace('##count##', this.props.galleryAttachmentsCount)}
@@ -74,8 +74,8 @@ export default class FormGalleryGrid extends React.Component {
     }
     return loadMoreBtnCode;
   }
-  togglePaginatedModal() {
-    this.setState({ showPaginatedModal: !this.state.showPaginatedModal });
+  togglePaginatedGalleryModal() {
+    this.setState({ showPaginatedGalleryModal: !this.state.showPaginatedGalleryModal });
     this.props.setActiveGalleryDateAndTitle(
       this.props.galleryTitle,
       this.props.galleryDate
@@ -116,9 +116,9 @@ export default class FormGalleryGrid extends React.Component {
           {this.toggleLoadMoreBtn()}
         </div>
 
-        {this.state.showPaginatedModal
-          ? <PaginatedModal
-              togglePaginatedModal={this.togglePaginatedModal}
+        {this.state.showPaginatedGalleryModal
+          ? <PaginatedGalleryModal
+              togglePaginatedGalleryModal={this.togglePaginatedGalleryModal}
               uid={this.props.uid}
               currentlyLoadedGalleryAttachments={
                 this.state.currentlyLoadedGalleryAttachments

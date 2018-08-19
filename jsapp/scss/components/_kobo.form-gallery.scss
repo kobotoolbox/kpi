@@ -401,11 +401,7 @@ $icon-font-size: 40px;
   }
 }
 
-$paginated-modal-black: #414453;
-$paginated-modal-gray: #c3c5d0;
-$paginated-modal-blue: #1CC2D3;
-
-.paginated-modal {
+.paginated-gallery-modal {
   .modal__content {
     padding: 0px;
   }
@@ -420,7 +416,7 @@ $paginated-modal-blue: #1CC2D3;
 
   .modal__x {
     i {
-      color: $paginated-modal-gray;
+      color: $cool-lightgray;
     }
   }
 
@@ -430,12 +426,12 @@ $paginated-modal-blue: #1CC2D3;
     overflow-x: hidden;
   }
 
-  .paginated-modal__heading {
-    border-bottom: 1px solid $paginated-modal-gray;
+  .paginated-gallery-modal__heading {
+    border-bottom: 1px solid $cool-lightgray;
     padding: 0px 20px 30px 20px;
 
     > h2 {
-      color: $paginated-modal-black;
+      color: $black;
       margin-bottom: 10px;
       font-size: 1.75em;
       margin-top: 0;
@@ -443,16 +439,16 @@ $paginated-modal-blue: #1CC2D3;
     }
 
     h4 {
-      color: $paginated-modal-black;
+      color: $black;
       margin: 0px;
       font-size: 1em;
     }
   }
 
-  .paginated-modal__body {
+  .paginated-gallery-modal__body {
     padding: 0 20px;
 
-    .paginated-modal__body__gallery-controls {
+    .paginated-gallery-modal__body__gallery-controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -492,7 +488,7 @@ $paginated-modal-blue: #1CC2D3;
       }
     }
 
-    .paginated-modal__body__gallery-wrapper {
+    .paginated-gallery-modal__body__gallery-wrapper {
       overflow-y: auto;
       height: 50vh;
     }
@@ -511,7 +507,7 @@ ul.pagination {
 
     a {
       transition: .3s ease-in-out;
-      color: $paginated-modal-black;
+      color: $black;
       padding: 10px;
       min-width: 40px;
       display: block;
@@ -519,7 +515,7 @@ ul.pagination {
 
     &.active {
       a {
-        background: $paginated-modal-blue;
+        background: $cool-blue;
         border-radius: 3px;
         color: white;
         font-weight: 600;
@@ -534,13 +530,13 @@ ul.pagination {
   li.next, li.previous {
     &:hover {
       a {
-        color: $paginated-modal-blue;
+        color: $cool-blue;
       }
     }
 
     &.disabled {
       a {
-        color: $paginated-modal-gray;
+        color: $cool-lightgray;
       }
     }
   }

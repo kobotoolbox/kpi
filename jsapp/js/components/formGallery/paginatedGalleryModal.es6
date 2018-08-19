@@ -11,7 +11,7 @@ import {
 import ReactPaginate from 'react-paginate';
 import Select from 'react-select';
 
-export default class PaginatedModal extends React.Component {
+export default class PaginatedGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -151,10 +151,10 @@ export default class PaginatedModal extends React.Component {
   }
   render() {
     return (
-      <bem.PaginatedModal>
-        <ui.Modal open large onClose={this.props.togglePaginatedModal}>
+      <bem.PaginatedGalleryModal>
+        <ui.Modal open large onClose={this.props.togglePaginatedGalleryModal}>
           <ui.Modal.Body>
-            <bem.PaginatedModal_heading>
+            <bem.PaginatedGalleryModal_heading>
               <h2>{t('All photos of') + ' ' + this.props.galleryTitle}</h2>
               {/* <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4> */}
               <h4>
@@ -166,9 +166,9 @@ export default class PaginatedModal extends React.Component {
                 {' '}
                 <b>{this.props.galleryAttachmentsCount}</b>
               </h4>
-            </bem.PaginatedModal_heading>
+            </bem.PaginatedGalleryModal_heading>
 
-            <bem.PaginatedModal_body>
+            <bem.PaginatedGalleryModal_body>
               <GalleryControls
                 offsetOptions={this.state.offsetOptions}
                 offsetValue={this.state.offset}
@@ -230,11 +230,11 @@ export default class PaginatedModal extends React.Component {
                 selectDirectionUp
               />
 
-            </bem.PaginatedModal_body>
+            </bem.PaginatedGalleryModal_body>
 
           </ui.Modal.Body>
         </ui.Modal>
-      </bem.PaginatedModal>
+      </bem.PaginatedGalleryModal>
     );
   }
 };

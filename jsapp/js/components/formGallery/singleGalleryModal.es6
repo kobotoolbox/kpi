@@ -6,7 +6,7 @@ import stores from '../../stores';
 import Slider from 'react-slick';
 import { t } from '../../utils';
 
-export default class FormGalleryModal extends React.Component {
+export default class SingleGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -59,7 +59,7 @@ export default class FormGalleryModal extends React.Component {
           </Slider>
         </bem.AssetGallery__modalCarousel>
 
-        <FormGalleryModalSidebar
+        <SingleGalleryModalSidebar
           activeGalleryAttachments={this.props.activeGalleryAttachments}
           filter={this.props.filter}
           galleryItemIndex={this.props.galleryItemIndex}
@@ -74,7 +74,7 @@ export default class FormGalleryModal extends React.Component {
   }
 };
 
-class FormGalleryModalSidebar extends React.Component {
+class SingleGalleryModalSidebar extends React.Component {
   goToFilter(gridLabel) {
     stores.pageState.hideModal();
     this.props.onFilterQueryChange(gridLabel);

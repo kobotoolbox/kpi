@@ -1,7 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from '../../bem';
-import FormGalleryModal from './formGalleryModal';
 import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
 import { dataInterface } from '../../dataInterface';
