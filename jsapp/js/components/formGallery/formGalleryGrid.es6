@@ -69,7 +69,7 @@ export default class FormGalleryGrid extends React.Component {
         loadMoreBtnCode = (
           <button
             onClick={this.loadMoreAttachments}
-            className='mdl-button mdl-button--colored loadmore-button'
+            className='mdl-button mdl-button--colored'
           >
             {t('Load More')}
           </button>
@@ -78,7 +78,7 @@ export default class FormGalleryGrid extends React.Component {
         loadMoreBtnCode = (
           <button
             onClick={this.togglePaginatedGalleryModal}
-            className='mdl-button mdl-button--colored loadmore-button'
+            className='mdl-button mdl-button--colored'
           >
             {t('See all ##count## images').replace('##count##', this.props.galleryAttachmentsCount)}
           </button>
@@ -140,7 +140,7 @@ export default class FormGalleryGrid extends React.Component {
           )}
         </bem.AssetGallery__grid>
 
-        <div className='form-view__cell form-view__cell--centered loadmore-div'>
+        <div className='form-view__cell form-view__cell--centered loadmore-wrapper'>
           {this.toggleLoadMoreBtn()}
         </div>
 

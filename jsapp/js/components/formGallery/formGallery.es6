@@ -246,13 +246,13 @@ export default class FormGallery extends React.Component {
             }.bind(this)
           )}
 
-          <div className='form-view__cell form-view__cell--centered loadmore-div'>
+          <div className='form-view__cell form-view__cell--centered loadmore-wrapper'>
             {this.state.hasMoreRecords &&
               this.state.filterGroupBy.value == 'submission' &&
               this.state.filterQuery == ''
               ? <button
                   onClick={this.loadMoreRecords}
-                  className='mdl-button mdl-button--colored loadmore-button'
+                  className='mdl-button mdl-button--colored'
                 >
                   Load more
                 </button>
