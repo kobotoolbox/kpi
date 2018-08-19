@@ -204,8 +204,7 @@ $icon-font-size: 40px;
   height: 100%;
   overflow: hidden;
   display: flex;
-  flex-wrap: wrap;
-  padding: 0;
+  align-items: stretch;
   flex-direction: row;
 
   .slick-slider {
@@ -280,7 +279,6 @@ $icon-font-size: 40px;
   .asset-gallery__modal__carousel {
     width: 75%;
     position: relative;
-    height: 100%;
     background: #000;
 
     .asset-gallery__modal__carousel__topbar {
