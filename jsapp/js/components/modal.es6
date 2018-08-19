@@ -83,7 +83,13 @@ class Modal extends React.Component {
         // title is set by formEditors
         break;
 
-      case MODAL_TYPES.GALLERY:
+      case MODAL_TYPES.GALLERY_SINGLE:
+        this.setState({
+          modalClass: 'modal--blank modal--large'
+        });
+        break;
+
+      case MODAL_TYPES.GALLERY_PAGINATED:
         this.setState({
           modalClass: 'modal--blank modal--large'
         });
@@ -220,7 +226,7 @@ class Modal extends React.Component {
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
-            { this.props.params.type == MODAL_TYPES.GALLERY &&
+            { this.props.params.type == MODAL_TYPES.GALLERY_SINGLE &&
               <SingleGalleryModal
                 activeGallery={this.props.params.activeGallery}
                 changeActiveGalleryIndex={this.props.params.changeActiveGalleryIndex}

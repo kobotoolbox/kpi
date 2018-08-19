@@ -181,7 +181,7 @@ export default class FormGallery extends React.Component {
     });
 
     stores.pageState.showModal({
-      type: MODAL_TYPES.GALLERY,
+      type: MODAL_TYPES.GALLERY_SINGLE,
       activeGallery: gallery,
       changeActiveGalleryIndex: this.changeActiveGalleryIndex,
       updateActiveAsset: this.updateActiveAsset,

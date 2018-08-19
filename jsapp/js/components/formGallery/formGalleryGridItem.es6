@@ -18,8 +18,7 @@ export default class FormGalleryGridItem extends React.Component {
         onClick={() =>
           this.props.openModal(
             this.props.gallery,
-            this.props.galleryItemIndex,
-            this.props.setGalleryDateAndTitleonModalOpen
+            this.props.galleryItemIndex
           )}
       >
         <bem.AssetGallery__gridItemOverlay>

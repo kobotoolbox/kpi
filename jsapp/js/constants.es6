@@ -8,7 +8,8 @@ const MODAL_TYPES = {
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
   TABLE_COLUMNS: 'table-columns',
-  GALLERY: 'gallery'
+  GALLERY_SINGLE: 'gallery-single',
+  GALLERY_PAGINATED: 'gallery-paginated'
 }
 
 const PROJECT_SETTINGS_CONTEXTS = {
