@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import bem from '../../bem';
 import ui from '../../ui';
+import stores from '../../stores';
 import Slider from 'react-slick';
 import { t } from '../../utils';
 
@@ -66,7 +67,6 @@ export default class FormGalleryModal extends React.Component {
           galleryIndex={this.props.activeGallery.index}
           date={this.props.galleryDate}
           changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
-          closeModal={this.props.closeModal}
           onFilterQueryChange={this.props.onFilterQueryChange}
         />
       </bem.AssetGallery__modal>
@@ -76,7 +76,7 @@ export default class FormGalleryModal extends React.Component {
 
 class FormGalleryModalSidebar extends React.Component {
   goToFilter(gridLabel) {
-    this.props.closeModal();
+    stores.pageState.hideModal();
     this.props.onFilterQueryChange(gridLabel);
   }
   render() {
@@ -87,7 +87,6 @@ class FormGalleryModalSidebar extends React.Component {
     featuredItems.splice(this.props.galleryItemIndex, 1);
     return (
       <bem.AssetGallery__modalSidebar className='open'>
-        <i className='toggle-info k-icon-close' onClick={this.props.closeModal} />
         <bem.AssetGallery__modalSidebarInfo>
             <p>{t('Record')} #{currentRecordIndex}</p>
             <h3>{this.props.galleryTitle}</h3>
