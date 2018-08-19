@@ -9,6 +9,7 @@ import stores from '../../stores';
 import { t } from '../../utils';
 import { GALLERY_FILTER_OPTIONS } from '../../constants';
 import Select from 'react-select';
+import TextBox from '../textBox';
 
 const FILTER_OPTIONS = [
   GALLERY_FILTER_OPTIONS.question,
@@ -31,12 +32,12 @@ export default class FormGalleryFilter extends React.Component {
     });
   }
 
-  onFilterQueryChange(evt) {
-    stores.currentGallery.setState({filterQuery: evt.currentTarget.value});
+  onFilterQueryChange(newVal) {
+    stores.currentGallery.setState({filterQuery: newVal});
   }
 
-  onFilterGroupChange(evt) {
-    stores.currentGallery.setState({filterGroupBy: GALLERY_FILTER_OPTIONS[evt]});
+  onFilterGroupChange(newVal) {
+    stores.currentGallery.setState({filterGroupBy: GALLERY_FILTER_OPTIONS[newVal]});
   }
 
   render() {
@@ -47,9 +48,8 @@ export default class FormGalleryFilter extends React.Component {
         </bem.AssetGallery__count>
 
         <bem.AssetGallery__headingSearchFilter className='section'>
-          <input
+          <TextBox
             type='search'
-            className='text-display'
             placeholder={t('Filter results')}
             onChange={this.onFilterQueryChange}
             value={this.state.filterQuery}
@@ -60,6 +60,7 @@ export default class FormGalleryFilter extends React.Component {
             options={FILTER_OPTIONS}
             simpleValue
             name='selected-filter'
+            className='Select--underlined'
             value={this.state.filterGroupBy ? this.state.filterGroupBy.value : false}
             onChange={this.onFilterGroupChange}
             autoBlur

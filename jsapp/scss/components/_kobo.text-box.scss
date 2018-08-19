@@ -1,9 +1,25 @@
 // TODO: this uses a lot of global styles defined in _kobo.bem.ui.scss
+// for inputs nested inside .form-modal__item - we need to refactor/reinclude
+// those styles here
 
 .text-box {
   &.text-box--error {
     color: $cool-red;
 
     .text-box__input {border-bottom-color: $cool-red;}
+  }
+
+  .text-box__input {
+    width: 100%;
+    padding: 4px 10px;
+    font-size: 15px;
+    border: 1px solid transparent;
+    border-bottom-color: $divider-color;
+    transition: border-color 0.3s;
+
+    &:focus {
+      transition: border-color 0.3s;
+      border-bottom-color: $cool-blue;
+    }
   }
 }
