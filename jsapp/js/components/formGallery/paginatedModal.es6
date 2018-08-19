@@ -1,10 +1,13 @@
 import React from 'react';
-// import Modal from 'react-modal';
+import autoBind from 'react-autobind';
 import bem from '../../bem';
 import ui from '../../ui';
 import FormGalleryGridItem from './formGalleryGridItem';
 import { dataInterface } from '../../dataInterface';
-import { t } from '../../utils';
+import {
+  t,
+  formatTimeDate
+} from '../../utils';
 import ReactPaginate from 'react-paginate';
 import Select from 'react-select';
 
@@ -195,7 +198,7 @@ export class PaginatedModal extends React.Component {
                             <FormGalleryGridItem
                               key={j}
                               itemsPerRow='10'
-                              date={this.props.formatDate(timestamp)}
+                              date={formatTimeDate(timestamp)}
                               itemTitle={
                                 this.props.currentFilter === 'question'
                                   ? t('Record') + ' ' + item.id

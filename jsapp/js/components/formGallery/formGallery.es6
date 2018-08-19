@@ -8,7 +8,10 @@ import PaginatedModal from './paginatedModal';
 import { dataInterface } from '../../dataInterface';
 import stores from '../../stores';
 import moment from 'moment';
-import { t } from '../../utils';
+import {
+  t,
+  formatTimeDate
+} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
 export class FormGallery extends React.Component {
@@ -63,10 +66,6 @@ export class FormGallery extends React.Component {
     if (this.props.mediaQuestions.length)
       this.loadGalleryData(this.props.uid, 'question');
   }
-  formatDate(myDate) {
-    let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
-    return timestamp;
-  }
   loadGalleryData(uid, selectedFilter) {
     dataInterface
       .filterGalleryImages(uid, selectedFilter, this.state.defaultPageSize)
@@ -77,9 +76,9 @@ export class FormGallery extends React.Component {
         });
       });
   }
-  setAssets(nweAssets) {
+  setAssets(newAssets) {
     this.setState({
-      assets: nweAssets
+      assets: newAssets
     });
   }
   // FILTER
@@ -172,7 +171,7 @@ export class FormGallery extends React.Component {
       let galleryTitle =
         gallery.label ||
         gallery.attachments.results[this.state.galleryItemIndex].question.label;
-      let galleryDate = this.formatDate(
+      let galleryDate = formatTimeDate(
         gallery.date_created ||
           gallery.attachments.results[this.state.galleryItemIndex].submission
             .date_created
@@ -248,7 +247,7 @@ export class FormGallery extends React.Component {
               let searchTermMatched =
                 this.state.searchTerm == '' ||
                 galleryTitle.match(searchRegEx) ||
-                this.formatDate(record.date_created).match(
+                formatTimeDate(record.date_created).match(
                   this.state.searchTerm
                 );
               if (searchTermMatched) {
@@ -263,7 +262,6 @@ export class FormGallery extends React.Component {
                     galleryAttachmentsCount={record.attachments.count}
                     loadMoreAttachments={this.loadMoreAttachments}
                     currentFilter={this.state.filter.source}
-                    formatDate={this.formatDate}
                     openModal={this.openModal}
                     defaultPageSize={this.state.defaultPageSize}
                     setAssets={this.setAssets}
@@ -303,7 +301,6 @@ export class FormGallery extends React.Component {
                 galleryTitle={this.state.galleryTitle}
                 galleryDate={this.state.galleryDate}
                 activeGalleryAttachments={modalFriendlyAttachments}
-                formatDate={this.formatDate}
               />
             : null}
         </bem.AssetGallery>
@@ -372,7 +369,7 @@ export class FormGalleryGrid extends React.Component {
             onClick={this.togglePaginatedModal}
             className='mdl-button mdl-button--colored loadmore-button'
           >
-            {t('See ' + this.props.galleryAttachmentsCount + ' Images')}
+            {t('See all ##count## images').replace('##count##', this.props.galleryAttachmentsCount)}
           </button>
         );
       }
@@ -401,7 +398,7 @@ export class FormGalleryGrid extends React.Component {
                 <FormGalleryGridItem
                   key={j}
                   itemsPerRow='6'
-                  date={this.props.formatDate(timestamp)}
+                  date={formatTimeDate(timestamp)}
                   itemTitle={
                     this.props.currentFilter === 'question'
                       ? t('Record') + ' ' + parseInt(j + 1)
@@ -435,7 +432,6 @@ export class FormGalleryGrid extends React.Component {
               galleryIndex={this.props.galleryIndex}
               currentFilter={this.props.currentFilter}
               openModal={this.props.openModal}
-              formatDate={this.props.formatDate}
             />
           : null}
       </div>
