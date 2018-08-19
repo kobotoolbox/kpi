@@ -67,7 +67,6 @@ export default class SingleGalleryModal extends React.Component {
           galleryIndex={this.props.activeGallery.index}
           date={this.props.galleryDate}
           changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
-          onFilterQueryChange={this.props.onFilterQueryChange}
         />
       </bem.AssetGallery__modal>
     );
@@ -75,10 +74,11 @@ export default class SingleGalleryModal extends React.Component {
 };
 
 class SingleGalleryModalSidebar extends React.Component {
-  goToFilter(gridLabel) {
+  setGalleryFilterQuery(newQuery) {
+    stores.currentGallery.setState({filterQuery: newQuery});
     stores.pageState.hideModal();
-    this.props.onFilterQueryChange(gridLabel);
   }
+
   render() {
     let currentRecordIndex = this.props.filter === 'question'
       ? this.props.galleryItemIndex + 1
@@ -95,7 +95,7 @@ class SingleGalleryModalSidebar extends React.Component {
 
         {this.props.activeGalleryAttachments != undefined &&
           <bem.AssetGallery__modalSidebarGridWrap>
-            <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>
+            <h5 onClick={() => this.setGalleryFilterQuery(this.props.galleryTitle)}>
               {t('More for') + ' ' + this.props.galleryTitle}
             </h5>
             <bem.AssetGallery__modalSidebarGrid>

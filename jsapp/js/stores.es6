@@ -11,6 +11,7 @@ import {
   notify,
   assign,
 } from './utils';
+import {GALLERY_FILTER_OPTIONS} from './constants';
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -505,14 +506,15 @@ const currentGalleryStore = Reflux.createStore({
       galleryItemIndex: false,
       galleryTitle: false,
       galleryDate: false,
-      filter: false
+      filterQuery: '',
+      filterGroupBy: GALLERY_FILTER_OPTIONS.question
     };
   },
   setState (state) {
-    var changes = changes(this.state, state);
-    if (changes) {
+    const chz = changes(this.state, state);
+    if (chz) {
       assign(this.state, state);
-      this.trigger(changes);
+      this.trigger(chz);
     }
   }
 });

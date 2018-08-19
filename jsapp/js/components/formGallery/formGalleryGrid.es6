@@ -1,12 +1,16 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import bem from '../../bem';
 import FormGalleryGridItem from './formGalleryGridItem';
 import PaginatedGalleryModal from './paginatedGalleryModal';
+import stores from '../../stores';
 import {
   t,
   formatTimeDate
 } from '../../utils';
+import {GALLERY_FILTER_OPTIONS} from '../../constants';
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {
@@ -16,8 +20,19 @@ export default class FormGalleryGrid extends React.Component {
       galleryPage: 1,
       hasMoreAttachments: false,
       showPaginatedGalleryModal: false,
-      currentlyLoadedGalleryAttachments: 0
+      currentlyLoadedGalleryAttachments: 0,
+      filterGroupBy: stores.currentGallery.state.filterGroupBy
     };
+  }
+
+  componentDidMount() {
+    this.updateHasMoreAttachments();
+    this.setState({ galleryPage: this.state.galleryPage + 1 });
+    this.listenTo(stores.currentGallery, (storeChanges) => {
+      if (storeChanges.filterGroupBy) {
+        this.setState({filterGroupBy: storeChanges.filterGroupBy});
+      }
+    });
   }
 
   updateHasMoreAttachments() {
@@ -32,10 +47,7 @@ export default class FormGalleryGrid extends React.Component {
       currentlyLoadedGalleryAttachments
     });
   }
-  componentDidMount() {
-    this.updateHasMoreAttachments();
-    this.setState({ galleryPage: this.state.galleryPage + 1 });
-  }
+
   loadMoreAttachments() {
     this.props.loadMoreAttachments(
       this.props.galleryIndex,
@@ -47,10 +59,11 @@ export default class FormGalleryGrid extends React.Component {
       : this.state.galleryPage;
     this.setState({ galleryPage: newGalleryPage });
   }
+
   toggleLoadMoreBtn() {
     let loadMoreBtnCode = null;
     if (
-      this.state.hasMoreAttachments && this.props.currentFilter === 'question'
+      this.state.hasMoreAttachments && this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
     ) {
       if (this.state.galleryPage <= 2) {
         loadMoreBtnCode = (
@@ -74,6 +87,7 @@ export default class FormGalleryGrid extends React.Component {
     }
     return loadMoreBtnCode;
   }
+
   togglePaginatedGalleryModal() {
     this.setState({ showPaginatedGalleryModal: !this.state.showPaginatedGalleryModal });
     this.props.setActiveGalleryDateAndTitle(
@@ -81,6 +95,7 @@ export default class FormGalleryGrid extends React.Component {
       this.props.galleryDate
     );
   }
+
   render() {
     return (
       <div key={this.props.galleryIndex}>
@@ -89,19 +104,32 @@ export default class FormGalleryGrid extends React.Component {
         <bem.AssetGallery__grid>
           {this.props.galleryItems.map(
             function(item, j) {
-              var timestamp = this.props.currentFilter === 'question'
-                ? item.submission.date_created
-                : this.props.gallery.date_created;
+              let timestamp;
+              if (
+                this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+                this.props.gallery &&
+                this.props.gallery.date_created
+              ) {
+                timestamp = this.props.gallery.date_created;
+              } else if (item.submission && item.submission.date_created) {
+                timestamp = item.submission.date_created;
+              }
+
+              let itemTitle;
+              if (
+                this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
+              ) {
+                itemTitle = t('Record') + ' ' + parseInt(j + 1)
+              } else if (item.question && item.question.label) {
+                itemTitle = item.question.label;
+              }
+
               return (
                 <FormGalleryGridItem
                   key={j}
                   itemsPerRow='6'
                   date={formatTimeDate(timestamp)}
-                  itemTitle={
-                    this.props.currentFilter === 'question'
-                      ? t('Record') + ' ' + parseInt(j + 1)
-                      : item.question.label
-                  }
+                  itemTitle={itemTitle}
                   url={item.small_download_url}
                   gallery={this.props.gallery}
                   galleryItemIndex={j}
@@ -128,7 +156,7 @@ export default class FormGalleryGrid extends React.Component {
               galleryTitle={this.props.galleryTitle}
               galleryDate={this.props.galleryDate}
               galleryIndex={this.props.galleryIndex}
-              currentFilter={this.props.currentFilter}
+              currentFilter={this.state.filterGroupBy}
               openModal={this.props.openModal}
             />
           : null}
@@ -136,3 +164,5 @@ export default class FormGalleryGrid extends React.Component {
     );
   }
 };
+
+reactMixin(FormGalleryGrid.prototype, Reflux.ListenerMixin);

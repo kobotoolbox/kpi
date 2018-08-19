@@ -1,5 +1,16 @@
 import {t} from './utils';
 
+const GALLERY_FILTER_OPTIONS = {
+  question: {
+    value: 'question',
+    label: t('Group by question')
+  },
+  submission: {
+    value: 'submission',
+    label: t('Group by record')
+  }
+}
+
 const MODAL_TYPES = {
   SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
@@ -74,6 +85,7 @@ export default {
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
+  GALLERY_FILTER_OPTIONS: GALLERY_FILTER_OPTIONS,
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES
 };

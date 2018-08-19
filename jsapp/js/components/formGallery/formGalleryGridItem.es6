@@ -22,10 +22,10 @@ export default class FormGalleryGridItem extends React.Component {
           )}
       >
         <bem.AssetGallery__gridItemOverlay>
-          <div className='text'>
+          <bem.AssetGallery__gridItemOverlayText>
             <h5>{this.props.itemTitle}</h5>
             <p>{this.props.date}</p>
-          </div>
+          </bem.AssetGallery__gridItemOverlayText>
         </bem.AssetGallery__gridItemOverlay>
       </bem.AssetGallery__gridItem>
     );

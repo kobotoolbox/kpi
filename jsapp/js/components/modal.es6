@@ -231,7 +231,6 @@ class Modal extends React.Component {
                 activeGallery={this.props.params.activeGallery}
                 changeActiveGalleryIndex={this.props.params.changeActiveGalleryIndex}
                 updateActiveAsset={this.props.params.updateActiveAsset}
-                onFilterQueryChange={this.props.params.onFilterQueryChange}
                 filter={this.props.params.filter}
                 galleryItemIndex={this.props.params.galleryItemIndex}
                 galleryTitle={this.props.params.galleryTitle}

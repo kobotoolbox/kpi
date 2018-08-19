@@ -1,14 +1,44 @@
 import React from 'react';
+import _ from 'underscore';
+import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import bem from '../../bem';
 import ui from '../../ui';
+import stores from '../../stores';
 import { t } from '../../utils';
+import { GALLERY_FILTER_OPTIONS } from '../../constants';
 import Select from 'react-select';
+
+const FILTER_OPTIONS = [
+  GALLERY_FILTER_OPTIONS.question,
+  GALLERY_FILTER_OPTIONS.submission
+];
 
 export default class FormGalleryFilter extends React.Component {
   constructor(props){
     super(props);
-    this.state = {};
+    this.state = {
+      filterQuery: stores.currentGallery.state.filterQuery,
+      filterGroupBy: stores.currentGallery.state.filterGroupBy
+    };
+    autoBind(this);
   }
+
+  componentDidMount() {
+    this.listenTo(stores.currentGallery, (storeChanges) => {
+      this.setState(storeChanges);
+    });
+  }
+
+  onFilterQueryChange(evt) {
+    stores.currentGallery.setState({filterQuery: evt.currentTarget.value});
+  }
+
+  onFilterGroupChange(evt) {
+    stores.currentGallery.setState({filterGroupBy: GALLERY_FILTER_OPTIONS[evt]});
+  }
+
   render() {
     return (
       <bem.AssetGallery__heading>
@@ -21,23 +51,25 @@ export default class FormGalleryFilter extends React.Component {
             type='search'
             className='text-display'
             placeholder={t('Filter results')}
-            onChange={this.props.onFilterQueryChange}
-            value={this.props.searchTerm}
+            onChange={this.onFilterQueryChange}
+            value={this.state.filterQuery}
           />
 
           <Select
             ref='filterSelect'
-            options={this.props.filters}
+            options={FILTER_OPTIONS}
             simpleValue
             name='selected-filter'
-            value={this.props.currentFilter.source}
-            onChange={this.props.onFilterGroupChange}
+            value={this.state.filterGroupBy ? this.state.filterGroupBy.value : false}
+            onChange={this.onFilterGroupChange}
             autoBlur
             clearable={false}
             searchable={false}
           />
-      </bem.AssetGallery__headingSearchFilter>
+        </bem.AssetGallery__headingSearchFilter>
       </bem.AssetGallery__heading>
     );
   }
 };
+
+reactMixin(FormGalleryFilter.prototype, Reflux.ListenerMixin);

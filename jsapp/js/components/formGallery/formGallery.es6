@@ -1,5 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import bem from '../../bem';
 import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
@@ -9,15 +11,30 @@ import {
   t,
   formatTimeDate
 } from '../../utils';
-import {MODAL_TYPES} from '../../constants';
+import {
+  MODAL_TYPES,
+  GALLERY_FILTER_OPTIONS
+} from '../../constants';
 
 const DEFAULT_PAGE_SIZE = 6;
 
 export default class FormGallery extends React.Component {
   constructor(props) {
     super(props);
-    autoBind(this);
     this.state = this.getInitialState();
+    autoBind(this);
+  }
+
+  componentDidMount() {
+    if (this.props.mediaQuestions.length) {
+      this.loadGalleryData(this.props.uid);
+    }
+    this.listenTo(stores.currentGallery, (storeChanges) => {
+      this.setState(storeChanges);
+      if (storeChanges.filterGroupBy) {
+        this.handleFilterGroupByChange(storeChanges.filterGroupBy);
+      }
+    });
   }
 
   getInitialState() {
@@ -26,21 +43,8 @@ export default class FormGallery extends React.Component {
       nextRecordsPage: 2,
       activeTitle: null,
       activeDate: null,
-      searchTerm: '',
-      filter: {
-        source: 'question',
-        label: t('Group by question')
-      },
-      filterOptions: [
-        {
-          value: 'question',
-          label: t('Group by question')
-        },
-        {
-          value: 'submission',
-          label: t('Group by record')
-        }
-      ],
+      filterQuery: stores.currentGallery.state.filterQuery,
+      filterGroupBy: stores.currentGallery.state.filterGroupBy,
       galleryData: {
         count: 0,
         loaded: false,
@@ -57,15 +61,9 @@ export default class FormGallery extends React.Component {
     };
   }
 
-  componentDidMount() {
-    if (this.props.mediaQuestions.length) {
-      this.loadGalleryData(this.props.uid);
-    }
-  }
-
   loadGalleryData(uid) {
     dataInterface
-      .filterGalleryImages(uid, this.state.filter.source, DEFAULT_PAGE_SIZE)
+      .filterGalleryImages(uid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
       .done(response => {
         response.loaded = true;
         this.setState({
@@ -74,19 +72,12 @@ export default class FormGallery extends React.Component {
       });
   }
 
-  onFilterGroupChange(value) {
-    var label;
-    var newFilter = value;
-    for (var i = 0; i < this.state.filterOptions.length; i++) {
-      if (this.state.filterOptions[i].value == newFilter) {
-        label = this.state.filterOptions[i].label;
-      }
-    }
-
+  handleFilterGroupByChange(newFilter) {
+    this.state.galleryData.loaded = false;
     dataInterface
       .filterGalleryImages(
         this.props.uid,
-        newFilter,
+        newFilter.value,
         DEFAULT_PAGE_SIZE
       )
       .done((response) => {
@@ -95,21 +86,12 @@ export default class FormGallery extends React.Component {
         this.forceUpdate();
 
         this.setState({
-          filter: {
-            source: newFilter,
-            label: label
-          },
           galleryData: response,
-          hasMoreRecords: newFilter == 'submission'
+          hasMoreRecords: this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.submission.value
             ? response.next
             : this.state.hasMoreRecords //Check if more records exist!
         });
       });
-  }
-
-  onFilterQueryChange(filter) {
-    let term = filter.target ? filter.target.value : filter; //Check if an event was passed or string
-    this.setState({ searchTerm: term });
   }
 
   // Pagination
@@ -117,7 +99,7 @@ export default class FormGallery extends React.Component {
     this.state.galleryData.loaded = false;
     dataInterface.loadQuestionAttachment(
         this.props.uid,
-        this.state.filter.source,
+        this.state.filterGroupBy.value,
         galleryIndex,
         galleryPage,
         DEFAULT_PAGE_SIZE
@@ -136,7 +118,7 @@ export default class FormGallery extends React.Component {
     this.state.galleryData.loaded = false;
     return dataInterface.loadMoreRecords(
         this.props.uid,
-        this.state.filter.source,
+        this.state.filterGroupBy.value,
         this.state.nextRecordsPage,
         DEFAULT_PAGE_SIZE
       )
@@ -180,8 +162,7 @@ export default class FormGallery extends React.Component {
       activeGallery: gallery,
       changeActiveGalleryIndex: this.changeActiveGalleryIndex,
       updateActiveAsset: this.updateActiveAsset,
-      onFilterQueryChange: this.onFilterQueryChange,
-      filter: this.state.filter.source,
+      filter: this.state.filterGroupBy.value,
       galleryItemIndex: galleryItemIndex,
       galleryTitle: galleryTitle,
       galleryDate: galleryDate,
@@ -220,24 +201,26 @@ export default class FormGallery extends React.Component {
         <bem.AssetGallery>
           <FormGalleryFilter
             attachments_count={this.state.galleryData.attachments_count}
-            currentFilter={this.state.filter}
-            filters={this.state.filterOptions}
-            onFilterGroupChange={this.onFilterGroupChange}
-            onFilterQueryChange={this.onFilterQueryChange}
-            searchTerm={this.state.searchTerm}
           />
 
           {this.state.galleryData.results.map(
             function(record, i) {
-              let galleryTitle = this.state.filter.source === 'question'
-                ? record.label
-                : t('Record') + ' ' + parseInt(i + 1);
-              let searchRegEx = new RegExp(this.state.searchTerm, 'i');
+              let galleryTitle;
+              if (
+                this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+                record.label
+              ) {
+                galleryTitle = record.label;
+              } else {
+                galleryTitle = t('Record') + ' ' + parseInt(i + 1);
+              }
+
+              let searchRegEx = new RegExp(this.state.filterQuery, 'i');
               let searchTermMatched =
-                this.state.searchTerm == '' ||
+                this.state.filterQuery == '' ||
                 galleryTitle.match(searchRegEx) ||
                 formatTimeDate(record.date_created).match(
-                  this.state.searchTerm
+                  this.state.filterQuery
                 );
               if (searchTermMatched) {
                 return (
@@ -250,7 +233,6 @@ export default class FormGallery extends React.Component {
                     gallery={record}
                     galleryAttachmentsCount={record.attachments.count}
                     loadMoreAttachments={this.loadMoreAttachments}
-                    currentFilter={this.state.filter.source}
                     openModal={this.openModal}
                     defaultPageSize={DEFAULT_PAGE_SIZE}
                     setActiveGalleryDateAndTitle={
@@ -266,8 +248,8 @@ export default class FormGallery extends React.Component {
 
           <div className='form-view__cell form-view__cell--centered loadmore-div'>
             {this.state.hasMoreRecords &&
-              this.state.filter.source == 'submission' &&
-              this.state.searchTerm == ''
+              this.state.filterGroupBy.value == 'submission' &&
+              this.state.filterQuery == ''
               ? <button
                   onClick={this.loadMoreRecords}
                   className='mdl-button mdl-button--colored loadmore-button'
@@ -281,3 +263,5 @@ export default class FormGallery extends React.Component {
     }
   }
 };
+
+reactMixin(FormGallery.prototype, Reflux.ListenerMixin);

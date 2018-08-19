@@ -97,8 +97,6 @@ $icon-font-size: 40px;
     }
 
     .asset-gallery__grid-item {
-      $root: &;
-
       margin: 0 15px 15px 0;
       display: inline-block;
       cursor: pointer;
@@ -132,37 +130,37 @@ $icon-font-size: 40px;
         opacity: 0;
         transition: 0.2s all;
         background: rgba(0, 0, 0, 0.7);
+      }
 
-        .text {
-          color: #fff;
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          padding: 10px;
+      &:hover .asset-gallery__grid-item__overlay {
+        opacity: 1;
+        transition: 0.3s all;
+      }
 
-          h5 {
-            font-size: 1em;
-            font-weight: normal;
-            margin: 0px;
-            line-height: 1.25em;
-            max-height: 3.75em;
-            overflow: hidden;
-          }
+      .asset-gallery__grid-item__overlay-text {
+        color: #fff;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        padding: 10px;
 
-          p {
-            position: absolute;
-            bottom: -5px;
-            font-size: 0.85em;
-            line-height: 1.1em;
-            opacity: 0.7;
-          }
+        h5 {
+          font-size: 1em;
+          font-weight: normal;
+          margin: 0px;
+          line-height: 1.25em;
+          max-height: 3.75em;
+          overflow: hidden;
         }
 
-        #{$root}:hover & {
-          opacity: 1;
-          transition: 0.3s all;
+        p {
+          position: absolute;
+          bottom: -5px;
+          font-size: 0.85em;
+          line-height: 1.1em;
+          opacity: 0.7;
         }
       }
     }
