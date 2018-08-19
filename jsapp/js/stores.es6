@@ -497,6 +497,26 @@ var serverEnvironmentStore = Reflux.createStore({
   },
 });
 
+const currentGalleryStore = Reflux.createStore({
+  init() {
+    this.state = {
+      activeGallery: false,
+      activeGalleryAttachments: false,
+      galleryItemIndex: false,
+      galleryTitle: false,
+      galleryDate: false,
+      filter: false
+    };
+  },
+  setState (state) {
+    var changes = changes(this.state, state);
+    if (changes) {
+      assign(this.state, state);
+      this.trigger(changes);
+    }
+  }
+});
+
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -542,6 +562,7 @@ assign(stores, {
   userExists: userExistsStore,
   surveyState: surveyStateStore,
   serverEnvironment: serverEnvironmentStore,
+  currentGallery: currentGalleryStore,
 });
 
 module.exports = stores;
