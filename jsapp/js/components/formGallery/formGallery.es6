@@ -41,7 +41,7 @@ export default class FormGallery extends React.Component {
           label: t('Group by record')
         }
       ],
-      assets: {
+      galleryData: {
         count: 0,
         loaded: false,
         results: [
@@ -58,25 +58,20 @@ export default class FormGallery extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.mediaQuestions.length)
-      this.loadGalleryData(this.props.uid, 'question');
+    if (this.props.mediaQuestions.length) {
+      this.loadGalleryData(this.props.uid);
+    }
   }
 
-  loadGalleryData(uid, selectedFilter) {
+  loadGalleryData(uid) {
     dataInterface
-      .filterGalleryImages(uid, selectedFilter, DEFAULT_PAGE_SIZE)
+      .filterGalleryImages(uid, this.state.filter.source, DEFAULT_PAGE_SIZE)
       .done(response => {
         response.loaded = true;
         this.setState({
-          assets: response
+          galleryData: response
         });
       });
-  }
-
-  setAssets(newAssets) {
-    this.setState({
-      assets: newAssets
-    });
   }
 
   onFilterGroupChange(value) {
@@ -104,7 +99,7 @@ export default class FormGallery extends React.Component {
             source: newFilter,
             label: label
           },
-          assets: response,
+          galleryData: response,
           hasMoreRecords: newFilter == 'submission'
             ? response.next
             : this.state.hasMoreRecords //Check if more records exist!
@@ -119,7 +114,7 @@ export default class FormGallery extends React.Component {
 
   // Pagination
   loadMoreAttachments(galleryIndex, galleryPage) {
-    this.state.assets.loaded = false;
+    this.state.galleryData.loaded = false;
     dataInterface.loadQuestionAttachment(
         this.props.uid,
         this.state.filter.source,
@@ -128,17 +123,17 @@ export default class FormGallery extends React.Component {
         DEFAULT_PAGE_SIZE
       )
       .done(response => {
-        let assets = this.state.assets;
-        assets.results[galleryIndex].attachments.results.push(
+        let galleryData = this.state.galleryData;
+        galleryData.results[galleryIndex].attachments.results.push(
           ...response.attachments.results
         );
-        assets.loaded = true;
-        this.setState({ assets });
+        galleryData.loaded = true;
+        this.setState({ galleryData });
       });
   }
 
   loadMoreRecords() {
-    this.state.assets.loaded = false;
+    this.state.galleryData.loaded = false;
     return dataInterface.loadMoreRecords(
         this.props.uid,
         this.state.filter.source,
@@ -146,11 +141,11 @@ export default class FormGallery extends React.Component {
         DEFAULT_PAGE_SIZE
       )
       .done(response => {
-        let assets = this.state.assets;
-        assets.loaded = true;
-        assets.results.push(...response.results);
+        let galleryData = this.state.galleryData;
+        galleryData.loaded = true;
+        galleryData.results.push(...response.results);
         this.setState({
-          assets,
+          galleryData,
           hasMoreRecords: response.next,
           nextRecordsPage: this.state.nextRecordsPage + 1
         });
@@ -201,7 +196,7 @@ export default class FormGallery extends React.Component {
   }
 
   render() {
-    if (!this.state.assets.loaded) {
+    if (!this.state.galleryData.loaded) {
       return (
         <bem.AssetGallery>
           <bem.Loading>
@@ -220,11 +215,11 @@ export default class FormGallery extends React.Component {
         )
     }
 
-    if (this.state.assets.loaded && this.props.mediaQuestions.length) {
+    if (this.state.galleryData.loaded && this.props.mediaQuestions.length) {
       return (
         <bem.AssetGallery>
           <FormGalleryFilter
-            attachments_count={this.state.assets.attachments_count}
+            attachments_count={this.state.galleryData.attachments_count}
             currentFilter={this.state.filter}
             filters={this.state.filterOptions}
             onFilterGroupChange={this.onFilterGroupChange}
@@ -232,7 +227,7 @@ export default class FormGallery extends React.Component {
             searchTerm={this.state.searchTerm}
           />
 
-          {this.state.assets.results.map(
+          {this.state.galleryData.results.map(
             function(record, i) {
               let galleryTitle = this.state.filter.source === 'question'
                 ? record.label
@@ -258,7 +253,6 @@ export default class FormGallery extends React.Component {
                     currentFilter={this.state.filter.source}
                     openModal={this.openModal}
                     defaultPageSize={DEFAULT_PAGE_SIZE}
-                    setAssets={this.setAssets}
                     setActiveGalleryDateAndTitle={
                       this.setActiveGalleryDateAndTitle
                     }
