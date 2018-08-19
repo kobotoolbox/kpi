@@ -3,18 +3,18 @@ import autoBind from 'react-autobind';
 import bem from '../../bem';
 import FormGalleryModal from './formGalleryModal';
 import FormGalleryFilter from './formGalleryFilter';
-import FormGalleryGridItem from './formGalleryGridItem';
-import PaginatedModal from './paginatedModal';
+import FormGalleryGrid from './formGalleryGrid';
 import { dataInterface } from '../../dataInterface';
 import stores from '../../stores';
-import moment from 'moment';
 import {
   t,
   formatTimeDate
 } from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
-export class FormGallery extends React.Component {
+const DEFAULT_PAGE_SIZE = 6;
+
+export default class FormGallery extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -22,7 +22,6 @@ export class FormGallery extends React.Component {
   }
   getInitialState() {
     return {
-      defaultPageSize: 6,
       hasMoreRecords: false,
       nextRecordsPage: 2,
       showModal: false,
@@ -31,9 +30,7 @@ export class FormGallery extends React.Component {
       searchTerm: '',
       filter: {
         source: 'question',
-        label: t('Group by question'),
-        searchable: false,
-        clearable: false
+        label: t('Group by question')
       },
       filterOptions: [
         {
@@ -68,7 +65,7 @@ export class FormGallery extends React.Component {
   }
   loadGalleryData(uid, selectedFilter) {
     dataInterface
-      .filterGalleryImages(uid, selectedFilter, this.state.defaultPageSize)
+      .filterGalleryImages(uid, selectedFilter, DEFAULT_PAGE_SIZE)
       .done(response => {
         response.loaded = true;
         this.setState({
@@ -82,7 +79,7 @@ export class FormGallery extends React.Component {
     });
   }
   // FILTER
-  switchFilter(value) {
+  onFilterGroupChange(value) {
     var label;
     var newFilter = value;
     for (var i = 0; i < this.state.filterOptions.length; i++) {
@@ -91,12 +88,13 @@ export class FormGallery extends React.Component {
       }
     }
 
-    dataInterface.filterGalleryImages(
+    dataInterface
+      .filterGalleryImages(
         this.props.uid,
         newFilter,
-        this.state.defaultPageSize
+        DEFAULT_PAGE_SIZE
       )
-      .done(response => {
+      .done((response) => {
         response.loaded = true;
         this.setState(this.getInitialState());
         this.forceUpdate();
@@ -113,7 +111,7 @@ export class FormGallery extends React.Component {
         });
       });
   }
-  setSearchTerm(filter) {
+  onFilterQueryChange(filter) {
     let term = filter.target ? filter.target.value : filter; //Check if an event was passed or string
     this.setState({ searchTerm: term });
   }
@@ -126,7 +124,7 @@ export class FormGallery extends React.Component {
         this.state.filter.source,
         galleryIndex,
         galleryPage,
-        this.state.defaultPageSize
+        DEFAULT_PAGE_SIZE
       )
       .done(response => {
         let assets = this.state.assets;
@@ -143,7 +141,7 @@ export class FormGallery extends React.Component {
         this.props.uid,
         this.state.filter.source,
         this.state.nextRecordsPage,
-        this.state.defaultPageSize
+        DEFAULT_PAGE_SIZE
       )
       .done(response => {
         let assets = this.state.assets;
@@ -233,8 +231,8 @@ export class FormGallery extends React.Component {
             attachments_count={this.state.assets.attachments_count}
             currentFilter={this.state.filter}
             filters={this.state.filterOptions}
-            switchFilter={this.switchFilter}
-            setSearchTerm={this.setSearchTerm}
+            onFilterGroupChange={this.onFilterGroupChange}
+            onFilterQueryChange={this.onFilterQueryChange}
             searchTerm={this.state.searchTerm}
           />
 
@@ -263,7 +261,7 @@ export class FormGallery extends React.Component {
                     loadMoreAttachments={this.loadMoreAttachments}
                     currentFilter={this.state.filter.source}
                     openModal={this.openModal}
-                    defaultPageSize={this.state.defaultPageSize}
+                    defaultPageSize={DEFAULT_PAGE_SIZE}
                     setAssets={this.setAssets}
                     setActiveGalleryDateAndTitle={
                       this.setActiveGalleryDateAndTitle
@@ -295,7 +293,7 @@ export class FormGallery extends React.Component {
                 closeModal={this.closeModal}
                 changeActiveGalleryIndex={this.changeActiveGalleryIndex}
                 updateActiveAsset={this.updateActiveAsset}
-                setSearchTerm={this.setSearchTerm}
+                onFilterQueryChange={this.onFilterQueryChange}
                 filter={this.state.filter.source}
                 galleryItemIndex={this.state.galleryItemIndex}
                 galleryTitle={this.state.galleryTitle}
@@ -308,135 +306,3 @@ export class FormGallery extends React.Component {
     }
   }
 };
-
-
-export class FormGalleryGrid extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-    this.state = {
-      galleryPage: 1,
-      hasMoreAttachments: false,
-      showPaginatedModal: false,
-      currentlyLoadedGalleryAttachments: 0
-    };
-  }
-
-  updateHasMoreAttachments() {
-    let currentlyLoadedGalleryAttachments =
-      this.state.galleryPage * this.props.defaultPageSize;
-    let galleryHasMore = currentlyLoadedGalleryAttachments <
-      this.props.galleryAttachmentsCount
-      ? true
-      : false;
-    this.setState({
-      hasMoreAttachments: galleryHasMore,
-      currentlyLoadedGalleryAttachments
-    });
-  }
-  componentDidMount() {
-    this.updateHasMoreAttachments();
-    this.setState({ galleryPage: this.state.galleryPage + 1 });
-  }
-  loadMoreAttachments() {
-    this.props.loadMoreAttachments(
-      this.props.galleryIndex,
-      this.state.galleryPage
-    );
-    this.updateHasMoreAttachments();
-    let newGalleryPage = this.state.hasMoreAttachments
-      ? this.state.galleryPage + 1
-      : this.state.galleryPage;
-    this.setState({ galleryPage: newGalleryPage });
-  }
-  toggleLoadMoreBtn() {
-    let loadMoreBtnCode = null;
-    if (
-      this.state.hasMoreAttachments && this.props.currentFilter === 'question'
-    ) {
-      if (this.state.galleryPage <= 2) {
-        loadMoreBtnCode = (
-          <button
-            onClick={this.loadMoreAttachments}
-            className='mdl-button mdl-button--colored loadmore-button'
-          >
-            {t('Load More')}
-          </button>
-        );
-      } else {
-        loadMoreBtnCode = (
-          <button
-            onClick={this.togglePaginatedModal}
-            className='mdl-button mdl-button--colored loadmore-button'
-          >
-            {t('See all ##count## images').replace('##count##', this.props.galleryAttachmentsCount)}
-          </button>
-        );
-      }
-    }
-    return loadMoreBtnCode;
-  }
-  togglePaginatedModal() {
-    this.setState({ showPaginatedModal: !this.state.showPaginatedModal });
-    this.props.setActiveGalleryDateAndTitle(
-      this.props.galleryTitle,
-      this.props.galleryDate
-    );
-  }
-  render() {
-    return (
-      <div key={this.props.galleryIndex}>
-        <h2>{this.props.galleryTitle}</h2>
-
-        <bem.AssetGallery__grid>
-          {this.props.galleryItems.map(
-            function(item, j) {
-              var timestamp = this.props.currentFilter === 'question'
-                ? item.submission.date_created
-                : this.props.gallery.date_created;
-              return (
-                <FormGalleryGridItem
-                  key={j}
-                  itemsPerRow='6'
-                  date={formatTimeDate(timestamp)}
-                  itemTitle={
-                    this.props.currentFilter === 'question'
-                      ? t('Record') + ' ' + parseInt(j + 1)
-                      : item.question.label
-                  }
-                  url={item.small_download_url}
-                  gallery={this.props.gallery}
-                  galleryItemIndex={j}
-                  openModal={this.props.openModal}
-                />
-              );
-            }.bind(this)
-          )}
-        </bem.AssetGallery__grid>
-
-        <div className='form-view__cell form-view__cell--centered loadmore-div'>
-          {this.toggleLoadMoreBtn()}
-        </div>
-
-        {this.state.showPaginatedModal
-          ? <PaginatedModal
-              togglePaginatedModal={this.togglePaginatedModal}
-              uid={this.props.uid}
-              currentlyLoadedGalleryAttachments={
-                this.state.currentlyLoadedGalleryAttachments
-              }
-              galleryAttachmentsCount={this.props.galleryAttachmentsCount}
-              galleryItems={this.props.galleryItems}
-              galleryTitle={this.props.galleryTitle}
-              galleryDate={this.props.galleryDate}
-              galleryIndex={this.props.galleryIndex}
-              currentFilter={this.props.currentFilter}
-              openModal={this.props.openModal}
-            />
-          : null}
-      </div>
-    );
-  }
-};
-
-module.exports = FormGallery;

@@ -11,7 +11,7 @@ import {
 import ReactPaginate from 'react-paginate';
 import Select from 'react-select';
 
-export class PaginatedModal extends React.Component {
+export default class PaginatedModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -239,7 +239,7 @@ export class PaginatedModal extends React.Component {
   }
 };
 
-export class GalleryControls extends React.Component {
+class GalleryControls extends React.Component {
   render() {
     let selectDirectionClassName = this.props.selectDirectionUp
       ? 'select-direction-up'
@@ -299,5 +299,3 @@ export class GalleryControls extends React.Component {
     );
   }
 };
-
-module.exports = PaginatedModal;

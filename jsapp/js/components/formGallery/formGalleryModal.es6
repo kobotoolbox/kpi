@@ -6,7 +6,7 @@ import ui from '../../ui';
 import Slider from 'react-slick';
 import { t } from '../../utils';
 
-export class FormGalleryModal extends React.Component {
+export default class FormGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -71,7 +71,7 @@ export class FormGalleryModal extends React.Component {
               date={this.props.galleryDate}
               changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
               closeModal={this.props.closeModal}
-              setSearchTerm={this.props.setSearchTerm}
+              onFilterQueryChange={this.props.onFilterQueryChange}
             />
 
           </ui.Modal.Body>
@@ -81,10 +81,10 @@ export class FormGalleryModal extends React.Component {
   }
 };
 
-export class FormGalleryModalSidebar extends React.Component {
+class FormGalleryModalSidebar extends React.Component {
   goToFilter(gridLabel) {
     this.props.closeModal();
-    this.props.setSearchTerm(gridLabel);
+    this.props.onFilterQueryChange(gridLabel);
   }
   render() {
     let currentRecordIndex = this.props.filter === 'question'
@@ -136,7 +136,7 @@ export class FormGalleryModalSidebar extends React.Component {
   }
 };
 
-export class RightNavButton extends React.Component {
+class RightNavButton extends React.Component {
   render() {
     const { className, onClick } = this.props;
     return (
@@ -147,7 +147,7 @@ export class RightNavButton extends React.Component {
   }
 };
 
-export class LeftNavButton extends React.Component {
+class LeftNavButton extends React.Component {
   render() {
     const { className, onClick } = this.props;
     return (
@@ -157,5 +157,3 @@ export class LeftNavButton extends React.Component {
     );
   }
 };
-
-module.exports = FormGalleryModal;

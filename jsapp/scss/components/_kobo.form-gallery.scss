@@ -188,61 +188,17 @@ $icon-font-size: 40px;
         border-radius: 2px;
         border: none;
         background-color: #fff;
-        width: 220px;
+        min-width: 150px;
         color: $cool-gray;
 
         @include box-shadow;
       }
 
-      .Select--single {
+      .Select {
         display: inline-block;
+        vertical-align: middle;
         margin-left: 10px;
-      }
-
-      .icon-button-select {
-        .Select-control {
-          border: none;
-          width: 32px;
-          height: 32px;
-          border-radius: 0px;
-          background: transparent;
-          box-shadow: none;
-          cursor: pointer;
-          position: relative;
-
-          &::before {
-            content: '\f11e';
-            font-family: 'k-icons';
-            font-style: normal;
-            font-weight: normal;
-            font-size: 36px;
-            position: absolute;
-            top: 6px;
-            color: lighten($cool-gray, 10%);
-          }
-        }
-
-        .Select-placeholder {
-          display: none;
-        }
-
-        .Select-menu-outer {
-          top: 15px;
-          right: 0px;
-          width: 200px;
-        }
-
-        .Select-clear-zone {
-          display: none;
-        }
-
-        .Select-arrow-zone {
-          display: none;
-        }
-
-        .Select-value {
-          text-indent: -99999999px;
-        }
+        min-width: 150px;
       }
     }
   }

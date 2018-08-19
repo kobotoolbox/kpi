@@ -1,7 +1,7 @@
 import React from 'react';
 import bem from '../../bem';
 
-export class FormGalleryGridItem extends React.Component {
+export default class FormGalleryGridItem extends React.Component {
   render() {
     let itemStyle = {
       backgroundImage: 'url(' + this.props.url + ')',
@@ -32,5 +32,3 @@ export class FormGalleryGridItem extends React.Component {
     );
   }
 };
-
-module.exports = FormGalleryGridItem;
