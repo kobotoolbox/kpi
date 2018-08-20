@@ -10,7 +10,10 @@ import {
   t,
   formatTimeDate
 } from '../../utils';
-import {GALLERY_FILTER_OPTIONS} from '../../constants';
+import {
+  MODAL_TYPES,
+  GALLERY_FILTER_OPTIONS
+} from '../../constants';
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {
@@ -64,25 +67,25 @@ export default class FormGalleryGrid extends React.Component {
     ) {
       if (this.state.galleryPage <= 2) {
         return (
-          <bem.AssetGallery__gridLoadMore>
+          <bem.AssetGallery__loadMore>
             <button
               onClick={this.loadMoreAttachments}
               className='mdl-button mdl-button--colored'
             >
               {t('Load More')}
             </button>
-          </bem.AssetGallery__gridLoadMore>
+          </bem.AssetGallery__loadMore>
         );
       } else {
         return (
-          <bem.AssetGallery__gridLoadMore>
+          <bem.AssetGallery__loadMore>
             <button
               onClick={this.openPaginatedGalleryModal}
               className='mdl-button mdl-button--colored'
             >
               {t('See all ##count## images').replace('##count##', this.props.totalAttachmentsCount)}
             </button>
-          </bem.AssetGallery__gridLoadMore>
+          </bem.AssetGallery__loadMore>
         );
       }
     }
@@ -107,7 +110,7 @@ export default class FormGalleryGrid extends React.Component {
       <React.Fragment key={this.props.galleryIndex}>
         <h2>{this.props.galleryTitle}</h2>
 
-        <bem.AssetGallery__grid m={'6-per-row'}>
+        <bem.AssetGalleryGrid m={'6-per-row'}>
           {this.props.galleryItems.map(
             function(item, j) {
               let timestamp;
@@ -143,7 +146,7 @@ export default class FormGalleryGrid extends React.Component {
               );
             }.bind(this)
           )}
-        </bem.AssetGallery__grid>
+        </bem.AssetGalleryGrid>
 
         {this.renderLoadMoreButton()}
       </React.Fragment>

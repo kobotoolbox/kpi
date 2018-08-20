@@ -1,15 +1,20 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import bem from '../../bem';
-import ui from '../../ui';
-import FormGalleryGridItem from './formGalleryGridItem';
+import stores from '../../stores';
 import { dataInterface } from '../../dataInterface';
+import FormGalleryGridItem from './formGalleryGridItem';
 import {
   t,
   formatTimeDate
 } from '../../utils';
 import ReactPaginate from 'react-paginate';
 import Select from 'react-select';
+import {
+  GALLERY_FILTER_OPTIONS
+} from '../../constants';
 
 export default class PaginatedGalleryModal extends React.Component {
   constructor(props) {
@@ -48,14 +53,20 @@ export default class PaginatedGalleryModal extends React.Component {
       sortValue: 'asc',
       paginated_attachments: [],
       flat_attachments: [],
-      attachments_count: this.props.galleryAttachmentsCount,
+      attachments_count: this.props.totalAttachmentsCount,
       totalPages: 0,
       currentAttachmentsLoaded: 0,
-      activeAttachmentsIndex: 0
+      activeAttachmentsIndex: 0,
+      filterGroupBy: stores.currentGallery.state.filterGroupBy
     };
   }
 
   componentDidMount() {
+    this.listenTo(stores.currentGallery, (storeChanges) => {
+      if (storeChanges.filterGroupBy) {
+        this.setState({filterGroupBy: storeChanges.filterGroupBy});
+      }
+    });
     this.resetGallery();
   }
 
@@ -152,88 +163,93 @@ export default class PaginatedGalleryModal extends React.Component {
   render() {
     return (
       <bem.PaginatedGalleryModal>
-        <ui.Modal open large onClose={this.props.togglePaginatedGalleryModal}>
-          <ui.Modal.Body>
-            <bem.PaginatedGalleryModal_heading>
-              <h2>{t('All photos of') + ' ' + this.props.galleryTitle}</h2>
-              {/* <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4> */}
-              <h4>
-                {t('Showing')}
-                {' '}
-                <b>{this.state.offset}</b>
-                {' '}
-                {t('of')}
-                {' '}
-                <b>{this.props.galleryAttachmentsCount}</b>
-              </h4>
-            </bem.PaginatedGalleryModal_heading>
+        <bem.PaginatedGalleryModal_heading>
+          <h2>{t('All photos of') + ' ' + this.props.galleryTitle}</h2>
+          <h4>
+            {t('Showing')}
+            {' '}
+            <b>{this.state.offset}</b>
+            {' '}
+            {t('of')}
+            {' '}
+            <b>{this.props.totalAttachmentsCount}</b>
+          </h4>
+        </bem.PaginatedGalleryModal_heading>
 
-            <bem.PaginatedGalleryModal_body>
-              <GalleryControls
-                offsetOptions={this.state.offsetOptions}
-                offsetValue={this.state.offset}
-                changeOffset={this.changeOffset}
-                pageCount={this.state.totalPages}
-                goToPage={this.goToPage}
-                activeAttachmentsIndex={this.state.activeAttachmentsIndex}
-                sortOptions={this.state.sortOptions}
-                sortValue={this.state.sortValue}
-                changeSort={this.changeSort}
-              />
+        <bem.PaginatedGalleryModal_body>
+          <GalleryControls
+            offsetOptions={this.state.offsetOptions}
+            offsetValue={this.state.offset}
+            changeOffset={this.changeOffset}
+            pageCount={this.state.totalPages}
+            goToPage={this.goToPage}
+            activeAttachmentsIndex={this.state.activeAttachmentsIndex}
+            sortOptions={this.state.sortOptions}
+            sortValue={this.state.sortValue}
+            changeSort={this.changeSort}
+          />
 
-              <div className='paginated-modal__body__gallery-wrapper'>
-                <bem.AssetGallery__grid>
-                  {this.state.paginated_attachments[
+          <div className='paginated-modal__body__gallery-wrapper'>
+            <bem.AssetGalleryGrid m='10-per-row'>
+              {this.state.paginated_attachments[
+                'page_' + (this.state.activeAttachmentsIndex + 1)
+              ] != undefined
+                ? this.state.paginated_attachments[
                     'page_' + (this.state.activeAttachmentsIndex + 1)
-                  ] != undefined
-                    ? this.state.paginated_attachments[
-                        'page_' + (this.state.activeAttachmentsIndex + 1)
-                      ].map(
-                        function(item, j) {
-                          var timestamp = this.props.currentFilter ===
-                            'question'
-                            ? item.submission.date_created
-                            : this.props.galleryDate;
-                          return (
-                            <FormGalleryGridItem
-                              key={j}
-                              itemsPerRow='10'
-                              date={formatTimeDate(timestamp)}
-                              itemTitle={
-                                this.props.currentFilter === 'question'
-                                  ? t('Record') + ' ' + item.id
-                                  : item.question.label
-                              }
-                              url={item.small_download_url}
-                              gallery={this.state.flat_attachments}
-                              galleryItemIndex={this.findItemIndex(item.id)}
-                              openModal={this.props.openModal}
-                              setGalleryDateAndTitleonModalOpen={false}
-                            />
-                          );
-                        }.bind(this)
-                      )
-                    : null}
-                </bem.AssetGallery__grid>
-              </div>
+                  ].map(
+                    function(item, j) {
+                      let timestamp;
+                      if (
+                        this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+                        this.props.gallery &&
+                        this.props.gallery.date_created
+                      ) {
+                        timestamp = this.props.gallery.date_created;
+                      } else if (item.submission && item.submission.date_created) {
+                        timestamp = item.submission.date_created;
+                      }
 
-              <GalleryControls
-                offsetOptions={this.state.offsetOptions}
-                offsetValue={this.state.offset}
-                changeOffset={this.changeOffset}
-                pageCount={this.state.totalPages}
-                goToPage={this.goToPage}
-                activeAttachmentsIndex={this.state.activeAttachmentsIndex}
-                sortOptions={this.state.sortOptions}
-                sortValue={this.state.sortValue}
-                changeSort={this.changeSort}
-                selectDirectionUp
-              />
+                      let itemTitle;
+                      if (
+                        this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
+                      ) {
+                        itemTitle = t('Record') + ' ' + parseInt(j + 1)
+                      } else if (item.question && item.question.label) {
+                        itemTitle = item.question.label;
+                      }
 
-            </bem.PaginatedGalleryModal_body>
+                      return (
+                        <FormGalleryGridItem
+                          key={j}
+                          date={formatTimeDate(timestamp)}
+                          itemTitle={itemTitle}
+                          url={item.small_download_url}
+                          gallery={this.state.flat_attachments}
+                          galleryItemIndex={this.findItemIndex(item.id)}
+                          openModal={this.props.openModal}
+                          setGalleryDateAndTitleonModalOpen={false}
+                        />
+                      );
+                    }.bind(this)
+                  )
+                : null}
+            </bem.AssetGalleryGrid>
+          </div>
 
-          </ui.Modal.Body>
-        </ui.Modal>
+          <GalleryControls
+            offsetOptions={this.state.offsetOptions}
+            offsetValue={this.state.offset}
+            changeOffset={this.changeOffset}
+            pageCount={this.state.totalPages}
+            goToPage={this.goToPage}
+            activeAttachmentsIndex={this.state.activeAttachmentsIndex}
+            sortOptions={this.state.sortOptions}
+            sortValue={this.state.sortValue}
+            changeSort={this.changeSort}
+            selectDirectionUp
+          />
+
+        </bem.PaginatedGalleryModal_body>
       </bem.PaginatedGalleryModal>
     );
   }
@@ -299,3 +315,5 @@ class GalleryControls extends React.Component {
     );
   }
 };
+
+reactMixin(PaginatedGalleryModal.prototype, Reflux.ListenerMixin);

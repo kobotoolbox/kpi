@@ -250,12 +250,13 @@ bem.AssetGallery = BEM('asset-gallery');
 bem.AssetGallery__heading = bem.AssetGallery.__('heading');
 bem.AssetGallery__headingSearchFilter = bem.AssetGallery.__('heading__search-filter');
 bem.AssetGallery__count = bem.AssetGallery.__('heading__count', '<span>');
-bem.AssetGallery__grid = bem.AssetGallery.__('grid', '<div>');
-bem.AssetGallery__gridItem = bem.AssetGallery.__('grid-item', '<div>');
-bem.AssetGallery__gridLink = bem.AssetGallery.__('grid-item__grid-link', '<a>');
-bem.AssetGallery__gridItemOverlay = bem.AssetGallery.__('grid-item__overlay', '<div>');
-bem.AssetGallery__gridItemOverlayText = bem.AssetGallery.__('grid-item__overlay-text', '<div>');
-bem.AssetGallery__gridLoadMore = bem.AssetGallery.__('grid-load-more', '<div>');
+bem.AssetGallery__loadMore = bem.AssetGallery.__('load-more', '<div>');
+
+bem.AssetGalleryGrid = BEM('asset-gallery-grid');
+bem.AssetGalleryGrid__item = bem.AssetGalleryGrid.__('item', '<div>');
+bem.AssetGalleryGrid__link = bem.AssetGalleryGrid.__('item__grid-link', '<a>');
+bem.AssetGalleryGrid__itemOverlay = bem.AssetGalleryGrid.__('item__overlay', '<div>');
+bem.AssetGalleryGrid__itemOverlayText = bem.AssetGalleryGrid.__('item__overlay-text', '<div>');
 
 bem.SingleGalleryModal = BEM('single-gallery-modal');
 bem.SingleGalleryModal__carousel = bem.SingleGalleryModal.__('carousel', '<div>');

@@ -112,7 +112,6 @@ class SingleGalleryModalSidebar extends React.Component {
                   return (
                     <bem.SingleGalleryModal__sidebarGridItem
                       key={j}
-                      className='col6'
                       onClick={() => this.props.changeActiveGalleryIndex(j)}
                     >
                       <div className='one-one' style={divStyle} />

@@ -10,7 +10,7 @@ export default class FormGalleryGridItem extends React.Component {
       backgroundSize: 'cover'
     };
     return (
-      <bem.AssetGallery__gridItem
+      <bem.AssetGalleryGrid__item
         className='one-one'
         style={itemStyle}
         onClick={() =>
@@ -19,13 +19,13 @@ export default class FormGalleryGridItem extends React.Component {
             this.props.galleryItemIndex
           )}
       >
-        <bem.AssetGallery__gridItemOverlay>
-          <bem.AssetGallery__gridItemOverlayText>
+        <bem.AssetGalleryGrid__itemOverlay>
+          <bem.AssetGalleryGrid__itemOverlayText>
             <h5>{this.props.itemTitle}</h5>
             <p>{this.props.date}</p>
-          </bem.AssetGallery__gridItemOverlayText>
-        </bem.AssetGallery__gridItemOverlay>
-      </bem.AssetGallery__gridItem>
+          </bem.AssetGalleryGrid__itemOverlayText>
+        </bem.AssetGalleryGrid__itemOverlay>
+      </bem.AssetGalleryGrid__item>
     );
   }
 };
