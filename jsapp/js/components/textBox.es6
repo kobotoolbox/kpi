@@ -17,10 +17,6 @@ Properties:
 class TextBox extends React.Component {
   constructor(props){
     super(props);
-    this.state = {
-      value: props.value,
-      onChangeCallback: props.onChange
-    }
     this.AVAILABLE_TYPES = [
       'text',
       'email',
@@ -35,7 +31,7 @@ class TextBox extends React.Component {
   onChange(evt) {
     const val = evt.target.value;
     this.setState({value: val});
-    this.state.onChangeCallback(val)
+    this.props.onChange(val)
   }
 
   render() {
@@ -68,7 +64,7 @@ class TextBox extends React.Component {
 
         <bem.TextBox__input
           type={type}
-          value={this.state.value}
+          value={this.props.value}
           placeholder={this.props.placeholder}
           onChange={this.onChange}
         />
