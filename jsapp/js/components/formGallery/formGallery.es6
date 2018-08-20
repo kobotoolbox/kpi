@@ -26,15 +26,15 @@ export default class FormGallery extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.mediaQuestions.length) {
+    if (this.hasAnyMediaQuestions()) {
       this.loadGalleryData(this.props.uid);
+      this.listenTo(stores.currentGallery, (storeChanges) => {
+        this.setState(storeChanges);
+        if (storeChanges.filterGroupBy) {
+          this.handleFilterGroupByChange(storeChanges.filterGroupBy);
+        }
+      });
     }
-    this.listenTo(stores.currentGallery, (storeChanges) => {
-      this.setState(storeChanges);
-      if (storeChanges.filterGroupBy) {
-        this.handleFilterGroupByChange(storeChanges.filterGroupBy);
-      }
-    });
   }
 
   getInitialState() {
@@ -57,6 +57,10 @@ export default class FormGallery extends React.Component {
       galleryIndex: 0,
       galleryItemIndex: 0
     };
+  }
+
+  hasAnyMediaQuestions() {
+    return this.props.mediaQuestions.length !== 0;
   }
 
   loadGalleryData(uid) {
@@ -172,14 +176,15 @@ export default class FormGallery extends React.Component {
       return (
         <bem.AssetGallery>
           <bem.Loading>
-            {this.props.mediaQuestions.length === 0 ?
-              <bem.Loading__inner>
-                {t('This form does not have any media questions.')}
-              </bem.Loading__inner>
-            :
+            {this.hasAnyMediaQuestions()
+              ?
               <bem.Loading__inner>
                 <i />
                 {t('loading...')}
+              </bem.Loading__inner>
+              :
+              <bem.Loading__inner>
+                {t('This form does not have any media questions.')}
               </bem.Loading__inner>
             }
           </bem.Loading>
@@ -187,7 +192,7 @@ export default class FormGallery extends React.Component {
         )
     }
 
-    if (this.state.galleryData.loaded && this.props.mediaQuestions.length) {
+    if (this.state.galleryData.loaded && this.hasAnyMediaQuestions()) {
       return (
         <bem.AssetGallery>
           <FormGalleryFilter

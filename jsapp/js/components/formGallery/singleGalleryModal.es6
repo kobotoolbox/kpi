@@ -36,7 +36,8 @@ export default class SingleGalleryModal extends React.Component {
       slidesToScroll: 1,
       initialSlide: this.props.galleryItemIndex,
       nextArrow: <RightNavButton />,
-      prevArrow: <LeftNavButton />
+      prevArrow: <LeftNavButton />,
+      beforeChange: this.handleCarouselChange
     };
 
     return (
@@ -45,7 +46,6 @@ export default class SingleGalleryModal extends React.Component {
           <Slider
             ref='slider'
             {...settings}
-            beforeChange={this.handleCarouselChange}
           >
             {this.props.activeGalleryAttachments.map(
               function(item, i) {
