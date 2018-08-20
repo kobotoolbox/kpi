@@ -9,22 +9,8 @@ import {
   t,
   notify,
   assign,
+  stateChanges
 } from './utils';
-
-function changes(orig_obj, new_obj) {
-  var out = {},
-      any = false;
-  Object.keys(new_obj).forEach(function(key) {
-    if (orig_obj[key] !== new_obj[key]) {
-      out[key] = new_obj[key];
-      any = true;
-    }
-  });
-  if (!any) {
-    return false;
-  }
-  return out;
-}
 
 var stores = {};
 
@@ -56,7 +42,7 @@ var surveyStateStore = Reflux.createStore({
     this.state = {};
   },
   setState (state) {
-    var chz = changes(this.state, state);
+    var chz = stateChanges(this.state, state);
     if (chz) {
       assign(this.state, state);
       this.trigger(chz);
@@ -97,7 +83,7 @@ var pageStateStore = Reflux.createStore({
     };
   },
   setState (chz) {
-    var changed = changes(this.state, chz);
+    var changed = stateChanges(this.state, chz);
     if (changed) {
       assign(this.state, changed);
       this.trigger(changed);
@@ -485,7 +471,7 @@ var serverEnvironmentStore = Reflux.createStore({
                   this.updateEnvironment);
   },
   setState (state) {
-    var chz = changes(this.state, state);
+    var chz = stateChanges(this.state, state);
     if (chz) {
       assign(this.state, state);
       this.trigger(chz);

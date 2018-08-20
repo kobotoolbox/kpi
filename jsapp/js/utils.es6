@@ -262,3 +262,18 @@ export function koboMatrixParser(params) {
   }
   return params;
 }
+
+export function stateChanges(origObj, newObj) {
+  const finalObj = {};
+  let isDifferent = false;
+  Object.keys(newObj).forEach((key) => {
+    if (origObj[key] !== newObj[key]) {
+      finalObj[key] = newObj[key];
+      isDifferent = true;
+    }
+  });
+  if (isDifferent) {
+    return finalObj;
+  }
+  return false;
+}

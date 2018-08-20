@@ -1,21 +1,9 @@
 import Reflux from 'reflux';
-import {assign} from 'js/utils';
+import {
+  assign,
+  stateChanges
+} from 'js/utils';
 import {GALLERY_FILTER_OPTIONS} from 'js/constants';
-
-function changes(orig_obj, new_obj) {
-  var out = {},
-      any = false;
-  Object.keys(new_obj).forEach(function(key) {
-    if (orig_obj[key] !== new_obj[key]) {
-      out[key] = new_obj[key];
-      any = true;
-    }
-  });
-  if (!any) {
-    return false;
-  }
-  return out;
-}
 
 export const galleryActions = Reflux.createActions([
   'setFilters'
@@ -46,11 +34,11 @@ class GalleryStore extends Reflux.Store {
     this.setState(updateObj);
   }
 
-  setState(state) {
-    var chz = changes(this.state, state);
-    if (chz) {
-      assign(this.state, state);
-      this.trigger(chz);
+  setState(newState) {
+    var changes = stateChanges(this.state, newState);
+    if (changes) {
+      assign(this.state, newState);
+      this.trigger(changes);
     }
   }
 }
