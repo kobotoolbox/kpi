@@ -1063,6 +1063,17 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         '''
         asset = self.get_object()
 
+        def get_serializer_with_asset(serializer_):
+            # Returns asset among other properties of the deployment
+            # to avoid a subsequent from client to retrieve Asset data. (e.g. KPI frontend)
+            asset_serializer = AssetSerializer(asset, context=self.get_serializer_context())
+            deployment_serializer_data = dict(serializer_.data)
+            deployment_serializer_data.update({
+                "asset": dict(asset_serializer.data)
+            })
+
+            return deployment_serializer_data
+
         # TODO: Require the client to provide a fully-qualified identifier,
         # otherwise provide less kludgy solution
         if 'identifier' not in request.data and 'id_string' in request.data:
@@ -1084,14 +1095,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                     asset.deployment, context=self.get_serializer_context())
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
-                # Returns asset among other properties of the deployment
-                # to avoid a subsequent from client to retrieve Asset data. (e.g. KPI frontend)
-                asset_serializer = AssetSerializer(asset, context=self.get_serializer_context())
-                deployment_serializer_data = dict(serializer.data)
-                deployment_serializer_data.update({
-                    "asset": dict(asset_serializer.data)
-                })
-                return Response(deployment_serializer_data)
+                return Response(get_serializer_with_asset(serializer))
+
         elif request.method == 'POST':
             if not asset.can_be_deployed:
                 raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
@@ -1110,7 +1115,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 serializer.save()
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
-                return Response(dict(serializer.data))
+                return Response(get_serializer_with_asset(serializer))
 
         elif request.method == 'PATCH':
             if not asset.can_be_deployed:
@@ -1132,7 +1137,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 serializer.save()
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
-                return Response(dict(serializer.data))
+                return Response(get_serializer_with_asset(serializer))
 
     @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def permissions(self, request, uid):
