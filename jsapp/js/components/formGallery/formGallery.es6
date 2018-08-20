@@ -3,10 +3,11 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
-import FormGalleryFilter from './formGalleryFilter';
-import FormGalleryGrid from './formGalleryGrid';
 import { dataInterface } from '../../dataInterface';
 import stores from '../../stores';
+import {galleryActions, galleryStore} from './galleryInterface';
+import FormGalleryFilter from './formGalleryFilter';
+import FormGalleryGrid from './formGalleryGrid';
 import {
   t,
   formatTimeDate
@@ -28,7 +29,7 @@ export default class FormGallery extends React.Component {
   componentDidMount() {
     if (this.hasAnyMediaQuestions()) {
       this.loadGalleryData(this.props.uid);
-      this.listenTo(stores.currentGallery, (storeChanges) => {
+      this.listenTo(galleryStore, (storeChanges) => {
         this.setState(storeChanges);
         if (storeChanges.filterGroupBy) {
           this.handleFilterGroupByChange(storeChanges.filterGroupBy);
@@ -43,8 +44,8 @@ export default class FormGallery extends React.Component {
       nextRecordsPage: 2,
       activeTitle: null,
       activeDate: null,
-      filterQuery: stores.currentGallery.state.filterQuery,
-      filterGroupBy: stores.currentGallery.state.filterGroupBy,
+      filterQuery: galleryStore.getInitialState().filterQuery,
+      filterGroupBy: galleryStore.getInitialState().filterGroupBy,
       galleryData: {
         count: 0,
         loaded: false,

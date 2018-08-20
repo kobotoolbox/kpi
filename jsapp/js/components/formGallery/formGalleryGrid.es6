@@ -6,6 +6,7 @@ import bem from '../../bem';
 import FormGalleryGridItem from './formGalleryGridItem';
 import PaginatedGalleryModal from './paginatedGalleryModal';
 import stores from '../../stores';
+import {galleryActions, galleryStore} from './galleryInterface';
 import {
   t,
   formatTimeDate
@@ -23,14 +24,14 @@ export default class FormGalleryGrid extends React.Component {
       galleryPage: 1,
       hasMoreAttachments: false,
       loadedAttachmentsCount: 0,
-      filterGroupBy: stores.currentGallery.state.filterGroupBy
+      filterGroupBy: galleryStore.getInitialState().filterGroupBy
     };
   }
 
   componentDidMount() {
     this.refreshHasMoreAttachments();
     this.setState({ galleryPage: this.state.galleryPage + 1 });
-    this.listenTo(stores.currentGallery, (storeChanges) => {
+    this.listenTo(galleryStore, (storeChanges) => {
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
       }

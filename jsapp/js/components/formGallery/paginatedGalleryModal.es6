@@ -4,6 +4,7 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
 import stores from '../../stores';
+import {galleryActions, galleryStore} from './galleryInterface';
 import { dataInterface } from '../../dataInterface';
 import FormGalleryGridItem from './formGalleryGridItem';
 import {
@@ -57,12 +58,12 @@ export default class PaginatedGalleryModal extends React.Component {
       totalPages: 0,
       currentAttachmentsLoaded: 0,
       activeAttachmentsIndex: 0,
-      filterGroupBy: stores.currentGallery.state.filterGroupBy
+      filterGroupBy: galleryStore.getInitialState().filterGroupBy
     };
   }
 
   componentDidMount() {
-    this.listenTo(stores.currentGallery, (storeChanges) => {
+    this.listenTo(galleryStore, (storeChanges) => {
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
       }

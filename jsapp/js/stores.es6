@@ -1,7 +1,6 @@
 import Reflux from 'reflux';
 import cookie from 'react-cookie';
 import alertify from 'alertifyjs';
-
 import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
 import actions from './actions';
@@ -11,7 +10,6 @@ import {
   notify,
   assign,
 } from './utils';
-import {GALLERY_FILTER_OPTIONS} from './constants';
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -498,27 +496,6 @@ var serverEnvironmentStore = Reflux.createStore({
   },
 });
 
-const currentGalleryStore = Reflux.createStore({
-  init() {
-    this.state = {
-      activeGallery: false,
-      activeGalleryAttachments: false,
-      galleryItemIndex: false,
-      galleryTitle: false,
-      galleryDate: false,
-      filterQuery: '',
-      filterGroupBy: GALLERY_FILTER_OPTIONS.question
-    };
-  },
-  setState (state) {
-    const chz = changes(this.state, state);
-    if (chz) {
-      assign(this.state, state);
-      this.trigger(chz);
-    }
-  }
-});
-
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -563,8 +540,7 @@ assign(stores, {
   session: sessionStore,
   userExists: userExistsStore,
   surveyState: surveyStateStore,
-  serverEnvironment: serverEnvironmentStore,
-  currentGallery: currentGalleryStore,
+  serverEnvironment: serverEnvironmentStore
 });
 
 module.exports = stores;

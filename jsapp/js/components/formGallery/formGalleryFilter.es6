@@ -1,15 +1,16 @@
-import React from 'react';
 import _ from 'underscore';
+import React from 'react';
+import Select from 'react-select';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
+import TextBox from '../textBox';
 import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
+import {galleryActions, galleryStore} from './galleryInterface';
 import { t } from '../../utils';
 import { GALLERY_FILTER_OPTIONS } from '../../constants';
-import Select from 'react-select';
-import TextBox from '../textBox';
 
 const groupByOptions = [
   GALLERY_FILTER_OPTIONS.question,
@@ -20,24 +21,24 @@ export default class FormGalleryFilter extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      filterQuery: stores.currentGallery.state.filterQuery,
-      filterGroupBy: stores.currentGallery.state.filterGroupBy
+      filterQuery: galleryStore.getInitialState().filterQuery,
+      filterGroupBy: galleryStore.getInitialState().filterGroupBy
     };
     autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(stores.currentGallery, (storeChanges) => {
+    this.listenTo(galleryStore, (storeChanges) => {
       this.setState(storeChanges);
     });
   }
 
   onFilterQueryChange(newVal) {
-    stores.currentGallery.setState({filterQuery: newVal});
+    galleryActions.setFilters({filterQuery: newVal});
   }
 
   onFilterGroupChange(newVal) {
-    stores.currentGallery.setState({filterGroupBy: GALLERY_FILTER_OPTIONS[newVal]});
+    galleryActions.setFilters({filterGroupBy: GALLERY_FILTER_OPTIONS[newVal]});
   }
 
   render() {

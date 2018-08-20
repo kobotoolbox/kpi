@@ -1,11 +1,12 @@
 import React from 'react';
+import Slider from 'react-slick';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
-import Slider from 'react-slick';
+import {galleryActions, galleryStore} from './galleryInterface';
 import {t} from '../../utils';
 import {GALLERY_FILTER_OPTIONS} from '../../constants';
 
@@ -80,12 +81,12 @@ class SingleGalleryModalSidebar extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
-      filterGroupBy: stores.currentGallery.state.filterGroupBy
+      filterGroupBy: galleryStore.getInitialState().filterGroupBy
     };
   }
 
   componentDidMount() {
-    this.listenTo(stores.currentGallery, (storeChanges) => {
+    this.listenTo(galleryStore, (storeChanges) => {
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
       }
@@ -93,7 +94,7 @@ class SingleGalleryModalSidebar extends React.Component {
   }
 
   showMoreFrom(questionName) {
-    stores.currentGallery.setState({filterQuery: questionName});
+    galleryActions.setFilters({filterQuery: questionName});
     stores.pageState.hideModal();
   }
 
