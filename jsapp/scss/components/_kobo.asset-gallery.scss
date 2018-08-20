@@ -145,16 +145,15 @@ $s-gallery-spacing: 10px;
     .asset-gallery-grid__item__overlay-text {
       color: #fff;
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      padding: $s-gallery-spacing;
+      top: $s-gallery-spacing;
+      right: $s-gallery-spacing;
+      bottom: $s-gallery-spacing;
+      left: $s-gallery-spacing;
 
       h5 {
         font-size: 1em;
         font-weight: normal;
-        margin: 0px;
+        margin: 0;
         line-height: 1.25em;
         max-height: 3.75em;
         overflow: hidden;
@@ -162,7 +161,8 @@ $s-gallery-spacing: 10px;
 
       p {
         position: absolute;
-        bottom: -5px;
+        margin: 0;
+        bottom: 0;
         font-size: 0.85em;
         line-height: 1.1em;
         opacity: 0.7;
