@@ -19,14 +19,13 @@ export default class FormGalleryGrid extends React.Component {
     this.state = {
       galleryPage: 1,
       hasMoreAttachments: false,
-      showPaginatedGalleryModal: false,
-      currentlyLoadedGalleryAttachments: 0,
+      loadedAttachmentsCount: 0,
       filterGroupBy: stores.currentGallery.state.filterGroupBy
     };
   }
 
   componentDidMount() {
-    this.updateHasMoreAttachments();
+    this.refreshHasMoreAttachments();
     this.setState({ galleryPage: this.state.galleryPage + 1 });
     this.listenTo(stores.currentGallery, (storeChanges) => {
       if (storeChanges.filterGroupBy) {
@@ -35,16 +34,11 @@ export default class FormGalleryGrid extends React.Component {
     });
   }
 
-  updateHasMoreAttachments() {
-    let currentlyLoadedGalleryAttachments =
-      this.state.galleryPage * this.props.defaultPageSize;
-    let galleryHasMore = currentlyLoadedGalleryAttachments <
-      this.props.galleryAttachmentsCount
-      ? true
-      : false;
+  refreshHasMoreAttachments() {
+    const loadedAttachmentsCount = this.state.galleryPage * this.props.defaultPageSize;
     this.setState({
-      hasMoreAttachments: galleryHasMore,
-      currentlyLoadedGalleryAttachments
+      hasMoreAttachments: this.props.totalAttachmentsCount > loadedAttachmentsCount,
+      loadedAttachmentsCount: loadedAttachmentsCount
     });
   }
 
@@ -53,55 +47,67 @@ export default class FormGalleryGrid extends React.Component {
       this.props.galleryIndex,
       this.state.galleryPage
     );
-    this.updateHasMoreAttachments();
+
+    this.refreshHasMoreAttachments();
+
     let newGalleryPage = this.state.hasMoreAttachments
       ? this.state.galleryPage + 1
       : this.state.galleryPage;
-    this.setState({ galleryPage: newGalleryPage });
+
+    this.setState({galleryPage: newGalleryPage});
   }
 
-  toggleLoadMoreBtn() {
-    let loadMoreBtnCode = null;
+  renderLoadMoreButton() {
     if (
-      this.state.hasMoreAttachments && this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
+      this.state.hasMoreAttachments &&
+      this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
     ) {
       if (this.state.galleryPage <= 2) {
-        loadMoreBtnCode = (
-          <button
-            onClick={this.loadMoreAttachments}
-            className='mdl-button mdl-button--colored'
-          >
-            {t('Load More')}
-          </button>
+        return (
+          <bem.AssetGallery__gridLoadMore>
+            <button
+              onClick={this.loadMoreAttachments}
+              className='mdl-button mdl-button--colored'
+            >
+              {t('Load More')}
+            </button>
+          </bem.AssetGallery__gridLoadMore>
         );
       } else {
-        loadMoreBtnCode = (
-          <button
-            onClick={this.togglePaginatedGalleryModal}
-            className='mdl-button mdl-button--colored'
-          >
-            {t('See all ##count## images').replace('##count##', this.props.galleryAttachmentsCount)}
-          </button>
+        return (
+          <bem.AssetGallery__gridLoadMore>
+            <button
+              onClick={this.openPaginatedGalleryModal}
+              className='mdl-button mdl-button--colored'
+            >
+              {t('See all ##count## images').replace('##count##', this.props.totalAttachmentsCount)}
+            </button>
+          </bem.AssetGallery__gridLoadMore>
         );
       }
     }
-    return loadMoreBtnCode;
+    return null;
   }
 
-  togglePaginatedGalleryModal() {
-    this.setState({ showPaginatedGalleryModal: !this.state.showPaginatedGalleryModal });
-    this.props.setActiveGalleryDateAndTitle(
-      this.props.galleryTitle,
-      this.props.galleryDate
-    );
+  openPaginatedGalleryModal() {
+    stores.pageState.showModal({
+      type: MODAL_TYPES.GALLERY_PAGINATED,
+      uid: this.props.uid,
+      loadedAttachmentsCount: this.state.loadedAttachmentsCount,
+      totalAttachmentsCount: this.props.totalAttachmentsCount,
+      galleryItems: this.props.galleryItems,
+      galleryTitle: this.props.galleryTitle,
+      galleryDate: this.props.galleryDate,
+      galleryIndex: this.props.galleryIndex
+    });
   }
 
   render() {
     return (
-      <div key={this.props.galleryIndex}>
+      <React.Fragment key={this.props.galleryIndex}>
         <h2>{this.props.galleryTitle}</h2>
 
-        <bem.AssetGallery__grid>
+        <bem.AssetGallery__grid m={'6-per-row'}>
           {this.props.galleryItems.map(
             function(item, j) {
               let timestamp;
@@ -127,7 +133,6 @@ export default class FormGalleryGrid extends React.Component {
               return (
                 <FormGalleryGridItem
                   key={j}
-                  itemsPerRow='6'
                   date={formatTimeDate(timestamp)}
                   itemTitle={itemTitle}
                   url={item.small_download_url}
@@ -140,27 +145,8 @@ export default class FormGalleryGrid extends React.Component {
           )}
         </bem.AssetGallery__grid>
 
-        <div className='form-view__cell form-view__cell--centered loadmore-wrapper'>
-          {this.toggleLoadMoreBtn()}
-        </div>
-
-        {this.state.showPaginatedGalleryModal
-          ? <PaginatedGalleryModal
-              togglePaginatedGalleryModal={this.togglePaginatedGalleryModal}
-              uid={this.props.uid}
-              currentlyLoadedGalleryAttachments={
-                this.state.currentlyLoadedGalleryAttachments
-              }
-              galleryAttachmentsCount={this.props.galleryAttachmentsCount}
-              galleryItems={this.props.galleryItems}
-              galleryTitle={this.props.galleryTitle}
-              galleryDate={this.props.galleryDate}
-              galleryIndex={this.props.galleryIndex}
-              currentFilter={this.state.filterGroupBy}
-              openModal={this.props.openModal}
-            />
-          : null}
-      </div>
+        {this.renderLoadMoreButton()}
+      </React.Fragment>
     );
   }
 };

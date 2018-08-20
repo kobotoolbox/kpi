@@ -26,6 +26,7 @@ import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 import TableColumnFilter from '../components/tableColumnFilter';
 import SingleGalleryModal from '../components/formGallery/singleGalleryModal';
+import PaginatedGalleryModal from '../components/formGallery/paginatedGalleryModal';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -228,14 +229,12 @@ class Modal extends React.Component {
             }
             { this.props.params.type == MODAL_TYPES.GALLERY_SINGLE &&
               <SingleGalleryModal
-                activeGallery={this.props.params.activeGallery}
-                changeActiveGalleryIndex={this.props.params.changeActiveGalleryIndex}
-                updateActiveAsset={this.props.params.updateActiveAsset}
-                filter={this.props.params.filter}
-                galleryItemIndex={this.props.params.galleryItemIndex}
-                galleryTitle={this.props.params.galleryTitle}
-                galleryDate={this.props.params.galleryDate}
-                activeGalleryAttachments={this.props.params.activeGalleryAttachments}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type == MODAL_TYPES.GALLERY_PAGINATED &&
+              <PaginatedGalleryModal
+                {...this.props.params}
               />
             }
 

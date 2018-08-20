@@ -255,14 +255,16 @@ bem.AssetGallery__gridItem = bem.AssetGallery.__('grid-item', '<div>');
 bem.AssetGallery__gridLink = bem.AssetGallery.__('grid-item__grid-link', '<a>');
 bem.AssetGallery__gridItemOverlay = bem.AssetGallery.__('grid-item__overlay', '<div>');
 bem.AssetGallery__gridItemOverlayText = bem.AssetGallery.__('grid-item__overlay-text', '<div>');
-bem.AssetGallery__modal = bem.AssetGallery.__('modal', '<div>');
-bem.AssetGallery__modalCarousel = bem.AssetGallery.__('modal__carousel', '<div>');
-bem.AssetGallery__modalCarouselTopbar = bem.AssetGallery.__('modal__carousel__topbar', '<div>');
-bem.AssetGallery__modalSidebar = bem.AssetGallery.__('modal__sidebar', '<div>');
-bem.AssetGallery__modalSidebarInfo = bem.AssetGallery.__('modal__sidebar-info', '<div>');
-bem.AssetGallery__modalSidebarGridWrap = bem.AssetGallery.__('modal__sidebar-grid-wrap', '<div>');
-bem.AssetGallery__modalSidebarGrid = bem.AssetGallery.__('modal__sidebar__grid', '<div>');
-bem.AssetGallery__modalSidebarGridItem = bem.AssetGallery.__('modal__sidebar__grid-item', '<div>');
+bem.AssetGallery__gridLoadMore = bem.AssetGallery.__('grid-load-more', '<div>');
+
+bem.SingleGalleryModal = BEM('single-gallery-modal');
+bem.SingleGalleryModal__carousel = bem.SingleGalleryModal.__('carousel', '<div>');
+bem.SingleGalleryModal__carouselTopbar = bem.SingleGalleryModal.__('carousel__topbar', '<div>');
+bem.SingleGalleryModal__sidebar = bem.SingleGalleryModal.__('sidebar', '<div>');
+bem.SingleGalleryModal__sidebarInfo = bem.SingleGalleryModal.__('sidebar-info', '<div>');
+bem.SingleGalleryModal__sidebarGridWrap = bem.SingleGalleryModal.__('sidebar-grid-wrap', '<div>');
+bem.SingleGalleryModal__sidebarGrid = bem.SingleGalleryModal.__('sidebar__grid', '<div>');
+bem.SingleGalleryModal__sidebarGridItem = bem.SingleGalleryModal.__('sidebar__grid-item', '<div>');
 
 bem.PaginatedGalleryModal = BEM('paginated-gallery-modal');
 bem.PaginatedGalleryModal_heading = bem.PaginatedGalleryModal.__('heading');

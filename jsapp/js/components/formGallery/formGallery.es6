@@ -55,9 +55,7 @@ export default class FormGallery extends React.Component {
         ]
       },
       galleryIndex: 0,
-      galleryItemIndex: 0,
-      galleryTitle: '',
-      galleryDate: ''
+      galleryItemIndex: 0
     };
   }
 
@@ -132,13 +130,6 @@ export default class FormGallery extends React.Component {
           nextRecordsPage: this.state.nextRecordsPage + 1
         });
       });
-  }
-
-  setActiveGalleryDateAndTitle(title, date) {
-    this.setState({
-      galleryTitle: title,
-      galleryDate: date
-    });
   }
 
   openModal(gallery, galleryItemIndex) {
@@ -231,13 +222,10 @@ export default class FormGallery extends React.Component {
                     galleryIndex={i}
                     galleryItems={record.attachments.results}
                     gallery={record}
-                    galleryAttachmentsCount={record.attachments.count}
+                    totalAttachmentsCount={record.attachments.count}
                     loadMoreAttachments={this.loadMoreAttachments}
                     openModal={this.openModal}
                     defaultPageSize={DEFAULT_PAGE_SIZE}
-                    setActiveGalleryDateAndTitle={
-                      this.setActiveGalleryDateAndTitle
-                    }
                   />
                 );
               } else {
@@ -246,18 +234,18 @@ export default class FormGallery extends React.Component {
             }.bind(this)
           )}
 
-          <div className='form-view__cell form-view__cell--centered loadmore-wrapper'>
-            {this.state.hasMoreRecords &&
-              this.state.filterGroupBy.value == 'submission' &&
-              this.state.filterQuery == ''
-              ? <button
-                  onClick={this.loadMoreRecords}
-                  className='mdl-button mdl-button--colored'
-                >
-                  Load more
-                </button>
-              : null}
-          </div>
+          { this.state.hasMoreRecords &&
+            this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+            this.state.filterQuery === '' &&
+            <bem.AssetGallery__gridLoadMore>
+              <button
+                onClick={this.loadMoreRecords}
+                className='mdl-button mdl-button--colored'
+              >
+                {t('Load more')}
+              </button>
+            </bem.AssetGallery__gridLoadMore>
+          }
         </bem.AssetGallery>
       );
     }

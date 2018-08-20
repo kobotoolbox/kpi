@@ -9,11 +9,9 @@ export default class FormGalleryGridItem extends React.Component {
       backgroundPosition: 'center center',
       backgroundSize: 'cover'
     };
-    let perRow = this.props.itemsPerRow ? this.props.itemsPerRow : 6;
-    let itemClass = 'per-row' + perRow + ' one-one';
     return (
       <bem.AssetGallery__gridItem
-        className={itemClass}
+        className='one-one'
         style={itemStyle}
         onClick={() =>
           this.props.openModal(

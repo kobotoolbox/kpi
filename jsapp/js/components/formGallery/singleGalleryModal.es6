@@ -37,8 +37,8 @@ export default class SingleGalleryModal extends React.Component {
     };
 
     return (
-      <bem.AssetGallery__modal>
-        <bem.AssetGallery__modalCarousel>
+      <bem.SingleGalleryModal>
+        <bem.SingleGalleryModal__carousel>
           <Slider
             ref='slider'
             {...settings}
@@ -57,7 +57,7 @@ export default class SingleGalleryModal extends React.Component {
               }.bind(this)
             )}
           </Slider>
-        </bem.AssetGallery__modalCarousel>
+        </bem.SingleGalleryModal__carousel>
 
         <SingleGalleryModalSidebar
           activeGalleryAttachments={this.props.activeGalleryAttachments}
@@ -68,7 +68,7 @@ export default class SingleGalleryModal extends React.Component {
           date={this.props.galleryDate}
           changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
         />
-      </bem.AssetGallery__modal>
+      </bem.SingleGalleryModal>
     );
   }
 };
@@ -86,19 +86,19 @@ class SingleGalleryModalSidebar extends React.Component {
     let featuredItems = this.props.activeGalleryAttachments.slice();
     featuredItems.splice(this.props.galleryItemIndex, 1);
     return (
-      <bem.AssetGallery__modalSidebar className='open'>
-        <bem.AssetGallery__modalSidebarInfo>
+      <bem.SingleGalleryModal__sidebar className='open'>
+        <bem.SingleGalleryModal__sidebarInfo>
             <p>{t('Record')} #{currentRecordIndex}</p>
             <h3>{this.props.galleryTitle}</h3>
             <p>{this.props.date}</p>
-        </bem.AssetGallery__modalSidebarInfo>
+        </bem.SingleGalleryModal__sidebarInfo>
 
         {this.props.activeGalleryAttachments != undefined &&
-          <bem.AssetGallery__modalSidebarGridWrap>
+          <bem.SingleGalleryModal__sidebarGridWrap>
             <h5 onClick={() => this.setGalleryFilterQuery(this.props.galleryTitle)}>
               {t('More for') + ' ' + this.props.galleryTitle}
             </h5>
-            <bem.AssetGallery__modalSidebarGrid>
+            <bem.SingleGalleryModal__sidebarGrid>
               {featuredItems.filter((j, index) => index < 6).map(
                 function(item, j) {
                   var divStyle = {
@@ -110,20 +110,20 @@ class SingleGalleryModalSidebar extends React.Component {
                     backgroundSize: 'cover'
                   };
                   return (
-                    <bem.AssetGallery__modalSidebarGridItem
+                    <bem.SingleGalleryModal__sidebarGridItem
                       key={j}
                       className='col6'
                       onClick={() => this.props.changeActiveGalleryIndex(j)}
                     >
                       <div className='one-one' style={divStyle} />
-                    </bem.AssetGallery__modalSidebarGridItem>
+                    </bem.SingleGalleryModal__sidebarGridItem>
                   );
                 }.bind(this)
               )}
-            </bem.AssetGallery__modalSidebarGrid>
-          </bem.AssetGallery__modalSidebarGridWrap>
+            </bem.SingleGalleryModal__sidebarGrid>
+          </bem.SingleGalleryModal__sidebarGridWrap>
         }
-      </bem.AssetGallery__modalSidebar>
+      </bem.SingleGalleryModal__sidebar>
     );
   }
 };

@@ -129,7 +129,9 @@ export class FormSubScreens extends React.Component {
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <FormGallery uid={this.state.uid} deploymentSubmissionCount={this.state.deployment__submission_count} mediaQuestions={mediaQuestions} />
+        <bem.FormView>
+          <FormGallery uid={this.state.uid} deploymentSubmissionCount={this.state.deployment__submission_count} mediaQuestions={mediaQuestions} />
+        </bem.FormView>
       </DocumentTitle>
     );
   }
