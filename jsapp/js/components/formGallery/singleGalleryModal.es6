@@ -50,13 +50,16 @@ export default class SingleGalleryModal extends React.Component {
           >
             {this.props.activeGalleryAttachments.map(
               function(item, i) {
+                const inlineStyle = {
+                  'backgroundImage': `url(${item.large_download_url})`,
+                };
                 return (
-                  <div key={i}>
-                    <img
-                      alt={this.props.galleryTitle}
-                      src={item.large_download_url}
+                  <bem.SingleGalleryModal__carouselImage key={i}>
+                    <picture
+                      style={inlineStyle}
+                      title={item.short_filename}
                     />
-                  </div>
+                  </bem.SingleGalleryModal__carouselImage>
                 );
               }.bind(this)
             )}

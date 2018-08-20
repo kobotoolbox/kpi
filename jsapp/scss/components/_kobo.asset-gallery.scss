@@ -181,33 +181,15 @@ $s-gallery-spacing: 10px;
   .slick-slider {
     height: 100%;
 
-    .slick-list {
-      height: 100%;
+    .slick-list,
+    .slick-track,
+    .slick-slide {
+      height: inherit;
+    }
 
-      .slick-track {
-        height: 100%;
-
-        .slick-slide {
-          height: auto;
-          top: 50%;
-          transform: translateY(-50%);
-          position: absolute;
-          width: 100%;
-
-          img {
-            // vertical-align: middle;
-            // display: inline-block;
-            // width: 100%;
-            // height: auto;
-            // max-width: 100%;
-            display: block;
-            height: 100%;
-            margin: 0 auto;
-            max-width: 100%;
-            object-fit: contain;
-          }
-        }
-      }
+    .slick-current {
+      // for accessing title attribute
+      z-index: 1;
     }
 
     /* SLICK ARROWS */
@@ -254,6 +236,19 @@ $s-gallery-spacing: 10px;
 
     &.full-screen {
       width: 100% !important;
+    }
+  }
+
+  .single-gallery-modal__carousel-image {
+    picture {
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
   }
 
