@@ -1084,7 +1084,14 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                     asset.deployment, context=self.get_serializer_context())
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
-                return Response(dict(serializer.data))
+                # Returns asset among other properties of the deployment
+                # to avoid a subsequent from client to retrieve Asset data. (e.g. KPI frontend)
+                asset_serializer = AssetSerializer(asset, context=self.get_serializer_context())
+                deployment_serializer_data = dict(serializer.data)
+                deployment_serializer_data.update({
+                    "asset": dict(asset_serializer.data)
+                })
+                return Response(deployment_serializer_data)
         elif request.method == 'POST':
             if not asset.can_be_deployed:
                 raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
