@@ -92,8 +92,8 @@ class SingleGalleryModalSidebar extends React.Component {
     });
   }
 
-  setGalleryFilterQuery(newQuery) {
-    stores.currentGallery.setState({filterQuery: newQuery});
+  showMoreFrom(questionName) {
+    stores.currentGallery.setState({filterQuery: questionName});
     stores.pageState.hideModal();
   }
 
@@ -111,7 +111,7 @@ class SingleGalleryModalSidebar extends React.Component {
 
         {this.props.activeGalleryAttachments &&
           <bem.SingleGalleryModal__sidebarGridWrap>
-            <h5 onClick={() => this.setGalleryFilterQuery(this.props.galleryTitle)}>
+            <h5 onClick={() => this.showMoreFrom(this.props.galleryTitle)}>
               {t('More from ##question##').replace('##question##', this.props.galleryTitle)}
             </h5>
 

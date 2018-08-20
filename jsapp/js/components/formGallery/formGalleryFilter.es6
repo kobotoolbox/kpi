@@ -11,7 +11,7 @@ import { GALLERY_FILTER_OPTIONS } from '../../constants';
 import Select from 'react-select';
 import TextBox from '../textBox';
 
-const FILTER_OPTIONS = [
+const groupByOptions = [
   GALLERY_FILTER_OPTIONS.question,
   GALLERY_FILTER_OPTIONS.submission
 ];
@@ -57,7 +57,7 @@ export default class FormGalleryFilter extends React.Component {
 
           <Select
             ref='filterSelect'
-            options={FILTER_OPTIONS}
+            options={groupByOptions}
             simpleValue
             name='selected-filter'
             className='Select--underlined'
