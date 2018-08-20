@@ -260,7 +260,6 @@ bem.AssetGalleryGrid__itemOverlayText = bem.AssetGalleryGrid.__('item__overlay-t
 
 bem.SingleGalleryModal = BEM('single-gallery-modal');
 bem.SingleGalleryModal__carousel = bem.SingleGalleryModal.__('carousel', '<div>');
-bem.SingleGalleryModal__carouselTopbar = bem.SingleGalleryModal.__('carousel__topbar', '<div>');
 bem.SingleGalleryModal__sidebar = bem.SingleGalleryModal.__('sidebar', '<div>');
 bem.SingleGalleryModal__sidebarInfo = bem.SingleGalleryModal.__('sidebar-info', '<div>');
 bem.SingleGalleryModal__sidebarGridWrap = bem.SingleGalleryModal.__('sidebar-grid-wrap', '<div>');

@@ -98,7 +98,7 @@ $s-gallery-spacing: 10px;
   }
 
   &.asset-gallery-grid--6-per-row .asset-gallery-grid__item {
-    width: calc(calc(100%/6) - #{$s-gallery-spacing});
+    width: calc(100%/6 - #{$s-gallery-spacing} * 5/6);
     height: calc(100%/6);
     margin-right: $s-gallery-spacing;
 
@@ -112,7 +112,7 @@ $s-gallery-spacing: 10px;
   }
 
   &.asset-gallery-grid--10-per-row .asset-gallery-grid__item {
-    width: calc(calc(100%/10) - #{$s-gallery-spacing});
+    width: calc(100%/10 - #{$s-gallery-spacing} * 9/10);
     height: calc(100%/10);
     margin-right: $s-gallery-spacing;
 
@@ -251,28 +251,6 @@ $s-gallery-spacing: 10px;
     position: relative;
     background: #000;
 
-    .single-gallery-modal__carousel__topbar {
-      position: absolute;
-      color: #fff;
-      z-index: 9;
-      width: 100%;
-      padding: 10px;
-
-      &.show {
-        &--hover {
-          display: flex;
-          flex-wrap: nowrap;
-          justify-content: space-between;
-          background: -webkit-gradient(linear, 0% 40%, 0% 100%, from(#000), to(transparent));
-        }
-      }
-
-      .close-modal {
-        cursor: pointer;
-        font-size: $icon-font-size;
-      }
-    }
-
     &.full-screen {
       width: 100% !important;
     }
@@ -281,6 +259,7 @@ $s-gallery-spacing: 10px;
   .single-gallery-modal__sidebar {
     width: 25%;
     background: #fff;
+    overflow: auto;
 
     h3 {
       font-weight: 400;
@@ -296,54 +275,24 @@ $s-gallery-spacing: 10px;
       cursor: pointer;
     }
 
-    &.open {
-      opacity: 1;
-      overflow: auto;
-
-      .toggle-info {
-        float: right;
-        font-size: $icon-font-size;
-        margin: $s-gallery-spacing;
-        cursor: pointer;
-        color: $cool-gray;
-      }
-
-      .info {
-        &__outer {
-          h4 {
-            margin-top: 0;
-            padding: $s-gallery-spacing;
-          }
-        }
-
-        &__inner {
-          border-bottom: solid 1px #ccc;
-          margin: 0 $s-gallery-spacing 2 * $s-gallery-spacing;
-
-          h5 {
-            margin-top: 0;
-          }
-        }
-      }
-    }
-
-    &.closed {
-      width: 0px !important;
-      opacity: 0 !important;
-    }
-
     .single-gallery-modal__sidebar__grid {
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-start;
-      margin-top: 5px;
+      margin-top: $s-gallery-spacing;
       max-height: calc(100% - 30px);
-      overflow: auto;
 
       .single-gallery-modal__sidebar__grid-item {
-        width: calc(100% * (1/3) - 5px);
-        margin-top: 5px;
-        margin-right: 5px;
+        width: calc(100%/3 - #{$s-gallery-spacing} * 2/3);
+        height: calc(100%/3);
+        margin-right: $s-gallery-spacing;
+
+        &:nth-child(3n) {
+          margin-right: 0;
+        }
+
+        &:nth-child(n + 4) {
+          margin-top: $s-gallery-spacing;;
+        }
 
         .one-one {
           background-color: lighten($cool-gray, 35%);
