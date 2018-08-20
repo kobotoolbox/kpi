@@ -1,10 +1,13 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
 import Slider from 'react-slick';
-import { t } from '../../utils';
+import {t} from '../../utils';
+import {GALLERY_FILTER_OPTIONS} from '../../constants';
 
 export default class SingleGalleryModal extends React.Component {
   constructor(props) {
@@ -61,7 +64,6 @@ export default class SingleGalleryModal extends React.Component {
 
         <SingleGalleryModalSidebar
           activeGalleryAttachments={this.props.activeGalleryAttachments}
-          filter={this.props.filter}
           galleryItemIndex={this.props.galleryItemIndex}
           galleryTitle={this.props.galleryTitle}
           galleryIndex={this.props.activeGallery.index}
@@ -74,17 +76,31 @@ export default class SingleGalleryModal extends React.Component {
 };
 
 class SingleGalleryModalSidebar extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+    this.state = {
+      filterGroupBy: stores.currentGallery.state.filterGroupBy
+    };
+  }
+
+  componentDidMount() {
+    this.listenTo(stores.currentGallery, (storeChanges) => {
+      if (storeChanges.filterGroupBy) {
+        this.setState({filterGroupBy: storeChanges.filterGroupBy});
+      }
+    });
+  }
+
   setGalleryFilterQuery(newQuery) {
     stores.currentGallery.setState({filterQuery: newQuery});
     stores.pageState.hideModal();
   }
 
   render() {
-    let currentRecordIndex = this.props.filter === 'question'
+    let currentRecordIndex = this.state.filterGroupBy === GALLERY_FILTER_OPTIONS.question.value
       ? this.props.galleryItemIndex + 1
       : this.props.galleryIndex + 1;
-    let featuredItems = this.props.activeGalleryAttachments.slice();
-    featuredItems.splice(this.props.galleryItemIndex, 1);
     return (
       <bem.SingleGalleryModal__sidebar className='open'>
         <bem.SingleGalleryModal__sidebarInfo>
@@ -93,24 +109,24 @@ class SingleGalleryModalSidebar extends React.Component {
             <p>{this.props.date}</p>
         </bem.SingleGalleryModal__sidebarInfo>
 
-        {this.props.activeGalleryAttachments != undefined &&
+        {this.props.activeGalleryAttachments &&
           <bem.SingleGalleryModal__sidebarGridWrap>
             <h5 onClick={() => this.setGalleryFilterQuery(this.props.galleryTitle)}>
-              {t('More for') + ' ' + this.props.galleryTitle}
+              {t('More from ##question##').replace('##question##', this.props.galleryTitle)}
             </h5>
+
             <bem.SingleGalleryModal__sidebarGrid>
-              {featuredItems.filter((j, index) => index < 6).map(
+              {this.props.activeGalleryAttachments.map(
                 function(item, j) {
-                  var divStyle = {
-                    backgroundImage: 'url(' +
-                      item.medium_download_url +
-                      ')',
+                  const divStyle = {
+                    backgroundImage: `url(${item.medium_download_url})`,
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center center',
                     backgroundSize: 'cover'
                   };
                   return (
                     <bem.SingleGalleryModal__sidebarGridItem
+                      m={this.props.galleryItemIndex === j ? 'selected' : null}
                       key={j}
                       onClick={() => this.props.changeActiveGalleryIndex(j)}
                     >
@@ -148,3 +164,5 @@ class LeftNavButton extends React.Component {
     );
   }
 };
+
+reactMixin(SingleGalleryModalSidebar.prototype, Reflux.ListenerMixin);
