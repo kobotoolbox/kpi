@@ -152,7 +152,7 @@ class AssetsDetailApiTests(APITestCase):
 
         self.assertEqual(response1.data.get("asset").get('deployment__active'), True)
         self.assertEqual(response1.data.get("asset").get('has_deployment'), True)
-        
+
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data.get('deployment__active'), True)
         self.assertEqual(response2.data['has_deployment'], True)
