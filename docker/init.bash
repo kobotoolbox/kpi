@@ -34,7 +34,8 @@ fi
 if [[ ! -L "${KPI_SRC_DIR}/jsapp/fonts" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/fonts" ]]; then
     echo "Restoring fonts directory to \`${KPI_SRC_DIR}/jsapp/fonts\`."
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts"
-    ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+    #ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+    rsync -a --delete "${FONTS_DIR}/" "${KPI_SRC_DIR}/jsapp/fonts/"
 fi
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then

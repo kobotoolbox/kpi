@@ -67,11 +67,17 @@ RUN mkdir "${BUILD_DIR}" && \
     mkdir "${FONTS_DIR}" && \
     ln -s "${BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
+    #  Recreate the fonts folder for later purposes.
+    mkdir -p "${KPI_SRC_DIR}/jsapp/fonts" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
 RUN npm run copy-fonts && npm run build
+
+#################################################
+#   Copy fonts to $FONT_DIR for next restarts   #
+#################################################
+RUN rsync -a --delete "${KPI_SRC_DIR}/jsapp/fonts/" "${FONTS_DIR}/"
 
 ###############################################
 # Copy over this directory in its current state. #
