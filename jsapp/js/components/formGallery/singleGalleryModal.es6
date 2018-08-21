@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import Slider from 'react-slick';
 import autoBind from 'react-autobind';
@@ -7,48 +8,92 @@ import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
 import {galleryActions, galleryStore} from './galleryInterface';
-import {t} from '../../utils';
+import {
+  assign,
+  t
+} from '../../utils';
 import {GALLERY_FILTER_OPTIONS} from '../../constants';
 
 export default class SingleGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-  }
-
-  componentDidUpdate() {
-    if (this.refs.slider) {
-      this.refs.slider.slickGoTo(this.props.galleryItemIndex);
-    }
-  }
-  handleCarouselChange(currentIndex, newIndex) {
-    this.props.changeActiveGalleryIndex(newIndex);
-  }
-
-  render() {
-    const settings = {
+    this.state = this.getInitialState();
+    this.slickSettings = {
       dots: false,
       fade: true,
       lazyLoad: true,
       infinite: false,
-      speed: 500,
+      speed: 300,
       slidesToShow: 1,
       slide: 'slide',
       slidesToScroll: 1,
-      initialSlide: this.props.galleryItemIndex,
+      initialSlide: this.state.activeGalleryIndex,
       nextArrow: <RightNavButton />,
       prevArrow: <LeftNavButton />,
-      beforeChange: this.handleCarouselChange
+      beforeChange: this.onBeforeSliderChange
     };
+    this.setSliderIndexDebounced = _.debounce(this.setSliderIndex, this.slickSettings.speed + 100);
+  }
 
+  getInitialState() {
+    const stateObj = {}
+    assign(stateObj, galleryStore.state);
+    stateObj.isGalleryReady = stateObj.activeGallery !== null;
+    return stateObj;
+  }
+
+  componentDidMount() {
+    this.listenTo(galleryStore, (storeChanges) => {
+      if (storeChanges.activeGallery !== null) {
+        assign(storeChanges, {isGalleryReady: true});
+      }
+      if (storeChanges.activeGalleryIndex !== null) {
+        this.setSliderIndexDebounced(storeChanges.activeGalleryIndex);
+      }
+      this.setState(storeChanges);
+    });
+  }
+
+  onBeforeSliderChange(prevIndex, newIndex) {
+    this.setState({currentSliderIndex: newIndex});
+  }
+
+  setSliderIndex(newIndex) {
+    if (newIndex !== this.state.currentSliderIndex) {
+      this.refs.slider.slickGoTo(newIndex);
+    }
+  }
+
+  showMoreFrom(questionName) {
+    galleryActions.setFilters({filterQuery: questionName});
+    stores.pageState.hideModal();
+  }
+
+  changeActiveGalleryIndex(evt) {
+    galleryActions.setActiveGalleryIndex(evt.currentTarget.dataset.index);
+  }
+
+  renderLoadingMessage() {
     return (
-      <bem.SingleGalleryModal>
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('loading...')}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+
+  renderGallery() {
+    return (
+      <React.Fragment>
         <bem.SingleGalleryModal__carousel>
           <Slider
             ref='slider'
-            {...settings}
+            {...this.slickSettings}
           >
-            {this.props.activeGalleryAttachments.map(
+            {this.state.activeGalleryAttachments.map(
               function(item, i) {
                 const inlineStyle = {
                   'backgroundImage': `url(${item.large_download_url})`,
@@ -66,61 +111,28 @@ export default class SingleGalleryModal extends React.Component {
           </Slider>
         </bem.SingleGalleryModal__carousel>
 
-        <SingleGalleryModalSidebar
-          activeGalleryAttachments={this.props.activeGalleryAttachments}
-          galleryItemIndex={this.props.galleryItemIndex}
-          galleryTitle={this.props.galleryTitle}
-          galleryIndex={this.props.activeGallery.index}
-          date={this.props.galleryDate}
-          changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
-        />
-      </bem.SingleGalleryModal>
+        {this.renderSidebar()}
+      </React.Fragment>
     );
   }
-};
 
-class SingleGalleryModalSidebar extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-    this.state = {
-      filterGroupBy: galleryStore.getInitialState().filterGroupBy
-    };
-  }
-
-  componentDidMount() {
-    this.listenTo(galleryStore, (storeChanges) => {
-      if (storeChanges.filterGroupBy) {
-        this.setState({filterGroupBy: storeChanges.filterGroupBy});
-      }
-    });
-  }
-
-  showMoreFrom(questionName) {
-    galleryActions.setFilters({filterQuery: questionName});
-    stores.pageState.hideModal();
-  }
-
-  render() {
-    let currentRecordIndex = this.state.filterGroupBy === GALLERY_FILTER_OPTIONS.question.value
-      ? this.props.galleryItemIndex + 1
-      : this.props.galleryIndex + 1;
+  renderSidebar() {
     return (
       <bem.SingleGalleryModal__sidebar className='open'>
         <bem.SingleGalleryModal__sidebarInfo>
-            <p>{t('Record')} #{currentRecordIndex}</p>
-            <h3>{this.props.galleryTitle}</h3>
-            <p>{this.props.date}</p>
+            <p>{t('Record')} #{this.state.activeGalleryIndex}</p>
+            <h3>{this.state.activeGalleryTitle}</h3>
+            <p>{this.state.activeGalleryDate}</p>
         </bem.SingleGalleryModal__sidebarInfo>
 
-        {this.props.activeGalleryAttachments &&
+        {this.state.activeGalleryAttachments &&
           <bem.SingleGalleryModal__sidebarGridWrap>
-            <h5 onClick={() => this.showMoreFrom(this.props.galleryTitle)}>
-              {t('More from ##question##').replace('##question##', this.props.galleryTitle)}
+            <h5 onClick={() => this.showMoreFrom(this.state.activeGalleryTitle)}>
+              {t('More from ##question##').replace('##question##', this.state.activeGalleryTitle)}
             </h5>
 
             <bem.SingleGalleryModal__sidebarGrid>
-              {this.props.activeGalleryAttachments.map(
+              {this.state.activeGalleryAttachments.map(
                 function(item, j) {
                   const divStyle = {
                     backgroundImage: `url(${item.medium_download_url})`,
@@ -130,9 +142,10 @@ class SingleGalleryModalSidebar extends React.Component {
                   };
                   return (
                     <bem.SingleGalleryModal__sidebarGridItem
-                      m={this.props.galleryItemIndex === j ? 'selected' : null}
+                      m={this.state.activeGalleryIndex === j ? 'selected' : null}
+                      data-index={j}
+                      onClick={this.changeActiveGalleryIndex}
                       key={j}
-                      onClick={() => this.props.changeActiveGalleryIndex(j)}
                     >
                       <div className='one-one' style={divStyle} />
                     </bem.SingleGalleryModal__sidebarGridItem>
@@ -145,13 +158,33 @@ class SingleGalleryModalSidebar extends React.Component {
       </bem.SingleGalleryModal__sidebar>
     );
   }
+
+  render() {
+    return (
+      <bem.SingleGalleryModal>
+        {!this.state.isGalleryReady &&
+          this.renderLoadingMessage()
+        }
+        {this.state.isGalleryReady &&
+          this.renderGallery()
+        }
+      </bem.SingleGalleryModal>
+    );
+  }
 };
 
 class RightNavButton extends React.Component {
+  goRight() {
+    let newIndex = galleryStore.state.activeGalleryIndex + 1;
+    if (newIndex >= this.props.slideCount - 1) {
+      newIndex = this.props.slideCount - 1;
+    }
+    galleryActions.setActiveGalleryIndex(newIndex);
+  }
+
   render() {
-    const { className, onClick } = this.props;
     return (
-      <button onClick={onClick} className={className}>
+      <button onClick={this.goRight.bind(this)} className={this.props.className}>
         <i className='k-icon-next' />
       </button>
     );
@@ -159,14 +192,21 @@ class RightNavButton extends React.Component {
 };
 
 class LeftNavButton extends React.Component {
+  goLeft() {
+    let newIndex = galleryStore.state.activeGalleryIndex - 1;
+    if (newIndex < 0) {
+      newIndex = 0;
+    }
+    galleryActions.setActiveGalleryIndex(newIndex);
+  }
+
   render() {
-    const { className, onClick } = this.props;
     return (
-      <button onClick={onClick} className={className}>
+      <button onClick={this.goLeft.bind(this)} className={this.props.className}>
         <i className='k-icon-prev' />
       </button>
     );
   }
 };
 
-reactMixin(SingleGalleryModalSidebar.prototype, Reflux.ListenerMixin);
+reactMixin(SingleGalleryModal.prototype, Reflux.ListenerMixin);

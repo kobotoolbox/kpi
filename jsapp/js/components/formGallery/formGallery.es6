@@ -78,11 +78,7 @@ export default class FormGallery extends React.Component {
   handleFilterGroupByChange(newFilter) {
     this.state.galleryData.loaded = false;
     dataInterface
-      .filterGalleryImages(
-        this.props.uid,
-        newFilter.value,
-        DEFAULT_PAGE_SIZE
-      )
+      .filterGalleryImages(this.props.uid, newFilter.value, DEFAULT_PAGE_SIZE)
       .done((response) => {
         response.loaded = true;
         this.setState(this.getInitialState());
@@ -158,7 +154,6 @@ export default class FormGallery extends React.Component {
       activeGallery: gallery,
       changeActiveGalleryIndex: this.changeActiveGalleryIndex,
       updateActiveAsset: this.updateActiveAsset,
-      filter: this.state.filterGroupBy.value,
       galleryItemIndex: galleryItemIndex,
       galleryTitle: galleryTitle,
       galleryDate: galleryDate,

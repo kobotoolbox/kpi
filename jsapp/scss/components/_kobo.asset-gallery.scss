@@ -200,9 +200,6 @@ $gallery-transition: 250ms ease-in-out;
 
     /* SLICK ARROWS */
     &:hover .slick-arrow {
-      visibility: visible;
-      opacity: 1;
-
       &.slick-prev {left: 0;}
       &.slick-next {right: 0;}
     }
@@ -213,17 +210,22 @@ $gallery-transition: 250ms ease-in-out;
       width: 60px;
       background: rgba($trueblack, 0.6);
       z-index: 8;
-      visibility: hidden;
-      opacity: 0;
       transition: $gallery-transition;
+      transition-property: left, right;
 
       .k-icon-next, .k-icon-prev {
         color: #fff;
         font-size: 60px;
+        opacity: 0.6;
       }
 
       &:hover {
         background: rgba($trueblack, 0.8);
+        .k-icon-next, .k-icon-prev {opacity: 0.8;}
+      }
+
+      &:active {
+        .k-icon-next, .k-icon-prev {opacity: 1;}
       }
 
       &::before {
