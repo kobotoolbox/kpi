@@ -10,6 +10,7 @@ import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
 import {
   t,
+  assign,
   formatTimeDate
 } from '../../utils';
 import {
@@ -28,7 +29,7 @@ export default class FormGallery extends React.Component {
 
   componentDidMount() {
     if (this.hasAnyMediaQuestions()) {
-      this.loadGalleryData(this.props.uid);
+      galleryActions.loadGalleryData(this.props.uid);
       this.listenTo(galleryStore, (storeChanges) => {
         this.setState(storeChanges);
         if (storeChanges.filterGroupBy) {
@@ -39,41 +40,18 @@ export default class FormGallery extends React.Component {
   }
 
   getInitialState() {
-    return {
-      hasMoreRecords: false,
-      nextRecordsPage: 2,
-      filterQuery: galleryStore.state.filterQuery,
-      filterGroupBy: galleryStore.state.filterGroupBy,
-      galleryData: {
-        count: 0,
-        loaded: false,
-        results: [
-          {
-            attachments: []
-          }
-        ]
-      }
-    };
+    const stateObj = {}
+    assign(stateObj, galleryStore.state);
+    stateObj.hasMoreRecords = false;
+    stateObj.nextRecordsPage = 2;
+    return stateObj;
   }
 
   hasAnyMediaQuestions() {
     return this.props.mediaQuestions.length !== 0;
   }
 
-  loadGalleryData(uid) {
-    galleryActions.loadGalleryData(uid);
-    dataInterface
-      .filterGalleryImages(uid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
-      .done(response => {
-        response.loaded = true;
-        this.setState({
-          galleryData: response
-        });
-      });
-  }
-
   handleFilterGroupByChange(newFilter) {
-    this.state.galleryData.loaded = false;
     dataInterface
       .filterGalleryImages(this.props.uid, newFilter.value, DEFAULT_PAGE_SIZE)
       .done((response) => {
@@ -92,7 +70,6 @@ export default class FormGallery extends React.Component {
 
   // Pagination
   loadMoreAttachments(galleryIndex, galleryPage) {
-    this.state.galleryData.loaded = false;
     dataInterface.loadQuestionAttachment(
         this.props.uid,
         this.state.filterGroupBy.value,
@@ -111,7 +88,6 @@ export default class FormGallery extends React.Component {
   }
 
   loadMoreRecords() {
-    this.state.galleryData.loaded = false;
     return dataInterface.loadMoreRecords(
         this.props.uid,
         this.state.filterGroupBy.value,
@@ -131,7 +107,7 @@ export default class FormGallery extends React.Component {
   }
 
   render() {
-    if (!this.state.galleryData.loaded) {
+    if (this.state.isLoadingData) {
       return (
         <bem.AssetGallery>
           <bem.Loading>
@@ -151,14 +127,12 @@ export default class FormGallery extends React.Component {
         )
     }
 
-    if (this.state.galleryData.loaded && this.hasAnyMediaQuestions()) {
+    if (!this.state.isLoadingData && this.hasAnyMediaQuestions()) {
       return (
         <bem.AssetGallery>
-          <FormGalleryFilter
-            attachments_count={this.state.galleryData.attachments_count}
-          />
+          <FormGalleryFilter/>
 
-          {this.state.galleryData.results.map(
+          {this.state.galleries.map(
             (record, i) => {
               let galleryTitle;
               if (

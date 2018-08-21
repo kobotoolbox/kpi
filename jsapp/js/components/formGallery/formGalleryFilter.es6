@@ -21,6 +21,7 @@ export default class FormGalleryFilter extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      totalMediaCount: galleryStore.state.totalMediaCount,
       filterQuery: galleryStore.state.filterQuery,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
@@ -45,7 +46,7 @@ export default class FormGalleryFilter extends React.Component {
     return (
       <bem.AssetGallery__heading>
         <bem.AssetGallery__count>
-          {this.props.attachments_count} {t('images')}
+          {this.state.totalMediaCount} {t('images')}
         </bem.AssetGallery__count>
 
         <bem.AssetGallery__headingSearchFilter className='section'>
