@@ -4,7 +4,7 @@ from django.conf import settings
 
 
 @shared_task(bind=True)
-def service_definition_task(self, hook, data):
+def service_definition_task(self, hook, uuid):
     """
     Tries to send data to the endpoint of the hook
     It retries n times (n = `settings.HOOK_MAX_RETRIES`)
@@ -16,12 +16,12 @@ def service_definition_task(self, hook, data):
 
     :param self: Celery.Task.
     :param hook: Hook.
-    :param data: dict.
+    :param uuid: str. Instance.uuid
     """
     # Use camelcase (even if it's not PEP-8 compliant)
     # because variable represents the class, not the instance.
     ServiceDefinition = hook.get_service_definition()
-    service_definition = ServiceDefinition(hook, data)
+    service_definition = ServiceDefinition(hook, uuid)
     if not service_definition.send():
         # Countdown is in seconds
         countdown = 60 * (10 ** self.request.retries)

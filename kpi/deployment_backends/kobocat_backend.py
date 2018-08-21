@@ -21,8 +21,10 @@ from rest_framework.authtoken.models import Token
 
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
+from .kc_access.shadow_models import _models
 from ..exceptions import BadFormatException
-from kobo.apps.hook.constants import HOOK_EXPORT_TYPE_JSON, HOOK_EXPORT_TYPE_XML
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.utils.mongo_helper import MongoDecodingHelper
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -477,52 +479,78 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self, request, format=HOOK_EXPORT_TYPE_JSON, instances_ids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_uuids=[]):
+        """
+        Retreives submissions through Postgres or Mongo depending on `format_type`.
+        It can be filtered on instances uuids.
+        `uuid` is used instead of `id` because `id` is not available in ReadOnlyInstance model
+
+        :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+        :param instances_uuids: list. Optional
+        :return: list: mixed
+        """
+        submissions = []
+        getter = getattr(self, "_{}__get_submissions_in_{}".format(
+            self.__class__.__name__,
+            format_type))
+        try:
+            submissions = getter(instances_uuids)
+        except Exception as e:
+            logger = logging.getLogger("console_logger")
+            logger.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
+
+        return submissions
+
+    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
+        """
+        Returns only one occurrence.
+
+        :param pk: str. `Instance.uuid`
+        :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+        :return: mixed. JSON or XML
         """
 
-        :param request: DRF.Request. Useless with mock data
-        :param format: str. xml or json
-        :param instances_ids: list. Ids of instances to retrieve
-        :return: list
-        """
-        if len(instances_ids) > 0:
-            if format == HOOK_EXPORT_TYPE_JSON:
-                kwargs = {
-                    "pk": None,
-                    "?query": json.dumps({"_id":{"$in":instances_ids}}),
-                    "format": format
-                }
-                return self.__get_data(request, **kwargs)
-            else:
-                raise BadFormatException("Can't retrieve multiple instances in XML")
-
-        return []
-
-    def get_submission(self, pk, request, format=HOOK_EXPORT_TYPE_JSON):
         if pk:
-            kwargs = {
-                "format": format,
-                "pk": pk
-            }
-            return self.__get_data(request, **kwargs)
+            submissions = self.get_submissions(format_type, [pk])
+            return submissions[0]
         else:
             raise ValueError("Primary key must be provided")
 
-    def __get_data(self, request, **kwargs):
+    def __get_submissions_in_json(self, instances_uuids=[]):
+        """
+        Retrieves instances directly from Mongo.
 
-        from kpi.views import SubmissionViewSet  # Circular import
+        :param instances_uuids: list. Optional
+        :return: list<JSON>
+        """
+        query = {
+            "_xform_id_string": self.asset.uid,
+            "_deleted_at": {"$exists": False}
+        }
 
-        kwargs.update({"parent_lookup_asset": self.asset.uid})
-        format = kwargs.get("format")
+        if len(instances_uuids) > 0:
+            query.update({
+                "_uuid": {"$in": instances_uuids}
+            })
 
-        request.method = "GET"  # Force request to be a GET
-        view = SubmissionViewSet.as_view({"get": "retrieve"})(request, **kwargs)
-        if view.status_code == status.HTTP_200_OK:
-            if format == HOOK_EXPORT_TYPE_JSON:
-                try:
-                    return json.loads(view.content)
-                except ValueError as e:
-                    logger = logging.getLogger("console_logger")
-                    logger.error("KobocatDeploymentBackend.__get_data - {}".format(str(e)), exc_info=True)
-            else:
-                return view.content
+        instances = settings.MONGO_DB.instances.find(query)
+        return [
+            MongoDecodingHelper.to_readable_dict(instance)
+            for instance in instances
+        ]
+
+    def __get_submissions_in_xml(self, instances_uuids=[]):
+        """
+        Retrieves instances directly from Postgres.
+
+        :param instances_uuids: list. Optional
+        :return: list<XML>
+        """
+        queryset = _models.Instance.objects.filter(
+            xform__id_string=self.asset.uid,
+            deleted_at=None)
+
+        if len(instances_uuids) > 0:
+            queryset = queryset.filter(uuid__in=instances_uuids)
+
+        return [lazy_instance.xml for lazy_instance in queryset]

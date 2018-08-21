@@ -7,8 +7,9 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from ..constants import HOOK_LOG_FAILED, HOOK_EXPORT_TYPE_JSON
+from ..constants import HOOK_LOG_FAILED
 from ..models.hook_log import HookLog
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.tests.kpi_test_case import KpiTestCase
 
 
@@ -44,7 +45,7 @@ class ApiHookTestCase(KpiTestCase):
                 }
             }
         }
-        response = self.client.post(url, data, format=HOOK_EXPORT_TYPE_JSON)
+        response = self.client.post(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                          msg=response.data)
         hook = self.asset.hooks.last()
@@ -121,7 +122,7 @@ class ApiHookTestCase(KpiTestCase):
             "name": "some disabled external service",
             "active": False
         }
-        response = self.client.patch(url, data, format=HOOK_EXPORT_TYPE_JSON)
+        response = self.client.patch(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=response.data)
         hook.refresh_from_db()
@@ -155,7 +156,7 @@ class ApiHookTestCase(KpiTestCase):
             "parent_lookup_hook": hook.uid
         })
 
-        response = self.client.get(url, format=HOOK_EXPORT_TYPE_JSON)
+        response = self.client.get(url, format=INSTANCE_FORMAT_TYPE_JSON)
         first_hooklog = response.data.get("results")[0]
 
         # Result should match first try
@@ -174,7 +175,7 @@ class ApiHookTestCase(KpiTestCase):
         fhl.change_status(HOOK_LOG_FAILED)
 
         # It should be a success
-        response = self.client.patch(retry_url, format=HOOK_EXPORT_TYPE_JSON)
+        response = self.client.patch(retry_url, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Let's check if logs has 2 tries
@@ -184,5 +185,5 @@ class ApiHookTestCase(KpiTestCase):
             "uid": first_hooklog.get("uid")
         })
 
-        response = self.client.get(detail_url, format=HOOK_EXPORT_TYPE_JSON)
+        response = self.client.get(detail_url, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get("tries"), 2)

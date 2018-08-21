@@ -18,30 +18,23 @@ class ServiceDefinitionInterface(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, hook, data, id=None):
+    def __init__(self, hook, uuid):
         self._hook = hook
-        self._data = data if id is None else self._parse(data, id)
+        self._uuid = uuid
+        self._data = self._get_data()
 
-    @abstractmethod
-    def _parse(self, data, id):
+    def _get_data(self):
         """
-        Parses the data to be compliant with the payload `kc` is sending
-        when it receives data from `enketo`.
-
-        Should return
-        {
-            <export_type>: <value>,
-            "id": id
-        }
-
-        For example
-        {
-            "json": data,
-            "id": id
-        }
-        :return: dict
+        Retrieves data from deployment backend of the asset.
         """
-        pass
+        try:
+            return self._hook.asset.deployment.get_submission(self._uuid, self._hook.export_type)
+        except Exception as e:
+            logger = logging.getLogger("console_logger")
+            logger.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
+                self._hook.uid, self._uuid, str(e)), exc_info=True)
+
+        return None
 
     @abstractmethod
     def _prepare_request_kwargs(self):
@@ -52,7 +45,7 @@ class ServiceDefinitionInterface(object):
         For example:
             {
                 "headers": {"Content-Type": "application/json"},
-                "json": self._data.get("json")
+                "json": self._data
             }
         :return: dict
         """
@@ -65,46 +58,51 @@ class ServiceDefinitionInterface(object):
         """
 
         success = False
+        if self._data:
+            try:
+                request_kwargs = self._prepare_request_kwargs()
 
-        try:
-            request_kwargs = self._prepare_request_kwargs()
+                # Add custom headers
+                request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
 
-            # Add custom headers
-            request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
-
-            # Add user agent
-            request_kwargs.get("headers").update({
-                "User-Agent": "KoBoToolbox external service #{}".format(self._hook.uid)
-            })
-
-            # If the request needs basic authentication with username & password,
-            # let's provide them
-            if self._hook.settings.get("username"):
-                request_kwargs.update({
-                    "auth": (self._hook.settings.get("username"),
-                             self._hook.settings.get("password"))
+                # Add user agent
+                request_kwargs.get("headers").update({
+                    "User-Agent": "KoBoToolbox external service #{}".format(self._hook.uid)
                 })
-            response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
-            success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
-            self.save_log(success, response.status_code, response.text)
-        except requests.exceptions.Timeout as e:
-            self.save_log(
-                False,
-                status.HTTP_408_REQUEST_TIMEOUT,
-                str(e))
-        except requests.exceptions.RequestException as e:
-            self.save_log(
-                False,
-                status.HTTP_400_BAD_REQUEST,
-                str(e))
-        except Exception as e:
-            logger = logging.getLogger("console_logger")
-            logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
-                self._hook.uid, self._data.get("id"), str(e)), exc_info=True)
+
+                # If the request needs basic authentication with username & password,
+                # let's provide them
+                if self._hook.settings.get("username"):
+                    request_kwargs.update({
+                        "auth": (self._hook.settings.get("username"),
+                                 self._hook.settings.get("password"))
+                    })
+                response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
+                success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
+                self.save_log(success, response.status_code, response.text)
+            except requests.exceptions.Timeout as e:
+                self.save_log(
+                    False,
+                    status.HTTP_408_REQUEST_TIMEOUT,
+                    str(e))
+            except requests.exceptions.RequestException as e:
+                self.save_log(
+                    False,
+                    status.HTTP_400_BAD_REQUEST,
+                    str(e))
+            except Exception as e:
+                logger = logging.getLogger("console_logger")
+                logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
+                    self._hook.uid, self._uuid, str(e)), exc_info=True)
+                self.save_log(
+                    False,
+                    status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "An error occurred when sending data to external endpoint")
+        else:
             self.save_log(
                 False,
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "An error occurred when sending data to external endpoint")
+                "No data available")
 
         return success
 
@@ -118,7 +116,7 @@ class ServiceDefinitionInterface(object):
         """
         fields = {
             "hook": self._hook,
-            "data_id": self._data.get("id")
+            "instance_uuid": self._uuid
         }
         try:
             # Try to load the log with a multiple field FK because

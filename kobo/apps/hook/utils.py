@@ -15,4 +15,4 @@ class HookUtils(object):
         """
         # call service send with url and data parameters
         for hook in asset.hooks.filter(active=True).all():
-            service_definition_task.delay(hook, data)
+            service_definition_task.delay(hook, data.get("uuid"))

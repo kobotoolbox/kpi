@@ -14,9 +14,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ..constants import HOOK_LOG_FAILED, HOOK_EXPORT_TYPE_JSON, HOOK_LOG_PENDING
+from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from ..models.hook import Hook
 from ..serializers.hook import HookSerializer
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
@@ -173,13 +174,10 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
             logs = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
                                     Q(status=HOOK_LOG_FAILED))
-            if len(logs):
-                instances_ids = [log.data_id for log in logs]
+            if len(logs) > 0:
                 # TODO send to Celery
-                data = self.__data_to_dict(
-                    hook.asset.deployment.get_submissions(request, hook.export_type, instances_ids))
                 for hook_log in logs:
-                    hook_log.retry(data.get(hook_log.data_id))
+                    hook_log.retry()
                 response.update({
                     "pending_uids": [log.uid for log in logs]
                 })
@@ -192,6 +190,3 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)
-
-    def __data_to_dict(self, data):
-        return {instance.get("_id"): instance for instance in data}

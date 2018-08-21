@@ -20,7 +20,7 @@ class HookLog(models.Model):
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
-    data_id = models.IntegerField(default=0, db_index=True)  # `kc.logger.Instance.id`. Useful to retrieve data on retry
+    instance_uuid = models.CharField(default="", max_length=36, db_index=True)  # `kc.logger.Instance.uuid`. Useful to retrieve data on retry
     tries = models.PositiveSmallIntegerField(default=0)
     status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
     status_code = models.IntegerField(default=200)
@@ -59,30 +59,25 @@ class HookLog(models.Model):
 
         self.save(reset_status=True)
 
-    def retry(self, data):
+    def retry(self):
         """
         Retries to send data to external service
         :param data: mixed.
         :return: tuple. status_code, localized message
         """
-        if data:
-            self.change_status()
-            try:
-                ServiceDefinition = self.hook.get_service_definition()
-                service_definition = ServiceDefinition(self.hook, data, self.data_id)
-                service_definition.send()
-                self.refresh_from_db()
-                return True, None
-            except Exception as e:
-                logger = logging.getLogger("console_logger")
-                logger.error("HookLog.retry - {}".format(str(e)), exc_info=True)
-                self.change_status(HOOK_LOG_FAILED)
-                return False, _("An error has occurred when sending the data. Please try again later.")
+        self.change_status()
+        try:
+            ServiceDefinition = self.hook.get_service_definition()
+            service_definition = ServiceDefinition(self.hook, self.instance_uuid)
+            service_definition.send()
+            self.refresh_from_db()
+        except Exception as e:
+            logger = logging.getLogger("console_logger")
+            logger.error("HookLog.retry - {}".format(str(e)), exc_info=True)
+            self.change_status(HOOK_LOG_FAILED)
+            return False
 
-        self.change_status(status=HOOK_LOG_FAILED,
-                           message="Could not retrieve data ",
-                           status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return False, _("Could not retrieve data.")
+        return True
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved

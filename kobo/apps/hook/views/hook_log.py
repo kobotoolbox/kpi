@@ -101,13 +101,12 @@ class HookLogViewSet(NestedViewSetMixin,
         hook_log = self.get_object()
 
         if hook_log.can_retry():
-            data = hook_log.hook.asset.deployment.get_submission(hook_log.data_id, request, hook_log.hook.export_type)
-            success, message = hook_log.retry(data)
+            success = hook_log.retry()
             if success:
                 response["detail"] = hook_log.message
                 status_code = hook_log.status_code
             else:
-                response["detail"] = message
+                response["detail"] = _("An error has occurred when sending the data. Please try again later.")
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
             response["detail"] = _("Data is being or has already been processed")
