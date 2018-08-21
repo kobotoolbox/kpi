@@ -135,7 +135,8 @@ class ApiHookTestCase(KpiTestCase):
 
         ServiceDefinition = hook.get_service_definition()
         submissions = self.asset.deployment.get_submissions()
-        service_definition = ServiceDefinition(hook, submissions[0])
+        uuid = submissions[0].get("id")
+        service_definition = ServiceDefinition(hook, uuid)
         first_mock_response = {"error": "not found"}
 
         # Mock first requests try
