@@ -40,3 +40,5 @@ def retry_all_task(hook_logs):
     for hook_log in hook_logs:
         hook_log.retry()
         time.sleep(0.2)
+
+    return True

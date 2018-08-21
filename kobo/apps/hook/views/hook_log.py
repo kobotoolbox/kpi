@@ -101,6 +101,7 @@ class HookLogViewSet(NestedViewSetMixin,
         hook_log = self.get_object()
 
         if hook_log.can_retry():
+            hook_log.change_status()
             success = hook_log.retry()
             if success:
                 response["detail"] = hook_log.message

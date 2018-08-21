@@ -65,7 +65,6 @@ class HookLog(models.Model):
         :param data: mixed.
         :return: tuple. status_code, localized message
         """
-        self.change_status()
         try:
             ServiceDefinition = self.hook.get_service_definition()
             service_definition = ServiceDefinition(self.hook, self.instance_uuid)
