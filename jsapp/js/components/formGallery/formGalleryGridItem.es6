@@ -6,6 +6,7 @@ export default class FormGalleryGridItem extends React.Component {
   onClick() {
     galleryActions.openSingleModal({
       gallery: this.props.gallery,
+      galleryTitle: this.props.galleryTitle,
       galleryIndex: this.props.galleryItemIndex
     })
   }

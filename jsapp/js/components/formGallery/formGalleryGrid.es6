@@ -140,9 +140,9 @@ export default class FormGalleryGrid extends React.Component {
                   date={formatTimeDate(timestamp)}
                   itemTitle={itemTitle}
                   url={item.small_download_url}
-                  gallery={this.props.gallery}
+                  gallery={this.props.gallery.attachments.results}
+                  galleryTitle={this.props.gallery.label}
                   galleryItemIndex={j}
-                  openModal={this.props.openModal}
                 />
               );
             }.bind(this)

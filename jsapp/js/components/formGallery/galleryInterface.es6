@@ -16,7 +16,7 @@ export const galleryActions = Reflux.createActions([
   'setFilters'
 ]);
 
-galleryActions.openSingleModal.listen((/*{gallery, activeGalleryIndex}*/) => {
+galleryActions.openSingleModal.listen((/*{gallery, galleryTitle, galleryIndex}*/) => {
   // we only need to open the modal, all data is kept and handled by galleryStore
   stores.pageState.showModal({type: MODAL_TYPES.GALLERY_SINGLE});
 });
@@ -40,16 +40,15 @@ class GalleryStore extends Reflux.Store {
     };
   }
 
-  onOpenSingleModal({gallery, galleryIndex}) {
-    const activeGalleryTitle = gallery.label || gallery.attachments.results[galleryIndex].question.label;
-    const activeGalleryDate = formatTimeDate(gallery.date_created || gallery.attachments.results[galleryIndex].submission.date_created);
+  onOpenSingleModal({gallery, galleryTitle, galleryIndex}) {
+    const activeGalleryDate = formatTimeDate(gallery.date_created || gallery[galleryIndex].submission.date_created);
     const modalFriendlyAttachments = gallery.attachments ? gallery.attachments.results : gallery;
 
     this.setState({
       activeGallery: gallery,
       activeGalleryAttachments: modalFriendlyAttachments,
       activeGalleryIndex: parseInt(galleryIndex),
-      activeGalleryTitle: activeGalleryTitle,
+      activeGalleryTitle: galleryTitle,
       activeGalleryDate: activeGalleryDate,
     });
   }

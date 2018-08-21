@@ -42,8 +42,6 @@ export default class FormGallery extends React.Component {
     return {
       hasMoreRecords: false,
       nextRecordsPage: 2,
-      activeTitle: null,
-      activeDate: null,
       filterQuery: galleryStore.getInitialState().filterQuery,
       filterGroupBy: galleryStore.getInitialState().filterGroupBy,
       galleryData: {
@@ -54,9 +52,7 @@ export default class FormGallery extends React.Component {
             attachments: []
           }
         ]
-      },
-      galleryIndex: 0,
-      galleryItemIndex: 0
+      }
     };
   }
 
@@ -133,40 +129,6 @@ export default class FormGallery extends React.Component {
       });
   }
 
-  openModal(gallery, galleryItemIndex) {
-    const galleryTitle =
-      gallery.label ||
-      gallery.attachments.results[galleryItemIndex].question.label;
-    const galleryDate = formatTimeDate(
-      gallery.date_created ||
-      gallery.attachments.results[galleryItemIndex].submission.date_created
-    );
-    const modalFriendlyAttachments = gallery.attachments ? gallery.attachments.results : gallery;
-
-    this.setState({
-      galleryItemIndex: galleryItemIndex,
-      galleryTitle: galleryTitle,
-      galleryDate: galleryDate
-    });
-
-    stores.pageState.showModal({
-      type: MODAL_TYPES.GALLERY_SINGLE,
-      activeGallery: gallery,
-      changeActiveGalleryIndex: this.changeActiveGalleryIndex,
-      updateActiveAsset: this.updateActiveAsset,
-      galleryItemIndex: galleryItemIndex,
-      galleryTitle: galleryTitle,
-      galleryDate: galleryDate,
-      activeGalleryAttachments: modalFriendlyAttachments
-    });
-  }
-
-  changeActiveGalleryIndex(newIndex) {
-    this.setState({
-      galleryItemIndex: newIndex
-    });
-  }
-
   render() {
     if (!this.state.galleryData.loaded) {
       return (
@@ -225,7 +187,6 @@ export default class FormGallery extends React.Component {
                     gallery={record}
                     totalAttachmentsCount={record.attachments.count}
                     loadMoreAttachments={this.loadMoreAttachments}
-                    openModal={this.openModal}
                     defaultPageSize={DEFAULT_PAGE_SIZE}
                   />
                 );

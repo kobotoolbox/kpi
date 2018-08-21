@@ -17,41 +17,24 @@ import {
   GALLERY_FILTER_OPTIONS
 } from '../../constants';
 
+const OFFSET_OPTIONS = [
+  {value: 12, label: '12'},
+  {value: 24, label: '24'},
+  {value: 48, label: '48'},
+  {value: 96, label: '96'}
+];
+const SORT_OPTIONS = [
+  {label: t('Show oldest first'), value: 'asc'},
+  {label: t('Show latest first'), value: 'desc'}
+];
+
 export default class PaginatedGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
     this.state = {
-      offset: 10,
-      offsetOptions: [
-        {
-          value: 10,
-          label: 10
-        },
-        {
-          value: 25,
-          label: 25
-        },
-        {
-          value: 50,
-          label: 50
-        },
-        {
-          value: 100,
-          label: 100
-        }
-      ],
-      sortOptions: [
-        {
-          label: t('Show latest first'),
-          value: 'desc'
-        },
-        {
-          label: t('Show oldest first'),
-          value: 'asc'
-        }
-      ],
-      sortValue: 'asc',
+      offsetVal: OFFSET_OPTIONS[0].value,
+      sortValue: SORT_OPTIONS[0].value,
       paginated_attachments: [],
       flat_attachments: [],
       attachments_count: this.props.totalAttachmentsCount,
@@ -83,15 +66,15 @@ export default class PaginatedGalleryModal extends React.Component {
   }
   setTotalPages() {
     let totalPages = Math.ceil(
-      this.state.attachments_count / this.state.offset
+      this.state.attachments_count / this.state.offsetVal
     );
     this.setState({ totalPages: totalPages });
   }
   setActiveAttachmentsIndex(index) {
     this.setState({ activeAttachmentsIndex: index });
   }
-  changeOffset(offset) {
-    this.setState({ offset: offset }, function() {
+  changeOffset(offsetVal) {
+    this.setState({ offsetVal: offsetVal }, function() {
       this.resetGallery();
     });
   }
@@ -121,7 +104,7 @@ export default class PaginatedGalleryModal extends React.Component {
         'question',
         this.props.galleryIndex,
         page,
-        this.state.offset,
+        this.state.offsetVal,
         this.state.sortValue
       )
       .done(response => {
@@ -169,7 +152,7 @@ export default class PaginatedGalleryModal extends React.Component {
           <h4>
             {t('Showing')}
             {' '}
-            <b>{this.state.offset}</b>
+            <b>{this.state.offsetVal}</b>
             {' '}
             {t('of')}
             {' '}
@@ -179,19 +162,17 @@ export default class PaginatedGalleryModal extends React.Component {
 
         <bem.PaginatedGalleryModal_body>
           <GalleryControls
-            offsetOptions={this.state.offsetOptions}
-            offsetValue={this.state.offset}
+            offsetValue={this.state.offsetVal}
             changeOffset={this.changeOffset}
             pageCount={this.state.totalPages}
             goToPage={this.goToPage}
             activeAttachmentsIndex={this.state.activeAttachmentsIndex}
-            sortOptions={this.state.sortOptions}
             sortValue={this.state.sortValue}
             changeSort={this.changeSort}
           />
 
           <bem.PaginatedGalleryModal_galleryWrapper>
-            <bem.AssetGalleryGrid m='10-per-row'>
+            <bem.AssetGalleryGrid m='6-per-row'>
               {this.state.paginated_attachments[
                 'page_' + (this.state.activeAttachmentsIndex + 1)
               ] != undefined
@@ -226,9 +207,8 @@ export default class PaginatedGalleryModal extends React.Component {
                           itemTitle={itemTitle}
                           url={item.small_download_url}
                           gallery={this.state.flat_attachments}
+                          galleryTitle={this.props.galleryTitle}
                           galleryItemIndex={this.findItemIndex(item.id)}
-                          openModal={this.props.openModal}
-                          setGalleryDateAndTitleonModalOpen={false}
                         />
                       );
                     }.bind(this)
@@ -238,13 +218,11 @@ export default class PaginatedGalleryModal extends React.Component {
           </bem.PaginatedGalleryModal_galleryWrapper>
 
           <GalleryControls
-            offsetOptions={this.state.offsetOptions}
-            offsetValue={this.state.offset}
+            offsetValue={this.state.offsetVal}
             changeOffset={this.changeOffset}
             pageCount={this.state.totalPages}
             goToPage={this.goToPage}
             activeAttachmentsIndex={this.state.activeAttachmentsIndex}
-            sortOptions={this.state.sortOptions}
             sortValue={this.state.sortValue}
             changeSort={this.changeSort}
             selectDirectionUp
@@ -266,7 +244,7 @@ class GalleryControls extends React.Component {
 
           <Select
             className='Select--underlined'
-            options={this.props.offsetOptions}
+            options={OFFSET_OPTIONS}
             simpleValue
             name='selected-filter'
             value={this.props.offsetValue}
@@ -293,7 +271,7 @@ class GalleryControls extends React.Component {
 
         <Select
           className='Select--underlined change-sort'
-          options={this.props.sortOptions}
+          options={SORT_OPTIONS}
           simpleValue
           name='selected-filter'
           value={this.props.sortValue}
