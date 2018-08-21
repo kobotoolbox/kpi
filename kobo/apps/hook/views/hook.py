@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
+from ..tasks import retry_all_task
 from ..models.hook import Hook
 from ..serializers.hook import HookSerializer
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
@@ -172,14 +173,13 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L60`
             threshold = timezone.now() - timedelta(seconds=seconds)
 
-            logs = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
+            hook_logs = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
                                     Q(status=HOOK_LOG_FAILED))
-            if len(logs) > 0:
-                # TODO send to Celery
-                for hook_log in logs:
-                    hook_log.retry()
+
+            if len(hook_logs) > 0:
+                retry_all_task.delay(hook_logs)
                 response.update({
-                    "pending_uids": [log.uid for log in logs]
+                    "pending_uids": [hook_log.uid for hook_log in hook_logs]
                 })
 
             else:

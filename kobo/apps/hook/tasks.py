@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import time
+
 from celery import shared_task
 from django.conf import settings
 
@@ -28,3 +30,13 @@ def service_definition_task(self, hook, uuid):
         raise self.retry(countdown=countdown, max_retries=settings.HOOK_MAX_RETRIES)
 
     return True
+
+
+@shared_task
+def retry_all_task(hook_logs):
+    """
+    :param list: <HookLog>.
+    """
+    for hook_log in hook_logs:
+        hook_log.retry()
+        time.sleep(0.2)
