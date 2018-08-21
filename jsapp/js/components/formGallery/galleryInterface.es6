@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import stores from 'js/stores';
+import {dataInterface} from 'js/dataInterface';
 import {
   assign,
   stateChanges,
@@ -10,7 +11,10 @@ import {
   GALLERY_FILTER_OPTIONS
 } from 'js/constants';
 
+const DEFAULT_PAGE_SIZE = 6;
+
 export const galleryActions = Reflux.createActions([
+  'loadGalleryData',
   'openSingleModal',
   'setActiveGalleryIndex',
   'setFilters'
@@ -36,8 +40,30 @@ class GalleryStore extends Reflux.Store {
       activeGalleryTitle: null,
       activeGalleryDate: null,
       filterQuery: '',
-      filterGroupBy: GALLERY_FILTER_OPTIONS.question
+      filterGroupBy: GALLERY_FILTER_OPTIONS.question,
+      selectedGalleryIndex: null,
+      selectedMediaIndex: null,
+      galleries: [],
+      totalMediaCount: null,
+      nextPageUrl: null,
+      isLoadingData: false
     };
+  }
+
+  onLoadGalleryData(uid) {
+    this.setState({
+      isLoadingData: true
+    });
+    dataInterface.filterGalleryImages(uid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
+      .done((response) => {
+        console.log(response);
+        this.setState({
+          galleries: response.results,
+          totalMediaCount: response.attachments_count,
+          nextPageUrl: response.next,
+          isLoadingData: false
+        });
+      });
   }
 
   onOpenSingleModal({gallery, galleryTitle, galleryIndex}) {

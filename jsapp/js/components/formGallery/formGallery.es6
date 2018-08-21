@@ -61,6 +61,7 @@ export default class FormGallery extends React.Component {
   }
 
   loadGalleryData(uid) {
+    galleryActions.loadGalleryData(uid);
     dataInterface
       .filterGalleryImages(uid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
       .done(response => {
