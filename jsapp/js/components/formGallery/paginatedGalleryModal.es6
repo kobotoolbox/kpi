@@ -190,7 +190,7 @@ export default class PaginatedGalleryModal extends React.Component {
             changeSort={this.changeSort}
           />
 
-          <div className='paginated-modal__body__gallery-wrapper'>
+          <bem.PaginatedGalleryModal_galleryWrapper>
             <bem.AssetGalleryGrid m='10-per-row'>
               {this.state.paginated_attachments[
                 'page_' + (this.state.activeAttachmentsIndex + 1)
@@ -235,7 +235,7 @@ export default class PaginatedGalleryModal extends React.Component {
                   )
                 : null}
             </bem.AssetGalleryGrid>
-          </div>
+          </bem.PaginatedGalleryModal_galleryWrapper>
 
           <GalleryControls
             offsetOptions={this.state.offsetOptions}
@@ -258,61 +258,51 @@ export default class PaginatedGalleryModal extends React.Component {
 
 class GalleryControls extends React.Component {
   render() {
-    let selectDirectionClassName = this.props.selectDirectionUp
-      ? 'select-direction-up'
-      : '';
+    const controlsMod = this.props.selectDirectionUp ? 'select-direction-up' : '';
     return (
-      <div
-        className={
-          'paginated-modal__body__gallery-controls ' + selectDirectionClassName
-        }
-      >
+      <bem.PaginatedGalleryModal_controls m={controlsMod}>
         <div className='change-offset'>
           <label>{t('Per page:')}</label>
-          <div className='form-modal__item'>
-            <Select
-              className='icon-button-select'
-              options={this.props.offsetOptions}
-              simpleValue
-              name='selected-filter'
-              value={this.props.offsetValue}
-              onChange={this.props.changeOffset}
-              autoBlur
-              searchable={false}
-              clearable={false}
-            />
-          </div>
-        </div>
-        <div className='form-modal__item'>
-          <ReactPaginate
-            previousLabel={'Prev'}
-            nextLabel={'Next'}
-            breakLabel={'...'}
-            breakClassName={'break-me'}
-            pageCount={this.props.pageCount}
-            marginPagesDisplayed={1}
-            pageRangeDisplayed={3}
-            onPageChange={this.props.goToPage}
-            containerClassName={'pagination'}
-            activeClassName={'active'}
-            forcePage={this.props.activeAttachmentsIndex}
-          />
-        </div>
 
-        <div className='form-modal__item change-sort'>
           <Select
-            className='icon-button-select'
-            options={this.props.sortOptions}
+            className='Select--underlined'
+            options={this.props.offsetOptions}
             simpleValue
             name='selected-filter'
-            value={this.props.sortValue}
-            onChange={this.props.changeSort}
+            value={this.props.offsetValue}
+            onChange={this.props.changeOffset}
             autoBlur
             searchable={false}
             clearable={false}
           />
         </div>
-      </div>
+
+        <ReactPaginate
+          previousLabel={'Prev'}
+          nextLabel={'Next'}
+          breakLabel={'...'}
+          breakClassName={'break-me'}
+          pageCount={this.props.pageCount}
+          marginPagesDisplayed={1}
+          pageRangeDisplayed={3}
+          onPageChange={this.props.goToPage}
+          containerClassName={'pagination'}
+          activeClassName={'active'}
+          forcePage={this.props.activeAttachmentsIndex}
+        />
+
+        <Select
+          className='Select--underlined change-sort'
+          options={this.props.sortOptions}
+          simpleValue
+          name='selected-filter'
+          value={this.props.sortValue}
+          onChange={this.props.changeSort}
+          autoBlur
+          searchable={false}
+          clearable={false}
+        />
+      </bem.PaginatedGalleryModal_controls>
     );
   }
 };

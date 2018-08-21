@@ -270,6 +270,8 @@ bem.SingleGalleryModal__sidebarGridItem = bem.SingleGalleryModal.__('sidebar__gr
 bem.PaginatedGalleryModal = BEM('paginated-gallery-modal');
 bem.PaginatedGalleryModal_heading = bem.PaginatedGalleryModal.__('heading');
 bem.PaginatedGalleryModal_body = bem.PaginatedGalleryModal.__('body');
+bem.PaginatedGalleryModal_controls = bem.PaginatedGalleryModal.__('controls');
+bem.PaginatedGalleryModal_galleryWrapper = bem.PaginatedGalleryModal.__('gallery-wrapper');
 
 bem.create = BEM;
 

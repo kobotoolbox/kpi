@@ -81,7 +81,7 @@ export default class FormGalleryGrid extends React.Component {
         return (
           <bem.AssetGallery__loadMore>
             <button
-              onClick={this.openPaginatedGalleryModal}
+              onClick={this.openPaginatedGalleryModal.bind(this)}
               className='mdl-button mdl-button--colored'
             >
               {t('See all ##count## images').replace('##count##', this.props.totalAttachmentsCount)}

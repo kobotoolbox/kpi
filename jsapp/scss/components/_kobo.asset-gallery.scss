@@ -3,6 +3,7 @@
 
 $icon-font-size: 40px;
 $s-gallery-spacing: 10px;
+$gallery-transition: 250ms ease-in-out;
 
 @mixin aspect-ratio($width, $height) {
   position: relative;
@@ -133,13 +134,17 @@ $s-gallery-spacing: 10px;
 
     .asset-gallery-grid__item__overlay {
       opacity: 0;
-      transition: 0.2s all;
+      visibility: hidden;
+      transition: $gallery-transition;
+      // leave overlay for a moment after mouseleave
+      transition-delay: 250ms;
       background: rgba($black, 0.6666);
     }
 
     &:hover .asset-gallery-grid__item__overlay {
       opacity: 1;
-      transition: 0.3s all;
+      visibility: visible;
+      transition-delay: 0ms;
     }
 
     .asset-gallery-grid__item__overlay-text {
@@ -210,7 +215,7 @@ $s-gallery-spacing: 10px;
       z-index: 8;
       visibility: hidden;
       opacity: 0;
-      transition: all 250ms ease-in-out;
+      transition: $gallery-transition;
 
       .k-icon-next, .k-icon-prev {
         color: #fff;
@@ -325,116 +330,97 @@ $s-gallery-spacing: 10px;
 .paginated-gallery-modal {
   .paginated-gallery-modal__heading {
     border-bottom: 1px solid $cool-lightgray;
-    padding: 0px 20px 30px 20px;
+    padding: 2* $s-gallery-spacing;
+    color: $black;
 
-    > h2 {
-      color: $black;
-      margin-bottom: 10px;
+    h2 {
+      margin: 0 0 $s-gallery-spacing;
+      color: inherit;
       font-size: 1.75em;
-      margin-top: 0;
       font-weight: 500;
     }
 
     h4 {
-      color: $black;
-      margin: 0px;
+      margin: 0;
+      color: inherit;
       font-size: 1em;
     }
   }
 
-  .paginated-gallery-modal__body {
-    padding: 0 20px;
+  .paginated-gallery-modal__controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    margin: 2* $s-gallery-spacing;
 
-    .paginated-gallery-modal__body__gallery-controls {
+    label + .Select {
+      margin-left: 5px;
+    }
+
+    &.paginated-gallery-modal__controls--select-direction-up {
+      .Select-menu-outer {
+        top: auto;
+        bottom: 100%;
+      }
+    }
+
+    .change-sort {
+      .Select-control {
+        min-width: 220px;
+      }
+    }
+
+    .change-offset {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex: 1;
-      flex-wrap: nowrap;
-      padding-top: 40px;
 
-      label {
-        display: block;
-        padding-bottom: 20px;
-        font-size: 1.3em;
-        padding-right: 10px;
-      }
-
-      .change-sort {
-        // flex-grow: 1;
-        .Select-control {
-          min-width: 220px;
-        }
-      }
-
-      .change-offset {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        .Select-control {
-          min-width: 70px;
-        }
-      }
-
-      &.select-direction-up {
-        .Select-menu-outer {
-          top: auto;
-          bottom: 100%;
-        }
+      .Select-control {
+        min-width: 70px;
       }
     }
 
-    .paginated-gallery-modal__body__gallery-wrapper {
-      overflow-y: auto;
-      height: 50vh;
-    }
-  }
-}
+    ul.pagination {
+      text-align: center;
 
-ul.pagination {
-  font-size: 1.2em;
-  text-align: center;
+      li {
+        list-style: none;
+        cursor: pointer;
+        display: inline-block;
 
-  li {
-    list-style: none;
-    cursor: pointer;
-    display: inline-block;
-    margin: 10px;
+        &:not(:first-child) {
+          margin-left: $s-gallery-spacing;
+        }
 
-    a {
-      transition: .3s ease-in-out;
-      color: $black;
-      padding: 10px;
-      min-width: 40px;
-      display: block;
-    }
+        &.disabled {
+          pointer-events: none;
+          opacity: 0.5;
+        }
 
-    &.active {
-      a {
-        background: $cool-blue;
-        border-radius: 3px;
-        color: white;
-        font-weight: 600;
-      }
+        a {
+          color: $black;
+          min-width: 33px;
+          line-height: 33px;
+          display: block;
+        }
 
-      &:hover {
-        color: white;
+        &:hover {
+          opacity: 0.75;
+        }
+
+        &.active {
+          a {
+            background: $cool-blue;
+            border-radius: 2px;
+            color: white;
+            font-weight: 600;
+          }
+        }
       }
     }
   }
 
-  li.next, li.previous {
-    &:hover {
-      a {
-        color: $cool-blue;
-      }
-    }
-
-    &.disabled {
-      a {
-        color: $cool-lightgray;
-      }
-    }
+  .paginated-gallery-modal__gallery-wrapper {
+    margin: 2* $s-gallery-spacing;
   }
 }

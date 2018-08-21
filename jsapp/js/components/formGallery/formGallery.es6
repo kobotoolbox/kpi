@@ -201,7 +201,7 @@ export default class FormGallery extends React.Component {
           />
 
           {this.state.galleryData.results.map(
-            function(record, i) {
+            (record, i) => {
               let galleryTitle;
               if (
                 this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
@@ -237,7 +237,7 @@ export default class FormGallery extends React.Component {
               } else {
                 return null;
               }
-            }.bind(this)
+            }
           )}
 
           { this.state.hasMoreRecords &&
