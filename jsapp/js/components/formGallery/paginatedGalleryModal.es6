@@ -41,7 +41,7 @@ export default class PaginatedGalleryModal extends React.Component {
       totalPages: 0,
       currentAttachmentsLoaded: 0,
       activeAttachmentsIndex: 0,
-      filterGroupBy: galleryStore.getInitialState().filterGroupBy
+      filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
 

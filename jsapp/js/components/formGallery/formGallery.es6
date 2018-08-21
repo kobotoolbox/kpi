@@ -42,8 +42,8 @@ export default class FormGallery extends React.Component {
     return {
       hasMoreRecords: false,
       nextRecordsPage: 2,
-      filterQuery: galleryStore.getInitialState().filterQuery,
-      filterGroupBy: galleryStore.getInitialState().filterGroupBy,
+      filterQuery: galleryStore.state.filterQuery,
+      filterGroupBy: galleryStore.state.filterGroupBy,
       galleryData: {
         count: 0,
         loaded: false,
@@ -197,16 +197,16 @@ export default class FormGallery extends React.Component {
           )}
 
           { this.state.hasMoreRecords &&
-            this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+            this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.submission.value &&
             this.state.filterQuery === '' &&
-            <bem.AssetGallery__gridLoadMore>
+            <bem.AssetGallery__loadMore>
               <button
                 onClick={this.loadMoreRecords}
                 className='mdl-button mdl-button--colored'
               >
                 {t('Load more')}
               </button>
-            </bem.AssetGallery__gridLoadMore>
+            </bem.AssetGallery__loadMore>
           }
         </bem.AssetGallery>
       );

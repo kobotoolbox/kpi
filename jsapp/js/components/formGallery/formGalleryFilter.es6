@@ -21,8 +21,8 @@ export default class FormGalleryFilter extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      filterQuery: galleryStore.getInitialState().filterQuery,
-      filterGroupBy: galleryStore.getInitialState().filterGroupBy
+      filterQuery: galleryStore.state.filterQuery,
+      filterGroupBy: galleryStore.state.filterGroupBy
     };
     autoBind(this);
   }

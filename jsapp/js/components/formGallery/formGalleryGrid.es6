@@ -24,7 +24,7 @@ export default class FormGalleryGrid extends React.Component {
       galleryPage: 1,
       hasMoreAttachments: false,
       loadedAttachmentsCount: 0,
-      filterGroupBy: galleryStore.getInitialState().filterGroupBy
+      filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
 
