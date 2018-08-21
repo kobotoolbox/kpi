@@ -504,6 +504,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
+    version__content_hash = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = PaginatedApiField(
@@ -532,6 +533,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'summary',
                   'date_modified',
                   'version_id',
+                  'version__content_hash',
                   'version_count',
                   'has_deployment',
                   'deployed_version_id',

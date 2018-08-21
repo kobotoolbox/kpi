@@ -19,6 +19,7 @@ from kpi.models import AssetFile
 from kpi.models import AssetVersion
 from kpi.models import Collection
 from kpi.models import ExportTask
+from kpi.serializers import AssetListSerializer
 from .kpi_test_case import KpiTestCase
 from formpack.utils.expand_content import SCHEMA_VERSION
 
@@ -30,6 +31,7 @@ class AssetsListApiTests(APITestCase):
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
+        self.list_url = reverse('asset-list')
 
     def test_login_as_other_users(self):
         self.client.logout()
@@ -42,12 +44,11 @@ class AssetsListApiTests(APITestCase):
         """
         Ensure we can create a new asset
         """
-        url = reverse('asset-list')
         data = {
             'content': '{}',
             'asset_type': 'survey',
         }
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.list_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                          msg=response.data)
         sa = Asset.objects.order_by('date_created').last()
@@ -62,6 +63,23 @@ class AssetsListApiTests(APITestCase):
         response = self.client.delete(asset_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=response.data)
+
+    def test_asset_list_matches_detail(self):
+        detail_response = self.test_create_asset()
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK,
+                         msg=list_response.data)
+        expected_list_data = {
+            field: detail_response.data[field]
+                for field in AssetListSerializer.Meta.fields
+        }
+        list_result_detail = None
+        for result in list_response.data['results']:
+            if result['uid'] == expected_list_data['uid']:
+                list_result_detail = result
+                break
+        self.assertIsNotNone(list_result_detail)
+        self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
 
 class AssetVersionApiTests(APITestCase):
@@ -252,6 +270,15 @@ class AssetsDetailApiTests(APITestCase):
 
     def test_map_custom_field(self):
         self.check_asset_writable_json_field('map_custom')
+
+    def test_asset_version_id_and_content_hash(self):
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.asset.version_id, self.asset.latest_version.uid)
+        self.assertEqual(response.data['version_id'],
+                         self.asset.version_id)
+        self.assertEqual(response.data['version__content_hash'],
+                         self.asset.latest_version.content_hash)
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
