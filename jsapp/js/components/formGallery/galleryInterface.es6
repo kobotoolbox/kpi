@@ -15,7 +15,7 @@ import {
   GALLERY_FILTER_OPTIONS
 } from 'js/constants';
 
-const DEFAULT_PAGE_SIZE = 6;
+export const DEFAULT_PAGE_SIZE = 6;
 
 export const galleryActions = Reflux.createActions([
   'setFormUid',

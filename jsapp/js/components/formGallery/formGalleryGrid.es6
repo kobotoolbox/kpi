@@ -6,7 +6,11 @@ import bem from '../../bem';
 import FormGalleryGridItem from './formGalleryGridItem';
 import PaginatedGalleryModal from './paginatedGalleryModal';
 import stores from '../../stores';
-import {galleryActions, galleryStore} from './galleryInterface';
+import {
+  DEFAULT_PAGE_SIZE,
+  galleryActions,
+  galleryStore
+} from './galleryInterface';
 import {
   t,
   formatTimeDate
@@ -16,7 +20,7 @@ import {
   GALLERY_FILTER_OPTIONS
 } from '../../constants';
 
-const GRID_PAGE_LIMIT = 12;
+const GRID_PAGE_LIMIT = DEFAULT_PAGE_SIZE * 2;
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {
