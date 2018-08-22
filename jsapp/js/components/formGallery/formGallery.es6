@@ -18,8 +18,6 @@ import {
   GALLERY_FILTER_OPTIONS
 } from '../../constants';
 
-const DEFAULT_PAGE_SIZE = 6;
-
 export default class FormGallery extends React.Component {
   constructor(props) {
     super(props);
@@ -47,35 +45,8 @@ export default class FormGallery extends React.Component {
     return this.props.mediaQuestions.length !== 0;
   }
 
-  // Pagination
-  loadMoreAttachments(galleryIndex, galleryPage) {
-    dataInterface.loadQuestionAttachment(
-        this.props.uid,
-        this.state.filterGroupBy.value,
-        galleryIndex,
-        galleryPage,
-        DEFAULT_PAGE_SIZE
-      )
-      .done(response => {
-        let galleryData = this.state.galleryData;
-        galleryData.results[galleryIndex].attachments.results.push(
-          ...response.attachments.results
-        );
-        galleryData.loaded = true;
-        this.setState({ galleryData });
-      });
-  }
-
-  loadMoreRecords() {
-    galleryActions.loadNextRecordsPage();
-  }
-
-  getGalleryTitleFromData(galleryData, galleryIndex) {
-    if (this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value) {
-      return galleryData.label || t('Unknown question');
-    } else {
-      return t('Record ##number##').replace('##number##', parseInt(galleryIndex) + 1);
-    }
+  loadMoreGalleries() {
+    galleryActions.loadMoreGalleries();
   }
 
   isGalleryMatchingSearchQuery(galleryData) {
@@ -128,17 +99,7 @@ export default class FormGallery extends React.Component {
             (record, i) => {
               if (this.isGalleryMatchingSearchQuery(record)) {
                 return (
-                  <FormGalleryGrid
-                    key={i}
-                    uid={this.props.uid}
-                    galleryTitle={this.getGalleryTitleFromData(record, i)}
-                    galleryIndex={i}
-                    galleryItems={record.attachments.results}
-                    gallery={record}
-                    totalAttachmentsCount={record.attachments.count}
-                    loadMoreAttachments={this.loadMoreAttachments}
-                    defaultPageSize={DEFAULT_PAGE_SIZE}
-                  />
+                  <FormGalleryGrid key={i} galleryIndex={i}/>
                 );
               } else {
                 return null;
@@ -155,7 +116,7 @@ export default class FormGallery extends React.Component {
                 </bem.AssetGallery__loadMoreMessage>
               }
               {!this.state.isLoadingGalleries &&
-                <bem.AssetGallery__loadMoreButton onClick={this.loadMoreRecords}>
+                <bem.AssetGallery__loadMoreButton onClick={this.loadMoreGalleries}>
                   {t('Load more results')}
                 </bem.AssetGallery__loadMoreButton>
               }

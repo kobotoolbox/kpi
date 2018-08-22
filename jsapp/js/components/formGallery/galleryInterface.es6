@@ -22,7 +22,8 @@ export const galleryActions = Reflux.createActions([
   'openSingleModal',
   'setActiveGalleryIndex',
   'setFilters',
-  'loadNextRecordsPage'
+  'loadMoreGalleries',
+  'loadMoreGalleryMedias'
 ]);
 
 galleryActions.openSingleModal.listen((/*{gallery, galleryTitle, galleryIndex}*/) => {
@@ -62,6 +63,7 @@ class GalleryStore extends Reflux.Store {
   getWipedGalleriesState() {
     return {
       galleries: [],
+      areLoadingMedias: {},
       nextPageUrl: null,
       totalMediaCount: null,
       selectedGalleryIndex: null,
@@ -125,11 +127,21 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  onLoadNextRecordsPage() {
+  onLoadMoreGalleries() {
     if (this.state.nextPageUrl) {
-      this.loadNextPageUrl();
+      this.loadNextGalleriesPage();
     } else {
-      throw new Error('No next page to load!');
+      throw new Error('No more galleries to load!');
+    }
+  }
+
+  onLoadMoreGalleryMedias(galleryIndex) {
+    const targetGallery = this.state.galleries[galleryIndex];
+    const nextPageUrl = targetGallery.attachments.next;
+    if (nextPageUrl) {
+      this.loadNextGalleryMediasPage(galleryIndex, nextPageUrl);
+    } else {
+      throw new Error('No more gallery medias to load!');
     }
   }
 
@@ -152,7 +164,7 @@ class GalleryStore extends Reflux.Store {
       });
   }
 
-  loadNextPageUrl() {
+  loadNextGalleriesPage() {
     this.setState({isLoadingGalleries: true});
     dataInterface.loadNextPageUrl(this.state.nextPageUrl)
       .done((response) => {
@@ -164,6 +176,33 @@ class GalleryStore extends Reflux.Store {
           isLoadingGalleries: false
         });
       });
+  }
+
+  loadNextGalleryMediasPage(galleryIndex, nextPageUrl) {
+    this.setIsLoadingMedias(galleryIndex, true);
+    dataInterface.loadNextPageUrl(nextPageUrl)
+      .done((response) => {
+        console.log(response);
+        const currentGalleries = [];
+        assign(currentGalleries, this.state.galleries);
+        const targetGallery = currentGalleries[galleryIndex];
+        targetGallery.attachments.count = response.attachments.count;
+        targetGallery.attachments.next = response.attachments.next;
+        targetGallery.attachments.next_page = response.attachments.next_page;
+        targetGallery.attachments.previous = response.attachments.previous;
+        targetGallery.attachments.previous_page = response.attachments.previous_page;
+        targetGallery.attachments.results.push(...response.attachments.results);
+        currentGalleries[galleryIndex] = targetGallery;
+        this.setState({galleries: currentGalleries});
+        this.setIsLoadingMedias(galleryIndex, false);
+      });
+  }
+
+  setIsLoadingMedias(galleryIndex, isLoading) {
+    const currentObj = {};
+    assign(currentObj, this.state.areLoadingMedias);
+    currentObj[galleryIndex] = isLoading;
+    this.setState({areLoadingMedias: currentObj});
   }
 }
 
