@@ -70,6 +70,26 @@ export default class FormGallery extends React.Component {
     galleryActions.loadNextRecordsPage();
   }
 
+  getGalleryTitleFromData(galleryData, galleryIndex) {
+    if (this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value) {
+      return galleryData.label || t('Unknown question');
+    } else {
+      return t('Record ##number##').replace('##number##', parseInt(galleryIndex) + 1);
+    }
+  }
+
+  isGalleryMatchingSearchQuery(galleryData) {
+    if (this.state.filterQuery === '') {
+      return true;
+    } else {
+      const searchRegEx = new RegExp(this.state.filterQuery, 'i');
+      return (
+        searchRegEx.test(galleryData.label) ||
+        searchRegEx.test(formatTimeDate(galleryData.date_created))
+      );
+    }
+  }
+
   render() {
     // CASE: form with no media questions
     if (!this.hasAnyMediaQuestions()) {
@@ -106,29 +126,12 @@ export default class FormGallery extends React.Component {
 
           {this.state.galleries.map(
             (record, i) => {
-              let galleryTitle;
-              if (
-                this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
-                record.label
-              ) {
-                galleryTitle = record.label;
-              } else {
-                galleryTitle = t('Record') + ' ' + parseInt(i + 1);
-              }
-
-              let searchRegEx = new RegExp(this.state.filterQuery, 'i');
-              let searchTermMatched =
-                this.state.filterQuery == '' ||
-                galleryTitle.match(searchRegEx) ||
-                formatTimeDate(record.date_created).match(
-                  this.state.filterQuery
-                );
-              if (searchTermMatched) {
+              if (this.isGalleryMatchingSearchQuery(record)) {
                 return (
                   <FormGalleryGrid
                     key={i}
                     uid={this.props.uid}
-                    galleryTitle={galleryTitle}
+                    galleryTitle={this.getGalleryTitleFromData(record, i)}
                     galleryIndex={i}
                     galleryItems={record.attachments.results}
                     gallery={record}

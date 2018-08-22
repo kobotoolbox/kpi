@@ -184,7 +184,12 @@ $gallery-transition: 250ms ease-in-out;
 }
 
 .single-gallery-modal {
-  height: 100%;
+  // absolute positioning forces it to take whole modal space
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   overflow: hidden;
   display: flex;
   align-items: stretch;
