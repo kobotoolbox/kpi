@@ -7,12 +7,14 @@ import Reflux from 'reflux';
 import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
-import {galleryActions, galleryStore} from './galleryInterface';
+import {
+  galleryActions,
+  galleryStore
+} from './galleryInterface';
 import {
   assign,
   t
 } from '../../utils';
-import {GALLERY_FILTER_OPTIONS} from '../../constants';
 
 export default class SingleGalleryModal extends React.Component {
   constructor(props) {
@@ -79,7 +81,7 @@ export default class SingleGalleryModal extends React.Component {
       <bem.Loading>
         <bem.Loading__inner>
           <i />
-          {t('loading...')}
+          {t('Loading…')}
         </bem.Loading__inner>
       </bem.Loading>
     );

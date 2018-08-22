@@ -4,7 +4,11 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
 import stores from '../../stores';
-import {galleryActions, galleryStore} from './galleryInterface';
+import {
+  GROUPBY_OPTIONS,
+  galleryActions,
+  galleryStore
+} from './galleryInterface';
 import { dataInterface } from '../../dataInterface';
 import FormGalleryGridItem from './formGalleryGridItem';
 import {
@@ -13,9 +17,6 @@ import {
 } from '../../utils';
 import ReactPaginate from 'react-paginate';
 import Select from 'react-select';
-import {
-  GALLERY_FILTER_OPTIONS
-} from '../../constants';
 
 const OFFSET_OPTIONS = [
   {value: 12, label: '12'},
@@ -182,7 +183,7 @@ export default class PaginatedGalleryModal extends React.Component {
                     function(item, j) {
                       let timestamp;
                       if (
-                        this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+                        this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value &&
                         this.props.gallery &&
                         this.props.gallery.date_created
                       ) {
@@ -193,7 +194,7 @@ export default class PaginatedGalleryModal extends React.Component {
 
                       let itemTitle;
                       if (
-                        this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
+                        this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value
                       ) {
                         itemTitle = t('Record') + ' ' + parseInt(j + 1)
                       } else if (item.question && item.question.label) {

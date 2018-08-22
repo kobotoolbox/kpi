@@ -7,7 +7,8 @@ import FormGalleryGridItem from './formGalleryGridItem';
 import PaginatedGalleryModal from './paginatedGalleryModal';
 import stores from '../../stores';
 import {
-  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE,
+  GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
 } from './galleryInterface';
@@ -15,12 +16,9 @@ import {
   t,
   formatTimeDate
 } from '../../utils';
-import {
-  MODAL_TYPES,
-  GALLERY_FILTER_OPTIONS
-} from '../../constants';
+import {MODAL_TYPES} from '../../constants';
 
-const GRID_PAGE_LIMIT = DEFAULT_PAGE_SIZE * 2;
+const GRID_PAGE_LIMIT = PAGE_SIZE * 2;
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {
@@ -54,7 +52,7 @@ export default class FormGalleryGrid extends React.Component {
   getMediaDate(media) {
     const galleryDateCreated = this.state.gallery.date_created;
     if (
-      this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value &&
+      this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value &&
       galleryDateCreated
     ) {
       return galleryDateCreated;
@@ -65,7 +63,7 @@ export default class FormGalleryGrid extends React.Component {
 
   getMediaTitle(media, mediaIndex) {
     if (
-      this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value
+      this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value
     ) {
       return t('Record') + ' ' + parseInt(mediaIndex + 1)
     } else if (media.question && media.question.label) {
@@ -74,7 +72,7 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   getGalleryTitle() {
-    if (this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.question.value) {
+    if (this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
       return this.state.gallery.label || t('Unknown question');
     } else {
       return t('Record ##number##').replace('##number##', parseInt(this.props.galleryIndex) + 1);

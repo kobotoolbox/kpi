@@ -5,7 +5,10 @@ import Reflux from 'reflux';
 import bem from '../../bem';
 import { dataInterface } from '../../dataInterface';
 import stores from '../../stores';
-import {galleryActions, galleryStore} from './galleryInterface';
+import {
+  galleryActions,
+  galleryStore
+} from './galleryInterface';
 import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
 import {
@@ -13,10 +16,7 @@ import {
   assign,
   formatTimeDate
 } from '../../utils';
-import {
-  MODAL_TYPES,
-  GALLERY_FILTER_OPTIONS
-} from '../../constants';
+import {MODAL_TYPES} from '../../constants';
 
 export default class FormGallery extends React.Component {
   constructor(props) {
@@ -82,7 +82,7 @@ export default class FormGallery extends React.Component {
           <bem.Loading>
             <bem.Loading__inner>
               <i />
-              {t('loading...')}
+              {t('Loading…')}
             </bem.Loading__inner>
           </bem.Loading>
         </bem.AssetGallery>

@@ -8,13 +8,16 @@ import TextBox from '../textBox';
 import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
-import {galleryActions, galleryStore} from './galleryInterface';
+import {
+  GROUPBY_OPTIONS,
+  galleryActions,
+  galleryStore
+} from './galleryInterface';
 import { t } from '../../utils';
-import { GALLERY_FILTER_OPTIONS } from '../../constants';
 
 const groupByOptions = [
-  GALLERY_FILTER_OPTIONS.question,
-  GALLERY_FILTER_OPTIONS.submission
+  GROUPBY_OPTIONS.question,
+  GROUPBY_OPTIONS.submission
 ];
 
 export default class FormGalleryFilter extends React.Component {
@@ -39,7 +42,7 @@ export default class FormGalleryFilter extends React.Component {
   }
 
   onFilterGroupChange(newVal) {
-    galleryActions.setFilters({filterGroupBy: GALLERY_FILTER_OPTIONS[newVal]});
+    galleryActions.setFilters({filterGroupBy: GROUPBY_OPTIONS[newVal]});
   }
 
   render() {

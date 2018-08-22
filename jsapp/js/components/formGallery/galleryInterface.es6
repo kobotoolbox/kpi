@@ -6,16 +6,25 @@ import Reflux from 'reflux';
 import stores from 'js/stores';
 import {dataInterface} from 'js/dataInterface';
 import {
+  t,
   assign,
   stateChanges,
   formatTimeDate
 } from 'js/utils';
-import {
-  MODAL_TYPES,
-  GALLERY_FILTER_OPTIONS
-} from 'js/constants';
+import {MODAL_TYPES} from 'js/constants';
 
-export const DEFAULT_PAGE_SIZE = 6;
+export const PAGE_SIZE = 6;
+
+export const GROUPBY_OPTIONS = {
+  question: {
+    value: 'question',
+    label: t('Group by question')
+  },
+  submission: {
+    value: 'submission',
+    label: t('Group by record')
+  }
+}
 
 export const galleryActions = Reflux.createActions([
   'setFormUid',
@@ -53,7 +62,7 @@ class GalleryStore extends Reflux.Store {
       // new properties
       formUid: null,
       filterQuery: '',
-      filterGroupBy: GALLERY_FILTER_OPTIONS.question,
+      filterGroupBy: GROUPBY_OPTIONS.question,
       isLoadingGalleries: false,
     });
     assign(stateObj, this.getWipedGalleriesState());
@@ -152,7 +161,7 @@ class GalleryStore extends Reflux.Store {
   wipeAndLoadData() {
     this.setState(this.getWipedGalleriesState());
     this.setState({isLoadingGalleries: true});
-    dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
+    dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, PAGE_SIZE)
       .done((response) => {
         this.setState({
           galleries: response.results,
