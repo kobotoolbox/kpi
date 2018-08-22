@@ -31,7 +31,6 @@ export default class FormGalleryGrid extends React.Component {
 
   componentDidMount() {
     this.listenTo(galleryStore, (storeChanges) => {
-      console.log('galleryStore change', storeChanges);
       if (storeChanges.galleries) {
         this.setState({gallery: storeChanges.galleries[this.props.galleryIndex]});
       }

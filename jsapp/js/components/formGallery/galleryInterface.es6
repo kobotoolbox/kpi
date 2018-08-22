@@ -154,7 +154,6 @@ class GalleryStore extends Reflux.Store {
     this.setState({isLoadingGalleries: true});
     dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
       .done((response) => {
-        console.log(response);
         this.setState({
           galleries: response.results,
           totalMediaCount: response.attachments_count,
@@ -168,7 +167,6 @@ class GalleryStore extends Reflux.Store {
     this.setState({isLoadingGalleries: true});
     dataInterface.loadNextPageUrl(this.state.nextPageUrl)
       .done((response) => {
-        console.log(response);
         this.state.galleries.push(...response.results)
         this.setState({
           totalMediaCount: response.attachments_count,
@@ -182,7 +180,6 @@ class GalleryStore extends Reflux.Store {
     this.setIsLoadingMedias(galleryIndex, true);
     dataInterface.loadNextPageUrl(nextPageUrl)
       .done((response) => {
-        console.log(response);
         const currentGalleries = [];
         assign(currentGalleries, this.state.galleries);
         const targetGallery = currentGalleries[galleryIndex];
