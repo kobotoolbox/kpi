@@ -204,12 +204,11 @@ export default class PaginatedGalleryModal extends React.Component {
                       return (
                         <FormGalleryGridItem
                           key={j}
-                          date={formatTimeDate(timestamp)}
-                          itemTitle={itemTitle}
                           url={item.small_download_url}
-                          gallery={this.state.flat_attachments}
-                          galleryTitle={this.props.galleryTitle}
-                          galleryItemIndex={this.findItemIndex(item.id)}
+                          galleryIndex={this.props.galleryIndex}
+                          mediaTitle={itemTitle}
+                          date={formatTimeDate(timestamp)}
+                          mediaIndex={this.findItemIndex(item.id)}
                         />
                       );
                     }.bind(this)

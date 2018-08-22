@@ -29,7 +29,7 @@ export const GROUPBY_OPTIONS = {
 export const galleryActions = Reflux.createActions([
   'setFormUid',
   'openSingleModal',
-  'setActiveGalleryIndex',
+  'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
   'loadMoreGalleryMedias'
@@ -54,11 +54,6 @@ class GalleryStore extends Reflux.Store {
   getInitialState() {
     const stateObj = {}
     assign(stateObj, {
-      activeGallery: null,
-      activeGalleryIndex: null,
-      activeGalleryAttachments: null,
-      activeGalleryTitle: null,
-      activeGalleryDate: null,
       // new properties
       formUid: null,
       filterQuery: '',
@@ -99,21 +94,11 @@ class GalleryStore extends Reflux.Store {
   managing actions
   */
 
-  onOpenSingleModal({gallery, galleryTitle, galleryIndex}) {
-    const activeGalleryDate = formatTimeDate(gallery.date_created || gallery[galleryIndex].submission.date_created);
-    const modalFriendlyAttachments = gallery.attachments ? gallery.attachments.results : gallery;
-
+  onSelectGalleryMedia(galleryIndex, mediaIndex) {
     this.setState({
-      activeGallery: gallery,
-      activeGalleryAttachments: modalFriendlyAttachments,
-      activeGalleryIndex: parseInt(galleryIndex),
-      activeGalleryTitle: galleryTitle,
-      activeGalleryDate: activeGalleryDate,
+      selectedGalleryIndex: parseInt(galleryIndex),
+      selectedMediaIndex: parseInt(mediaIndex)
     });
-  }
-
-  onSetActiveGalleryIndex(galleryIndex) {
-    this.setState({activeGalleryIndex: parseInt(galleryIndex)});
   }
 
   onSetFilters(filters) {

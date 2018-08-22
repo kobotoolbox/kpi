@@ -141,11 +141,11 @@ export default class FormGalleryGrid extends React.Component {
               return (
                 <FormGalleryGridItem
                   key={index}
-                  date={formatTimeDate(this.getMediaDate(item))}
-                  itemTitle={this.getMediaTitle(item, index)}
                   url={item.small_download_url}
                   galleryIndex={this.props.galleryIndex}
-                  galleryItemIndex={index}
+                  mediaTitle={this.getMediaTitle(item, index)}
+                  date={formatTimeDate(this.getMediaDate(item))}
+                  mediaIndex={index}
                 />
               );
             }
