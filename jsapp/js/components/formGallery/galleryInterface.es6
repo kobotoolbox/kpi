@@ -14,10 +14,11 @@ import {
 const DEFAULT_PAGE_SIZE = 6;
 
 export const galleryActions = Reflux.createActions([
-  'loadGalleryData',
+  'setFormUid',
   'openSingleModal',
   'setActiveGalleryIndex',
-  'setFilters'
+  'setFilters',
+  'loadNextRecordsPage'
 ]);
 
 galleryActions.openSingleModal.listen((/*{gallery, galleryTitle, galleryIndex}*/) => {
@@ -32,39 +33,56 @@ class GalleryStore extends Reflux.Store {
     this.state = this.getInitialState();
   }
 
+  /*
+  managing state
+  */
+
   getInitialState() {
-    return {
+    const stateObj = {}
+    assign(stateObj, {
       activeGallery: null,
       activeGalleryIndex: null,
       activeGalleryAttachments: null,
       activeGalleryTitle: null,
       activeGalleryDate: null,
+      // new properties
+      formUid: null,
       filterQuery: '',
       filterGroupBy: GALLERY_FILTER_OPTIONS.question,
-      selectedGalleryIndex: null,
-      selectedMediaIndex: null,
-      galleries: [],
-      totalMediaCount: null,
-      nextPageUrl: null,
-      isLoadingData: false
-    };
+      isLoadingGalleries: false,
+    });
+    assign(stateObj, this.getWipedGalleriesState());
+    return stateObj;
   }
 
-  onLoadGalleryData(uid) {
-    this.setState({
-      isLoadingData: true
-    });
-    dataInterface.filterGalleryImages(uid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
-      .done((response) => {
-        console.log(response);
-        this.setState({
-          galleries: response.results,
-          totalMediaCount: response.attachments_count,
-          nextPageUrl: response.next,
-          isLoadingData: false
-        });
-      });
+  getWipedGalleriesState() {
+    return {
+      galleries: [],
+      nextPageUrl: null,
+      totalMediaCount: null,
+      selectedGalleryIndex: null,
+      selectedMediaIndex: null
+    }
   }
+
+  setState(newState) {
+    let changes = stateChanges(this.state, newState);
+    if (changes) {
+      assign(this.state, newState);
+      this.trigger(changes);
+    }
+  }
+
+  onSetFormUid(uid) {
+    if (this.state.formUid !== uid) {
+      this.setState({formUid: uid});
+      this.wipeAndLoadData();
+    }
+  }
+
+  /*
+  managing actions
+  */
 
   onOpenSingleModal({gallery, galleryTitle, galleryIndex}) {
     const activeGalleryDate = formatTimeDate(gallery.date_created || gallery[galleryIndex].submission.date_created);
@@ -80,28 +98,68 @@ class GalleryStore extends Reflux.Store {
   }
 
   onSetActiveGalleryIndex(galleryIndex) {
-    this.setState({
-      activeGalleryIndex: parseInt(galleryIndex)
-    });
+    this.setState({activeGalleryIndex: parseInt(galleryIndex)});
   }
 
   onSetFilters(filters) {
+    let needsWipeAndLoad = false;
+
     const updateObj = {};
     if (typeof filters.filterQuery !== 'undefined') {
       updateObj.filterQuery = filters.filterQuery;
     }
     if (typeof filters.filterGroupBy !== 'undefined') {
       updateObj.filterGroupBy = filters.filterGroupBy;
+      if (updateObj.filterGroupBy.value !== this.state.filterGroupBy.value) {
+        needsWipeAndLoad = true;
+      }
     }
     this.setState(updateObj);
+
+    if (needsWipeAndLoad) {
+      this.wipeAndLoadData();
+    }
   }
 
-  setState(newState) {
-    var changes = stateChanges(this.state, newState);
-    if (changes) {
-      assign(this.state, newState);
-      this.trigger(changes);
+  onLoadNextRecordsPage() {
+    if (this.state.nextPageUrl) {
+      this.loadNextPageUrl();
+    } else {
+      throw new Error('No next page to load!');
     }
+  }
+
+  /*
+  fetching data from endpoint
+  */
+
+  wipeAndLoadData() {
+    this.setState(this.getWipedGalleriesState());
+    this.setState({isLoadingGalleries: true});
+    dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, DEFAULT_PAGE_SIZE)
+      .done((response) => {
+        console.log(response);
+        this.setState({
+          galleries: response.results,
+          totalMediaCount: response.attachments_count,
+          nextPageUrl: response.next,
+          isLoadingGalleries: false
+        });
+      });
+  }
+
+  loadNextPageUrl() {
+    this.setState({isLoadingGalleries: true});
+    dataInterface.loadNextPageUrl(this.state.nextPageUrl)
+      .done((response) => {
+        console.log(response);
+        this.state.galleries.push(...response.results)
+        this.setState({
+          totalMediaCount: response.attachments_count,
+          nextPageUrl: response.next,
+          isLoadingGalleries: false
+        });
+      });
   }
 }
 

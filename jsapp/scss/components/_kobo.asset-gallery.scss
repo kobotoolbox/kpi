@@ -82,9 +82,16 @@ $gallery-transition: 250ms ease-in-out;
 .asset-gallery__load-more {
   width: 100%;
 
-  .mdl-button {
+  .asset-gallery__load-more__button,
+  .asset-gallery__load-more__message {
+    @extend .mdl-button, .mdl-button--colored;
     width: 100%;
     background: white;
+  }
+
+  .asset-gallery__load-more__message {
+    color: $cool-gray;
+    pointer-events: none;
   }
 }
 

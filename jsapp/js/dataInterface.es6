@@ -386,6 +386,12 @@ var dataInterface;
         }
       });
     },
+    loadNextPageUrl (nextPageUrl){
+      return $ajax({
+        url: nextPageUrl,
+        method: 'GET'
+      });
+    },
     deployAsset (asset, redeployment) {
       var data = {
         'active': true,

@@ -29,12 +29,9 @@ export default class FormGallery extends React.Component {
 
   componentDidMount() {
     if (this.hasAnyMediaQuestions()) {
-      galleryActions.loadGalleryData(this.props.uid);
+      galleryActions.setFormUid(this.props.uid);
       this.listenTo(galleryStore, (storeChanges) => {
         this.setState(storeChanges);
-        if (storeChanges.filterGroupBy) {
-          this.handleFilterGroupByChange(storeChanges.filterGroupBy);
-        }
       });
     }
   }
@@ -42,30 +39,12 @@ export default class FormGallery extends React.Component {
   getInitialState() {
     const stateObj = {}
     assign(stateObj, galleryStore.state);
-    stateObj.hasMoreRecords = false;
     stateObj.nextRecordsPage = 2;
     return stateObj;
   }
 
   hasAnyMediaQuestions() {
     return this.props.mediaQuestions.length !== 0;
-  }
-
-  handleFilterGroupByChange(newFilter) {
-    dataInterface
-      .filterGalleryImages(this.props.uid, newFilter.value, DEFAULT_PAGE_SIZE)
-      .done((response) => {
-        response.loaded = true;
-        this.setState(this.getInitialState());
-        this.forceUpdate();
-
-        this.setState({
-          galleryData: response,
-          hasMoreRecords: this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.submission.value
-            ? response.next
-            : this.state.hasMoreRecords //Check if more records exist!
-        });
-      });
   }
 
   // Pagination
@@ -88,46 +67,39 @@ export default class FormGallery extends React.Component {
   }
 
   loadMoreRecords() {
-    return dataInterface.loadMoreRecords(
-        this.props.uid,
-        this.state.filterGroupBy.value,
-        this.state.nextRecordsPage,
-        DEFAULT_PAGE_SIZE
-      )
-      .done(response => {
-        let galleryData = this.state.galleryData;
-        galleryData.loaded = true;
-        galleryData.results.push(...response.results);
-        this.setState({
-          galleryData,
-          hasMoreRecords: response.next,
-          nextRecordsPage: this.state.nextRecordsPage + 1
-        });
-      });
+    galleryActions.loadNextRecordsPage();
   }
 
   render() {
-    if (this.state.isLoadingData) {
+    // CASE: form with no media questions
+    if (!this.hasAnyMediaQuestions()) {
       return (
         <bem.AssetGallery>
           <bem.Loading>
-            {this.hasAnyMediaQuestions()
-              ?
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
-              :
-              <bem.Loading__inner>
-                {t('This form does not have any media questions.')}
-              </bem.Loading__inner>
-            }
+            <bem.Loading__inner>
+              {t('This form does not have any media questions.')}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </bem.AssetGallery>
+      )
+    }
+
+    // CASE: loading data from the start
+    else if (this.state.isLoadingGalleries && this.state.galleries.length === 0) {
+      return (
+        <bem.AssetGallery>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <i />
+              {t('loading...')}
+            </bem.Loading__inner>
           </bem.Loading>
         </bem.AssetGallery>
         )
     }
 
-    if (!this.state.isLoadingData && this.hasAnyMediaQuestions()) {
+    // CASE: some data already loaded and possibly loading more
+    else {
       return (
         <bem.AssetGallery>
           <FormGalleryFilter/>
@@ -171,16 +143,19 @@ export default class FormGallery extends React.Component {
             }
           )}
 
-          { this.state.hasMoreRecords &&
-            this.state.filterGroupBy.value === GALLERY_FILTER_OPTIONS.submission.value &&
+          { this.state.nextPageUrl &&
             this.state.filterQuery === '' &&
             <bem.AssetGallery__loadMore>
-              <button
-                onClick={this.loadMoreRecords}
-                className='mdl-button mdl-button--colored'
-              >
-                {t('Load more')}
-              </button>
+              {this.state.isLoadingGalleries &&
+                <bem.AssetGallery__loadMoreMessage>
+                  {t('Loading…')}
+                </bem.AssetGallery__loadMoreMessage>
+              }
+              {!this.state.isLoadingGalleries &&
+                <bem.AssetGallery__loadMoreButton onClick={this.loadMoreRecords}>
+                  {t('Load more results')}
+                </bem.AssetGallery__loadMoreButton>
+              }
             </bem.AssetGallery__loadMore>
           }
         </bem.AssetGallery>

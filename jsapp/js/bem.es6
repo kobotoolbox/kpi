@@ -251,6 +251,8 @@ bem.AssetGallery__heading = bem.AssetGallery.__('heading');
 bem.AssetGallery__headingSearchFilter = bem.AssetGallery.__('heading__search-filter');
 bem.AssetGallery__count = bem.AssetGallery.__('heading__count', '<span>');
 bem.AssetGallery__loadMore = bem.AssetGallery.__('load-more', '<div>');
+bem.AssetGallery__loadMoreButton = bem.AssetGallery.__('load-more__button', '<button>');
+bem.AssetGallery__loadMoreMessage = bem.AssetGallery.__('load-more__message', '<p>');
 
 bem.AssetGalleryGrid = BEM('asset-gallery-grid');
 bem.AssetGalleryGrid__item = bem.AssetGalleryGrid.__('item', '<div>');

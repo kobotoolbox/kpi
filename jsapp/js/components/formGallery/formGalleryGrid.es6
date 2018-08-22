@@ -69,23 +69,17 @@ export default class FormGalleryGrid extends React.Component {
       if (this.state.galleryPage <= 2) {
         return (
           <bem.AssetGallery__loadMore>
-            <button
-              onClick={this.loadMoreAttachments}
-              className='mdl-button mdl-button--colored'
-            >
+            <bem.AssetGallery__loadMoreButton onClick={this.loadMoreAttachments}>
               {t('Load More')}
-            </button>
+            </bem.AssetGallery__loadMoreButton>
           </bem.AssetGallery__loadMore>
         );
       } else {
         return (
           <bem.AssetGallery__loadMore>
-            <button
-              onClick={this.openPaginatedGalleryModal.bind(this)}
-              className='mdl-button mdl-button--colored'
-            >
+            <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
               {t('See all ##count## images').replace('##count##', this.props.totalAttachmentsCount)}
-            </button>
+            </bem.AssetGallery__loadMoreButton>
           </bem.AssetGallery__loadMore>
         );
       }
