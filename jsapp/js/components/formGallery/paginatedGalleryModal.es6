@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import bem from '../../bem';
 import stores from '../../stores';
 import {
+  PAGE_SIZE,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
@@ -19,10 +20,10 @@ import ReactPaginate from 'react-paginate';
 import Select from 'react-select';
 
 const OFFSET_OPTIONS = [
-  {value: 12, label: '12'},
-  {value: 24, label: '24'},
-  {value: 48, label: '48'},
-  {value: 96, label: '96'}
+  {value: PAGE_SIZE * 2, label: '12'},
+  {value: PAGE_SIZE * 4, label: '24'},
+  {value: PAGE_SIZE * 8, label: '48'},
+  {value: PAGE_SIZE * 16, label: '96'}
 ];
 const SORT_OPTIONS = [
   {label: t('Show oldest first'), value: 'asc'},

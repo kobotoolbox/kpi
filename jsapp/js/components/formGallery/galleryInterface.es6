@@ -14,6 +14,7 @@ import {
 import {MODAL_TYPES} from 'js/constants';
 
 export const PAGE_SIZE = 6;
+export const GRID_PAGE_LIMIT = PAGE_SIZE * 2;
 
 export const GROUPBY_OPTIONS = {
   question: {
@@ -33,9 +34,7 @@ export const galleryActions = Reflux.createActions([
   'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
-  'loadMoreGalleryMedias',
-  'getGalleryTitle',
-  'getGalleryDate'
+  'loadMoreGalleryMedias'
 ]);
 
 galleryActions.openSingleModal.listen(({galleryIndex, mediaIndex}) => {
@@ -47,25 +46,6 @@ galleryActions.openPaginatedModal.listen(({galleryIndex}) => {
   galleryActions.selectGalleryMedia({galleryIndex});
   stores.pageState.showModal({type: MODAL_TYPES.GALLERY_PAGINATED});
 });
-
-galleryActions.getGalleryTitle.trigger = (galleryIndex) => {
-  if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
-    return galleryStore.state.galleries[galleryIndex].label || t('Unknown question');
-  } else {
-    return t('Record ##number##').replace('##number##', parseInt(galleryIndex) + 1);
-  }
-};
-
-galleryActions.getGalleryDate.trigger = (galleryIndex) => {
-  const gallery = galleryStore.state.galleries[galleryIndex];
-  if (gallery.date_created) {
-    return formatTimeDate(gallery.date_created);
-  } else if (gallery.attachments.results[0] && gallery.attachments.results[0].submission) {
-    return formatTimeDate(gallery.attachments.results[0].submission.date_created);
-  } else {
-    console.error('Unknown gallery date!');
-  }
-};
 
 class GalleryStore extends Reflux.Store {
   constructor() {
@@ -94,8 +74,7 @@ class GalleryStore extends Reflux.Store {
   getWipedGalleriesState() {
     return {
       galleries: [],
-      areLoadingMedias: {},
-      nextPageUrl: null,
+      nextGalleriesPageUrl: null,
       totalMediaCount: null,
       selectedGalleryIndex: null,
       selectedMediaIndex: null
@@ -160,18 +139,20 @@ class GalleryStore extends Reflux.Store {
   }
 
   onLoadMoreGalleries() {
-    if (this.state.nextPageUrl) {
+    if (this.state.nextGalleriesPageUrl) {
       this.loadNextGalleriesPage();
     } else {
       throw new Error('No more galleries to load!');
     }
   }
 
-  onLoadMoreGalleryMedias(galleryIndex) {
+  onLoadMoreGalleryMedias(galleryIndex, pageToLoad=null) {
     const targetGallery = this.state.galleries[galleryIndex];
-    const nextPageUrl = targetGallery.attachments.next;
-    if (nextPageUrl) {
-      this.loadNextGalleryMediasPage(galleryIndex, nextPageUrl);
+    if (pageToLoad === null) {
+      pageToLoad = targetGallery.guessNextPageToLoad()
+    }
+    if (pageToLoad !== null) {
+      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad);
     } else {
       throw new Error('No more gallery medias to load!');
     }
@@ -187,9 +168,9 @@ class GalleryStore extends Reflux.Store {
     dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, PAGE_SIZE)
       .done((response) => {
         this.setState({
-          galleries: response.results,
+          galleries: this.buildGalleries(response.results),
           totalMediaCount: response.attachments_count,
-          nextPageUrl: response.next,
+          nextGalleriesPageUrl: response.next,
           isLoadingGalleries: false
         });
       });
@@ -197,41 +178,130 @@ class GalleryStore extends Reflux.Store {
 
   loadNextGalleriesPage() {
     this.setState({isLoadingGalleries: true});
-    dataInterface.loadNextPageUrl(this.state.nextPageUrl)
+    dataInterface.loadNextPageUrl(this.state.nextGalleriesPageUrl)
       .done((response) => {
-        this.state.galleries.push(...response.results)
+        this.state.galleries.push(...this.buildGalleries(response.results));
+        this.trigger({galleries: this.state.galleries});
         this.setState({
           totalMediaCount: response.attachments_count,
-          nextPageUrl: response.next,
+          nextGalleriesPageUrl: response.next,
           isLoadingGalleries: false
         });
       });
   }
 
-  loadNextGalleryMediasPage(galleryIndex, nextPageUrl) {
-    this.setIsLoadingMedias(galleryIndex, true);
-    dataInterface.loadNextPageUrl(nextPageUrl)
+  loadNextGalleryMediasPage(galleryIndex, pageToLoad) {
+    const targetGallery = this.state.galleries[galleryIndex];
+    targetGallery.setIsLoadingMedias(true);
+    this.trigger({galleries: this.state.galleries});
+
+    dataInterface.loadMoreAttachments(
+      this.state.formUid,
+      this.state.filterGroupBy.value,
+      galleryIndex,
+      pageToLoad,
+      PAGE_SIZE
+    )
       .done((response) => {
-        const currentGalleries = [];
-        assign(currentGalleries, this.state.galleries);
-        const targetGallery = currentGalleries[galleryIndex];
-        targetGallery.attachments.count = response.attachments.count;
-        targetGallery.attachments.next = response.attachments.next;
-        targetGallery.attachments.next_page = response.attachments.next_page;
-        targetGallery.attachments.previous = response.attachments.previous;
-        targetGallery.attachments.previous_page = response.attachments.previous_page;
-        targetGallery.attachments.results.push(...response.attachments.results);
-        currentGalleries[galleryIndex] = targetGallery;
-        this.setState({galleries: currentGalleries});
-        this.setIsLoadingMedias(galleryIndex, false);
+        const targetGallery = this.state.galleries[galleryIndex];
+        targetGallery.addMedias(response.attachments.results, pageToLoad - 1);
+        targetGallery.setIsLoadingMedias(false);
+        this.trigger({galleries: this.state.galleries});
       });
   }
 
-  setIsLoadingMedias(galleryIndex, isLoading) {
-    const currentObj = {};
-    assign(currentObj, this.state.areLoadingMedias);
-    currentObj[galleryIndex] = isLoading;
-    this.setState({areLoadingMedias: currentObj});
+  buildGalleries(results) {
+    const galleries = [];
+    results.forEach((result) => {
+      galleries[result.index] = new Gallery(result);
+    });
+    return galleries;
+  }
+}
+
+class Gallery {
+  constructor(galleryData) {
+    this.galleryIndex = galleryData.index;
+    this.isLoadingMedias = false;
+    this.medias = [];
+    this.loadedMediaCount = 0;
+    this.totalMediaCount = galleryData.attachments.count;
+    this.title = this.buildGalleryTitle(galleryData);
+    this.dateCreated = this.buildGalleryDate(galleryData);
+
+    this.addMedias(galleryData.attachments.results);
+  }
+
+  setIsLoadingMedias(isLoadingMedias) {
+    this.isLoadingMedias = isLoadingMedias;
+  }
+
+  guessNextPageToLoad() {
+    if (this.totalMediaCount === this.loadedMediaCount) {
+      return null;
+    } else {
+      const currentPage = this.loadedMediaCount / PAGE_SIZE;
+      return currentPage + 1;
+    }
+  }
+
+  buildGalleryTitle(galleryData) {
+    if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
+      return galleryData.label || t('Unknown question');
+    } else {
+      return t('Record ##number##').replace('##number##', parseInt(this.galleryIndex) + 1);
+    }
+  }
+
+  buildGalleryDate(galleryData) {
+    if (galleryData.date_created) {
+      return formatTimeDate(galleryData.date_created);
+    } else if (galleryData.attachments.results[0] && galleryData.attachments.results[0].submission) {
+      return formatTimeDate(galleryData.attachments.results[0].submission.date_created);
+    } else {
+      console.error('Unknown gallery date created');
+    }
+  }
+
+  addMedias(medias, pageOffset=0) {
+    medias.forEach((mediaData, index) => {
+      // TODO this is possibly wrong information, would be best if backend
+      // would provide real index
+      const mediaIndex = index + pageOffset * PAGE_SIZE;
+      this.medias[mediaIndex] = {
+        mediaIndex: mediaIndex,
+        mediaId: mediaData.id,
+        title: this.buildMediaTitle(mediaData, mediaIndex),
+        date: this.buildMediaDate(mediaData),
+        filename: mediaData.short_filename,
+        smallImage: mediaData.small_download_url,
+        largeImage: mediaData.large_download_url,
+        canViewSubmission: mediaData.can_view_submission
+      }
+    });
+    this.loadedMediaCount += medias.length;
+  }
+
+  buildMediaDate(mediaData) {
+    if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
+      return this.dateCreated;
+    } else if (media.submission && media.submission.date_created) {
+      return formatTimeDate(media.submission.date_created);
+    } else {
+      console.error('Unknown media date created', mediaData);
+    }
+  }
+
+  buildMediaTitle(mediaData, mediaIndex) {
+    if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
+      return t('Record ##number##').replace('##number##', parseInt(mediaIndex) + 1);
+    } else if (media.question && media.question.label) {
+      return media.question.label;
+    } else if (this.title) {
+      return this.title;
+    } else {
+      console.error('Unknown media title', mediaData);
+    }
   }
 }
 

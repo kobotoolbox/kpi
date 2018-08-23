@@ -339,7 +339,7 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
-    getGalleryImages (uid){
+    getGalleryImages(uid){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -348,7 +348,7 @@ var dataInterface;
         }
       });
     },
-    filterGalleryImages (uid, filter_by, page_size, sort='asc'){
+    filterGalleryImages(uid, filter_by, page_size, sort='asc'){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -360,9 +360,9 @@ var dataInterface;
         }
       });
     },
-    loadQuestionAttachment (uid, filter_by, index, page, page_size, sort='asc'){
+    loadMoreAttachments(assetUid, filter_by, index, page, page_size, sort='asc'){
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/attachments`,
+        url: `${rootUrl}/assets/${assetUid}/attachments`,
         method: 'GET',
         data: {
           type: 'image',
@@ -374,7 +374,7 @@ var dataInterface;
         }
       });
     },
-    loadMoreRecords (uid, filter_by, page, page_size){
+    loadMoreRecords(uid, filter_by, page, page_size){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -386,7 +386,7 @@ var dataInterface;
         }
       });
     },
-    loadNextPageUrl (nextPageUrl){
+    loadNextPageUrl(nextPageUrl){
       return $ajax({
         url: nextPageUrl,
         method: 'GET'

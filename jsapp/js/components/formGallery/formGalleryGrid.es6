@@ -8,6 +8,7 @@ import PaginatedGalleryModal from './paginatedGalleryModal';
 import stores from '../../stores';
 import {
   PAGE_SIZE,
+  GRID_PAGE_LIMIT,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
@@ -18,72 +19,41 @@ import {
 } from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
-const GRID_PAGE_LIMIT = PAGE_SIZE * 2;
-
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
     this.state = {
       gallery: galleryStore.state.galleries[this.props.galleryIndex],
-      galleryTitle: galleryActions.getGalleryTitle(this.props.galleryIndex),
-      isLoading: galleryStore.state.areLoadingMedias[this.props.galleryIndex] === true,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
 
   componentDidMount() {
     this.listenTo(galleryStore, (storeChanges) => {
-      if (storeChanges.galleries) {
+      if (typeof storeChanges.galleries !== 'undefined') {
         this.setState({gallery: storeChanges.galleries[this.props.galleryIndex]});
       }
-      if (storeChanges.areLoadingMedias) {
-        this.setState({isLoading: storeChanges.areLoadingMedias[this.props.galleryIndex] === true});
-      }
-      if (storeChanges.filterGroupBy) {
+      if (typeof storeChanges.filterGroupBy !== 'undefined') {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
       }
     });
   }
 
-  getTotalCount() {
-    return this.state.gallery.attachments.count;
-  }
-
-  getMediaDate(media) {
-    const galleryDateCreated = this.state.gallery.date_created;
-    if (
-      this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value &&
-      galleryDateCreated
-    ) {
-      return galleryDateCreated;
-    } else if (media.submission && media.submission.date_created) {
-      return media.submission.date_created;
-    }
-  }
-
-  getMediaTitle(media, mediaIndex) {
-    if (this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
-      return t('Record') + ' ' + parseInt(mediaIndex + 1)
-    } else if (media.question && media.question.label) {
-      return media.question.label;
-    }
-  }
-
   hasMoreAttachments() {
-    return this.state.gallery.attachments.next;
+    return this.state.gallery.loadedMediaCount < this.state.gallery.totalMediaCount;
   }
 
   hasReachedGridLimit() {
-    return this.state.gallery.attachments.results.length >= GRID_PAGE_LIMIT;
+    return this.state.gallery.loadedMediaCount >= GRID_PAGE_LIMIT;
   }
 
-  loadMoreAttachments() {
-    galleryActions.loadMoreGalleryMedias(this.props.galleryIndex);
+  loadMoreMedia() {
+    galleryActions.loadMoreGalleryMedias(this.state.gallery.galleryIndex);
   }
 
   renderLoadMoreButton() {
-    if (this.state.isLoading) {
+    if (this.state.gallery.isLoadingMedias) {
       return (
         <bem.AssetGallery__loadMore>
           <bem.AssetGallery__loadMoreMessage>
@@ -96,14 +66,14 @@ export default class FormGalleryGrid extends React.Component {
         return (
           <bem.AssetGallery__loadMore>
             <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
-              {t('See all ##count## images').replace('##count##', this.getTotalCount())}
+              {t('See all ##count## images').replace('##count##', this.state.gallery.totalMediaCount)}
             </bem.AssetGallery__loadMoreButton>
           </bem.AssetGallery__loadMore>
         );
       } else {
         return (
           <bem.AssetGallery__loadMore>
-            <bem.AssetGallery__loadMoreButton onClick={this.loadMoreAttachments.bind(this)}>
+            <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>
               {t('Load More')}
             </bem.AssetGallery__loadMoreButton>
           </bem.AssetGallery__loadMore>
@@ -114,25 +84,25 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   openPaginatedGalleryModal() {
-    galleryActions.openPaginatedModal({galleryIndex: this.props.galleryIndex});
+    galleryActions.openPaginatedModal({galleryIndex: this.state.gallery.galleryIndex});
   }
 
   render() {
     return (
-      <React.Fragment key={this.props.galleryIndex}>
-        <h2>{this.state.galleryTitle}</h2>
+      <React.Fragment key={this.state.gallery.galleryIndex}>
+        <h2>{this.state.gallery.title}</h2>
 
         <bem.AssetGalleryGrid m={'6-per-row'}>
-          {this.state.gallery.attachments.results.map(
+          {this.state.gallery.medias.map(
             (media, index) => {
               return (
                 <FormGalleryGridItem
                   key={index}
-                  url={media.small_download_url}
-                  galleryIndex={this.props.galleryIndex}
-                  mediaIndex={index}
-                  mediaTitle={this.getMediaTitle(media, index)}
-                  date={formatTimeDate(this.getMediaDate(media))}
+                  url={media.smallImage}
+                  galleryIndex={this.state.gallery.galleryIndex}
+                  mediaIndex={media.mediaIndex}
+                  mediaTitle={media.title}
+                  date={media.date}
                 />
               );
             }
