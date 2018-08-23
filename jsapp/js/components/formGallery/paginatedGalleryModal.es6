@@ -35,16 +35,10 @@ export default class PaginatedGalleryModal extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
-      offsetVal: OFFSET_OPTIONS[0].value,
+      offsetValue: OFFSET_OPTIONS[0].value,
       sortValue: SORT_OPTIONS[0].value,
-      paginated_attachments: [],
-      flat_attachments: [],
-      currentAttachmentsLoaded: 0,
-      activeAttachmentsIndex: 0,
-
+      currentPage: 1,
       gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
-      galleryTitle: galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex),
-      isLoading: false,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
@@ -54,179 +48,122 @@ export default class PaginatedGalleryModal extends React.Component {
       if (storeChanges.galleries) {
         this.setState({gallery: storeChanges.galleries[galleryStore.state.selectedGalleryIndex]});
       }
-      if (storeChanges.areLoadingMedias) {
-        this.setState({isLoading: storeChanges.areLoadingMedias[galleryStore.state.selectedGalleryIndex] === true});
-      }
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
       }
     });
-    this.resetGallery();
-  }
-
-  resetGallery() {
-    this.setState({
-      paginated_attachments: [],
-      flat_attachments: [],
-      currentAttachmentsLoaded: 0
-    });
-    this.loadPaginatedAttachments(1);
-    this.setActiveAttachmentsIndex(0);
   }
 
   getTotalPages() {
-    return Math.ceil(this.state.gallery.attachments.count / this.state.offsetVal);
+    return Math.ceil(this.state.gallery.totalMediaCount / this.state.offsetValue);
   }
 
-  setActiveAttachmentsIndex(index) {
-    this.setState({ activeAttachmentsIndex: index });
+  setCurrentPage(index) {
+    this.setState({ currentPage: index });
   }
 
-  changeOffset(offsetVal) {
-    this.setState({ offsetVal: offsetVal }, function() {
+  changeOffset(offsetValue) {
+    this.setState({ offsetValue: offsetValue }, function() {
       this.resetGallery();
     });
   }
+
   changeSort(sort) {
     this.setState({ sortValue: sort }, function() {
       this.resetGallery();
     });
   }
 
-  goToPage(page) {
-    let attachmentNextPage = page.selected + 1;
-    let newActiveIndex = page.selected;
-    if (
-      this.state.paginated_attachments['page_' + attachmentNextPage] ==
-      undefined
-    ) {
-      this.loadPaginatedAttachments(attachmentNextPage, () => {
-        this.setActiveAttachmentsIndex(newActiveIndex);
-      });
-    } else {
-      this.setActiveAttachmentsIndex(newActiveIndex);
+  goToPage(newPage) {
+    if (this.state.gallery.loadedMediaCount < (newPage + 1) * this.state.offsetValue) {
+      galleryActions.loadMoreGalleryMedias(
+        this.state.gallery.galleryIndex,
+        newPage,
+        this.state.offsetValue
+      );
     }
+    this.setCurrentPage(newPage);
   }
 
-  loadPaginatedAttachments(page, callback) {
-    dataInterface
-      .loadQuestionAttachment(
-        this.props.uid,
-        'question',
-        this.props.galleryIndex,
-        page,
-        this.state.offsetVal,
-        this.state.sortValue
-      )
-      .done(response => {
-        let newPaginatedAttachments = this.state.paginated_attachments;
-        let newFlatAttachments = [];
-        let currentAttachementsLoaded =
-          this.state.currentAttachmentsLoaded +
-          response.attachments.results.length;
-
-        newPaginatedAttachments['page_' + page] = response.attachments.results;
-        let newAttachmentsKeys = Object.keys(
-          this.state.paginated_attachments
-        ).sort();
-        for (var i = 0; i < newAttachmentsKeys.length; i++) {
-          var pageIndex = newAttachmentsKeys[i];
-          newFlatAttachments.push(
-            ...this.state.paginated_attachments[pageIndex]
-          );
-        }
-
-        this.setState({
-          paginated_attachments: newPaginatedAttachments,
-          flat_attachments: newFlatAttachments,
-          currentAttachmentsLoaded: currentAttachementsLoaded
-        });
-      });
-    if (callback) {
-      callback();
-    }
-  }
-
-  findItemIndex(id) {
-    var newIndex = null;
-    this.state.flat_attachments.filter((filteredItem, index) => {
-      if (filteredItem.id == id) {
-        newIndex = index;
-      }
+  getCurrentPageMedia() {
+    const min = this.state.offsetValue * (this.state.currentPage - 1);
+    const max = this.state.offsetValue * this.state.currentPage;
+    return this.state.gallery.medias.filter((media) => {
+      return (media.mediaIndex >= min && media.mediaIndex < max);
     });
-    return newIndex;
+  }
+
+  renderLoadingMessage() {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('Loading…')}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+
+  renderGallery() {
+    const currentPageMedia = this.getCurrentPageMedia();
+
+    if (this.state.gallery.isLoading || currentPageMedia.length === 0) {
+      return (
+        <bem.PaginatedGalleryModal_galleryWrapper>
+          {this.renderLoadingMessage()}
+        </bem.PaginatedGalleryModal_galleryWrapper>
+      );
+    } else {
+      return (
+        <bem.PaginatedGalleryModal_galleryWrapper>
+          <bem.AssetGalleryGrid m='6-per-row'>
+            { currentPageMedia.map(
+              (media, index) => {
+                return (
+                  <FormGalleryGridItem
+                    key={index}
+                    url={media.smallImage}
+                    galleryIndex={this.state.gallery.galleryIndex}
+                    mediaIndex={media.mediaIndex}
+                    mediaTitle={media.title}
+                    date={media.date}
+                  />
+                );
+              }
+            )}
+          </bem.AssetGalleryGrid>
+        </bem.PaginatedGalleryModal_galleryWrapper>
+      );
+    }
   }
 
   render() {
     return (
       <bem.PaginatedGalleryModal>
         <bem.PaginatedGalleryModal_heading>
-          <h2>{t('All photos of ##name##').replace('##name##', this.state.galleryTitle)}</h2>
-          <h4>{t('Showing ##count## of ##total##').replace('##count##', this.state.offsetVal).replace('##total##', this.state.gallery.attachments.count)}</h4>
+          <h2>{t('All photos of ##name##').replace('##name##', this.state.gallery.title)}</h2>
+          <h4>{t('Showing ##count## of ##total##').replace('##count##', this.state.offsetValue).replace('##total##', this.state.gallery.totalMediaCount)}</h4>
         </bem.PaginatedGalleryModal_heading>
 
         <bem.PaginatedGalleryModal_body>
           <GalleryControls
-            offsetValue={this.state.offsetVal}
+            offsetValue={this.state.offsetValue}
             changeOffset={this.changeOffset}
             pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
-            activeAttachmentsIndex={this.state.activeAttachmentsIndex}
+            currentPage={this.state.currentPage}
             sortValue={this.state.sortValue}
             changeSort={this.changeSort}
           />
 
-          <bem.PaginatedGalleryModal_galleryWrapper>
-            <bem.AssetGalleryGrid m='6-per-row'>
-              {this.state.paginated_attachments[
-                'page_' + (this.state.activeAttachmentsIndex + 1)
-              ] != undefined
-                ? this.state.paginated_attachments[
-                    'page_' + (this.state.activeAttachmentsIndex + 1)
-                  ].map(
-                    function(item, j) {
-                      let timestamp;
-                      if (
-                        this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value &&
-                        this.props.gallery &&
-                        this.props.gallery.date_created
-                      ) {
-                        timestamp = this.props.gallery.date_created;
-                      } else if (item.submission && item.submission.date_created) {
-                        timestamp = item.submission.date_created;
-                      }
-
-                      let itemTitle;
-                      if (
-                        this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value
-                      ) {
-                        itemTitle = t('Record') + ' ' + parseInt(j + 1)
-                      } else if (item.question && item.question.label) {
-                        itemTitle = item.question.label;
-                      }
-
-                      return (
-                        <FormGalleryGridItem
-                          key={j}
-                          url={item.small_download_url}
-                          galleryIndex={this.props.galleryIndex}
-                          mediaTitle={itemTitle}
-                          date={formatTimeDate(timestamp)}
-                          mediaIndex={this.findItemIndex(item.id)}
-                        />
-                      );
-                    }.bind(this)
-                  )
-                : null}
-            </bem.AssetGalleryGrid>
-          </bem.PaginatedGalleryModal_galleryWrapper>
+          {this.renderGallery()}
 
           <GalleryControls
-            offsetValue={this.state.offsetVal}
+            offsetValue={this.state.offsetValue}
             changeOffset={this.changeOffset}
             pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
-            activeAttachmentsIndex={this.state.activeAttachmentsIndex}
+            currentPage={this.state.currentPage}
             sortValue={this.state.sortValue}
             changeSort={this.changeSort}
             selectDirectionUp
@@ -239,6 +176,10 @@ export default class PaginatedGalleryModal extends React.Component {
 };
 
 class GalleryControls extends React.Component {
+  onPaginatePageChange(evt) {
+    this.props.goToPage(evt.selected + 1);
+  }
+
   render() {
     const controlsMod = this.props.selectDirectionUp ? 'select-direction-up' : '';
     return (
@@ -267,10 +208,10 @@ class GalleryControls extends React.Component {
           pageCount={this.props.pageCount}
           marginPagesDisplayed={1}
           pageRangeDisplayed={3}
-          onPageChange={this.props.goToPage}
+          onPageChange={this.onPaginatePageChange.bind(this)}
           containerClassName={'pagination'}
           activeClassName={'active'}
-          forcePage={this.props.activeAttachmentsIndex}
+          forcePage={this.props.currentPage - 1}
         />
 
         <Select

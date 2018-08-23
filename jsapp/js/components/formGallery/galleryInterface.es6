@@ -146,13 +146,13 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  onLoadMoreGalleryMedias(galleryIndex, pageToLoad=null) {
+  onLoadMoreGalleryMedias(galleryIndex, pageToLoad=null, pageSize=PAGE_SIZE) {
     const targetGallery = this.state.galleries[galleryIndex];
     if (pageToLoad === null) {
       pageToLoad = targetGallery.guessNextPageToLoad()
     }
     if (pageToLoad !== null) {
-      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad);
+      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad, pageSize);
     } else {
       throw new Error('No more gallery medias to load!');
     }
@@ -190,7 +190,7 @@ class GalleryStore extends Reflux.Store {
       });
   }
 
-  loadNextGalleryMediasPage(galleryIndex, pageToLoad) {
+  loadNextGalleryMediasPage(galleryIndex, pageToLoad, pageSize) {
     const targetGallery = this.state.galleries[galleryIndex];
     targetGallery.setIsLoadingMedias(true);
     this.trigger({galleries: this.state.galleries});
@@ -200,7 +200,7 @@ class GalleryStore extends Reflux.Store {
       this.state.filterGroupBy.value,
       galleryIndex,
       pageToLoad,
-      PAGE_SIZE
+      pageSize
     )
       .done((response) => {
         const targetGallery = this.state.galleries[galleryIndex];
