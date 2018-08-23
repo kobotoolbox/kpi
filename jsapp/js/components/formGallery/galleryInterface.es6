@@ -275,6 +275,7 @@ class Gallery {
         date: this.buildMediaDate(mediaData),
         filename: mediaData.short_filename,
         smallImage: mediaData.small_download_url,
+        mediumImage: mediaData.medium_download_url,
         largeImage: mediaData.large_download_url,
         canViewSubmission: mediaData.can_view_submission
       }

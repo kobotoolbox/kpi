@@ -22,9 +22,6 @@ export default class SingleGalleryModal extends React.Component {
     autoBind(this);
     this.state = {
       gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
-      galleryTitle: galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex),
-      galleryDate: galleryActions.getGalleryDate(galleryStore.state.selectedGalleryIndex),
-      isLoading: false,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
     this.slickSettings = {
@@ -51,9 +48,6 @@ export default class SingleGalleryModal extends React.Component {
     this.listenTo(galleryStore, (storeChanges) => {
       if (storeChanges.galleries) {
         this.setState({gallery: storeChanges.galleries[galleryStore.state.selectedGalleryIndex]});
-      }
-      if (storeChanges.areLoadingMedias) {
-        this.setState({isLoading: storeChanges.areLoadingMedias[galleryStore.state.selectedGalleryIndex] === true});
       }
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
@@ -101,14 +95,14 @@ export default class SingleGalleryModal extends React.Component {
       <React.Fragment>
         <bem.SingleGalleryModal__carousel>
           <Slider ref='slider' {...this.slickSettings}>
-            {this.state.gallery.attachments.results.map(
-              (media, index) => {
-                const inlineStyle = {'backgroundImage': `url(${media.large_download_url})`};
+            {this.state.gallery.medias.map(
+              (media) => {
+                const inlineStyle = {'backgroundImage': `url(${media.largeImage})`};
                 return (
-                  <bem.SingleGalleryModal__carouselImage key={index}>
+                  <bem.SingleGalleryModal__carouselImage key={media.mediaIndex}>
                     <picture
                       style={inlineStyle}
-                      title={media.short_filename}
+                      title={media.filename}
                     />
                   </bem.SingleGalleryModal__carouselImage>
                 );
@@ -127,31 +121,31 @@ export default class SingleGalleryModal extends React.Component {
       <bem.SingleGalleryModal__sidebar className='open'>
         <bem.SingleGalleryModal__sidebarInfo>
           <p>{t('Record')} #{galleryStore.state.selectedMediaIndex}</p>
-          <h3>{this.state.galleryTitle}</h3>
-          <p>{this.state.galleryDate}</p>
+          <h3>{this.state.gallery.title}</h3>
+          <p>{this.state.gallery.dateCreated}</p>
         </bem.SingleGalleryModal__sidebarInfo>
 
-        {this.state.gallery.attachments.results &&
+        {this.state.gallery.medias &&
           <bem.SingleGalleryModal__sidebarGridWrap>
-            <h5 onClick={() => this.showMoreFrom(this.state.galleryTitle)}>
-              {t('More from ##question##').replace('##question##', this.state.galleryTitle)}
+            <h5 onClick={() => this.showMoreFrom(this.state.gallery.title)}>
+              {t('More from ##question##').replace('##question##', this.state.gallery.title)}
             </h5>
 
             <bem.SingleGalleryModal__sidebarGrid>
-              {this.state.gallery.attachments.results.map(
-                (media, index) => {
+              {this.state.gallery.medias.map(
+                (media) => {
                   const divStyle = {
-                    backgroundImage: `url(${media.medium_download_url})`,
+                    backgroundImage: `url(${media.mediumImage})`,
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center center',
                     backgroundSize: 'cover'
                   };
                   return (
                     <bem.SingleGalleryModal__sidebarGridItem
-                      m={galleryStore.state.selectedMediaIndex === index ? 'selected' : null}
-                      data-index={index}
+                      m={galleryStore.state.selectedMediaIndex === media.mediaIndex ? 'selected' : null}
+                      data-index={media.mediaIndex}
                       onClick={this.selectMedia.bind(this)}
-                      key={index}
+                      key={media.mediaIndex}
                     >
                       <div className='one-one' style={divStyle} />
                     </bem.SingleGalleryModal__sidebarGridItem>
