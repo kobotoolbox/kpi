@@ -204,7 +204,7 @@ class GalleryStore extends Reflux.Store {
     )
       .done((response) => {
         const targetGallery = this.state.galleries[galleryIndex];
-        targetGallery.addMedias(response.attachments.results, pageToLoad - 1);
+        targetGallery.addMedias(response.attachments.results, pageToLoad - 1, pageSize);
         targetGallery.setIsLoadingMedias(false);
         this.trigger({galleries: this.state.galleries});
       });
@@ -263,11 +263,11 @@ class Gallery {
     }
   }
 
-  addMedias(medias, pageOffset=0) {
+  addMedias(medias, pageOffset=0, pageSize=PAGE_SIZE) {
     medias.forEach((mediaData, index) => {
       // TODO this is possibly wrong information, would be best if backend
       // would provide real index
-      const mediaIndex = index + pageOffset * PAGE_SIZE;
+      const mediaIndex = index + pageOffset * pageSize;
       this.medias[mediaIndex] = {
         mediaIndex: mediaIndex,
         mediaId: mediaData.id,
