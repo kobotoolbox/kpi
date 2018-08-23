@@ -114,10 +114,7 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   openPaginatedGalleryModal() {
-    stores.pageState.showModal({
-      type: MODAL_TYPES.GALLERY_PAGINATED,
-      galleryIndex: this.props.galleryIndex
-    });
+    galleryActions.openPaginatedModal({galleryIndex: this.props.galleryIndex});
   }
 
   render() {

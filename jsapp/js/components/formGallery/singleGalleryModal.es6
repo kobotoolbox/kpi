@@ -20,7 +20,6 @@ export default class SingleGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    console.log(galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex));
     this.state = {
       gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
       galleryTitle: galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex),

@@ -29,6 +29,7 @@ export const GROUPBY_OPTIONS = {
 export const galleryActions = Reflux.createActions([
   'setFormUid',
   'openSingleModal',
+  'openPaginatedModal',
   'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
@@ -38,9 +39,13 @@ export const galleryActions = Reflux.createActions([
 ]);
 
 galleryActions.openSingleModal.listen(({galleryIndex, mediaIndex}) => {
-  galleryActions.selectGalleryMedia({galleryIndex, mediaIndex})
-  // we only need to open the modal, all data is kept and handled by galleryStore
+  galleryActions.selectGalleryMedia({galleryIndex, mediaIndex});
   stores.pageState.showModal({type: MODAL_TYPES.GALLERY_SINGLE});
+});
+
+galleryActions.openPaginatedModal.listen(({galleryIndex}) => {
+  galleryActions.selectGalleryMedia({galleryIndex});
+  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_PAGINATED});
 });
 
 galleryActions.getGalleryTitle.trigger = (galleryIndex) => {
@@ -123,6 +128,13 @@ class GalleryStore extends Reflux.Store {
     }
     if (typeof mediaIndex !== 'undefined') {
       updateObj.selectedMediaIndex = parseInt(mediaIndex);
+    }
+    if (
+      typeof updateObj.selectedGalleryIndex !== 'undefined' &&
+      typeof updateObj.selectedMediaIndex === 'undefined'
+    ) {
+      // selected gallery, but not media, so we need to clear store value
+      updateObj.selectedMediaIndex = null;
     }
     this.setState(updateObj);
   }

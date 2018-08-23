@@ -38,16 +38,24 @@ export default class PaginatedGalleryModal extends React.Component {
       sortValue: SORT_OPTIONS[0].value,
       paginated_attachments: [],
       flat_attachments: [],
-      attachments_count: this.props.totalAttachmentsCount,
-      totalPages: 0,
       currentAttachmentsLoaded: 0,
       activeAttachmentsIndex: 0,
+
+      gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
+      galleryTitle: galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex),
+      isLoading: false,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
 
   componentDidMount() {
     this.listenTo(galleryStore, (storeChanges) => {
+      if (storeChanges.galleries) {
+        this.setState({gallery: storeChanges.galleries[galleryStore.state.selectedGalleryIndex]});
+      }
+      if (storeChanges.areLoadingMedias) {
+        this.setState({isLoading: storeChanges.areLoadingMedias[galleryStore.state.selectedGalleryIndex] === true});
+      }
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
       }
@@ -62,18 +70,17 @@ export default class PaginatedGalleryModal extends React.Component {
       currentAttachmentsLoaded: 0
     });
     this.loadPaginatedAttachments(1);
-    this.setTotalPages();
     this.setActiveAttachmentsIndex(0);
   }
-  setTotalPages() {
-    let totalPages = Math.ceil(
-      this.state.attachments_count / this.state.offsetVal
-    );
-    this.setState({ totalPages: totalPages });
+
+  getTotalPages() {
+    return Math.ceil(this.state.gallery.attachments.count / this.state.offsetVal);
   }
+
   setActiveAttachmentsIndex(index) {
     this.setState({ activeAttachmentsIndex: index });
   }
+
   changeOffset(offsetVal) {
     this.setState({ offsetVal: offsetVal }, function() {
       this.resetGallery();
@@ -84,6 +91,7 @@ export default class PaginatedGalleryModal extends React.Component {
       this.resetGallery();
     });
   }
+
   goToPage(page) {
     let attachmentNextPage = page.selected + 1;
     let newActiveIndex = page.selected;
@@ -98,6 +106,7 @@ export default class PaginatedGalleryModal extends React.Component {
       this.setActiveAttachmentsIndex(newActiveIndex);
     }
   }
+
   loadPaginatedAttachments(page, callback) {
     dataInterface
       .loadQuestionAttachment(
@@ -136,6 +145,7 @@ export default class PaginatedGalleryModal extends React.Component {
       callback();
     }
   }
+
   findItemIndex(id) {
     var newIndex = null;
     this.state.flat_attachments.filter((filteredItem, index) => {
@@ -145,27 +155,20 @@ export default class PaginatedGalleryModal extends React.Component {
     });
     return newIndex;
   }
+
   render() {
     return (
       <bem.PaginatedGalleryModal>
         <bem.PaginatedGalleryModal_heading>
-          <h2>{t('All photos of') + ' ' + this.props.galleryTitle}</h2>
-          <h4>
-            {t('Showing')}
-            {' '}
-            <b>{this.state.offsetVal}</b>
-            {' '}
-            {t('of')}
-            {' '}
-            <b>{this.props.totalAttachmentsCount}</b>
-          </h4>
+          <h2>{t('All photos of ##name##').replace('##name##', this.state.galleryTitle)}</h2>
+          <h4>{t('Showing ##count## of ##total##').replace('##count##', this.state.offsetVal).replace('##total##', this.state.gallery.attachments.count)}</h4>
         </bem.PaginatedGalleryModal_heading>
 
         <bem.PaginatedGalleryModal_body>
           <GalleryControls
             offsetValue={this.state.offsetVal}
             changeOffset={this.changeOffset}
-            pageCount={this.state.totalPages}
+            pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
             activeAttachmentsIndex={this.state.activeAttachmentsIndex}
             sortValue={this.state.sortValue}
@@ -220,7 +223,7 @@ export default class PaginatedGalleryModal extends React.Component {
           <GalleryControls
             offsetValue={this.state.offsetVal}
             changeOffset={this.changeOffset}
-            pageCount={this.state.totalPages}
+            pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
             activeAttachmentsIndex={this.state.activeAttachmentsIndex}
             sortValue={this.state.sortValue}
@@ -256,9 +259,9 @@ class GalleryControls extends React.Component {
         </div>
 
         <ReactPaginate
-          previousLabel={'Prev'}
-          nextLabel={'Next'}
-          breakLabel={'...'}
+          previousLabel={t('Previous')}
+          nextLabel={t('Next')}
+          breakLabel={'…'}
           breakClassName={'break-me'}
           pageCount={this.props.pageCount}
           marginPagesDisplayed={1}
