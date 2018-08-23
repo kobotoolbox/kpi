@@ -64,13 +64,14 @@ export default class PaginatedGalleryModal extends React.Component {
 
   changeOffset(offsetValue) {
     this.setState({ offsetValue: offsetValue }, function() {
-      this.resetGallery();
+      this.goToPage(this.state.currentPage);
     });
   }
 
   changeSort(sort) {
     this.setState({ sortValue: sort }, function() {
-      this.resetGallery();
+      console.error('TODO work this out!')
+      this.goToPage(this.state.currentPage);
     });
   }
 
@@ -79,7 +80,8 @@ export default class PaginatedGalleryModal extends React.Component {
       galleryActions.loadMoreGalleryMedias(
         this.state.gallery.galleryIndex,
         newPage,
-        this.state.offsetValue
+        this.state.offsetValue,
+        this.state.sortValue
       );
     }
     this.setCurrentPage(newPage);
