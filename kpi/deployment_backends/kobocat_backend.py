@@ -521,7 +521,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Retrieves instances directly from Mongo.
 
         :param instances_uuids: list. Optional
-        :return: list<JSON>
+        :return: generator<JSON>
         """
         query = {
             "_xform_id_string": self.asset.uid,
@@ -534,10 +534,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             })
 
         instances = settings.MONGO_DB.instances.find(query)
-        return [
+        return (
             MongoDecodingHelper.to_readable_dict(instance)
             for instance in instances
-        ]
+        )
 
     def __get_submissions_in_xml(self, instances_uuids=[]):
         """
@@ -553,4 +553,4 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if len(instances_uuids) > 0:
             queryset = queryset.filter(uuid__in=instances_uuids)
 
-        return [lazy_instance.xml for lazy_instance in queryset]
+        return (lazy_instance.xml for lazy_instance in queryset)

@@ -6,7 +6,16 @@ import unittest
 from django.test import TestCase
 from django.conf import settings
 
-from kobo.apps.reports import report_data
+from kpi.utils.mongo_helper import MongoDecodingHelper
+
+
+def get_instances_from_mongo():
+    query = {'_deleted_at': {'$exists': False}}
+    instances = settings.MONGO_DB.instances.find(query)
+    return (
+        MongoDecodingHelper.to_readable_dict(instance)
+            for instance in instances
+    )
 
 
 class FakeMongoDB(object):
@@ -78,8 +87,7 @@ class MongoBase64Decoding(TestCase):
             'regular': '1.3'
         }]
         settings.MONGO_DB = FakeMongoDB(encoded_results)
-        decoded = list(report_data.get_instances_for_userform_id(
-            '_userform_id is ignored by FakeMongoDB'))
+        decoded = list(get_instances_from_mongo())
         expected_results = decoded_results
         self.assertEqual(decoded, expected_results)
 
@@ -144,7 +152,6 @@ class MongoBase64Decoding(TestCase):
             'regular': '1.3'
         }]
         settings.MONGO_DB = FakeMongoDB(encoded_results)
-        decoded = list(report_data.get_instances_for_userform_id(
-            '_userform_id is ignored by FakeMongoDB'))
+        decoded = list(get_instances_from_mongo())
         expected_results = decoded_results
         self.assertEqual(decoded, expected_results)
