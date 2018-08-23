@@ -32,13 +32,35 @@ export const galleryActions = Reflux.createActions([
   'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
-  'loadMoreGalleryMedias'
+  'loadMoreGalleryMedias',
+  'getGalleryTitle',
+  'getGalleryDate'
 ]);
 
-galleryActions.openSingleModal.listen((/*{gallery, galleryTitle, galleryIndex}*/) => {
+galleryActions.openSingleModal.listen(({galleryIndex, mediaIndex}) => {
+  galleryActions.selectGalleryMedia({galleryIndex, mediaIndex})
   // we only need to open the modal, all data is kept and handled by galleryStore
   stores.pageState.showModal({type: MODAL_TYPES.GALLERY_SINGLE});
 });
+
+galleryActions.getGalleryTitle.trigger = (galleryIndex) => {
+  if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
+    return galleryStore.state.galleries[galleryIndex].label || t('Unknown question');
+  } else {
+    return t('Record ##number##').replace('##number##', parseInt(galleryIndex) + 1);
+  }
+};
+
+galleryActions.getGalleryDate.trigger = (galleryIndex) => {
+  const gallery = galleryStore.state.galleries[galleryIndex];
+  if (gallery.date_created) {
+    return formatTimeDate(gallery.date_created);
+  } else if (gallery.attachments.results[0] && gallery.attachments.results[0].submission) {
+    return formatTimeDate(gallery.attachments.results[0].submission.date_created);
+  } else {
+    console.error('Unknown gallery date!');
+  }
+};
 
 class GalleryStore extends Reflux.Store {
   constructor() {
@@ -83,6 +105,10 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
+  /*
+  managing actions
+  */
+
   onSetFormUid(uid) {
     if (this.state.formUid !== uid) {
       this.setState({formUid: uid});
@@ -90,15 +116,15 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  /*
-  managing actions
-  */
-
-  onSelectGalleryMedia(galleryIndex, mediaIndex) {
-    this.setState({
-      selectedGalleryIndex: parseInt(galleryIndex),
-      selectedMediaIndex: parseInt(mediaIndex)
-    });
+  onSelectGalleryMedia({galleryIndex, mediaIndex}) {
+    const updateObj = {};
+    if (typeof galleryIndex !== 'undefined') {
+      updateObj.selectedGalleryIndex = parseInt(galleryIndex);
+    }
+    if (typeof mediaIndex !== 'undefined') {
+      updateObj.selectedMediaIndex = parseInt(mediaIndex);
+    }
+    this.setState(updateObj);
   }
 
   onSetFilters(filters) {

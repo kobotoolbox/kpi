@@ -26,7 +26,8 @@ export default class FormGalleryGrid extends React.Component {
     autoBind(this);
     this.state = {
       gallery: galleryStore.state.galleries[this.props.galleryIndex],
-      isLoading: false,
+      galleryTitle: galleryActions.getGalleryTitle(this.props.galleryIndex),
+      isLoading: galleryStore.state.areLoadingMedias[this.props.galleryIndex] === true,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
@@ -62,20 +63,10 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   getMediaTitle(media, mediaIndex) {
-    if (
-      this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value
-    ) {
+    if (this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
       return t('Record') + ' ' + parseInt(mediaIndex + 1)
     } else if (media.question && media.question.label) {
       return media.question.label;
-    }
-  }
-
-  getGalleryTitle() {
-    if (this.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
-      return this.state.gallery.label || t('Unknown question');
-    } else {
-      return t('Record ##number##').replace('##number##', parseInt(this.props.galleryIndex) + 1);
     }
   }
 
@@ -130,22 +121,21 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   render() {
-    const galleryMedias = this.state.gallery.attachments.results;
     return (
       <React.Fragment key={this.props.galleryIndex}>
-        <h2>{this.getGalleryTitle()}</h2>
+        <h2>{this.state.galleryTitle}</h2>
 
         <bem.AssetGalleryGrid m={'6-per-row'}>
-          {galleryMedias.map(
-            (item, index) => {
+          {this.state.gallery.attachments.results.map(
+            (media, index) => {
               return (
                 <FormGalleryGridItem
                   key={index}
-                  url={item.small_download_url}
+                  url={media.small_download_url}
                   galleryIndex={this.props.galleryIndex}
-                  mediaTitle={this.getMediaTitle(item, index)}
-                  date={formatTimeDate(this.getMediaDate(item))}
                   mediaIndex={index}
+                  mediaTitle={this.getMediaTitle(media, index)}
+                  date={formatTimeDate(this.getMediaDate(media))}
                 />
               );
             }

@@ -20,7 +20,14 @@ export default class SingleGalleryModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.state = this.getInitialState();
+    console.log(galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex));
+    this.state = {
+      gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
+      galleryTitle: galleryActions.getGalleryTitle(galleryStore.state.selectedGalleryIndex),
+      galleryDate: galleryActions.getGalleryDate(galleryStore.state.selectedGalleryIndex),
+      isLoading: false,
+      filterGroupBy: galleryStore.state.filterGroupBy
+    };
     this.slickSettings = {
       dots: false,
       fade: true,
@@ -30,30 +37,31 @@ export default class SingleGalleryModal extends React.Component {
       slidesToShow: 1,
       slide: 'slide',
       slidesToScroll: 1,
-      initialSlide: this.state.activeGalleryIndex,
+      initialSlide: galleryStore.state.selectedMediaIndex,
       nextArrow: <RightNavButton />,
       prevArrow: <LeftNavButton />,
       beforeChange: this.onBeforeSliderChange
     };
-    this.setSliderIndexDebounced = _.debounce(this.setSliderIndex, this.slickSettings.speed + 100);
-  }
-
-  getInitialState() {
-    const stateObj = {}
-    assign(stateObj, galleryStore.state);
-    stateObj.isGalleryReady = stateObj.activeGallery !== null;
-    return stateObj;
+    this.setSliderIndexDebounced = _.debounce(
+      this.setSliderIndex,
+      this.slickSettings.speed + 100
+    );
   }
 
   componentDidMount() {
     this.listenTo(galleryStore, (storeChanges) => {
-      if (storeChanges.activeGallery !== null) {
-        assign(storeChanges, {isGalleryReady: true});
+      if (storeChanges.galleries) {
+        this.setState({gallery: storeChanges.galleries[galleryStore.state.selectedGalleryIndex]});
       }
-      if (storeChanges.activeGalleryIndex !== null) {
-        this.setSliderIndexDebounced(storeChanges.activeGalleryIndex);
+      if (storeChanges.areLoadingMedias) {
+        this.setState({isLoading: storeChanges.areLoadingMedias[galleryStore.state.selectedGalleryIndex] === true});
       }
-      this.setState(storeChanges);
+      if (storeChanges.filterGroupBy) {
+        this.setState({filterGroupBy: storeChanges.filterGroupBy});
+      }
+      if (storeChanges.selectedMediaIndex !== null) {
+        this.setSliderIndexDebounced(storeChanges.selectedMediaIndex);
+      }
     });
   }
 
@@ -72,8 +80,10 @@ export default class SingleGalleryModal extends React.Component {
     stores.pageState.hideModal();
   }
 
-  changeActiveGalleryIndex(evt) {
-    galleryActions.setActiveGalleryIndex(evt.currentTarget.dataset.index);
+  selectMedia(evt) {
+    galleryActions.selectGalleryMedia({
+      mediaIndex: evt.currentTarget.dataset.index
+    });
   }
 
   renderLoadingMessage() {
@@ -91,24 +101,19 @@ export default class SingleGalleryModal extends React.Component {
     return (
       <React.Fragment>
         <bem.SingleGalleryModal__carousel>
-          <Slider
-            ref='slider'
-            {...this.slickSettings}
-          >
-            {this.state.activeGalleryAttachments.map(
-              function(item, i) {
-                const inlineStyle = {
-                  'backgroundImage': `url(${item.large_download_url})`,
-                };
+          <Slider ref='slider' {...this.slickSettings}>
+            {this.state.gallery.attachments.results.map(
+              (media, index) => {
+                const inlineStyle = {'backgroundImage': `url(${media.large_download_url})`};
                 return (
-                  <bem.SingleGalleryModal__carouselImage key={i}>
+                  <bem.SingleGalleryModal__carouselImage key={index}>
                     <picture
                       style={inlineStyle}
-                      title={item.short_filename}
+                      title={media.short_filename}
                     />
                   </bem.SingleGalleryModal__carouselImage>
                 );
-              }.bind(this)
+              }
             )}
           </Slider>
         </bem.SingleGalleryModal__carousel>
@@ -122,37 +127,37 @@ export default class SingleGalleryModal extends React.Component {
     return (
       <bem.SingleGalleryModal__sidebar className='open'>
         <bem.SingleGalleryModal__sidebarInfo>
-            <p>{t('Record')} #{this.state.activeGalleryIndex}</p>
-            <h3>{this.state.activeGalleryTitle}</h3>
-            <p>{this.state.activeGalleryDate}</p>
+          <p>{t('Record')} #{galleryStore.state.selectedMediaIndex}</p>
+          <h3>{this.state.galleryTitle}</h3>
+          <p>{this.state.galleryDate}</p>
         </bem.SingleGalleryModal__sidebarInfo>
 
-        {this.state.activeGalleryAttachments &&
+        {this.state.gallery.attachments.results &&
           <bem.SingleGalleryModal__sidebarGridWrap>
-            <h5 onClick={() => this.showMoreFrom(this.state.activeGalleryTitle)}>
-              {t('More from ##question##').replace('##question##', this.state.activeGalleryTitle)}
+            <h5 onClick={() => this.showMoreFrom(this.state.galleryTitle)}>
+              {t('More from ##question##').replace('##question##', this.state.galleryTitle)}
             </h5>
 
             <bem.SingleGalleryModal__sidebarGrid>
-              {this.state.activeGalleryAttachments.map(
-                function(item, j) {
+              {this.state.gallery.attachments.results.map(
+                (media, index) => {
                   const divStyle = {
-                    backgroundImage: `url(${item.medium_download_url})`,
+                    backgroundImage: `url(${media.medium_download_url})`,
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center center',
                     backgroundSize: 'cover'
                   };
                   return (
                     <bem.SingleGalleryModal__sidebarGridItem
-                      m={this.state.activeGalleryIndex === j ? 'selected' : null}
-                      data-index={j}
-                      onClick={this.changeActiveGalleryIndex}
-                      key={j}
+                      m={galleryStore.state.selectedMediaIndex === index ? 'selected' : null}
+                      data-index={index}
+                      onClick={this.selectMedia.bind(this)}
+                      key={index}
                     >
                       <div className='one-one' style={divStyle} />
                     </bem.SingleGalleryModal__sidebarGridItem>
                   );
-                }.bind(this)
+                }
               )}
             </bem.SingleGalleryModal__sidebarGrid>
           </bem.SingleGalleryModal__sidebarGridWrap>
@@ -164,10 +169,10 @@ export default class SingleGalleryModal extends React.Component {
   render() {
     return (
       <bem.SingleGalleryModal>
-        {!this.state.isGalleryReady &&
+        {this.state.isLoading &&
           this.renderLoadingMessage()
         }
-        {this.state.isGalleryReady &&
+        {!this.state.isLoading &&
           this.renderGallery()
         }
       </bem.SingleGalleryModal>
@@ -177,11 +182,11 @@ export default class SingleGalleryModal extends React.Component {
 
 class RightNavButton extends React.Component {
   goRight() {
-    let newIndex = galleryStore.state.activeGalleryIndex + 1;
+    let newIndex = galleryStore.state.selectedMediaIndex + 1;
     if (newIndex >= this.props.slideCount - 1) {
       newIndex = this.props.slideCount - 1;
     }
-    galleryActions.setActiveGalleryIndex(newIndex);
+    galleryActions.selectGalleryMedia({mediaIndex: newIndex});
   }
 
   render() {
@@ -195,11 +200,11 @@ class RightNavButton extends React.Component {
 
 class LeftNavButton extends React.Component {
   goLeft() {
-    let newIndex = galleryStore.state.activeGalleryIndex - 1;
+    let newIndex = galleryStore.state.selectedMediaIndex - 1;
     if (newIndex < 0) {
       newIndex = 0;
     }
-    galleryActions.setActiveGalleryIndex(newIndex);
+    galleryActions.selectGalleryMedia({mediaIndex: newIndex});
   }
 
   render() {

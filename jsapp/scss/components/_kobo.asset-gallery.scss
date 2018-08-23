@@ -324,7 +324,7 @@ $gallery-transition: 250ms ease-in-out;
         }
 
         &.single-gallery-modal__sidebar__grid-item--selected {
-          border: 1px solid $cool-blue;
+          box-shadow: 0 0 0 2px white, 0 0 0 3px $cool-blue;
         }
       }
     }
