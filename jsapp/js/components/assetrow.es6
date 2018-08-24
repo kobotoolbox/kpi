@@ -25,7 +25,6 @@ class AssetRow extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      tags: this.props.tags,
       clearPopover: false,
       popoverVisible: false
     };
