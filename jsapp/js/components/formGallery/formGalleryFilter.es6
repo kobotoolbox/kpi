@@ -48,9 +48,11 @@ export default class FormGalleryFilter extends React.Component {
   render() {
     return (
       <bem.AssetGallery__heading>
-        <bem.AssetGallery__count>
-          {t('Total images: ##count##').replace('##count##', this.state.totalMediaCount)}
-        </bem.AssetGallery__count>
+        {this.state.totalMediaCount !== null &&
+          <bem.AssetGallery__count>
+            {t('Total images: ##count##').replace('##count##', this.state.totalMediaCount)}
+          </bem.AssetGallery__count>
+        }
 
         <bem.AssetGallery__headingSearchFilter className='section'>
           <TextBox
