@@ -14,7 +14,6 @@ import multiprocessing
 import os
 import subprocess
 
-from celery.schedules import crontab
 import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
