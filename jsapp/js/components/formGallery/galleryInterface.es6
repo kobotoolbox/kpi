@@ -89,13 +89,22 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
+  resetStateToInitial() {
+    this.setState(this.getInitialState());
+  }
+
   /*
   managing actions
   */
 
   onSetFormUid(uid) {
     this.setState({formUid: uid});
-    this.wipeAndLoadData();
+    if (uid === null) {
+      this.resetStateToInitial();
+    } else {
+      this.wipeAndLoadData();
+    }
+
   }
 
   onSelectGalleryMedia({galleryIndex, mediaIndex}) {

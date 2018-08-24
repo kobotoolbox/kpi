@@ -34,10 +34,13 @@ export default class FormGallery extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    galleryActions.setFormUid(null);
+  }
+
   getInitialState() {
     const stateObj = {}
     assign(stateObj, galleryStore.state);
-    stateObj.nextRecordsPage = 2;
     return stateObj;
   }
 
@@ -76,7 +79,10 @@ export default class FormGallery extends React.Component {
     }
 
     // CASE: loading data from the start
-    else if (this.state.isLoadingGalleries && this.state.galleries.length === 0) {
+    else if (
+      this.state.isLoadingGalleries ||
+      this.state.galleries.length === 0
+    ) {
       return (
         <bem.AssetGallery>
           <bem.Loading>
