@@ -1083,11 +1083,6 @@ class AttachmentListSerializer(AttachmentSerializer):
 
     def to_representation(self, obj):
         rep = super(AttachmentListSerializer, self).to_representation(obj)
-        group_by = self.context.get('group_by')
-        if group_by and group_by == 'question':
-            rep.pop('question', None)
-        elif group_by and group_by == 'submission':
-            rep.pop('submission', None)
         return rep
 
 class AttachmentPagination(HybridPagination):
