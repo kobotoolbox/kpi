@@ -165,8 +165,8 @@ class GalleryStore extends Reflux.Store {
     this.setState({isLoadingGalleries: true});
     dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, PAGE_SIZE)
       .done((response) => {
+        this.buildAndAddGalleries(response.results);
         this.setState({
-          galleries: this.buildGalleries(response.results),
           totalMediaCount: response.attachments_count,
           nextGalleriesPageUrl: response.next,
           isLoadingGalleries: false
@@ -178,8 +178,7 @@ class GalleryStore extends Reflux.Store {
     this.setState({isLoadingGalleries: true});
     dataInterface.loadNextPageUrl(this.state.nextGalleriesPageUrl)
       .done((response) => {
-        this.state.galleries = this.state.galleries.concat(this.buildGalleries(response.results));
-        this.trigger({galleries: this.state.galleries});
+        this.buildAndAddGalleries(response.results);
         this.setState({
           totalMediaCount: response.attachments_count,
           nextGalleriesPageUrl: response.next,
@@ -209,12 +208,12 @@ class GalleryStore extends Reflux.Store {
       });
   }
 
-  buildGalleries(results) {
-    const galleries = [];
+  buildAndAddGalleries(results) {
     results.forEach((result) => {
-      galleries[result.index] = new Gallery(result);
+      const galleryInstance = new Gallery(result);
+      this.state.galleries[galleryInstance.galleryIndex] = galleryInstance;
     });
-    return galleries;
+    this.trigger({galleries: this.state.galleries});
   }
 }
 

@@ -58,7 +58,7 @@ export default class FormGalleryGrid extends React.Component {
   renderLoadMoreButton() {
     if (this.state.gallery.isLoadingMedias) {
       return (
-        <bem.AssetGallery__loadMore>
+        <bem.AssetGallery__loadMore m='grid'>
           <bem.AssetGallery__loadMoreMessage>
             {t('Loading…')}
           </bem.AssetGallery__loadMoreMessage>
@@ -66,7 +66,7 @@ export default class FormGalleryGrid extends React.Component {
       );
     } else if (this.hasReachedGridLimit()) {
       return (
-        <bem.AssetGallery__loadMore>
+        <bem.AssetGallery__loadMore m='grid'>
           <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
             {t('See all ##count## images').replace('##count##', this.state.gallery.totalMediaCount)}
           </bem.AssetGallery__loadMoreButton>
@@ -74,7 +74,7 @@ export default class FormGalleryGrid extends React.Component {
       );
     } else if (this.hasMoreAttachments()) {
       return (
-        <bem.AssetGallery__loadMore>
+        <bem.AssetGallery__loadMore m='grid'>
           <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>
             {t('Load More')}
           </bem.AssetGallery__loadMoreButton>

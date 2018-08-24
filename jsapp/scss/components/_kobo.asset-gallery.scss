@@ -33,17 +33,27 @@ $gallery-transition: 250ms ease-in-out;
   overflow: auto;
   padding: 3 * $s-gallery-spacing;
 
-  > *:not(:first-child) {
+  > .asset-gallery-grid:not(:first-child) {
     margin-top: 2 * $s-gallery-spacing;
-    margin-bottom: 0;
+  }
+
+  > .asset-gallery__load-more:not(:first-child) {
+    margin-top: 3 * $s-gallery-spacing;
+  }
+
+  > .asset-gallery__load-more--grid:not(:first-child) {
+    margin-top: 1 * $s-gallery-spacing;
   }
 
   > h2:not(:first-child) {
+    margin-top: 3 * $s-gallery-spacing;
+  }
+
+  > h2 {
     color: $cool-gray;
     font-weight: normal;
     font-size: 16px;
     line-height: 1;
-    margin-top: 3 * $s-gallery-spacing;
   }
 
   .asset-gallery__heading {
@@ -81,6 +91,7 @@ $gallery-transition: 250ms ease-in-out;
 
 .asset-gallery__load-more {
   width: 100%;
+  margin-top: $s-gallery-spacing;
 
   .asset-gallery__load-more__button,
   .asset-gallery__load-more__message {

@@ -117,7 +117,7 @@ export default class FormGallery extends React.Component {
               }
               {!this.state.isLoadingGalleries &&
                 <bem.AssetGallery__loadMoreButton onClick={this.loadMoreGalleries}>
-                  {t('Load more results')}
+                  {t('Load more records')}
                 </bem.AssetGallery__loadMoreButton>
               }
             </bem.AssetGallery__loadMore>
