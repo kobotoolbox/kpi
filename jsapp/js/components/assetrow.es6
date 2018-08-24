@@ -25,9 +25,11 @@ class AssetRow extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      isTagsInputVisible: false,
       clearPopover: false,
       popoverVisible: false
     };
+    this.escFunction = this.escFunction.bind(this);
     autoBind(this);
   }
   // clickAsset (evt) {
@@ -50,11 +52,19 @@ class AssetRow extends React.Component {
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
   }
-  clickTagsToggle (evt) {
-    var tagsToggle = !this.state.displayTags;
-      this.setState({
-        displayTags: tagsToggle,
-      });
+  clickTagsToggle () {
+    const isTagsInputVisible = !this.state.isTagsInputVisible;
+    if (isTagsInputVisible) {
+      document.addEventListener('keydown', this.escFunction);
+    } else {
+      document.removeEventListener('keydown', this.escFunction);
+    }
+    this.setState({isTagsInputVisible: isTagsInputVisible});
+  }
+  escFunction (evt) {
+    if (evt.keyCode === 27 && this.state.isTagsInputVisible) {
+      this.clickTagsToggle();
+    }
   }
   componentDidMount () {
     this.prepParentCollection();
