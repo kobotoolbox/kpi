@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import constance
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -27,3 +29,14 @@ class HookSerializer(serializers.ModelSerializer):
     def get_logs_url(self, hook):
         return reverse("hook-log-list", args=(hook.asset.uid, hook.uid),
                        request=self.context.get("request", None))
+
+    def validate_endpoint(self, value):
+        """
+        Check if endpoint is valid
+        """
+        if not value.startswith("http"):
+            raise serializers.ValidationError(_("Invalid scheme"))
+        elif not constance.config.ALLOW_UNSECURED_HOOK_ENDPOINTS and \
+            value.startswith("http:"):
+            raise serializers.ValidationError(_("Unsecured endpoint is not allowed"))
+        return value

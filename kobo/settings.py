@@ -137,6 +137,9 @@ CONSTANCE_CONFIG = {
                                        'help@kobotoolbox.org'),
                       'Email address for users to contact, e.g. when they '
                       'encounter unhandled errors in the application'),
+    'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
+                                       'Allow the use of unsecured endpoints for hooks. '
+                                       '(e.g http://hook.example.com)')
 
 }
 # Tell django-constance to use a database model instead of Redis

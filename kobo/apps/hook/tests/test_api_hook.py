@@ -3,6 +3,7 @@ import json
 import requests
 import responses
 
+import constance
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework import status
@@ -34,7 +35,7 @@ class ApiHookTestCase(KpiTestCase):
         self.asset.save(create_version=False)
         settings.CELERY_ALWAYS_EAGER = True
 
-    def _create_hook(self):
+    def _create_hook(self, return_response_only=False):
         url = reverse("hook-list", kwargs={"parent_lookup_asset": self.asset.uid})
         data = {
             "name": "some external service with token",
@@ -46,11 +47,14 @@ class ApiHookTestCase(KpiTestCase):
             }
         }
         response = self.client.post(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                         msg=response.data)
-        hook = self.asset.hooks.last()
-        self.assertTrue(hook.active)
-        return hook
+        if return_response_only:
+            return response
+        else:
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED,
+                             msg=response.data)
+            hook = self.asset.hooks.last()
+            self.assertTrue(hook.active)
+            return hook
 
     def test_anonymous_access(self):
         hook = self._create_hook()
@@ -188,3 +192,12 @@ class ApiHookTestCase(KpiTestCase):
 
         response = self.client.get(detail_url, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get("tries"), 2)
+
+    def test_validation(self):
+
+        constance.config.ALLOW_UNSECURED_HOOK_ENDPOINTS = False
+
+        response = self._create_hook(return_response_only=True)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        expected_response = {"endpoint": ["Unsecured endpoint is not allowed"]}
+        self.assertEqual(response.data, expected_response)
