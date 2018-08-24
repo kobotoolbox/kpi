@@ -94,10 +94,8 @@ class GalleryStore extends Reflux.Store {
   */
 
   onSetFormUid(uid) {
-    if (this.state.formUid !== uid) {
-      this.setState({formUid: uid});
-      this.wipeAndLoadData();
-    }
+    this.setState({formUid: uid});
+    this.wipeAndLoadData();
   }
 
   onSelectGalleryMedia({galleryIndex, mediaIndex}) {
