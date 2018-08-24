@@ -49,14 +49,14 @@ export default class FormGallery extends React.Component {
     galleryActions.loadMoreGalleries();
   }
 
-  isGalleryMatchingSearchQuery(galleryData) {
+  isGalleryMatchingSearchQuery(gallery) {
     if (this.state.filterQuery === '') {
       return true;
     } else {
       const searchRegEx = new RegExp(this.state.filterQuery, 'i');
       return (
-        searchRegEx.test(galleryData.label) ||
-        searchRegEx.test(formatTimeDate(galleryData.date_created))
+        searchRegEx.test(gallery.title) ||
+        searchRegEx.test(formatTimeDate(gallery.dateCreated))
       );
     }
   }
@@ -96,10 +96,10 @@ export default class FormGallery extends React.Component {
           <FormGalleryFilter/>
 
           {this.state.galleries.map(
-            (record, i) => {
-              if (this.isGalleryMatchingSearchQuery(record)) {
+            (gallery, i) => {
+              if (this.isGalleryMatchingSearchQuery(gallery)) {
                 return (
-                  <FormGalleryGrid key={i} galleryIndex={i}/>
+                  <FormGalleryGrid key={i} galleryIndex={gallery.galleryIndex}/>
                 );
               } else {
                 return null;
@@ -107,7 +107,7 @@ export default class FormGallery extends React.Component {
             }
           )}
 
-          { this.state.nextPageUrl &&
+          { this.state.nextGalleriesPageUrl &&
             this.state.filterQuery === '' &&
             <bem.AssetGallery__loadMore>
               {this.state.isLoadingGalleries &&

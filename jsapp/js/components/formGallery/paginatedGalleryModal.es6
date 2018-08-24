@@ -64,7 +64,7 @@ export default class PaginatedGalleryModal extends React.Component {
 
   changeOffset(offsetValue) {
     this.setState({ offsetValue: offsetValue }, function() {
-      this.goToPage(this.state.currentPage);
+      this.goToPage(1);
     });
   }
 
@@ -93,6 +93,16 @@ export default class PaginatedGalleryModal extends React.Component {
     return this.state.gallery.medias.filter((media) => {
       return (media.mediaIndex >= min && media.mediaIndex < max);
     });
+  }
+
+  getDisplayedMediaRange() {
+    const currentPageMedia = this.getCurrentPageMedia();
+    if (currentPageMedia.length === 0) {
+      return '…';
+    }
+    const firstNumber = currentPageMedia[0].mediaIndex + 1;
+    const lastNumber = currentPageMedia[currentPageMedia.length - 1].mediaIndex + 1;
+    return `${firstNumber}-${lastNumber}`;
   }
 
   renderLoadingMessage() {
@@ -144,7 +154,7 @@ export default class PaginatedGalleryModal extends React.Component {
       <bem.PaginatedGalleryModal>
         <bem.PaginatedGalleryModal_heading>
           <h2>{t('All photos of ##name##').replace('##name##', this.state.gallery.title)}</h2>
-          <h4>{t('Showing ##count## of ##total##').replace('##count##', this.state.offsetValue).replace('##total##', this.state.gallery.totalMediaCount)}</h4>
+          <h4>{t('Showing ##count## of ##total##').replace('##count##', this.getDisplayedMediaRange()).replace('##total##', this.state.gallery.totalMediaCount)}</h4>
         </bem.PaginatedGalleryModal_heading>
 
         <bem.PaginatedGalleryModal_body>

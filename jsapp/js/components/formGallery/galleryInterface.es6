@@ -180,7 +180,7 @@ class GalleryStore extends Reflux.Store {
     this.setState({isLoadingGalleries: true});
     dataInterface.loadNextPageUrl(this.state.nextGalleriesPageUrl)
       .done((response) => {
-        this.state.galleries.push(...this.buildGalleries(response.results));
+        this.state.galleries = this.state.galleries.concat(this.buildGalleries(response.results));
         this.trigger({galleries: this.state.galleries});
         this.setState({
           totalMediaCount: response.attachments_count,
@@ -287,8 +287,8 @@ class Gallery {
   buildMediaDate(mediaData) {
     if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
       return this.dateCreated;
-    } else if (media.submission && media.submission.date_created) {
-      return formatTimeDate(media.submission.date_created);
+    } else if (mediaData.submission && mediaData.submission.date_created) {
+      return formatTimeDate(mediaData.submission.date_created);
     } else {
       console.error('Unknown media date created', mediaData);
     }
@@ -297,8 +297,8 @@ class Gallery {
   buildMediaTitle(mediaData, mediaIndex) {
     if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
       return t('Record ##number##').replace('##number##', parseInt(mediaIndex) + 1);
-    } else if (media.question && media.question.label) {
-      return media.question.label;
+    } else if (mediaData.question && mediaData.question.label) {
+      return mediaData.question.label;
     } else if (this.title) {
       return this.title;
     } else {

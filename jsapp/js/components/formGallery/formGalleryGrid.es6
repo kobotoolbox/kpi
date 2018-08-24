@@ -45,7 +45,10 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   hasReachedGridLimit() {
-    return this.state.gallery.loadedMediaCount >= GRID_PAGE_LIMIT;
+    return (
+      this.state.gallery.loadedMediaCount >= GRID_PAGE_LIMIT &&
+      this.state.gallery.totalMediaCount > GRID_PAGE_LIMIT
+    );
   }
 
   loadMoreMedia() {
@@ -62,25 +65,24 @@ export default class FormGalleryGrid extends React.Component {
         </bem.AssetGallery__loadMore>
       );
     } else if (this.hasMoreAttachments()) {
-      if (this.hasReachedGridLimit()) {
-        return (
-          <bem.AssetGallery__loadMore>
-            <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
-              {t('See all ##count## images').replace('##count##', this.state.gallery.totalMediaCount)}
-            </bem.AssetGallery__loadMoreButton>
-          </bem.AssetGallery__loadMore>
-        );
-      } else {
-        return (
-          <bem.AssetGallery__loadMore>
-            <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>
-              {t('Load More')}
-            </bem.AssetGallery__loadMoreButton>
-          </bem.AssetGallery__loadMore>
-        );
-      }
+      return (
+        <bem.AssetGallery__loadMore>
+          <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>
+            {t('Load More')}
+          </bem.AssetGallery__loadMoreButton>
+        </bem.AssetGallery__loadMore>
+      );
+    } else if (this.hasReachedGridLimit()) {
+      return (
+        <bem.AssetGallery__loadMore>
+          <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
+            {t('See all ##count## images').replace('##count##', this.state.gallery.totalMediaCount)}
+          </bem.AssetGallery__loadMoreButton>
+        </bem.AssetGallery__loadMore>
+      );
+    } else {
+      return null;
     }
-    return null;
   }
 
   openPaginatedGalleryModal() {
@@ -95,16 +97,20 @@ export default class FormGalleryGrid extends React.Component {
         <bem.AssetGalleryGrid m={'6-per-row'}>
           {this.state.gallery.medias.map(
             (media, index) => {
-              return (
-                <FormGalleryGridItem
-                  key={index}
-                  url={media.smallImage}
-                  galleryIndex={this.state.gallery.galleryIndex}
-                  mediaIndex={media.mediaIndex}
-                  mediaTitle={media.title}
-                  date={media.date}
-                />
-              );
+              if (index < GRID_PAGE_LIMIT) {
+                return (
+                  <FormGalleryGridItem
+                    key={index}
+                    url={media.smallImage}
+                    galleryIndex={this.state.gallery.galleryIndex}
+                    mediaIndex={media.mediaIndex}
+                    mediaTitle={media.title}
+                    date={media.date}
+                  />
+                );
+              } else {
+                return null;
+              }
             }
           )}
         </bem.AssetGalleryGrid>
