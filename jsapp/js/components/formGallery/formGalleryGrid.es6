@@ -64,19 +64,19 @@ export default class FormGalleryGrid extends React.Component {
           </bem.AssetGallery__loadMoreMessage>
         </bem.AssetGallery__loadMore>
       );
-    } else if (this.hasMoreAttachments()) {
-      return (
-        <bem.AssetGallery__loadMore>
-          <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>
-            {t('Load More')}
-          </bem.AssetGallery__loadMoreButton>
-        </bem.AssetGallery__loadMore>
-      );
     } else if (this.hasReachedGridLimit()) {
       return (
         <bem.AssetGallery__loadMore>
           <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
             {t('See all ##count## images').replace('##count##', this.state.gallery.totalMediaCount)}
+          </bem.AssetGallery__loadMoreButton>
+        </bem.AssetGallery__loadMore>
+      );
+    } else if (this.hasMoreAttachments()) {
+      return (
+        <bem.AssetGallery__loadMore>
+          <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>
+            {t('Load More')}
           </bem.AssetGallery__loadMoreButton>
         </bem.AssetGallery__loadMore>
       );

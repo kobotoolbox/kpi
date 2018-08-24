@@ -56,7 +56,7 @@ export default class FormGallery extends React.Component {
       const searchRegEx = new RegExp(this.state.filterQuery, 'i');
       return (
         searchRegEx.test(gallery.title) ||
-        searchRegEx.test(formatTimeDate(gallery.dateCreated))
+        searchRegEx.test(gallery.dateCreated)
       );
     }
   }
