@@ -7,12 +7,14 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
+from __future__ import absolute_import
 
 from datetime import timedelta
 import multiprocessing
 import os
 import subprocess
 
+from celery.schedules import crontab
 import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
@@ -21,7 +23,7 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from static_lists import EXTRA_LANG_INFO
+from .static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -93,6 +95,7 @@ INSTALLED_APPS = (
     'constance.backends.database',
     'guardian', # For access to KC permissions ONLY
     'kobo.apps.hook',
+    'django_celery_beat',
 )
 
 MIDDLEWARE_CLASSES = (

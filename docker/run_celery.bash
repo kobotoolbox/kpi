@@ -9,3 +9,4 @@ exec celery worker -A kobo --beat --loglevel=info \
     --logfile=${KPI_LOGS_DIR}/celery.log \
     --pidfile=/tmp/celery.pid \
     --exclude-queues=sync_kobocat_xforms_queue
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler
