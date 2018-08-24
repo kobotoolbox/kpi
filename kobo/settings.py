@@ -374,29 +374,36 @@ ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 
 ''' Celery configuration '''
+# Celery 4.0 New lowercase settings.
+# Uppercase settings can be used when using a PREFIX
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
+# http://docs.celeryproject.org/en/4.0/whatsnew-4.0.html#step-2-update-your-configuration-with-the-new-setting-names
+
 
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
-    CELERY_ALWAYS_EAGER = True
+    CELERY_TASK_ALWAYS_EAGER = True
 
 # Celery defaults to having as many workers as there are cores. To avoid
 # excessive resource consumption, don't spawn more than 6 workers by default
 # even if there more than 6 cores.
+
 CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
 if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
-    CELERYD_CONCURRENCY = CELERYD_MAX_CONCURRENCY
+    CELERY_WORKER_CONCURRENCY = CELERYD_MAX_CONCURRENCY
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
-CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
+CELERY_WORKER_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Default to a 30-minute soft time limit and a 35-minute hard time limit
-CELERYD_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
-CELERYD_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
+CELERY_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
+
+CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
     'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
 
-CELERYBEAT_SCHEDULE = {
+CELERY_BEAT_SCHEDULE = {
     # Failsafe search indexing: update the Haystack index twice per day to
     # catch any stragglers that might have gotten past
     # haystack.signals.RealtimeSignalProcessor
@@ -414,7 +421,7 @@ if 'KOBOCAT_URL' in os.environ:
         # Create/update KPI assets to match KC forms
         SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
             os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
-        CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
+        CELERY_BEAT_SCHEDULE['sync-kobocat-xforms'] = {
             'task': 'kpi.tasks.sync_kobocat_xforms',
             'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
             'options': {'queue': 'sync_kobocat_xforms_queue',
@@ -429,7 +436,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
+CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
