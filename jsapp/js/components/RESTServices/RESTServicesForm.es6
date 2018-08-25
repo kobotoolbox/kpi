@@ -38,6 +38,7 @@ export default class RESTServicesForm extends React.Component {
       url: '',
       type: EXPORT_TYPES.JSON,
       isActive: true,
+      errorEmailsEnabled: true,
       securityLevel: null,
       securityOptions: [
         SECURITY_OPTIONS.no_auth,
@@ -65,6 +66,8 @@ export default class RESTServicesForm extends React.Component {
             name: data.name,
             url: data.endpoint,
             isActive: data.active,
+            // TODO use backend property
+            errorEmailsEnabled: true,
             type: data.export_type,
             securityLevel: SECURITY_OPTIONS[data.security_level],
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
@@ -138,6 +141,10 @@ export default class RESTServicesForm extends React.Component {
     this.setState({isActive: isChecked});
   }
 
+  handleErrorEmailsChange(isChecked) {
+    this.setState({errorEmailsEnabled: isChecked});
+  }
+
   handleTypeRadioChange(name, value) {
     this.setState({[name]: value});
   }
@@ -170,6 +177,7 @@ export default class RESTServicesForm extends React.Component {
       name: this.state.name,
       endpoint: this.state.url,
       active: this.state.isActive,
+      // TODO set property for errorEmailsEnabled
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
@@ -350,7 +358,16 @@ export default class RESTServicesForm extends React.Component {
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
-                errors={['test', 'secn']}
+              />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item m='errorEmails'>
+              <Checkbox
+                name='errorEmailsEnabled'
+                id='email-checkbox'
+                onChange={this.handleErrorEmailsChange.bind(this)}
+                checked={this.state.errorEmailsEnabled}
+                label={t('Receive emails about failures')}
               />
             </bem.FormModal__item>
 
