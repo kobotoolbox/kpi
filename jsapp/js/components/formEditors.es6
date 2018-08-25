@@ -35,7 +35,8 @@ import {
   assign,
   formatTime,
   validFileTypes,
-  isAValidUrl
+  isAValidUrl,
+  escapeHtml
 } from '../utils';
 
 import {
@@ -384,20 +385,19 @@ export class ProjectSettings extends React.Component {
       this.getOrCreateFormAsset().then(
         (asset) => {
           this.setState({formAsset: asset});
+          const importUrl = this.state.importUrl;
 
-          this.applyUrlToAsset(this.state.importUrl, asset).then(
+          this.applyUrlToAsset(importUrl, asset).then(
             (data) => {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.handleReplaceDone();
                 } else {
-                  // try proposing something more meaningful than "Untitled"
-                  const newName = decodeURIComponent(new URL(this.state.importUrl).pathname.split('/').pop().split('.')[0]);
-
                   this.setState({
                     formAsset: finalAsset,
-                    name: newName,
+                    // try proposing something more meaningful than "Untitled"
+                    name: this.getFilenameFromURI(importUrl),
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
@@ -411,9 +411,17 @@ export class ProjectSettings extends React.Component {
                 alertify.error(t('Failed to reload project after import!'));
               });
             },
-            () => {
+            (response) => {
               this.resetImportUrlButton();
-              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again.'));
+              const errLines = [];
+              errLines.push(t('Import Failed!'));
+              if (importUrl) {
+                errLines.push(`<code>Name: ${this.getFilenameFromURI(importUrl)}</code>`);
+              }
+              if (response.messages.error) {
+                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+              }
+              alertify.error(errLines.join('<br/>'));
             }
           );
         },
@@ -456,11 +464,15 @@ export class ProjectSettings extends React.Component {
               });
             },
             (response) => {
-              if (response && response.messages && response.messages.error) {
-                alertify.error(response.messages.error);
-              } else {
-                alertify.error(t('Could not initialize XLSForm upload!'));
+              const errLines = [];
+              errLines.push(t('Import Failed!'));
+              if (files[0].name) {
+                errLines.push(`<code>Name: ${files[0].name}</code>`);
               }
+              if (response.messages.error) {
+                errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
+              }
+              alertify.error(errLines.join('<br/>'));
             }
           );
         },
