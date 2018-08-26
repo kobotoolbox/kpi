@@ -338,7 +338,7 @@ export default class RESTServicesForm extends React.Component {
     };
 
     return (
-      <bem.FormModal__item m='fields'>
+      <bem.FormModal__item>
         <label htmlFor='selected-fields-input'>
           {t('Select fields')}
         </label>
@@ -408,7 +408,7 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='errorEmails'>
+            <bem.FormModal__item>
               <Checkbox
                 name='errorEmailsEnabled'
                 id='email-checkbox'
