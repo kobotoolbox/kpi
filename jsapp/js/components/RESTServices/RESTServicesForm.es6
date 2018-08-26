@@ -1,5 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import TagsInput from 'react-tagsinput';
 import alertify from 'alertifyjs';
 import bem from '../../bem';
 import {dataInterface} from '../../dataInterface';
@@ -46,16 +47,13 @@ export default class RESTServicesForm extends React.Component {
       ],
       securityUsername: '',
       securityPassword: '',
+      selectedFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
       ]
     };
     autoBind(this);
   }
-
-  /*
-   * initialization
-   */
 
   componentDidMount() {
     if (this.state.hookUid) {
@@ -234,7 +232,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   /*
-   * rendering custom headers
+   * handle custom headers
    */
 
   addNewCustomHeaderRow(evt) {
@@ -306,7 +304,36 @@ export default class RESTServicesForm extends React.Component {
   }
 
   /*
-   * initialization
+   * handle fields
+   */
+
+  onSelectedFieldsChange(evt) {
+    this.setState({selectedFields: evt});
+  }
+
+  renderFieldsSelector() {
+    const inputProps = {
+      placeholder: t('Add field(s)'),
+      id: 'selected-fields-input'
+    };
+
+    return (
+      <bem.FormModal__item m='fields'>
+        <label htmlFor='selected-fields-input'>
+          {t('Select fields')}
+        </label>
+
+        <TagsInput
+          value={this.state.selectedFields}
+          onChange={this.onSelectedFieldsChange.bind(this)}
+          inputProps={inputProps}
+        />
+      </bem.FormModal__item>
+    )
+  }
+
+  /*
+   * rendering
    */
 
   render() {
@@ -408,6 +435,8 @@ export default class RESTServicesForm extends React.Component {
                 options={this.state.securityOptions}
               />
             </bem.FormModal__item>
+
+            {this.renderFieldsSelector()}
 
             {this.state.securityLevel && this.state.securityLevel.value === SECURITY_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
