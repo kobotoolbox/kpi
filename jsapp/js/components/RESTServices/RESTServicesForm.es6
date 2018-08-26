@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
@@ -229,17 +230,34 @@ export default class RESTServicesForm extends React.Component {
    * rendering custom headers
    */
 
+ onCustomHeaderInputKeyPress(evt) {
+   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerName') {
+     evt.preventDefault();
+     $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
+   }
+   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerValue') {
+     evt.preventDefault();
+     this.addNewCustomHeaderRow();
+   }
+ }
+
   addNewCustomHeaderRow(evt) {
-    evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
     const newCustomHeaders = this.state.customHeaders;
     newCustomHeaders.push(this.getEmptyHeaderRow());
     this.setState({customHeaders: newCustomHeaders});
+    setTimeout(() => {
+      $('input[name="headerName"]').last().focus();
+    }, 0);
   }
 
   removeCustomHeaderRow(evt) {
     evt.preventDefault();
     const newCustomHeaders = this.state.customHeaders;
-    newCustomHeaders.splice(evt.target.dataset.index, 1);
+    const rowIndex = evt.currentTarget.dataset.index;
+    newCustomHeaders.splice(rowIndex, 1);
     if (newCustomHeaders.length === 0) {
       newCustomHeaders.push(this.getEmptyHeaderRow());
     }
@@ -264,6 +282,7 @@ export default class RESTServicesForm extends React.Component {
                 value={this.state.customHeaders[n].name}
                 data-index={n}
                 onChange={this.handleCustomHeaderChange}
+                onKeyPress={this.onCustomHeaderInputKeyPress}
               />
 
               <input
@@ -274,6 +293,7 @@ export default class RESTServicesForm extends React.Component {
                 value={this.state.customHeaders[n].value}
                 data-index={n}
                 onChange={this.handleCustomHeaderChange}
+                onKeyPress={this.onCustomHeaderInputKeyPress}
               />
 
               <button
