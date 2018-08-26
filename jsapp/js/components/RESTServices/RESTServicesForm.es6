@@ -249,7 +249,7 @@ export default class RESTServicesForm extends React.Component {
   renderCustomHeaders() {
     return (
       <bem.FormModal__item m='http-headers'>
-        <label className='long'>
+        <label>
           {t('Custom HTTP Headers')}
         </label>
 
@@ -343,7 +343,7 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='active'>
+            <bem.FormModal__item>
               <Checkbox
                 name='isActive'
                 id='active-checkbox'
@@ -354,10 +354,10 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='type' className='clearfix'>
+            <bem.FormModal__item>
               <label>{t('Type')}</label>
 
-              <bem.FormModal__item m={['half-width', 'half-width-left']}>
+              <bem.FormModal__item m='inline'>
                 <Radio
                   value={EXPORT_TYPES.JSON}
                   name='type'
@@ -367,7 +367,7 @@ export default class RESTServicesForm extends React.Component {
                 />
               </bem.FormModal__item>
 
-              <bem.FormModal__item m='half-width'>
+              <bem.FormModal__item m='inline'>
                 <Radio
                   value={EXPORT_TYPES.XML}
                   name='type'
@@ -378,7 +378,7 @@ export default class RESTServicesForm extends React.Component {
               </bem.FormModal__item>
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='security'>
+            <bem.FormModal__item>
               <label htmlFor='rest-service-form--security'>
                 {t('Security')}
               </label>
