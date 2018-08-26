@@ -495,14 +495,12 @@ iframe {
     margin-bottom: 15px;
   }
 
-  &--half-width {
-    width: 50%;
-    float: left;
-
-    // using additional class, because it is possible that mulitple consecutive
-    // half-width pairs can occur (so can't use smart & + & selectors)
-    &-left { padding-right: 15px; }
-    &-left + & { padding-left: 15px; }
+  &.form-modal__item--inline {
+    display: inline-block;
+    &:not(:last-child) {
+      margin-bottom: 0;
+      margin-right: 20px;
+    }
   }
 
   &--metadata-share {
@@ -617,7 +615,7 @@ iframe {
     @include box-shadow;
   }
 
-  &--actions {
+  &.form-modal__item--actions {
     text-align: right;
     padding-top: 10px;
   }
