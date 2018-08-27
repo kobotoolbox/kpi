@@ -148,7 +148,7 @@ function SearchContext(opts={}) {
       if (list && list.length !== 0) {
         const updateObj = {};
         list = list.filter((asset) => {
-          return asset.uid !== uid;
+          return asset.uid !== assetUid;
         });
         updateObj[listName] = list;
         this.update(updateObj);
