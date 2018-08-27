@@ -33,7 +33,7 @@ class ApiHookTestCase(KpiTestCase):
         }
         self.asset.deployment._mock_submission(submission)
         self.asset.save(create_version=False)
-        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def _create_hook(self, return_response_only=False):
         url = reverse("hook-list", kwargs={"parent_lookup_asset": self.asset.uid})

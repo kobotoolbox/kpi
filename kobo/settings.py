@@ -381,6 +381,7 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
 # http://docs.celeryproject.org/en/4.0/whatsnew-4.0.html#step-2-update-your-configuration-with-the-new-setting-names
 
+CELERY_TIMEZONE = "UTC"
 
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging

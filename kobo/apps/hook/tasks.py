@@ -46,3 +46,30 @@ def retry_all_task(hook_logs):
         time.sleep(0.2)
 
     return True
+
+
+@shared_task
+def failures_report():
+    """
+    Sends emails to owners' assets to report the submissions which failed
+    to be sent to external endpoint by hooks
+    :return:
+    """
+    from django.utils import translation
+    from django.core.mail import EmailMessage
+    from django.template import Context, Template
+    from django.template.loader import get_template
+
+    #translation.activate('fr')
+    template = get_template("reports/failures_email_body.txt")
+    variables = {}
+    text = template.render(Context(**variables))
+
+    msg = EmailMessage("Test", text, "support@kobotoolbox.org", [owner.email])
+    try:
+        msg.send()
+    except Exception as e:
+        print("ERROR - {}".format(str(e)))
+        return False
+
+    return True
