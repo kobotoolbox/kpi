@@ -511,8 +511,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         if pk:
-            submissions = self.get_submissions(format_type, [pk])
-            return submissions[0]
+            submissions = list(self.get_submissions(format_type, [pk]))
+            if len(submissions) > 0:
+                return submissions[0]
+            return None
         else:
             raise ValueError("Primary key must be provided")
 
