@@ -52,6 +52,11 @@
       }
     }
 
+    // minimum body height so at least two rows are visible
+    .rt-tbody {
+      min-height: 72px;
+    }
+
     .rt-thead {
       &.-filters input {
         padding: 2px 4px;
