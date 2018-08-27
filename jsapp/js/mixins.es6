@@ -429,20 +429,23 @@ mixins.clickAssets = {
         let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
         let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
+        let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetType}`,
           message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
+            ok_button.disabled = true;
+            ok_button.innerText = t('Cloning...');
             actions.resources.cloneAsset({
               uid: uid,
               name: value,
             }, {
             onComplete: (asset) => {
+              ok_button.disabled = false;
               dialog.destroy();
               notify(t('cloned project created'));
-              this.refreshSearch && this.refreshSearch();
             }
             });
             // keep the dialog open
