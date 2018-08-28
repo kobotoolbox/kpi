@@ -934,9 +934,11 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         :return: dict
         """
         if self._validate_destination_type(original_asset):
+            # `to_clone_dict()` returns only `name`, `content`, `asset_type`,
+            # and `tag_string`
             cloned_data = original_asset.to_clone_dict(version=source_version)
 
-            # Merge cloned_data with user's request data.
+            # Allow the user's request data to override `cloned_data`
             cloned_data.update(self.request.data.items())
 
             if partial_update:
@@ -956,9 +958,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             if cloned_asset_type in [None, ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY] and \
                 original_asset.asset_type in [ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY]:
 
-                settings = original_asset.settings
+                settings = original_asset.settings.copy()
                 settings.pop("share-metadata", None)
-                cloned_data.update({"settings": json.dumps(settings)})
+                settings.update(cloned_data.get('settings', {}))
+                cloned_data['settings'] = json.dumps(settings)
 
             # until we get content passed as a dict, transform the content obj to a str
             # TODO, verify whether `Asset.content.settings.id_string` should be cleared out.
@@ -1059,6 +1062,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             contents, but does not change the deployment's identifier
         '''
         asset = self.get_object()
+        serializer_context = self.get_serializer_context()
+        serializer_context['asset'] = asset
 
         # TODO: Require the client to provide a fully-qualified identifier,
         # otherwise provide less kludgy solution
@@ -1078,7 +1083,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise Http404
             else:
                 serializer = DeploymentSerializer(
-                    asset.deployment, context=self.get_serializer_context())
+                    asset.deployment, context=serializer_context
+                )
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -1094,7 +1100,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         )
                 serializer = DeploymentSerializer(
                     data=request.data,
-                    context={'asset': asset}
+                    context=serializer_context
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
@@ -1115,7 +1121,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 serializer = DeploymentSerializer(
                     asset.deployment,
                     data=request.data,
-                    context={'asset': asset},
+                    context=serializer_context,
                     partial=True
                 )
                 serializer.is_valid(raise_exception=True)
