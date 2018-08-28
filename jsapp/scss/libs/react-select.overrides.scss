@@ -18,6 +18,10 @@
     border-bottom: 1px solid $cool-lightgray;
     border-radius: 0;
     background-color: white;
+
+    &:hover {
+      border-bottom-color: $cool-blue;
+    }
   }
 
   .kobo-select__value-container {}
@@ -49,5 +53,12 @@
     max-height: 36px * 3.5 + 8px; // display 3.5 items
   }
 
-  .kobo-select__option {}
+  .kobo-select__option {
+    &.kobo-select__option--is-focused {
+      background-color: lighten($cool-blue, 40%);
+    }
+    &.kobo-select__option--is-selected {
+      background-color: $cool-blue;
+    }
+  }
 }
