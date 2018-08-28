@@ -260,7 +260,6 @@ export class DataTable extends React.Component {
           isDisabled={!this.userCan('validate_submissions', this.props.asset)}
           isClearable={false}
           value={this.getValidationStatusOption(row.index)}
-          placeholder=''
           options={VALIDATION_STATUSES}
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           className='kobo-select'
