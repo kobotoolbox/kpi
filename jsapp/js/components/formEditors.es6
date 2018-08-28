@@ -114,6 +114,8 @@ export class ProjectSettings extends React.Component {
     });
     actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this));
     actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this));
+    actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this));
+    actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this));
   }
 
   setInitialStep() {
@@ -273,6 +275,7 @@ export class ProjectSettings extends React.Component {
   /*
    * handling asset creation
    */
+
   onUpdateAssetCompleted(asset) {
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING) {
       // no need to open asset from within asset's settings view
@@ -288,6 +291,25 @@ export class ProjectSettings extends React.Component {
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
       this.resetApplyTemplateButton();
     }
+  }
+
+  onCloneAssetCompleted(asset) {
+    if (this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE) {
+      this.setState({
+        formAsset: asset,
+        name: asset.name,
+        description: asset.settings.description,
+        sector: asset.settings.sector,
+        country: asset.settings.country,
+        'share-metadata': asset.settings['share-metadata'] || false,
+      });
+      this.resetApplyTemplateButton();
+      this.displayStep(this.STEPS.PROJECT_DETAILS);
+    }
+  }
+
+  onCloneAssetFailed() {
+    this.resetApplyTemplateButton();
   }
 
   getOrCreateFormAsset() {
@@ -372,23 +394,6 @@ export class ProjectSettings extends React.Component {
       actions.resources.cloneAsset({
         uid: this.state.chosenTemplateUid,
         new_asset_type: 'survey'
-      }, {
-        onComplete: (asset) => {
-          this.setState({
-            formAsset: asset,
-            name: asset.name,
-            description: asset.settings.description,
-            sector: asset.settings.sector,
-            country: asset.settings.country,
-            'share-metadata': asset.settings['share-metadata'] || false,
-          });
-          this.resetApplyTemplateButton();
-          this.displayStep(this.STEPS.PROJECT_DETAILS);
-        },
-        onFailed: (asset) => {
-          this.resetApplyTemplateButton();
-          alertify.error(t('Could not create project!'));
-        }
       });
     }
   }

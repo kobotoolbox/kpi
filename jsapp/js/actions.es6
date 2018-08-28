@@ -626,12 +626,10 @@ actions.resources.cloneAsset.listen(function(details, opts={}){
         opts.onComplete(...args);
       }
     })
-    .fail((...args) => {
-      actions.resources.cloneAsset.failed(...args)
-      if (opts.onFailed) {
-        opts.onFailed(...args);
-      }
-    });
+    .fail(actions.resources.cloneAsset.failed);
+});
+actions.resources.cloneAsset.failed.listen(() => {
+  notify(t('Could not create project!'), 'error');
 });
 
 actions.search.assets.listen(function(queryString){
