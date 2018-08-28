@@ -55,6 +55,21 @@
     color: $cool-gray;
   }
 
+  .form-modal__item--primary-sector {
+    width: 46%;
+    margin-right: 2%;
+    float: left;
+  }
+
+  .form-modal__item--gender {
+    width: 52%;
+    float: left;
+  }
+
+  .form-modal__item--bio {
+    clear: both;
+  }
+
   .form-modal__item--city {
     width: 46%;
     margin-right: 2%;

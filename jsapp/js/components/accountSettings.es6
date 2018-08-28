@@ -270,7 +270,7 @@ export class AccountSettings extends React.Component {
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
+              <bem.AccountSettings__item m='primary-sector'>
                 <label>
                   {t('Primary Sector')}
 
@@ -289,7 +289,7 @@ export class AccountSettings extends React.Component {
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
+              <bem.AccountSettings__item m='gender'>
                 <label>
                   {t('Gender')}
 
@@ -304,7 +304,7 @@ export class AccountSettings extends React.Component {
                 </label>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
+              <bem.AccountSettings__item m='bio'>
                 <label>
                   {t('Bio')}
 
