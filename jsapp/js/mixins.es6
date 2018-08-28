@@ -555,16 +555,10 @@ mixins.clickAssets = {
             <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.resources.setDeploymentActive(
-              {
-                asset: asset,
-                active: false
-              },
-              {onComplete: ()=> {
-                this.refreshSearch && this.refreshSearch();
-                notify(t('archived project'));
-              }}
-            );
+            actions.resources.setDeploymentActive({
+              asset: asset,
+              active: false
+            });
           },
           oncancel: () => {
             dialog.destroy();
@@ -580,17 +574,10 @@ mixins.clickAssets = {
           message: `${t('Are you sure you want to unarchive this project?')}`,
           labels: {ok: t('Unarchive'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.resources.setDeploymentActive(
-              {
-                asset: asset,
-                active: true
-              },
-              {onComplete: ()=> {
-                actions.resources.loadAsset({id: asset.uid});
-                this.refreshSearch && this.refreshSearch();
-                notify(t('unarchived project'));
-              }}
-            );
+            actions.resources.setDeploymentActive({
+              asset: asset,
+              active: true
+            });
           },
           oncancel: () => {
             dialog.destroy();

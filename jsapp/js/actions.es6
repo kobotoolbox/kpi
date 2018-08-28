@@ -401,15 +401,20 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
   alertify.alert(t('unable to deploy'), failure_message);
 });
 
-actions.resources.setDeploymentActive.listen(function(details, params={}) {
+actions.resources.setDeploymentActive.listen(function(details) {
   dataInterface.setDeploymentActive(details)
     .done((result) => {
-      actions.resources.setDeploymentActive.completed(details, result.active);
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(details, result.active);
-      }
+      actions.resources.setDeploymentActive.completed(result);
+      actions.resources.loadAsset({id: details.asset.uid});
     })
     .fail(actions.resources.setDeploymentActive.failed);
+});
+actions.resources.setDeploymentActive.completed.listen((result) => {
+  if (result.active) {
+    notify(t('Project unarchived successfully'));
+  } else {
+    notify(t('Project archived successfully'));
+  }
 });
 
 actions.resources.getAssetFiles.listen(function(assetId) {
