@@ -383,22 +383,16 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values, params={}) {
+actions.resources.updateAsset.listen(function(uid, values) {
   dataInterface.patchAsset(uid, values)
-    .done((asset) => {
-      actions.resources.updateAsset.completed(asset);
-      if (params.onComplete) {
-        params.onComplete(asset);
-      }
-      notify(t('successfully updated'));
-    })
-    .fail((resp) => {
-      actions.resources.updateAsset.failed(resp);
-      if (params.onFailed) {
-        params.onFailed(asset);
-      }
-      notify(t('Could not replace project!'), 'error');
-    });
+    .done(actions.resources.updateAsset.completed)
+    .fail(actions.resources.updateAsset.failed);
+});
+actions.resources.updateAsset.completed.listen(() => {
+  notify(t('successfully updated'));
+});
+actions.resources.updateAsset.failed.listen(() => {
+  notify(t('Could not update project!'), 'error');
 });
 
 actions.resources.deployAsset.listen(

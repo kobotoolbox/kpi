@@ -59,7 +59,7 @@ Identifying the purpose is done by checking `context` and `formAsset`.
 You can listen to field changes by `onProjectDetailsChange` prop function.
 */
 export class ProjectSettings extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.STEPS = {
@@ -112,6 +112,8 @@ export class ProjectSettings extends React.Component {
         isSessionLoaded: true,
       });
     });
+    actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this));
+    actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this));
   }
 
   setInitialStep() {
@@ -271,6 +273,22 @@ export class ProjectSettings extends React.Component {
   /*
    * handling asset creation
    */
+  onUpdateAssetCompleted(asset) {
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING) {
+      // no need to open asset from within asset's settings view
+      return;
+    } else if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      this.handleReplaceDone();
+    } else {
+      this.goToFormLanding();
+    }
+  }
+
+  onUpdateAssetFailed(response) {
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      this.resetApplyTemplateButton();
+    }
+  }
 
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
@@ -324,13 +342,6 @@ export class ProjectSettings extends React.Component {
           country: this.state.country,
           'share-metadata': this.state['share-metadata']
         }),
-      }, {
-        onComplete: () => {
-          // no need to open asset from within asset's settings view
-          if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
-            this.goToFormLanding();
-          }
-        }
       }
     );
   }
@@ -355,14 +366,6 @@ export class ProjectSettings extends React.Component {
             country: this.state.formAsset.country,
             'share-metadata': this.state.formAsset['share-metadata']
           })
-        }, {
-          onComplete: () => {
-            // when replacing, we omit PROJECT_DETAILS step
-            this.handleReplaceDone();
-          },
-          onFailed: () => {
-            this.resetApplyTemplateButton();
-          }
         }
       );
     } else {
