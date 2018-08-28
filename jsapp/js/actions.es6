@@ -517,12 +517,10 @@ actions.resources.deleteCollection.listen(function(details, params = {}){
         params.onComplete(details, result);
       }
     })
-    .fail(function(result) {
-      actions.resources.deleteCollection.failed(details, result);
-      if (typeof params.onFailed === 'function') {
-        params.onFailed(details, result);
-      }
-    });
+    .fail(actions.resources.deleteCollection.failed);
+});
+actions.resources.deleteCollection.failed.listen(() => {
+  notify(t('Failed to delete collection.'), 'error');
 });
 
 actions.resources.updateCollection.listen(function(uid, values){

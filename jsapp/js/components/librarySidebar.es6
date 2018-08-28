@@ -149,9 +149,6 @@ class LibrarySidebar extends Reflux.Component {
             this.searchValue();
             this.queryCollections();
             dialog.destroy();
-          },
-          onFailed: (jqxhr)=> {
-            alertify.error(t('Failed to delete collection.'));
           }
         });
       },
