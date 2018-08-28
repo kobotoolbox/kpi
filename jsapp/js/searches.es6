@@ -62,19 +62,11 @@ function SearchContext(opts={}) {
       };
 
       this.listenTo(actions.resources.updateAsset.completed, this.setAsset);
-      this.listenTo(actions.resources.deployAsset.completed, this.onDeployAssetCompleted);
-      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+      this.listenTo(actions.resources.deployAsset.completed, this.setAsset);
       this.listenTo(actions.resources.createResource.completed, this.setAsset);
       this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
-      this.listenTo(actions.resources.loadAsset.completed, this.setAsset);
-    },
-    onDeployAssetCompleted() {
-      // TODO: deploying asset temporarily triggers loadAsset (already handled
-      // here), so use this event after
-      // https://github.com/kobotoolbox/kpi/issues/1940 is implemented
-    },
-    onDeleteAssetCompleted(asset) {
-      this.removeAsset(asset.uid);
+      this.listenTo(actions.resources.setDeploymentActive.completed, this.setAsset);
+      this.listenTo(actions.resources.deleteAsset.completed, this.removeAsset);
     },
     // add/update asset in all search store lists
     setAsset(asset) {
@@ -119,9 +111,9 @@ function SearchContext(opts={}) {
       }
     },
     // remove asset from all search store lists
-    removeAsset(assetUid) {
-      this.removeAssetFromList(assetUid, 'defaultQueryResultsList');
-      this.removeAssetFromList(assetUid, 'searchResultsList');
+    removeAsset(asset) {
+      this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
+      this.removeAssetFromList(asset.uid, 'searchResultsList');
       this.rebuildCategorizedList(
         this.state.defaultQueryResultsList,
         'defaultQueryCategorizedResultsLists'
