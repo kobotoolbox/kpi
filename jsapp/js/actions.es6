@@ -347,11 +347,7 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
 actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
   dataInterface.deployAsset(asset, redeployment)
     .done((data) => {
-      // TODO: after https://github.com/kobotoolbox/kpi/issues/1940 get asset from BE and remove this hack
-      asset.deployment__active = true;
-      asset.has_deployment = true;
-      // ENDTODO
-      actions.resources.deployAsset.completed(asset);
+      actions.resources.deployAsset.completed(data.asset);
       if (typeof params.onDone === 'function') {
         params.onDone(data, redeployment);
       }
@@ -403,10 +399,8 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
 
 actions.resources.setDeploymentActive.listen(function(details) {
   dataInterface.setDeploymentActive(details)
-    .done(() => {
-      let asset = details.asset;
-      asset.deployment__active = details.active;
-      actions.resources.setDeploymentActive.completed(asset);
+    .done((data) => {
+      actions.resources.setDeploymentActive.completed(data.asset);
     })
     .fail(actions.resources.setDeploymentActive.failed);
 });
