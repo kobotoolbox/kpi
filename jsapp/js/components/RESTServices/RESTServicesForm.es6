@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
+import TagsInput from 'react-tagsinput';
 import alertify from 'alertifyjs';
 import bem from '../../bem';
 import {dataInterface} from '../../dataInterface';
@@ -39,6 +40,7 @@ export default class RESTServicesForm extends React.Component {
       url: '',
       type: EXPORT_TYPES.JSON,
       isActive: true,
+      errorEmailsEnabled: true,
       securityLevel: null,
       securityOptions: [
         SECURITY_OPTIONS.no_auth,
@@ -46,16 +48,13 @@ export default class RESTServicesForm extends React.Component {
       ],
       securityUsername: '',
       securityPassword: '',
+      selectedFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
       ]
     };
     autoBind(this);
   }
-
-  /*
-   * initialization
-   */
 
   componentDidMount() {
     if (this.state.hookUid) {
@@ -66,6 +65,8 @@ export default class RESTServicesForm extends React.Component {
             name: data.name,
             url: data.endpoint,
             isActive: data.active,
+            // TODO use backend property
+            errorEmailsEnabled: true,
             type: data.export_type,
             securityLevel: SECURITY_OPTIONS[data.security_level],
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
@@ -139,6 +140,10 @@ export default class RESTServicesForm extends React.Component {
     this.setState({isActive: isChecked});
   }
 
+  handleErrorEmailsChange(isChecked) {
+    this.setState({errorEmailsEnabled: isChecked});
+  }
+
   handleTypeRadioChange(name, value) {
     this.setState({[name]: value});
   }
@@ -171,6 +176,7 @@ export default class RESTServicesForm extends React.Component {
       name: this.state.name,
       endpoint: this.state.url,
       active: this.state.isActive,
+      // TODO set property for errorEmailsEnabled
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
@@ -227,7 +233,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   /*
-   * rendering custom headers
+   * handle custom headers
    */
 
  onCustomHeaderInputKeyPress(evt) {
@@ -318,7 +324,36 @@ export default class RESTServicesForm extends React.Component {
   }
 
   /*
-   * initialization
+   * handle fields
+   */
+
+  onSelectedFieldsChange(evt) {
+    this.setState({selectedFields: evt});
+  }
+
+  renderFieldsSelector() {
+    const inputProps = {
+      placeholder: t('Add field(s)'),
+      id: 'selected-fields-input'
+    };
+
+    return (
+      <bem.FormModal__item>
+        <label htmlFor='selected-fields-input'>
+          {t('Select fields')}
+        </label>
+
+        <TagsInput
+          value={this.state.selectedFields}
+          onChange={this.onSelectedFieldsChange.bind(this)}
+          inputProps={inputProps}
+        />
+      </bem.FormModal__item>
+    )
+  }
+
+  /*
+   * rendering
    */
 
   render() {
@@ -370,7 +405,16 @@ export default class RESTServicesForm extends React.Component {
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
-                errors={['test', 'secn']}
+              />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item>
+              <Checkbox
+                name='errorEmailsEnabled'
+                id='email-checkbox'
+                onChange={this.handleErrorEmailsChange.bind(this)}
+                checked={this.state.errorEmailsEnabled}
+                label={t('Receive emails about failures')}
               />
             </bem.FormModal__item>
 
@@ -411,6 +455,8 @@ export default class RESTServicesForm extends React.Component {
                 options={this.state.securityOptions}
               />
             </bem.FormModal__item>
+
+            {this.renderFieldsSelector()}
 
             {this.state.securityLevel && this.state.securityLevel.value === SECURITY_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
