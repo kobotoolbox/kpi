@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
@@ -229,17 +230,34 @@ export default class RESTServicesForm extends React.Component {
    * rendering custom headers
    */
 
+ onCustomHeaderInputKeyPress(evt) {
+   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerName') {
+     evt.preventDefault();
+     $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
+   }
+   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerValue') {
+     evt.preventDefault();
+     this.addNewCustomHeaderRow();
+   }
+ }
+
   addNewCustomHeaderRow(evt) {
-    evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
     const newCustomHeaders = this.state.customHeaders;
     newCustomHeaders.push(this.getEmptyHeaderRow());
     this.setState({customHeaders: newCustomHeaders});
+    setTimeout(() => {
+      $('input[name="headerName"]').last().focus();
+    }, 0);
   }
 
   removeCustomHeaderRow(evt) {
     evt.preventDefault();
     const newCustomHeaders = this.state.customHeaders;
-    newCustomHeaders.splice(evt.target.dataset.index, 1);
+    const rowIndex = evt.currentTarget.dataset.index;
+    newCustomHeaders.splice(rowIndex, 1);
     if (newCustomHeaders.length === 0) {
       newCustomHeaders.push(this.getEmptyHeaderRow());
     }
@@ -249,7 +267,7 @@ export default class RESTServicesForm extends React.Component {
   renderCustomHeaders() {
     return (
       <bem.FormModal__item m='http-headers'>
-        <label className='long'>
+        <label>
           {t('Custom HTTP Headers')}
         </label>
 
@@ -264,6 +282,7 @@ export default class RESTServicesForm extends React.Component {
                 value={this.state.customHeaders[n].name}
                 data-index={n}
                 onChange={this.handleCustomHeaderChange}
+                onKeyPress={this.onCustomHeaderInputKeyPress}
               />
 
               <input
@@ -274,6 +293,7 @@ export default class RESTServicesForm extends React.Component {
                 value={this.state.customHeaders[n].value}
                 data-index={n}
                 onChange={this.handleCustomHeaderChange}
+                onKeyPress={this.onCustomHeaderInputKeyPress}
               />
 
               <button
@@ -343,7 +363,7 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='active'>
+            <bem.FormModal__item>
               <Checkbox
                 name='isActive'
                 id='active-checkbox'
@@ -354,10 +374,10 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='type' className='clearfix'>
+            <bem.FormModal__item>
               <label>{t('Type')}</label>
 
-              <bem.FormModal__item m={['half-width', 'half-width-left']}>
+              <bem.FormModal__item m='inline'>
                 <Radio
                   value={EXPORT_TYPES.JSON}
                   name='type'
@@ -367,7 +387,7 @@ export default class RESTServicesForm extends React.Component {
                 />
               </bem.FormModal__item>
 
-              <bem.FormModal__item m='half-width'>
+              <bem.FormModal__item m='inline'>
                 <Radio
                   value={EXPORT_TYPES.XML}
                   name='type'
@@ -378,7 +398,7 @@ export default class RESTServicesForm extends React.Component {
               </bem.FormModal__item>
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='security'>
+            <bem.FormModal__item>
               <label htmlFor='rest-service-form--security'>
                 {t('Security')}
               </label>
