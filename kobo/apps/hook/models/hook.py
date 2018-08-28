@@ -41,7 +41,7 @@ class Hook(models.Model):
     settings = JSONBField(default=dict)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now_add=True)
-    email_notifications = models.BooleanField(default=True)
+    email_notification = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["name"]

@@ -14,6 +14,7 @@ import multiprocessing
 import os
 import subprocess
 
+from celery.schedules import crontab
 import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
@@ -414,6 +415,11 @@ CELERY_BEAT_SCHEDULE = {
     #    'task': 'kpi.tasks.update_search_index',
     #    'schedule': timedelta(hours=12)
     #},
+    # Schedule every day at midnight UTC. Can be customized in admin section
+    "send-hooks-failures-reports": {
+        "task": "kobo.apps.hook.tasks.failures_reports",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 
 if 'KOBOCAT_URL' in os.environ:

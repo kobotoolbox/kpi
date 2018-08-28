@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Asset" as i18n_asset %}
+{% trans "Hook" as i18n_hook %}
+{% trans "Submission" as i18n_submission %}
+{% trans "Status code" as i18n_status_code %}
+{% trans "Message" as i18n_message %}
+{% trans "Date" as i18n_date %}
+
+<p>{% trans "Dear" %} {{ username }},</p>
+<p>{% trans "Some submissions could not be sent to the external endpoints." %}</p>
+
+{% for asset_id, asset in assets.items %}
+    <p>{{ i18n_asset }}: <b>{{ asset.name }}</b></p>
+    <table>
+        <tr>
+          <th style="border-bottom:1px solid black;">{{ i18n_hook }}</th>
+          <th style="border-bottom:1px solid black;">{{ i18n_submission }}</th>
+          <th style="border-bottom:1px solid black;">{{ i18n_status_code }}</th>
+          <th style="border-bottom:1px solid black;">{{ i18n_message }}</th>
+          <th style="border-bottom:1px solid black;">{{ i18n_date }}</th>
+        </tr>
+        {% for log in asset.logs %}
+            <tr>
+                <td>{{ log.hook_name }}</td>
+                <td>{{ log.uid }}</td>
+                <td style="text-align: center">{{ log.status_code }}</td>
+                <td>{{ log.message|truncatechars:50 }}</td>
+                <td>{{ log.date_modified|date:"Y-m-d H:i" }} UTC</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endfor %}
+
+<p>
+{% trans "Best," %}</br>
+KoBoToolbox
+</p>

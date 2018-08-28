@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='hook',
-            name='email_notifications',
+            name='email_notification',
             field=models.BooleanField(default=True),
         ),
     ]
