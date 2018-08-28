@@ -785,20 +785,10 @@ actions.resources.loadAsset.listen(function(params){
       .fail(actions.resources.loadAsset.failed);
 });
 
-actions.resources.loadAssetContent.listen(function(params, callbacks = {}){
+actions.resources.loadAssetContent.listen(function(params){
   dataInterface.getAssetContent(params)
-    .done((...args) => {
-      actions.resources.loadAssetContent.completed(...args);
-      if (callbacks.onComplete) {
-        callbacks.onComplete(...args);
-      }
-    })
-    .fail((...args) => {
-      actions.resources.loadAssetContent.failed(...args);
-      if (callbacks.onFailed) {
-        callbacks.onFailed(...args);
-      }
-    });
+    .done(actions.resources.loadAssetContent.completed)
+    .fail(actions.resources.loadAssetContent.failed);
 });
 
 actions.resources.listAssets.listen(function(){
