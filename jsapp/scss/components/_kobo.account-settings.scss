@@ -6,6 +6,10 @@
   overflow-y: auto;
   @include box-shadow;
 
+  .kobo-select {
+    font-size: 15px;
+  }
+
   .form-modal__item--column {
     width: 90%;
     height: 100%;
