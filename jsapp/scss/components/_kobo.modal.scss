@@ -224,6 +224,9 @@
     .switch--validation-status {
       width: 100%;
       text-align: right;
+      .kobo-select {
+        text-align: left;
+      }
     }
 
     .switch--label-language + .switch--validation-status {
