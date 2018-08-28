@@ -100,7 +100,7 @@ mixins.dmix = {
       }
     });
   },
-  _deployAssetNextTime (asset) {
+  _redeployAsset (asset) {
     const dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Overwrite existing deployment'),
@@ -147,11 +147,9 @@ mixins.dmix = {
         }
     }
     if (!asset.has_deployment) {
-      // There's no existing deployment for this asset
       this._deployAssetFirstTime(asset);
     } else {
-      // We are about to overwrite(!) an existing deployment
-      this._deployAssetNextTime(asset);
+      this._redeployAsset(asset);
     }
   },
   unarchiveAsset () {

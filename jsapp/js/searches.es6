@@ -61,15 +61,12 @@ function SearchContext(opts={}) {
         searchState: 'none',
       };
 
-      this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
+      this.listenTo(actions.resources.updateAsset.completed, this.setAsset);
       this.listenTo(actions.resources.deployAsset.completed, this.onDeployAssetCompleted);
       this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-      this.listenTo(actions.resources.createResource.completed, this.onCreateResourceCompleted);
-      this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-      this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
-    },
-    onUpdateAssetCompleted(asset) {
-      this.setAsset(asset);
+      this.listenTo(actions.resources.createResource.completed, this.setAsset);
+      this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
+      this.listenTo(actions.resources.loadAsset.completed, this.setAsset);
     },
     onDeployAssetCompleted(/*data, redeployment, uid*/) {
       // TODO: deploying asset temporarily triggers loadAsset (already handled
@@ -78,15 +75,6 @@ function SearchContext(opts={}) {
     },
     onDeleteAssetCompleted(asset) {
       this.removeAsset(asset.uid);
-    },
-    onCreateResourceCompleted(asset) {
-      this.setAsset(asset);
-    },
-    onCloneAssetCompleted(asset) {
-      this.setAsset(asset);
-    },
-    onLoadAssetCompleted(asset) {
-      this.setAsset(asset);
     },
     // add/update asset in all search store lists
     setAsset(asset) {
