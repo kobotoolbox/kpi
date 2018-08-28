@@ -530,7 +530,12 @@ class ReportContents extends React.Component {
       <div>
         {
           reportData.map((rowContent, i)=>{
-            var label = (rowContent.row.label && rowContent.row.label[tnslIndex]) ? rowContent.row.label[tnslIndex] : t('Unlabeled');
+            let label = t('Unlabeled');
+            if (_.isArray(rowContent.row.label)) {
+              label = rowContent.row.label[tnslIndex];
+            } else if (_.isString(rowContent.row.label)) {
+              label = rowContent.row.label;
+            }
 
             if (!rowContent.data.provided)
               return false;
