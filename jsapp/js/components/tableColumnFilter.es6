@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Reflux from 'reflux';
@@ -29,8 +30,10 @@ export class TableColumnFilter extends React.Component {
     if (_sett['data-table']) {
       if (_sett['data-table']['selected-columns'])
         this.state.selectedColumns = _sett['data-table']['selected-columns'];
-      if (_sett['data-table']['frozen-column'])
-        this.state.frozenColumn = _sett['data-table']['frozen-column'];
+      if (_sett['data-table']['frozen-column']) {
+        const cols = this.listColumns();
+        this.state.frozenColumn = _.find(cols, (col) => {return col.value === _sett['data-table']['frozen-column']});
+      }
       if (_sett['data-table']['show-group-name'])
         this.state.showGroupName = _sett['data-table']['show-group-name'];
       if (_sett['data-table']['translation-index'])
@@ -51,7 +54,7 @@ export class TableColumnFilter extends React.Component {
 
     if (this.userCan('change_asset', this.props.asset)) {
       settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
-      settings['data-table']['frozen-column'] = s.frozenColumn;
+      settings['data-table']['frozen-column'] = s.frozenColumn.value;
       settings['data-table']['show-group-name'] = s.showGroupName;
       settings['data-table']['translation-index'] = s.translationIndex;
 
@@ -186,6 +189,7 @@ export class TableColumnFilter extends React.Component {
                 className='kobo-select'
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
+                isClearable
               />
             </bem.FormModal__item>
             <bem.FormModal__item>
