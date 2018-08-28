@@ -63,15 +63,19 @@ function SearchContext(opts={}) {
 
       this.listenTo(actions.resources.updateAsset.completed, this.setAsset);
       this.listenTo(actions.resources.deployAsset.completed, this.onDeployAssetCompleted);
+      this.listenTo(actions.resources.setDeploymentActive.completed, this.onSetDeploymentActiveCompleted);
       this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
       this.listenTo(actions.resources.createResource.completed, this.setAsset);
       this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
       this.listenTo(actions.resources.loadAsset.completed, this.setAsset);
     },
-    onDeployAssetCompleted(/*data, redeployment, uid*/) {
+    onDeployAssetCompleted() {
       // TODO: deploying asset temporarily triggers loadAsset (already handled
       // here), so use this event after
       // https://github.com/kobotoolbox/kpi/issues/1940 is implemented
+    },
+    onSetDeploymentActiveCompleted(response) {
+      this.setAsset(response.asset);
     },
     onDeleteAssetCompleted(asset) {
       this.removeAsset(asset.uid);
