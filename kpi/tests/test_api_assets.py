@@ -149,7 +149,9 @@ class AssetsDetailApiTests(APITestCase):
                 'backend': 'mock',
                 'active': True,
             })
-        asset = Asset.objects.get(uid=self.asset_uid)
+
+        self.assertEqual(response1.data.get("asset").get('deployment__active'), True)
+        self.assertEqual(response1.data.get("asset").get('has_deployment'), True)
 
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data.get('deployment__active'), True)
