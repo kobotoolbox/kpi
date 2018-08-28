@@ -325,7 +325,7 @@ export class ProjectSettings extends React.Component {
           'share-metadata': this.state['share-metadata']
         }),
       }, {
-        onCompleted: () => {
+        onComplete: () => {
           // no need to open asset from within asset's settings view
           if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
             this.goToFormLanding();
@@ -356,7 +356,7 @@ export class ProjectSettings extends React.Component {
             'share-metadata': this.state.formAsset['share-metadata']
           })
         }, {
-          onCompleted: () => {
+          onComplete: () => {
             // when replacing, we omit PROJECT_DETAILS step
             this.handleReplaceDone();
           },
@@ -370,7 +370,7 @@ export class ProjectSettings extends React.Component {
         uid: this.state.chosenTemplateUid,
         new_asset_type: 'survey'
       }, {
-        onCompleted: (asset) => {
+        onComplete: (asset) => {
           this.setState({
             formAsset: asset,
             name: asset.name,

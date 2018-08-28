@@ -383,19 +383,19 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values, callbacks={}) {
+actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
       actions.resources.updateAsset.completed(asset);
-      if (callbacks.onCompleted) {
-        callbacks.onCompleted(asset);
+      if (params.onComplete) {
+        params.onComplete(asset);
       }
       notify(t('successfully updated'));
     })
     .fail((resp) => {
       actions.resources.updateAsset.failed(resp);
-      if (callbacks.onFailed) {
-        callbacks.onFailed(asset);
+      if (params.onFailed) {
+        params.onFailed(asset);
       }
       notify(t('Could not replace project!'), 'error');
     });
@@ -623,19 +623,19 @@ actions.resources.updateCollection.listen(function(uid, values){
     });
 });
 
-actions.resources.cloneAsset.listen(function(details, callbacks={}){
+actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done((...args) => {
       actions.resources.createAsset.completed(...args);
       actions.resources.cloneAsset.completed(...args);
-      if (callbacks.onCompleted) {
-        callbacks.onCompleted(...args);
+      if (opts.onComplete) {
+        opts.onComplete(...args);
       }
     })
     .fail((...args) => {
       actions.resources.cloneAsset.failed(...args)
-      if (callbacks.onFailed) {
-        callbacks.onFailed(...args);
+      if (opts.onFailed) {
+        opts.onFailed(...args);
       }
     });
 });
