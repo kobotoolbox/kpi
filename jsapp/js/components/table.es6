@@ -329,7 +329,10 @@ export class DataTable extends React.Component {
 
       columns.push({
         Header: h => {
-          return _this.getColumnLabel(key, q, qParentG);
+          const columnName = _this.getColumnLabel(key, q, qParentG);
+          return (
+            <span title={columnName}>{columnName}</span>
+          );
         },
         id: key,
         accessor: row => row[key],
