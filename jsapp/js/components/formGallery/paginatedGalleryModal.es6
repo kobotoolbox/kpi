@@ -6,6 +6,7 @@ import bem from '../../bem';
 import stores from '../../stores';
 import {
   PAGE_SIZE,
+  ORDER_OPTIONS,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
@@ -26,8 +27,8 @@ const OFFSET_OPTIONS = [
   {value: PAGE_SIZE * 16, label: '96'}
 ];
 const SORT_OPTIONS = [
-  {label: t('Show oldest first'), value: 'asc'},
-  {label: t('Show latest first'), value: 'desc'}
+  ORDER_OPTIONS.asc,
+  ORDER_OPTIONS.desc
 ];
 
 export default class PaginatedGalleryModal extends React.Component {
@@ -36,7 +37,7 @@ export default class PaginatedGalleryModal extends React.Component {
     autoBind(this);
     this.state = {
       offsetValue: OFFSET_OPTIONS[0].value,
-      sortValue: SORT_OPTIONS[0].value,
+      filterOrder: galleryStore.state.filterOrder,
       currentPage: 1,
       gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
       filterGroupBy: galleryStore.state.filterGroupBy
@@ -50,6 +51,11 @@ export default class PaginatedGalleryModal extends React.Component {
       }
       if (storeChanges.filterGroupBy) {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
+      }
+      if (storeChanges.filterOrder) {
+        this.setState({filterOrder: storeChanges.filterOrder});
+        galleryActions.wipeLoadedGalleryData(galleryStore.state.selectedGalleryIndex);
+        this.goToPage(1);
       }
     });
   }
@@ -69,10 +75,7 @@ export default class PaginatedGalleryModal extends React.Component {
   }
 
   changeSort(sort) {
-    this.setState({ sortValue: sort }, function() {
-      console.error('TODO work this out!')
-      this.goToPage(this.state.currentPage);
-    });
+    galleryActions.setFilters({filterOrder: ORDER_OPTIONS[sort]});
   }
 
   goToPage(newPage) {
@@ -80,8 +83,7 @@ export default class PaginatedGalleryModal extends React.Component {
       galleryActions.loadMoreGalleryMedias(
         this.state.gallery.galleryIndex,
         newPage,
-        this.state.offsetValue,
-        this.state.sortValue
+        this.state.offsetValue
       );
     }
     this.setCurrentPage(newPage);
@@ -164,7 +166,7 @@ export default class PaginatedGalleryModal extends React.Component {
             pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
             currentPage={this.state.currentPage}
-            sortValue={this.state.sortValue}
+            filterOrder={this.state.filterOrder}
             changeSort={this.changeSort}
           />
 
@@ -176,7 +178,7 @@ export default class PaginatedGalleryModal extends React.Component {
             pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
             currentPage={this.state.currentPage}
-            sortValue={this.state.sortValue}
+            filterOrder={this.state.filterOrder}
             changeSort={this.changeSort}
             selectDirectionUp
           />
@@ -231,7 +233,7 @@ class GalleryControls extends React.Component {
           options={SORT_OPTIONS}
           simpleValue
           name='selected-filter'
-          value={this.props.sortValue}
+          value={this.props.filterOrder}
           onChange={this.props.changeSort}
           autoBlur
           searchable={false}

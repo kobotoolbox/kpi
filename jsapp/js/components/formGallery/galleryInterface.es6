@@ -15,7 +15,6 @@ import {MODAL_TYPES} from 'js/constants';
 
 export const PAGE_SIZE = 6;
 export const GRID_PAGE_LIMIT = PAGE_SIZE * 2;
-
 export const GROUPBY_OPTIONS = {
   question: {
     value: 'question',
@@ -26,6 +25,16 @@ export const GROUPBY_OPTIONS = {
     label: t('Group by record')
   }
 }
+export const ORDER_OPTIONS = {
+  asc: {
+    label: t('Show oldest first'),
+    value: 'asc'
+  },
+  desc: {
+    label: t('Show latest first'),
+    value: 'desc'
+  }
+};
 
 export const galleryActions = Reflux.createActions([
   'setFormUid',
@@ -34,7 +43,8 @@ export const galleryActions = Reflux.createActions([
   'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
-  'loadMoreGalleryMedias'
+  'loadMoreGalleryMedias',
+  'wipeLoadedGalleryData'
 ]);
 
 galleryActions.openSingleModal.listen(({galleryIndex, mediaIndex}) => {
@@ -61,10 +71,10 @@ class GalleryStore extends Reflux.Store {
   getInitialState() {
     const stateObj = {}
     assign(stateObj, {
-      // new properties
       formUid: null,
       filterQuery: '',
       filterGroupBy: GROUPBY_OPTIONS.question,
+      filterOrder: ORDER_OPTIONS.asc,
       isLoadingGalleries: false,
     });
     assign(stateObj, this.getWipedGalleriesState());
@@ -138,6 +148,9 @@ class GalleryStore extends Reflux.Store {
         needsWipeAndLoad = true;
       }
     }
+    if (typeof filters.filterOrder !== 'undefined') {
+      updateObj.filterOrder = filters.filterOrder;
+    }
     this.setState(updateObj);
 
     if (needsWipeAndLoad) {
@@ -153,16 +166,22 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  onLoadMoreGalleryMedias(galleryIndex, pageToLoad=null, pageSize=PAGE_SIZE, sort='asc') {
+  onLoadMoreGalleryMedias(galleryIndex, pageToLoad=null, pageSize=PAGE_SIZE) {
     const targetGallery = this.state.galleries[galleryIndex];
     if (pageToLoad === null) {
       pageToLoad = targetGallery.guessNextPageToLoad()
     }
     if (pageToLoad !== null) {
-      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad, pageSize, sort);
+      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad, pageSize, this.state.filterOrder.value);
     } else {
       throw new Error('No more gallery medias to load!');
     }
+  }
+
+  onWipeLoadedGalleryData(galleryIndex) {
+    const targetGallery = this.state.galleries[galleryIndex];
+    targetGallery.wipeLoadedData();
+    this.trigger({galleries: this.state.galleries});
   }
 
   /*
@@ -241,6 +260,11 @@ class Gallery {
 
   setIsLoadingMedias(isLoadingMedias) {
     this.isLoadingMedias = isLoadingMedias;
+  }
+
+  wipeLoadedData() {
+    this.medias = [];
+    this.loadedMediaCount = [];
   }
 
   guessNextPageToLoad() {
