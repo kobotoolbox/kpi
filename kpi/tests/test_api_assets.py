@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
+from hashlib import md5
 import json
 import requests
 import StringIO
@@ -80,6 +81,28 @@ class AssetsListApiTests(APITestCase):
                 break
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
+
+    def test_assets_hash(self):
+        another_user = User.objects.get(username="anotheruser")
+
+        user_asset = Asset.objects.get(pk=1)
+        user_asset.save()
+
+        another_user_asset = Asset.objects.get(pk=2)
+        another_user_asset.save()
+
+        user_asset.assign_perm(another_user, "view_asset")
+        self.client.logout()
+        self.client.login(username="anotheruser", password="anotheruser")
+        versions_ids = [
+            user_asset.version_id,
+            another_user_asset.version_id
+        ]
+        versions_ids.sort()
+        expected_hash = md5("".join(versions_ids)).hexdigest()
+        hash_url = reverse("asset-hash-list")
+        hash_response = self.client.get(hash_url)
+        self.assertEqual(hash_response.data.get("hash"), expected_hash)
 
 
 class AssetVersionApiTests(APITestCase):
