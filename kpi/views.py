@@ -1,6 +1,7 @@
 from distutils.util import strtobool
 from itertools import chain
 import copy
+from hashlib import md5
 import json
 import base64
 import datetime
@@ -30,7 +31,7 @@ from rest_framework import (
 )
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -999,6 +1000,19 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
+
+    @list_route(methods=["GET"], renderer_classes=[renderers.JSONRenderer])
+    def hash(self, request):
+        if self.request.user.is_anonymous():
+            raise exceptions.NotAuthenticated()
+        else:
+            assets_version_ids = [
+                asset.version_id for asset in self.request.user.assets.filter(
+                    asset_type=ASSET_TYPE_SURVEY)]
+
+            return Response({
+                "hash": md5("".join(assets_version_ids)).hexdigest()
+            })
 
     @detail_route(renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
