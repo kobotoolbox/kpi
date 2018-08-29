@@ -218,14 +218,18 @@ class FormpackXLSFormUtils(object):
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
 
-    def _adjust_active_translation(self, content):
-        # to get around the form builder's way of handling translations where
-        # the interface focuses on the "null translation" and shows other ones
-        # in advanced settings, we allow the builder to attach a parameter
-        # which says what to name the null translation.
-        _null_translation_as = content.pop('#active_translation_name', None)
-        if _null_translation_as:
-            self._rename_translation(content, None, _null_translation_as)
+    def _make_default_translation_first(self, content):
+        # The form builder only shows the first language, so make sure the
+        # default language is always at the top of the translations list. The
+        # new translations UI, on the other hand, shows all languages:
+        # https://github.com/kobotoolbox/kpi/issues/1273
+        try:
+            default_translation_name = content['settings']['default_language']
+        except KeyError:
+            # No `default_language`; don't do anything
+            return
+        else:
+            self._prioritize_translation(content, default_translation_name)
 
     def _strip_empty_rows(self, content, vals=None):
         if vals is None:
@@ -299,20 +303,17 @@ class FormpackXLSFormUtils(object):
             raise ValueError('translation cannot be found')
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
-            for row in content.get('survey', []):
-                for col in _translated:
-                    if is_new:
-                        val = '{}'.format(row[col][0])
-                    else:
-                        val = row[col].pop(_tindex)
-                    row[col].insert(0, val)
-            for row in content.get('choices', []):
-                for col in _translated:
-                    if is_new:
-                        val = '{}'.format(row[col][0])
-                    else:
-                        val = row[col].pop(_tindex)
-                    row[col].insert(0, val)
+            for sheet_name in 'survey', 'choices':
+                for row in content.get(sheet_name, []):
+                    for col in _translated:
+                        if is_new:
+                            val = '{}'.format(row[col][0])
+                        else:
+                            try:
+                                val = row[col].pop(_tindex)
+                            except KeyError:
+                                continue
+                        row[col].insert(0, val)
             if is_new:
                 _translations.insert(0, translation_name)
             else:
@@ -544,7 +545,7 @@ class Asset(ObjectPermissionMixin,
         '''
         self._standardize(self.content)
 
-        self._adjust_active_translation(self.content)
+        self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
@@ -818,7 +819,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         if _source is None:
             _source = {}
         self._standardize(_source)
-        self._adjust_active_translation(_source)
+        self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)
