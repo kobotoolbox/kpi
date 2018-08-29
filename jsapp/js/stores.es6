@@ -29,17 +29,6 @@ function changes(orig_obj, new_obj) {
 
 var stores = {};
 
-var assetLibraryStore = Reflux.createStore({
-  init () {
-    this.results = [];
-    this.listenTo(actions.search.libraryDefaultQuery.completed, this.libraryDefaultDone);
-  },
-  libraryDefaultDone (res) {
-    this.results = res;
-    this.trigger(res);
-  }
-});
-
 var tagsStore = Reflux.createStore({
   init () {
     this.queries = {};
@@ -68,7 +57,7 @@ var surveyStateStore = Reflux.createStore({
 var assetSearchStore = Reflux.createStore({
   init () {
     this.queries = {};
-    this.listenTo(actions.search.assets.completed, this.onAssetSearch);
+    this.listenTo(actions.search.assets.completed, this.onSearchAssetsCompleted);
   },
   getRecentSearch (queryString) {
     if (queryString in this.queries) {
@@ -79,11 +68,11 @@ var assetSearchStore = Reflux.createStore({
     }
     return false;
   },
-  onAssetSearch (queryString, results) {
-    results.query = queryString;
-    this.queries[queryString] = [results, new Date()];
-    if(results.count > 0) {
-      this.trigger(results);
+  onSearchAssetsCompleted (searchData, response) {
+    response.query = searchData.q;
+    this.queries[searchData.q] = [response, new Date()];
+    if(response.count > 0) {
+      this.trigger(response);
     }
   }
 });
@@ -193,13 +182,6 @@ var assetStore = Reflux.createStore({
 var sessionStore = Reflux.createStore({
   init () {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
-    this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.login.passwordfail, ()=> {
-
-    });
-    this.listenTo(actions.auth.login.failed, () => {
-
-    });
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
       log('login confirmed anonymous', data.message);
@@ -313,10 +295,11 @@ var allAssetsStore = Reflux.createStore({
     this.data = [];
     this.byUid = {};
     this._waitingOn = {};
-    this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
-    this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
+
+    this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
+    this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-    this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
+    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
     this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
   },
   whenLoaded (uid, cb) {
@@ -333,14 +316,11 @@ var allAssetsStore = Reflux.createStore({
   loadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
-  onCreateAssetCompleted (asset) {
+  onCloneAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
     this.byUid[asset.uid] = asset;
     this.data.unshift(asset);
     this.trigger(this.data);
-  },
-  onListAssetsFailed: function (/*err*/) {
-    notify(t('failed to list assets'));
   },
   onDeleteAssetCompleted (asset) {
     this.byUid[asset.uid].deleted = 'true';
@@ -368,19 +348,22 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
-  onListAssetsCompleted: function(resp/*, req, jqxhr*/) {
-    resp.results.forEach(this.registerAssetOrCollection);
-    this.data = resp.results;
+  onListAssetsCompleted: function(searchData, response) {
+    response.results.forEach(this.registerAssetOrCollection);
+    this.data = response.results;
     this.trigger(this.data);
+  },
+  onListAssetsFailed: function (/*searchData, response*/) {
+    notify(t('failed to list assets'));
   }
 });
 
 var selectedAssetStore = Reflux.createStore({
   init () {
     this.uid = cookie.load('selectedAssetUid');
-    this.listenTo(actions.resources.createAsset.completed, this.onAssetCreated);
+    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
-  onAssetCreated (asset) {
+  onCloneAssetCompleted (asset) {
     this.uid = asset.uid;
     this.asset = allAssetsStore.byUid[asset.uid];
     if (!this.asset) {
@@ -401,22 +384,6 @@ var selectedAssetStore = Reflux.createStore({
       selectedAssetUid: this.uid,
     });
     return this.uid !== false;
-  }
-});
-
-var collectionAssetsStore = Reflux.createStore({
-  init () {
-    this.collections = {};
-    this.listenTo(actions.resources.readCollection.completed, this.readCollectionCompleted);
-  },
-  readCollectionCompleted (data) {
-    var children = data.children && data.children.results;
-
-    children.forEach((childAsset)=> {
-      stores.allAssets.registerAssetOrCollection(childAsset);
-    });
-    this.collections[data.uid] = data;
-    this.trigger(data, data.uid);
   }
 });
 
@@ -534,8 +501,6 @@ assign(stores, {
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,
   asset: assetStore,
-  assetLibrary: assetLibraryStore,
-  collectionAssets: collectionAssetsStore,
   allAssets: allAssetsStore,
   session: sessionStore,
   userExists: userExistsStore,
