@@ -140,7 +140,7 @@ class AssetRow extends React.Component {
     return (
         <bem.AssetRow
           m={{
-            'display-tags': this.state.displayTags,
+            'display-tags': this.state.isTagsInputVisible,
             'deleted': this.props.deleted,
             'deleting': this.props.deleting,
           }}
@@ -249,7 +249,7 @@ class AssetRow extends React.Component {
             }
           </bem.AssetRow__cell>
 
-          { this.state.displayTags &&
+          { this.state.isTagsInputVisible &&
             <bem.AssetRow__cell m={'tags'}
                 key={'tags'}
                 className='mdl-cell mdl-cell--12-col'
