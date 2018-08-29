@@ -86,6 +86,17 @@ class AssetVersionApiTests(APITestCase):
         self.assertTrue('survey' in resp2.data['content'])
         self.assertEqual(len(resp2.data['content']['survey']), 2)
 
+    def test_asset_version_content_hash(self):
+        resp = self.client.get(self.version_list_url, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        first_version = resp.data['results'][0]
+        asset = AssetVersion.objects.get(uid=first_version['uid']).asset
+        self.assertEqual(first_version['content_hash'],
+                         asset.latest_version.content_hash)
+        resp2 = self.client.get(first_version['url'], format='json')
+        self.assertEqual(resp2.data['content_hash'],
+                         asset.latest_version.content_hash)
+
     def test_restricted_access_to_version(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -138,7 +149,9 @@ class AssetsDetailApiTests(APITestCase):
                 'backend': 'mock',
                 'active': True,
             })
-        asset = Asset.objects.get(uid=self.asset_uid)
+
+        self.assertEqual(response1.data.get("asset").get('deployment__active'), True)
+        self.assertEqual(response1.data.get("asset").get('has_deployment'), True)
 
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data.get('deployment__active'), True)

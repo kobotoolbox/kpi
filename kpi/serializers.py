@@ -440,6 +440,7 @@ class AssetVersionListSerializer(serializers.Serializer):
     # `select_related()` calls  in `AssetVersionViewSet.get_queryset()`
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
+    content_hash = serializers.ReadOnlyField()
     date_deployed = serializers.SerializerMethodField(read_only=True)
     date_modified = serializers.CharField(read_only=True)
 
@@ -466,6 +467,7 @@ class AssetVersionSerializer(AssetVersionListSerializer):
                     'version_id',
                     'date_deployed',
                     'date_modified',
+                    'content_hash',
                     'content',
                   )
 
@@ -705,6 +707,7 @@ class DeploymentSerializer(serializers.Serializer):
     identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
     version_id = serializers.CharField(required=False)
+    asset = serializers.SerializerMethodField()
 
     @staticmethod
     def _raise_unless_current_version(asset, validated_data):
@@ -714,6 +717,10 @@ class DeploymentSerializer(serializers.Serializer):
                 validated_data['version_id'] != str(asset.version_id):
             raise NotImplementedError(
                 'Only the current version_id can be deployed')
+
+    def get_asset(self, obj):
+        asset = self.context['asset']
+        return AssetSerializer(asset, context=self.context).data
 
     def create(self, validated_data):
         asset = self.context['asset']
