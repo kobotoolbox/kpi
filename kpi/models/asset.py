@@ -690,12 +690,16 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
             return latest_version.uid
 
     @property
     def version__content_hash(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
             return latest_version.content_hash
