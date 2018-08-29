@@ -84,16 +84,17 @@ class AssetsListApiTests(APITestCase):
 
     def test_assets_hash(self):
         another_user = User.objects.get(username="anotheruser")
-
-        user_asset = Asset.objects.get(pk=1)
+        user_asset = Asset.objects.first()
         user_asset.save()
-
-        another_user_asset = Asset.objects.get(pk=2)
-        another_user_asset.save()
-
         user_asset.assign_perm(another_user, "view_asset")
+
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
+        creation_response = self.test_create_asset()
+
+        another_user_asset = another_user.assets.last()
+        another_user_asset.save()
+
         versions_ids = [
             user_asset.version_id,
             another_user_asset.version_id

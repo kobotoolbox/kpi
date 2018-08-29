@@ -106,22 +106,6 @@
         }
     },
     {
-        "model": "kpi.asset",
-        "pk": 2,
-        "collection": 1,
-        "fields": {
-            "name": "fixture asset 2",
-            "content": {"survey": [
-                {"type": "text", "label": "fixture q3", "name": "q3", "kuid": "ghi"},
-                {"type": "text", "label": "fixture q4", "name": "q4", "kuid": "jkl"}
-            ]},
-            "date_created": "2018-08-29T19:12:14.406Z",
-            "date_modified": "2018-08-29T19:12:14.406Z",
-            "owner": 3,
-            "uid": "aFsoVpqanDVqrC7B43Kzh6"
-        }
-    },
-    {
         "model": "authtoken.token",
         "pk": 1,
         "fields": {
