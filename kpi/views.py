@@ -1016,7 +1016,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def hash(self, request):
         """
         Creates an hash of `version_id` of all accessible assets by the user.
-        Useful to detect changes between each requests.
+        Useful to detect changes between each request.
 
         :param request:
         :return: JSON
