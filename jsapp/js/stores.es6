@@ -353,9 +353,8 @@ var allAssetsStore = Reflux.createStore({
     }, 500);
   },
   registerAssetOrCollection (asset) {
-    asset.tags = asset.tag_string.split(',').filter((tg) => {
-      return tg.length > 1;
-    });
+    const parsedObj = assetParserUtils.parseTags(asset);
+    asset.tags = parsedObj.tags;
     this.byUid[asset.uid] = asset;
     if (asset.content) {
       this.callCallbacks(asset);
