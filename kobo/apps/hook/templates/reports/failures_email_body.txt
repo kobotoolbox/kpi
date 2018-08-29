@@ -9,7 +9,7 @@
 
 {% trans "Dear" %} {{ username }},
 
-{% trans "Some submissions could not be sent to the external endpoints." %}
+{% trans "Some submissions could not be sent to their external endpoint." %}
 
 {% for asset_id, asset in assets.items %}
 

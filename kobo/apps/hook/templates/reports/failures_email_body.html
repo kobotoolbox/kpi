@@ -8,7 +8,7 @@
 {% trans "Date" as i18n_date %}
 
 <p>{% trans "Dear" %} {{ username }},</p>
-<p>{% trans "Some submissions could not be sent to the external endpoints." %}</p>
+<p>{% trans "Some submissions could not be sent to their external endpoint." %}</p>
 
 {% for asset_id, asset in assets.items %}
     <p>{{ i18n_asset }}: <b>{{ asset.name }}</b></p>
