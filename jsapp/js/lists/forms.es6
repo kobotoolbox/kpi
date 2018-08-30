@@ -30,18 +30,8 @@ class FormsSearchableList extends React.Component {
     };
   }
   componentDidMount () {
-    this.searchDefault();
+    this.searchSemaphore();
   }
-  /*
-  dropAction ({file, event}) {
-    actions.resources.createImport({
-      base64Encoded: event.target.result,
-      name: file.name,
-      lastModified: file.lastModified,
-      contentType: file.type
-    });
-  },
-  */
   render () {
     return (
       <SearchCollectionList
