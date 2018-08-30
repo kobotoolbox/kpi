@@ -121,20 +121,20 @@ class ServiceDefinitionInterface(object):
         try:
             # Try to load the log with a multiple field FK because
             # we don't know the log `uid` in this context, but we do know
-            # its `hook` FK and its `instance.id
+            # its `hook` FK and its `instance.uuid
             log = HookLog.objects.get(**fields)
         except HookLog.DoesNotExist:
             log = HookLog(**fields)
 
         if success:
             log.status = HOOK_LOG_SUCCESS
-        elif log.tries > settings.HOOK_MAX_RETRIES:
+        elif log.tries >= settings.HOOK_MAX_RETRIES:
             log.status = HOOK_LOG_FAILED
 
         log.status_code = status_code
 
-        # Try to create a json object.
-        # In case of failure, it should be HTML, we can remove tags
+        # We want to clean up HTML, so first, we try to create a json object.
+        # In case of failure, it should be HTML (or plaintext), we can remove tags
         try:
             json.loads(message)
         except ValueError as e:

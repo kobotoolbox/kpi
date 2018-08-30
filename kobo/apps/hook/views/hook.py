@@ -16,7 +16,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from ..tasks import retry_all_task
-from ..models.hook import Hook
+from ..models import Hook, HookLog
 from ..serializers.hook import HookSerializer
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
@@ -170,19 +170,25 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         response = {"detail": _("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
-            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L29`
+            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `tasks.py:L32`
             threshold = timezone.now() - timedelta(seconds=seconds)
 
-            hook_logs = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
-                                    Q(status=HOOK_LOG_FAILED))
+            records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
+                                    Q(status=HOOK_LOG_FAILED)).values_list("id", "uid").distinct()
+            # Prepare lists of ids
+            hooklogs_ids = []
+            hooklogs_uids = []
+            for record in records:
+                hooklogs_ids.append(record[0])
+                hooklogs_uids.append(record[1])
 
-            # Mark all logs as PENDING
-            hook_logs.update(status=HOOK_LOG_PENDING)
-
-            if len(hook_logs) > 0:
-                retry_all_task.delay(hook_logs)
+            if len(records) > 0:
+                # Mark all logs as PENDING
+                HookLog.objects.filter(id__in=hooklogs_ids).update(status=HOOK_LOG_PENDING)
+                # Delegate to Celery
+                retry_all_task.delay(hooklogs_ids)
                 response.update({
-                    "pending_uids": [hook_log.uid for hook_log in hook_logs]
+                    "pending_uids": hooklogs_uids
                 })
 
             else:

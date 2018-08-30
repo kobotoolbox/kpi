@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 import logging
-import inspect
 import time
 
 from celery import shared_task
@@ -46,10 +45,11 @@ def service_definition_task(self, hook_id, uuid):
 
 
 @shared_task
-def retry_all_task(hook_logs):
+def retry_all_task(hooklogs_ids):
     """
-    :param list: <HookLog>.
+    :param list: <int>.
     """
+    hook_logs = HookLog.objects.filter(id__in=hooklogs_ids)
     for hook_log in hook_logs:
         hook_log.retry()
         time.sleep(0.2)

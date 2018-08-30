@@ -715,19 +715,28 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
         :param request:
         :return:
         """
-        response = ""
-        # Not so rest. a HTTP_201_CREATED would have been better.
-        # Because hook is called asynchronously, we have no data to return for this request.
-        response_status_code = status.HTTP_204_NO_CONTENT
+        # Follow Open Rosa responses by default
+        response_status_code = status.HTTP_202_ACCEPTED
+        response = {
+            "detail": _(
+                "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
+        }
         try:
             asset_uid = self.get_parents_query_dict().get("asset")
             asset = get_object_or_404(self.parent_model, uid=asset_uid)
-            HookUtils.call_service(asset, request.data)
+            instance_uuid = request.data.get("uuid")
+            if not HookUtils.call_services(asset, instance_uuid):
+                response_status_code = status.HTTP_409_CONFLICT
+                response = {
+                    "detail": _(
+                        "Your data for instance {} has been already submitted.".format(instance_uuid))
+                }
+
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("SubmissionViewSet.create - {}".format(str(e)))
             response = {
-                "detail": "An error has occurred when calling the external service. Please retry later."
+                "detail": _("An error has occurred when calling the external service. Please retry later.")
             }
             response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
