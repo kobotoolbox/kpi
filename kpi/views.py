@@ -1090,6 +1090,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             contents, but does not change the deployment's identifier
         '''
         asset = self.get_object()
+        serializer_context = self.get_serializer_context()
+        serializer_context['asset'] = asset
 
         # TODO: Require the client to provide a fully-qualified identifier,
         # otherwise provide less kludgy solution
@@ -1109,7 +1111,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise Http404
             else:
                 serializer = DeploymentSerializer(
-                    asset.deployment, context=self.get_serializer_context())
+                    asset.deployment, context=serializer_context
+                )
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -1125,7 +1128,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         )
                 serializer = DeploymentSerializer(
                     data=request.data,
-                    context={'asset': asset}
+                    context=serializer_context
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
@@ -1146,7 +1149,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 serializer = DeploymentSerializer(
                     asset.deployment,
                     data=request.data,
-                    context={'asset': asset},
+                    context=serializer_context,
                     partial=True
                 )
                 serializer.is_valid(raise_exception=True)

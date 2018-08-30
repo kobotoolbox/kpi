@@ -161,6 +161,7 @@
     text-align: center;
     padding-left: 20px;
     padding-right: 20px;
+    overflow: hidden; // avoids spinner icon overflowing scrollable areas
 
     code {
       margin: 20px;

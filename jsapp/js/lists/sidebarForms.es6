@@ -72,11 +72,14 @@ class SidebarFormsList extends Reflux.Component {
 
     // sync sidebar with main list when it is not a search query, allows for deletes to update the sidebar as well
     // this is a temporary fix, a proper fix needs to update defaultQueryCategorizedResultsLists when deleting/archiving/cloning
-    if (s.searchState === 'done' &&
-        (s.searchString === false || s.searchString === '') &&
-        s.searchResultsFor &&
-        s.searchResultsFor.assetType === 'asset_type:survey')
+    if (
+      s.searchState === 'done' &&
+      (s.searchString === false || s.searchString === '') &&
+      s.searchResultsFor &&
+      s.searchResultsFor.assetType === 'asset_type:survey'
+    ) {
       activeItems = 'searchResultsCategorizedResultsLists';
+    }
 
     if (s.searchState === 'loading' && s.searchString === false ) {
       return (

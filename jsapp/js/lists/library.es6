@@ -59,16 +59,6 @@ class LibrarySearchableList extends React.Component {
     });
     this.searchDefault();
   }
-  /*
-  dropAction ({file, event}) {
-    actions.resources.createAsset({
-      base64Encoded: event.target.result,
-      name: file.name,
-      lastModified: file.lastModified,
-      contentType: file.type
-    });
-  },
-  */
   render () {
     const typeFilterOptions = [
       {value: this.TYPE_FILTER.ALL, label: t('Show All')},
