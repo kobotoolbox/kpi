@@ -239,10 +239,8 @@ export class TranslationSettings extends React.Component {
           {(translations && translations[0] === null) ?
             <bem.FormView__cell m='translation-note'>
               {t('Here you can add more languages to your project, and translate the strings in each of them.')}
-              &nbsp;
-              <em>
-                {t('Note: make sure to configure your default language before adding more.')}
-              </em>
+              <br/>
+              <strong>{t('Please name your default language before adding languages and translations.')}</strong>
             </bem.FormView__cell>
             :
             <bem.FormView__cell m='label'>
