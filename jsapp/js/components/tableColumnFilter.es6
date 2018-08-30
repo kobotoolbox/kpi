@@ -188,7 +188,7 @@ export class TableColumnFilter extends React.Component {
             id='hxl-tags'
           />
           <label htmlFor='hxl-tags'>
-            {t('Show HXL tags in table headers')}
+            {t('Show HXL tags')}
           </label>
         </bem.FormModal__item>
 

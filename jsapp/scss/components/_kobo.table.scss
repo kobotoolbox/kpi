@@ -58,6 +58,31 @@
     }
 
     .rt-thead {
+      .rt-tr {
+        align-items: center;
+      }
+
+      .rt-resizable-header-content {
+        overflow: visible;
+        text-overflow: inherit;
+        line-height: 1.2;
+        padding: 5px 0;
+
+        .column-header-title,
+        .column-header-hxl-tags {
+          display: block;
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .column-header-hxl-tags {
+          color: $cool-silver;
+        }
+      }
+    }
+
+    .rt-thead {
       &.-filters input {
         padding: 2px 4px;
       }
