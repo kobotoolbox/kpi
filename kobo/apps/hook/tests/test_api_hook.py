@@ -7,6 +7,7 @@ import constance
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework import status
+import pytest
 
 from ..constants import HOOK_LOG_FAILED
 from ..models.hook_log import HookLog
@@ -35,16 +36,16 @@ class ApiHookTestCase(KpiTestCase):
         self.asset.save(create_version=False)
         settings.CELERY_TASK_ALWAYS_EAGER = True
 
-    def _create_hook(self, return_response_only=False):
+    def _create_hook(self, return_response_only=False, **kwargs):
         url = reverse("hook-list", kwargs={"parent_lookup_asset": self.asset.uid})
         data = {
-            "name": "some external service with token",
-            "endpoint": "http://external.service.local/",
-            "settings": {
+            "name": kwargs.get("name", "some external service with token"),
+            "endpoint": kwargs.get("endpoint", "http://external.service.local/"),
+            "settings": kwargs.get("settings", {
                 "custom_headers": {
                     "X-Token": "1234abcd"
                 }
-            }
+            })
         }
         response = self.client.post(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
         if return_response_only:
@@ -83,6 +84,37 @@ class ApiHookTestCase(KpiTestCase):
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_create_hook(self):
+        self._create_hook()
+
+    def test_data_submission(self):
+        # Create first hook
+        first_hook = self._create_hook(name="dummy external service",
+                                       endpoint="http://dummy.service.local/",
+                                       settings={})
+        responses.add(responses.POST, first_hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+        submission_url = reverse("submission-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+        submissions = self.asset.deployment.get_submissions()
+        data = {"uuid": submissions[0].get("id")}
+        response = self.client.post(submission_url, data)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # Create second hook
+        second_hook = self._create_hook(name="other dummy external service",
+                                       endpoint="http://otherdummy.service.local/",
+                                       settings={})
+        responses.add(responses.POST, second_hook.endpoint,
+                      status=status.HTTP_200_OK,
+                      content_type="application/json")
+
+        response = self.client.post(submission_url, data)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        response = self.client.post(submission_url, data)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
     def test_not_owner_access(self):
         hook = self._create_hook()
@@ -111,10 +143,6 @@ class ApiHookTestCase(KpiTestCase):
 
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-
-    def test_create_hook(self):
-        self._create_hook()
 
     def test_partial_update_hook(self):
         hook = self._create_hook()
