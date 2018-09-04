@@ -295,7 +295,9 @@ class FormpackXLSFormUtils(object):
                     )
 
     def _prioritize_translation(self, content, translation_name, is_new=False):
-        _translations = content.get('translations')
+        # the translations/languages present this particular content
+        _translations = content['translations']
+        # the columns that have translations
         _translated = content.get('translated', [])
         if is_new and (translation_name in _translations):
             raise ValueError('cannot add existing translation')
