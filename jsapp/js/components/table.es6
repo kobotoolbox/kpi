@@ -49,6 +49,7 @@ export class DataTable extends React.Component {
       showLabels: true,
       translationIndex: 0,
       showGroupName: true,
+      showHXLTags: false,
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
@@ -150,6 +151,7 @@ export class DataTable extends React.Component {
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
+        showHXLTags = this.state.showHXLTags,
         settings = this.props.asset.settings,
         translationIndex = this.state.translationIndex,
         maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
@@ -162,6 +164,10 @@ export class DataTable extends React.Component {
 
     if (settings['data-table'] && settings['data-table']['show-group-name'] != null) {
       showGroupName = settings['data-table']['show-group-name'];
+    }
+
+    if (settings['data-table'] && settings['data-table']['show-hxl-tags'] != null) {
+      showHXLTags = settings['data-table']['show-hxl-tags'];
     }
 
     // check for overrides by users with view permissions only
@@ -233,7 +239,13 @@ export class DataTable extends React.Component {
     });
 
     columns.push({
-      Header: t('Validation status'),
+      Header: () => {
+        return (
+          <span className='column-header-title'>
+            {t('Validation status')}
+          </span>
+        );
+      },
       accessor: '_validation_status.uid',
       index: '__2',
       id: '__ValidationStatus',
@@ -330,8 +342,14 @@ export class DataTable extends React.Component {
       columns.push({
         Header: h => {
           const columnName = _this.getColumnLabel(key, q, qParentG);
+          const columnHXLTags = _this.getColumnHXLTags(key);
           return (
-            <span title={columnName}>{columnName}</span>
+            <React.Fragment>
+              <span className='column-header-title' title={columnName}>{columnName}</span>
+              {columnHXLTags &&
+                <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
+              }
+            </React.Fragment>
           );
         },
         id: key,
@@ -438,15 +456,47 @@ export class DataTable extends React.Component {
       frozenColumn: frozenColumn,
       translationIndex: translationIndex,
       showLabels: showLabels,
-      showGroupName: showGroupName
+      showGroupName: showGroupName,
+      showHXLTags: showHXLTags
     });
+  }
+  getColumnHXLTags(key) {
+    if (this.state.showHXLTags) {
+      const colQuestion = _.find(this.props.asset.content.survey, (question) => {
+        return question.$autoname === key;
+      });
+      if (!colQuestion || !colQuestion.tags) {
+        return null;
+      }
+      const HXLTags = [];
+      colQuestion.tags.map((tag) => {
+        if (tag.startsWith('hxl:')) {
+          HXLTags.push(tag.replace('hxl:', ''));
+        }
+      });
+      if (HXLTags.length === 0) {
+        return null;
+      } else {
+        return HXLTags.join('');
+      }
+    } else {
+      return null;
+    }
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
       case '__SubmissionCheckbox':
-        return t('Multi-select checkboxes column');
+        return (
+          <span className='column-header-title'>
+            {t('Multi-select checkboxes column')}
+          </span>
+        );
       case '__ValidationStatus':
-        return t('Validation status');
+        return (
+          <span className='column-header-title'>
+            {t('Validation status')}
+          </span>
+        );
     }
 
     var label = key;

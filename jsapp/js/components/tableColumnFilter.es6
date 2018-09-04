@@ -22,6 +22,7 @@ export class TableColumnFilter extends React.Component {
       selectedColumns: [],
       frozenColumn: false,
       showGroupName: true,
+      showHXLTags: false,
       translationIndex: 0
     };
 
@@ -35,6 +36,8 @@ export class TableColumnFilter extends React.Component {
         this.state.showGroupName = _sett['data-table']['show-group-name'];
       if (_sett['data-table']['translation-index'])
         this.state.translationIndex = _sett['data-table']['translation-index'];
+      if (_sett['data-table']['show-hxl-tags'])
+        this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
     }
 
     autoBind(this);
@@ -54,6 +57,7 @@ export class TableColumnFilter extends React.Component {
       settings['data-table']['frozen-column'] = s.frozenColumn;
       settings['data-table']['show-group-name'] = s.showGroupName;
       settings['data-table']['translation-index'] = s.translationIndex;
+      settings['data-table']['show-hxl-tags'] = s.showHXLTags;
 
       actions.table.updateSettings(this.props.asset.uid, settings);
     } else {
@@ -89,6 +93,11 @@ export class TableColumnFilter extends React.Component {
   updateGroupHeaderDisplay(e) {
     this.setState({
       showGroupName: e.target.checked
+    })
+  }
+  onHXLTagsChange(evt) {
+    this.setState({
+      showHXLTags: evt.currentTarget.checked
     })
   }
   onLabelChange(e) {
@@ -170,6 +179,19 @@ export class TableColumnFilter extends React.Component {
             {t('Show group names in table headers')}
           </label>
         </bem.FormModal__item>
+
+        <bem.FormModal__item>
+          <input
+            type='checkbox'
+            checked={this.state.showHXLTags}
+            onChange={this.onHXLTagsChange}
+            id='hxl-tags'
+          />
+          <label htmlFor='hxl-tags'>
+            {t('Show HXL tags')}
+          </label>
+        </bem.FormModal__item>
+
         {this.userCan('change_asset', this.props.asset) &&
           <bem.FormModal__item m='advanced-table-options'>
             <bem.FormView__cell m='note'>
