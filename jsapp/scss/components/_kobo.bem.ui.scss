@@ -44,16 +44,6 @@
   }
 }
 
-// full screen overrides (for expanded reports, table, maps, etc.)
-.mdl-layout.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
-  max-width: 100%;
-
-  .mdl-layout__content.page-wrapper__content--form-landing {
-    box-shadow: none;
-    height: calc(100% - 40px);
-  }
-}
-
 .ui-panel {
   height: 100%;
   margin: 0px 8px;
@@ -108,16 +98,6 @@
 
   .ui-panel {
     margin: 0px;
-  }
-}
-
-// Expanded report layout, disable drawer
-.mdl-layout.page-wrapper--drawer-hidden .mdl-layout__content {
-  margin-left: 16px;
-
-  .report-view {
-    height: 100%;
-    overflow: auto;
   }
 }
 

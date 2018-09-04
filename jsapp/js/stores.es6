@@ -81,9 +81,7 @@ var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
       assetNavExpanded: false,
-      showFixedDrawer: false,
-      headerHidden: false,
-      drawerHidden: false
+      showFixedDrawer: false
     };
   },
   setState (chz) {
@@ -112,17 +110,6 @@ var pageStateStore = Reflux.createStore({
     this.setState({
       modal: false
     });
-  },
-  hideDrawerAndHeader (tf) {
-    var val = !!tf;
-    if (val !== this.state.drawerHidden) {
-      var _changes = {
-        drawerHidden: val,
-        headerHidden: val
-      };
-      assign(this.state, _changes);
-      this.trigger(this.state);
-    }
   }
 });
 

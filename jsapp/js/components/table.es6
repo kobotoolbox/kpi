@@ -41,7 +41,7 @@ export class DataTable extends React.Component {
       selectedColumns: false,
       frozenColumn: false,
       sids: [],
-      showExpandedTable: false,
+      isFullscreen: false,
       defaultPageSize: 30,
       pageSize: 30,
       currentPage: 0,
@@ -543,25 +543,13 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     });
   }
-  toggleExpandedTable () {
-    if (this.state.showExpandedTable) {
-      // load asset again to restore header title and submission count after exiting expanded report
-      actions.resources.loadAsset({id: this.props.asset.uid});
-    }
-
-    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
-    this.setState({
-      showExpandedTable: !this.state.showExpandedTable,
-    });
+  toggleFullscreen () {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
-    this.listenTo(actions.table.updateSettings.completed, this.tableSettingsUpdated);
-    this.listenTo(stores.pageState, this.onPageStateUpdate);
-  }
-  componentWillUnmount() {
-    if (this.state.showExpandedTable)
-      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
+    this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
+    this.listenTo(stores.pageState, this.onPageStateUpdated);
   }
   refreshSubmission(result, sid) {
     if (sid) {
@@ -574,7 +562,7 @@ export class DataTable extends React.Component {
       }
     }
   }
-  tableSettingsUpdated() {
+  onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
@@ -616,7 +604,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  launchTableColumnsModal () {
+  showTableColumsOptionsModal () {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_COLUMNS,
       asset: this.props.asset,
@@ -641,7 +629,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  onPageStateUpdate(pageState) {
+  onPageStateUpdated(pageState) {
     if (!pageState.modal)
       return false;
 
@@ -817,8 +805,12 @@ export class DataTable extends React.Component {
     let asset = this.props.asset,
         tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
 
+    const formViewModifiers = ['table'];
+    if (this.state.isFullscreen) {
+      formViewModifiers.push('fullscreen');
+    }
     return (
-      <bem.FormView m='table'>
+      <bem.FormView m={formViewModifiers}>
         {this.state.promptRefresh &&
           <bem.FormView__cell m='table-warning'>
             <i className='k-icon-alert' />
@@ -854,15 +846,19 @@ export class DataTable extends React.Component {
               </ui.PopoverMenu>
             }
 
-            <button className='mdl-button mdl-button--icon report-button__expand'
-                    onClick={this.toggleExpandedTable}
-                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+            <button
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+              onClick={this.toggleFullscreen}
+              data-tip={t('Toggle fullscreen')}
+            >
               <i className='k-icon-expand' />
             </button>
 
-            <button className='mdl-button mdl-button--icon report-button__expand'
-                    onClick={this.launchTableColumnsModal}
-                    data-tip={t('Display options')}>
+            <button
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+              onClick={this.showTableColumsOptionsModal}
+              data-tip={t('Display options')}
+            >
               <i className='k-icon-settings' />
             </button>
           </bem.FormView__item>
