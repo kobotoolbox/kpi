@@ -1,61 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import json
-import requests
-import responses
 
 import constance
-from django.conf import settings
 from django.core.urlresolvers import reverse
+import requests
+import responses
 from rest_framework import status
-import pytest
 
-from ..constants import HOOK_LOG_FAILED
-from ..models.hook_log import HookLog
+from .hook_test_case import HookTestCase
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
-from kpi.tests.kpi_test_case import KpiTestCase
 
 
-class ApiHookTestCase(KpiTestCase):
-
-    def setUp(self):
-        self.client.login(username="someuser", password="someuser")
-        self.asset = self.create_asset(
-            "some_asset",
-            content=json.dumps({"survey": [{"type": "text", "name": "q1"}]}),
-            format="json")
-        self.asset.deploy(backend='mock', active=True)
-        self.asset.save()
-
-        v_uid = self.asset.latest_deployed_version.uid
-        submission = {
-            "__version__": v_uid,
-            "q1": u"¿Qué tal?",
-            "id": 1
-        }
-        self.asset.deployment._mock_submission(submission)
-        self.asset.save(create_version=False)
-        settings.CELERY_TASK_ALWAYS_EAGER = True
-
-    def _create_hook(self, return_response_only=False, **kwargs):
-        url = reverse("hook-list", kwargs={"parent_lookup_asset": self.asset.uid})
-        data = {
-            "name": kwargs.get("name", "some external service with token"),
-            "endpoint": kwargs.get("endpoint", "http://external.service.local/"),
-            "settings": kwargs.get("settings", {
-                "custom_headers": {
-                    "X-Token": "1234abcd"
-                }
-            })
-        }
-        response = self.client.post(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
-        if return_response_only:
-            return response
-        else:
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                             msg=response.data)
-            hook = self.asset.hooks.last()
-            self.assertTrue(hook.active)
-            return hook
+class ApiHookTestCase(HookTestCase):
 
     def test_anonymous_access(self):
         hook = self._create_hook()
@@ -163,49 +121,15 @@ class ApiHookTestCase(KpiTestCase):
 
     @responses.activate
     def test_send_and_retry(self):
-        hook = self._create_hook()
 
-        ServiceDefinition = hook.get_service_definition()
-        submissions = self.asset.deployment.get_submissions()
-        uuid = submissions[0].get("id")
-        service_definition = ServiceDefinition(hook, uuid)
-        first_mock_response = {"error": "not found"}
-
-        # Mock first requests try
-        responses.add(responses.POST, hook.endpoint,
-                      json=first_mock_response, status=status.HTTP_404_NOT_FOUND)
-        # Mock next requests tries
-        responses.add(responses.POST, hook.endpoint,
-                      status=status.HTTP_200_OK,
-                      content_type="application/json")
-
-        # Try to send data to external endpoint
-        success = service_definition.send()
-        self.assertFalse(success)
-
-        # Retrieve the corresponding log
-        url = reverse("hook-log-list", kwargs={
-            "parent_lookup_asset": hook.asset.uid,
-            "parent_lookup_hook": hook.uid
-        })
-
-        response = self.client.get(url, format=INSTANCE_FORMAT_TYPE_JSON)
-        first_hooklog = response.data.get("results")[0]
-
-        # Result should match first try
-        self.assertEqual(first_hooklog.get("status_code"), status.HTTP_404_NOT_FOUND)
-        self.assertEqual(json.loads(first_hooklog.get("message")), first_mock_response)
+        first_log_response = self._send_and_fail()
 
         # Let's retry through API call
         retry_url = reverse("hook-log-retry", kwargs={
             "parent_lookup_asset": self.asset.uid,
-            "parent_lookup_hook": hook.uid,
-            "uid": first_hooklog.get("uid")
+            "parent_lookup_hook": self.hook.uid,
+            "uid": first_log_response.get("uid")
         })
-
-        # Fakes Celery n retries by forcing status to `failed` (where n is `settings.HOOKLOG_MAX_RETRIES`)
-        fhl = HookLog.objects.get(uid=first_hooklog.get("uid"))
-        fhl.change_status(HOOK_LOG_FAILED)
 
         # It should be a success
         response = self.client.patch(retry_url, format=INSTANCE_FORMAT_TYPE_JSON)
@@ -214,8 +138,8 @@ class ApiHookTestCase(KpiTestCase):
         # Let's check if logs has 2 tries
         detail_url = reverse("hook-log-detail", kwargs={
             "parent_lookup_asset": self.asset.uid,
-            "parent_lookup_hook": hook.uid,
-            "uid": first_hooklog.get("uid")
+            "parent_lookup_hook": self.hook.uid,
+            "uid": first_log_response.get("uid")
         })
 
         response = self.client.get(detail_url, format=INSTANCE_FORMAT_TYPE_JSON)

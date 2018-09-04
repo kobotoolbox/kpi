@@ -7,7 +7,7 @@ import time
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
-from django.template import Context, Template
+from django.template import Context
 from django.template.loader import get_template
 from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
@@ -65,7 +65,7 @@ def failures_reports():
     """
     beat_schedule = settings.CELERY_BEAT_SCHEDULE.get("send-hooks-failures-reports")
     # Use `.first()` instead of `.get()`, because task can be duplicated in admin section
-    failures_reports_period_task = PeriodicTask.objects.filter(task=beat_schedule.get("task"))\
+    failures_reports_period_task = PeriodicTask.objects.filter(enabled=True, task=beat_schedule.get("task"))\
         .order_by("-last_run_at").first()
 
     if failures_reports_period_task:
