@@ -477,7 +477,7 @@ export class DataTable extends React.Component {
       if (HXLTags.length === 0) {
         return null;
       } else {
-        return HXLTags.join(',');
+        return HXLTags.join('');
       }
     } else {
       return null;
