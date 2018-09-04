@@ -1,6 +1,6 @@
 # Browsers that we support
 
-last 2 major versions
+last 1 major versions
 > 1%
-maintained node versions
 not dead
+IE 11
