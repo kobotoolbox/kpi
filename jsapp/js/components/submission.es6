@@ -274,12 +274,13 @@ class Submission extends React.Component {
           survey = this.props.asset.content.survey,
           translationIndex = this.state.translationIndex,
           _this = this;
-    var parentGroup = false;
+    const openedGroups = [];
     const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
     const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
     return survey.map((q)=> {
       var name = q.name || q.$autoname || q.$kuid;
+
       if (q.type === 'begin_repeat') {
         return (
           <tr key={`row-${name}`}>
@@ -329,7 +330,7 @@ class Submission extends React.Component {
         return false;
 
       if (groupTypes.includes(q.type)) {
-        parentGroup = name;
+        openedGroups.push(name);
         return (
           <tr key={`row-${name}`}>
             <td colSpan='3' className='submission--group'>
@@ -342,7 +343,7 @@ class Submission extends React.Component {
       }
 
       if (groupTypesEnd.includes(q.type)) {
-        parentGroup = false;
+        openedGroups.pop(openedGroups.indexOf(name));
         return (
           <tr key={`row-${name}-end`}>
             <td colSpan='3' className='submission--end-group'/>
@@ -350,8 +351,9 @@ class Submission extends React.Component {
         );
       }
 
-      if (parentGroup)
-        name = `${parentGroup}/${name}`;
+      if (openedGroups.length !== 0) {
+        name = `${openedGroups.join('/')}/${name}`;
+      }
 
       if (q.label == undefined || s[name] == undefined) { return false;}
 

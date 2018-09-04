@@ -41,7 +41,7 @@ export class DataTable extends React.Component {
       selectedColumns: false,
       frozenColumn: false,
       sids: [],
-      showExpandedTable: false,
+      isFullscreen: false,
       defaultPageSize: 30,
       pageSize: 30,
       currentPage: 0,
@@ -49,6 +49,7 @@ export class DataTable extends React.Component {
       showLabels: true,
       translationIndex: 0,
       showGroupName: true,
+      showHXLTags: false,
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
@@ -154,6 +155,7 @@ export class DataTable extends React.Component {
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
+        showHXLTags = this.state.showHXLTags,
         settings = this.props.asset.settings,
         translationIndex = this.state.translationIndex,
         maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
@@ -166,6 +168,10 @@ export class DataTable extends React.Component {
 
     if (settings['data-table'] && settings['data-table']['show-group-name'] != null) {
       showGroupName = settings['data-table']['show-group-name'];
+    }
+
+    if (settings['data-table'] && settings['data-table']['show-hxl-tags'] != null) {
+      showHXLTags = settings['data-table']['show-hxl-tags'];
     }
 
     // check for overrides by users with view permissions only
@@ -237,7 +243,13 @@ export class DataTable extends React.Component {
     });
 
     columns.push({
-      Header: t('Validation status'),
+      Header: () => {
+        return (
+          <span className='column-header-title'>
+            {t('Validation status')}
+          </span>
+        );
+      },
       accessor: '_validation_status.uid',
       index: '__2',
       id: '__ValidationStatus',
@@ -337,7 +349,16 @@ export class DataTable extends React.Component {
 
       columns.push({
         Header: h => {
-          return _this.getColumnLabel(key, q, qParentG);
+          const columnName = _this.getColumnLabel(key, q, qParentG);
+          const columnHXLTags = _this.getColumnHXLTags(key);
+          return (
+            <React.Fragment>
+              <span className='column-header-title' title={columnName}>{columnName}</span>
+              {columnHXLTags &&
+                <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
+              }
+            </React.Fragment>
+          );
         },
         id: key,
         accessor: row => row[key],
@@ -443,15 +464,47 @@ export class DataTable extends React.Component {
       frozenColumn: frozenColumn,
       translationIndex: translationIndex,
       showLabels: showLabels,
-      showGroupName: showGroupName
+      showGroupName: showGroupName,
+      showHXLTags: showHXLTags
     });
+  }
+  getColumnHXLTags(key) {
+    if (this.state.showHXLTags) {
+      const colQuestion = _.find(this.props.asset.content.survey, (question) => {
+        return question.$autoname === key;
+      });
+      if (!colQuestion || !colQuestion.tags) {
+        return null;
+      }
+      const HXLTags = [];
+      colQuestion.tags.map((tag) => {
+        if (tag.startsWith('hxl:')) {
+          HXLTags.push(tag.replace('hxl:', ''));
+        }
+      });
+      if (HXLTags.length === 0) {
+        return null;
+      } else {
+        return HXLTags.join('');
+      }
+    } else {
+      return null;
+    }
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
       case '__SubmissionCheckbox':
-        return t('Multi-select checkboxes column');
+        return (
+          <span className='column-header-title'>
+            {t('Multi-select checkboxes column')}
+          </span>
+        );
       case '__ValidationStatus':
-        return t('Validation status');
+        return (
+          <span className='column-header-title'>
+            {t('Validation status')}
+          </span>
+        );
     }
 
     var label = key;
@@ -498,25 +551,13 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     });
   }
-  toggleExpandedTable () {
-    if (this.state.showExpandedTable) {
-      // load asset again to restore header title and submission count after exiting expanded report
-      actions.resources.loadAsset({id: this.props.asset.uid});
-    }
-
-    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
-    this.setState({
-      showExpandedTable: !this.state.showExpandedTable,
-    });
+  toggleFullscreen () {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
-    this.listenTo(actions.table.updateSettings.completed, this.tableSettingsUpdated);
-    this.listenTo(stores.pageState, this.onPageStateUpdate);
-  }
-  componentWillUnmount() {
-    if (this.state.showExpandedTable)
-      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
+    this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
+    this.listenTo(stores.pageState, this.onPageStateUpdated);
   }
   refreshSubmission(result, sid) {
     if (sid) {
@@ -529,7 +570,7 @@ export class DataTable extends React.Component {
       }
     }
   }
-  tableSettingsUpdated() {
+  onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
@@ -571,7 +612,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  launchTableColumnsModal () {
+  showTableColumsOptionsModal () {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_COLUMNS,
       asset: this.props.asset,
@@ -596,7 +637,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  onPageStateUpdate(pageState) {
+  onPageStateUpdated(pageState) {
     if (!pageState.modal)
       return false;
 
@@ -772,8 +813,12 @@ export class DataTable extends React.Component {
     let asset = this.props.asset,
         tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
 
+    const formViewModifiers = ['table'];
+    if (this.state.isFullscreen) {
+      formViewModifiers.push('fullscreen');
+    }
     return (
-      <bem.FormView m='table'>
+      <bem.FormView m={formViewModifiers}>
         {this.state.promptRefresh &&
           <bem.FormView__cell m='table-warning'>
             <i className='k-icon-alert' />
@@ -809,15 +854,19 @@ export class DataTable extends React.Component {
               </ui.PopoverMenu>
             }
 
-            <button className='mdl-button mdl-button--icon report-button__expand'
-                    onClick={this.toggleExpandedTable}
-                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+            <button
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+              onClick={this.toggleFullscreen}
+              data-tip={t('Toggle fullscreen')}
+            >
               <i className='k-icon-expand' />
             </button>
 
-            <button className='mdl-button mdl-button--icon report-button__expand'
-                    onClick={this.launchTableColumnsModal}
-                    data-tip={t('Display options')}>
+            <button
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+              onClick={this.showTableColumsOptionsModal}
+              data-tip={t('Display options')}
+            >
               <i className='k-icon-settings' />
             </button>
           </bem.FormView__item>

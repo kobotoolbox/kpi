@@ -669,7 +669,15 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def latest_version(self):
-        return self.asset_versions.order_by('-date_modified').first()
+        versions = None
+        try:
+            versions = self.prefetched_latest_versions
+        except AttributeError:
+            versions = self.asset_versions.order_by('-date_modified')
+        try:
+            return versions[0]
+        except IndexError:
+            return None
 
     @property
     def deployed_versions(self):
@@ -682,17 +690,19 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        try:
-            latest_versions = self.prefetched_latest_versions
-        except AttributeError:
-            latest_version = self.latest_version
-            if latest_version:
-                return latest_version.uid
-        else:
-            try:
-                return latest_versions[0]
-            except IndexError:
-                return None
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.uid
+
+    @property
+    def version__content_hash(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.content_hash
 
     @property
     def snapshot(self):

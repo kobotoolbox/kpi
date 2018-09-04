@@ -28,6 +28,9 @@ class ListSearch extends React.Component {
     }
     this.setState(searchStoreState);
   }
+  getValue() {
+    return this.refs['formlist-search'].getValue();
+  }
   render () {
     return (
       <bem.Search m={[this.state.searchState]} >
