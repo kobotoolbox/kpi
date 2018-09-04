@@ -423,20 +423,28 @@ class Submission extends React.Component {
               <div className='switch--label-language'>
                 <label>{t('Language:')}</label>
                 <Select
-                  clearable={false}
+                  isClearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
-                  onChange={this.languageChange} />
+                  onChange={this.languageChange}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
+                />
               </div>
             }
             <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
-                disabled={!this.userCan('validate_submissions', this.props.asset)}
-                clearable={false}
-                value={s._validation_status ? s._validation_status.uid : ''}
+                isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+                isClearable={false}
+                value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
                 options={VALIDATION_STATUSES}
-                onChange={this.validationStatusChange} />
+                onChange={this.validationStatusChange}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+              />
             </div>
           </bem.FormModal__group>
         }

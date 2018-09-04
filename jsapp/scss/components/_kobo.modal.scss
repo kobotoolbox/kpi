@@ -215,7 +215,7 @@ $z-modal-x: 10;
       width: 50%;
       text-align: left;
 
-      label, div.Select {
+      label, .kobo-select {
         display: inline-block;
         vertical-align: middle;
       }
@@ -228,6 +228,9 @@ $z-modal-x: 10;
     .switch--validation-status {
       width: 100%;
       text-align: right;
+      .kobo-select {
+        text-align: left;
+      }
     }
 
     .switch--label-language + .switch--validation-status {
@@ -238,8 +241,7 @@ $z-modal-x: 10;
       min-width: 100px;
     }
 
-    .Select {
-      text-align: left;
+    .kobo-select {
       min-width: 120px;
     }
   }
@@ -416,7 +418,7 @@ $z-modal-x: 10;
       width: 100%;
       float: none;
 
-      .Select {
+      .kobo-select {
         margin-right: 0;
       }
     }

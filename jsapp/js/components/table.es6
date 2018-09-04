@@ -122,22 +122,29 @@ export class DataTable extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-  validationStatusChange(sid, index) {
-    var _this = this;
-
-    return function(selection) {
-      const data = {'validation_status.uid': selection.value};
-      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-        if (result.uid) {
-          _this.state.tableData[index]._validation_status = result.uid;
-          _this.setState({tableData: _this.state.tableData});
-        } else {
-          console.error('error updating validation status');
-        }
-      }).fail((error)=>{
-        console.error(error);
+  getValidationStatusOption(rowIndex) {
+    if (this.state.tableData[rowIndex]._validation_status) {
+      const optionVal = this.state.tableData[rowIndex]._validation_status.uid;
+      return _.find(VALIDATION_STATUSES, (option) => {
+        return option.value === optionVal;
       });
+    } else {
+      return null;
     }
+  }
+  onValidationStatusChange(sid, index, evt) {
+    const _this = this;
+    const data = {'validation_status.uid': evt.value};
+    dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
+      if (result.uid) {
+        _this.state.tableData[index]._validation_status = result.uid;
+        _this.setState({tableData: _this.state.tableData});
+      } else {
+        console.error('error updating validation status');
+      }
+    }).fail((error)=>{
+      console.error(error);
+    });
   }
   _prepColumns(data) {
     var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
@@ -265,11 +272,15 @@ export class DataTable extends React.Component {
         </select>,
       Cell: row => (
         <Select
-          disabled={!this.userCan('validate_submissions', this.props.asset)}
-          clearable={false}
-          value={this.state.tableData[row.index]._validation_status}
+          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+          isClearable={false}
+          value={this.getValidationStatusOption(row.index)}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.original._id, row.index)} />
+          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          menuPlacement='auto'
+        />
       )
     });
 

@@ -124,11 +124,13 @@
     }
 
     .rt-td.rt-status {
+      line-height: inherit;
       overflow: visible;
 
-      .Select-control {
+      .kobo-select__control {
         background: transparent;
         height: 30px;
+        min-height: 30px;
         border: none;
         border-radius: 0px;
         box-shadow: none;
@@ -136,27 +138,6 @@
 
         &:hover {
           box-shadow: none;
-        }
-
-        .Select-value {
-          line-height: 30px;
-          padding-left: 5px;
-          padding-right: 2px;
-          margin-top: 2px;
-
-          .Select-value-label {
-            color: $cool-darkgray;
-          }
-        }
-
-        .Select-input {
-          height: 30px;
-          padding-left: 5px;
-          padding-right: 2px;
-        }
-
-        .Select-arrow {
-          opacity: 0.6;
         }
       }
     }
