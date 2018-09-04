@@ -438,7 +438,7 @@ class Submission extends React.Component {
               <Select
                 isDisabled={!this.userCan('validate_submissions', this.props.asset)}
                 isClearable={false}
-                value={s._validation_status.uid ? s._validation_status : false}
+                value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
                 options={VALIDATION_STATUSES}
                 onChange={this.validationStatusChange}
                 className='kobo-select'
