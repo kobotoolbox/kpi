@@ -123,11 +123,14 @@ export class DataTable extends React.Component {
     });
   }
   getValidationStatusOption(rowIndex) {
-    const optionVal = this.state.tableData[rowIndex]._validation_status.uid;
-    const option = _.find(VALIDATION_STATUSES, (option) => {
-      return option.value === optionVal;
-    });
-    return option;
+    if (this.state.tableData[rowIndex]._validation_status) {
+      const optionVal = this.state.tableData[rowIndex]._validation_status.uid;
+      return _.find(VALIDATION_STATUSES, (option) => {
+        return option.value === optionVal;
+      });
+    } else {
+      return null;
+    }
   }
   onValidationStatusChange(sid, index, evt) {
     const _this = this;
