@@ -244,6 +244,12 @@ export default assign({
     this.onSurveyChange();
   },
 
+  getStyleSelectVal(optionVal) {
+    return _.find(AVAILABLE_FORM_STYLES, (option) => {
+      return option.value === optionVal;
+    });
+  },
+
   onSurveyChange: _.debounce(function () {
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
       this.preventClosingTab();
@@ -806,7 +812,7 @@ export default assign({
               </bem.FormBuilderAside__header>
 
               <label
-                className='Select__label'
+                className='kobo-select-label'
                 htmlFor='webform-style'
               >
                 { hasSettings ?
@@ -817,15 +823,16 @@ export default assign({
               </label>
 
               <Select
-                className='Select--underlined'
+                className='kobo-select'
+                classNamePrefix='kobo-select'
                 id='webform-style'
                 name='webform-style'
                 ref='webformStyle'
-                value={styleValue}
+                value={this.getStyleSelectVal(styleValue)}
                 onChange={this.onStyleChange}
-                allowCreate
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
+                menuPlacement='auto'
               />
             </bem.FormBuilderAside__row>
 

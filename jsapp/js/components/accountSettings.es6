@@ -270,7 +270,7 @@ export class AccountSettings extends React.Component {
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
+              <bem.AccountSettings__item m='primary-sector'>
                 <label>
                   {t('Primary Sector')}
 
@@ -278,6 +278,9 @@ export class AccountSettings extends React.Component {
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
                     onChange={this.primarySectorChange}
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
 
@@ -286,7 +289,7 @@ export class AccountSettings extends React.Component {
                 </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
+              <bem.AccountSettings__item m='gender'>
                 <label>
                   {t('Gender')}
 
@@ -294,11 +297,14 @@ export class AccountSettings extends React.Component {
                     value={this.state.gender}
                     options={this.state.genderChoices}
                     onChange={this.genderChange}
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
+              <bem.AccountSettings__item m='bio'>
                 <label>
                   {t('Bio')}
 
@@ -345,6 +351,9 @@ export class AccountSettings extends React.Component {
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.countryChange}
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
               </bem.AccountSettings__item>
@@ -357,6 +366,9 @@ export class AccountSettings extends React.Component {
                     value={this.state.defaultLanguage}
                     options={this.state.languageChoices}
                     onChange={this.defaultLanguageChange}
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
+                    menuPlacement='auto'
                   />
                 </label>
               </bem.AccountSettings__item>
