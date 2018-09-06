@@ -120,7 +120,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(hook.name, "some disabled external service")
 
     def test_json_parser(self):
-        hook = self._create_hook(filtered_fields=["id"])
+        hook = self._create_hook(subset_fields=["id"])
 
         ServiceDefinition = self.hook.get_service_definition()
         submissions = self.asset.deployment.get_submissions()

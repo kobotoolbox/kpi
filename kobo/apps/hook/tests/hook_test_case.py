@@ -50,7 +50,7 @@ class HookTestCase(KpiTestCase):
                 }
             }),
             "active": kwargs.get("active", True),
-            "filtered_fields": kwargs.get("filtered_fields", [])
+            "subset_fields": kwargs.get("subset_fields", [])
         }
         response = self.client.post(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
         if return_response_only:

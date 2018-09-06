@@ -29,7 +29,7 @@ class ServiceDefinitionInterface(object):
         """
         try:
             submission = self._hook.asset.deployment.get_submission(self._uuid, self._hook.export_type)
-            return self._parse_data(submission, self._hook.filtered_fields)
+            return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
@@ -40,7 +40,7 @@ class ServiceDefinitionInterface(object):
     @abstractmethod
     def _parse_data(self, submission, fields):
         """
-        Data must be parsed to include only `self._hook.filtered_fields` if there are any.
+        Data must be parsed to include only `self._hook.subset_fields` if there are any.
         :param submission: json|xml
         :param fields: list
         :return: mixed: json|xml
