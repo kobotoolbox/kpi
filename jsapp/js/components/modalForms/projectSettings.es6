@@ -435,8 +435,12 @@ class ProjectSettings extends React.Component {
                 alertify.error(t('Failed to reload project after upload!'));
               });
             },
-            () => {
-              alertify.error(t('Could not initialize XLSForm upload!'));
+            (response) => {
+              if (response && response.messages && response.messages.error) {
+                alertify.error(response.messages.error);
+              } else {
+                alertify.error(t('Could not initialize XLSForm upload!'));
+              }
             }
           );
         },
@@ -673,8 +677,12 @@ class ProjectSettings extends React.Component {
               value={this.state.sector}
               onChange={this.onSectorChange}
               options={sectors}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
             />
           </bem.FormModal__item>
+
           <bem.FormModal__item  m='country'>
             <label htmlFor='country'>
               {t('Country')}
@@ -684,6 +692,9 @@ class ProjectSettings extends React.Component {
               value={this.state.country}
               onChange={this.onCountryChange}
               options={countries}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
             />
           </bem.FormModal__item>
 
