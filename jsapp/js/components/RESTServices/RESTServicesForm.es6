@@ -48,7 +48,7 @@ export default class RESTServicesForm extends React.Component {
       ],
       securityUsername: '',
       securityPassword: '',
-      selectedFields: [],
+      subsetFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
       ]
@@ -67,6 +67,7 @@ export default class RESTServicesForm extends React.Component {
             isActive: data.active,
             // TODO use backend property
             errorEmailsEnabled: true,
+            subsetFields: data.subset_fields || [],
             type: data.export_type,
             securityLevel: SECURITY_OPTIONS[data.security_level],
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
@@ -177,6 +178,7 @@ export default class RESTServicesForm extends React.Component {
       endpoint: this.state.url,
       active: this.state.isActive,
       // TODO set property for errorEmailsEnabled
+      subset_fields: this.state.subsetFields,
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
@@ -327,25 +329,25 @@ export default class RESTServicesForm extends React.Component {
    * handle fields
    */
 
-  onSelectedFieldsChange(evt) {
-    this.setState({selectedFields: evt});
+  onSubsetFieldsChange(evt) {
+    this.setState({subsetFields: evt});
   }
 
   renderFieldsSelector() {
     const inputProps = {
       placeholder: t('Add field(s)'),
-      id: 'selected-fields-input'
+      id: 'subset-fields-input'
     };
 
     return (
       <bem.FormModal__item>
-        <label htmlFor='selected-fields-input'>
-          {t('Select fields')}
+        <label htmlFor='subset-fields-input'>
+          {t('Select fields subset')}
         </label>
 
         <TagsInput
-          value={this.state.selectedFields}
-          onChange={this.onSelectedFieldsChange.bind(this)}
+          value={this.state.subsetFields}
+          onChange={this.onSubsetFieldsChange.bind(this)}
           inputProps={inputProps}
         />
       </bem.FormModal__item>
