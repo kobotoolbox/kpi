@@ -555,4 +555,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if len(instances_uuids) > 0:
             queryset = queryset.filter(uuid__in=instances_uuids)
 
+        queryset = queryset.order_by("id")
+
         return (lazy_instance.xml for lazy_instance in queryset)
