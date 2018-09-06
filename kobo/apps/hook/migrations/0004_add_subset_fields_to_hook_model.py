@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='hook',
-            name='filtered_fields',
+            name='subset_fields',
             field=django.contrib.postgres.fields.ArrayField(default=[], base_field=models.CharField(max_length=500), size=None),
         ),
     ]
