@@ -11,18 +11,22 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_XML
 class ParserTestCase(HookTestCase):
 
     def test_json_parser(self):
-        hook = self._create_hook(subset_fields=["id"])
+        hook = self._create_hook(subset_fields=["id", "subgroup1", "q3"])
 
         ServiceDefinition = hook.get_service_definition()
         submissions = hook.asset.deployment.get_submissions()
         uuid = submissions[0].get("id")
         service_definition = ServiceDefinition(hook, uuid)
-        expected_data = {"id": 1}
+        expected_data = {
+            "group1/q3": u"¿Como está en el grupo uno la segunda vez?",
+            "group2/subgroup1/q4": u"¿Como está en el subgrupo uno la primera vez?",
+            "group2/subgroup1/q5": u"¿Como está en el subgrupo uno la segunda vez?",
+            "group2/subgroup1/q6": u"¿Como está en el subgrupo uno la tercera vez?",
+            "id": 1
+        }
         self.assertEquals(service_definition._get_data(), expected_data)
 
     def test_xml_parser(self):
-        # Clone
-        old_asset_uid = self.asset.uid
         self.asset_xml = self.create_asset(
             "some_asset_with_xml_submissions",
             content=json.dumps(self.asset.content),
