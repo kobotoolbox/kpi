@@ -119,16 +119,6 @@ class ApiHookTestCase(HookTestCase):
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, "some disabled external service")
 
-    def test_json_parser(self):
-        hook = self._create_hook(subset_fields=["id"])
-
-        ServiceDefinition = self.hook.get_service_definition()
-        submissions = self.asset.deployment.get_submissions()
-        uuid = submissions[0].get("id")
-        service_definition = ServiceDefinition(hook, uuid)
-        expected_data = {"id": 1}
-        self.assertEquals(service_definition._get_data(), expected_data)
-
     @responses.activate
     def test_send_and_retry(self):
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import re
 
 from base_backend import BaseDeploymentBackend
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
@@ -66,19 +67,30 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         :param instances_ids: list. Ids of instances to retrieve
         :return: list
         """
-        if format_type == INSTANCE_FORMAT_TYPE_XML:
-            raise BadFormatException("XML is not supported")
-        else:
-            submissions = self.asset._deployment_data.get("submissions", [])
-            if len(instances_uuids) > 0:
-                # Cast in str because uuid is a 36 alphanumeric string
-                instances_uuids = [str(instance_uuid) for instance_uuid in instances_uuids]
+
+        submissions = self.asset._deployment_data.get("submissions", [])
+
+        if len(instances_uuids) > 0:
+            # Force str type for `instances_uuids` because `uuid`s can be str or int.
+            instances_uuids = [str(instance_uuid) for instance_uuid in instances_uuids]
+            if format_type == INSTANCE_FORMAT_TYPE_XML:
+                # ugly way to find matches, but it avoids to load each xml in memory.
+                pattern = "|".join(instances_uuids)
+                submissions = [submission for submission in submissions
+                               if re.search(r"<id>({})<\/id>".format(pattern), submission)]
+            else:
                 submissions = [submission for submission in submissions if str(submission.get("id")) in instances_uuids]
 
-            return submissions
+        return submissions
 
     def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
-         return self.get_submissions(format_type=format_type, instances_uuids=[pk])[0]
+        if pk:
+            submissions = list(self.get_submissions(format_type, [pk]))
+            if len(submissions) > 0:
+                return submissions[0]
+            return None
+        else:
+            raise ValueError("Primary key must be provided")
 
     def set_has_kpi_hooks(self):
         """
