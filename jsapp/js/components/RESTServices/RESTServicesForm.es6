@@ -40,7 +40,7 @@ export default class RESTServicesForm extends React.Component {
       url: '',
       type: EXPORT_TYPES.JSON,
       isActive: true,
-      errorEmailsEnabled: true,
+      emailNotification: true,
       securityLevel: null,
       securityOptions: [
         SECURITY_OPTIONS.no_auth,
@@ -65,8 +65,7 @@ export default class RESTServicesForm extends React.Component {
             name: data.name,
             url: data.endpoint,
             isActive: data.active,
-            // TODO use backend property
-            errorEmailsEnabled: true,
+            emailNotification: data.email_notification || true,
             subsetFields: data.subset_fields || [],
             type: data.export_type,
             securityLevel: SECURITY_OPTIONS[data.security_level],
@@ -141,8 +140,8 @@ export default class RESTServicesForm extends React.Component {
     this.setState({isActive: isChecked});
   }
 
-  handleErrorEmailsChange(isChecked) {
-    this.setState({errorEmailsEnabled: isChecked});
+  handleEmailNotificationChange(isChecked) {
+    this.setState({emailNotification: isChecked});
   }
 
   handleTypeRadioChange(name, value) {
@@ -177,8 +176,12 @@ export default class RESTServicesForm extends React.Component {
       name: this.state.name,
       endpoint: this.state.url,
       active: this.state.isActive,
+<<<<<<< HEAD
       // TODO set property for errorEmailsEnabled
       subset_fields: this.state.subsetFields,
+=======
+      email_notification: this.state.emailNotification,
+>>>>>>> rest_email_notification
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
@@ -412,11 +415,11 @@ export default class RESTServicesForm extends React.Component {
 
             <bem.FormModal__item>
               <Checkbox
-                name='errorEmailsEnabled'
+                name='emailNotification'
                 id='email-checkbox'
-                onChange={this.handleErrorEmailsChange.bind(this)}
-                checked={this.state.errorEmailsEnabled}
-                label={t('Receive emails about failures')}
+                onChange={this.handleEmailNotificationChange.bind(this)}
+                checked={this.state.emailNotification}
+                label={t('Receive emails notifications')}
               />
             </bem.FormModal__item>
 
