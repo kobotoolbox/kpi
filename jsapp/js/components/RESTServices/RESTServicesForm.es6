@@ -176,12 +176,8 @@ export default class RESTServicesForm extends React.Component {
       name: this.state.name,
       endpoint: this.state.url,
       active: this.state.isActive,
-<<<<<<< HEAD
-      // TODO set property for errorEmailsEnabled
       subset_fields: this.state.subsetFields,
-=======
       email_notification: this.state.emailNotification,
->>>>>>> rest_email_notification
       export_type: this.state.type,
       security_level: securityLevel,
       settings: {
