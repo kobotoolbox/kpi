@@ -251,8 +251,25 @@ export class TranslationSettings extends React.Component {
             return (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
-                  <bem.FormView__cell>
+                  <bem.FormView__cell m='translation-name'>
                     {l ? l : t('Unnamed language')}
+
+                    {i === 0 &&
+                      <bem.FormView__label m='default-language'>
+                        {t('default')}
+                      </bem.FormView__label>
+                    }
+
+                    {i !== 0 &&
+                      <bem.FormView__iconButton
+                        data-index={i}
+                        onClick={this.changeDefaultLanguage}
+                        disabled={this.state.isUpdatingDefaultLanguage}
+                        data-tip={t('Make default')}
+                      >
+                        <i className='k-icon-language-default' />
+                      </bem.FormView__iconButton>
+                    }
                   </bem.FormView__cell>
 
                   <bem.FormView__cell m='translation-actions'>
@@ -261,6 +278,7 @@ export class TranslationSettings extends React.Component {
                       onClick={this.toggleRenameLanguageForm}
                       disabled={this.state.isUpdatingDefaultLanguage}
                       data-tip={t('Edit language')}
+                      className='right-tooltip'
                     >
                       {this.state.renameLanguageIndex === i &&
                         <i className='k-icon-close' />
@@ -270,23 +288,8 @@ export class TranslationSettings extends React.Component {
                       }
                     </bem.FormView__iconButton>
 
-                    {i === 0 &&
-                      <bem.FormView__label m='default-language'>
-                        {t('default')}
-                      </bem.FormView__label>
-                    }
-
                     {i !== 0 &&
                       <React.Fragment>
-                        <bem.FormView__iconButton
-                          data-index={i}
-                          onClick={this.changeDefaultLanguage}
-                          disabled={this.state.isUpdatingDefaultLanguage}
-                          data-tip={t('Make default')}
-                        >
-                          <i className='k-icon-language-default' />
-                        </bem.FormView__iconButton>
-
                         <bem.FormView__iconButton
                           data-index={i}
                           onClick={this.launchTranslationTableModal}
