@@ -393,9 +393,18 @@ class LanguageForm extends React.Component {
 
     if (this.props.langString) {
       const lang = getLangAsObject(this.props.langString);
-      this.state = {
-        name: lang.name || '',
-        code: lang.code || ''
+
+      if (lang) {
+        this.state = {
+          name: lang.name || '',
+          code: lang.code || ''
+        }
+      } else {
+        // if language isn't in "English (en)" format, assume it is a simple language name string
+        this.state = {
+          name: this.props.langString,
+          code: ''
+        }
       }
     }
     autoBind(this);
@@ -408,7 +417,7 @@ class LanguageForm extends React.Component {
           // skip comparing to itself (editing language context)
         } else if (langString !== null) {
           const langObj = getLangAsObject(langString);
-          if (langObj.name === this.state.name) {
+          if (langObj && langObj.name === this.state.name) {
             isNameUnique = false;
           }
         }
@@ -426,7 +435,7 @@ class LanguageForm extends React.Component {
           // skip comparing to itself (editing language context)
         } else if (langString !== null) {
           const langObj = getLangAsObject(langString);
-          if (langObj.code === this.state.code) {
+          if (langObj && langObj.code === this.state.code) {
             isCodeUnique = false;
           }
         }
