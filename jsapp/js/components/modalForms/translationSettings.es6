@@ -212,7 +212,7 @@ export class TranslationSettings extends React.Component {
       // reload asset on failure
       {onFailed: () => {
         actions.resources.loadAsset({id: this.state.asset.uid});
-        alertify.error('Failed language update attempt!');
+        alertify.error('failed to update translations');
       }}
     );
   }
