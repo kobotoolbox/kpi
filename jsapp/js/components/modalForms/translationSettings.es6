@@ -208,7 +208,9 @@ export class TranslationSettings extends React.Component {
   updateAsset (content) {
     actions.resources.updateAsset(
       this.state.asset.uid,
-      {content: JSON.stringify(content)}
+      {content: JSON.stringify(content)},
+      // reload asset on failure
+      {onFailed: () => {actions.resources.loadAsset({id: this.state.asset.uid})}}
     );
   }
   renderEmptyMessage() {
