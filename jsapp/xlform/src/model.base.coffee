@@ -163,7 +163,7 @@ module.exports = do ->
       # when attributes change, register changes with parent survey
       if @key in ["name", "label", "hint", "required",
                   "calculation", "default", "appearance",
-                  "constraint_message", "tags"] or @key.match(/^label::/)
+                  "constraint_message", "tags"] or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
 

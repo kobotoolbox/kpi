@@ -167,7 +167,7 @@ module.exports = do ->
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--active').eq(0)
       for [key, val] in @model.attributesArray()
-        if key in ["name", "_isRepeat", "appearance", "relevant"] or key.match(/^label::/)
+        if key in ["name", "_isRepeat", "appearance", "relevant"] or key.match(/^.+::.+/)
           new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       @model.on 'add', (row) =>
