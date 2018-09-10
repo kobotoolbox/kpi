@@ -112,7 +112,7 @@ module.exports = do ->
       ###
       if baseSurvey
         formDefaultLang = baseSurvey._initialParams.translations_0 or null
-        translatedProp = o.translated[0]
+        translatedProps = o.translated
         # case 1: nothing to do - same default language in both
         if translations[0] is formDefaultLang
         # case 2: imported asset has form default language but not as first, so
@@ -121,22 +121,24 @@ module.exports = do ->
           defaultLangIndex = o.translations.indexOf(formDefaultLang)
           translations.unshift(translations.pop(defaultLangIndex))
           for row in o.survey
-            transletedPropArr = row[translatedProp]
-            if transletedPropArr
-              transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex))
+            for translatedProp in translatedProps
+              transletedPropArr = row[translatedProp]
+              if transletedPropArr
+                transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex))
         # case 3: imported asset doesn't have form default language, so we
         # force it onto the asset as the first language and try setting some
         # meaningful property value
         if translations[0] isnt formDefaultLang
           translations.unshift(formDefaultLang)
           for row in o.survey
-            if row[translatedProp]
-              propVal = null
-              if row.name
-                propVal = row.name
-              else if row.$autoname
-                propVal = row.$autoname
-              row[translatedProp].unshift(propVal)
+            for translatedProp in translatedProps
+              if row[translatedProp]
+                propVal = null
+                if row.name
+                  propVal = row.name
+                else if row.$autoname
+                  propVal = row.$autoname
+                row[translatedProp].unshift(propVal)
 
       o.translations_0 = translations[0]
       translations[0] = null

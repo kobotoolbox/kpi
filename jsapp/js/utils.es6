@@ -54,9 +54,9 @@ export function surveyToValidJson(survey) {
 export function unnullifyTranslations(surveyDataJSON, assetContent) {
   let surveyData = JSON.parse(surveyDataJSON);
 
-  let translatedProp;
+  let translatedProps = [];
   if (assetContent.translated) {
-     translatedProp = assetContent.translated[0];
+     translatedProps = assetContent.translated;
   }
 
   // set default_language
@@ -71,18 +71,22 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
   // replace every "translatedProp" with "translatedProp::defaultLang"
   if (surveyData.choices) {
     surveyData.choices.forEach((choice) => {
-      if (typeof choice[translatedProp] !== 'undefined') {
-        choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
-        delete choice[translatedProp];
-      }
+      translatedProps.forEach((translatedProp) => {
+        if (typeof choice[translatedProp] !== 'undefined') {
+          choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
+          delete choice[translatedProp];
+        }
+      });
     });
   }
   if (surveyData.survey) {
     surveyData.survey.forEach((surveyRow) => {
-      if (typeof surveyRow[translatedProp] !== 'undefined') {
-        surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
-        delete surveyRow[translatedProp];
-      }
+      translatedProps.forEach((translatedProp) => {
+        if (typeof surveyRow[translatedProp] !== 'undefined') {
+          surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
+          delete surveyRow[translatedProp];
+        }
+      });
     });
   }
 
