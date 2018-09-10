@@ -100,7 +100,11 @@ module.exports = do ->
     translations = o.translations
     if translations
       if translations.length > 1 and translations.indexOf(null) isnt -1
-        throw new Error("There is an unnamed translation in your form definition. Please give a name to all translations in your form.")
+        throw new Error("""
+          There is an unnamed translation in your form definition.
+          Please give a name to all translations in your form.
+          Use "Manage Translations" modal accessible from form landing page.
+        """)
 
       ###
       TRANSLATIONS HACK (Part 1/2):

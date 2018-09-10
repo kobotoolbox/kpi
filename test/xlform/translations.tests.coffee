@@ -18,6 +18,10 @@ describe("translations", ->
         ]
         translations: ["polski (pl)", null]
       )
-    expect(run).toThrow('There is an unnamed translation in your form definition')
+    expect(run).toThrow("""
+      There is an unnamed translation in your form definition.
+      Please give a name to all translations in your form.
+      Use "Manage Translations" modal accessible from form landing page.
+    """)
   )
 )
