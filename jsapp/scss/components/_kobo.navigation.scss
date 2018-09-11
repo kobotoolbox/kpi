@@ -316,46 +316,12 @@ $headerAccountTextColor: #dbedf7;
     width: 38px;
   }
 
-  .loading {
-    width: auto;
-    .loading__inner {
-      padding: 0;
-    }
-  }
-
   .form-title__name {
     flex: 1;
     color: #FFF;
     font-size: 18px;
     line-height: 1.3333;
     padding: 0 20px 0 5px;
-
-     input {
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-      width: 100%;
-      background: transparent;
-      padding: 3px 6px;
-      margin: 0px;
-      border: none;
-      border-bottom: 1px solid transparent;
-       // keep these pseudo-states separate
-      &::-webkit-input-placeholder {
-        color: darken($cool-gray, 10%);
-      }
-       &:-ms-input-placeholder {
-        color: darken($cool-gray, 10%);
-      }
-       &:hover {
-        border-bottom: 1px solid $cool-blue;
-      }
-
-      &:focus {
-        background: rgba(255, 255, 255, 0.05);
-        border-bottom: 1px solid $cool-blue;
-      }
-    }
 
     input[name='title'] {
       color: #FFF;
@@ -365,6 +331,35 @@ $headerAccountTextColor: #dbedf7;
 
     &.form-title__name--long {
       font-size: 14px;
+    }
+  }
+
+  input {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    background: transparent;
+    padding: 3px 6px;
+    margin: 0;
+    border: none;
+    border-bottom: 1px solid transparent;
+    // keep these pseudo-states separate
+    &::-webkit-input-placeholder {
+      color: darken($cool-gray, 10%);
+    }
+
+    &:-ms-input-placeholder {
+      color: darken($cool-gray, 10%);
+    }
+
+    &:hover {
+      border-bottom: 1px solid $cool-blue;
+    }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid $cool-blue;
     }
   }
 
