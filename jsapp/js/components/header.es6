@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
+import alertify from 'alertifyjs';
 import ui from '../ui';
 import stores from '../stores';
 import Reflux from 'reflux';
@@ -182,6 +183,23 @@ class MainHeader extends Reflux.Component {
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
+  updateAssetTitle() {
+    if (!this.state.asset.name.trim()) {
+      alertify.error(t('Please enter a title for your project'));
+      return false;
+    } else {
+      actions.resources.updateAsset(
+        this.state.asset.uid,
+        {
+          name: this.state.asset.name,
+          settings: JSON.stringify({
+            description: this.state.asset.settings.description
+          })
+        }
+      );
+      return true;
+    }
+  }
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
@@ -194,22 +212,15 @@ class MainHeader extends Reflux.Component {
     });
 
     clearTimeout(typingTimer);
-
-    typingTimer = setTimeout(() => {
-      if (!this.state.asset.name.trim()) {
-        alertify.error(t('Please enter a title for your project'));
-      } else {
-        actions.resources.updateAsset(
-          this.state.asset.uid,
-          {
-            name: this.state.asset.name,
-            settings: JSON.stringify({
-              description: this.state.asset.settings.description
-            })
-          }
-        );
+    typingTimer = setTimeout(this.updateAssetTitle.bind(this), 1500);
+  }
+  assetTitleKeyDown(evt) {
+    if (evt.key === 'Enter') {
+      clearTimeout(typingTimer);
+      if (this.updateAssetTitle()) {
+        evt.currentTarget.blur();
       }
-    }, 1500);
+    }
   }
   render () {
     var userCanEditAsset = false;
@@ -256,6 +267,7 @@ class MainHeader extends Reflux.Component {
                     placeholder={t('Project title')}
                     value={this.state.asset.name ? this.state.asset.name : ''}
                     onChange={this.assetTitleChange}
+                    onKeyDown={this.assetTitleKeyDown}
                     disabled={!userCanEditAsset}
                   />
                 </bem.FormTitle__name>
