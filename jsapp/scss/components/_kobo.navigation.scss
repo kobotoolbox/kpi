@@ -320,16 +320,16 @@ $headerAccountTextColor: #dbedf7;
     flex: 1;
     color: #FFF;
     font-size: 18px;
-    line-height: 1.3333;
-    padding: 0 20px 0 5px;
 
     input[name='title'] {
       color: #FFF;
       font-size: 18px;
       min-width: 100%;
+      line-height: 1.3333;
+      padding: 0 20px 0 5px;
     }
 
-    &.form-title__name--long {
+    &.form-title__name--long input[name='title'] {
       font-size: 14px;
     }
   }
