@@ -180,22 +180,32 @@ class MainHeader extends Reflux.Component {
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
-  assetTitleChange(e) {
+  assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
       asset.name = e.target.value;
     else
       asset.settings.description = e.target.value;
-    this.setState({asset: asset});
+
+    this.setState({
+      asset: asset
+    });
+
     clearTimeout(typingTimer);
+
     typingTimer = setTimeout(() => {
       if (!this.state.asset.name.trim()) {
         alertify.error(t('Please enter a title for your project'));
       } else {
-        actions.resources.updateAsset(this.state.asset.uid, {
-          name: this.state.asset.name,
-          settings: JSON.stringify({description: this.state.asset.settings.description})
-        });
+        actions.resources.updateAsset(
+          this.state.asset.uid,
+          {
+            name: this.state.asset.name,
+            settings: JSON.stringify({
+              description: this.state.asset.settings.description
+            })
+          }
+        );
       }
     }, 1500);
   }
