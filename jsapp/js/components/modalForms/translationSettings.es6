@@ -99,11 +99,17 @@ export class TranslationSettings extends React.Component {
   }
   onLanguageChange(lang, index) {
     let content = this.state.asset.content;
+    const langString = getLangString(lang);
+
     if (index > -1) {
-      content.translations[index] = getLangString(lang);
+      content.translations[index] = langString;
     } else {
-      content.translations.push(getLangString(lang));
+      content.translations.push(langString);
       content = this.prepareTranslations(content);
+    }
+
+    if (index === 0) {
+      content.settings.default_language = langString;
     }
 
     this.updateAsset(content);
