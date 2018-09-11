@@ -36,7 +36,7 @@ export default class PaginatedGalleryModal extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
-      offsetValue: OFFSET_OPTIONS[0].value,
+      offset: OFFSET_OPTIONS[0],
       filterOrder: galleryStore.state.filterOrder,
       currentPage: 1,
       gallery: galleryStore.state.galleries[galleryStore.state.selectedGalleryIndex],
@@ -61,37 +61,37 @@ export default class PaginatedGalleryModal extends React.Component {
   }
 
   getTotalPages() {
-    return Math.ceil(this.state.gallery.totalMediaCount / this.state.offsetValue);
+    return Math.ceil(this.state.gallery.totalMediaCount / this.state.offset.value);
   }
 
   setCurrentPage(index) {
     this.setState({ currentPage: index });
   }
 
-  changeOffset(offsetValue) {
-    this.setState({ offsetValue: offsetValue }, function() {
+  changeOffset(offset) {
+    this.setState({ offset: offset }, function() {
       this.goToPage(1);
     });
   }
 
   changeSort(sort) {
-    galleryActions.setFilters({filterOrder: ORDER_OPTIONS[sort]});
+    galleryActions.setFilters({filterOrder: sort});
   }
 
   goToPage(newPage) {
-    if (this.state.gallery.loadedMediaCount < (newPage + 1) * this.state.offsetValue) {
+    if (this.state.gallery.loadedMediaCount < (newPage + 1) * this.state.offset.value) {
       galleryActions.loadMoreGalleryMedias(
         this.state.gallery.galleryIndex,
         newPage,
-        this.state.offsetValue
+        this.state.offset.value
       );
     }
     this.setCurrentPage(newPage);
   }
 
   getCurrentPageMedia() {
-    const min = this.state.offsetValue * (this.state.currentPage - 1);
-    const max = this.state.offsetValue * this.state.currentPage;
+    const min = this.state.offset.value * (this.state.currentPage - 1);
+    const max = this.state.offset.value * this.state.currentPage;
     return this.state.gallery.medias.filter((media) => {
       return (media.mediaIndex >= min && media.mediaIndex < max);
     });
@@ -161,7 +161,7 @@ export default class PaginatedGalleryModal extends React.Component {
 
         <bem.PaginatedGalleryModal_body>
           <GalleryControls
-            offsetValue={this.state.offsetValue}
+            offset={this.state.offset}
             changeOffset={this.changeOffset}
             pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
@@ -173,7 +173,7 @@ export default class PaginatedGalleryModal extends React.Component {
           {this.renderGallery()}
 
           <GalleryControls
-            offsetValue={this.state.offsetValue}
+            offset={this.state.offset}
             changeOffset={this.changeOffset}
             pageCount={this.getTotalPages()}
             goToPage={this.goToPage}
@@ -195,22 +195,21 @@ class GalleryControls extends React.Component {
   }
 
   render() {
-    const controlsMod = this.props.selectDirectionUp ? 'select-direction-up' : '';
     return (
-      <bem.PaginatedGalleryModal_controls m={controlsMod}>
+      <bem.PaginatedGalleryModal_controls>
         <div className='change-offset'>
           <label>{t('Per page:')}</label>
 
           <Select
-            className='Select--underlined'
+            className='kobo-select'
+            classNamePrefix='kobo-select'
             options={OFFSET_OPTIONS}
-            simpleValue
             name='selected-filter'
-            value={this.props.offsetValue}
+            value={this.props.offset}
             onChange={this.props.changeOffset}
-            autoBlur
-            searchable={false}
-            clearable={false}
+            isSearchable={false}
+            isClearable={false}
+            menuPlacement='auto'
           />
         </div>
 
@@ -229,15 +228,15 @@ class GalleryControls extends React.Component {
         />
 
         <Select
-          className='Select--underlined change-sort'
+          className='kobo-select change-sort'
+          classNamePrefix='kobo-select'
           options={SORT_OPTIONS}
-          simpleValue
           name='selected-filter'
           value={this.props.filterOrder}
           onChange={this.props.changeSort}
-          autoBlur
-          searchable={false}
-          clearable={false}
+          isSearchable={false}
+          isClearable={false}
+          menuPlacement='auto'
         />
       </bem.PaginatedGalleryModal_controls>
     );

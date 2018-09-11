@@ -42,7 +42,7 @@ export default class FormGalleryFilter extends React.Component {
   }
 
   onFilterGroupChange(newVal) {
-    galleryActions.setFilters({filterGroupBy: GROUPBY_OPTIONS[newVal]});
+    galleryActions.setFilters({filterGroupBy: newVal});
   }
 
   render() {
@@ -54,7 +54,7 @@ export default class FormGalleryFilter extends React.Component {
           </bem.AssetGallery__count>
         }
 
-        <bem.AssetGallery__headingSearchFilter className='section'>
+        <bem.AssetGallery__headingSearchFilter>
           <TextBox
             type='search'
             placeholder={t('Filter results')}
@@ -65,14 +65,13 @@ export default class FormGalleryFilter extends React.Component {
           <Select
             ref='filterSelect'
             options={groupByOptions}
-            simpleValue
             name='selected-filter'
-            className='Select--underlined'
-            value={this.state.filterGroupBy ? this.state.filterGroupBy.value : false}
+            className='kobo-select'
+            classNamePrefix='kobo-select'
+            value={this.state.filterGroupBy ? this.state.filterGroupBy : false}
             onChange={this.onFilterGroupChange}
-            autoBlur
-            clearable={false}
-            searchable={false}
+            isClearable={false}
+            isSearchable={false}
           />
         </bem.AssetGallery__headingSearchFilter>
       </bem.AssetGallery__heading>

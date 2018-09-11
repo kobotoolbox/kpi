@@ -86,13 +86,13 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.GALLERY_SINGLE:
         this.setState({
-          modalClass: 'modal--blank modal--large'
+          modalClass: 'modal--blank modal--large modal--gallery'
         });
         break;
 
       case MODAL_TYPES.GALLERY_PAGINATED:
         this.setState({
-          modalClass: 'modal--blank modal--large'
+          modalClass: 'modal--blank modal--large modal--gallery'
         });
         break;
 

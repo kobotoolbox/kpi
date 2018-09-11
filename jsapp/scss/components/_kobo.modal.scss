@@ -204,6 +204,13 @@ $z-modal-x: 10;
 // custom parts and overrides
 // -----------------------------------------------------------------------------
 
+.modal.modal--gallery {
+  .modal__header {
+    background-color: #F8F8F8;
+    color: $layout-text-color;
+  }
+}
+
 .modal.modal-submission {
   .modal__header {
     background-color: #F8F8F8;

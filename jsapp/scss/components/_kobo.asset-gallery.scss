@@ -72,16 +72,15 @@ $gallery-transition: 250ms ease-in-out;
       justify-content: space-between;
 
       .text-box {
-        border-radius: 2px;
-        height: 33px;
         width: 160px;
-
-        .text-box__input {
-          height: 33px;
-        }
       }
 
-      .Select {
+      .text-box,
+      .text-box__input {
+        height: 38px;
+      }
+
+      .kobo-select {
         margin-left: $s-gallery-spacing;
         width: 160px;
       }
@@ -379,28 +378,19 @@ $gallery-transition: 250ms ease-in-out;
     flex-wrap: nowrap;
     margin: 2* $s-gallery-spacing;
 
-    label + .Select {
+    label + .kobo-select {
       margin-left: 5px;
     }
 
-    &.paginated-gallery-modal__controls--select-direction-up {
-      .Select-menu-outer {
-        top: auto;
-        bottom: 100%;
-      }
-    }
-
-    .change-sort {
-      .Select-control {
-        min-width: 220px;
-      }
+    .kobo-select.change-sort {
+      min-width: 220px;
     }
 
     .change-offset {
       display: flex;
       align-items: center;
 
-      .Select-control {
+      .kobo-select {
         min-width: 70px;
       }
     }
