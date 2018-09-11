@@ -180,6 +180,32 @@ class MainHeader extends Reflux.Component {
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
+  assetTitleChange (e) {
+    var asset = this.state.asset;
+    if (e.target.name == 'title')
+      asset.name = e.target.value;
+    else
+      asset.settings.description = e.target.value;
+     this.setState({
+      asset: asset
+    });
+     clearTimeout(typingTimer);
+     typingTimer = setTimeout(() => {
+      if (!this.state.asset.name.trim()) {
+        alertify.error(t('Please enter a title for your project'));
+      } else {
+        actions.resources.updateAsset(
+          this.state.asset.uid,
+          {
+            name: this.state.asset.name,
+            settings: JSON.stringify({
+              description: this.state.asset.settings.description,
+            }),
+          }
+        );
+      }
+    }, 1500);
+   }
   render () {
     var userCanEditAsset = false;
     if (this.state.asset)
@@ -211,15 +237,6 @@ class MainHeader extends Reflux.Component {
                 <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               </div>
             }
-            { this.isFormSingle() && !this.state.asset &&
-              <bem.FormTitle>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i />
-                  </bem.Loading__inner>
-                </bem.Loading>
-              </bem.FormTitle>
-            }
             { this.isFormSingle() && this.state.asset &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
@@ -228,7 +245,14 @@ class MainHeader extends Reflux.Component {
                   <i className='k-icon-drafts' />
                 }
                 <bem.FormTitle__name m={formTitleNameMods}>
-                  {this.state.asset.name}
+                  <input
+                    type='text'
+                    name='title'
+                    placeholder={t('Project title')}
+                    value={this.state.asset.name ? this.state.asset.name : ''}
+                    onChange={this.assetTitleChange}
+                    disabled={!userCanEditAsset}
+                  />
                 </bem.FormTitle__name>
                 { this.state.asset.has_deployment &&
                   <bem.FormTitle__submissions>
