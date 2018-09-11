@@ -404,11 +404,14 @@ export default class RESTServicesForm extends React.Component {
               </label>
 
               <Select
+                value={this.state.securityLevel}
+                options={this.state.securityOptions}
+                onChange={this.handleSecurityTypeChange.bind(this)}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
                 id='rest-service-form--security'
                 name='securityLevel'
-                value={this.state.securityLevel}
-                onChange={this.handleSecurityTypeChange.bind(this)}
-                options={this.state.securityOptions}
+                menuPlacement='auto'
               />
             </bem.FormModal__item>
 
