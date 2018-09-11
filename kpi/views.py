@@ -972,7 +972,15 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
                 settings = original_asset.settings.copy()
                 settings.pop("share-metadata", None)
-                settings.update(cloned_data.get('settings', {}))
+
+                cloned_data_settings = cloned_data.get("settings", {})
+
+                # Depending of the client payload. settings can be JSON or string.
+                # if it's a string. Let's load it to be able to merge it.
+                if not isinstance(cloned_data_settings, dict):
+                    cloned_data_settings = json.loads(cloned_data_settings)
+
+                settings.update(cloned_data_settings)
                 cloned_data['settings'] = json.dumps(settings)
 
             # until we get content passed as a dict, transform the content obj to a str
