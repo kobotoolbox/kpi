@@ -22,14 +22,6 @@ actions.navigation = Reflux.createActions([
   ]);
 
 actions.auth = Reflux.createActions({
-  login: {
-    children: [
-      'loggedin',
-      'passwordfail',
-      'anonymous',
-      'failed'
-    ]
-  },
   verifyLogin: {
     children: [
       'loggedin',
@@ -73,24 +65,6 @@ actions.search = Reflux.createActions({
       'failed'
     ]
   },
-  assetsWithTags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  tags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  libraryDefaultQuery: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   collections: {
     children: [
       'completed',
@@ -100,18 +74,6 @@ actions.search = Reflux.createActions({
 });
 
 actions.resources = Reflux.createActions({
-  listAssets: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  listSurveys: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   listCollections: {
     children: [
       'completed',
@@ -173,12 +135,6 @@ actions.resources = Reflux.createActions({
     ]
   },
   createCollection: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  readCollection: {
     children: [
       'completed',
       'failed'
@@ -366,15 +322,6 @@ actions.resources.createImport.completed.listen(function(contents){
   }
 });
 
-actions.resources.createAsset.listen(function(){
-  console.error(`use actions.resources.createImport
-                  or actions.resources.createResource.`);
-});
-
-actions.resources.createResource.failed.listen(function(){
-  log('createResourceFailed');
-});
-
 actions.resources.createSnapshot.listen(function(details){
   dataInterface.createAssetSnapshot(details)
     .done(actions.resources.createSnapshot.completed)
@@ -395,10 +342,10 @@ actions.resources.listTags.completed.listen(function(results){
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
-    .done(function(asset){
-      actions.resources.updateAsset.completed(asset);
-      if (params.onComplete) {
-        params.onComplete(asset);
+    .done((asset) => {
+      actions.resources.updateAsset.completed(asset, uid, values);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(asset, uid, values);
       }
       notify(t('successfully updated'));
     })
@@ -407,47 +354,23 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
     });
 });
 
-actions.resources.deployAsset.listen(
-  function(asset, redeployment, dialog_or_alert, params={}){
-    var onComplete;
-    if (params && params.onComplete) {
-      onComplete = params.onComplete;
-    }
-    dataInterface.deployAsset(asset, redeployment)
-      .done((data) => {
-        actions.resources.deployAsset.completed(data, dialog_or_alert);
-        if (onComplete) {
-          onComplete(asset);
-        }
-      })
-      .fail((data) => {
-        actions.resources.deployAsset.failed(data, dialog_or_alert);
-      });
-  }
-);
-
-actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
-  // close the dialog/alert.
-  // (this was sometimes failing. possibly dialog already destroyed?)
-  if (dialog_or_alert) {
-    if (typeof dialog_or_alert.destroy === 'function') {
-        dialog_or_alert.destroy();
-    } else if (typeof dialog_or_alert.dismiss === 'function') {
-        dialog_or_alert.dismiss();
-    }
-  }
+actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
+  dataInterface.deployAsset(asset, redeployment)
+    .done((data) => {
+      actions.resources.deployAsset.completed(data.asset);
+      if (typeof params.onDone === 'function') {
+        params.onDone(data, redeployment);
+      }
+    })
+    .fail((data) => {
+      actions.resources.deployAsset.failed(data, redeployment);
+      if (typeof params.onFail === 'function') {
+        params.onFail(data,  redeployment);
+      }
+    });
 });
 
-actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
-  // close the dialog/alert.
-  // (this was sometimes failing. possibly dialog already destroyed?)
-  if (dialog_or_alert) {
-    if (typeof dialog_or_alert.destroy === 'function') {
-        dialog_or_alert.destroy();
-    } else if (typeof dialog_or_alert.dismiss === 'function') {
-        dialog_or_alert.dismiss();
-    }
-  }
+actions.resources.deployAsset.failed.listen(function(data, redeployment){
   // report the problem to the user
   let failure_message = null;
 
@@ -484,22 +407,20 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
   alertify.alert(t('unable to deploy'), failure_message);
 });
 
-actions.resources.setDeploymentActive.listen(
-  function(details, params={}) {
-    var onComplete;
-    if (params && params.onComplete) {
-      onComplete = params.onComplete;
-    }
-    dataInterface.setDeploymentActive(details)
-      .done(function(/*result*/){
-        actions.resources.setDeploymentActive.completed(details);
-        if (onComplete) {
-          onComplete(details);
-        }
-      })
-      .fail(actions.resources.setDeploymentActive.failed);
+actions.resources.setDeploymentActive.listen(function(details) {
+  dataInterface.setDeploymentActive(details)
+    .done((data) => {
+      actions.resources.setDeploymentActive.completed(data.asset);
+    })
+    .fail(actions.resources.setDeploymentActive.failed);
+});
+actions.resources.setDeploymentActive.completed.listen((result) => {
+  if (result.active) {
+    notify(t('Project unarchived successfully'));
+  } else {
+    notify(t('Project archived successfully'));
   }
-);
+});
 
 actions.resources.getAssetFiles.listen(function(assetId) {
   dataInterface
@@ -582,15 +503,11 @@ actions.resources.createResource.listen(function(details){
 });
 
 actions.resources.deleteAsset.listen(function(details, params={}){
-  var onComplete;
-  if (params && params.onComplete) {
-    onComplete = params.onComplete;
-  }
   dataInterface.deleteAsset(details)
-    .done(function(/*result*/){
+    .done(() => {
       actions.resources.deleteAsset.completed(details);
-      if (onComplete) {
-        onComplete(details);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(details);
       }
     })
     .fail((err) => {
@@ -602,20 +519,18 @@ actions.resources.deleteAsset.listen(function(details, params={}){
     });
 });
 
-actions.resources.readCollection.listen(function(details){
-  dataInterface.readCollection(details)
-      .done(actions.resources.readCollection.completed)
-      .fail(function(req, err, message){
-        actions.resources.readCollection.failed(details, req, err, message);
-      });
-});
-
-actions.resources.deleteCollection.listen(function(details){
+actions.resources.deleteCollection.listen(function(details, params = {}){
   dataInterface.deleteCollection(details)
-    .done(function(result){
+    .done(function(result) {
       actions.resources.deleteCollection.completed(details, result);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(details, result);
+      }
     })
     .fail(actions.resources.deleteCollection.failed);
+});
+actions.resources.deleteCollection.failed.listen(() => {
+  notify(t('Failed to delete collection.'), 'error');
 });
 
 actions.resources.updateCollection.listen(function(uid, values){
@@ -629,44 +544,31 @@ actions.resources.updateCollection.listen(function(uid, values){
     });
 });
 
-actions.resources.cloneAsset.listen(function(details, opts={}){
+actions.resources.cloneAsset.listen(function(details, params={}){
   dataInterface.cloneAsset(details)
-    .done(function(...args){
-      actions.resources.createAsset.completed(...args);
-      actions.resources.cloneAsset.completed(...args);
-      if (opts.onComplete) {
-        opts.onComplete(...args);
+    .done((asset) => {
+      actions.resources.cloneAsset.completed(asset);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(asset);
       }
     })
     .fail(actions.resources.cloneAsset.failed);
 });
 
-actions.search.assets.listen(function(queryString){
-  dataInterface.searchAssets(queryString)
-    .done(function(...args){
-      actions.search.assets.completed.apply(this, [queryString, ...args]);
+actions.search.assets.listen(function(searchData, params={}){
+  dataInterface.searchAssets(searchData)
+    .done(function(response){
+      actions.search.assets.completed(searchData, response);
+      if (typeof params.onComplete === 'function') {
+        params.onComplete(searchData, response);
+      }
     })
-    .fail(function(...args){
-      actions.search.assets.failed.apply(this, [queryString, ...args]);
+    .fail(function(response){
+      actions.search.assets.failed(searchData, response);
+      if (typeof params.onFailed === 'function') {
+        params.onFailed(searchData, response);
+      }
     });
-});
-
-actions.search.libraryDefaultQuery.listen(function(){
-  dataInterface.libraryDefaultSearch()
-    .done(actions.search.libraryDefaultQuery.completed)
-    .fail(actions.search.libraryDefaultQuery.failed);
-});
-
-actions.search.assetsWithTags.listen(function(queryString){
-  dataInterface.assetSearch(queryString)
-    .done(actions.search.assetsWithTags.completed)
-    .fail(actions.search.assetsWithTags.failed);
-});
-
-actions.search.tags.listen(function(queryString){
-  dataInterface.searchTags(queryString)
-    .done(actions.search.searchTags.completed)
-    .fail(actions.search.searchTags.failed);
 });
 
 actions.permissions.assignPerm.listen(function(creds){
@@ -710,19 +612,6 @@ actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverab
 });
 actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
   actions.resources.loadAsset({url: val.url});
-});
-
-actions.auth.login.listen(function(creds){
-  dataInterface.login(creds).done(function(resp1){
-    dataInterface.selfProfile().done(function(data){
-        if(data.username) {
-          actions.auth.login.loggedin(data);
-        } else {
-          actions.auth.login.passwordfail(resp1);
-        }
-      }).fail(actions.auth.login.failed);
-  })
-    .fail(actions.auth.login.failed);
 });
 
 // reload so a new csrf token is issued
@@ -788,35 +677,20 @@ actions.resources.loadAsset.listen(function(params){
   }
 
   dataInterface[dispatchMethodName](params)
-      .done(actions.resources.loadAsset.completed)
-      .fail(actions.resources.loadAsset.failed);
+    .done(actions.resources.loadAsset.completed)
+    .fail(actions.resources.loadAsset.failed);
 });
 
 actions.resources.loadAssetContent.listen(function(params){
   dataInterface.getAssetContent(params)
-      .done(function(data, ...args) {
-        // data.sheeted = new Sheeted([['survey', 'choices', 'settings'], data.data])
-        actions.resources.loadAssetContent.completed(data, ...args);
-      })
-      .fail(actions.resources.loadAssetContent.failed);
-});
-
-actions.resources.listAssets.listen(function(){
-  dataInterface.listAllAssets()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
-});
-
-actions.resources.listSurveys.listen(function(){
-  dataInterface.listSurveys()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
+    .done(actions.resources.loadAssetContent.completed)
+    .fail(actions.resources.loadAssetContent.failed);
 });
 
 actions.resources.listCollections.listen(function(){
   dataInterface.listCollections()
-      .done(actions.resources.listCollections.completed)
-      .fail(actions.resources.listCollections.failed);
+    .done(actions.resources.listCollections.completed)
+    .fail(actions.resources.listCollections.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){

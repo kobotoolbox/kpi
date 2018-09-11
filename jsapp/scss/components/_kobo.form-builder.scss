@@ -362,11 +362,6 @@ $t-form-builder-aside-open: 200ms;
     display: inline-block;
   }
 
-  .Select-menu-outer {
-    // getting select menus to appear over checkboxes
-    z-index: 2;
-  }
-
   &:not(.form-builder-aside--visible) {
     right: -1 * $s-form-builder-aside - 10px;
   }

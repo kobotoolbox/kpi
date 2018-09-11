@@ -57,49 +57,13 @@ var dataInterface;
         data: data
       });
     },
-    listBlocks () {
-      return $ajax({
-        url: `${rootUrl}/assets/?q=asset_type:block`
-      });
-    },
     listTemplates () {
       return $ajax({
         url: `${rootUrl}/assets/?q=asset_type:template`
       });
     },
-    listSurveys() {
-      return $ajax({
-        url: `${rootUrl}/assets/`,
-        data: {
-          q: 'asset_type:survey'
-        },
-        method: 'GET'
-      });
-    },
     listCollections () {
       return $.getJSON(`${rootUrl}/collections/?all_public=true`);
-    },
-    listAllAssets () {
-      var d = new $.Deferred();
-      $.when($.getJSON(`${rootUrl}/assets/?parent=`), $.getJSON(`${rootUrl}/collections/?parent=`)).done(function(assetR, collectionR){
-        var assets = assetR[0],
-            collections = collectionR[0];
-        var r = {
-          results: [],
-        };
-        var pushItem = function (item){
-          r.results.push(item);
-        };
-        assets.results.forEach(pushItem);
-        collections.results.forEach(pushItem);
-        var sortAtt = 'date_modified';
-        r.results.sort(function(a, b){
-          var ad = a[sortAtt], bd = b[sortAtt];
-          return (ad === bd) ? 0 : ((ad > bd) ? -1 : 1);
-        });
-        d.resolve(r);
-      }).fail(d.fail);
-      return d.promise();
     },
     createAssetSnapshot (data) {
       return $ajax({
@@ -280,11 +244,6 @@ var dataInterface;
         method: 'GET'
       });
     },
-    readCollection ({uid}) {
-      return $ajax({
-        url: `${rootUrl}/collections/${uid}/`
-      });
-    },
     deleteCollection ({uid}) {
       return $ajax({
         url: `${rootUrl}/collections/${uid}/`,
@@ -353,12 +312,14 @@ var dataInterface;
         dataType: 'html'
       });
     },
-    searchAssets (queryString) {
-      return $ajax({
+    searchAssets (searchData) {
+      // override limit
+      searchData.limit = 200;
+      return $.ajax({
         url: `${rootUrl}/assets/`,
-        data: {
-          q: queryString
-        }
+        dataType: 'json',
+        data: searchData,
+        method: 'GET'
       });
     },
     createCollection (data) {
