@@ -121,23 +121,21 @@ class App extends React.Component {
           global
           isolate>
 
-          { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
+          { !this.isFormBuilder() &&
             <div className='k-header__bar' />
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'header-hidden': this.state.pageState.headerHidden,
-              'drawer-hidden': this.state.pageState.drawerHidden,
               'in-formbuilder': this.isFormBuilder()
                 }} className='mdl-layout mdl-layout--fixed-header'>
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
+              { !this.isFormBuilder() &&
                 <MainHeader assetid={assetid}/>
               }
-              { !this.isFormBuilder() && !this.state.pageState.drawerHidden &&
+              { !this.isFormBuilder() &&
                 <Drawer/>
               }
               <bem.PageWrapper__content className='mdl-layout__content' m={this.isFormSingle() ? 'form-landing' : ''}>
