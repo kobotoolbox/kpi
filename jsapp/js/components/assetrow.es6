@@ -25,10 +25,11 @@ class AssetRow extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      tags: this.props.tags,
+      isTagsInputVisible: false,
       clearPopover: false,
       popoverVisible: false
     };
+    this.escFunction = this.escFunction.bind(this);
     autoBind(this);
   }
   // clickAsset (evt) {
@@ -51,11 +52,19 @@ class AssetRow extends React.Component {
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
   }
-  clickTagsToggle (evt) {
-    var tagsToggle = !this.state.displayTags;
-      this.setState({
-        displayTags: tagsToggle,
-      });
+  clickTagsToggle () {
+    const isTagsInputVisible = !this.state.isTagsInputVisible;
+    if (isTagsInputVisible) {
+      document.addEventListener('keydown', this.escFunction);
+    } else {
+      document.removeEventListener('keydown', this.escFunction);
+    }
+    this.setState({isTagsInputVisible: isTagsInputVisible});
+  }
+  escFunction (evt) {
+    if (evt.keyCode === 27 && this.state.isTagsInputVisible) {
+      this.clickTagsToggle();
+    }
   }
   componentDidMount () {
     this.prepParentCollection();
@@ -131,7 +140,7 @@ class AssetRow extends React.Component {
     return (
         <bem.AssetRow
           m={{
-            'display-tags': this.state.displayTags,
+            'display-tags': this.state.isTagsInputVisible,
             'deleted': this.props.deleted,
             'deleting': this.props.deleting,
           }}
@@ -240,7 +249,7 @@ class AssetRow extends React.Component {
             }
           </bem.AssetRow__cell>
 
-          { this.state.displayTags &&
+          { this.state.isTagsInputVisible &&
             <bem.AssetRow__cell m={'tags'}
                 key={'tags'}
                 className='mdl-cell mdl-cell--12-col'
