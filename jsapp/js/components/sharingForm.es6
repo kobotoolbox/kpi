@@ -232,14 +232,14 @@ class SharingForm extends React.Component {
         uid: this.state.asset.uid,
         kind: this.state.asset.kind,
         objectUrl: this.props.objectUrl,
-        role: this.state.permInput
+        role: this.state.permInput.value
       });
       this.usernameField().value = '';
     }
   }
-  updatePermInput(permName) {
+  updatePermInput(perm) {
     this.setState({
-      permInput: permName.value
+      permInput: perm
     });
   }
   render () {
@@ -337,9 +337,12 @@ class SharingForm extends React.Component {
                   id='permGiven'
                   ref='permInput'
                   value={this.state.permInput}
-                  clearable={false}
+                  isClearable={false}
                   options={availablePermissions}
                   onChange={this.updatePermInput}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
               />
               <button className={btnKls}>
                   {t('invite')}

@@ -1,3 +1,6 @@
+import json
+import hashlib
+import unittest
 from django.contrib.auth.models import User
 from django.test import TestCase
 from copy import deepcopy
@@ -82,3 +85,23 @@ class AssetVersionTestCase(TestCase):
 
         self.assertRaises(BadAssetTypeException, _bad_deployment)
 
+    def test_version_content_hash(self):
+        _content = {
+            u'survey': [
+                {u'type': u'note',
+                 u'label': u'Read me',
+                 u'name': u'n1'}
+            ],
+        }
+        new_asset = Asset.objects.create(asset_type='survey', content=_content)
+        expected_hash = hashlib.sha1(json.dumps(new_asset.content,
+                                                sort_keys=True)).hexdigest()
+        self.assertEqual(new_asset.latest_version.content_hash, expected_hash)
+        return new_asset
+
+    def test_version_content_hash_same_after_non_content_change(self):
+        new_asset = self.test_version_content_hash()
+        expected_hash = new_asset.latest_version.content_hash
+        new_asset.settings['description'] = 'Loco el que lee'
+        new_asset.save()
+        self.assertEqual(new_asset.latest_version.content_hash, expected_hash)

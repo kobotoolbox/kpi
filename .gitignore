@@ -24,3 +24,15 @@ test/compiled/*
 celerybeat-schedule
 deployments.json
 .DS_Store
+jsapp/fonts/*.eot
+jsapp/fonts/*.svg
+jsapp/fonts/*.ttf
+jsapp/fonts/*.woff
+jsapp/fonts/*.woff2
+jsapp/fonts/*.scss
+jsapp/fonts/*.css
+jsapp/fonts/*.md
+jsapp/fonts/*.ijmap
+jsapp/fonts/*.otf
+jsapp/fonts/codepoints
+jsapp/fonts/*.html
