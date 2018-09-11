@@ -20,6 +20,8 @@ import {
 import searches from '../searches';
 import {ListSearch} from '../components/list';
 
+let typingTimer;
+
 class MainHeader extends Reflux.Component {
   constructor(props){
     super(props);
