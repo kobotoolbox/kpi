@@ -72,7 +72,11 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = '&query={';
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
+        if (f.id === '_id') {
+          filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
+        } else {
+          filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
+        }
         if (i < filter.length - 1)
           filterQuery += ',';
       });
@@ -421,6 +425,7 @@ export class DataTable extends React.Component {
     ];
     const textFilterQuestionIds = [
       '__version__',
+      '_id',
       '_uuid',
       '_submission_time'
     ]
