@@ -419,6 +419,11 @@ export class DataTable extends React.Component {
       'phonenumber',
       'today'
     ];
+    const textFilterQuestionIds = [
+      '__version__',
+      '_uuid',
+      '_submission_time'
+    ]
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
       frozenColumn = settings['data-table']['frozen-column'];
@@ -440,7 +445,10 @@ export class DataTable extends React.Component {
             })}
           </select>;
       }
-      if (col.question && textFilterQuestionTypes.includes(col.question.type)) {
+      if (
+        (col.question && textFilterQuestionTypes.includes(col.question.type))
+        || textFilterQuestionIds.includes(col.id)
+      ) {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>
           <DebounceInput
