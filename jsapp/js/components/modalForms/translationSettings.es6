@@ -204,12 +204,24 @@ export class TranslationSettings extends React.Component {
     return content;
   }
   changeDefaultLanguage(evt) {
-    this.setState({isUpdatingDefaultLanguage: true});
     const index = evt.currentTarget.dataset.index;
     const langString = this.state.translations[index];
-    const content = this.state.asset.content;
-    content.settings.default_language = langString;
-    this.updateAsset(content);
+
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Change default language?'),
+      message: t('Are you sure you would like to set ##lang## as the default language for this form?').replace('##lang##', langString),
+      labels: {ok: t('Confirm'), cancel: t('Cancel')},
+      onok: () => {
+        this.setState({isUpdatingDefaultLanguage: true});
+        const content = this.state.asset.content;
+        content.settings.default_language = langString;
+        this.updateAsset(content);
+        dialog.destroy();
+      },
+      oncancel: () => {dialog.destroy()}
+    };
+    dialog.set(opts).show();
   }
   updateAsset (content) {
     actions.resources.updateAsset(
