@@ -72,7 +72,7 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = '&query={';
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
+        filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
         if (i < filter.length - 1)
           filterQuery += ',';
       });
@@ -108,7 +108,7 @@ export class DataTable extends React.Component {
             loading: false
           });
           // TODO: debounce the queries and then enable this notification
-          notify(t('The query did not return any results.'));
+          alertify.warning(t('The query did not return any results.'));
         } else {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
@@ -401,8 +401,24 @@ export class DataTable extends React.Component {
     })
 
     let selectedColumns = false,
-        frozenColumn = false,
-        textFilterQuestionTypes = ['text', 'integer', 'decimal'];
+        frozenColumn = false;
+    const textFilterQuestionTypes = [
+      'text',
+      'integer',
+      'decimal',
+      'select_multiple',
+      'date',
+      'time',
+      'datetime',
+      'start',
+      'end',
+      'username',
+      'simserial',
+      'subscriberid',
+      'deviceid',
+      'phonenumber',
+      'today'
+    ];
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
       frozenColumn = settings['data-table']['frozen-column'];
@@ -428,6 +444,7 @@ export class DataTable extends React.Component {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>
           <DebounceInput
+            value={filter ? filter.value : undefined}
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
             style={{ width: '100%' }}/>;
