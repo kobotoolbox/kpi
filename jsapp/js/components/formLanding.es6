@@ -54,7 +54,7 @@ export class FormLanding extends React.Component {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion = undefined;
 
-    if (this.state.deployed_version_id !== this.state.version_id && this.state.deployment__active) {
+    if (!this.isCurrentVersionDeployed()) {
       undeployedVersion = `(${t('undeployed')})`;
       dvcount = dvcount + 1;
     }
@@ -143,13 +143,21 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
-  isFormNeedingRedeployment() {
-    return (
-      this.userCan('change_asset', this.state) &&
+  isCurrentVersionDeployed() {
+    if (
       this.state.deployment__active &&
       this.state.deployed_versions.count > 0 &&
-      this.state.deployed_version_id != this.state.version_id
-    );
+      this.state.deployed_version_id
+    ) {
+      const deployed_version = this.state.deployed_versions.results.find(
+        (version) => {return version.uid === this.state.deployed_version_id}
+      )
+      return deployed_version.content_hash === this.state.version__content_hash;
+    }
+    return false;
+  }
+  isFormNeedingRedeployment() {
+    return this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
   }
   renderHistory () {
     var dvcount = this.state.deployed_versions.count;
