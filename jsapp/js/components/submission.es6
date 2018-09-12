@@ -274,12 +274,13 @@ class Submission extends React.Component {
           survey = this.props.asset.content.survey,
           translationIndex = this.state.translationIndex,
           _this = this;
-    var parentGroup = false;
+    const openedGroups = [];
     const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
     const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
     return survey.map((q)=> {
       var name = q.name || q.$autoname || q.$kuid;
+
       if (q.type === 'begin_repeat') {
         return (
           <tr key={`row-${name}`}>
@@ -329,7 +330,7 @@ class Submission extends React.Component {
         return false;
 
       if (groupTypes.includes(q.type)) {
-        parentGroup = name;
+        openedGroups.push(name);
         return (
           <tr key={`row-${name}`}>
             <td colSpan='3' className='submission--group'>
@@ -342,7 +343,7 @@ class Submission extends React.Component {
       }
 
       if (groupTypesEnd.includes(q.type)) {
-        parentGroup = false;
+        openedGroups.pop(openedGroups.indexOf(name));
         return (
           <tr key={`row-${name}-end`}>
             <td colSpan='3' className='submission--end-group'/>
@@ -350,8 +351,9 @@ class Submission extends React.Component {
         );
       }
 
-      if (parentGroup)
-        name = `${parentGroup}/${name}`;
+      if (openedGroups.length !== 0) {
+        name = `${openedGroups.join('/')}/${name}`;
+      }
 
       if (q.label == undefined || s[name] == undefined) { return false;}
 
@@ -421,20 +423,28 @@ class Submission extends React.Component {
               <div className='switch--label-language'>
                 <label>{t('Language:')}</label>
                 <Select
-                  clearable={false}
+                  isClearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
-                  onChange={this.languageChange} />
+                  onChange={this.languageChange}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
+                />
               </div>
             }
             <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
-                disabled={!this.userCan('validate_submissions', this.props.asset)}
-                clearable={false}
-                value={s._validation_status ? s._validation_status.uid : ''}
+                isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+                isClearable={false}
+                value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
                 options={VALIDATION_STATUSES}
-                onChange={this.validationStatusChange} />
+                onChange={this.validationStatusChange}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+              />
             </div>
           </bem.FormModal__group>
         }

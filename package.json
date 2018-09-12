@@ -68,7 +68,7 @@
     "react-hot-loader": "3.1.0",
     "react-mixin": "^3.0.5",
     "react-router": "^3.2.1",
-    "react-select": "^1.1.1",
+    "react-select": "^2.0.0",
     "react-shortcuts": "^2.0.0",
     "react-table": "^6.8.1",
     "react-tagsinput": "^3.15.1",

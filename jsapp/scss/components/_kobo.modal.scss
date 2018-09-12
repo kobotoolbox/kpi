@@ -1,3 +1,7 @@
+$z-modal-backdrop: 1001;
+$z-enketo-iframe-icon: 1000;
+$z-modal-x: 10;
+
 // -----------------------------------------------------------------------------
 // common modal parts
 // -----------------------------------------------------------------------------
@@ -6,33 +10,35 @@
   position: fixed;
   height: 100%;
   width: 100%;
-  z-index: 1001;
+  z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
   background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
 .modal {
+  align-items: stretch;
+  display: flex;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 40%;
+  max-width: 90%;
+  max-height: 95%;
+  overflow-x: auto;
+  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+  visibility: hidden;
+
   &.modal--open {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 40%;
-    max-width: 90%;
-    max-height: 95%;
-    overflow-x: auto;
-    box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
+    visibility: visible;
   }
 
   &.modal--large {
-    &.modal--open {
-      height: 80%;
-      width: 80%;
-      max-width: 1240px;
-      align-items: stretch;
-      display: flex;
-    }
+    height: 80%;
+    width: 80%;
+    max-width: 1240px;
 
     .modal__content {
       height: 100%;
@@ -76,6 +82,7 @@
 .modal__content {
   overflow: auto;
   background-color: #FFF;
+  width: 100%;
 }
 
 .modal__tabs {
@@ -84,7 +91,6 @@
 }
 
 .modal__header {
-  position: relative;
   min-height: 70px;
   background: $cool-blue;
   color: #FFF;
@@ -99,15 +105,21 @@
 
 .modal__x {
   position: absolute;
-  background-color: transparent;
+  z-index: $z-modal-x;
   top: 0;
   right: 0;
-  padding: 19px;
+  color: inherit;
+  background-color: inherit;
+  padding: 8px;
+  margin: 11px;
+  border-radius: 50%;
   font-size: 20px;
-  color: #FFF;
   cursor: pointer;
 
-  i {font-size: 32px;}
+  i {
+    display: block;
+    font-size: 32px;
+  }
 
   &:hover {opacity: 0.7;}
 }
@@ -177,17 +189,9 @@
 // custom parts and overrides
 // -----------------------------------------------------------------------------
 
-.modal-submission {
-  .modal--open {
-    background-color: #FFF;
-  }
-
+.modal.modal-submission {
   .modal__header {
     background-color: #F8F8F8;
-    color: $layout-text-color;
-  }
-
-  .modal__x {
     color: $layout-text-color;
   }
 
@@ -211,7 +215,7 @@
       width: 50%;
       text-align: left;
 
-      label, div.Select {
+      label, .kobo-select {
         display: inline-block;
         vertical-align: middle;
       }
@@ -224,6 +228,9 @@
     .switch--validation-status {
       width: 100%;
       text-align: right;
+      .kobo-select {
+        text-align: left;
+      }
     }
 
     .switch--label-language + .switch--validation-status {
@@ -234,8 +241,7 @@
       min-width: 100px;
     }
 
-    .Select {
-      text-align: left;
+    .kobo-select {
       min-width: 120px;
     }
   }
@@ -387,7 +393,7 @@
   right: 6px;
   top: 6px;
   border-radius: 3px;
-  z-index: 1000;
+  z-index: $z-enketo-iframe-icon;
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -412,7 +418,7 @@
       width: 100%;
       float: none;
 
-      .Select {
+      .kobo-select {
         margin-right: 0;
       }
     }
