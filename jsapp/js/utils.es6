@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
@@ -91,6 +92,78 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
   }
 
   return JSON.stringify(surveyData);
+}
+
+export function nullifyTranslations(translations, translatedProps, survey, baseSurvey) {
+  const data = {
+    survey: clonedeep(survey),
+    translations: clonedeep(translations),
+    translations_0: undefined
+  };
+
+  if (!translations) {
+    data.translations = [null];
+    return data;
+  }
+
+  if (data.translations.length > 1 && data.translations.indexOf(null) !== -1) {
+    throw new Error(`
+      There is an unnamed translation in your form definition.
+      Please give a name to all translations in your form.
+      Use "Manage Translations" option from form landing page.
+    `);
+  }
+
+  /*
+  TRANSLATIONS HACK (Part 1/2):
+  all the coffee code assumes first language to be null, and we don't want
+  to introduce potential code-breaking refactor in old code, so we store
+  first language, then replace with null and reverse this just before saving
+  NOTE: when importing assets from Library into form, we need to make sure
+  the default language is the same (or force baseSurvey default language)
+  */
+  if (baseSurvey) {
+    const formDefaultLang = baseSurvey._initialParams.translations_0 || null;
+    if (data.translations[0] === formDefaultLang) {
+      // case 1: nothing to do - same default language in both
+    } else if (data.translations.includes(formDefaultLang)) {
+      // case 2: imported asset has form default language but not as first, so
+      // we need to reorder things
+      const defaultLangIndex = data.translations.indexOf(formDefaultLang);
+      data.translations.unshift(data.translations.pop(defaultLangIndex));
+      data.survey.forEach((row) => {
+        translatedProps.forEach((translatedProp) => {
+          const transletedPropArr = row[translatedProp];
+          if (transletedPropArr) {
+            transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex));
+          }
+        });
+      });
+    }
+
+    if (data.translations[0] !== formDefaultLang) {
+      // case 3: imported asset doesn't have form default language, so we
+      // force it onto the asset as the first language and try setting some
+      // meaningful property value
+      data.translations.unshift(formDefaultLang);
+      data.survey.forEach((row) => {
+        translatedProps.forEach((translatedProp) => {
+          if (row[translatedProp]) {
+            propVal = null
+            if (row.name) {
+              propVal = row.name;
+            } else if (row.$autoname) {
+              propVal = row.$autoname;
+            }
+            row[translatedProp].unshift(propVal);
+          }
+        });
+      });
+    }
+  }
+  data.translations_0 = translations[0]
+  data.translations[0] = null
+  return data;
 }
 
 export function redirectTo(href) {

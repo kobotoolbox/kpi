@@ -1,5 +1,6 @@
 _ = require 'underscore'
 $aliases = require './model.aliases'
+utils = require '../../js/utils'
 
 module.exports = do ->
   inputParser = {}
@@ -98,69 +99,23 @@ module.exports = do ->
   # pass baseSurvey whenever you import other asset into existing form
   inputParser.parse = (o, baseSurvey)->
     translations = o.translations
-    if translations
-      if translations.length > 1 and translations.indexOf(null) isnt -1
-        throw new Error("""
-          There is an unnamed translation in your form definition.
-          Please give a name to all translations in your form.
-          Use "Manage Translations" option from form landing page.
-        """)
 
-      ###
-      TRANSLATIONS HACK (Part 1/2):
-      all the coffee code assumes first language to be null, and we don't want
-      to introduce potential code-breaking refactor in old code, so we store
-      first language, then replace with null and reverse this just before saving
-      NOTE: when importing assets from Library into form, we need to make sure
-      the default language is the same (or force baseSurvey default language)
-      ###
-      if baseSurvey
-        formDefaultLang = baseSurvey._initialParams.translations_0 or null
-        translatedProps = o.translated
-        # case 1: nothing to do - same default language in both
-        if translations[0] is formDefaultLang
-        # case 2: imported asset has form default language but not as first, so
-        # we need to reorder things
-        else if o.translations.includes(formDefaultLang)
-          defaultLangIndex = o.translations.indexOf(formDefaultLang)
-          translations.unshift(translations.pop(defaultLangIndex))
-          for row in o.survey
-            for translatedProp in translatedProps
-              transletedPropArr = row[translatedProp]
-              if transletedPropArr
-                transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex))
-        # case 3: imported asset doesn't have form default language, so we
-        # force it onto the asset as the first language and try setting some
-        # meaningful property value
-        if translations[0] isnt formDefaultLang
-          translations.unshift(formDefaultLang)
-          for row in o.survey
-            for translatedProp in translatedProps
-              if row[translatedProp]
-                propVal = null
-                if row.name
-                  propVal = row.name
-                else if row.$autoname
-                  propVal = row.$autoname
-                row[translatedProp].unshift(propVal)
+    nullified = utils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
-      o.translations_0 = translations[0]
-      translations[0] = null
-    else
-      translations = [null]
+    o.survey = nullified.survey;
+    o.translations = nullified.translations
+    o.translations_0 = nullified.translations_0
 
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
-      o.survey = parseArr('survey', o.survey, translations)
+      o.survey = parseArr('survey', o.survey, o.translations)
 
     if o.choices
-      o.choices = parseArr('choices', o.choices, translations)
+      o.choices = parseArr('choices', o.choices, o.translations)
 
     # settings is sometimes packaged as an array length=1
     if o.settings and _.isArray(o.settings) and o.settings.length is 1
       o.settings = o.settings[0]
-
-    o.translations = translations
 
     return o
 
