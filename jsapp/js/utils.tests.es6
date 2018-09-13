@@ -1,6 +1,8 @@
 import {
   getLangAsObject,
-  getLangString
+  getLangString,
+  nullifyTranslations,
+  unnullifyTranslations
 } from 'utils';
 
 describe('utils', () => {
@@ -52,6 +54,73 @@ describe('utils', () => {
     it('should work properly with getLangAsObject', () => {
       const langString = getLangString(getLangAsObject('English (en)'));
       chai.expect(langString).to.equal('English (en)');
+    });
+  });
+});
+
+//  TRANSLATIONS HACK test
+describe('translations hack', () => {
+  describe('nullifyTranslations', () => {
+    it('should return array with null for no translations', () => {
+      const test = {
+        survey: [{'label': 'Hello'}]
+      };
+      const target = {
+        survey: [{'label': 'Hello'}],
+        translations: [null]
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)
+      ).to.deep.equal(target);
+    });
+
+    it('should throw if there are unnamed translations', () => {
+      const test = {
+        survey: [{'label': 'Hello'}],
+        translations: [
+          null,
+          'English (en)'
+        ]
+      };
+      expect(() => {
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey);
+      }).to.throw();
+    });
+
+    it('should not reorder anything if survey has same default language as base survey', () => {
+      const test = {
+        baseSurvey: {_initialParams: {translations_0: 'English (en)'}},
+        survey: [
+          {
+            'label::English (en)': 'Hello',
+            'label::Polski (pl)': 'Cześć'
+          }
+        ],
+        translations: [
+          'English (en)',
+          'Polski (pl)',
+        ],
+        translated: [
+          'label',
+          'hint'
+        ]
+      };
+      const target = {
+        survey: [
+          {
+            'label::English (en)': 'Hello',
+            'label::Polski (pl)': 'Cześć'
+          }
+        ],
+        translations: [
+          null,
+          'Polski (pl)',
+        ],
+        translations_0: 'English (en)'
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)
+      ).to.deep.equal(target);
     });
   });
 });

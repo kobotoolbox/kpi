@@ -97,11 +97,10 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
 export function nullifyTranslations(translations, translatedProps, survey, baseSurvey) {
   const data = {
     survey: clonedeep(survey),
-    translations: clonedeep(translations),
-    translations_0: undefined
+    translations: clonedeep(translations)
   };
 
-  if (!translations) {
+  if (typeof translations === 'undefined') {
     data.translations = [null];
     return data;
   }
