@@ -107,11 +107,7 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
   }
 
   if (data.translations.length > 1 && data.translations.indexOf(null) !== -1) {
-    throw new Error(`
-      There is an unnamed translation in your form definition.
-      Please give a name to all translations in your form.
-      Use "Manage Translations" option from form landing page.
-    `);
+    throw new Error('There is an unnamed translation in your form definition.\nPlease give a name to all translations in your form.\nUse "Manage Translations" option from form landing page.');
   }
 
   /*
@@ -161,7 +157,7 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       });
     }
   }
-  data.translations_0 = translations[0]
+  data.translations_0 = data.translations[0]
   data.translations[0] = null
   return data;
 }
