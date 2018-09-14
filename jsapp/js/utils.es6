@@ -136,21 +136,35 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       });
     }
 
-    if (data.translations[0] !== formDefaultLang) {
+    if (!data.translations.includes(formDefaultLang)) {
       // case 3: imported asset doesn't have form default language, so we
       // force it onto the asset as the first language and try setting some
       // meaningful property value
       data.translations.unshift(formDefaultLang);
       data.survey.forEach((row) => {
         translatedProps.forEach((translatedProp) => {
-          if (row[translatedProp]) {
-            propVal = null
+          let hasTranslatedProp = false;
+
+          Object.keys(row).forEach((rowProp) => {
+            if (
+              rowProp === translatedProp ||
+              rowProp.startsWith(`${translatedProp}::`)
+            ) {
+              hasTranslatedProp = true;
+            }
+          });
+
+          if (hasTranslatedProp) {
+            let propVal = null
             if (row.name) {
               propVal = row.name;
             } else if (row.$autoname) {
               propVal = row.$autoname;
             }
-            row[translatedProp].unshift(propVal);
+
+            if (propVal !== null) {
+              row[`${translatedProp}::${formDefaultLang}`] = propVal;
+            }
           }
         });
       });
