@@ -156,8 +156,13 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       });
     }
   }
-  data.translations_0 = data.translations[0]
-  data.translations[0] = null
+
+  // no need to nullify null
+  if (data.translations[0] !== null) {
+    data.translations_0 = data.translations[0]
+    data.translations[0] = null
+  }
+
   return data;
 }
 

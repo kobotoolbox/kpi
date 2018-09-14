@@ -236,8 +236,31 @@ describe('translations hack', () => {
           null,
           'Francais (fr)',
           'Polski (pl)'
+        ]
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)
+      ).to.deep.equal(target);
+    });
+
+    it('should do nothing if neither base survey nor survey have translations', () => {
+      const test = {
+        baseSurvey: {_initialParams: {}},
+        survey: [{
+          'label': ['Hello']
+        }],
+        translations: [
+          null
         ],
-        translations_0: null
+        translated: []
+      };
+      const target = {
+        survey: [{
+          'label': ['Hello']
+        }],
+        translations: [
+          null
+        ]
       }
       expect(
         nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)
