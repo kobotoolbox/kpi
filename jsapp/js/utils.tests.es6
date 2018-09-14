@@ -58,15 +58,18 @@ describe('utils', () => {
   });
 });
 
-//  TRANSLATIONS HACK test
+//  TRANSLATIONS HACK tests
+
 describe('translations hack', () => {
   describe('nullifyTranslations', () => {
     it('should return array with null for no translations', () => {
       const test = {
-        survey: [{'label': 'Hello'}]
+        survey: [{
+          'label': ['Hello']
+        }]
       };
       const target = {
-        survey: [{'label': 'Hello'}],
+        survey: [{'label': ['Hello']}],
         translations: [null]
       }
       expect(
@@ -76,7 +79,9 @@ describe('translations hack', () => {
 
     it('should throw if there are unnamed translations', () => {
       const test = {
-        survey: [{'label': 'Hello'}],
+        survey: [{
+          'label': ['Hello']}
+        ],
         translations: [
           null,
           'English (en)'
@@ -90,12 +95,12 @@ describe('translations hack', () => {
     it('should not reorder anything if survey has same default language as base survey', () => {
       const test = {
         baseSurvey: {_initialParams: {translations_0: 'English (en)'}},
-        survey: [
-          {
-            'label::English (en)': 'Hello',
-            'label::Polski (pl)': 'Cześć'
-          }
-        ],
+        survey: [{
+          'label': [
+            'Hello',
+            'Cześć'
+          ]
+        }],
         translations: [
           'English (en)',
           'Polski (pl)'
@@ -105,12 +110,12 @@ describe('translations hack', () => {
         ]
       };
       const target = {
-        survey: [
-          {
-            'label::English (en)': 'Hello',
-            'label::Polski (pl)': 'Cześć'
-          }
-        ],
+        survey: [{
+          'label': [
+            'Hello',
+            'Cześć'
+          ]
+        }],
         translations: [
           null,
           'Polski (pl)'
@@ -125,13 +130,13 @@ describe('translations hack', () => {
     it('should reorder translated props if survey has same default language as base survey but in different order', () => {
       const test = {
         baseSurvey: {_initialParams: {translations_0: 'English (en)'}},
-        survey: [
-          {
-            'label::Francais (fr)': 'Allo',
-            'label::Polski (pl)': 'Cześć',
-            'label::English (en)': 'Hello'
-          }
-        ],
+        survey: [{
+          'label': [
+            'Allo',
+            'Cześć',
+            'Hello'
+          ]
+        }],
         translations: [
           'Francais (fr)',
           'Polski (pl)',
@@ -142,13 +147,13 @@ describe('translations hack', () => {
         ]
       };
       const target = {
-        survey: [
-          {
-            'label::English (en)': 'Hello',
-            'label::Francais (fr)': 'Allo',
-            'label::Polski (pl)': 'Cześć'
-          }
-        ],
+        survey: [{
+          'label': [
+            'Hello' ,
+            'Allo',
+            'Cześć'
+          ]
+        }],
         translations: [
           null,
           'Francais (fr)',
@@ -164,13 +169,13 @@ describe('translations hack', () => {
     it('should add base survey\'s default language if survey doesn\'t have it', () => {
       const test = {
         baseSurvey: {_initialParams: {translations_0: 'English (en)'}},
-        survey: [
-          {
-            'label::Francais (fr)': 'Allo',
-            'label::Polski (pl)': 'Cześć',
-            name: 'welcome_message'
-          }
-        ],
+        survey: [{
+          'label': [
+            'Allo',
+            'Cześć'
+          ],
+          name: 'welcome_message'
+        }],
         translations: [
           'Francais (fr)',
           'Polski (pl)'
@@ -180,20 +185,59 @@ describe('translations hack', () => {
         ]
       };
       const target = {
-        survey: [
-          {
-            'label::English (en)': 'welcome_message',
-            'label::Francais (fr)': 'Allo',
-            'label::Polski (pl)': 'Cześć',
-            name: 'welcome_message'
-          }
-        ],
+        survey: [{
+          'label': [
+            'welcome_message',
+            'Allo',
+            'Cześć'
+          ],
+          name: 'welcome_message'
+        }],
         translations: [
           null,
           'Francais (fr)',
           'Polski (pl)'
         ],
         translations_0: 'English (en)'
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)
+      ).to.deep.equal(target);
+    });
+
+    it('should add null language if base survey has no translations but survey does', () => {
+      const test = {
+        baseSurvey: {_initialParams: {}},
+        survey: [{
+          'label': [
+            'Allo',
+            'Cześć'
+          ],
+          name: 'welcome_message'
+        }],
+        translations: [
+          'Francais (fr)',
+          'Polski (pl)'
+        ],
+        translated: [
+          'label'
+        ]
+      };
+      const target = {
+        survey: [{
+          'label': [
+            'welcome_message',
+            'Allo',
+            'Cześć'
+          ],
+          name: 'welcome_message'
+        }],
+        translations: [
+          null,
+          'Francais (fr)',
+          'Polski (pl)'
+        ],
+        translations_0: null
       }
       expect(
         nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)

@@ -143,28 +143,14 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       data.translations.unshift(formDefaultLang);
       data.survey.forEach((row) => {
         translatedProps.forEach((translatedProp) => {
-          let hasTranslatedProp = false;
-
-          Object.keys(row).forEach((rowProp) => {
-            if (
-              rowProp === translatedProp ||
-              rowProp.startsWith(`${translatedProp}::`)
-            ) {
-              hasTranslatedProp = true;
-            }
-          });
-
-          if (hasTranslatedProp) {
+          if (row[translatedProp]) {
             let propVal = null
             if (row.name) {
               propVal = row.name;
             } else if (row.$autoname) {
               propVal = row.$autoname;
             }
-
-            if (propVal !== null) {
-              row[`${translatedProp}::${formDefaultLang}`] = propVal;
-            }
+            row[translatedProp].unshift(propVal);
           }
         });
       });
