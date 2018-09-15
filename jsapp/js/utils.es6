@@ -65,30 +65,32 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
   if (!defaultLang) {
     defaultLang = null;
   }
-  if (!surveyData.settings[0].default_language && typeof defaultLang !== 'undefined') {
+  if (!surveyData.settings[0].default_language && defaultLang !== null) {
     surveyData.settings[0].default_language = defaultLang;
   }
 
-  // replace every "translatedProp" with "translatedProp::defaultLang"
-  if (surveyData.choices) {
-    surveyData.choices.forEach((choice) => {
-      translatedProps.forEach((translatedProp) => {
-        if (typeof choice[translatedProp] !== 'undefined') {
-          choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
-          delete choice[translatedProp];
-        }
+  if (defaultLang !== null) {
+    // replace every "translatedProp" with "translatedProp::defaultLang"
+    if (surveyData.choices) {
+      surveyData.choices.forEach((choice) => {
+        translatedProps.forEach((translatedProp) => {
+          if (typeof choice[translatedProp] !== 'undefined') {
+            choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
+            delete choice[translatedProp];
+          }
+        });
       });
-    });
-  }
-  if (surveyData.survey) {
-    surveyData.survey.forEach((surveyRow) => {
-      translatedProps.forEach((translatedProp) => {
-        if (typeof surveyRow[translatedProp] !== 'undefined') {
-          surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
-          delete surveyRow[translatedProp];
-        }
+    }
+    if (surveyData.survey) {
+      surveyData.survey.forEach((surveyRow) => {
+        translatedProps.forEach((translatedProp) => {
+          if (typeof surveyRow[translatedProp] !== 'undefined') {
+            surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
+            delete surveyRow[translatedProp];
+          }
+        });
       });
-    });
+    }
   }
 
   return JSON.stringify(surveyData);
