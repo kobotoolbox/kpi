@@ -267,4 +267,96 @@ describe('translations hack', () => {
       ).to.deep.equal(target);
     });
   });
+
+  describe('unnullifyTranslations', () => {
+    it('should set default language if it\'s not set already', () => {
+      const test = {
+        surveyDataJSON: JSON.stringify({
+          survey: [
+            {
+              label: 'Cheese?'
+            }
+          ],
+          settings: [
+            {}
+          ]
+        }),
+        assetContent: {
+          translated: ['label'],
+          translations_0: 'English (en)'
+        },
+      };
+      const target = JSON.stringify({
+        survey: [
+          {
+            'label::English (en)': 'Cheese?'
+          }
+        ],
+        settings: [
+          {
+            default_language: 'English (en)'
+          }
+        ]
+      });
+      expect(
+        unnullifyTranslations(test.surveyDataJSON, test.assetContent)
+      ).to.deep.equal(target);
+    });
+
+    it('should replace nullified props with translated ones', () => {
+      const test = {
+        surveyDataJSON: JSON.stringify({
+          survey: [
+            {
+              label: 'Cheese?',
+              'label::Polski (pl)': 'Ser?'
+            }
+          ],
+          choices: [
+            {
+              label: 'Yes'
+            },
+            {
+              label: 'No',
+              'label::Polski (pl)': 'Nie'
+            }
+          ],
+          settings: [
+            {
+              default_language: 'English (en)'
+            }
+          ]
+        }),
+        assetContent: {
+          translated: ['label'],
+          translations_0: 'English (en)'
+        },
+      };
+      const target = JSON.stringify({
+        survey: [
+          {
+            'label::Polski (pl)': 'Ser?',
+            'label::English (en)': 'Cheese?'
+          }
+        ],
+        choices: [
+          {
+            'label::English (en)': 'Yes'
+          },
+          {
+            'label::Polski (pl)': 'Nie',
+            'label::English (en)': 'No'
+          }
+        ],
+        settings: [
+          {
+            default_language: 'English (en)'
+          }
+        ]
+      });
+      expect(
+        unnullifyTranslations(test.surveyDataJSON, test.assetContent)
+      ).to.deep.equal(target);
+    });
+  });
 });
