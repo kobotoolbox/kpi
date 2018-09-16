@@ -260,20 +260,14 @@ bem.AssetGalleryGrid__link = bem.AssetGalleryGrid.__('item__grid-link', '<a>');
 bem.AssetGalleryGrid__itemOverlay = bem.AssetGalleryGrid.__('item__overlay', '<div>');
 bem.AssetGalleryGrid__itemOverlayText = bem.AssetGalleryGrid.__('item__overlay-text', '<div>');
 
-bem.SingleGalleryModal = BEM('single-gallery-modal');
-bem.SingleGalleryModal__carousel = bem.SingleGalleryModal.__('carousel', '<div>');
-bem.SingleGalleryModal__carouselImage = bem.SingleGalleryModal.__('carousel-image');
-bem.SingleGalleryModal__sidebar = bem.SingleGalleryModal.__('sidebar', '<div>');
-bem.SingleGalleryModal__sidebarInfo = bem.SingleGalleryModal.__('sidebar-info', '<div>');
-bem.SingleGalleryModal__sidebarGridWrap = bem.SingleGalleryModal.__('sidebar-grid-wrap', '<div>');
-bem.SingleGalleryModal__sidebarGrid = bem.SingleGalleryModal.__('sidebar__grid', '<div>');
-bem.SingleGalleryModal__sidebarGridItem = bem.SingleGalleryModal.__('sidebar__grid-item', '<div>');
-
-bem.PaginatedGalleryModal = BEM('paginated-gallery-modal');
-bem.PaginatedGalleryModal_heading = bem.PaginatedGalleryModal.__('heading');
-bem.PaginatedGalleryModal_body = bem.PaginatedGalleryModal.__('body');
-bem.PaginatedGalleryModal_controls = bem.PaginatedGalleryModal.__('controls');
-bem.PaginatedGalleryModal_galleryWrapper = bem.PaginatedGalleryModal.__('gallery-wrapper');
+bem.GalleryImageModal = BEM('gallery-image-modal');
+bem.GalleryImageModal__carousel = bem.GalleryImageModal.__('carousel', '<div>');
+bem.GalleryImageModal__carouselImage = bem.GalleryImageModal.__('carousel-image');
+bem.GalleryImageModal__sidebar = bem.GalleryImageModal.__('sidebar', '<div>');
+bem.GalleryImageModal__sidebarInfo = bem.GalleryImageModal.__('sidebar-info', '<div>');
+bem.GalleryImageModal__sidebarGridWrap = bem.GalleryImageModal.__('sidebar-grid-wrap', '<div>');
+bem.GalleryImageModal__sidebarGrid = bem.GalleryImageModal.__('sidebar__grid', '<div>');
+bem.GalleryImageModal__sidebarGridItem = bem.GalleryImageModal.__('sidebar__grid-item', '<div>');
 
 bem.create = BEM;
 

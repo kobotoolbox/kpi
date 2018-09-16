@@ -16,7 +16,7 @@ import {
   t
 } from '../../utils';
 
-export default class SingleGalleryModal extends React.Component {
+export default class GalleryImageModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -63,7 +63,7 @@ export default class SingleGalleryModal extends React.Component {
   }
 
   setSliderIndex(newIndex) {
-    if (newIndex !== this.state.currentSliderIndex) {
+    if (newIndex !== this.state.currentSliderIndex && this.refs.slider) {
       this.refs.slider.slickGoTo(newIndex);
     }
   }
@@ -93,23 +93,23 @@ export default class SingleGalleryModal extends React.Component {
   renderGallery() {
     return (
       <React.Fragment>
-        <bem.SingleGalleryModal__carousel>
+        <bem.GalleryImageModal__carousel>
           <Slider ref='slider' {...this.slickSettings}>
             {this.state.gallery.medias.map(
               (media) => {
                 const inlineStyle = {'backgroundImage': `url(${media.largeImage})`};
                 return (
-                  <bem.SingleGalleryModal__carouselImage key={media.mediaIndex}>
+                  <bem.GalleryImageModal__carouselImage key={media.mediaIndex}>
                     <picture
                       style={inlineStyle}
                       title={media.filename}
                     />
-                  </bem.SingleGalleryModal__carouselImage>
+                  </bem.GalleryImageModal__carouselImage>
                 );
               }
             )}
           </Slider>
-        </bem.SingleGalleryModal__carousel>
+        </bem.GalleryImageModal__carousel>
 
         {this.renderSidebar()}
       </React.Fragment>
@@ -118,20 +118,20 @@ export default class SingleGalleryModal extends React.Component {
 
   renderSidebar() {
     return (
-      <bem.SingleGalleryModal__sidebar className='open'>
-        <bem.SingleGalleryModal__sidebarInfo>
+      <bem.GalleryImageModal__sidebar className='open'>
+        <bem.GalleryImageModal__sidebarInfo>
           <p>{t('Record')} #{galleryStore.state.selectedMediaIndex}</p>
           <h3>{this.state.gallery.title}</h3>
           <p>{this.state.gallery.dateCreated}</p>
-        </bem.SingleGalleryModal__sidebarInfo>
+        </bem.GalleryImageModal__sidebarInfo>
 
         {this.state.gallery.medias &&
-          <bem.SingleGalleryModal__sidebarGridWrap>
+          <bem.GalleryImageModal__sidebarGridWrap>
             <h5 onClick={() => this.showMoreFrom(this.state.gallery.title)}>
               {t('More from ##question##').replace('##question##', this.state.gallery.title)}
             </h5>
 
-            <bem.SingleGalleryModal__sidebarGrid>
+            <bem.GalleryImageModal__sidebarGrid>
               {this.state.gallery.medias.map(
                 (media) => {
                   const divStyle = {
@@ -141,34 +141,34 @@ export default class SingleGalleryModal extends React.Component {
                     backgroundSize: 'cover'
                   };
                   return (
-                    <bem.SingleGalleryModal__sidebarGridItem
+                    <bem.GalleryImageModal__sidebarGridItem
                       m={galleryStore.state.selectedMediaIndex === media.mediaIndex ? 'selected' : null}
                       data-index={media.mediaIndex}
                       onClick={this.selectMedia.bind(this)}
                       key={media.mediaIndex}
                     >
                       <div className='one-one' style={divStyle} />
-                    </bem.SingleGalleryModal__sidebarGridItem>
+                    </bem.GalleryImageModal__sidebarGridItem>
                   );
                 }
               )}
-            </bem.SingleGalleryModal__sidebarGrid>
-          </bem.SingleGalleryModal__sidebarGridWrap>
+            </bem.GalleryImageModal__sidebarGrid>
+          </bem.GalleryImageModal__sidebarGridWrap>
         }
-      </bem.SingleGalleryModal__sidebar>
+      </bem.GalleryImageModal__sidebar>
     );
   }
 
   render() {
     return (
-      <bem.SingleGalleryModal>
+      <bem.GalleryImageModal>
         {this.state.isLoading &&
           this.renderLoadingMessage()
         }
         {!this.state.isLoading &&
           this.renderGallery()
         }
-      </bem.SingleGalleryModal>
+      </bem.GalleryImageModal>
     );
   }
 };
@@ -209,4 +209,4 @@ class LeftNavButton extends React.Component {
   }
 };
 
-reactMixin(SingleGalleryModal.prototype, Reflux.ListenerMixin);
+reactMixin(GalleryImageModal.prototype, Reflux.ListenerMixin);

@@ -4,11 +4,9 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
 import FormGalleryGridItem from './formGalleryGridItem';
-import PaginatedGalleryModal from './paginatedGalleryModal';
 import stores from '../../stores';
 import {
   PAGE_SIZE,
-  GRID_PAGE_LIMIT,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
@@ -44,13 +42,6 @@ export default class FormGalleryGrid extends React.Component {
     return this.state.gallery.loadedMediaCount < this.state.gallery.totalMediaCount;
   }
 
-  hasReachedGridLimit() {
-    return (
-      this.state.gallery.loadedMediaCount >= GRID_PAGE_LIMIT &&
-      this.state.gallery.totalMediaCount > GRID_PAGE_LIMIT
-    );
-  }
-
   loadMoreMedia() {
     galleryActions.loadMoreGalleryMedias(this.state.gallery.galleryIndex);
   }
@@ -62,14 +53,6 @@ export default class FormGalleryGrid extends React.Component {
           <bem.AssetGallery__loadMoreMessage>
             {t('Loading…')}
           </bem.AssetGallery__loadMoreMessage>
-        </bem.AssetGallery__loadMore>
-      );
-    } else if (this.hasReachedGridLimit()) {
-      return (
-        <bem.AssetGallery__loadMore m='grid'>
-          <bem.AssetGallery__loadMoreButton onClick={this.openPaginatedGalleryModal.bind(this)}>
-            {t('See all ##count## images').replace('##count##', this.state.gallery.totalMediaCount)}
-          </bem.AssetGallery__loadMoreButton>
         </bem.AssetGallery__loadMore>
       );
     } else if (this.hasMoreAttachments()) {
@@ -85,10 +68,6 @@ export default class FormGalleryGrid extends React.Component {
     }
   }
 
-  openPaginatedGalleryModal() {
-    galleryActions.openPaginatedModal({galleryIndex: this.state.gallery.galleryIndex});
-  }
-
   render() {
     return (
       <React.Fragment key={this.state.gallery.galleryIndex}>
@@ -97,20 +76,16 @@ export default class FormGalleryGrid extends React.Component {
         <bem.AssetGalleryGrid m={'6-per-row'}>
           {this.state.gallery.medias.map(
             (media, index) => {
-              if (index < GRID_PAGE_LIMIT) {
-                return (
-                  <FormGalleryGridItem
-                    key={index}
-                    url={media.smallImage}
-                    galleryIndex={this.state.gallery.galleryIndex}
-                    mediaIndex={media.mediaIndex}
-                    mediaTitle={media.title}
-                    date={media.date}
-                  />
-                );
-              } else {
-                return null;
-              }
+              return (
+                <FormGalleryGridItem
+                  key={index}
+                  url={media.smallImage}
+                  galleryIndex={this.state.gallery.galleryIndex}
+                  mediaIndex={media.mediaIndex}
+                  mediaTitle={media.title}
+                  date={media.date}
+                />
+              );
             }
           )}
         </bem.AssetGalleryGrid>

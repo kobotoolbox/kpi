@@ -14,7 +14,6 @@ import {
 import {MODAL_TYPES} from 'js/constants';
 
 export const PAGE_SIZE = 6;
-export const GRID_PAGE_LIMIT = PAGE_SIZE * 2;
 export const GROUPBY_OPTIONS = {
   question: {
     value: 'question',
@@ -39,7 +38,6 @@ export const ORDER_OPTIONS = {
 export const galleryActions = Reflux.createActions([
   'setFormUid',
   'openSingleModal',
-  'openPaginatedModal',
   'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
@@ -49,12 +47,7 @@ export const galleryActions = Reflux.createActions([
 
 galleryActions.openSingleModal.listen(({galleryIndex, mediaIndex}) => {
   galleryActions.selectGalleryMedia({galleryIndex, mediaIndex});
-  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_SINGLE});
-});
-
-galleryActions.openPaginatedModal.listen(({galleryIndex}) => {
-  galleryActions.selectGalleryMedia({galleryIndex});
-  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_PAGINATED});
+  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_IMAGE});
 });
 
 class GalleryStore extends Reflux.Store {
