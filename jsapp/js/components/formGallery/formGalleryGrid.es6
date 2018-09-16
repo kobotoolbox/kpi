@@ -23,6 +23,7 @@ export default class FormGalleryGrid extends React.Component {
     autoBind(this);
     this.state = {
       gallery: galleryStore.state.galleries[this.props.galleryIndex],
+      isFullscreen: galleryStore.state.isFullscreen,
       filterGroupBy: galleryStore.state.filterGroupBy
     };
   }
@@ -34,6 +35,9 @@ export default class FormGalleryGrid extends React.Component {
       }
       if (typeof storeChanges.filterGroupBy !== 'undefined') {
         this.setState({filterGroupBy: storeChanges.filterGroupBy});
+      }
+      if (typeof storeChanges.isFullscreen !== 'undefined') {
+        this.setState({isFullscreen: storeChanges.isFullscreen});
       }
     });
   }
@@ -69,11 +73,13 @@ export default class FormGalleryGrid extends React.Component {
   }
 
   render() {
+    const gridModifier = this.state.isFullscreen ? '12-per-row' : '6-per-row';
+
     return (
       <React.Fragment key={this.state.gallery.galleryIndex}>
         <h2>{this.state.gallery.title}</h2>
 
-        <bem.AssetGalleryGrid m={'6-per-row'}>
+        <bem.AssetGalleryGrid m={gridModifier}>
           {this.state.gallery.medias.map(
             (media, index) => {
               return (

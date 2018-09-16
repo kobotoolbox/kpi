@@ -37,7 +37,8 @@ export const ORDER_OPTIONS = {
 
 export const galleryActions = Reflux.createActions([
   'setFormUid',
-  'openSingleModal',
+  'toggleFullscreen',
+  'openImageModal',
   'selectGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
@@ -45,7 +46,7 @@ export const galleryActions = Reflux.createActions([
   'wipeLoadedGalleryData'
 ]);
 
-galleryActions.openSingleModal.listen(({galleryIndex, mediaIndex}) => {
+galleryActions.openImageModal.listen(({galleryIndex, mediaIndex}) => {
   galleryActions.selectGalleryMedia({galleryIndex, mediaIndex});
   stores.pageState.showModal({type: MODAL_TYPES.GALLERY_IMAGE});
 });
@@ -65,6 +66,7 @@ class GalleryStore extends Reflux.Store {
     const stateObj = {}
     assign(stateObj, {
       formUid: null,
+      isFullscreen: false,
       filterQuery: '',
       filterGroupBy: GROUPBY_OPTIONS.question,
       filterOrder: ORDER_OPTIONS.asc,
@@ -108,6 +110,10 @@ class GalleryStore extends Reflux.Store {
       this.wipeAndLoadData();
     }
 
+  }
+
+  onToggleFullscreen() {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
 
   onSelectGalleryMedia({galleryIndex, mediaIndex}) {

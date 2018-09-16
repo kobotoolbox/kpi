@@ -65,16 +65,23 @@ export default class FormGallery extends React.Component {
   }
 
   render() {
+    const formViewModifiers = [];
+    if (this.state.isFullscreen) {
+      formViewModifiers.push('fullscreen');
+    }
+
     // CASE: form with no media questions
     if (!this.hasAnyMediaQuestions()) {
       return (
-        <bem.AssetGallery>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('This form does not have any media questions.')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </bem.AssetGallery>
+        <bem.FormView m={formViewModifiers}>
+          <bem.AssetGallery>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {t('This form does not have any media questions.')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.AssetGallery>
+        </bem.FormView>
       )
     }
 
@@ -84,51 +91,55 @@ export default class FormGallery extends React.Component {
       this.state.galleries.length === 0
     ) {
       return (
-        <bem.AssetGallery>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <i />
-              {t('Loading…')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </bem.AssetGallery>
+        <bem.FormView m={formViewModifiers}>
+          <bem.AssetGallery>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('Loading…')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.AssetGallery>
+        </bem.FormView>
         )
     }
 
     // CASE: some data already loaded and possibly loading more
     else {
       return (
-        <bem.AssetGallery>
-          <FormGalleryFilter/>
+        <bem.FormView m={formViewModifiers}>
+          <bem.AssetGallery>
+            <FormGalleryFilter/>
 
-          {this.state.galleries.map(
-            (gallery, i) => {
-              if (this.isGalleryMatchingSearchQuery(gallery)) {
-                return (
-                  <FormGalleryGrid key={i} galleryIndex={gallery.galleryIndex}/>
-                );
-              } else {
-                return null;
+            {this.state.galleries.map(
+              (gallery, i) => {
+                if (this.isGalleryMatchingSearchQuery(gallery)) {
+                  return (
+                    <FormGalleryGrid key={i} galleryIndex={gallery.galleryIndex}/>
+                  );
+                } else {
+                  return null;
+                }
               }
+            )}
+
+            { this.state.nextGalleriesPageUrl &&
+              this.state.filterQuery === '' &&
+              <bem.AssetGallery__loadMore>
+                {this.state.isLoadingGalleries &&
+                  <bem.AssetGallery__loadMoreMessage>
+                    {t('Loading…')}
+                  </bem.AssetGallery__loadMoreMessage>
+                }
+                {!this.state.isLoadingGalleries &&
+                  <bem.AssetGallery__loadMoreButton onClick={this.loadMoreGalleries}>
+                    {t('Load more records')}
+                  </bem.AssetGallery__loadMoreButton>
+                }
+              </bem.AssetGallery__loadMore>
             }
-          )}
-
-          { this.state.nextGalleriesPageUrl &&
-            this.state.filterQuery === '' &&
-            <bem.AssetGallery__loadMore>
-              {this.state.isLoadingGalleries &&
-                <bem.AssetGallery__loadMoreMessage>
-                  {t('Loading…')}
-                </bem.AssetGallery__loadMoreMessage>
-              }
-              {!this.state.isLoadingGalleries &&
-                <bem.AssetGallery__loadMoreButton onClick={this.loadMoreGalleries}>
-                  {t('Load more records')}
-                </bem.AssetGallery__loadMoreButton>
-              }
-            </bem.AssetGallery__loadMore>
-          }
-        </bem.AssetGallery>
+          </bem.AssetGallery>
+        </bem.FormView>
       );
     }
   }

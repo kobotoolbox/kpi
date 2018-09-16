@@ -45,13 +45,17 @@ export default class FormGalleryFilter extends React.Component {
     galleryActions.setFilters({filterGroupBy: newVal});
   }
 
+  toggleFullscreen () {
+    galleryActions.toggleFullscreen();
+  }
+
   render() {
     return (
       <bem.AssetGallery__heading>
         {this.state.totalMediaCount !== null &&
-          <bem.AssetGallery__count>
+          <bem.AssetGallery__headingCount>
             {t('Total images: ##count##').replace('##count##', this.state.totalMediaCount)}
-          </bem.AssetGallery__count>
+          </bem.AssetGallery__headingCount>
         }
 
         <bem.AssetGallery__headingSearchFilter>
@@ -74,6 +78,14 @@ export default class FormGalleryFilter extends React.Component {
             isSearchable={false}
           />
         </bem.AssetGallery__headingSearchFilter>
+
+        <bem.AssetGallery__headingIconButton
+          className='right-tooltip'
+          onClick={this.toggleFullscreen}
+          data-tip={t('Toggle fullscreen')}
+        >
+          <i className='k-icon-expand' />
+        </bem.AssetGallery__headingIconButton>
       </bem.AssetGallery__heading>
     );
   }
