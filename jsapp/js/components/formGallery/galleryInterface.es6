@@ -13,7 +13,7 @@ import {
 } from 'js/utils';
 import {MODAL_TYPES} from 'js/constants';
 
-export const PAGE_SIZE = 6;
+export const PAGE_SIZE = 12;
 export const GROUPBY_OPTIONS = {
   question: {
     value: 'question',
