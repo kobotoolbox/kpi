@@ -703,7 +703,8 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                         KobocatDataProxyViewSetMixin):
     '''
     TODO: Access the submission data directly instead of merely proxying to
-    KoBoCAT
+    KoBoCAT. We can now use `KobocatBackend.get_submissions()` and
+     `KobocatBackend.get_submission()`
     '''
     parent_model = Asset
 
