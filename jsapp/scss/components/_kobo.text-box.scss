@@ -3,6 +3,8 @@
 // those styles here
 
 .text-box {
+  display: block;
+
   &.text-box--error {
     color: $cool-red;
 

@@ -68,34 +68,32 @@ export default class FormGalleryFilter extends React.Component {
           </bem.AssetGallery__headingCount>
         }
 
-        <bem.AssetGallery__headingSearchFilter>
-          <TextBox
-            type='search'
-            placeholder={t('Filter results')}
-            onChange={this.onFilterQueryChange}
-            value={this.state.filterQuery}
-          />
+        <TextBox
+          type='search'
+          placeholder={t('Filter results')}
+          onChange={this.onFilterQueryChange}
+          value={this.state.filterQuery}
+        />
 
-          <Select
-            options={groupByOptions}
-            className='kobo-select'
-            classNamePrefix='kobo-select'
-            value={this.state.filterGroupBy ? this.state.filterGroupBy : false}
-            onChange={this.onFilterGroupChange}
-            isClearable={false}
-            isSearchable={false}
-          />
+        <Select
+          options={groupByOptions}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          value={this.state.filterGroupBy ? this.state.filterGroupBy : false}
+          onChange={this.onFilterGroupChange}
+          isClearable={false}
+          isSearchable={false}
+        />
 
-          <Select
-            options={orderOptions}
-            className='kobo-select'
-            classNamePrefix='kobo-select'
-            value={this.state.filterOrder ? this.state.filterOrder : false}
-            onChange={this.onFilterOrderChange}
-            isClearable={false}
-            isSearchable={false}
-          />
-        </bem.AssetGallery__headingSearchFilter>
+        <Select
+          options={orderOptions}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          value={this.state.filterOrder ? this.state.filterOrder : false}
+          onChange={this.onFilterOrderChange}
+          isClearable={false}
+          isSearchable={false}
+        />
 
         <bem.AssetGallery__headingIconButton
           className='right-tooltip'

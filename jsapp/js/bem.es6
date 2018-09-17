@@ -248,7 +248,6 @@ bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
 bem.AssetGallery = BEM('asset-gallery');
 bem.AssetGallery__heading = bem.AssetGallery.__('heading');
-bem.AssetGallery__headingSearchFilter = bem.AssetGallery.__('heading__search-filter');
 bem.AssetGallery__headingCount = bem.AssetGallery.__('heading__count', '<span>');
 bem.AssetGallery__headingIconButton = bem.AssetGallery.__('heading__icon-button', '<span>');
 bem.AssetGallery__loadMore = bem.AssetGallery.__('load-more', '<div>');
