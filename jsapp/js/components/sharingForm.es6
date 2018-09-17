@@ -69,6 +69,8 @@ class UserPermDiv extends React.Component {
         cans.push(perm.label);
     }
 
+    const cansString = cans.sort().join(', ');
+
     return (
       <bem.UserRow m={cans.length > 0 ? 'regular' : 'deleted'}>
         <bem.UserRow__avatar>
@@ -79,8 +81,8 @@ class UserPermDiv extends React.Component {
         <bem.UserRow__name>
           {this.props.username}
         </bem.UserRow__name>
-        <bem.UserRow__role title={cans.join(', ')}>
-          {cans.join(', ')}
+        <bem.UserRow__role title={cansString}>
+          {cansString}
         </bem.UserRow__role>
         <bem.UserRow__cancel onClick={this.removePermissions}>
           <i className='k-icon k-icon-trash' />
