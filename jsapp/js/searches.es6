@@ -402,9 +402,8 @@ function SearchContext(opts={}) {
 
         dataInterface.assetsHash()
           .done((data) => {
-            if (data.hash && data.hash === assetsHash(searchStore.state.defaultQueryResultsList)) {
-              // if hashes match, do nothing (current searchStore contents is accurate)
-            } else {
+            if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {
+              // if hashes don't match launch new search request
               this.searchDefault();
             }
           })
