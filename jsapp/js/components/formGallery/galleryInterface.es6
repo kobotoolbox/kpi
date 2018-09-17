@@ -149,6 +149,9 @@ class GalleryStore extends Reflux.Store {
     }
     if (typeof filters.filterOrder !== 'undefined') {
       updateObj.filterOrder = filters.filterOrder;
+      if (updateObj.filterOrder.value !== this.state.filterOrder.value) {
+        needsWipeAndLoad = true;
+      }
     }
     this.setState(updateObj);
 
@@ -190,7 +193,12 @@ class GalleryStore extends Reflux.Store {
   wipeAndLoadData() {
     this.setState(this.getWipedGalleriesState());
     this.setState({isLoadingGalleries: true});
-    dataInterface.filterGalleryImages(this.state.formUid, this.state.filterGroupBy.value, PAGE_SIZE)
+    dataInterface.filterGalleryImages(
+      this.state.formUid,
+      this.state.filterGroupBy.value,
+      PAGE_SIZE,
+      this.state.filterOrder.value
+    )
       .done((response) => {
         this.buildAndAddGalleries(response.results);
         this.setState({

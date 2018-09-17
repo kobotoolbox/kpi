@@ -9,6 +9,7 @@ import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
 import {
+  ORDER_OPTIONS,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
@@ -19,6 +20,10 @@ const groupByOptions = [
   GROUPBY_OPTIONS.question,
   GROUPBY_OPTIONS.submission
 ];
+const orderOptions = [
+  ORDER_OPTIONS.asc,
+  ORDER_OPTIONS.desc
+];
 
 export default class FormGalleryFilter extends React.Component {
   constructor(props){
@@ -26,7 +31,8 @@ export default class FormGalleryFilter extends React.Component {
     this.state = {
       totalMediaCount: galleryStore.state.totalMediaCount,
       filterQuery: galleryStore.state.filterQuery,
-      filterGroupBy: galleryStore.state.filterGroupBy
+      filterGroupBy: galleryStore.state.filterGroupBy,
+      filterOrder: galleryStore.state.filterOrder
     };
     autoBind(this);
   }
@@ -43,6 +49,10 @@ export default class FormGalleryFilter extends React.Component {
 
   onFilterGroupChange(newVal) {
     galleryActions.setFilters({filterGroupBy: newVal});
+  }
+
+  onFilterOrderChange(newVal) {
+    galleryActions.setFilters({filterOrder: newVal});
   }
 
   toggleFullscreen () {
@@ -67,13 +77,21 @@ export default class FormGalleryFilter extends React.Component {
           />
 
           <Select
-            ref='filterSelect'
             options={groupByOptions}
-            name='selected-filter'
             className='kobo-select'
             classNamePrefix='kobo-select'
             value={this.state.filterGroupBy ? this.state.filterGroupBy : false}
             onChange={this.onFilterGroupChange}
+            isClearable={false}
+            isSearchable={false}
+          />
+
+          <Select
+            options={orderOptions}
+            className='kobo-select'
+            classNamePrefix='kobo-select'
+            value={this.state.filterOrder ? this.state.filterOrder : false}
+            onChange={this.onFilterOrderChange}
             isClearable={false}
             isSearchable={false}
           />
