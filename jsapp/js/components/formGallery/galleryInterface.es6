@@ -38,15 +38,17 @@ export const ORDER_OPTIONS = {
 export const galleryActions = Reflux.createActions([
   'setFormUid',
   'toggleFullscreen',
-  'openImageModal',
+  'openMediaModal',
   'selectGalleryMedia',
+  'selectPreviousGalleryMedia',
+  'selectNextGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
   'loadMoreGalleryMedias',
   'wipeLoadedGalleryData'
 ]);
 
-galleryActions.openImageModal.listen(({galleryIndex, mediaIndex}) => {
+galleryActions.openMediaModal.listen(({galleryIndex, mediaIndex}) => {
   galleryActions.selectGalleryMedia({galleryIndex, mediaIndex});
   stores.pageState.showModal({type: MODAL_TYPES.GALLERY_MEDIA});
 });
@@ -81,8 +83,7 @@ class GalleryStore extends Reflux.Store {
       galleries: [],
       nextGalleriesPageUrl: null,
       totalMediaCount: null,
-      selectedGalleryIndex: null,
-      selectedMedia: null
+      selectedMedia: new SelectedMedia()
     }
   }
 
@@ -117,21 +118,11 @@ class GalleryStore extends Reflux.Store {
   }
 
   onSelectGalleryMedia({galleryIndex, mediaIndex}) {
-    const updateObj = {};
-    if (typeof galleryIndex !== 'undefined') {
-      updateObj.selectedGalleryIndex = parseInt(galleryIndex);
-    }
-    if (typeof mediaIndex !== 'undefined') {
-      let targetGallery;
-      if (typeof galleryIndex !== 'undefined') {
-        targetGallery = this.state.galleries[galleryIndex];
-      } else if (this.state.selectedGalleryIndex !== null) {
-        targetGallery = this.state.galleries[this.state.selectedGalleryIndex];
-      }
+    const targetGallery = this.state.galleries[galleryIndex];
 
-      updateObj.selectedMedia = targetGallery.findMedia(parseInt(mediaIndex));
-    }
-    this.setState(updateObj);
+    this.setState({
+      selectedMedia: new SelectedMedia(targetGallery, mediaIndex)
+    });
   }
 
   onSetFilters(filters) {
@@ -203,7 +194,7 @@ class GalleryStore extends Reflux.Store {
         this.buildAndAddGalleries(response.results);
         this.setState({
           totalMediaCount: response.attachments_count,
-          nextGalleriesPageUrl: response.next,
+          nextGalleriesPageUrl: response.next || null,
           isLoadingGalleries: false
         });
       });
@@ -216,7 +207,7 @@ class GalleryStore extends Reflux.Store {
         this.buildAndAddGalleries(response.results);
         this.setState({
           totalMediaCount: response.attachments_count,
-          nextGalleriesPageUrl: response.next,
+          nextGalleriesPageUrl: response.next || null,
           isLoadingGalleries: false
         });
       });
@@ -265,6 +256,10 @@ class Gallery {
     this.addMedias(galleryData.attachments.results);
   }
 
+  hasMoreMediasToLoad() {
+    return this.loadedMediaCount < this.totalMediaCount;
+  }
+
   setIsLoadingMedias(isLoadingMedias) {
     this.isLoadingMedias = isLoadingMedias;
   }
@@ -302,7 +297,7 @@ class Gallery {
   }
 
   findMedia(mediaIndex) {
-    return this.medias.find((media) => {return media.mediaIndex === mediaIndex});
+    return this.medias.find((media) => {return media.mediaIndex === mediaIndex}) || null;
   }
 
   addMedias(medias, pageOffset=0, pageSize=PAGE_SIZE) {
@@ -311,6 +306,7 @@ class Gallery {
       // would provide real index
       const mediaIndex = index + pageOffset * pageSize;
       this.medias[mediaIndex] = {
+        galleryIndex: this.galleryIndex,
         mediaIndex: mediaIndex,
         mediaId: mediaData.id,
         title: this.buildMediaTitle(mediaData, mediaIndex),
@@ -345,6 +341,32 @@ class Gallery {
     } else {
       console.error('Unknown media title', mediaData);
     }
+  }
+}
+
+class SelectedMedia {
+  constructor(galleryData, mediaIndex) {
+    this.isLoading = true;
+    this.data = null;
+    this.isFirst = false;
+    this.isLast = false;
+
+    if (galleryData instanceof Gallery && typeof mediaIndex !== 'undefined') {
+      this.applyData(galleryData, mediaIndex);
+    }
+  }
+
+  applyData(galleryData, mediaIndex) {
+    this.isLoading = false;
+    this.data = galleryData.findMedia(mediaIndex);
+
+    this.isFirst = galleryData.galleryIndex === 0 && mediaIndex === 0;
+
+    this.isLast = (
+      galleryStore.state.nextGalleriesPageUrl === null &&
+      galleryStore.state.galleries.length === galleryData.galleryIndex + 1 &&
+      galleryData.totalMediaCount === mediaIndex + 1
+    )
   }
 }
 

@@ -4,9 +4,9 @@ import {galleryActions} from './galleryInterface';
 
 export default class FormGalleryGridItem extends React.Component {
   openMediaInModal() {
-    galleryActions.openImageModal({
-      galleryIndex: this.props.galleryIndex,
-      mediaIndex: this.props.mediaIndex
+    galleryActions.openMediaModal({
+      galleryIndex: parseInt(this.props.galleryIndex),
+      mediaIndex: parseInt(this.props.mediaIndex)
     });
   }
 
