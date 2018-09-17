@@ -218,7 +218,7 @@ $gallery-transition: 250ms ease-in-out;
   }
 }
 
-.gallery-image-modal {
+.gallery-media-modal {
   // absolute positioning forces it to take whole modal space
   position: absolute;
   top: 0;
@@ -230,35 +230,35 @@ $gallery-transition: 250ms ease-in-out;
   align-items: stretch;
   flex-direction: row;
 
-  .slick-slider {
+  .gallery-media-modal__content {
     height: 100%;
+    width: 75%;
+    position: relative;
+    background: $trueblack;
     overflow: hidden;
 
-    .slick-list,
-    .slick-track,
-    .slick-slide {
-      height: inherit;
-    }
-
-    .slick-current {
-      // for accessing title attribute
-      z-index: 1;
-    }
-
     /* SLICK ARROWS */
-    &:hover .slick-arrow {
-      &.slick-prev {left: 0;}
-      &.slick-next {right: 0;}
+    &:hover .gallery-media-modal__content-arrow {
+      &.gallery-media-modal__content-arrow--left {left: 0;}
+      &.gallery-media-modal__content-arrow--right {right: 0;}
     }
 
-    .slick-arrow {
+    .gallery-media-modal__content-arrow {
+      cursor: pointer;
       display: block;
+      position: absolute;
+      border: 0;
       height: 100%;
       width: 60px;
       background: rgba($trueblack, 0.6);
       z-index: 8;
       transition: $gallery-transition;
       transition-property: left, right;
+
+
+      &.gallery-media-modal__content-arrow--left {left: -60px;}
+
+      &.gallery-media-modal__content-arrow--right {right: -60px;}
 
       .k-icon-next, .k-icon-prev {
         color: #fff;
@@ -275,44 +275,27 @@ $gallery-transition: 250ms ease-in-out;
         .k-icon-next, .k-icon-prev {opacity: 1;}
       }
 
-      &::before {
-        // disable default slick-slider arrow icons
-        content: '';
-      }
-
-      &.slick-disabled {
+      &[disabled] {
         pointer-events: none;
         .k-icon-next, .k-icon-prev {
           opacity: 0.3;
         }
       }
-
-      &.slick-next {right: -60px;}
-
-      &.slick-prev {left: -60px;}
     }
   }
 
-  .gallery-image-modal__carousel {
-    width: 75%;
-    position: relative;
-    background: $trueblack;
+  .gallery-media-modal__content-image {
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
-  .gallery-image-modal__carousel-image {
-    picture {
-      background-repeat: no-repeat;
-      background-position: center center;
-      background-size: contain;
-      height: 100%;
-      width: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-  }
-
-  .gallery-image-modal__sidebar {
+  .gallery-media-modal__sidebar {
     width: 25%;
     background: #fff;
     overflow: auto;
@@ -331,12 +314,12 @@ $gallery-transition: 250ms ease-in-out;
       cursor: pointer;
     }
 
-    .gallery-image-modal__sidebar__grid {
+    .gallery-media-modal__sidebar__grid {
       display: flex;
       flex-wrap: wrap;
       margin-top: $s-gallery-spacing;
 
-      .gallery-image-modal__sidebar__grid-item {
+      .gallery-media-modal__sidebar__grid-item {
         width: calc(100%/3 - #{$s-gallery-spacing} * 2/3);
         height: calc(100%/3);
         margin-right: $s-gallery-spacing;
@@ -358,20 +341,20 @@ $gallery-transition: 250ms ease-in-out;
           margin-top: $s-gallery-spacing;;
         }
 
-        &.gallery-image-modal__sidebar__grid-item--selected {
+        &.gallery-media-modal__sidebar__grid-item--selected {
           box-shadow: 0 0 0 2px white, 0 0 0 3px $cool-blue;
         }
       }
     }
   }
 
-  .gallery-image-modal__sidebar-info {
+  .gallery-media-modal__sidebar-info {
     margin: 50px 30px 0px;
     padding-bottom: 20px;
     border-bottom: 1px solid $divider-color;
   }
 
-  .gallery-image-modal__sidebar-grid-wrap {
+  .gallery-media-modal__sidebar-grid-wrap {
     margin: 30px;
   }
 }

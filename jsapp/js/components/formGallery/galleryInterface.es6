@@ -48,7 +48,7 @@ export const galleryActions = Reflux.createActions([
 
 galleryActions.openImageModal.listen(({galleryIndex, mediaIndex}) => {
   galleryActions.selectGalleryMedia({galleryIndex, mediaIndex});
-  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_IMAGE});
+  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_MEDIA});
 });
 
 class GalleryStore extends Reflux.Store {
@@ -82,7 +82,7 @@ class GalleryStore extends Reflux.Store {
       nextGalleriesPageUrl: null,
       totalMediaCount: null,
       selectedGalleryIndex: null,
-      selectedMediaIndex: null
+      selectedMedia: null
     }
   }
 
@@ -122,14 +122,14 @@ class GalleryStore extends Reflux.Store {
       updateObj.selectedGalleryIndex = parseInt(galleryIndex);
     }
     if (typeof mediaIndex !== 'undefined') {
-      updateObj.selectedMediaIndex = parseInt(mediaIndex);
-    }
-    if (
-      typeof updateObj.selectedGalleryIndex !== 'undefined' &&
-      typeof updateObj.selectedMediaIndex === 'undefined'
-    ) {
-      // selected gallery, but not media, so we need to clear store value
-      updateObj.selectedMediaIndex = null;
+      let targetGallery;
+      if (typeof galleryIndex !== 'undefined') {
+        targetGallery = this.state.galleries[galleryIndex];
+      } else if (this.state.selectedGalleryIndex !== null) {
+        targetGallery = this.state.galleries[this.state.selectedGalleryIndex];
+      }
+
+      updateObj.selectedMedia = targetGallery.findMedia(parseInt(mediaIndex));
     }
     this.setState(updateObj);
   }
@@ -299,6 +299,10 @@ class Gallery {
     } else {
       console.error('Unknown gallery date created');
     }
+  }
+
+  findMedia(mediaIndex) {
+    return this.medias.find((media) => {return media.mediaIndex === mediaIndex});
   }
 
   addMedias(medias, pageOffset=0, pageSize=PAGE_SIZE) {

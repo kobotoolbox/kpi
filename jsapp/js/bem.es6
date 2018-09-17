@@ -260,14 +260,15 @@ bem.AssetGalleryGrid__link = bem.AssetGalleryGrid.__('item__grid-link', '<a>');
 bem.AssetGalleryGrid__itemOverlay = bem.AssetGalleryGrid.__('item__overlay', '<div>');
 bem.AssetGalleryGrid__itemOverlayText = bem.AssetGalleryGrid.__('item__overlay-text', '<div>');
 
-bem.GalleryImageModal = BEM('gallery-image-modal');
-bem.GalleryImageModal__carousel = bem.GalleryImageModal.__('carousel', '<div>');
-bem.GalleryImageModal__carouselImage = bem.GalleryImageModal.__('carousel-image');
-bem.GalleryImageModal__sidebar = bem.GalleryImageModal.__('sidebar', '<div>');
-bem.GalleryImageModal__sidebarInfo = bem.GalleryImageModal.__('sidebar-info', '<div>');
-bem.GalleryImageModal__sidebarGridWrap = bem.GalleryImageModal.__('sidebar-grid-wrap', '<div>');
-bem.GalleryImageModal__sidebarGrid = bem.GalleryImageModal.__('sidebar__grid', '<div>');
-bem.GalleryImageModal__sidebarGridItem = bem.GalleryImageModal.__('sidebar__grid-item', '<div>');
+bem.GalleryMediaModal = BEM('gallery-media-modal');
+bem.GalleryMediaModal__content = bem.GalleryMediaModal.__('content', '<div>');
+bem.GalleryMediaModal__contentImage = bem.GalleryMediaModal.__('content-image', '<picture>');
+bem.GalleryMediaModal__contentArrow = bem.GalleryMediaModal.__('content-arrow', '<button>');
+bem.GalleryMediaModal__sidebar = bem.GalleryMediaModal.__('sidebar', '<aside>');
+bem.GalleryMediaModal__sidebarInfo = bem.GalleryMediaModal.__('sidebar-info', '<div>');
+bem.GalleryMediaModal__sidebarGridWrap = bem.GalleryMediaModal.__('sidebar-grid-wrap', '<div>');
+bem.GalleryMediaModal__sidebarGrid = bem.GalleryMediaModal.__('sidebar__grid', '<div>');
+bem.GalleryMediaModal__sidebarGridItem = bem.GalleryMediaModal.__('sidebar__grid-item', '<div>');
 
 bem.create = BEM;
 
