@@ -575,7 +575,7 @@ class ExportTask(ImportExportTask):
         # How long can an export possibly run, not including time spent waiting
         # in the Celery queue?
         max_export_run_time = getattr(
-            settings, 'CELERYD_TASK_TIME_LIMIT', 2100)
+            settings, 'CELERY_TASK_TIME_LIMIT', 2100)
         # Allow a generous grace period
         max_allowed_export_age = datetime.timedelta(
             seconds=max_export_run_time * 4)
