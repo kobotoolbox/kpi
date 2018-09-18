@@ -248,6 +248,7 @@ $gallery-transition: 250ms ease-in-out;
       display: block;
       position: absolute;
       border: 0;
+      padding: 0;
       height: 100%;
       width: 60px;
       background: rgba($trueblack, 0.6);
@@ -260,7 +261,7 @@ $gallery-transition: 250ms ease-in-out;
 
       &.gallery-media-modal__content-arrow--right {right: -60px;}
 
-      .k-icon-next, .k-icon-prev {
+      .k-icon {
         color: #fff;
         font-size: 60px;
         opacity: 0.6;
@@ -268,16 +269,16 @@ $gallery-transition: 250ms ease-in-out;
 
       &:hover {
         background: rgba($trueblack, 0.8);
-        .k-icon-next, .k-icon-prev {opacity: 0.8;}
+        .k-icon {opacity: 0.8;}
       }
 
       &:active {
-        .k-icon-next, .k-icon-prev {opacity: 1;}
+        .k-icon {opacity: 1;}
       }
 
       &[disabled] {
         pointer-events: none;
-        .k-icon-next, .k-icon-prev {
+        .k-icon {
           opacity: 0.3;
         }
       }

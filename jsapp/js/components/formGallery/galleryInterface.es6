@@ -44,8 +44,7 @@ export const galleryActions = Reflux.createActions([
   'selectNextGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
-  'loadMoreGalleryMedias',
-  'wipeLoadedGalleryData'
+  'loadMoreGalleryMedias'
 ]);
 
 galleryActions.openMediaModal.listen(({galleryIndex, mediaIndex}) => {
@@ -118,10 +117,53 @@ class GalleryStore extends Reflux.Store {
   }
 
   onSelectGalleryMedia({galleryIndex, mediaIndex}) {
-    const targetGallery = this.state.galleries[galleryIndex];
-
     this.setState({
-      selectedMedia: new SelectedMedia(targetGallery, mediaIndex)
+      selectedMedia: new SelectedMedia(galleryIndex, mediaIndex)
+    });
+  }
+
+  onSelectPreviousGalleryMedia() {
+    const currentMedia = this.state.selectedMedia
+
+    let targetGalleryIndex;
+    let targetMediaIndex;
+
+    if (currentMedia.mediaIndex !== 0) {
+      targetGalleryIndex = currentMedia.galleryIndex;
+      targetMediaIndex = currentMedia.mediaIndex - 1;
+    }
+
+    else if (!currentMedia.isFirst) {
+      targetGalleryIndex = currentMedia.galleryIndex - 1;
+      targetMediaIndex = this.state.galleries[targetGalleryIndex].totalMediaCount - 1;
+    }
+
+    galleryActions.selectGalleryMedia({
+      galleryIndex: targetGalleryIndex,
+      mediaIndex: targetMediaIndex
+    });
+  }
+
+  onSelectNextGalleryMedia() {
+    const currentMedia = this.state.selectedMedia;
+    const currentMediaGallery = this.state.galleries[this.state.selectedMedia.galleryIndex];
+
+    let targetGalleryIndex;
+    let targetMediaIndex;
+
+    if (currentMedia.mediaIndex !== currentMediaGallery.totalMediaCount - 1) {
+      targetGalleryIndex = currentMedia.galleryIndex;
+      targetMediaIndex = currentMedia.mediaIndex + 1;
+    }
+
+    else if (!currentMedia.isLast) {
+      targetGalleryIndex = currentMedia.galleryIndex + 1;
+      targetMediaIndex = 0;
+    }
+
+    galleryActions.selectGalleryMedia({
+      galleryIndex: targetGalleryIndex,
+      mediaIndex: targetMediaIndex
     });
   }
 
@@ -171,10 +213,13 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  onWipeLoadedGalleryData(galleryIndex) {
-    const targetGallery = this.state.galleries[galleryIndex];
-    targetGallery.wipeLoadedData();
-    this.trigger({galleries: this.state.galleries});
+  onMediasAdded() {
+    // if selectedMedia is waiting for data reapply it
+    if (this.state.selectedMedia.isLoading) {
+      this.setState({
+        selectedMedia: new SelectedMedia(this.state.selectedMedia.galleryIndex, this.state.selectedMedia.mediaIndex)
+      })
+    }
   }
 
   /*
@@ -197,6 +242,7 @@ class GalleryStore extends Reflux.Store {
           nextGalleriesPageUrl: response.next || null,
           isLoadingGalleries: false
         });
+        this.onMediasAdded();
       });
   }
 
@@ -210,6 +256,7 @@ class GalleryStore extends Reflux.Store {
           nextGalleriesPageUrl: response.next || null,
           isLoadingGalleries: false
         });
+        this.onMediasAdded();
       });
   }
 
@@ -231,6 +278,7 @@ class GalleryStore extends Reflux.Store {
         targetGallery.addMedias(response.attachments.results, pageToLoad - 1, pageSize);
         targetGallery.setIsLoadingMedias(false);
         this.trigger({galleries: this.state.galleries});
+        this.onMediasAdded();
       });
   }
 
@@ -262,11 +310,6 @@ class Gallery {
 
   setIsLoadingMedias(isLoadingMedias) {
     this.isLoadingMedias = isLoadingMedias;
-  }
-
-  wipeLoadedData() {
-    this.medias = [];
-    this.loadedMediaCount = [];
   }
 
   guessNextPageToLoad() {
@@ -306,7 +349,6 @@ class Gallery {
       // would provide real index
       const mediaIndex = index + pageOffset * pageSize;
       this.medias[mediaIndex] = {
-        galleryIndex: this.galleryIndex,
         mediaIndex: mediaIndex,
         mediaId: mediaData.id,
         title: this.buildMediaTitle(mediaData, mediaIndex),
@@ -345,27 +387,51 @@ class Gallery {
 }
 
 class SelectedMedia {
-  constructor(galleryData, mediaIndex) {
+  constructor(galleryIndex, mediaIndex) {
     this.isLoading = true;
+    this.galleryIndex = null;
+    this.mediaIndex = null;
     this.data = null;
     this.isFirst = false;
     this.isLast = false;
+    this.isFirstInGallery = false;
+    this.isLastInGallery = false;
 
-    if (galleryData instanceof Gallery && typeof mediaIndex !== 'undefined') {
-      this.applyData(galleryData, mediaIndex);
+    if (typeof galleryIndex !== 'undefined') {
+      this.galleryIndex = galleryIndex;
+    }
+
+    if (typeof mediaIndex !== 'undefined') {
+      this.mediaIndex = mediaIndex;
+    }
+
+    if (this.galleryIndex !== null && this.mediaIndex !== null) {
+      const targetGallery = galleryStore.state.galleries[this.galleryIndex];
+      if (targetGallery instanceof Gallery) {
+        const targetMedia = targetGallery.findMedia(this.mediaIndex);
+        if (targetMedia !== null) {
+          this.applyData(targetGallery, targetMedia);
+        } else {
+          galleryActions.loadMoreGalleryMedias(this.galleryIndex);
+        }
+      } else {
+        galleryActions.loadMoreGalleries();
+      }
     }
   }
 
-  applyData(galleryData, mediaIndex) {
+  applyData(gallery, media) {
     this.isLoading = false;
-    this.data = galleryData.findMedia(mediaIndex);
+    this.data = media;
 
-    this.isFirst = galleryData.galleryIndex === 0 && mediaIndex === 0;
+    this.isFirstInGallery = this.mediaIndex === 0;
+    this.isFirst = this.isFirstInGallery && this.galleryIndex === 0;
 
+    this.isLastInGallery = this.mediaIndex === gallery.totalMediaCount - 1;
     this.isLast = (
+      this.isLastInGallery &&
       galleryStore.state.nextGalleriesPageUrl === null &&
-      galleryStore.state.galleries.length === galleryData.galleryIndex + 1 &&
-      galleryData.totalMediaCount === mediaIndex + 1
+      this.galleryIndex === galleryStore.state.galleries.length - 1
     )
   }
 }

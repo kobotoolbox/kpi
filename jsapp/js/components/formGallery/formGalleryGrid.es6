@@ -42,10 +42,6 @@ export default class FormGalleryGrid extends React.Component {
     });
   }
 
-  hasMoreAttachments() {
-    return this.state.gallery.loadedMediaCount < this.state.gallery.totalMediaCount;
-  }
-
   loadMoreMedia() {
     galleryActions.loadMoreGalleryMedias(this.state.gallery.galleryIndex);
   }
@@ -59,7 +55,7 @@ export default class FormGalleryGrid extends React.Component {
           </bem.AssetGallery__loadMoreMessage>
         </bem.AssetGallery__loadMore>
       );
-    } else if (this.hasMoreAttachments()) {
+    } else if (this.state.gallery.hasMoreMediasToLoad()) {
       return (
         <bem.AssetGallery__loadMore m='grid'>
           <bem.AssetGallery__loadMoreButton onClick={this.loadMoreMedia.bind(this)}>

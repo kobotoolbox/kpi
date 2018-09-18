@@ -55,7 +55,12 @@ export default class GalleryMediaModal extends React.Component {
           disabled={this.state.selectedMedia.isFirst}
           m='left'
         >
-          <i className='k-icon-prev'/>
+          {this.state.selectedMedia.isFirstInGallery &&
+            <i className='k-icon k-icon-arrow-first'/>
+          }
+          {!this.state.selectedMedia.isFirstInGallery &&
+            <i className='k-icon k-icon-prev'/>
+          }
         </bem.GalleryMediaModal__contentArrow>
 
         <bem.GalleryMediaModal__contentImage
@@ -68,7 +73,12 @@ export default class GalleryMediaModal extends React.Component {
           disabled={this.state.selectedMedia.isLast}
           m='right'
         >
-          <i className='k-icon-next'/>
+          {this.state.selectedMedia.isLastInGallery &&
+            <i className='k-icon k-icon-arrow-last'/>
+          }
+          {!this.state.selectedMedia.isLastInGallery &&
+            <i className='k-icon k-icon-next'/>
+          }
         </bem.GalleryMediaModal__contentArrow>
       </React.Fragment>
     );
@@ -94,7 +104,7 @@ export default class GalleryMediaModal extends React.Component {
           {!this.state.selectedMedia.isLoading &&
             <bem.GalleryMediaModal__sidebarInfo>
               <h3>{this.state.selectedMedia.data.title}</h3>
-              <p>{this.state.selectedMedia.data.dateCreated}</p>
+              <p>{this.state.selectedMedia.data.date}</p>
             </bem.GalleryMediaModal__sidebarInfo>
           }
         </bem.GalleryMediaModal__sidebar>
