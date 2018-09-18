@@ -149,6 +149,7 @@ class LazyModelGroup:
                     'date_modified': self.date_modified
                 })
 
+
         class _ReadOnlyAttachment(_ReadOnlyModel):
             class Meta:
                 managed = False
@@ -197,6 +198,7 @@ class LazyModelGroup:
                 # Alternatively, can move this into User Profile or Asset permissions logic
 
                 return True
+
 
         class _UserProfile(models.Model):
             '''
