@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import datetime
 import json
 import pytz
-import urllib
 from collections import OrderedDict
 
 import constance
@@ -14,6 +15,7 @@ from django.db import transaction
 from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
+from django.utils.http import urlquote
 from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination, _positive_int
 from rest_framework.response import Response
@@ -1070,6 +1072,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
         return None
 
 class AttachmentListSerializer(AttachmentSerializer):
+
     class Meta(AttachmentSerializer.Meta):
         fields = ('url', 'filename', 'short_filename', 'mimetype', 'id',
                   'submission', 'can_view_submission', 'question', 'download_url',
@@ -1079,15 +1082,19 @@ class AttachmentListSerializer(AttachmentSerializer):
     def get_download_url(self, obj):
         if obj.media_file.url:
             request = self.context.get('request')
-            return urllib.quote_plus(obj.media_file.url) if not request else request.build_absolute_uri(obj.media_file.url)
+            return urlquote(obj.media_file.url) if not request else request.build_absolute_uri(obj.media_file.url)
         return None
 
     @check_obj
     def _get_download_url(self, obj, size):
         url = self.get_url(obj)
         if url and obj.media_file.url:
-            return url.rstrip('/') + '?filename=%s&size=%s' % (urllib.quote_plus(obj.media_file.name), size)
-
+            filename = obj.media_file.name
+            return "{url}?filename={filename}&size={size}".format(
+                url=url.rstrip("/"),
+                filename=urlquote(filename),
+                size=size
+            )
         return None
 
     def to_representation(self, obj):
@@ -1162,7 +1169,7 @@ class QuestionPagination(HybridPagination):
         ]))
 
     def get_attachments_count(self, queryset):
-        if(len(queryset)):
+        if len(queryset):
             return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
         else:
             return 0
