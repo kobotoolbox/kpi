@@ -201,13 +201,12 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  onLoadMoreGalleryMedias(galleryIndex, pageToLoad=null, pageSize=PAGE_SIZE) {
+  onLoadMoreGalleryMedias(galleryIndex) {
     const targetGallery = this.state.galleries[galleryIndex];
-    if (pageToLoad === null) {
-      pageToLoad = targetGallery.guessNextPageToLoad()
-    }
+    const pageToLoad = targetGallery.guessNextPageToLoad()
+
     if (pageToLoad !== null) {
-      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad, pageSize, this.state.filterOrder.value);
+      this.loadNextGalleryMediasPage(galleryIndex, pageToLoad, this.state.filterOrder.value);
     } else {
       throw new Error('No more gallery medias to load!');
     }
@@ -260,7 +259,7 @@ class GalleryStore extends Reflux.Store {
       });
   }
 
-  loadNextGalleryMediasPage(galleryIndex, pageToLoad, pageSize, sort) {
+  loadNextGalleryMediasPage(galleryIndex, pageToLoad, sort) {
     const targetGallery = this.state.galleries[galleryIndex];
     targetGallery.setIsLoadingMedias(true);
     this.trigger({galleries: this.state.galleries});
@@ -270,12 +269,12 @@ class GalleryStore extends Reflux.Store {
       this.state.filterGroupBy.value,
       galleryIndex,
       pageToLoad,
-      pageSize,
+      PAGE_SIZE,
       sort
     )
       .done((response) => {
         const targetGallery = this.state.galleries[galleryIndex];
-        targetGallery.addMedias(response.attachments.results, pageToLoad - 1, pageSize);
+        targetGallery.addMedias(response.attachments.results, pageToLoad - 1);
         targetGallery.setIsLoadingMedias(false);
         this.trigger({galleries: this.state.galleries});
         this.onMediasAdded();
@@ -343,11 +342,10 @@ class Gallery {
     return this.medias.find((media) => {return media.mediaIndex === mediaIndex}) || null;
   }
 
-  addMedias(medias, pageOffset=0, pageSize=PAGE_SIZE) {
+  addMedias(medias, pageOffset=0) {
     medias.forEach((mediaData, index) => {
-      // TODO this is possibly wrong information, would be best if backend
-      // would provide real index
-      const mediaIndex = index + pageOffset * pageSize;
+      // TODO we're guessing mediaIndex here, maybe backend can provide real value
+      const mediaIndex = index + (pageOffset * PAGE_SIZE);
       this.medias[mediaIndex] = {
         mediaIndex: mediaIndex,
         mediaId: mediaData.id,
