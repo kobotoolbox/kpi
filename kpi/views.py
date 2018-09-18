@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from distutils.util import strtobool
 from itertools import chain
 import copy
@@ -693,11 +695,11 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
             if filename == self.object.media_file.name \
                     or filename == self.object.filename:
                 size = request.query_params.get('size')
-                if (size == 'small'):
+                if size == 'small':
                     source = serializer.get_small_download_url(self.object)
-                elif (size == 'medium'):
+                elif size == 'medium':
                     source = serializer.get_medium_download_url(self.object)
-                elif (size == 'large'):
+                elif size == 'large':
                     source = serializer.get_large_download_url(self.object)
                 else:
                     source = serializer.get_download_url(self.object)
