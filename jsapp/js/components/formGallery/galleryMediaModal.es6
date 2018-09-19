@@ -19,18 +19,41 @@ export default class GalleryMediaModal extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-
     this.state = {
-      selectedMedia: galleryStore.state.selectedMedia
+      selectedMedia: galleryStore.state.selectedMedia,
+      displayImageUrl: null
     };
+    this.preloadMediaImage(galleryStore.state.selectedMedia.data);
   }
 
   componentDidMount() {
     this.listenTo(galleryStore, (storeChanges) => {
       if (storeChanges.selectedMedia) {
-        this.setState({selectedMedia: storeChanges.selectedMedia});
+        this.setState({
+          selectedMedia: storeChanges.selectedMedia,
+          displayImageUrl: null
+        });
+
+        this.preloadMediaImage(storeChanges.selectedMedia.data);
       }
     });
+  }
+
+  preloadMediaImage(mediaData) {
+    if (mediaData === null) {
+      return;
+    }
+    const imageUrl = mediaData.largeImage;
+    const img = new window.Image();
+    img.onload = () => {
+      if (
+        this.state.selectedMedia.data !== null &&
+        img.src === this.state.selectedMedia.data.largeImage
+      ) {
+        this.setState({displayImageUrl: imageUrl});
+      }
+    };
+    img.src = imageUrl;
   }
 
   showMoreFrom(questionName) {
@@ -47,7 +70,11 @@ export default class GalleryMediaModal extends React.Component {
   }
 
   renderMedia() {
-    const inlineStyle = {'backgroundImage': `url(${this.state.selectedMedia.data.largeImage})`};
+    const inlineStyle = {};
+    if (this.state.displayImageUrl !== null) {
+      inlineStyle.backgroundImage = `url(${this.state.displayImageUrl})`;
+    }
+
     return (
       <React.Fragment>
         <bem.GalleryMediaModal__contentArrow
@@ -64,6 +91,8 @@ export default class GalleryMediaModal extends React.Component {
         </bem.GalleryMediaModal__contentArrow>
 
         <bem.GalleryMediaModal__contentImage
+          m={this.state.displayImageUrl === null ? 'hidden' : 'visible'}
+          key={this.state.selectedMedia.data.mediaId}
           style={inlineStyle}
           title={this.state.selectedMedia.data.filename}
          />

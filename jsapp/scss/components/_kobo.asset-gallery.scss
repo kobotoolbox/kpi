@@ -290,6 +290,17 @@ $gallery-transition: 250ms ease-in-out;
     position: absolute;
     top: 0;
     left: 0;
+    opacity: 0;
+
+    &.gallery-media-modal__content-image--hidden {
+      opacity: 0;
+      transition: 0s;
+    }
+
+    &.gallery-media-modal__content-image--visible {
+      opacity: 1;
+      transition: 0.25s;
+    }
   }
 
   .gallery-media-modal__sidebar {
