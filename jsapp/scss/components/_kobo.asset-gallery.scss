@@ -38,7 +38,7 @@ $gallery-transition: 250ms ease-in-out;
   }
 
   > .asset-gallery__load-more--grid:not(:first-child) {
-    margin-top: 1 * $s-gallery-spacing;
+    margin-top: $s-gallery-spacing;
   }
 
   > h2:not(:first-child) {
@@ -48,8 +48,14 @@ $gallery-transition: 250ms ease-in-out;
   > h2 {
     color: $cool-gray;
     font-weight: normal;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1;
+
+    small {
+      display: block;
+      font-size: 12px;
+      margin-top: $s-gallery-spacing;
+    }
   }
 
   .asset-gallery__heading {

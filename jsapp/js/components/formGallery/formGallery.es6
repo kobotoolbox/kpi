@@ -69,7 +69,7 @@ export default class FormGallery extends React.Component {
 
     // CASE: loading data from the start
     else if (
-      this.state.isLoadingGalleries ||
+      this.state.isLoadingGalleries &&
       this.state.galleries.length === 0
     ) {
       return (
@@ -111,6 +111,7 @@ export default class FormGallery extends React.Component {
             }
 
             { this.state.nextGalleriesPageUrl &&
+              this.state.filterQuery === '' &&
               <bem.AssetGallery__loadMore>
                 {this.state.isLoadingGalleries &&
                   <bem.AssetGallery__loadMoreMessage>

@@ -71,7 +71,7 @@ class GalleryStore extends Reflux.Store {
       filterQuery: '',
       filterGroupBy: GROUPBY_OPTIONS.question,
       filterOrder: ORDER_OPTIONS.asc,
-      isLoadingGalleries: false,
+      isLoadingGalleries: true,
     });
     assign(stateObj, this.getWipedGalleriesState());
     return stateObj;
@@ -252,7 +252,7 @@ class GalleryStore extends Reflux.Store {
       const searchRegEx = new RegExp(this.state.filterQuery, 'i');
       return (
         searchRegEx.test(gallery.title) ||
-        searchRegEx.test(gallery.dateCreated)
+        searchRegEx.test(gallery.date)
       );
     }
   }
@@ -333,7 +333,7 @@ class Gallery {
     this.medias = [];
     this.totalMediaCount = galleryData.attachments.count;
     this.title = this.buildGalleryTitle(galleryData);
-    this.dateCreated = this.buildGalleryDate(galleryData);
+    this.date = this.buildGalleryDate(galleryData);
 
     this.addMedias(galleryData.attachments.results);
   }
@@ -381,19 +381,19 @@ class Gallery {
     newMedias.forEach((mediaData, index) => {
       // TODO we're guessing mediaIndex here, maybe backend can provide real value
       const mediaIndex = index + (pageOffset * PAGE_SIZE);
-      this.medias[mediaIndex] = new ImageMedia(mediaData, mediaIndex, this.dateCreated);
+      this.medias[mediaIndex] = new ImageMedia(mediaData, mediaIndex, this.galleryIndex, this.date);
     });
   }
 }
 
 class ImageMedia {
-  constructor(mediaData, mediaIndex, galleryDateCreated) {
+  constructor(mediaData, mediaIndex, galleryIndex, galleryDate) {
     this.mediaIndex = mediaIndex;
     this.mediaId = mediaData.id;
     this.sid = mediaData.submission.id;
-    this.submissionLabel = this.buildSubmissionLabel(mediaIndex);
+    this.submissionLabel = this.buildSubmissionLabel(mediaIndex, galleryIndex);
     this.questionLabel = this.buildQuestionLabel(mediaData);
-    this.date = this.buildMediaDate(mediaData, galleryDateCreated);
+    this.date = this.buildMediaDate(mediaData, galleryDate);
     this.filename = mediaData.short_filename;
     this.smallImage = mediaData.small_download_url;
     this.mediumImage = mediaData.medium_download_url;
@@ -401,16 +401,22 @@ class ImageMedia {
     this.canViewSubmission = mediaData.can_view_submission;
   }
 
-  buildMediaDate(mediaData, galleryDateCreated) {
+  buildMediaDate(mediaData, galleryDate) {
     if (mediaData.submission && mediaData.submission.date_created) {
       return formatTimeDate(mediaData.submission.date_created);
     } else {
-      return galleryDateCreated;
+      return galleryDate;
     }
   }
 
-  buildSubmissionLabel(mediaIndex) {
-    return t('Record ##number##').replace('##number##', parseInt(mediaIndex) + 1);
+  buildSubmissionLabel(mediaIndex, galleryIndex) {
+    let recordNumber;
+    if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.submission.value) {
+      recordNumber = galleryIndex + 1;
+    } else {
+      recordNumber = mediaIndex + 1;
+    }
+    return t('Record ##number##').replace('##number##', recordNumber);
   }
 
   buildQuestionLabel(mediaData) {

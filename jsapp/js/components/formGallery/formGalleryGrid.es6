@@ -73,7 +73,10 @@ export default class FormGalleryGrid extends React.Component {
 
     return (
       <React.Fragment key={this.state.gallery.galleryIndex}>
-        <h2>{this.state.gallery.title}</h2>
+        <h2>
+          {this.state.gallery.title}
+          <small>{this.state.gallery.date}</small>
+        </h2>
 
         <bem.AssetGalleryGrid m={gridModifier}>
           {this.state.gallery.medias.map(
