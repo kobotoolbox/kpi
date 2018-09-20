@@ -107,10 +107,16 @@ export default class FormGallery extends React.Component {
     // CASE: some data already loaded and possibly loading more
     else {
       const filteredGalleries = this.state.galleries.filter(this.isGalleryMatchingSearchQuery);
+
+      let visibleMediaCount = 0;
+      filteredGalleries.forEach((gallery) => {
+        visibleMediaCount += gallery.medias.length;
+      });
+
       return (
         <bem.FormView m={formViewModifiers}>
           <bem.AssetGallery>
-            <FormGalleryFilter/>
+            <FormGalleryFilter visibleMediaCount={visibleMediaCount}/>
 
             {filteredGalleries.map(
               (gallery) => {

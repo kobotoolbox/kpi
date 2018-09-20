@@ -64,7 +64,7 @@ export default class FormGalleryFilter extends React.Component {
       <bem.AssetGallery__heading>
         {this.state.totalMediaCount !== null &&
           <bem.AssetGallery__headingCount>
-            {t('Total images: ##count##').replace('##count##', this.state.totalMediaCount)}
+            {t('Images: ##visible##/##total##').replace('##visible##', this.props.visibleMediaCount).replace('##total##', this.state.totalMediaCount)}
           </bem.AssetGallery__headingCount>
         }
 
