@@ -26,7 +26,6 @@ $asset-row-spacing: 6px;
     left: -2 * $asset-row-spacing;
     width: calc(100% + #{4 * $asset-row-spacing});
     height: calc(100% + #{2 * $asset-row-spacing});
-    z-index: 2;
   }
 
   > .asset-row__cell {
@@ -148,7 +147,7 @@ $asset-row-spacing: 6px;
     transition: $hover-transition;
     background: $hover-asset-row;
     box-shadow: -5px 0px 15px 0px $hover-asset-row;
-    z-index: 3;
+    z-index: 1;
   }
 
   .asset-row__action-icon,
