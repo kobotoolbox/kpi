@@ -142,6 +142,7 @@ class LazyModelGroup:
 
                 return OrderedDict({
                     'xform_id': self.xform.id_string,
+                    'id': self.id,
                     'instance_uuid': self.uuid,
                     'username': username,
                     'status': self.status,

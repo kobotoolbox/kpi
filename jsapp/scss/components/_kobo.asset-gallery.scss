@@ -305,64 +305,49 @@ $gallery-transition: 250ms ease-in-out;
 
   .gallery-media-modal__sidebar {
     width: 25%;
+    padding: 30px;
     background: #fff;
     overflow: auto;
 
-    h3 {
-      font-weight: 400;
-      font-size: 18px;
-      margin-top: $s-gallery-spacing;
-    }
-
-    h5 {
-      color: $cool-blue;
-      margin: 0;
-      font-weight: bold;
-      font-size: 1.1em;
+    button {
+      display: block;
+      width: 100%;
+      text-align: center;
+      border: 0;
       cursor: pointer;
-    }
+      padding: 5px;
 
-    .gallery-media-modal__sidebar__grid {
-      display: flex;
-      flex-wrap: wrap;
-      margin-top: $s-gallery-spacing;
+      &:hover {
+        opacity: 0.8;
+      }
 
-      .gallery-media-modal__sidebar__grid-item {
-        width: calc(100%/3 - #{$s-gallery-spacing} * 2/3);
-        height: calc(100%/3);
-        margin-right: $s-gallery-spacing;
-        cursor: pointer;
-
-        .one-one {
-          background-color: $cool-lightgray;
-        }
-
-        &:hover {
-          opacity: 0.6666;
-        }
-
-        &:nth-child(3n) {
-          margin-right: 0;
-        }
-
-        &:nth-child(n + 4) {
-          margin-top: $s-gallery-spacing;;
-        }
-
-        &.gallery-media-modal__sidebar__grid-item--selected {
-          box-shadow: 0 0 0 2px white, 0 0 0 3px $cool-blue;
-        }
+      &:active {
+        opacity: 0.6;
       }
     }
   }
 
   .gallery-media-modal__sidebar-info {
-    margin: 50px 30px 0px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid $divider-color;
+    padding: $s-gallery-spacing 0;
+
+    &:not(:last-of-type) {
+      border-bottom: 1px solid $divider-color;
+    }
   }
 
-  .gallery-media-modal__sidebar-grid-wrap {
-    margin: 30px;
+  .gallery-media-modal__sidebar-title {
+    font-size: 18px;
+  }
+
+  .gallery-media-modal__sidebar-subtitle {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .gallery-media-modal__sidebar-title,
+  .gallery-media-modal__sidebar-subtitle,
+  .gallery-media-modal__sidebar p {
+    margin-top: 0;
+    margin-bottom: $s-gallery-spacing;
   }
 }

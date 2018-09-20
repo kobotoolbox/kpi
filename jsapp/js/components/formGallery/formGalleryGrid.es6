@@ -78,13 +78,19 @@ export default class FormGalleryGrid extends React.Component {
         <bem.AssetGalleryGrid m={gridModifier}>
           {this.state.gallery.medias.map(
             (media, index) => {
+              let mediaTitle;
+              if (this.state.filterGroupBy.value === GROUPBY_OPTIONS.submission.value) {
+                mediaTitle = media.questionLabel;
+              } else {
+                mediaTitle = media.submissionLabel;
+              }
               return (
                 <FormGalleryGridItem
                   key={index}
                   url={media.smallImage}
                   galleryIndex={this.state.gallery.galleryIndex}
                   mediaIndex={media.mediaIndex}
-                  mediaTitle={media.title}
+                  mediaTitle={mediaTitle}
                   date={media.date}
                 />
               );

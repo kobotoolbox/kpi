@@ -48,6 +48,7 @@ class ShadowModelsTest(TestCase):
 
         self.instance = _models.Instance(
             pk=1,
+            id='123',
             uuid='instance_uuid',
             status='test_status',
             xform=self.xform,
@@ -91,6 +92,7 @@ class ShadowModelsTest(TestCase):
     def test_instance_submission_property(self):
         submission = self.instance.submission
         self.assertEqual(submission['xform_id'], self.xform.id_string)
+        self.assertEqual(submission['id'], self.instance.id)
         self.assertEqual(submission['instance_uuid'], self.instance.uuid)
         self.assertEqual(submission['username'], self.user.username)
         self.assertEqual(submission['status'], self.instance.status)

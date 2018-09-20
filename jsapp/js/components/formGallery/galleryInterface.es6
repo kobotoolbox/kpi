@@ -349,7 +349,9 @@ class Gallery {
       this.medias[mediaIndex] = {
         mediaIndex: mediaIndex,
         mediaId: mediaData.id,
-        title: this.buildMediaTitle(mediaData, mediaIndex),
+        sid: mediaData.submission.id,
+        submissionLabel: this.buildSubmissionLabel(mediaIndex),
+        questionLabel: this.buildQuestionLabel(mediaData),
         date: this.buildMediaDate(mediaData),
         filename: mediaData.short_filename,
         smallImage: mediaData.small_download_url,
@@ -362,24 +364,22 @@ class Gallery {
   }
 
   buildMediaDate(mediaData) {
-    if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
-      return this.dateCreated;
-    } else if (mediaData.submission && mediaData.submission.date_created) {
+    if (mediaData.submission && mediaData.submission.date_created) {
       return formatTimeDate(mediaData.submission.date_created);
     } else {
-      console.error('Unknown media date created', mediaData);
+      return this.dateCreated;
     }
   }
 
-  buildMediaTitle(mediaData, mediaIndex) {
-    if (galleryStore.state.filterGroupBy.value === GROUPBY_OPTIONS.question.value) {
-      return t('Record ##number##').replace('##number##', parseInt(mediaIndex) + 1);
-    } else if (mediaData.question && mediaData.question.label) {
+  buildSubmissionLabel(mediaIndex) {
+    return t('Record ##number##').replace('##number##', parseInt(mediaIndex) + 1);
+  }
+
+  buildQuestionLabel(mediaData) {
+    if (mediaData.question && mediaData.question.label) {
       return mediaData.question.label;
-    } else if (this.title) {
-      return this.title;
     } else {
-      console.error('Unknown media title', mediaData);
+      return t('Unknown question');
     }
   }
 }

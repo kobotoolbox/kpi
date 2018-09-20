@@ -1,8 +1,10 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
+import mixins from '../../mixins';
 import bem from '../../bem';
 import ui from '../../ui';
 import stores from '../../stores';
@@ -11,9 +13,9 @@ import {
   galleryStore
 } from './galleryInterface';
 import {
-  assign,
   t
 } from '../../utils';
+import {MODAL_TYPES} from '../../constants';
 
 export default class GalleryMediaModal extends React.Component {
   constructor(props) {
@@ -33,7 +35,6 @@ export default class GalleryMediaModal extends React.Component {
           selectedMedia: storeChanges.selectedMedia,
           displayImageUrl: null
         });
-
         this.preloadMediaImage(storeChanges.selectedMedia.data);
       }
     });
@@ -59,6 +60,16 @@ export default class GalleryMediaModal extends React.Component {
   showMoreFrom(questionName) {
     galleryActions.setFilters({filterQuery: questionName});
     stores.pageState.hideModal();
+  }
+
+  openSubmissionModal() {
+    const currentAsset = this.currentAsset();
+    stores.pageState.switchModal({
+      type: MODAL_TYPES.SUBMISSION,
+      sid: this.state.selectedMedia.data.sid,
+      asset: currentAsset,
+      ids: [this.state.selectedMedia.data.sid]
+    });
   }
 
   goLeft() {
@@ -113,6 +124,30 @@ export default class GalleryMediaModal extends React.Component {
     );
   }
 
+  renderSidebar() {
+    return (
+      <React.Fragment>
+        <bem.GalleryMediaModal__sidebarInfo>
+          <bem.GalleryMediaModal__sidebarTitle>
+            {this.state.selectedMedia.data.questionLabel}
+          </bem.GalleryMediaModal__sidebarTitle>
+
+          <bem.GalleryMediaModal__sidebarSubtitle>
+            {this.state.selectedMedia.data.submissionLabel}
+          </bem.GalleryMediaModal__sidebarSubtitle>
+
+          <p>{this.state.selectedMedia.data.date}</p>
+        </bem.GalleryMediaModal__sidebarInfo>
+
+        <bem.GalleryMediaModal__sidebarInfo>
+          <button onClick={this.openSubmissionModal}>
+            {t('Submission details')}
+          </button>
+        </bem.GalleryMediaModal__sidebarInfo>
+      </React.Fragment>
+    );
+  }
+
   render() {
     return (
       <bem.GalleryMediaModal>
@@ -131,10 +166,7 @@ export default class GalleryMediaModal extends React.Component {
 
         <bem.GalleryMediaModal__sidebar>
           {!this.state.selectedMedia.isLoading &&
-            <bem.GalleryMediaModal__sidebarInfo>
-              <h3>{this.state.selectedMedia.data.title}</h3>
-              <p>{this.state.selectedMedia.data.date}</p>
-            </bem.GalleryMediaModal__sidebarInfo>
+            this.renderSidebar()
           }
         </bem.GalleryMediaModal__sidebar>
       </bem.GalleryMediaModal>
@@ -143,3 +175,8 @@ export default class GalleryMediaModal extends React.Component {
 };
 
 reactMixin(GalleryMediaModal.prototype, Reflux.ListenerMixin);
+reactMixin(GalleryMediaModal.prototype, mixins.contextRouter);
+
+GalleryMediaModal.contextTypes = {
+  router: PropTypes.object
+};

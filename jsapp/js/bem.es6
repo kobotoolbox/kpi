@@ -266,9 +266,8 @@ bem.GalleryMediaModal__contentImage = bem.GalleryMediaModal.__('content-image', 
 bem.GalleryMediaModal__contentArrow = bem.GalleryMediaModal.__('content-arrow', '<button>');
 bem.GalleryMediaModal__sidebar = bem.GalleryMediaModal.__('sidebar', '<aside>');
 bem.GalleryMediaModal__sidebarInfo = bem.GalleryMediaModal.__('sidebar-info', '<div>');
-bem.GalleryMediaModal__sidebarGridWrap = bem.GalleryMediaModal.__('sidebar-grid-wrap', '<div>');
-bem.GalleryMediaModal__sidebarGrid = bem.GalleryMediaModal.__('sidebar__grid', '<div>');
-bem.GalleryMediaModal__sidebarGridItem = bem.GalleryMediaModal.__('sidebar__grid-item', '<div>');
+bem.GalleryMediaModal__sidebarTitle = bem.GalleryMediaModal.__('sidebar-title', '<div>');
+bem.GalleryMediaModal__sidebarSubtitle = bem.GalleryMediaModal.__('sidebar-subtitle', '<div>');
 
 bem.create = BEM;
 
