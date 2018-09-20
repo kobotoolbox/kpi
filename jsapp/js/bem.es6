@@ -253,6 +253,7 @@ bem.AssetGallery__headingIconButton = bem.AssetGallery.__('heading__icon-button'
 bem.AssetGallery__loadMore = bem.AssetGallery.__('load-more', '<div>');
 bem.AssetGallery__loadMoreButton = bem.AssetGallery.__('load-more__button', '<button>');
 bem.AssetGallery__loadMoreMessage = bem.AssetGallery.__('load-more__message', '<p>');
+bem.AssetGallery__emptyMessage = bem.AssetGallery.__('empty-message', '<p>');
 
 bem.AssetGalleryGrid = BEM('asset-gallery-grid');
 bem.AssetGalleryGrid__item = bem.AssetGalleryGrid.__('item', '<div>');

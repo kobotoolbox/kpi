@@ -127,6 +127,12 @@ $gallery-transition: 250ms ease-in-out;
   }
 }
 
+.asset-gallery__empty-message {
+  color: $cool-gray;
+  text-align: center;
+  padding: $s-gallery-spacing;
+}
+
 .asset-gallery-grid {
   display: flex;
   flex-wrap: wrap;

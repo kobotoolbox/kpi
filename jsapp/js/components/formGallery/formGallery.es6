@@ -106,22 +106,28 @@ export default class FormGallery extends React.Component {
 
     // CASE: some data already loaded and possibly loading more
     else {
+      const filteredGalleries = this.state.galleries.filter(this.isGalleryMatchingSearchQuery);
       return (
         <bem.FormView m={formViewModifiers}>
           <bem.AssetGallery>
             <FormGalleryFilter/>
 
-            {this.state.galleries.map(
-              (gallery, i) => {
-                if (this.isGalleryMatchingSearchQuery(gallery)) {
-                  return (
-                    <FormGalleryGrid key={i} galleryIndex={gallery.galleryIndex}/>
-                  );
-                } else {
-                  return null;
-                }
+            {filteredGalleries.map(
+              (gallery) => {
+                return (
+                  <FormGalleryGrid
+                    key={gallery.galleryIndex}
+                    galleryIndex={gallery.galleryIndex}
+                  />
+                );
               }
             )}
+
+            {filteredGalleries.length === 0 &&
+              <bem.AssetGallery__emptyMessage>
+                {t('Your filter matches no galleries')}
+              </bem.AssetGallery__emptyMessage>
+            }
 
             { this.state.nextGalleriesPageUrl &&
               this.state.filterQuery === '' &&
