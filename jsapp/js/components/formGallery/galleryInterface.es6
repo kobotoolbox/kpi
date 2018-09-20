@@ -295,7 +295,6 @@ class Gallery {
     this.galleryIndex = galleryData.index;
     this.isLoadingMedias = false;
     this.medias = [];
-    this.loadedMediaCount = 0;
     this.totalMediaCount = galleryData.attachments.count;
     this.title = this.buildGalleryTitle(galleryData);
     this.dateCreated = this.buildGalleryDate(galleryData);
@@ -304,7 +303,7 @@ class Gallery {
   }
 
   hasMoreMediasToLoad() {
-    return this.loadedMediaCount < this.totalMediaCount;
+    return this.medias.length < this.totalMediaCount;
   }
 
   setIsLoadingMedias(isLoadingMedias) {
@@ -312,10 +311,10 @@ class Gallery {
   }
 
   guessNextPageToLoad() {
-    if (this.totalMediaCount === this.loadedMediaCount) {
+    if (this.totalMediaCount === this.medias.length) {
       return null;
     } else {
-      const currentPage = this.loadedMediaCount / PAGE_SIZE;
+      const currentPage = this.medias.length / PAGE_SIZE;
       return currentPage + 1;
     }
   }
@@ -342,32 +341,35 @@ class Gallery {
     return this.medias.find((media) => {return media.mediaIndex === mediaIndex}) || null;
   }
 
-  addMedias(medias, pageOffset=0) {
-    medias.forEach((mediaData, index) => {
+  addMedias(newMedias, pageOffset=0) {
+    newMedias.forEach((mediaData, index) => {
       // TODO we're guessing mediaIndex here, maybe backend can provide real value
       const mediaIndex = index + (pageOffset * PAGE_SIZE);
-      this.medias[mediaIndex] = {
-        mediaIndex: mediaIndex,
-        mediaId: mediaData.id,
-        sid: mediaData.submission.id,
-        submissionLabel: this.buildSubmissionLabel(mediaIndex),
-        questionLabel: this.buildQuestionLabel(mediaData),
-        date: this.buildMediaDate(mediaData),
-        filename: mediaData.short_filename,
-        smallImage: mediaData.small_download_url,
-        mediumImage: mediaData.medium_download_url,
-        largeImage: mediaData.large_download_url,
-        canViewSubmission: mediaData.can_view_submission
-      }
+      this.medias[mediaIndex] = new ImageMedia(mediaData, mediaIndex, this.dateCreated);
     });
-    this.loadedMediaCount += medias.length;
+  }
+}
+
+class ImageMedia {
+  constructor(mediaData, mediaIndex, galleryDateCreated) {
+    this.mediaIndex = mediaIndex;
+    this.mediaId = mediaData.id;
+    this.sid = mediaData.submission.id;
+    this.submissionLabel = this.buildSubmissionLabel(mediaIndex);
+    this.questionLabel = this.buildQuestionLabel(mediaData);
+    this.date = this.buildMediaDate(mediaData, galleryDateCreated);
+    this.filename = mediaData.short_filename;
+    this.smallImage = mediaData.small_download_url;
+    this.mediumImage = mediaData.medium_download_url;
+    this.largeImage = mediaData.large_download_url;
+    this.canViewSubmission = mediaData.can_view_submission;
   }
 
-  buildMediaDate(mediaData) {
+  buildMediaDate(mediaData, galleryDateCreated) {
     if (mediaData.submission && mediaData.submission.date_created) {
       return formatTimeDate(mediaData.submission.date_created);
     } else {
-      return this.dateCreated;
+      return galleryDateCreated;
     }
   }
 
