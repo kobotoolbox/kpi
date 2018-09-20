@@ -144,10 +144,11 @@ export default class GalleryMediaModal extends React.Component {
           </bem.GalleryMediaModal__sidebarSubtitle>
 
           <p>{this.state.selectedMedia.data.date}</p>
-        </bem.GalleryMediaModal__sidebarInfo>
 
-        <bem.GalleryMediaModal__sidebarInfo>
-          <button onClick={this.openSubmissionModal}>
+          <button
+            className='mdl-button mdl-button--colored mdl-button--raised'
+            onClick={this.openSubmissionModal}
+          >
             {t('Submission details')}
           </button>
         </bem.GalleryMediaModal__sidebarInfo>
