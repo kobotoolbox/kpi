@@ -3,8 +3,6 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
-import { dataInterface } from '../../dataInterface';
-import stores from '../../stores';
 import {
   galleryActions,
   galleryStore
@@ -13,10 +11,8 @@ import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
 import {
   t,
-  assign,
-  formatTimeDate
+  assign
 } from '../../utils';
-import {MODAL_TYPES} from '../../constants';
 
 export default class FormGallery extends React.Component {
   constructor(props) {

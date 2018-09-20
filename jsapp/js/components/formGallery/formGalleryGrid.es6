@@ -4,18 +4,12 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import bem from '../../bem';
 import FormGalleryGridItem from './formGalleryGridItem';
-import stores from '../../stores';
 import {
-  PAGE_SIZE,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
 } from './galleryInterface';
-import {
-  t,
-  formatTimeDate
-} from '../../utils';
-import {MODAL_TYPES} from '../../constants';
+import {t} from '../../utils';
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {

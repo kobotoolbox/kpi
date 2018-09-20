@@ -6,15 +6,12 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import mixins from '../../mixins';
 import bem from '../../bem';
-import ui from '../../ui';
 import stores from '../../stores';
 import {
   galleryActions,
   galleryStore
 } from './galleryInterface';
-import {
-  t
-} from '../../utils';
+import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
 export default class GalleryMediaModal extends React.Component {

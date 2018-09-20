@@ -6,8 +6,6 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import TextBox from '../textBox';
 import bem from '../../bem';
-import ui from '../../ui';
-import stores from '../../stores';
 import {
   ORDER_OPTIONS,
   GROUPBY_OPTIONS,
