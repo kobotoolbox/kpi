@@ -13,9 +13,7 @@ bem.Loading__msg = bem.Loading.__('msg');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
-
 bem.AssetRow__cellmeta    = bem.AssetRow.__('cellmeta');
-bem.AssetRow__name        = bem.AssetRow.__('name', '<span>');
 bem.AssetRow__description = bem.AssetRow.__('description', '<span>');
 bem.AssetRow__tags        = bem.AssetRow.__('tags');
 bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
