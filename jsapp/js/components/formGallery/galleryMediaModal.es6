@@ -108,6 +108,14 @@ export default class GalleryMediaModal extends React.Component {
           title={this.state.selectedMedia.data.filename}
          />
 
+         {this.state.displayImageUrl === null &&
+           <bem.Loading>
+             <bem.Loading__inner>
+               <i />
+             </bem.Loading__inner>
+           </bem.Loading>
+         }
+
         <bem.GalleryMediaModal__contentArrow
           onClick={this.goRight}
           disabled={this.state.selectedMedia.isLast}
