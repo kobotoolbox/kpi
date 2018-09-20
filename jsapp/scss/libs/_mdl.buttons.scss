@@ -78,6 +78,10 @@ input.mdl-button[type="submit"] {
   padding: 0;
   overflow: hidden;
 
+  &[data-tip] {
+    overflow: visible;
+  }
+
   i {
     font-size: 32px;
   }
