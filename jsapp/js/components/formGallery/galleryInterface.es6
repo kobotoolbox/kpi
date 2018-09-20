@@ -80,8 +80,10 @@ class GalleryStore extends Reflux.Store {
   getWipedGalleriesState() {
     return {
       galleries: [],
+      filteredGalleries: [],
       nextGalleriesPageUrl: null,
       totalMediaCount: null,
+      filteredMediaCount: null,
       selectedMedia: new SelectedMedia()
     }
   }
@@ -169,10 +171,12 @@ class GalleryStore extends Reflux.Store {
 
   onSetFilters(filters) {
     let needsWipeAndLoad = false;
+    let needsUpdateFilteredGalleries = false;
 
     const updateObj = {};
     if (typeof filters.filterQuery !== 'undefined') {
       updateObj.filterQuery = filters.filterQuery;
+      needsUpdateFilteredGalleries = true;
     }
     if (typeof filters.filterGroupBy !== 'undefined') {
       updateObj.filterGroupBy = filters.filterGroupBy;
@@ -190,6 +194,9 @@ class GalleryStore extends Reflux.Store {
 
     if (needsWipeAndLoad) {
       this.wipeAndLoadData();
+    }
+    if (needsUpdateFilteredGalleries) {
+      this.updateFilteredGalleries();
     }
   }
 
@@ -212,12 +219,41 @@ class GalleryStore extends Reflux.Store {
     }
   }
 
-  onMediasAdded() {
+  onGalleriesUpdated() {
     // if selectedMedia is waiting for data reapply it
     if (this.state.selectedMedia.isLoading) {
       this.setState({
         selectedMedia: new SelectedMedia(this.state.selectedMedia.galleryIndex, this.state.selectedMedia.mediaIndex)
       })
+    }
+    this.updateFilteredGalleries();
+  }
+
+  /*
+  filtering
+  */
+
+  updateFilteredGalleries() {
+    const filteredGalleries = this.state.galleries.filter(this.isGalleryMatchingSearchQuery.bind(this));
+    let filteredMediaCount = 0;
+    filteredGalleries.forEach((gallery) => {
+      filteredMediaCount += gallery.medias.length;
+    });
+    this.setState({
+      filteredGalleries,
+      filteredMediaCount
+    });
+  }
+
+  isGalleryMatchingSearchQuery(gallery) {
+    if (this.state.filterQuery === '') {
+      return true;
+    } else {
+      const searchRegEx = new RegExp(this.state.filterQuery, 'i');
+      return (
+        searchRegEx.test(gallery.title) ||
+        searchRegEx.test(gallery.dateCreated)
+      );
     }
   }
 
@@ -241,7 +277,7 @@ class GalleryStore extends Reflux.Store {
           nextGalleriesPageUrl: response.next || null,
           isLoadingGalleries: false
         });
-        this.onMediasAdded();
+        this.onGalleriesUpdated();
       });
   }
 
@@ -255,7 +291,7 @@ class GalleryStore extends Reflux.Store {
           nextGalleriesPageUrl: response.next || null,
           isLoadingGalleries: false
         });
-        this.onMediasAdded();
+        this.onGalleriesUpdated();
       });
   }
 
@@ -277,7 +313,7 @@ class GalleryStore extends Reflux.Store {
         targetGallery.addMedias(response.attachments.results, pageToLoad - 1);
         targetGallery.setIsLoadingMedias(false);
         this.trigger({galleries: this.state.galleries});
-        this.onMediasAdded();
+        this.onGalleriesUpdated();
       });
   }
 

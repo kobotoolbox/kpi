@@ -14,7 +14,10 @@ import {
   galleryActions,
   galleryStore
 } from './galleryInterface';
-import { t } from '../../utils';
+import {
+  t,
+  assign
+} from '../../utils';
 
 const groupByOptions = [
   GROUPBY_OPTIONS.question,
@@ -28,12 +31,7 @@ const orderOptions = [
 export default class FormGalleryFilter extends React.Component {
   constructor(props){
     super(props);
-    this.state = {
-      totalMediaCount: galleryStore.state.totalMediaCount,
-      filterQuery: galleryStore.state.filterQuery,
-      filterGroupBy: galleryStore.state.filterGroupBy,
-      filterOrder: galleryStore.state.filterOrder
-    };
+    this.state = assign({}, galleryStore.state);
     autoBind(this);
   }
 
@@ -64,7 +62,7 @@ export default class FormGalleryFilter extends React.Component {
       <bem.AssetGallery__heading>
         {this.state.totalMediaCount !== null &&
           <bem.AssetGallery__headingCount>
-            {t('Images: ##visible##/##total##').replace('##visible##', this.props.visibleMediaCount).replace('##total##', this.state.totalMediaCount)}
+            {t('Images: ##visible##/##total##').replace('##visible##', this.state.filteredMediaCount).replace('##total##', this.state.totalMediaCount)}
           </bem.AssetGallery__headingCount>
         }
 

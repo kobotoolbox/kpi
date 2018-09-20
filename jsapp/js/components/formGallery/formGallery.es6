@@ -21,7 +21,7 @@ import {MODAL_TYPES} from '../../constants';
 export default class FormGallery extends React.Component {
   constructor(props) {
     super(props);
-    this.state = this.getInitialState();
+    this.state = assign({}, galleryStore.state);
     autoBind(this);
   }
 
@@ -38,30 +38,12 @@ export default class FormGallery extends React.Component {
     galleryActions.setFormUid(null);
   }
 
-  getInitialState() {
-    const stateObj = {}
-    assign(stateObj, galleryStore.state);
-    return stateObj;
-  }
-
   hasAnyMediaQuestions() {
     return this.props.mediaQuestions.length !== 0;
   }
 
   loadMoreGalleries() {
     galleryActions.loadMoreGalleries();
-  }
-
-  isGalleryMatchingSearchQuery(gallery) {
-    if (this.state.filterQuery === '') {
-      return true;
-    } else {
-      const searchRegEx = new RegExp(this.state.filterQuery, 'i');
-      return (
-        searchRegEx.test(gallery.title) ||
-        searchRegEx.test(gallery.dateCreated)
-      );
-    }
   }
 
   render() {
@@ -106,19 +88,12 @@ export default class FormGallery extends React.Component {
 
     // CASE: some data already loaded and possibly loading more
     else {
-      const filteredGalleries = this.state.galleries.filter(this.isGalleryMatchingSearchQuery);
-
-      let visibleMediaCount = 0;
-      filteredGalleries.forEach((gallery) => {
-        visibleMediaCount += gallery.medias.length;
-      });
-
       return (
         <bem.FormView m={formViewModifiers}>
           <bem.AssetGallery>
-            <FormGalleryFilter visibleMediaCount={visibleMediaCount}/>
+            <FormGalleryFilter/>
 
-            {filteredGalleries.map(
+            {this.state.filteredGalleries.map(
               (gallery) => {
                 return (
                   <FormGalleryGrid
@@ -129,14 +104,13 @@ export default class FormGallery extends React.Component {
               }
             )}
 
-            {filteredGalleries.length === 0 &&
+            {this.state.filteredGalleries.length === 0 &&
               <bem.AssetGallery__emptyMessage>
                 {t('Your filter matches no galleries')}
               </bem.AssetGallery__emptyMessage>
             }
 
             { this.state.nextGalleriesPageUrl &&
-              this.state.filterQuery === '' &&
               <bem.AssetGallery__loadMore>
                 {this.state.isLoadingGalleries &&
                   <bem.AssetGallery__loadMoreMessage>
