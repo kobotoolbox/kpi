@@ -49,7 +49,11 @@ export const galleryActions = Reflux.createActions([
 
 galleryActions.openMediaModal.listen(({galleryIndex, mediaIndex}) => {
   galleryActions.selectGalleryMedia({galleryIndex, mediaIndex});
-  stores.pageState.showModal({type: MODAL_TYPES.GALLERY_MEDIA});
+  if (stores.pageState.modal === false) {
+    stores.pageState.showModal({type: MODAL_TYPES.GALLERY_MEDIA});
+  } else {
+    stores.pageState.switchModal({type: MODAL_TYPES.GALLERY_MEDIA});
+  }
 });
 
 class GalleryStore extends Reflux.Store {

@@ -13,6 +13,7 @@ import ui from '../ui';
 import alertify from 'alertifyjs';
 import icons from '../../xlform/src/view.icons';
 import Select from 'react-select';
+import {galleryActions} from './formGallery/galleryInterface';
 
 import {
   VALIDATION_STATUSES,
@@ -183,6 +184,13 @@ class Submission extends React.Component {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
       promptRefresh: false
+    });
+  }
+
+  showMediaModal() {
+    galleryActions.openMediaModal({
+      galleryIndex: parseInt(this.props.galleryIndex),
+      mediaIndex: parseInt(this.props.mediaIndex)
     });
   }
 
@@ -419,6 +427,17 @@ class Submission extends React.Component {
 
         {this.props.asset.deployment__active &&
           <bem.FormModal__group>
+            {typeof this.props.galleryIndex !== 'undefined' &&
+              typeof this.props.mediaIndex !== 'undefined' &&
+              <button
+                className='mdl-button mdl-button--raised mdl-button--colored'
+                onClick={this.showMediaModal}
+              >
+                {t('back')}
+              </button>
+            }
+
+
             {translationOptions.length > 1 &&
               <div className='switch--label-language'>
                 <label>{t('Language:')}</label>

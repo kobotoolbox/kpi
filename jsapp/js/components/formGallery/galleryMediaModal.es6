@@ -65,7 +65,9 @@ export default class GalleryMediaModal extends React.Component {
       type: MODAL_TYPES.SUBMISSION,
       sid: this.state.selectedMedia.data.sid,
       asset: currentAsset,
-      ids: [this.state.selectedMedia.data.sid]
+      ids: [this.state.selectedMedia.data.sid],
+      galleryIndex: this.state.selectedMedia.galleryIndex,
+      mediaIndex: this.state.selectedMedia.mediaIndex
     });
   }
 

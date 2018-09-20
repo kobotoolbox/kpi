@@ -203,7 +203,10 @@ class Modal extends React.Component {
               <Submission sid={this.state.sid}
                           asset={this.props.params.asset}
                           ids={this.props.params.ids}
-                          tableInfo={this.props.params.tableInfo || false} />
+                          tableInfo={this.props.params.tableInfo || false}
+                          galleryIndex={this.props.params.galleryIndex}
+                          mediaIndex={this.props.params.mediaIndex}
+              />
             }
             { this.props.params.type == MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>
