@@ -237,7 +237,7 @@ $gallery-transition: 250ms ease-in-out;
 
   .gallery-media-modal__content {
     height: 100%;
-    width: 75%;
+    flex: 1;
     position: relative;
     background: $trueblack;
     overflow: hidden;
@@ -319,25 +319,13 @@ $gallery-transition: 250ms ease-in-out;
 
   .gallery-media-modal__sidebar {
     width: 25%;
-    padding: 30px;
+    min-width: 250px;
+    padding: 50px 30px 30px;
     background: #fff;
     overflow: auto;
 
     button {
-      display: block;
-      width: 100%;
-      text-align: center;
-      border: 0;
-      cursor: pointer;
-      padding: 5px;
-
-      &:hover {
-        opacity: 0.8;
-      }
-
-      &:active {
-        opacity: 0.6;
-      }
+      margin-top: 2 * $s-gallery-spacing;
     }
   }
 
