@@ -47,7 +47,18 @@ class CopyTeamPermissions extends React.Component {
     this.setState({ isCopyFormVisible: !this.state.isCopyFormVisible });
   }
 
-  updateTeamPermissionsInput(asset) {
+  getSelectedProjectOption() {
+    if (this.state.sourceUid) {
+      return {
+        value: this.state.sourceUid,
+        label: this.state.sourceName
+      }
+    } else {
+      return false;
+    }
+  }
+
+  onSelectedProjectChange(asset) {
     if (asset !== null) {
       this.setState({
         sourceUid: asset.value,
@@ -125,11 +136,14 @@ class CopyTeamPermissions extends React.Component {
               <Select
                 id='teamPermissions'
                 ref='sourceUid'
-                value={this.state.sourceUid}
-                clearable={false}
+                value={this.getSelectedProjectOption()}
+                isClearable={false}
                 placeholder={t('Select source project…')}
                 options={availableOptions}
-                onChange={this.updateTeamPermissionsInput}
+                onChange={this.onSelectedProjectChange}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
               />
               <button
                 id='copyTeamPermissionsImportButton'

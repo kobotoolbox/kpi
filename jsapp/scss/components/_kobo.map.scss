@@ -28,7 +28,7 @@
     background: white;
     z-index: 700;
     cursor: pointer;
-    color: lighten($black, 40%);
+    color: $cool-silver;
 
     &--heatmap {
       top: 118px;
@@ -214,7 +214,7 @@ body .leaflet-control-layers,
     }
 
     &.selected {
-      background: #F5F5F5;
+      background: $cool-whitegray;
 
       &:after {
         // fa-circle

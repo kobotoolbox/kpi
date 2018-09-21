@@ -11,21 +11,22 @@ class SurveyScope {
   add_row_to_question_library (row) {
     if (row.constructor.kls === 'Row') {
       var rowJSON = row.toJSON2();
+      let content;
       if (rowJSON.type === 'select_one' || rowJSON.type === 'select_multiple') {
         var surv = this.survey.toFlatJSON();
         var choices = surv.choices.filter(s => s.list_name === rowJSON.select_from_list_name);
-        var content = JSON.stringify({
+        content = JSON.stringify({
           survey: [
             row.toJSON2()
           ],
           choices: choices || undefined
         });
       } else {
-        JSON.stringify({
+        content = JSON.stringify({
           survey: [
             row.toJSON2()
           ]
-        })
+        });
       }
       actions.resources.createResource.triggerAsync({
         asset_type: 'question',

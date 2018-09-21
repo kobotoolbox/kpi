@@ -1,0 +1,69 @@
+.kobo-select-label {
+  display: block;
+  color: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  opacity: 0.38;
+
+  & + .kobo-select {
+    margin-top: 10px;
+  }
+}
+
+.kobo-select {
+  .kobo-select__control {
+    box-shadow: none;
+    border: none;
+    border-bottom: 1px solid $cool-lightgray;
+    border-radius: 0;
+    background-color: white;
+    transition: border-bottom-color 250ms;
+
+    &:hover {
+      border-bottom-color: $cool-lightgray;
+    }
+
+    &.kobo-select__control--is-focused {
+      border-bottom-color: $cool-blue;
+    }
+  }
+
+  .kobo-select__value-container {}
+
+  .kobo-select__input input {
+    // HACK: most of the global styles are removed by react-select itself, but
+    // some we need to remove ourself (until our global input[type="text"]
+    // styles are removed)
+    transition: none !important;
+  }
+
+  .kobo-select__placeholder {
+    color: $cool-gray;
+  }
+
+  .kobo-select__indicators {}
+
+  .kobo-select__indicator-separator {
+    display: none;
+  }
+
+  .kobo-select__menu {
+    // getting select menus to appear over checkboxes
+    z-index: 2;
+    @include box-shadow;
+  }
+
+  .kobo-select__menu-list {
+    max-height: 36px * 3.5 + 8px; // display 3.5 items
+  }
+
+  .kobo-select__option {
+    &.kobo-select__option--is-focused {
+      background-color: lighten($cool-blue, 40%);
+    }
+    &.kobo-select__option--is-selected {
+      background-color: $cool-blue;
+    }
+  }
+}

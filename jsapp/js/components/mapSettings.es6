@@ -342,22 +342,22 @@ class MapSettings extends React.Component {
           </div>
         </ui.Modal.Body>
 
-        {(activeTab === 'geoquestion' || activeTab === 'colors') ?
-          <ui.Modal.Footer>
+        {(activeTab === 'geoquestion' || activeTab === 'colors') &&
+          <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) &&
-              <button
-                className='mdl-button mdl-button--colored'
-                onClick={this.resetMapSettings}>
+              <bem.Modal__footerButton
+                onClick={this.resetMapSettings}
+              >
                 {t('Reset')}
-              </button>
+              </bem.Modal__footerButton>
             }
-            <button
-              className='mdl-button primary'
-              onClick={this.saveMapSettings}>
+            <bem.Modal__footerButton
+              m='primary'
+              onClick={this.saveMapSettings}
+            >
               {t('Save')}
-            </button>
-          </ui.Modal.Footer>
-          : null
+            </bem.Modal__footerButton>
+          </bem.Modal__footer>
         }
       </bem.GraphSettings>
     );

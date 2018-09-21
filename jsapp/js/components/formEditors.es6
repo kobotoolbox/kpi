@@ -9,6 +9,7 @@ import editableFormMixin from '../editorMixins/editableForm';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import moment from 'moment';
+import TextBox from './textBox';
 import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
@@ -192,7 +193,7 @@ export class ProjectSettings extends React.Component {
   onImportUrlChange(value) {
     this.setState({
       importUrl: value,
-      importUrlButtonEnabled: value.length > 6 ? true : false,
+      importUrlButtonEnabled: isAValidUrl(value),
       importUrlButton: t('Import')
     });
   }
@@ -308,7 +309,7 @@ export class ProjectSettings extends React.Component {
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail(function(r){
-      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
+      alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
 
@@ -454,8 +455,12 @@ export class ProjectSettings extends React.Component {
                 alertify.error(t('Failed to reload project after upload!'));
               });
             },
-            () => {
-              alertify.error(t('Could not initialize XLSForm upload!'));
+            (response) => {
+              if (response && response.messages && response.messages.error) {
+                alertify.error(response.messages.error);
+              } else {
+                alertify.error(t('Could not initialize XLSForm upload!'));
+              }
             }
           );
         },
@@ -495,7 +500,7 @@ export class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--form-source'>
+      <bem.FormModal__form className='project-settings project-settings--form-source'>
         {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
           <bem.Modal__subheader>
             {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
@@ -527,34 +532,35 @@ export class ProjectSettings extends React.Component {
             {t('Import an XLSForm via URL')}
           </button>
         </bem.FormModal__item>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--choose-template'>
+      <bem.FormModal__form className='project-settings project-settings--choose-template'>
         <TemplatesList onSelectTemplate={this.onTemplateChange}/>
 
         <bem.Modal__footer>
+          {this.renderBackButton()}
+
           <bem.Modal__footerButton
             m='primary'
+            type='submit'
             onClick={this.applyTemplate}
             disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
             className='mdl-js-button'
           >
             {this.state.applyTemplateButton}
           </bem.Modal__footerButton>
-
-          {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings project-settings--upload-file'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
@@ -581,13 +587,13 @@ export class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__item className='project-settings project-settings--import-url'>
+      <bem.FormModal__form className='project-settings project-settings--import-url'>
         <div className='intro'>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
           <a href={formViaUrlHelpLink} target='_blank'>
@@ -595,32 +601,30 @@ export class ProjectSettings extends React.Component {
           </a>
         </div>
 
-        <label htmlFor='url'>
-          {t('URL')}
-        </label>
-
-        <DebounceInput
-          type='text'
-          id='importUrl'
-          debounceTimeout={300}
-          value={this.state.importUrl}
-          placeholder='https://'
-          onChange={event => this.onImportUrlChange(event.target.value)}
-        />
+        <bem.FormModal__item>
+          <TextBox
+            type='url'
+            label={t('URL')}
+            placeholder='https://'
+            value={this.state.importUrl}
+            onChange={this.onImportUrlChange}
+          />
+        </bem.FormModal__item>
 
         <bem.Modal__footer>
+          {this.renderBackButton()}
+
           <bem.Modal__footerButton
             m='primary'
+            type='submit'
             onClick={this.importFromURL}
             disabled={!this.state.importUrlButtonEnabled}
             className='mdl-js-button'
           >
             {this.state.importUrlButton}
           </bem.Modal__footerButton>
-
-          {this.renderBackButton()}
         </bem.Modal__footer>
-      </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   }
 
@@ -693,6 +697,9 @@ export class ProjectSettings extends React.Component {
               value={this.state.sector}
               onChange={this.onSectorChange}
               options={sectors}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
             />
           </bem.FormModal__item>
 
@@ -705,6 +712,9 @@ export class ProjectSettings extends React.Component {
               value={this.state.country}
               onChange={this.onCountryChange}
               options={countries}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
             />
           </bem.FormModal__item>
 
@@ -724,8 +734,14 @@ export class ProjectSettings extends React.Component {
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.Modal__footer>
+              {/* Don't allow going back if asset already exist */}
+              {!this.state.formAsset &&
+                this.renderBackButton()
+              }
+
               <bem.Modal__footerButton
                 m='primary'
+                type='submit'
                 onClick={this.handleSubmit}
                 className='mdl-js-button'
                 disabled={this.state.isSubmitPending}
@@ -734,11 +750,6 @@ export class ProjectSettings extends React.Component {
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
-
-              {/* Don't allow going back if asset already exist */}
-              {!this.state.formAsset &&
-                this.renderBackButton()
-              }
             </bem.Modal__footer>
           }
 
@@ -763,6 +774,7 @@ export class ProjectSettings extends React.Component {
       return (
         <bem.Modal__footerButton
           m='back'
+          type='button'
           onClick={this.displayPreviousStep}
           disabled={isBackButtonDisabled}
         >
@@ -860,7 +872,7 @@ export class ProjectDownloads extends React.Component {
       let url = this.props.asset.deployment__data_download_links[
         this.state.type
       ];
-      if (this.state.type == 'xls' || this.state.type == 'csv') {
+      if (['xls', 'csv', 'spss_labels'].includes(this.state.type)) {
         url = `${dataInterface.rootUrl}/exports/`; // TODO: have the backend pass the URL in the asset
         let postData = {
           source: this.props.asset.url,
@@ -1008,42 +1020,44 @@ export class ProjectDownloads extends React.Component {
                         <option value='spss_labels'>{t('SPSS Labels')}</option>
                       </select>
                     </bem.FormModal__item>
-                  , this.state.type == 'xls' || this.state.type == 'csv' ? [
-                      <bem.FormModal__item key={'x'} m='export-format'>
-                        <label htmlFor='lang'>{t('Value and header format')}</label>
-                        <select name='lang' value={this.state.lang}
-                            onChange={this.langChange}>
-                          <option value='xml'>{t('XML values and headers')}</option>
-                          { translations.length < 2 &&
-                            <option value='_default'>{t('Labels')}</option>
-                          }
-                          {
-                            translations && translations.map((t, i) => {
-                              if (t) {
-                                return <option value={t} key={i}>{t}</option>;
-                              }
-                            })
-                          }
-                        </select>
-                      </bem.FormModal__item>,
-                      <bem.FormModal__item key={'h'} m='export-group-headers'>
-                        <input type='checkbox' id='hierarchy_in_labels'
-                          value={this.state.hierInLabels}
-                          onChange={this.hierInLabelsChange}
-                        />
-                        <label htmlFor='hierarchy_in_labels'>
-                          {t('Include groups in headers')}
-                        </label>
-                      </bem.FormModal__item>,
-                      this.state.hierInLabels ?
-                        <bem.FormModal__item key={'g'}>
-                          <label htmlFor='group_sep'>{t('Group separator')}</label>
-                          <input type='text' name='group_sep'
-                            value={this.state.groupSep}
-                            onChange={this.groupSepChange}
+                  , ['xls', 'csv', 'spss_labels'].includes(this.state.type) ? [
+                      ['xls', 'csv'].includes(this.state.type) ? [
+                        <bem.FormModal__item key={'x'} m='export-format'>
+                          <label htmlFor='lang'>{t('Value and header format')}</label>
+                          <select name='lang' value={this.state.lang}
+                              onChange={this.langChange}>
+                            <option value='xml'>{t('XML values and headers')}</option>
+                            { translations.length < 2 &&
+                              <option value='_default'>{t('Labels')}</option>
+                            }
+                            {
+                              translations && translations.map((t, i) => {
+                                if (t) {
+                                  return <option value={t} key={i}>{t}</option>;
+                                }
+                              })
+                            }
+                          </select>
+                        </bem.FormModal__item>,
+                        <bem.FormModal__item key={'h'} m='export-group-headers'>
+                          <input type='checkbox' id='hierarchy_in_labels'
+                            value={this.state.hierInLabels}
+                            onChange={this.hierInLabelsChange}
                           />
-                        </bem.FormModal__item>
-                      : null,
+                          <label htmlFor='hierarchy_in_labels'>
+                            {t('Include groups in headers')}
+                          </label>
+                        </bem.FormModal__item>,
+                        this.state.hierInLabels ?
+                          <bem.FormModal__item key={'g'}>
+                            <label htmlFor='group_sep'>{t('Group separator')}</label>
+                            <input type='text' name='group_sep'
+                              value={this.state.groupSep}
+                              onChange={this.groupSepChange}
+                            />
+                          </bem.FormModal__item>
+                        : null,
+                      ] : null,
                       dvcount > 1 ?
                         <bem.FormModal__item key={'v'} m='export-fields-from-all-versions'>
                           <input type='checkbox' id='fields_from_all_versions'
@@ -1094,7 +1108,7 @@ export class ProjectDownloads extends React.Component {
                       <bem.FormView__group m='items' key={item.uid}
                         className={timediff < 45 ? 'recent' : ''}>
                         <bem.FormView__label m='type'>
-                          {item.data.type}
+                          {item.data.type == 'spss_labels' ? 'spss' : item.data.type}
                         </bem.FormView__label>
                         <bem.FormView__label m='date'>
                           {formatTime(item.date_created)}
