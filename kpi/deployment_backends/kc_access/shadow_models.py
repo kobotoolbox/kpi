@@ -1,15 +1,20 @@
-import os
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from collections import OrderedDict
+from hashlib import md5
 import json
+from jsonfield import JSONField
+import os
+
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db import ProgrammingError
 from django.utils.translation import ugettext_lazy
-from hashlib import md5
 
-from jsonfield import JSONField
-from collections import OrderedDict
-
+from kobo.apps.reports.report_data import build_formpack
+from formpack.constants import UNTRANSLATED
 
 class ReadOnlyModelError(ValueError):
     pass
@@ -105,14 +110,36 @@ class LazyModelGroup:
             @property
             def questions(self):
                 try:
-                    questions = json.loads(self.json).get('children', [])
-                    for index, question in enumerate(questions):
-                        question.pop('bind', None)
-                        question['number'] = index+1
+                    versions = self.pack.versions
+                    fields = self.pack.get_fields_for_versions(versions=versions.keys())
+                    _questions = []
 
-                    return questions
+                    for index, field in enumerate(fields):
+                        labels = field.get_labels(UNTRANSLATED)
+                        _questions.append({
+                            "type": field.data_type,
+                            "name": field.path,
+                            "number": index+ 1,
+                            "label": labels[0]
+                        })
+
+                    return _questions
                 except ValueError:
                     return []
+
+            @property
+            def asset(self):
+                if not hasattr(self, "_asset"):
+                    from kpi.models.asset import Asset  # Import here because of circular imports
+                    setattr(self, "_asset", Asset.objects.get(uid=self.id_string))
+                return self._asset
+
+            @property
+            def pack(self):
+                if not hasattr(self, "_pack"):
+                    pack, submission_stream = build_formpack(self.asset)
+                    setattr(self, "_pack", pack)
+                return self._pack
 
 
         class _ReadOnlyInstance(_ReadOnlyModel):
