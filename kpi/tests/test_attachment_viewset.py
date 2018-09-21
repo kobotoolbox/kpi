@@ -1,19 +1,23 @@
 # coding: utf-8
+from __future__ import unicode_literals
 
-import os
-import json
+from copy import deepcopy
 import datetime
+import json
+import os
 
-from django.test import TestCase, RequestFactory
 from django.conf import settings
-from django.db.models import FileField
 from django.contrib.auth.models import User
+from django.db.models import FileField
+from django.test import TestCase, RequestFactory
+from django_mock_queries.query import MockModel, MockSet
 from mock import patch, MagicMock
+
 from kpi.models import Asset
 from kpi.utils import image_tools
-from django_mock_queries.query import MockModel, MockSet
 from kpi.views import AttachmentViewSet
 from kpi.deployment_backends.kc_access.shadow_models import _models
+
 
 class AttachmentViewsetTestCase(TestCase):
     fixtures = ['test_data']
@@ -31,14 +35,15 @@ class AttachmentViewsetTestCase(TestCase):
         media_file.size = size
         return media_file
 
-    def _generateAsset(self, uid):
-        asset = MagicMock(spec=Asset, name='AssetMock', return_value=True)
-        asset.pk = 1
-        asset.uid = uid
-        deployment = MagicMock(name="Deployment")
-        deployment.identifier = uid
-        asset.deployment = deployment
-        asset.has_deployment = True
+    def _generateAsset(self, owner=None, asset_survey=[]):
+        asset = Asset.objects.create(
+            content={
+                "survey": asset_survey
+            },
+            owner=owner
+        )
+        asset.deploy(backend='mock', active=True)
+        asset.save()
         return asset
 
     def _generateXForm(self, id_string, title='Test XForm', user=None, questions=[]):
@@ -83,21 +88,26 @@ class AttachmentViewsetTestCase(TestCase):
 
         self.filename1 = '/path/to/test/image_one.jpg'
         self.filename2 = '/path/to/test/image_two.jpg'
-        self.questions = [{
-            'type': 'photo',
-            'name': 'Test_Question_One',
-            'label': 'Test Question One'
+
+        asset_survey = [{
+            "type": "image",
+            "name": "Test_Question_One",
+            "label": "Test Question One"
         }, {
-            'type': 'photo',
-            'name': 'Test_Question_Two',
-            'label': 'Test Question Two'
+            "type": "image",
+            "name": "Test_Question_Two",
+            "label": "Test Question Two"
         }]
+
+        # Need deepcopy because asset_structure is modified when Asset is created.
+        self.questions = deepcopy(asset_survey)
+
         self.answers = {
             self.questions[0]['name']: self.filename1.split('/')[-1],
             self.questions[1]['name']: self.filename2.split('/')[-1]
         }
         self.user = User.objects.get(username='someuser')
-        self.asset = self._generateAsset('someassetid')
+        self.asset = self._generateAsset(owner=self.user, asset_survey=asset_survey)
 
         # Generate one XForm
         self._generateXForm(self.asset.uid, user=self.user, questions=self.questions)

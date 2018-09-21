@@ -58,3 +58,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def _get_submissions(self):
         return self.asset._deployment_data.get('submissions', [])
+
+    @property
+    def mongo_userform_id(self):
+        return "{}_{}".format(self.asset.owner.username, self.asset.uid)

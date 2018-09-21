@@ -110,18 +110,19 @@ class LazyModelGroup:
             @property
             def questions(self):
                 try:
-                    versions = self.pack.versions
-                    fields = self.pack.get_fields_for_versions(versions=versions.keys())
                     _questions = []
+                    if self.pack:
+                        versions = self.pack.versions
+                        fields = self.pack.get_fields_for_versions(versions=versions.keys())
 
-                    for index, field in enumerate(fields):
-                        labels = field.get_labels(UNTRANSLATED)
-                        _questions.append({
-                            "type": field.data_type,
-                            "name": field.path,
-                            "number": index+ 1,
-                            "label": labels[0]
-                        })
+                        for index, field in enumerate(fields):
+                            labels = field.get_labels(UNTRANSLATED)
+                            _questions.append({
+                                "type": field.data_type,
+                                "name": field.path,
+                                "number": index + 1,
+                                "label": labels[0]
+                            })
 
                     return _questions
                 except ValueError:
@@ -131,15 +132,26 @@ class LazyModelGroup:
             def asset(self):
                 if not hasattr(self, "_asset"):
                     from kpi.models.asset import Asset  # Import here because of circular imports
-                    setattr(self, "_asset", Asset.objects.get(uid=self.id_string))
+                    try:
+                        setattr(self, "_asset", Asset.objects.get(uid=self.id_string))
+                    except Asset.DoesNotExist:
+                        setattr(self, "_asset", None)
+
                 return self._asset
 
             @property
             def pack(self):
-                if not hasattr(self, "_pack"):
+                if not hasattr(self, "_pack") and self.asset:
                     pack, submission_stream = build_formpack(self.asset)
                     setattr(self, "_pack", pack)
-                return self._pack
+                return getattr(self, "_pack", None)
+
+            def reset_pack(self):
+                """
+                Only used for unittests purpose
+                """
+                setattr(self, "_asset", None)
+                setattr(self, "_pack", None)
 
 
         class _ReadOnlyInstance(_ReadOnlyModel):
