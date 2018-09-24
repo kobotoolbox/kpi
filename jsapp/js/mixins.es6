@@ -26,7 +26,8 @@ import {
   t,
   assign,
   notify,
-  stringToColor
+  stringToColor,
+  escapeHtml
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
@@ -319,7 +320,7 @@ mixins.droppable = {
     }
 
     dataInterface.postCreateImport(params).then((data)=> {
-      window.setTimeout((()=>{
+      window.setTimeout((() => {
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData) => {
@@ -346,22 +347,26 @@ mixins.droppable = {
                 notify(t('XLS Import completed'));
               }
             }
-          }
-          // If the import task didn't complete immediately, inform the user accordingly.
-          else if (importData.status === 'processing') {
+          } else if (importData.status === 'processing') {
+            // If the import task didn't complete immediately, inform the user accordingly.
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
-            let error_message = t('Import Failure.');
-            if (importData.messages.error)
-              error_message = `<strong>${t('Import Failure.')}</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`;
-            alertify.error(error_message);
+            const errLines = [];
+            errLines.push(t('Import Failed!'));
+            if (params.name) {
+              errLines.push(`<code>Name: ${params.name}</code>`);
+            }
+            if (importData.messages.error) {
+              errLines.push(`<code>${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}</code>`);
+            }
+            alertify.error(errLines.join('<br/>'));
           } else {
-            alertify.error(t('Import Failure.'));
+            alertify.error(t('Import Failed!'));
           }
         }).fail((failData)=>{
-          alertify.error(t('Import Failed.'));
+          alertify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();

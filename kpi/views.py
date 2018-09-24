@@ -1,6 +1,7 @@
 from distutils.util import strtobool
 from itertools import chain
 import copy
+from hashlib import md5
 import json
 import base64
 import datetime
@@ -30,7 +31,7 @@ from rest_framework import (
 )
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -755,6 +756,17 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi-url]/assets/
 
+    Get an hash of all `version_id`s of assets.
+    Useful to detect any changes in assets with only one call to `API`
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/hash/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/hash/
+
     ## CRUD
 
     * `uid` - is the unique identifier of a specific asset
@@ -999,6 +1011,36 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
+
+    @list_route(methods=["GET"], renderer_classes=[renderers.JSONRenderer])
+    def hash(self, request):
+        """
+        Creates an hash of `version_id` of all accessible assets by the user.
+        Useful to detect changes between each request.
+
+        :param request:
+        :return: JSON
+        """
+        user = self.request.user
+        if user.is_anonymous():
+            raise exceptions.NotAuthenticated()
+        else:
+            accessible_assets = get_objects_for_user(
+                user, "view_asset", Asset).filter(asset_type=ASSET_TYPE_SURVEY)\
+                .order_by("uid")
+
+            assets_version_ids = [asset.version_id for asset in accessible_assets if asset.version_id is not None]
+            # Sort alphabetically
+            assets_version_ids.sort()
+
+            if len(assets_version_ids) > 0:
+                hash = md5("".join(assets_version_ids)).hexdigest()
+            else:
+                hash = ""
+
+            return Response({
+                "hash": hash
+            })
 
     @detail_route(renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
