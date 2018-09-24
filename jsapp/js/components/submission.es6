@@ -279,6 +279,9 @@ class Submission extends React.Component {
     const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
     const getGroupedName = (name) => {
+      if (openedGroups.length === 0) {
+        return name;
+      }
       return `${openedGroups.join('/')}/${name}`;
     }
 
