@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://192.168.0.248:8000",
+  "baseUrl": "http://192.168.1.15:8000",
   "video": false,
   "chromeWebSecurity": false,
   "fixturesFolder": false,
