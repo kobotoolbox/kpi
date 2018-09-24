@@ -400,23 +400,6 @@ module.exports = do ->
 
       return newRow
 
-    getTranslatedColumnKey: (col, whichone="primary")->
-      if whichone is "_2"
-        _t = @getSurvey()._translation_2
-      else
-        _t = @getSurvey()._translation_1
-      _key = "#{col}"
-      if _t isnt null
-        _key += "::#{_t}"
-      _key
-
-    getLabel: (whichone="primary")->
-      _col = @getTranslatedColumnKey("label", whichone)
-      if _col of @attributes
-        @getValue _col
-      else
-        null
-
     finalize: ->
       existing_name = @getValue("name")
       unless existing_name

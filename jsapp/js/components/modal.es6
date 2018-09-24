@@ -2,29 +2,28 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import {hashHistory} from 'react-router';
+
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
-import {hashHistory} from 'react-router';
 
-import {
-  t,
-  assign,
-  notify
-} from '../utils';
+import {t, notify} from '../utils';
 
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES
 } from '../constants';
 
-import {ProjectSettings} from '../components/formEditors';
-import SharingForm from '../components/sharingForm';
-import Submission from '../components/submission';
-import TableColumnFilter from '../components/tableColumnFilter';
+import ProjectSettings from '../components/modalForms/projectSettings';
+import SharingForm from '../components/modalForms/sharingForm';
+import Submission from '../components/modalForms/submission';
+import TableColumnFilter from '../components/modalForms/tableColumnFilter';
+import TranslationSettings from '../components/modalForms/translationSettings';
+import TranslationTable from '../components/modalForms/translationTable';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -84,6 +83,17 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.TABLE_COLUMNS:
         this.setModalTitle(t('Table display options'));
+        break;
+
+      case MODAL_TYPES.FORM_LANGUAGES:
+        this.setModalTitle(t('Manage languages'));
+        break;
+
+      case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
+        this.setState({
+          title: t('Translations table'),
+          modalClass: 'modal--large'
+        });
         break;
 
       default:
@@ -213,10 +223,18 @@ class Modal extends React.Component {
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
-
-          </ui.Modal.Body>
-        </ui.Modal>
-      )
+            { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
+              <TranslationSettings
+                asset={this.props.params.asset}
+                assetUid={this.props.params.assetUid}
+              />
+            }
+            { this.props.params.type == MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
+              <TranslationTable asset={this.props.params.asset} langIndex={this.props.params.langIndex} />
+            }
+        </ui.Modal.Body>
+      </ui.Modal>
+    )
   }
 };
 
