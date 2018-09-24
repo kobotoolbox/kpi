@@ -812,3 +812,5 @@ reactMixin(ProjectSettings.prototype, mixins.droppable);
 ProjectSettings.contextTypes = {
   router: PropTypes.object
 };
+
+export default ProjectSettings;
