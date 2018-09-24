@@ -159,8 +159,8 @@ class LibrarySidebar extends Reflux.Component {
     dialog.set(opts).show();
   }
   renameCollection (evt) {
-    var collectionUid = $(evt.currentTarget).data('collection-uid');
-    var collectionName = $(evt.currentTarget).data('collection-name');
+    var collectionUid = evt.currentTarget.dataset.collectionUid;
+    var collectionName = evt.currentTarget.dataset.collectionName;
 
     let dialog = alertify.dialog('prompt');
     let opts = {
