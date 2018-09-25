@@ -8,19 +8,19 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import bem from '../../bem';
+import bem from '../bem';
 import classNames from 'classnames';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
-import stores from '../../stores';
-import actions from '../../actions';
-import mixins from '../../mixins';
-import {dataInterface} from '../../dataInterface';
+import stores from '../stores';
+import actions from '../actions';
+import mixins from '../mixins';
+import {dataInterface} from '../dataInterface';
 import {
   t,
   formatTime,
   notify
-} from '../../utils';
+} from '../utils';
 
 class TemplatesList extends React.Component {
   constructor(props) {

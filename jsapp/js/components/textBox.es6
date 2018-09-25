@@ -67,7 +67,7 @@ class TextBox extends React.Component {
 
         <bem.TextBox__input
           type={type}
-          value={this.state.value}
+          value={this.props.value}
           placeholder={this.props.placeholder}
           onChange={this.onChange}
         />

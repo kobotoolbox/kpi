@@ -110,6 +110,19 @@ var pageStateStore = Reflux.createStore({
     this.setState({
       modal: false
     });
+  },
+  // use it when you have one modal opened and want to display different one
+  // because just calling showModal has weird outcome
+  switchModal (params) {
+    this.setState({
+      modal: false
+    });
+    // HACK switch to setState callback after updating to React 16+
+    window.setTimeout(() => {
+      this.setState({
+        modal: params
+      });
+    }, 0);
   }
 });
 
@@ -270,7 +283,7 @@ var surveyCompanionStore = Reflux.createStore({
   },
   addItemAtPosition ({position, survey, uid}) {
     stores.allAssets.whenLoaded(uid, function(asset){
-      var _s = dkobo_xlform.model.Survey.loadDict(asset.content)
+      var _s = dkobo_xlform.model.Survey.loadDict(asset.content, survey)
       survey.insertSurvey(_s, position);
     });
   }
