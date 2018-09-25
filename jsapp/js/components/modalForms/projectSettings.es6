@@ -40,7 +40,7 @@ Identifying the purpose is done by checking `context` and `formAsset`.
 You can listen to field changes by `onProjectDetailsChange` prop function.
 */
 class ProjectSettings extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.STEPS = {
@@ -93,6 +93,10 @@ class ProjectSettings extends React.Component {
         isSessionLoaded: true,
       });
     });
+    actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this));
+    actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this));
+    actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this));
+    actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this));
   }
 
   setInitialStep() {
@@ -253,6 +257,42 @@ class ProjectSettings extends React.Component {
    * handling asset creation
    */
 
+  onUpdateAssetCompleted(asset) {
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING) {
+      // no need to open asset from within asset's settings view
+      return;
+    } else if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      this.handleReplaceDone();
+    } else {
+      this.goToFormLanding();
+    }
+  }
+
+  onUpdateAssetFailed(response) {
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      this.resetApplyTemplateButton();
+    }
+  }
+
+  onCloneAssetCompleted(asset) {
+    if (this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE) {
+      this.setState({
+        formAsset: asset,
+        name: asset.name,
+        description: asset.settings.description,
+        sector: asset.settings.sector,
+        country: asset.settings.country,
+        'share-metadata': asset.settings['share-metadata'] || false,
+      });
+      this.resetApplyTemplateButton();
+      this.displayStep(this.STEPS.PROJECT_DETAILS);
+    }
+  }
+
+  onCloneAssetFailed() {
+    this.resetApplyTemplateButton();
+  }
+
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
       if (this.state.formAsset) {
@@ -305,13 +345,6 @@ class ProjectSettings extends React.Component {
           country: this.state.country,
           'share-metadata': this.state['share-metadata']
         }),
-      }, {
-        onComplete: () => {
-          // no need to open asset from within asset's settings view
-          if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
-            this.goToFormLanding();
-          }
-        }
       }
     );
   }
@@ -324,32 +357,26 @@ class ProjectSettings extends React.Component {
       applyTemplateButton: t('Please wait…')
     });
 
-    actions.resources.cloneAsset({
-      uid: this.state.chosenTemplateUid,
-      new_asset_type: 'survey'
-    }, {
-      onComplete: (asset) => {
-        if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-          // when replacing, we omit PROJECT_DETAILS step
-          this.handleReplaceDone();
-        } else {
-          this.setState({
-            formAsset: asset,
-            name: asset.name,
-            description: asset.settings.description,
-            sector: asset.settings.sector,
-            country: asset.settings.country,
-            'share-metadata': asset.settings['share-metadata'] || false,
-          });
-          this.resetApplyTemplateButton();
-          this.displayStep(this.STEPS.PROJECT_DETAILS);
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      actions.resources.updateAsset(
+        this.state.formAsset.uid,
+        {
+          clone_from: this.state.chosenTemplateUid,
+          name: this.state.formAsset.name,
+          settings: JSON.stringify({
+            description: this.state.formAsset.description,
+            sector: this.state.formAsset.sector,
+            country: this.state.formAsset.country,
+            'share-metadata': this.state.formAsset['share-metadata']
+          })
         }
-      },
-      onFailed: (asset) => {
-        this.resetApplyTemplateButton();
-        alertify.error(t('Could not create project!'));
-      }
-    });
+      );
+    } else {
+      actions.resources.cloneAsset({
+        uid: this.state.chosenTemplateUid,
+        new_asset_type: 'survey'
+      });
+    }
   }
 
   importFromURL(evt) {
@@ -465,7 +492,7 @@ class ProjectSettings extends React.Component {
   }
 
   handleReplaceDone() {
-    this.updateAndOpenAsset();
+    this.goToFormLanding();
   }
 
   handleSubmit(evt) {
@@ -507,12 +534,10 @@ class ProjectSettings extends React.Component {
             </button>
           }
 
-          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-            <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-              <i className='k-icon-template' />
-              {t('Use a template')}
-            </button>
-          }
+          <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
+            <i className='k-icon-template' />
+            {t('Use a template')}
+          </button>
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
             <i className='k-icon-upload' />
