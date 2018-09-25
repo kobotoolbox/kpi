@@ -1,14 +1,30 @@
 import glob
+import os
 import shutil
+
 dest_dir = "./jsapp/fonts/"
 
-print("Copying fonts...")
+def create_folder_if_not_exists():
+    if not os.path.exists(dest_dir):
+        try:
+            os.makedirs(dest_dir)
+            print("Destination folder has been created!")
+        except Exception as e:
+            print("Could not create fonts folder - Error: {}".format(str(e)))
 
-for file in glob.glob("./node_modules/font-awesome/fonts/*.*"):
-    print(file)
-    shutil.copy(file, dest_dir)
-for file in glob.glob("./node_modules/roboto-fontface/fonts/*.wof*"):
-    print(file)
-    shutil.copy(file, dest_dir)
+def copy_fonts():
 
-print("DONE")
+    create_folder_if_not_exists()
+
+    print("Copying fonts...")
+
+    for file in glob.glob("./node_modules/font-awesome/fonts/*.*"):
+        print(file)
+        shutil.copy(file, dest_dir)
+    for file in glob.glob("./node_modules/roboto-fontface/fonts/*.wof*"):
+        print(file)
+        shutil.copy(file, dest_dir)
+
+    print("DONE")
+
+copy_fonts()
