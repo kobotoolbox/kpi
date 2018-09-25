@@ -601,6 +601,12 @@ mixins.clickAssets = {
           type: MODAL_TYPES.REPLACE_PROJECT,
           asset: stores.selectedAsset.asset
         });
+      },
+      translations: function(uid) {
+        stores.pageState.showModal({
+          type: MODAL_TYPES.FORM_LANGUAGES,
+          assetUid: uid
+        });
       }
 
     }
