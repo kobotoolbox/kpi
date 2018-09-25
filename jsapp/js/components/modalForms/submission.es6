@@ -277,18 +277,27 @@ class Submission extends React.Component {
     const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
     const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
+    const getGroupedName = (name) => {
+      if (openedGroups.length === 0) {
+        return name;
+      }
+      return `${openedGroups.join('/')}/${name}`;
+    }
+
     return survey.map((q)=> {
       var name = q.name || q.$autoname || q.$kuid;
 
       if (q.type === 'begin_repeat') {
+        let groupedName = getGroupedName(name);
+
         return (
-          <tr key={`row-${name}`}>
+          <tr key={`row-${groupedName}`}>
             <td colSpan='3' className='submission--repeat-group'>
               <h4>
                 {t('Repeat group: ')}
                 {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled')}
               </h4>
-              {s[name] && s[name].map((repQ, i)=> {
+              {s[groupedName] && s[groupedName].map((repQ, i)=> {
                 var response = [];
                 for (var pN in repQ) {
                   var qName = pN.split('/').pop(-1);
@@ -350,20 +359,18 @@ class Submission extends React.Component {
         );
       }
 
-      if (openedGroups.length !== 0) {
-        name = `${openedGroups.join('/')}/${name}`;
-      }
+      let groupedName = getGroupedName(name);
 
-      if (q.label == undefined || s[name] == undefined) { return false;}
+      if (q.label == undefined || s[groupedName] == undefined) { return false;}
 
-      const response = this.responseDisplayHelper(q, s, false, name);
+      const response = this.responseDisplayHelper(q, s, false, groupedName);
       const icon = icons._byId[q.type];
       var type = q.type;
       if (icon)
         type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
 
       return (
-        <tr key={`row-${name}`}>
+        <tr key={`row-${groupedName}`}>
           <td className='submission--question-type'>{type}</td>
           <td className='submission--question'>{q.label[translationIndex] || t('Unlabelled')}</td>
           <td className='submission--response'>{response}</td>
