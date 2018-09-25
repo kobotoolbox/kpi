@@ -6,9 +6,8 @@ $asset-row-spacing: 6px;
   list-style-type: none;
   border-top: 1px solid $divider-color;
   padding: $asset-row-spacing $asset-row-spacing * 2;
-  white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height: 52px;
+  min-height: 49px;
   opacity: 1;
   position: relative;
   align-items: flex-start;
@@ -28,9 +27,6 @@ $asset-row-spacing: 6px;
     > .asset-row__cell {
       min-width: 0;
       vertical-align: top;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
 
       &.asset-row__cell--type {
         text-transform: capitalize;
@@ -42,11 +38,11 @@ $asset-row-spacing: 6px;
     border-top: 1px solid $divider-color;
   }
 
-  &--deleting {
+  &.asset-row--deleting {
     opacity: 0.5;
   }
 
-  &--deleted {
+  &.asset-row--deleted {
     transition: max-height 0.5s ease, opacity 0.5s ease;
     opacity: 0;
     max-height: 0px;
@@ -58,12 +54,18 @@ $asset-row-spacing: 6px;
 
   .asset-row__celllink--name {
     display: inline-block;
-    width: 98%;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    font-size: 14px;
     vertical-align: top;
-    padding: 4px 0px;
+    font-size: 14px;
+  }
+
+  .asset-row__description,
+  .asset-row__celllink--name .asset-name,
+  .asset-row__cell--date-created .date,
+  .asset-row__cell--date-modified .date {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   // default row-icon styles are meant for "--question"
@@ -98,9 +100,6 @@ $asset-row-spacing: 6px;
     display: block;
     color: $cool-gray;
     font-size: 13px;
-    max-width: 96%;
-    text-overflow: ellipsis;
-    overflow: hidden;
   }
 
   .asset-row__cell--tags {
@@ -161,7 +160,7 @@ $asset-row-spacing: 6px;
     }
   }
 
-  &--display-tags .asset-row__action-icon--tagsToggle {
+  &.asset-row--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
     color: $cool-blue;
   }
@@ -188,6 +187,10 @@ $asset-row-spacing: 6px;
 
     a.asset-row__celllink {
       color: $black;
+
+      &:hover {
+        color: $cool-blue;
+      }
     }
   }
 }

@@ -5,7 +5,7 @@ import {
 
 function parseTags (asset) {
   return {
-    tags: asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
+    tags: asset.tag_string.split(',').filter((tg) => { return tg.length !== 0; })
   };
 }
 
