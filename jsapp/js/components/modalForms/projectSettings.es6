@@ -39,7 +39,7 @@ Identifying the purpose is done by checking `context` and `formAsset`.
 
 You can listen to field changes by `onProjectDetailsChange` prop function.
 */
-export class ProjectSettings extends React.Component {
+class ProjectSettings extends React.Component {
   constructor(props){
     super(props);
 
