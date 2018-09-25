@@ -77,7 +77,7 @@ $gallery-transition: 250ms ease-in-out;
     @media screen and (min-width: 1200px) {
       display: flex;
       align-items: center;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
 
       .asset-gallery__heading__count {
         flex: 1;
@@ -111,6 +111,19 @@ $gallery-transition: 250ms ease-in-out;
     .asset-gallery__heading__icon-button {
       @extend .mdl-button, .mdl-button--icon;
       overflow: visible;
+    }
+
+    .asset-gallery__heading__checkbox {
+      display: block;
+      width: 100%;
+      margin-top: $s-gallery-spacing;
+      text-align: right;
+
+      input[type="checkbox"] {
+        opacity: 1;
+        left: auto;
+        position: static;
+      }
     }
   }
 }

@@ -51,6 +51,10 @@ export default class FormGalleryFilter extends React.Component {
     galleryActions.setFilters({filterOrder: newVal});
   }
 
+  onFilterAllVersionsChange(evt) {
+    galleryActions.setFilters({filterAllVersions: evt.currentTarget.checked});
+  }
+
   toggleFullscreen () {
     galleryActions.toggleFullscreen();
   }
@@ -98,6 +102,18 @@ export default class FormGalleryFilter extends React.Component {
         >
           <i className='k-icon-expand' />
         </bem.AssetGallery__headingIconButton>
+
+
+        <bem.AssetGallery__headingCheckbox htmlFor='all-versions'>
+          <input
+            type='checkbox'
+            checked={this.state.filterAllVersions}
+            onChange={this.onFilterAllVersionsChange}
+            id='all-versions'
+          />
+
+          <span>{t('Include submissions from previous versions')}</span>
+        </bem.AssetGallery__headingCheckbox>
       </bem.AssetGallery__heading>
     );
   }

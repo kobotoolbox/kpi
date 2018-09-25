@@ -75,6 +75,7 @@ class GalleryStore extends Reflux.Store {
       filterQuery: '',
       filterGroupBy: GROUPBY_OPTIONS.question,
       filterOrder: ORDER_OPTIONS.asc,
+      filterAllVersions: false,
       isLoadingGalleries: true,
     });
     assign(stateObj, this.getWipedGalleriesState());
@@ -191,6 +192,12 @@ class GalleryStore extends Reflux.Store {
     if (typeof filters.filterOrder !== 'undefined') {
       updateObj.filterOrder = filters.filterOrder;
       if (updateObj.filterOrder.value !== this.state.filterOrder.value) {
+        needsWipeAndLoad = true;
+      }
+    }
+    if (typeof filters.filterAllVersions !== 'undefined') {
+      updateObj.filterAllVersions = filters.filterAllVersions;
+      if (updateObj.filterAllVersions !== this.state.filterAllVersions) {
         needsWipeAndLoad = true;
       }
     }

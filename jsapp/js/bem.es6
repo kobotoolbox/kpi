@@ -248,6 +248,7 @@ bem.AssetGallery = BEM('asset-gallery');
 bem.AssetGallery__heading = bem.AssetGallery.__('heading');
 bem.AssetGallery__headingCount = bem.AssetGallery.__('heading__count', '<span>');
 bem.AssetGallery__headingIconButton = bem.AssetGallery.__('heading__icon-button', '<span>');
+bem.AssetGallery__headingCheckbox = bem.AssetGallery.__('heading__checkbox', '<label>');
 bem.AssetGallery__loadMore = bem.AssetGallery.__('load-more', '<div>');
 bem.AssetGallery__loadMoreButton = bem.AssetGallery.__('load-more__button', '<button>');
 bem.AssetGallery__loadMoreMessage = bem.AssetGallery.__('load-more__message', '<p>');
