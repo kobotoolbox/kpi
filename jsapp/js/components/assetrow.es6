@@ -10,15 +10,10 @@ import stores from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {ASSET_TYPES} from '../constants';
-
 import TagInput from '../components/tagInput';
-
 import {
   formatTime,
-  anonUsername,
-  t,
-  assign,
-  validFileTypes
+  t
 } from '../utils';
 
 class AssetRow extends React.Component {
@@ -32,17 +27,6 @@ class AssetRow extends React.Component {
     this.escFunction = this.escFunction.bind(this);
     autoBind(this);
   }
-  // clickAsset (evt) {
-  //   // this click was not intended for a button
-  //   evt.nativeEvent.preventDefault();
-  //   evt.nativeEvent.stopImmediatePropagation();
-  //   evt.preventDefault();
-
-  //   // if no asset is selected, then this asset
-  //   // otherwise, toggle selection (unselect if already selected)
-  //   // let forceSelect = (stores.selectedAsset.uid === false);
-  //   // stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
-  // }
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
@@ -171,13 +155,11 @@ class AssetRow extends React.Component {
                 data-kind={this.props.kind}
                 data-asset-type={this.props.kind}
                 draggable={false}
-                className={`asset-row__celllink asset-row__celllink-name ${linkClassName}`}
+                className={`asset-row__celllink asset-row__celllink--name ${linkClassName}`}
               >
-                <bem.AssetRow__name>
-                  <ui.AssetName {...this.props} />
-                </bem.AssetRow__name>
+                <ui.AssetName {...this.props} />
               </Link>
-              { this.props.asset_type && this.props.asset_type === 'survey' &&
+              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.settings.description &&
                 <bem.AssetRow__description>
                   {this.props.settings.description}
                 </bem.AssetRow__description>
@@ -224,7 +206,6 @@ class AssetRow extends React.Component {
                 <span className='date date--created'>{formatTime(this.props.date_created)}</span>
               </bem.AssetRow__cell>
             }
-
             {/* "date modified" column */}
             <bem.AssetRow__cell
               m={'date-modified'}
@@ -372,6 +353,15 @@ class AssetRow extends React.Component {
                 >
                   <i className='k-icon-replace' />
                   {t('Replace project')}
+                </bem.PopoverMenu__link>
+              }
+              { userCanEdit &&
+                <bem.PopoverMenu__link
+                  data-action={'translations'}
+                  data-asset-uid={this.props.uid}
+                >
+                  <i className='k-icon-language' />
+                  {t('Manage translations')}
                 </bem.PopoverMenu__link>
               }
               {this.props.downloads.map((dl)=>{

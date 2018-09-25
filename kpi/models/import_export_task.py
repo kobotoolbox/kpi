@@ -33,6 +33,14 @@ from ..model_utils import create_assets, _load_library_content, \
                           remove_string_prefix
 
 
+def utcnow(*args, **kwargs):
+    '''
+    Stupid, and exists only to facilitate mocking during unit testing.
+    If you know of a better way, please remove this.
+    '''
+    return datetime.datetime.utcnow()
+
+
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
         item_path = urlparse.urlparse(item_path).path
@@ -378,14 +386,25 @@ class ExportTask(ImportExportTask):
             'fields_from_all_versions', 'true'
         ).lower() == 'true'
 
-    def _build_export_filename(self, export, extension):
+    def _build_export_filename(self, export, export_type):
         '''
         Internal method to build the export filename based on the export title
         (which should be set when calling the `FormPack()` constructor),
         whether the latest or all versions are included, the label language,
-        the current date and time, and the given `extension`
+        the current date and time, and the appropriate extension for the given
+        `export_type`
         '''
-        if export.lang == formpack.constants.UNTRANSLATED:
+
+        if export_type == 'xls':
+            extension = 'xlsx'
+        elif export_type == 'spss_labels':
+            extension = 'zip'
+        else:
+            extension = export_type
+
+        if export_type == 'spss_labels':
+            lang = 'SPSS Labels'
+        elif export.lang == formpack.constants.UNTRANSLATED:
             lang = 'labels'
         else:
             lang = export.lang
@@ -400,7 +419,7 @@ class ExportTask(ImportExportTask):
             u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
             u'.{ext}'.format(
                 version=version,
-                date=datetime.datetime.utcnow(),
+                date=utcnow(),
                 ext=extension
             )
         )
@@ -491,9 +510,9 @@ class ExportTask(ImportExportTask):
             raise Exception('the source must be deployed prior to export')
 
         export_type = self.data.get('type', '').lower()
-        if export_type not in ('xls', 'csv'):
+        if export_type not in ('xls', 'csv', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls` and `csv` are valid export types')
+                'only `xls`, `csv`, and `spss_labels` are valid export types')
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
@@ -515,8 +534,7 @@ class ExportTask(ImportExportTask):
 
         options = self._build_export_options(pack)
         export = pack.export(**options)
-        extension = 'xlsx' if export_type == 'xls' else export_type
-        filename = self._build_export_filename(export, extension)
+        filename = self._build_export_filename(export, export_type)
         self.result.save(filename, ContentFile(''))
         # FileField files are opened read-only by default and must be
         # closed and reopened to allow writing
@@ -546,6 +564,8 @@ class ExportTask(ImportExportTask):
                             break
                     '''
                     output_file.write(xlsx_output_file.read())
+            elif export_type == 'spss_labels':
+                export.to_spss_labels(output_file)
 
         # Restore the FileField to its typical state
         self.result.open('rb')

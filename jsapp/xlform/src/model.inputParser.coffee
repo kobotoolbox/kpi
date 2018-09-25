@@ -1,5 +1,6 @@
 _ = require 'underscore'
 $aliases = require './model.aliases'
+utils = require '../../js/utils'
 
 module.exports = do ->
   inputParser = {}
@@ -39,7 +40,7 @@ module.exports = do ->
             lang_str = key
           item[lang_str] = _translated_val
         )
-    item
+    return item
 
   parseArr = (type='survey', sArr, translations=false)->
     counts = {
@@ -94,42 +95,29 @@ module.exports = do ->
     _curGrp().export().__rows
 
   inputParser.parseArr = parseArr
-  inputParser.parse = (o)->
-    translations = o.translations
-    if o['#active_translation_name']
-      _existing_active_translation_name = o['#active_translation_name']
-      delete o['#active_translation_name']
 
-    if translations
-      if translations.indexOf(null) is -1 # there is no unnamed translation
-        if _existing_active_translation_name
-          throw new Error('active translation set, but cannot be found')
-        o._active_translation_name = translations[0]
-        translations[0] = null
-      else if translations.indexOf(null) > 0
-        throw new Error("""
-                        There is an unnamed translation in your form definition.
-                        Please give a name to all translations in your form.
-                        """)
-      else if _existing_active_translation_name # there is already an active null translation
-        o._active_translation_name = _existing_active_translation_name
-    else
-      translations = [null]
+  # pass baseSurvey whenever you import other asset into existing form
+  inputParser.parse = (o, baseSurvey)->
+    translations = o.translations
+
+    nullified = utils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
+
+    o.survey = nullified.survey;
+    o.translations = nullified.translations
+    o.translations_0 = nullified.translations_0
 
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
-      o.survey = parseArr('survey', o.survey, translations)
+      o.survey = parseArr('survey', o.survey, o.translations)
 
     if o.choices
-      o.choices = parseArr('choices', o.choices, translations)
+      o.choices = parseArr('choices', o.choices, o.translations)
 
     # settings is sometimes packaged as an array length=1
     if o.settings and _.isArray(o.settings) and o.settings.length is 1
       o.settings = o.settings[0]
 
-    o.translations = translations
-
-    o
+    return o
 
   inputParser.loadChoiceLists = (passedChoices, choices)->
     tmp = {}
