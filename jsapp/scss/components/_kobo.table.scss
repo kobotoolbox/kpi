@@ -17,8 +17,18 @@
       flex-grow: 1;
       line-height: 40px;
 
-      a {
+      > *:not(:first-child)::before {
+        content: "·";
+        margin: auto 5px;
+      }
+
+      .select-all {
         cursor: pointer;
+        color: $cool-blue;
+
+        &:hover {
+          color: lighten($cool-blue, 10%);
+        }
       }
     }
 

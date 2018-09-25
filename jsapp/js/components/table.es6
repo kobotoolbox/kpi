@@ -788,6 +788,33 @@ export class DataTable extends React.Component {
   clearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
   }
+  bulkDelete(evt) {
+    let sids = [];
+
+    if (this.state.selectAll) {
+      // TODO
+    } else {
+      sids = Object.keys(this.state.selectedRows);
+    }
+
+    let selectedCount = Object.keys(this.state.selectedRows).length;
+    if (this.state.selectAll) {
+      selectedCount = this.state.resultsTotal;
+    }
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Delete selected submissions'),
+      message: t('You have selected ## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##', selectedCount),
+      labels: {ok: t('Delete selected'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        console.log('delete all', sids.join(', '));
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
   bulkSelectUI() {
     if (!this.state.tableData.length) {
       return false;
@@ -798,32 +825,55 @@ export class DataTable extends React.Component {
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
           res1 = (currentPage * pageSize) + 1,
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
+          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
           selected = this.state.selectedRows,
           maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
 
-          //
+    let selectedCount = Object.keys(selected).length;
+    if (this.state.selectAll) {
+      selectedCount = resultsTotal;
+    }
+    const selectedLabel = t('## selected').replace('##', selectedCount);
+
     return (
       <bem.FormView__item m='table-meta'>
-        {showingResults}
-        {this.state.selectAll ?
+        <span>{showingResults}</span>
+
+        {this.state.selectAll &&
           <span>
-            {t('All ## selected. ').replace('##', resultsTotal)}
             <a className='select-all' onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
-        :
+        }
+
+        {!this.state.selectAll &&
+          Object.keys(selected).length === maxPageRes &&
+          resultsTotal > pageSize &&
           <span>
-            {Object.keys(selected).length > 0 &&
-              t('## selected. ').replace('##', Object.keys(selected).length)
-            }
-            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
-              <a className='select-all' onClick={this.bulkSelectAll}>
-                {t('Select all ##').replace('##', resultsTotal)}
-              </a>
-            }
+            <a className='select-all' onClick={this.bulkSelectAll}>
+              {t('Select all ##').replace('##', resultsTotal)}
+            </a>
           </span>
+        }
+
+        {Object.keys(selected).length > 0 &&
+          <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
+            {VALIDATION_STATUSES.map((item, n) => {
+              return (
+                <bem.PopoverMenu__link
+                  onClick={this.bulkUpdateStatus}
+                  data-value={item.value}
+                  key={n}
+                >
+                  {t('Set status: ##status##').replace('##status##', item.label)}
+                </bem.PopoverMenu__link>
+              );
+            })}
+            <bem.PopoverMenu__link onClick={this.bulkDelete}>
+              {t('Delete selected')}
+            </bem.PopoverMenu__link>
+          </ui.PopoverMenu>
         }
       </bem.FormView__item>
     );
@@ -871,21 +921,6 @@ export class DataTable extends React.Component {
                     data-tip={t('Print')}>
               <i className='k-icon-print' />
             </button>
-
-            {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
-                <bem.PopoverMenu__heading>
-                  {t('Updated status to:')}
-                </bem.PopoverMenu__heading>
-                {VALIDATION_STATUSES.map((item, n) => {
-                  return (
-                    <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
-                      {item.label}
-                      </bem.PopoverMenu__link>
-                  );
-                })}
-              </ui.PopoverMenu>
-            }
 
             <button
               className='mdl-button mdl-button--icon report-button__expand right-tooltip'
