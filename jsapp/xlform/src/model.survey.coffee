@@ -32,17 +32,6 @@ module.exports = do ->
       @choices = new $choices.ChoiceLists([], _parent: @)
       $inputParser.loadChoiceLists(options.choices || [], @choices)
 
-      if options.translations
-        @translations = options.translations
-      else
-        @translations = [null]
-
-      if options['_active_translation_name']
-        @active_translation_name = options['_active_translation_name']
-
-      @_translation_1 = @translations[0]
-      @_translation_2 = @translations[1]
-
       if options.survey
         if !$inputParser.hasBeenParsed(options)
           options.survey = $inputParser.parseArr(options.survey)
@@ -63,6 +52,7 @@ module.exports = do ->
 
     @create: (options={}, addlOpts) ->
       return new Survey(options, addlOpts)
+
     linkUpChoiceLists: ->
       # In case of cascading selects, this will ensure choiceLists are connected to
       # sub choice lists through a private "__cascadeList" property
@@ -73,7 +63,7 @@ module.exports = do ->
           throw new Error("cascading choices can only reference one choice list")
         else if overlapping_choice_keys.length is 1
           choiceList.__cascadedList = @choices.get(overlapping_choice_keys[0])
-      null
+      return
 
     insert_row: (row, index) ->
       if row._isCloned
@@ -140,11 +130,6 @@ module.exports = do ->
 
       addlSheets =
         choices: new $choices.ChoiceLists()
-
-      if @active_translation_name
-        obj['#active_translation_name'] = @active_translation_name
-
-      obj.translations = [].concat(@translations)
 
       obj.survey = do =>
         out = []
@@ -311,8 +296,8 @@ module.exports = do ->
   Survey.load.md = (md)->
     sObj = $markdownTable.mdSurveyStructureToObject(md)
     new Survey(sObj)
-  Survey.loadDict = (obj)->
-    _parsed = $inputParser.parse obj
+  Survey.loadDict = (obj, baseSurvey)->
+    _parsed = $inputParser.parse(obj, baseSurvey)
     new Survey(_parsed)
 
   _is_csv = (csv_repr)->
