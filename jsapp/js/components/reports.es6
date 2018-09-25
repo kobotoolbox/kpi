@@ -299,7 +299,6 @@ class CustomReportForm extends React.Component {
               {t('Delete')}
             </bem.Modal__footerButton>
           }
-
           <bem.Modal__footerButton
             m='primary'
             onClick={this.saveCustomReport}
@@ -718,7 +717,6 @@ class ReportStyleSettings extends React.Component {
               </div>
             }
           </div>
-
           <ui.Modal.Footer>
             <bem.Modal__footerButton m='primary' onClick={this.saveReportStyles}>
               {t('Save')}

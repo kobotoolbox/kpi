@@ -8,7 +8,9 @@ const MODAL_TYPES = {
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
   TABLE_COLUMNS: 'table-columns',
-  GALLERY_MEDIA: 'gallery-media'
+  GALLERY_MEDIA: 'gallery-media',
+  FORM_LANGUAGES: 'form-languages',
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
 }
 
 const PROJECT_SETTINGS_CONTEXTS = {

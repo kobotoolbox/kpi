@@ -136,10 +136,7 @@ do ->
                 'name': 'no'
               }
             ]
-          },
-          'translations': [
-            null
-          ],
+          }
         })
     describe 'survey row reordering', ->
       beforeEach ->
