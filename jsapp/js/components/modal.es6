@@ -233,17 +233,13 @@ class Modal extends React.Component {
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
-<<<<<<< HEAD
+
             { this.props.params.type == MODAL_TYPES.GALLERY_MEDIA &&
               <GalleryMediaModal
                 {...this.props.params}
               />
             }
 
-          </ui.Modal.Body>
-        </ui.Modal>
-      )
-=======
             { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
               <TranslationSettings
                 asset={this.props.params.asset}
@@ -256,7 +252,6 @@ class Modal extends React.Component {
         </ui.Modal.Body>
       </ui.Modal>
     )
->>>>>>> master
   }
 };
 
