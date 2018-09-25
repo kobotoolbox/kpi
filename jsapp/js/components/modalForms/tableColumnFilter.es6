@@ -3,18 +3,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
-import bem from '../bem';
-import ui from '../ui';
-import actions from '../actions';
-import stores from '../stores';
-import mixins from '../mixins';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
 
-import {
-  t,
-  notify
-} from '../utils';
+import bem from 'js/bem';
+import ui from 'js/ui';
+import actions from 'js/actions';
+import stores from 'js/stores';
+import mixins from 'js/mixins';
+import {t, notify} from 'js/utils';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){

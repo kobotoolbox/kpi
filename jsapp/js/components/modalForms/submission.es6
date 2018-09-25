@@ -2,23 +2,22 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {dataInterface} from '../dataInterface';
-import actions from '../actions';
-import reactMixin from 'react-mixin';
-import mixins from '../mixins';
-import bem from '../bem';
-import {t, notify} from '../utils';
-import stores from '../stores';
-import ui from '../ui';
 import alertify from 'alertifyjs';
-import icons from '../../xlform/src/view.icons';
+import reactMixin from 'react-mixin';
 import Select from 'react-select';
 
+import {dataInterface} from 'js/dataInterface';
+import actions from 'js/actions';
+import mixins from 'js/mixins';
+import bem from 'js/bem';
+import {t, notify} from 'js/utils';
+import stores from 'js/stores';
+import ui from 'js/ui';
+import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES,
   MODAL_TYPES
-} from '../constants';
-
+} from 'js/constants';
 
 class Submission extends React.Component {
   constructor(props) {
