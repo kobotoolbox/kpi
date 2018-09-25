@@ -26,7 +26,8 @@ import {
   t,
   assign,
   notify,
-  stringToColor
+  stringToColor,
+  escapeHtml
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
@@ -82,8 +83,26 @@ mixins.dmix = {
       promptMessage: t('Enter the name of the new template.')
     });
   },
-  reDeployConfirm (asset, onComplete) {
-    let dialog = alertify.dialog('confirm');
+  _deployAssetFirstTime (asset) {
+    let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
+    actions.resources.deployAsset(asset, false, {
+      onDone: () => {
+        notify(t('deployed form'));
+        actions.resources.loadAsset({id: asset.uid});
+        hashHistory.push(`/forms/${asset.uid}`);
+        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
+          deployment_alert.dismiss();
+        }
+      },
+      onFail: () => {
+        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
+          deployment_alert.dismiss();
+        }
+      }
+    });
+  },
+  _redeployAsset (asset) {
+    const dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Overwrite existing deployment'),
       message: t(
@@ -96,10 +115,18 @@ mixins.dmix = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
         ok_button.innerText = t('Deploying...');
-        actions.resources.deployAsset(asset, true, dialog, {
-          onComplete: () => {
+        actions.resources.deployAsset(asset, true, {
+          onDone: () => {
             notify(t('redeployed form'));
             actions.resources.loadAsset({id: asset.uid});
+            if (dialog && typeof dialog.destroy === 'function') {
+              dialog.destroy();
+            }
+          },
+          onFail: () => {
+            if (dialog && typeof dialog.destroy === 'function') {
+              dialog.destroy();
+            }
           }
         });
         // keep the dialog open
@@ -111,29 +138,19 @@ mixins.dmix = {
     };
     dialog.set(opts).show();
   },
-  deployAsset (asset, onComplete) {
+  deployAsset (asset) {
     if (!asset || asset.kind != 'asset') {
         if (this.state && this.state.kind == 'asset') {
           asset = this.state;
         } else {
-          console.error(
-            'Neither the arguments nor the state supplied an asset.');
+          console.error('Neither the arguments nor the state supplied an asset.');
           return;
         }
     }
     if (!asset.has_deployment) {
-      // There's no existing deployment for this asset
-      let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
-      actions.resources.deployAsset(asset, false, deployment_alert, {
-        onComplete: () => {
-          notify(t('deployed form'));
-          actions.resources.loadAsset({id: asset.uid});
-          hashHistory.push(`/forms/${asset.uid}`);
-        }
-      });
+      this._deployAssetFirstTime(asset);
     } else {
-      // We are about to overwrite(!) an existing deployment
-      this.reDeployConfirm(asset, onComplete);
+      this._redeployAsset(asset);
     }
   },
   unarchiveAsset () {
@@ -303,7 +320,7 @@ mixins.droppable = {
     }
 
     dataInterface.postCreateImport(params).then((data)=> {
-      window.setTimeout((()=>{
+      window.setTimeout((() => {
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData) => {
@@ -330,22 +347,26 @@ mixins.droppable = {
                 notify(t('XLS Import completed'));
               }
             }
-          }
-          // If the import task didn't complete immediately, inform the user accordingly.
-          else if (importData.status === 'processing') {
+          } else if (importData.status === 'processing') {
+            // If the import task didn't complete immediately, inform the user accordingly.
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
-            let error_message = t('Import Failure.');
-            if (importData.messages.error)
-              error_message = `<strong>${t('Import Failure.')}</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`;
-            alertify.error(error_message);
+            const errLines = [];
+            errLines.push(t('Import Failed!'));
+            if (params.name) {
+              errLines.push(`<code>Name: ${params.name}</code>`);
+            }
+            if (importData.messages.error) {
+              errLines.push(`<code>${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}</code>`);
+            }
+            alertify.error(errLines.join('<br/>'));
           } else {
-            alertify.error(t('Import Failure.'));
+            alertify.error(t('Import Failed!'));
           }
         }).fail((failData)=>{
-          alertify.error(t('Import Failed.'));
+          alertify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();
@@ -411,20 +432,23 @@ mixins.clickAssets = {
         let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
         let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
+        let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetType}`,
           message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
+            ok_button.disabled = true;
+            ok_button.innerText = t('Cloning...');
             actions.resources.cloneAsset({
               uid: uid,
               name: value,
             }, {
             onComplete: (asset) => {
+              ok_button.disabled = false;
               dialog.destroy();
               notify(t('cloned project created'));
-              this.refreshSearch && this.refreshSearch();
             }
             });
             // keep the dialog open
@@ -536,16 +560,10 @@ mixins.clickAssets = {
             <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.resources.setDeploymentActive(
-              {
-                asset: asset,
-                active: false
-              },
-              {onComplete: ()=> {
-                this.refreshSearch && this.refreshSearch();
-                notify(t('archived project'));
-              }}
-            );
+            actions.resources.setDeploymentActive({
+              asset: asset,
+              active: false
+            });
           },
           oncancel: () => {
             dialog.destroy();
@@ -561,17 +579,10 @@ mixins.clickAssets = {
           message: `${t('Are you sure you want to unarchive this project?')}`,
           labels: {ok: t('Unarchive'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.resources.setDeploymentActive(
-              {
-                asset: asset,
-                active: true
-              },
-              {onComplete: ()=> {
-                actions.resources.loadAsset({id: asset.uid});
-                this.refreshSearch && this.refreshSearch();
-                notify(t('unarchived project'));
-              }}
-            );
+            actions.resources.setDeploymentActive({
+              asset: asset,
+              active: true
+            });
           },
           oncancel: () => {
             dialog.destroy();
@@ -589,6 +600,12 @@ mixins.clickAssets = {
         stores.pageState.showModal({
           type: MODAL_TYPES.REPLACE_PROJECT,
           asset: stores.selectedAsset.asset
+        });
+      },
+      translations: function(uid) {
+        stores.pageState.showModal({
+          type: MODAL_TYPES.FORM_LANGUAGES,
+          assetUid: uid
         });
       }
 
