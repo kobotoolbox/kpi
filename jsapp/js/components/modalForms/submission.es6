@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
-import {galleryActions} from './formGallery/galleryInterface';
+import {galleryActions} from 'js/components/formGallery/galleryInterface';
 
 import {dataInterface} from 'js/dataInterface';
 import actions from 'js/actions';
