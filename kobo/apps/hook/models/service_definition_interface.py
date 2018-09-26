@@ -72,7 +72,7 @@ class ServiceDefinitionInterface(object):
 
                 # If the request needs basic authentication with username & password,
                 # let's provide them
-                if self._hook.settings.get("username"):
+                if self._hook.auth_level == Hook.BASIC_AUTH:
                     request_kwargs.update({
                         "auth": (self._hook.settings.get("username"),
                                  self._hook.settings.get("password"))
