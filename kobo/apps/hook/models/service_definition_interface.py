@@ -11,6 +11,7 @@ from django.conf import settings
 from rest_framework import status
 
 from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED
+from .hook import Hook
 from .hook_log import HookLog
 
 
