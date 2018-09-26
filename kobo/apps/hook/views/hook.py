@@ -71,7 +71,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >           "endpoint": {string},
     >           "active": {boolean},
     >           "export_type": {string},
-    >           "security_level": {string},
+    >           "auth_level": {string},
     >           "settings": {
     >               "username": {string},
     >               "password": {string},
@@ -92,7 +92,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         1. `json` (_default_)
         2. `xml`
 
-    * `security_level` must be one these values:
+    * `auth_level` must be one these values:
 
         1. `no_auth` (_default_)
         2. `basic_auth`

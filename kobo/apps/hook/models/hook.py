@@ -26,7 +26,7 @@ class Hook(models.Model):
     )
 
     # Authentication levels list
-    SECURITY_LEVEL_CHOICES = (
+    AUTHENTICATION_LEVEL_CHOICES = (
         (NO_AUTH, NO_AUTH),
         (BASIC_AUTH, BASIC_AUTH)
     )
@@ -37,10 +37,10 @@ class Hook(models.Model):
     endpoint = models.CharField(max_length=500, blank=False)
     active = models.BooleanField(default=True)
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
-    security_level = models.CharField(choices=SECURITY_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
+    auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
     settings = JSONBField(default=dict)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ["name"]
