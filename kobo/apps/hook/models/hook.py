@@ -96,12 +96,3 @@ class Hook(models.Model):
     def reset_totals(self):
         # TODO remove cache when it's enabled
         self.__totals = {}
-
-    def retry(self):
-        """
-        Retry to send data to external service
-        only if it has failed before this try.
-        :param data: mixed.
-        :return: tuple. status_code, response dict
-        """
-        pass
