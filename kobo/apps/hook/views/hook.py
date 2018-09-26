@@ -170,7 +170,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         response = {"detail": _("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
-            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `tasks.py:L32`
+            seconds = HookLog.get_elapsed_seconds(settings.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
 
             records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |

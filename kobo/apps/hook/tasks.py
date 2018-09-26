@@ -30,7 +30,7 @@ def service_definition_task(self, hook_id, uuid):
     service_definition = ServiceDefinition(hook, uuid)
     if not service_definition.send():
         # Countdown is in seconds
-        countdown = 60 * (10 ** self.request.retries)
+        countdown = HookLog.get_remaining_seconds(self.request.retries)
         raise self.retry(countdown=countdown, max_retries=settings.HOOK_MAX_RETRIES)
 
     return True
