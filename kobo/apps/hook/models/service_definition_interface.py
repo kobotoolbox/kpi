@@ -79,7 +79,8 @@ class ServiceDefinitionInterface(object):
                                  self._hook.settings.get("password"))
                     })
                 response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
-                success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
+                response.raise_for_status()
+                success = True
                 self.save_log(success, response.status_code, response.text)
             except requests.exceptions.Timeout as e:
                 self.save_log(
@@ -89,8 +90,8 @@ class ServiceDefinitionInterface(object):
             except requests.exceptions.RequestException as e:
                 self.save_log(
                     False,
-                    status.HTTP_400_BAD_REQUEST,
-                    str(e))
+                    response.status_code,
+                    getattr(response, "text", str(e)))
             except Exception as e:
                 logger = logging.getLogger("console_logger")
                 logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
