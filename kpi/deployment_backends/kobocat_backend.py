@@ -495,7 +495,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             submissions = getter(instances_uuids)
         except Exception as e:
-            logger.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
+            logging.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
 
         return submissions
 

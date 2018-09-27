@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from importlib import import_module
-import logging
 
 import constance
 from django.db import models
@@ -14,6 +13,7 @@ from rest_framework.reverse import reverse
 
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 from kpi.fields import KpiUidField
+from kpi.utils.log import logging
 
 
 class HookLog(models.Model):
@@ -93,8 +93,7 @@ class HookLog(models.Model):
             service_definition.send()
             self.refresh_from_db()
         except Exception as e:
-            logger = logging.getLogger("console_logger")
-            logger.error("HookLog.retry - {}".format(str(e)), exc_info=True)
+            logging.error("HookLog.retry - {}".format(str(e)), exc_info=True)
             self.change_status(HOOK_LOG_FAILED)
             return False
 
