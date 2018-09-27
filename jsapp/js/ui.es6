@@ -50,6 +50,17 @@ class Modal extends React.Component {
     super(props);
     autoBind(this);
   }
+  componentDidMount() {
+    document.addEventListener('keydown', this.escFunction);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.escFunction);
+  }
+  escFunction (evt) {
+    if (evt.keyCode === 27 || evt.key === 'Escape') {
+      this.props.onClose.call(evt);
+    }
+  }
   backdropClick (evt) {
     if (evt.currentTarget === evt.target) {
       this.props.onClose.call(evt);
