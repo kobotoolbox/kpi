@@ -3,14 +3,14 @@ from datetime import datetime, timedelta
 from importlib import import_module
 import logging
 
-from django.conf import settings
+import constance
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from jsonbfield.fields import JSONField as JSONBField
+import requests
 from rest_framework import status
 from rest_framework.reverse import reverse
-import requests
 
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 from kpi.fields import KpiUidField
@@ -39,7 +39,7 @@ class HookLog(models.Model):
         :return: bool
         """
         if self.hook.active:
-            seconds = HookLog.get_elapsed_seconds(settings.HOOK_MAX_RETRIES)
+            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
             # We can retry only if system has already tried 3 times.
             # If log is still pending after 3 times, there was an issue, we allow the retry

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 import json
 
-from django.conf import settings
+import constance
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -170,7 +170,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         response = {"detail": _("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
-            seconds = HookLog.get_elapsed_seconds(settings.HOOK_MAX_RETRIES)
+            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
 
             records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |

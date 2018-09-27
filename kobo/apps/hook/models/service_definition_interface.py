@@ -6,8 +6,8 @@ import logging
 import json
 import re
 
+import constance
 import requests
-from django.conf import settings
 from rest_framework import status
 
 from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
@@ -129,7 +129,7 @@ class ServiceDefinitionInterface(object):
 
         if success:
             log.status = HOOK_LOG_SUCCESS
-        elif log.tries >= settings.HOOK_MAX_RETRIES:
+        elif log.tries >= constance.config.HOOK_MAX_RETRIES:
             log.status = HOOK_LOG_FAILED
 
         log.status_code = status_code

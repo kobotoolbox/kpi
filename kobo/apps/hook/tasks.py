@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import time
 
 from celery import shared_task
-from django.conf import settings
+import constance
 
 from .models import Hook, HookLog
 
@@ -12,7 +12,7 @@ from .models import Hook, HookLog
 def service_definition_task(self, hook_id, uuid):
     """
     Tries to send data to the endpoint of the hook
-    It retries n times (n = `settings.HOOK_MAX_RETRIES`)
+    It retries n times (n = `constance.config.HOOK_MAX_RETRIES`)
 
     - after 1 minutes,
     - after 10 minutes,
@@ -31,7 +31,7 @@ def service_definition_task(self, hook_id, uuid):
     if not service_definition.send():
         # Countdown is in seconds
         countdown = HookLog.get_remaining_seconds(self.request.retries)
-        raise self.retry(countdown=countdown, max_retries=settings.HOOK_MAX_RETRIES)
+        raise self.retry(countdown=countdown, max_retries=constance.config.HOOK_MAX_RETRIES)
 
     return True
 

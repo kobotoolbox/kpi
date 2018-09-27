@@ -137,7 +137,9 @@ CONSTANCE_CONFIG = {
                                        'help@kobotoolbox.org'),
                       'Email address for users to contact, e.g. when they '
                       'encounter unhandled errors in the application'),
-
+    'HOOK_MAX_RETRIES': (3,
+                         'Number of times the system will retry '
+                         'to send data to remote server before giving up')
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -643,6 +645,3 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
-
-# Number of tries Celery can do to send data to external endpoint
-HOOK_MAX_RETRIES = 3
