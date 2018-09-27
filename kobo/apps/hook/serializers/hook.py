@@ -13,8 +13,8 @@ class HookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hook
-        fields = ("url", "logs_url", "uid", "name", "endpoint", "active", "export_type",
-                  "security_level", "success_count", "failed_count", "pending_count", "settings",
+        fields = ("url", "logs_url", "asset", "uid", "name", "endpoint", "active", "export_type",
+                  "auth_level", "success_count", "failed_count", "pending_count", "settings",
                   "date_modified", "email_notification", "subset_fields")
 
         read_only_fields = ("asset", "uid", "date_modified", "success_count", "failed_count", "pending_count")

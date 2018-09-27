@@ -4,13 +4,15 @@ from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 import logging
 import json
+import os
 import re
 
+import constance
 import requests
-from django.conf import settings
 from rest_framework import status
 
-from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED
+from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from .hook import Hook
 from .hook_log import HookLog
 
 
@@ -71,6 +73,7 @@ class ServiceDefinitionInterface(object):
         """
 
         success = False
+        response = None  # Need to declare response before requests.post assignment in case of RequestException
         if self._data:
             try:
                 request_kwargs = self._prepare_request_kwargs()
@@ -79,47 +82,50 @@ class ServiceDefinitionInterface(object):
                 request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
 
                 # Add user agent
+                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME"))\
+                    if os.getenv("PUBLIC_DOMAIN_NAME") else ""
                 request_kwargs.get("headers").update({
-                    "User-Agent": "KoBoToolbox external service #{}".format(self._hook.uid)
+                    "User-Agent": "KoBoToolbox external service {}#{}".format(
+                        public_domain,
+                        self._hook.uid)
                 })
 
                 # If the request needs basic authentication with username & password,
                 # let's provide them
-                if self._hook.settings.get("username"):
+                if self._hook.auth_level == Hook.BASIC_AUTH:
                     request_kwargs.update({
                         "auth": (self._hook.settings.get("username"),
                                  self._hook.settings.get("password"))
                     })
                 response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
-                success = response.status_code in [status.HTTP_201_CREATED, status.HTTP_200_OK]
-                self.save_log(success, response.status_code, response.text)
-            except requests.exceptions.Timeout as e:
-                self.save_log(
-                    False,
-                    status.HTTP_408_REQUEST_TIMEOUT,
-                    str(e))
+                response.raise_for_status()
+                self.save_log(response.status_code, response.text, True)
+                success = True
             except requests.exceptions.RequestException as e:
-                self.save_log(
-                    False,
-                    status.HTTP_400_BAD_REQUEST,
-                    str(e))
+                # If request fails to communicate with remote server. Exception is raised before
+                # request.post can return something. Thus, response equals None
+                status_code = KOBO_INTERNAL_ERROR_STATUS_CODE
+                text = str(e)
+                if response is not None:
+                    text = response.text
+                    status_code = response.status_code
+                self.save_log(status_code, text)
+
             except Exception as e:
                 logger = logging.getLogger("console_logger")
                 logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
                     self._hook.uid, self._uuid, str(e)), exc_info=True)
                 self.save_log(
-                    False,
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")
         else:
             self.save_log(
-                False,
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                KOBO_INTERNAL_ERROR_STATUS_CODE,
                 "No data available")
 
         return success
 
-    def save_log(self, success, status_code, message):
+    def save_log(self, status_code, message, success=False):
         """
         Updates/creates log entry
 
@@ -141,7 +147,7 @@ class ServiceDefinitionInterface(object):
 
         if success:
             log.status = HOOK_LOG_SUCCESS
-        elif log.tries >= settings.HOOK_MAX_RETRIES:
+        elif log.tries >= constance.config.HOOK_MAX_RETRIES:
             log.status = HOOK_LOG_FAILED
 
         log.status_code = status_code

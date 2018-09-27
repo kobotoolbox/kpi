@@ -3,16 +3,16 @@ from datetime import datetime, timedelta
 from importlib import import_module
 import logging
 
-from django.conf import settings
+import constance
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from jsonbfield.fields import JSONField as JSONBField
+import requests
 from rest_framework import status
 from rest_framework.reverse import reverse
-import requests
 
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 from kpi.fields import KpiUidField
 
 
@@ -23,7 +23,7 @@ class HookLog(models.Model):
     instance_uuid = models.CharField(default="", max_length=36, db_index=True)  # `kc.logger.Instance.uuid`. Useful to retrieve data on retry
     tries = models.PositiveSmallIntegerField(default=0)
     status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
-    status_code = models.IntegerField(default=200)
+    status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now_add=True)
@@ -39,7 +39,7 @@ class HookLog(models.Model):
         :return: bool
         """
         if self.hook.active:
-            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `task.py:L60`
+            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
             # We can retry only if system has already tried 3 times.
             # If log is still pending after 3 times, there was an issue, we allow the retry
@@ -59,11 +59,33 @@ class HookLog(models.Model):
 
         self.save(reset_status=True)
 
+    @staticmethod
+    def get_elapsed_seconds(retries_count):
+        """
+        Calculate number of elapsed seconds since first try
+        :param retries_count: int.
+        :return: int. Number of seconds
+        """
+        # We need to sum all seconds between each retry
+        seconds = 0
+        for retries_count in range(retries_count):
+            seconds += HookLog.get_remaining_seconds(retries_count)  # Range is zero-indexed
+
+        return seconds
+
+    @staticmethod
+    def get_remaining_seconds(retries_count):
+        """
+        Calculate number of remaining seconds before next retry
+        :param retries_count: int.
+        :return: int. Number of seconds
+        """
+        return 60 * (10 ** retries_count)
+
     def retry(self):
         """
         Retries to send data to external service
-        :param data: mixed.
-        :return: tuple. status_code, localized message
+        :return: boolean
         """
         try:
             ServiceDefinition = self.hook.get_service_definition()

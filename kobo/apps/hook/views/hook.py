@@ -3,14 +3,13 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 import json
 
-from django.conf import settings
+import constance
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import detail_route
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -20,6 +19,7 @@ from ..models import Hook, HookLog
 from ..serializers.hook import HookSerializer
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
+from kpi.permissions import AssetOwnerNestedObjectsPermissions
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
 
@@ -73,7 +73,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >           "email_notification": {boolean},
     >           "export_type": {string},
     >           "subset_fields": [{string}],
-    >           "security_level": {string},
+    >           "auth_level": {string},
     >           "settings": {
     >               "username": {string},
     >               "password": {string},
@@ -95,7 +95,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         2. `xml`
 
     * `email_notification` is a boolean. If true, User will be notified when request to remote server has failed.
-    * `security_level` must be one these values:
+    * `auth_level` must be one these values:
 
         1. `no_auth` (_default_)
         2. `basic_auth`
@@ -153,22 +153,13 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         AssetOwnerFilterBackend,
     )
     serializer_class = HookSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AssetOwnerNestedObjectsPermissions,)
 
     def get_queryset(self):
         asset_uid = self.get_parents_query_dict().get("asset")
         queryset = self.model.objects.filter(asset__uid=asset_uid)
         queryset = queryset.select_related("asset__uid")
         return queryset
-
-    def list(self, request, *args, **kwargs):
-        # Because object permissions is done on hook only,
-        # we need to check whether the user is the owner of the user to return a 404 when it's not.
-        # We prefer to return 404 instead of 403 to avoid to expose existence of the Asset/Hook
-        # to unauthorized user
-        asset_uid = self.get_parents_query_dict().get("asset")
-        asset = get_object_or_404(Asset, uid=asset_uid, owner=request.user)
-        return super(HookViewSet, self).list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         asset_uid = self.get_parents_query_dict().get("asset")
@@ -181,7 +172,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         response = {"detail": _("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
-            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `tasks.py:L32`
+            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
 
             records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |

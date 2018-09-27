@@ -8,7 +8,7 @@ import django.contrib.postgres.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hook', '0003_add_email_notifications_field'),
+        ('hook', '0002_add_email_notifications_field'),
     ]
 
     operations = [

@@ -51,7 +51,7 @@ class LibrarySearchableList extends React.Component {
   }
   onTypeFilterChange(evt) {
     this.setState({
-      typeFilterVal: evt.value,
+      typeFilterVal: evt,
       searchContext: searches.getSearchContext('library', {
         filterParams: {assetType: evt.value},
         filterTags: evt.value,
@@ -72,10 +72,11 @@ class LibrarySearchableList extends React.Component {
           {t('Filter by type:')}
           &nbsp;
           <Select
-            className='Select--underlined'
+            className='kobo-select'
+            classNamePrefix='kobo-select'
             value={this.state.typeFilterVal}
-            clearable={false}
-            searchable={false}
+            isClearable={false}
+            isSearchable={false}
             options={typeFilterOptions}
             onChange={this.onTypeFilterChange}
           />

@@ -2,23 +2,22 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {dataInterface} from '../dataInterface';
-import actions from '../actions';
-import reactMixin from 'react-mixin';
-import mixins from '../mixins';
-import bem from '../bem';
-import {t, notify} from '../utils';
-import stores from '../stores';
-import ui from '../ui';
 import alertify from 'alertifyjs';
-import icons from '../../xlform/src/view.icons';
+import reactMixin from 'react-mixin';
 import Select from 'react-select';
 
+import {dataInterface} from 'js/dataInterface';
+import actions from 'js/actions';
+import mixins from 'js/mixins';
+import bem from 'js/bem';
+import {t, notify} from 'js/utils';
+import stores from 'js/stores';
+import ui from 'js/ui';
+import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES,
   MODAL_TYPES
-} from '../constants';
-
+} from 'js/constants';
 
 class Submission extends React.Component {
   constructor(props) {
@@ -278,18 +277,27 @@ class Submission extends React.Component {
     const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
     const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
+    const getGroupedName = (name) => {
+      if (openedGroups.length === 0) {
+        return name;
+      }
+      return `${openedGroups.join('/')}/${name}`;
+    }
+
     return survey.map((q)=> {
       var name = q.name || q.$autoname || q.$kuid;
 
       if (q.type === 'begin_repeat') {
+        let groupedName = getGroupedName(name);
+
         return (
-          <tr key={`row-${name}`}>
+          <tr key={`row-${groupedName}`}>
             <td colSpan='3' className='submission--repeat-group'>
               <h4>
                 {t('Repeat group: ')}
                 {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled')}
               </h4>
-              {s[name] && s[name].map((repQ, i)=> {
+              {s[groupedName] && s[groupedName].map((repQ, i)=> {
                 var response = [];
                 for (var pN in repQ) {
                   var qName = pN.split('/').pop(-1);
@@ -351,20 +359,18 @@ class Submission extends React.Component {
         );
       }
 
-      if (openedGroups.length !== 0) {
-        name = `${openedGroups.join('/')}/${name}`;
-      }
+      let groupedName = getGroupedName(name);
 
-      if (q.label == undefined || s[name] == undefined) { return false;}
+      if (q.label == undefined || s[groupedName] == undefined) { return false;}
 
-      const response = this.responseDisplayHelper(q, s, false, name);
+      const response = this.responseDisplayHelper(q, s, false, groupedName);
       const icon = icons._byId[q.type];
       var type = q.type;
       if (icon)
         type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
 
       return (
-        <tr key={`row-${name}`}>
+        <tr key={`row-${groupedName}`}>
           <td className='submission--question-type'>{type}</td>
           <td className='submission--question'>{q.label[translationIndex] || t('Unlabelled')}</td>
           <td className='submission--response'>{response}</td>
@@ -423,20 +429,28 @@ class Submission extends React.Component {
               <div className='switch--label-language'>
                 <label>{t('Language:')}</label>
                 <Select
-                  clearable={false}
+                  isClearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
-                  onChange={this.languageChange} />
+                  onChange={this.languageChange}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
+                />
               </div>
             }
             <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
-                disabled={!this.userCan('validate_submissions', this.props.asset)}
-                clearable={false}
-                value={s._validation_status ? s._validation_status.uid : ''}
+                isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+                isClearable={false}
+                value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
                 options={VALIDATION_STATUSES}
-                onChange={this.validationStatusChange} />
+                onChange={this.validationStatusChange}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+              />
             </div>
           </bem.FormModal__group>
         }

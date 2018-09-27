@@ -351,6 +351,9 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
     })
     .fail(function(resp){
       actions.resources.updateAsset.failed(resp);
+      if (params.onFailed) {
+        params.onFailed(resp);
+      }
     });
 });
 

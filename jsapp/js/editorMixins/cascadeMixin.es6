@@ -12,12 +12,7 @@ var CascadePopup = bem.create('cascade-popup'),
 
 var choiceListHelpUrl = 'http://support.kobotoolbox.org/customer/en/portal/articles/1682856';
 
-import {
-  surveyToValidJson,
-  notify,
-  assign,
-  t,
-} from '../utils';
+import {t} from '../utils';
 
 export default {
   toggleCascade () {

@@ -5,21 +5,22 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
-import stores from '../stores';
-import actions from '../actions';
-import mixins from '../mixins';
 import classNames from 'classnames';
 import Select from 'react-select';
-import bem from '../bem';
+
+import mixins from 'js/mixins';
+import stores from 'js/stores';
+import actions from 'js/actions';
+import bem from 'js/bem';
 import {
   t,
   parsePermissions,
   stringToColor,
   anonUsername
-} from '../utils';
+} from 'utils';
 
 // parts
-import CopyTeamPermissions from './sharingForm/copyTeamPermissions';
+import CopyTeamPermissions from './copyTeamPermissions';
 
 var availablePermissions = [
   {value: 'view', label: t('View Form')},
@@ -69,6 +70,8 @@ class UserPermDiv extends React.Component {
         cans.push(perm.label);
     }
 
+    const cansString = cans.sort().join(', ');
+
     return (
       <bem.UserRow m={cans.length > 0 ? 'regular' : 'deleted'}>
         <bem.UserRow__avatar>
@@ -79,8 +82,8 @@ class UserPermDiv extends React.Component {
         <bem.UserRow__name>
           {this.props.username}
         </bem.UserRow__name>
-        <bem.UserRow__role title={cans.join(', ')}>
-          {cans.join(', ')}
+        <bem.UserRow__role title={cansString}>
+          {cansString}
         </bem.UserRow__role>
         <bem.UserRow__cancel onClick={this.removePermissions}>
           <i className='k-icon k-icon-trash' />
@@ -232,14 +235,14 @@ class SharingForm extends React.Component {
         uid: this.state.asset.uid,
         kind: this.state.asset.kind,
         objectUrl: this.props.objectUrl,
-        role: this.state.permInput
+        role: this.state.permInput.value
       });
       this.usernameField().value = '';
     }
   }
-  updatePermInput(permName) {
+  updatePermInput(perm) {
     this.setState({
-      permInput: permName.value
+      permInput: perm
     });
   }
   render () {
@@ -337,9 +340,12 @@ class SharingForm extends React.Component {
                   id='permGiven'
                   ref='permInput'
                   value={this.state.permInput}
-                  clearable={false}
+                  isClearable={false}
                   options={availablePermissions}
                   onChange={this.updatePermInput}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
               />
               <button className={btnKls}>
                   {t('invite')}

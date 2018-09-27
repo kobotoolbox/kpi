@@ -1,19 +1,17 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
-import bem from '../bem';
-import ui from '../ui';
-import actions from '../actions';
-import stores from '../stores';
-import mixins from '../mixins';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
 
-import {
-  t,
-  notify
-} from '../utils';
+import bem from 'js/bem';
+import ui from 'js/ui';
+import actions from 'js/actions';
+import stores from 'js/stores';
+import mixins from 'js/mixins';
+import {t, notify} from 'js/utils';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){
@@ -22,6 +20,7 @@ export class TableColumnFilter extends React.Component {
       selectedColumns: [],
       frozenColumn: false,
       showGroupName: true,
+      showHXLTags: false,
       translationIndex: 0
     };
 
@@ -29,12 +28,16 @@ export class TableColumnFilter extends React.Component {
     if (_sett['data-table']) {
       if (_sett['data-table']['selected-columns'])
         this.state.selectedColumns = _sett['data-table']['selected-columns'];
-      if (_sett['data-table']['frozen-column'])
-        this.state.frozenColumn = _sett['data-table']['frozen-column'];
+      if (_sett['data-table']['frozen-column']) {
+        const cols = this.listColumns();
+        this.state.frozenColumn = _.find(cols, (col) => {return col.value === _sett['data-table']['frozen-column']});
+      }
       if (_sett['data-table']['show-group-name'])
         this.state.showGroupName = _sett['data-table']['show-group-name'];
       if (_sett['data-table']['translation-index'])
         this.state.translationIndex = _sett['data-table']['translation-index'];
+      if (_sett['data-table']['show-hxl-tags'])
+        this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
     }
 
     autoBind(this);
@@ -51,9 +54,10 @@ export class TableColumnFilter extends React.Component {
 
     if (this.userCan('change_asset', this.props.asset)) {
       settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
-      settings['data-table']['frozen-column'] = s.frozenColumn;
+      settings['data-table']['frozen-column'] = s.frozenColumn.value;
       settings['data-table']['show-group-name'] = s.showGroupName;
       settings['data-table']['translation-index'] = s.translationIndex;
+      settings['data-table']['show-hxl-tags'] = s.showHXLTags;
 
       actions.table.updateSettings(this.props.asset.uid, settings);
     } else {
@@ -83,12 +87,17 @@ export class TableColumnFilter extends React.Component {
   }
   setFrozenColumn(col) {
     this.setState({
-      frozenColumn: col && col.value ? col.value : false
+      frozenColumn: col ? col : false
     })
   }
   updateGroupHeaderDisplay(e) {
     this.setState({
       showGroupName: e.target.checked
+    })
+  }
+  onHXLTagsChange(evt) {
+    this.setState({
+      showHXLTags: evt.currentTarget.checked
     })
   }
   onLabelChange(e) {
@@ -170,6 +179,19 @@ export class TableColumnFilter extends React.Component {
             {t('Show group names in table headers')}
           </label>
         </bem.FormModal__item>
+
+        <bem.FormModal__item>
+          <input
+            type='checkbox'
+            checked={this.state.showHXLTags}
+            onChange={this.onHXLTagsChange}
+            id='hxl-tags'
+          />
+          <label htmlFor='hxl-tags'>
+            {t('Show HXL tags')}
+          </label>
+        </bem.FormModal__item>
+
         {this.userCan('change_asset', this.props.asset) &&
           <bem.FormModal__item m='advanced-table-options'>
             <bem.FormView__cell m='note'>
@@ -182,7 +204,12 @@ export class TableColumnFilter extends React.Component {
               <Select
                 value={this.state.frozenColumn}
                 options={this.listColumns()}
-                onChange={this.setFrozenColumn} />
+                onChange={this.setFrozenColumn}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
             </bem.FormModal__item>
             <bem.FormModal__item>
               <bem.FormView__cell m='label'>

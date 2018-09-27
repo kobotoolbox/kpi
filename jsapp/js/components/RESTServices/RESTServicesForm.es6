@@ -68,7 +68,7 @@ export default class RESTServicesForm extends React.Component {
             emailNotification: data.email_notification,
             subsetFields: data.subset_fields,
             type: data.export_type,
-            securityLevel: SECURITY_OPTIONS[data.security_level],
+            securityLevel: SECURITY_OPTIONS[data.security_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
           };
 
@@ -449,11 +449,14 @@ export default class RESTServicesForm extends React.Component {
               </label>
 
               <Select
+                value={this.state.securityLevel}
+                options={this.state.securityOptions}
+                onChange={this.handleSecurityTypeChange.bind(this)}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
                 id='rest-service-form--security'
                 name='securityLevel'
-                value={this.state.securityLevel}
-                onChange={this.handleSecurityTypeChange.bind(this)}
-                options={this.state.securityOptions}
+                menuPlacement='auto'
               />
             </bem.FormModal__item>
 
