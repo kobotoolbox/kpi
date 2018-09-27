@@ -12,13 +12,11 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 import requests
 
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 from kpi.fields import KpiUidField
 
 
 class HookLog(models.Model):
-
-    KOBO_INTERNAL_ERROR_STATUS_CODE = None
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")

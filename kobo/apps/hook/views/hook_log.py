@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
 from kpi.models import Asset
@@ -97,7 +98,7 @@ class HookLogViewSet(NestedViewSetMixin,
         :return: Response
         """
         response = {"detail": "",
-                    "status_code": HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE}
+                    "status_code": KOBO_INTERNAL_ERROR_STATUS_CODE}
         status_code = status.HTTP_200_OK
         hook_log = self.get_object()
 

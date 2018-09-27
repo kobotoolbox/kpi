@@ -10,7 +10,7 @@ import requests
 from django.conf import settings
 from rest_framework import status
 
-from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED
+from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
 from .hook import Hook
 from .hook_log import HookLog
 
@@ -86,7 +86,7 @@ class ServiceDefinitionInterface(object):
             except requests.exceptions.RequestException as e:
                 # If request fails to communicate with remote server. Exception is raised before
                 # request.post can return something. Thus, response equals None
-                status_code = HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE
+                status_code = KOBO_INTERNAL_ERROR_STATUS_CODE
                 text = str(e)
                 if response is not None:
                     text = response.text
@@ -98,11 +98,11 @@ class ServiceDefinitionInterface(object):
                 logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
                     self._hook.uid, self._uuid, str(e)), exc_info=True)
                 self.save_log(
-                    HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE,
+                    KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")
         else:
             self.save_log(
-                HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE,
+                KOBO_INTERNAL_ERROR_STATUS_CODE,
                 "No data available")
 
         return success
