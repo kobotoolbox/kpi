@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from abc import ABCMeta, abstractmethod
 import logging
 import json
+import os
 import re
 
 import constance
@@ -68,8 +69,12 @@ class ServiceDefinitionInterface(object):
                 request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
 
                 # Add user agent
+                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME"))\
+                    if os.getenv("PUBLIC_DOMAIN_NAME") else ""
                 request_kwargs.get("headers").update({
-                    "User-Agent": "KoBoToolbox external service #{}".format(self._hook.uid)
+                    "User-Agent": "KoBoToolbox external service {}#{}".format(
+                        public_domain,
+                        self._hook.uid)
                 })
 
                 # If the request needs basic authentication with username & password,
