@@ -728,8 +728,6 @@ mixins.cloneAssetAsNewType = {
           onComplete: (asset) => {
             dialog.destroy();
 
-            this.refreshSearch && this.refreshSearch();
-
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
                 hashHistory.push(`/forms/${asset.uid}/landing`);
