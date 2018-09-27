@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 
 import cStringIO
-import logging
 import json
 import re
 import requests
@@ -25,6 +24,7 @@ from .kc_access.shadow_models import _models
 from ..exceptions import BadFormatException
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.utils.mongo_helper import MongoDecodingHelper
+from kpi.utils.log import logging
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -495,7 +495,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             submissions = getter(instances_uuids)
         except Exception as e:
-            logger = logging.getLogger("console_logger")
             logger.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
 
         return submissions

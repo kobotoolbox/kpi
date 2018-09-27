@@ -21,6 +21,7 @@ from ..serializers.hook import HookSerializer
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
+from kpi.utils.log import logging, stdlib_logging
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
