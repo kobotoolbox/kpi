@@ -2,22 +2,17 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
-
+import alertify from 'alertifyjs';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
-import mixins from '../mixins';
-
-import {t, notify} from '../utils';
-
+import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES
 } from '../constants';
-
 import ProjectSettings from '../components/modalForms/projectSettings';
 import SharingForm from '../components/modalForms/sharingForm';
 import Submission from '../components/modalForms/submission';
@@ -149,11 +144,33 @@ class Modal extends React.Component {
 
     return title;
   }
+  displaySafeCloseConfirm(title, message) {
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: title,
+      message: message,
+      labels: {ok: t('Close'), cancel: t('Cancel')},
+      onok: stores.pageState.hideModal,
+      oncancel: dialog.destroy
+    };
+    dialog.set(opts).show();
+  }
+  onModalClose(evt) {
+    if (this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE) {
+      this.displaySafeCloseConfirm(
+        t('Close Translations table?'),
+        t('You will lose all unsaved changes.')
+      );
+      return false;
+    } else {
+      stores.pageState.hideModal();
+    }
+  }
   render() {
     return (
       <ui.Modal
         open
-        onClose={()=>{stores.pageState.hideModal()}}
+        onClose={this.onModalClose}
         title={this.state.title}
         className={this.state.modalClass}
       >
