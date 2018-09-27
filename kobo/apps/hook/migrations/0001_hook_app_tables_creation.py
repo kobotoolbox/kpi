@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('instance_uuid', models.CharField(default=b'', max_length=36, db_index=True)),
                 ('tries', models.PositiveSmallIntegerField(default=0)),
                 ('status', models.PositiveSmallIntegerField(default=1)),
-                ('status_code', models.IntegerField(default=200)),
+                ('status_code', models.IntegerField(default=None, null=True, blank=True)),
                 ('message', models.TextField(default=b'')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now_add=True)),

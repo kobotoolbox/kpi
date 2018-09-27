@@ -59,6 +59,7 @@ class ServiceDefinitionInterface(object):
         """
 
         success = False
+        response = None  # Need to declare response before requests.post assignment in case of RequestException
         if self._data:
             try:
                 request_kwargs = self._prepare_request_kwargs()
@@ -80,35 +81,33 @@ class ServiceDefinitionInterface(object):
                     })
                 response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
                 response.raise_for_status()
+                self.save_log(response.status_code, response.text, True)
                 success = True
-                self.save_log(success, response.status_code, response.text)
-            except requests.exceptions.Timeout as e:
-                self.save_log(
-                    False,
-                    status.HTTP_408_REQUEST_TIMEOUT,
-                    str(e))
             except requests.exceptions.RequestException as e:
-                self.save_log(
-                    False,
-                    response.status_code,
-                    getattr(response, "text", str(e)))
+                # If request fails to communicate with remote server. Exception is raised before
+                # request.post can return something. Thus, response equals None
+                status_code = HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE
+                text = str(e)
+                if response is not None:
+                    text = response.text
+                    status_code = response.status_code
+                self.save_log(status_code, text)
+
             except Exception as e:
                 logger = logging.getLogger("console_logger")
                 logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
                     self._hook.uid, self._uuid, str(e)), exc_info=True)
                 self.save_log(
-                    False,
-                    status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")
         else:
             self.save_log(
-                False,
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                HookLog.KOBO_INTERNAL_ERROR_STATUS_CODE,
                 "No data available")
 
         return success
 
-    def save_log(self, success, status_code, message):
+    def save_log(self, status_code, message, success=False):
         """
         Updates/creates log entry
 

@@ -18,12 +18,14 @@ from kpi.fields import KpiUidField
 
 class HookLog(models.Model):
 
+    KOBO_INTERNAL_ERROR_STATUS_CODE = None
+
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
     instance_uuid = models.CharField(default="", max_length=36, db_index=True)  # `kc.logger.Instance.uuid`. Useful to retrieve data on retry
     tries = models.PositiveSmallIntegerField(default=0)
     status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
-    status_code = models.IntegerField(default=200)
+    status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now_add=True)
