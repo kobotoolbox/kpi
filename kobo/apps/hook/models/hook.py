@@ -26,7 +26,7 @@ class Hook(models.Model):
     )
 
     # Authentication levels list
-    SECURITY_LEVEL_CHOICES = (
+    AUTHENTICATION_LEVEL_CHOICES = (
         (NO_AUTH, NO_AUTH),
         (BASIC_AUTH, BASIC_AUTH)
     )
@@ -37,10 +37,10 @@ class Hook(models.Model):
     endpoint = models.CharField(max_length=500, blank=False)
     active = models.BooleanField(default=True)
     export_type = models.CharField(choices=EXPORT_TYPE_CHOICES, default=JSON, max_length=10)
-    security_level = models.CharField(choices=SECURITY_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
+    auth_level = models.CharField(choices=AUTHENTICATION_LEVEL_CHOICES, default=NO_AUTH, max_length=10)
     settings = JSONBField(default=dict)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(default=timezone.now)
+    date_modified = models.DateTimeField(default=timezone.now)
     email_notification = models.BooleanField(default=True)
 
     class Meta:
@@ -97,12 +97,3 @@ class Hook(models.Model):
     def reset_totals(self):
         # TODO remove cache when it's enabled
         self.__totals = {}
-
-    def retry(self):
-        """
-        Retry to send data to external service
-        only if it has failed before this try.
-        :param data: mixed.
-        :return: tuple. status_code, response dict
-        """
-        pass

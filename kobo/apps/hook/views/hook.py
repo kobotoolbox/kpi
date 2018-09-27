@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from datetime import datetime, timedelta
 import json
 
-from django.conf import settings
+import constance
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -71,7 +71,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >           "endpoint": {string},
     >           "active": {boolean},
     >           "export_type": {string},
-    >           "security_level": {string},
+    >           "auth_level": {string},
     >           "settings": {
     >               "username": {string},
     >               "password": {string},
@@ -92,7 +92,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         1. `json` (_default_)
         2. `xml`
 
-    * `security_level` must be one these values:
+    * `auth_level` must be one these values:
 
         1. `no_auth` (_default_)
         2. `basic_auth`
@@ -170,7 +170,7 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         response = {"detail": _("Task successfully scheduled")}
         status_code = status.HTTP_200_OK
         if hook.active:
-            seconds = 60 * (10 ** settings.HOOK_MAX_RETRIES)  # Must match equation in `tasks.py:L32`
+            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
 
             records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |

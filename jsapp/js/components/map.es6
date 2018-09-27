@@ -78,7 +78,7 @@ export class FormMap extends React.Component {
       hasGeoPoint: hasGeoPoint,
       submissions: [],
       error: false,
-      showExpandedMap: false,
+      isFullscreen: false,
       showExpandedLegend: true,
       langIndex: 0,
       filteredByMarker: false,
@@ -565,11 +565,8 @@ export class FormMap extends React.Component {
     let map = this.refreshMap();
     this.requestData(map, this.props.viewby);
   }
-  toggleExpandedMap () {
-    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedMap);
-    this.setState({
-      showExpandedMap: !this.state.showExpandedMap,
-    });
+  toggleFullscreen () {
+    this.setState({isFullscreen: !this.state.isFullscreen});
 
     var map = this.state.map;
     setTimeout(function(){ map.invalidateSize()}, 300);
@@ -680,12 +677,17 @@ export class FormMap extends React.Component {
       });
     }
 
+    const formViewModifiers = ['map'];
+    if (this.state.isFullscreen) {
+      formViewModifiers.push('fullscreen');
+    }
+
     return (
-      <bem.FormView m='map' className='right-tooltip'>
+      <bem.FormView m={formViewModifiers} className='right-tooltip'>
         <bem.FormView__mapButton m={'expand'}
-          onClick={this.toggleExpandedMap}
+          onClick={this.toggleFullscreen}
           data-tip={t('Toggle Fullscreen')}
-          className={this.state.toggleExpandedMap ? 'active': ''}>
+          className={this.state.toggleFullscreen ? 'active': ''}>
           <i className='k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}

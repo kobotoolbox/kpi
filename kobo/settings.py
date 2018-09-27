@@ -142,8 +142,10 @@ CONSTANCE_CONFIG = {
                       'encounter unhandled errors in the application'),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
                                        'Allow the use of unsecured endpoints for hooks. '
-                                       '(e.g http://hook.example.com)')
-
+                                       '(e.g http://hook.example.com)'),
+    'HOOK_MAX_RETRIES': (3,
+                         'Number of times the system will retry '
+                         'to send data to remote server before giving up')
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -662,6 +664,3 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
-
-# Number of tries Celery can do to send data to external endpoint
-HOOK_MAX_RETRIES = 3

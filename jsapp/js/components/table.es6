@@ -41,7 +41,7 @@ export class DataTable extends React.Component {
       selectedColumns: false,
       frozenColumn: false,
       sids: [],
-      showExpandedTable: false,
+      isFullscreen: false,
       defaultPageSize: 30,
       pageSize: 30,
       currentPage: 0,
@@ -49,6 +49,7 @@ export class DataTable extends React.Component {
       showLabels: true,
       translationIndex: 0,
       showGroupName: true,
+      showHXLTags: false,
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
@@ -71,7 +72,11 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = '&query={';
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
+        if (f.id === '_id') {
+          filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
+        } else {
+          filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
+        }
         if (i < filter.length - 1)
           filterQuery += ',';
       });
@@ -107,7 +112,7 @@ export class DataTable extends React.Component {
             loading: false
           });
           // TODO: debounce the queries and then enable this notification
-          notify(t('The query did not return any results.'));
+          alertify.warning(t('The query did not return any results.'));
         } else {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
@@ -121,22 +126,29 @@ export class DataTable extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-  validationStatusChange(sid, index) {
-    var _this = this;
-
-    return function(selection) {
-      const data = {'validation_status.uid': selection.value};
-      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-        if (result.uid) {
-          _this.state.tableData[index]._validation_status = result.uid;
-          _this.setState({tableData: _this.state.tableData});
-        } else {
-          console.error('error updating validation status');
-        }
-      }).fail((error)=>{
-        console.error(error);
+  getValidationStatusOption(rowIndex) {
+    if (this.state.tableData[rowIndex]._validation_status) {
+      const optionVal = this.state.tableData[rowIndex]._validation_status.uid;
+      return _.find(VALIDATION_STATUSES, (option) => {
+        return option.value === optionVal;
       });
+    } else {
+      return null;
     }
+  }
+  onValidationStatusChange(sid, index, evt) {
+    const _this = this;
+    const data = {'validation_status.uid': evt.value};
+    dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
+      if (result.uid) {
+        _this.state.tableData[index]._validation_status = result.uid;
+        _this.setState({tableData: _this.state.tableData});
+      } else {
+        console.error('error updating validation status');
+      }
+    }).fail((error)=>{
+      console.error(error);
+    });
   }
   _prepColumns(data) {
     var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
@@ -150,6 +162,7 @@ export class DataTable extends React.Component {
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
+        showHXLTags = this.state.showHXLTags,
         settings = this.props.asset.settings,
         translationIndex = this.state.translationIndex,
         maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
@@ -162,6 +175,10 @@ export class DataTable extends React.Component {
 
     if (settings['data-table'] && settings['data-table']['show-group-name'] != null) {
       showGroupName = settings['data-table']['show-group-name'];
+    }
+
+    if (settings['data-table'] && settings['data-table']['show-hxl-tags'] != null) {
+      showHXLTags = settings['data-table']['show-hxl-tags'];
     }
 
     // check for overrides by users with view permissions only
@@ -233,7 +250,13 @@ export class DataTable extends React.Component {
     });
 
     columns.push({
-      Header: t('Validation status'),
+      Header: () => {
+        return (
+          <span className='column-header-title'>
+            {t('Validation status')}
+          </span>
+        );
+      },
       accessor: '_validation_status.uid',
       index: '__2',
       id: '__ValidationStatus',
@@ -253,11 +276,15 @@ export class DataTable extends React.Component {
         </select>,
       Cell: row => (
         <Select
-          disabled={!this.userCan('validate_submissions', this.props.asset)}
-          clearable={false}
-          value={this.state.tableData[row.index]._validation_status}
+          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+          isClearable={false}
+          value={this.getValidationStatusOption(row.index)}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.original._id, row.index)} />
+          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          menuPlacement='auto'
+        />
       )
     });
 
@@ -330,8 +357,14 @@ export class DataTable extends React.Component {
       columns.push({
         Header: h => {
           const columnName = _this.getColumnLabel(key, q, qParentG);
+          const columnHXLTags = _this.getColumnHXLTags(key);
           return (
-            <span title={columnName}>{columnName}</span>
+            <React.Fragment>
+              <span className='column-header-title' title={columnName}>{columnName}</span>
+              {columnHXLTags &&
+                <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
+              }
+            </React.Fragment>
           );
         },
         id: key,
@@ -372,8 +405,30 @@ export class DataTable extends React.Component {
     })
 
     let selectedColumns = false,
-        frozenColumn = false,
-        textFilterQuestionTypes = ['text', 'integer', 'decimal'];
+        frozenColumn = false;
+    const textFilterQuestionTypes = [
+      'text',
+      'integer',
+      'decimal',
+      'select_multiple',
+      'date',
+      'time',
+      'datetime',
+      'start',
+      'end',
+      'username',
+      'simserial',
+      'subscriberid',
+      'deviceid',
+      'phonenumber',
+      'today'
+    ];
+    const textFilterQuestionIds = [
+      '__version__',
+      '_id',
+      '_uuid',
+      '_submission_time'
+    ]
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
       frozenColumn = settings['data-table']['frozen-column'];
@@ -395,10 +450,14 @@ export class DataTable extends React.Component {
             })}
           </select>;
       }
-      if (col.question && textFilterQuestionTypes.includes(col.question.type)) {
+      if (
+        (col.question && textFilterQuestionTypes.includes(col.question.type))
+        || textFilterQuestionIds.includes(col.id)
+      ) {
         col.filterable = true;
         col.Filter = ({ filter, onChange }) =>
           <DebounceInput
+            value={filter ? filter.value : undefined}
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
             style={{ width: '100%' }}/>;
@@ -438,15 +497,47 @@ export class DataTable extends React.Component {
       frozenColumn: frozenColumn,
       translationIndex: translationIndex,
       showLabels: showLabels,
-      showGroupName: showGroupName
+      showGroupName: showGroupName,
+      showHXLTags: showHXLTags
     });
+  }
+  getColumnHXLTags(key) {
+    if (this.state.showHXLTags) {
+      const colQuestion = _.find(this.props.asset.content.survey, (question) => {
+        return question.$autoname === key;
+      });
+      if (!colQuestion || !colQuestion.tags) {
+        return null;
+      }
+      const HXLTags = [];
+      colQuestion.tags.map((tag) => {
+        if (tag.startsWith('hxl:')) {
+          HXLTags.push(tag.replace('hxl:', ''));
+        }
+      });
+      if (HXLTags.length === 0) {
+        return null;
+      } else {
+        return HXLTags.join('');
+      }
+    } else {
+      return null;
+    }
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
       case '__SubmissionCheckbox':
-        return t('Multi-select checkboxes column');
+        return (
+          <span className='column-header-title'>
+            {t('Multi-select checkboxes column')}
+          </span>
+        );
       case '__ValidationStatus':
-        return t('Validation status');
+        return (
+          <span className='column-header-title'>
+            {t('Validation status')}
+          </span>
+        );
     }
 
     var label = key;
@@ -493,25 +584,13 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     });
   }
-  toggleExpandedTable () {
-    if (this.state.showExpandedTable) {
-      // load asset again to restore header title and submission count after exiting expanded report
-      actions.resources.loadAsset({id: this.props.asset.uid});
-    }
-
-    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
-    this.setState({
-      showExpandedTable: !this.state.showExpandedTable,
-    });
+  toggleFullscreen () {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
-    this.listenTo(actions.table.updateSettings.completed, this.tableSettingsUpdated);
-    this.listenTo(stores.pageState, this.onPageStateUpdate);
-  }
-  componentWillUnmount() {
-    if (this.state.showExpandedTable)
-      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
+    this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
+    this.listenTo(stores.pageState, this.onPageStateUpdated);
   }
   refreshSubmission(result, sid) {
     if (sid) {
@@ -524,7 +603,7 @@ export class DataTable extends React.Component {
       }
     }
   }
-  tableSettingsUpdated() {
+  onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
@@ -566,7 +645,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  launchTableColumnsModal () {
+  showTableColumsOptionsModal () {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_COLUMNS,
       asset: this.props.asset,
@@ -591,7 +670,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  onPageStateUpdate(pageState) {
+  onPageStateUpdated(pageState) {
     if (!pageState.modal)
       return false;
 
@@ -767,8 +846,12 @@ export class DataTable extends React.Component {
     let asset = this.props.asset,
         tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
 
+    const formViewModifiers = ['table'];
+    if (this.state.isFullscreen) {
+      formViewModifiers.push('fullscreen');
+    }
     return (
-      <bem.FormView m='table'>
+      <bem.FormView m={formViewModifiers}>
         {this.state.promptRefresh &&
           <bem.FormView__cell m='table-warning'>
             <i className='k-icon-alert' />
@@ -804,15 +887,19 @@ export class DataTable extends React.Component {
               </ui.PopoverMenu>
             }
 
-            <button className='mdl-button mdl-button--icon report-button__expand'
-                    onClick={this.toggleExpandedTable}
-                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+            <button
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+              onClick={this.toggleFullscreen}
+              data-tip={t('Toggle fullscreen')}
+            >
               <i className='k-icon-expand' />
             </button>
 
-            <button className='mdl-button mdl-button--icon report-button__expand'
-                    onClick={this.launchTableColumnsModal}
-                    data-tip={t('Display options')}>
+            <button
+              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+              onClick={this.showTableColumsOptionsModal}
+              data-tip={t('Display options')}
+            >
               <i className='k-icon-settings' />
             </button>
           </bem.FormView__item>

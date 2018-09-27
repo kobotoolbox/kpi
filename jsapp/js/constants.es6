@@ -14,7 +14,9 @@ const MODAL_TYPES = {
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
   TABLE_COLUMNS: 'table-columns',
-  REST_SERVICES: 'rest-services'
+  REST_SERVICES: 'rest-services',
+  FORM_LANGUAGES: 'form-languages',
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
 }
 
 const PROJECT_SETTINGS_CONTEXTS = {

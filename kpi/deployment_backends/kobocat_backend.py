@@ -432,7 +432,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # For GET requests that return files directly
             'xls': u'/'.join((reports_base_url, 'export.xlsx')),
             'csv': u'/'.join((reports_base_url, 'export.csv')),
-            'spss_labels': u'/'.join((forms_base_url, 'spss_labels.zip')),
         }
         return links
 

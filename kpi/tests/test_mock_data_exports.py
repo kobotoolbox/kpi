@@ -2,7 +2,9 @@
 from __future__ import unicode_literals
 
 import os
+import mock
 import xlrd
+import zipfile
 import datetime
 import unittest
 from collections import defaultdict
@@ -330,6 +332,86 @@ class MockDataExports(TestCase):
             result_row = [cell.value for cell in sheet.row(row_index)]
             self.assertEqual(result_row, expected_row)
             row_index += 1
+
+    def test_export_spss_labels(self):
+        export_task = ExportTask()
+        export_task.user = self.user
+        export_task.data = {
+            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'type': 'spss_labels',
+        }
+        messages = defaultdict(list)
+        # Set the current date and time artificially to generate a predictable
+        # file name for the export
+        utcnow = datetime.datetime.utcnow()
+        with mock.patch('kpi.models.import_export_task.utcnow') as mock_utcnow:
+            mock_utcnow.return_value = utcnow
+            export_task._run_task(messages)
+        self.assertFalse(messages)
+        self.assertEqual(
+            os.path.split(export_task.result.name)[-1],
+            'Identificaci\xf3n de animales - all versions - SPSS Labels - '
+            '{date:%Y-%m-%d-%H-%M-%S}.zip'.format(date=utcnow)
+        )
+        expected_file_names_and_content_lines = {
+            'Identificaci\xf3n de animales - Spanish - SPSS labels.sps': [
+                '\ufeffVARIABLE LABELS',
+                " start 'start'",
+                " /end 'end'",
+                " /What_kind_of_symmetry_do_you_have '\xbfQu\xe9 tipo de simetr\xeda tiene?'",
+                " /What_kind_of_symmetry_do_you_have_spherical '\xbfQu\xe9 tipo de simetr\xeda tiene? :: Esf\xe9rico'",
+                " /What_kind_of_symmetry_do_you_have_radial '\xbfQu\xe9 tipo de simetr\xeda tiene? :: Radial'",
+                " /What_kind_of_symmetry_do_you_have_bilateral '\xbfQu\xe9 tipo de simetr\xeda tiene? :: Bilateral'",
+                " /How_many_segments_does_your_body_have '\xbfCu\xe1ntos segmentos tiene tu cuerpo?'",
+                " /Do_you_have_body_flu_intracellular_space '\xbfTienes fluidos corporales que ocupan espacio intracelular?'",
+                " /Do_you_descend_from_unicellular_organism '\xbfDesciende de un organismo unicelular ancestral?'",
+                " /_id '_id'",
+                " /_uuid '_uuid'",
+                " /_submission_time '_submission_time'",
+                ' .',
+                'VALUE LABELS',
+                ' Do_you_have_body_flu_intracellular_space',
+                " 'yes' 'S\xed'",
+                " 'yes__and_some_' 'S\xed, y alg\xfan espacio extracelular'",
+                " 'no___unsure' 'No / Inseguro'",
+                ' /Do_you_descend_from_unicellular_organism',
+                " 'yes' 'S\xed'",
+                " 'no' 'No'",
+                ' .'
+            ],
+            'Identificaci\xf3n de animales - English - SPSS labels.sps': [
+                '\ufeffVARIABLE LABELS',
+                " start 'start'",
+                " /end 'end'",
+                " /What_kind_of_symmetry_do_you_have 'What kind of symmetry do you have?'",
+                " /What_kind_of_symmetry_do_you_have_spherical 'What kind of symmetry do you have? :: Spherical'",
+                " /What_kind_of_symmetry_do_you_have_radial 'What kind of symmetry do you have? :: Radial'",
+                " /What_kind_of_symmetry_do_you_have_bilateral 'What kind of symmetry do you have? :: Bilateral'",
+                " /How_many_segments_does_your_body_have 'How many segments does your body have?'",
+                " /Do_you_have_body_flu_intracellular_space 'Do you have body fluids that occupy intracellular space?'",
+                " /Do_you_descend_from_unicellular_organism 'Do you descend from an ancestral unicellular organism?'",
+                " /_id '_id'",
+                " /_uuid '_uuid'",
+                " /_submission_time '_submission_time'",
+                ' .',
+                'VALUE LABELS',
+                ' Do_you_have_body_flu_intracellular_space',
+                " 'yes' 'Yes'",
+                " 'yes__and_some_' 'Yes, and some extracellular space'",
+                " 'no___unsure' 'No / Unsure'",
+                ' /Do_you_descend_from_unicellular_organism',
+                " 'yes' 'Yes'",
+                " 'no' 'No'",
+                ' .'
+            ],
+        }
+        result_zip = zipfile.ZipFile(export_task.result, 'r')
+        for name, content_lines in expected_file_names_and_content_lines.items():
+            self.assertEqual(
+                # we have `unicode_literals` but the rest of the app doesn't
+                result_zip.open(name, 'r').read().decode('utf-8'),
+                '\r\n'.join(content_lines)
+            )
 
     def test_remove_excess_exports(self):
         task_data = {

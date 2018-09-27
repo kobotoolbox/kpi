@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
 from kpi.models import Asset
@@ -24,7 +25,7 @@ class HookLogViewSet(NestedViewSetMixin,
     """
     ## Logs of an external service
 
-    ** User can't add, update or delete logs with the API. He can only retry failed attemps (see below)**
+    ** Users can't add, update or delete logs with the API. They can only retry failed attempts (see below)**
 
     #### Lists logs of an external services endpoints accessible to requesting user
     <pre class="prettyprint">
@@ -96,7 +97,8 @@ class HookLogViewSet(NestedViewSetMixin,
         :param uid: str
         :return: Response
         """
-        response = {"detail": "success"}
+        response = {"detail": "",
+                    "status_code": KOBO_INTERNAL_ERROR_STATUS_CODE}
         status_code = status.HTTP_200_OK
         hook_log = self.get_object()
 
@@ -104,8 +106,10 @@ class HookLogViewSet(NestedViewSetMixin,
             hook_log.change_status()
             success = hook_log.retry()
             if success:
+                # Return status_code of remote server too.
+                # `response["status_code"]` is not the same as `status_code`
                 response["detail"] = hook_log.message
-                status_code = hook_log.status_code
+                response["status_code"] = hook_log.status_code
             else:
                 response["detail"] = _("An error has occurred when sending the data. Please try again later.")
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

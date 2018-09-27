@@ -1,3 +1,7 @@
+$z-modal-backdrop: 1001;
+$z-enketo-iframe-icon: 1000;
+$z-modal-x: 10;
+
 // -----------------------------------------------------------------------------
 // common modal parts
 // -----------------------------------------------------------------------------
@@ -6,33 +10,35 @@
   position: fixed;
   height: 100%;
   width: 100%;
-  z-index: 1001;
+  z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
   background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
 .modal {
+  align-items: stretch;
+  display: flex;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 40%;
+  max-width: 90%;
+  max-height: 95%;
+  overflow-x: auto;
+  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+  visibility: hidden;
+
   &.modal--open {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 40%;
-    max-width: 90%;
-    max-height: 95%;
-    overflow-x: auto;
-    box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
+    visibility: visible;
   }
 
   &.modal--large {
-    &.modal--open {
-      height: 80%;
-      width: 80%;
-      max-width: 1240px;
-      align-items: stretch;
-      display: flex;
-    }
+    height: 80%;
+    width: 80%;
+    max-width: 1240px;
 
     .modal__content {
       height: 100%;
@@ -76,6 +82,7 @@
 .modal__content {
   overflow: auto;
   background-color: #FFF;
+  width: 100%;
 }
 
 .modal__tabs {
@@ -84,7 +91,6 @@
 }
 
 .modal__header {
-  position: relative;
   min-height: 70px;
   background: $cool-blue;
   color: #FFF;
@@ -99,15 +105,21 @@
 
 .modal__x {
   position: absolute;
-  background-color: transparent;
+  z-index: $z-modal-x;
   top: 0;
   right: 0;
-  padding: 19px;
+  color: inherit;
+  background-color: inherit;
+  padding: 8px;
+  margin: 11px;
+  border-radius: 50%;
   font-size: 20px;
-  color: #FFF;
   cursor: pointer;
 
-  i {font-size: 32px;}
+  i {
+    display: block;
+    font-size: 32px;
+  }
 
   &:hover {opacity: 0.7;}
 }
@@ -128,8 +140,14 @@
 .modal__footer {
   padding: 0 30px 30px;
   margin-top: 20px;
-  overflow: hidden; // clearfix
   text-align: right;
+
+  &::before,
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
 
   &:first-child {
     margin-top: 0;
@@ -177,17 +195,9 @@
 // custom parts and overrides
 // -----------------------------------------------------------------------------
 
-.modal-submission {
-  .modal--open {
-    background-color: #FFF;
-  }
-
+.modal.modal-submission {
   .modal__header {
     background-color: #F8F8F8;
-    color: $layout-text-color;
-  }
-
-  .modal__x {
     color: $layout-text-color;
   }
 
@@ -211,7 +221,7 @@
       width: 50%;
       text-align: left;
 
-      label, div.Select {
+      label, .kobo-select {
         display: inline-block;
         vertical-align: middle;
       }
@@ -224,6 +234,9 @@
     .switch--validation-status {
       width: 100%;
       text-align: right;
+      .kobo-select {
+        text-align: left;
+      }
     }
 
     .switch--label-language + .switch--validation-status {
@@ -234,8 +247,7 @@
       min-width: 100px;
     }
 
-    .Select {
-      text-align: left;
+    .kobo-select {
       min-width: 120px;
     }
   }
@@ -387,7 +399,7 @@
   right: 6px;
   top: 6px;
   border-radius: 3px;
-  z-index: 1000;
+  z-index: $z-enketo-iframe-icon;
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -412,7 +424,7 @@
       width: 100%;
       float: none;
 
-      .Select {
+      .kobo-select {
         margin-right: 0;
       }
     }
@@ -539,6 +551,139 @@
     width: 30px;
     vertical-align: top;
     &:hover {color: $cool-red;}
+  }
+}
+
+.form-modal--translation-settings {
+  @media (min-width: 600px) {
+    min-width: 500px;
+  }
+
+  .form-view__cell--translation-note {
+    padding-bottom: 20px;
+  }
+  .form-view__cell--translation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid $divider-color;
+    padding: 6px 0px;
+
+    .form-view__cell--translation-name .form-view__icon-button {
+      opacity: 0;
+      visibility: hidden;
+      transition: 250ms;
+    }
+
+    &:hover .form-view__cell--translation-name .form-view__icon-button {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  .form-view__cell--translation-actions {
+    white-space: nowrap;
+  }
+
+  .form-view__label--default-language {
+    display: inline;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+
+  .form-view__cell--add-language {
+    padding-top: 20px;
+    text-align: right;
+    border-top: 1px solid $divider-color;
+  }
+
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: #F8F8F8;
+    padding: 15px;
+    position: relative;
+
+    .form-view__link--close {
+      position: absolute;
+      right: 0px;
+      top: 6px;
+
+      i {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .form-view__cell--add-language-form {
+    margin-top: 20px;
+  }
+
+  .form-view__form--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+
+    .form-view__cell {
+      &:not(:first-child) {margin-left: 10px;}
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+      &.form-view__cell--submit-button {padding-top: 10px;}
+    }
+  }
+}
+
+.form-modal--translation-table {
+  // assumption: parent is display flex
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+
+  .translation-table-container {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid $divider-color;
+  }
+
+  .ReactTable {
+    width: 100%;
+
+    .rt-thead.-header {
+      box-shadow: none;
+      border-bottom: 2px solid $divider-color;
+    }
+
+    .rt-thead > .rt-tr,
+    .rt-tr-group > .rt-tr {
+      .rt-td {
+        white-space: normal;
+      }
+      > .rt-th:first-child,
+      > .rt-td:first-child {
+        min-width: 30%;
+        color: lighten($cool-gray, 10%);
+      }
+
+      > .rt-th:last-child,
+      > .rt-td:last-child {
+        min-width: 70%;
+      }
+      .translation {
+        background: lighten($cool-green, 41%);
+        color: lighten($black, 15%);
+        padding: 0px;
+        textarea {
+          padding: 8px;
+          border: none;
+          background: transparent;
+          width: 100%;
+          &:focus {
+            background: lighten($cool-green, 35%);
+          }
+        }
+      }
+    }
   }
 }
 

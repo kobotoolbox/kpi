@@ -5,6 +5,7 @@ import logging
 import time
 
 from celery import shared_task
+import constance
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 from django.template import Context
@@ -20,7 +21,7 @@ from .models import Hook, HookLog
 def service_definition_task(self, hook_id, uuid):
     """
     Tries to send data to the endpoint of the hook
-    It retries n times (n = `settings.HOOK_MAX_RETRIES`)
+    It retries n times (n = `constance.config.HOOK_MAX_RETRIES`)
 
     - after 1 minutes,
     - after 10 minutes,
@@ -38,8 +39,8 @@ def service_definition_task(self, hook_id, uuid):
     service_definition = ServiceDefinition(hook, uuid)
     if not service_definition.send():
         # Countdown is in seconds
-        countdown = 60 * (10 ** self.request.retries)
-        raise self.retry(countdown=countdown, max_retries=settings.HOOK_MAX_RETRIES)
+        countdown = HookLog.get_remaining_seconds(self.request.retries)
+        raise self.retry(countdown=countdown, max_retries=constance.config.HOOK_MAX_RETRIES)
 
     return True
 
