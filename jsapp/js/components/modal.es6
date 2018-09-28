@@ -81,12 +81,12 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.FORM_LANGUAGES:
-        this.setModalTitle(t('Manage languages'));
+        this.setModalTitle(t('Manage Languages'));
         break;
 
       case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
         this.setState({
-          title: t('Translations table'),
+          title: t('Translations Table'),
           modalClass: 'modal--large'
         });
         break;
@@ -158,7 +158,7 @@ class Modal extends React.Component {
   onModalClose(evt) {
     if (this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE) {
       this.displaySafeCloseConfirm(
-        t('Close Translations table?'),
+        t('Close Translations Table?'),
         t('You will lose all unsaved changes.')
       );
       return false;

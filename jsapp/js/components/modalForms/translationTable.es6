@@ -1,11 +1,10 @@
 import React from 'react'
 import ReactTable from 'react-table'
 import TextareaAutosize from 'react-autosize-textarea'
-
+import alertify from 'alertifyjs'
 import bem from 'js/bem'
 import actions from 'js/actions'
 import stores from 'js/stores'
-
 import {MODAL_TYPES} from 'js/constants'
 import {t} from 'utils'
 
@@ -59,7 +58,7 @@ export class TranslationTable extends React.Component {
         minWidth: 130,
         Cell: cellInfo => cellInfo.original.original
       },{
-        Header: `${translations[langIndex]} ${t('Translation')}`,
+        Header: t('##lang## translation').replace('##lang##', translations[langIndex]),
         accessor: 'translation',
         className: 'translation',
         Cell: cellInfo => (
@@ -106,23 +105,31 @@ export class TranslationTable extends React.Component {
     this.markSaveButtonPending();
     actions.resources.updateAsset(
       this.props.asset.uid,
-      {content: JSON.stringify(content)},
       {
-        onComplete: () => {
-          this.markSaveButtonIdle();
-        },
-        onFailed: () => {
-          this.markSaveButtonIdle();
-        }
+        content: JSON.stringify(content)
+      },
+      {
+        onComplete: this.markSaveButtonIdle.bind(this),
+        onFailed: this.markSaveButtonIdle.bind(this)
       }
     );
   }
 
-  showManageLanguagesModal() {
-    stores.pageState.switchModal({
-      type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: this.props.asset
-    });
+  showManageLanguagesModalConfirm() {
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Go back?'),
+      message: t('You will lose all unsaved changes.'),
+      labels: {ok: t('Go back'), cancel: t('Cancel')},
+      onok: () => {
+        stores.pageState.switchModal({
+          type: MODAL_TYPES.FORM_LANGUAGES,
+          asset: this.props.asset
+        });
+      },
+      oncancel: dialog.destroy
+    };
+    dialog.set(opts).show();
   }
 
   render () {
@@ -147,7 +154,10 @@ export class TranslationTable extends React.Component {
         </div>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton m='back' onClick={this.showManageLanguagesModal.bind(this)}>
+          <bem.Modal__footerButton
+            m='back'
+            onClick={this.showManageLanguagesModalConfirm.bind(this)}
+          >
             {t('Back')}
           </bem.Modal__footerButton>
 
