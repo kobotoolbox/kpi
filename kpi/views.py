@@ -731,7 +731,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                 response_status_code = status.HTTP_409_CONFLICT
                 response = {
                     "detail": _(
-                        "Your data for instance {} has been already submitted.".format(instance_uuid))
+                        "Your data for instance {} has been already submitted.".format(instance_id))
                 }
 
         except Exception as e:
