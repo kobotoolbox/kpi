@@ -19,6 +19,7 @@ export class TranslationTable extends React.Component {
     super(props);
     this.state = {
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
+      hasUnsavedChanges: false,
       isSaveChangesButtonPending: false,
       tableData: []
     };
@@ -82,6 +83,7 @@ export class TranslationTable extends React.Component {
   markSaveButtonUnsaved() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.UNSAVED,
+      hasUnsavedChanges: true,
       isSaveChangesButtonPending: false
     });
   }
@@ -89,6 +91,7 @@ export class TranslationTable extends React.Component {
   markSaveButtonPending() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.PENDING,
+      hasUnsavedChanges: true,
       isSaveChangesButtonPending: true
     });
   }
@@ -96,6 +99,7 @@ export class TranslationTable extends React.Component {
   markSaveButtonIdle() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
+      hasUnsavedChanges: false,
       isSaveChangesButtonPending: false
     });
   }
@@ -127,21 +131,27 @@ export class TranslationTable extends React.Component {
     );
   }
 
-  showManageLanguagesModalConfirm() {
-    const dialog = alertify.dialog('confirm');
-    const opts = {
-      title: t('Go back?'),
-      message: t('You will lose all unsaved changes.'),
-      labels: {ok: t('Go back'), cancel: t('Cancel')},
-      onok: () => {
-        stores.pageState.switchModal({
-          type: MODAL_TYPES.FORM_LANGUAGES,
-          asset: this.props.asset
-        });
-      },
-      oncancel: dialog.destroy
-    };
-    dialog.set(opts).show();
+  onBack() {
+    if (this.state.hasUnsavedChanges) {
+      const dialog = alertify.dialog('confirm');
+      const opts = {
+        title: t('Go back?'),
+        message: t('You will lose all unsaved changes.'),
+        labels: {ok: t('Go back'), cancel: t('Cancel')},
+        onok: this.showManageLanguagesModal.bind(this),
+        oncancel: dialog.destroy
+      };
+      dialog.set(opts).show();
+    } else {
+      this.showManageLanguagesModal();
+    }
+  }
+
+  showManageLanguagesModal() {
+    stores.pageState.switchModal({
+      type: MODAL_TYPES.FORM_LANGUAGES,
+      asset: this.props.asset
+    });
   }
 
   render () {
@@ -168,7 +178,7 @@ export class TranslationTable extends React.Component {
         <bem.Modal__footer>
           <bem.Modal__footerButton
             m='back'
-            onClick={this.showManageLanguagesModalConfirm.bind(this)}
+            onClick={this.onBack.bind(this)}
           >
             {t('Back')}
           </bem.Modal__footerButton>
