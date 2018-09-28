@@ -20,9 +20,9 @@ class ServiceDefinitionInterface(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, hook, uuid):
+    def __init__(self, hook, instance_id):
         self._hook = hook
-        self._uuid = uuid
+        self._instance_id = instance_id
         self._data = self._get_data()
 
     def _get_data(self):
@@ -30,12 +30,12 @@ class ServiceDefinitionInterface(object):
         Retrieves data from deployment backend of the asset.
         """
         try:
-            submission = self._hook.asset.deployment.get_submission(self._uuid, self._hook.export_type)
+            submission = self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
-                self._hook.uid, self._uuid, str(e)), exc_info=True)
+                self._hook.uid, self._instance_id, str(e)), exc_info=True)
 
         return None
 
@@ -114,7 +114,7 @@ class ServiceDefinitionInterface(object):
             except Exception as e:
                 logger = logging.getLogger("console_logger")
                 logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
-                    self._hook.uid, self._uuid, str(e)), exc_info=True)
+                    self._hook.uid, self._instance_id, str(e)), exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")
@@ -135,12 +135,12 @@ class ServiceDefinitionInterface(object):
         """
         fields = {
             "hook": self._hook,
-            "instance_uuid": self._uuid
+            "instance_id": self._instance_id
         }
         try:
             # Try to load the log with a multiple field FK because
             # we don't know the log `uid` in this context, but we do know
-            # its `hook` FK and its `instance.uuid
+            # its `hook` FK and its `instance.id
             log = HookLog.objects.get(**fields)
         except HookLog.DoesNotExist:
             log = HookLog(**fields)

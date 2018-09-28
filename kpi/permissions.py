@@ -80,7 +80,7 @@ class AssetOwnerNestedObjectsPermissions(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        # because authentication checks have already executed via has_permission
+        # Because authentication checks have already executed via has_permission,
         # always return True.
         # Only owner can reach access this.
         return True

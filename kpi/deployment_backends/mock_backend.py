@@ -59,27 +59,25 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'submissions': submissions,
             })
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_uuids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
         """
         Returns a list of json representation of instances.
 
-        :param format: str. xml or json
+        :param format_type: str. xml or json
         :param instances_ids: list. Ids of instances to retrieve
         :return: list
         """
-
         submissions = self.asset._deployment_data.get("submissions", [])
 
-        if len(instances_uuids) > 0:
+        if len(instances_ids) > 0:
             # Force str type for `instances_uuids` because `uuid`s can be str or int.
-            instances_uuids = [str(instance_uuid) for instance_uuid in instances_uuids]
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 # ugly way to find matches, but it avoids to load each xml in memory.
-                pattern = "|".join(instances_uuids)
+                pattern = "|".join(instances_ids)
                 submissions = [submission for submission in submissions
                                if re.search(r"<id>({})<\/id>".format(pattern), submission)]
             else:
-                submissions = [submission for submission in submissions if str(submission.get("id")) in instances_uuids]
+                submissions = [submission for submission in submissions if submission.get("id") in instances_ids]
 
         return submissions
 

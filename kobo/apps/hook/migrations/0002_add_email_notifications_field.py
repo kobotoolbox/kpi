@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hook', '0001_hook_app_tables_creation'),
+        ('hook', '0001_tables_creation'),
     ]
 
     operations = [

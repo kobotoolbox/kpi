@@ -478,14 +478,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_uuids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
         """
         Retreives submissions through Postgres or Mongo depending on `format_type`.
         It can be filtered on instances uuids.
         `uuid` is used instead of `id` because `id` is not available in ReadOnlyInstance model
 
         :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param instances_uuids: list. Optional
+        :param instances_ids: list. Optional
         :return: list: mixed
         """
         submissions = []
@@ -493,7 +493,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.__class__.__name__,
             format_type))
         try:
-            submissions = getter(instances_uuids)
+            submissions = getter(instances_ids)
         except Exception as e:
             logger = logging.getLogger("console_logger")
             logger.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
@@ -504,7 +504,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Returns only one occurrence.
 
-        :param pk: str. `Instance.uuid`
+        :param pk: int. `Instance.id`
         :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
         :return: mixed. JSON or XML
         """
@@ -517,11 +517,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             raise ValueError("Primary key must be provided")
 
-    def __get_submissions_in_json(self, instances_uuids=[]):
+    def __get_submissions_in_json(self, instances_ids=[]):
         """
         Retrieves instances directly from Mongo.
 
-        :param instances_uuids: list. Optional
+        :param instances_ids: list. Optional
         :return: generator<JSON>
         """
         query = {
@@ -529,9 +529,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             "_deleted_at": {"$exists": False}
         }
 
-        if len(instances_uuids) > 0:
+        if len(instances_ids) > 0:
             query.update({
-                "_uuid": {"$in": instances_uuids}
+                "_id": {"$in": instances_ids}
             })
 
         instances = settings.MONGO_DB.instances.find(query)
@@ -540,19 +540,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             for instance in instances
         )
 
-    def __get_submissions_in_xml(self, instances_uuids=[]):
+    def __get_submissions_in_xml(self, instances_ids=[]):
         """
         Retrieves instances directly from Postgres.
 
-        :param instances_uuids: list. Optional
+        :param instances_ids: list. Optional
         :return: list<XML>
         """
         queryset = _models.Instance.objects.filter(
             xform__id_string=self.asset.uid,
             deleted_at=None)
 
-        if len(instances_uuids) > 0:
-            queryset = queryset.filter(uuid__in=instances_uuids)
+        if len(instances_ids) > 0:
+            queryset = queryset.filter(id__in=instances_ids)
 
         queryset = queryset.order_by("id")
 

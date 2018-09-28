@@ -56,7 +56,7 @@ class ApiHookTestCase(HookTestCase):
         submission_url = reverse("submission-list", kwargs={"parent_lookup_asset": self.asset.uid})
 
         submissions = self.asset.deployment.get_submissions()
-        data = {"uuid": submissions[0].get("id")}
+        data = {"instance_id": submissions[0].get("id")}
         response = self.client.post(submission_url, data)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
