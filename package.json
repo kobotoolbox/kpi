@@ -15,7 +15,6 @@
     "babel-preset-react": "^6.24.1",
     "backbone": "^1.1.2",
     "backbone-validation": "^0.11.5",
-    "bluebird": "^2.9.27",
     "browser-sync": "^2.10.1",
     "chai": "^4.1.2",
     "chart.js": "^2.7.1",
