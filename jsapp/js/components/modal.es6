@@ -161,7 +161,6 @@ class Modal extends React.Component {
         t('Close Translations Table?'),
         t('You will lose all unsaved changes.')
       );
-      return false;
     } else {
       stores.pageState.hideModal();
     }
