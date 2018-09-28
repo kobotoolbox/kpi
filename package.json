@@ -15,7 +15,6 @@
     "babel-preset-react": "^6.24.1",
     "backbone": "^1.1.2",
     "backbone-validation": "^0.11.5",
-    "browser-sync": "^2.10.1",
     "chai": "^4.1.2",
     "chart.js": "^2.7.1",
     "classnames": "^2.2.5",
