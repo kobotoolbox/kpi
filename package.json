@@ -45,7 +45,6 @@
     "postcss": "^6.0.22",
     "postcss-loader": "^2.1.5",
     "prop-types": "^15.6.1",
-    "q": "^1.4.1",
     "react": "^16.5.2",
     "react-autobind": "^1.0.6",
     "react-autosize-textarea": "^0.4.3",
