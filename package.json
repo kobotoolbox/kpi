@@ -64,7 +64,6 @@
     "reflux": "^6.4.1",
     "reflux-core": "^1.0.0",
     "replace-in-file": "^3.4.0",
-    "rimraf": "^2.4.3",
     "roboto-fontface": "^0.4.5",
     "sass-loader": "^7.0.1",
     "select2": "3.5.2-browserify",
