@@ -20,7 +20,7 @@ class HookLog(models.Model):
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
-    instance_uuid = models.CharField(default="", max_length=36, db_index=True)  # `kc.logger.Instance.uuid`. Useful to retrieve data on retry
+    instance_id = models.IntegerField(default=0, db_index=True)  # `kc.logger.Instance.id`.
     tries = models.PositiveSmallIntegerField(default=0)
     status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
     status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
@@ -89,7 +89,7 @@ class HookLog(models.Model):
         """
         try:
             ServiceDefinition = self.hook.get_service_definition()
-            service_definition = ServiceDefinition(self.hook, self.instance_uuid)
+            service_definition = ServiceDefinition(self.hook, self.instance_id)
             service_definition.send()
             self.refresh_from_db()
         except Exception as e:

@@ -58,7 +58,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'submissions': submissions,
             })
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_uuids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
         """
         Returns a list of json representation of instances.
 
@@ -70,15 +70,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             raise BadFormatException("XML is not supported")
         else:
             submissions = self.asset._deployment_data.get("submissions", [])
-            if len(instances_uuids) > 0:
-                # Cast in str because uuid is a 36 alphanumeric string
-                instances_uuids = [str(instance_uuid) for instance_uuid in instances_uuids]
-                submissions = [submission for submission in submissions if str(submission.get("id")) in instances_uuids]
+            if len(instances_ids) > 0:
+                instances_ids = [instance_id for instance_id in instances_ids]
+                submissions = [submission for submission in submissions if submission.get("id") in instances_ids]
 
             return submissions
 
     def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
-         return self.get_submissions(format_type=format_type, instances_uuids=[pk])[0]
+         return self.get_submissions(format_type=format_type, instances_ids=[pk])[0]
 
     def set_has_kpi_hooks(self):
         """

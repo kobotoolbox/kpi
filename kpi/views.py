@@ -726,8 +726,8 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
         try:
             asset_uid = self.get_parents_query_dict().get("asset")
             asset = get_object_or_404(self.parent_model, uid=asset_uid)
-            instance_uuid = request.data.get("uuid")
-            if not HookUtils.call_services(asset, instance_uuid):
+            instance_id = request.data.get("instance_id")
+            if not HookUtils.call_services(asset, instance_id):
                 response_status_code = status.HTTP_409_CONFLICT
                 response = {
                     "detail": _(

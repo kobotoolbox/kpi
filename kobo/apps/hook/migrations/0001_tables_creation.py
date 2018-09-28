@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('uid', kpi.fields.KpiUidField(uid_prefix=b'hl')),
-                ('instance_uuid', models.CharField(default=b'', max_length=36, db_index=True)),
+                ('instance_id', models.IntegerField(default=0, db_index=True)),
                 ('tries', models.PositiveSmallIntegerField(default=0)),
                 ('status', models.PositiveSmallIntegerField(default=1)),
                 ('status_code', models.IntegerField(default=None, null=True, blank=True)),

@@ -67,7 +67,7 @@ export default class RESTServicesForm extends React.Component {
             url: data.endpoint,
             isActive: data.active,
             type: data.export_type,
-            securityLevel: SECURITY_OPTIONS[data.security_level],
+            securityLevel: SECURITY_OPTIONS[data.security_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
           };
 
