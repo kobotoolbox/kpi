@@ -8,13 +8,17 @@ import stores from 'js/stores'
 import {MODAL_TYPES} from 'js/constants'
 import {t} from 'utils'
 
-const SAVE_CHANGES_BUTTON_TEXT_DEFAULT = t('Save Changes');
+const SAVE_BUTTON_TEXT = {
+  DEFAULT: t('Save Changes'),
+  UNSAVED: t('* Save Changes'),
+  PENDING: t('Saving…')
+}
 
 export class TranslationTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      saveChangesButtonText: SAVE_CHANGES_BUTTON_TEXT_DEFAULT,
+      saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
       isSaveChangesButtonPending: false,
       tableData: []
     };
@@ -67,6 +71,7 @@ export class TranslationTable extends React.Component {
               const data = [...this.state.tableData];
               data[cellInfo.index].value = e.target.value;
               this.setState({ data });
+              this.markSaveButtonUnsaved();
             }}
             value={this.state.tableData[cellInfo.index].value || ''}/>
         )
@@ -74,18 +79,25 @@ export class TranslationTable extends React.Component {
     ];
   }
 
+  markSaveButtonUnsaved() {
+    this.setState({
+      saveChangesButtonText: SAVE_BUTTON_TEXT.UNSAVED,
+      isSaveChangesButtonPending: false
+    });
+  }
+
   markSaveButtonPending() {
     this.setState({
-      saveChangesButtonText: t('Saving…'),
-      isSaveChangesButtonPending: true,
-    })
+      saveChangesButtonText: SAVE_BUTTON_TEXT.PENDING,
+      isSaveChangesButtonPending: true
+    });
   }
 
   markSaveButtonIdle() {
     this.setState({
-      saveChangesButtonText: SAVE_CHANGES_BUTTON_TEXT_DEFAULT,
-      isSaveChangesButtonPending: false,
-    })
+      saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
+      isSaveChangesButtonPending: false
+    });
   }
 
   saveChanges() {
@@ -110,7 +122,7 @@ export class TranslationTable extends React.Component {
       },
       {
         onComplete: this.markSaveButtonIdle.bind(this),
-        onFailed: this.markSaveButtonIdle.bind(this)
+        onFailed: this.markSaveButtonUnsaved.bind(this)
       }
     );
   }
