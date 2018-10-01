@@ -2,7 +2,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -11,6 +11,8 @@ export var assign = require('object-assign');
 alertify.defaults.notifier.delay = 10;
 alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
+
+const cookies = new Cookies();
 
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
@@ -246,7 +248,7 @@ export function replaceSupportEmail(str) {
 }
 
 export function currentLang() {
-  return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
+  return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
 // langString contains name and code e.g. "English (en)"
