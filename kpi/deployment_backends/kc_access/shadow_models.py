@@ -114,8 +114,8 @@ class LazyModelGroup:
                     if self.pack:
                         versions = self.pack.versions
                         fields = self.pack.get_fields_for_versions(versions=versions.keys())
-                        latest_version = self.asset.latest_version
-                        latest_version_fields = self.pack.get_fields_for_versions(versions=[latest_version.uid])
+                        latest_version_uid = versions.keys()[-1]
+                        latest_version_fields = self.pack.get_fields_for_versions(versions=[latest_version_uid])
 
                         for index, field in enumerate(fields):
                             labels = field.get_labels(UNTRANSLATED)
