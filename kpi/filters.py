@@ -255,6 +255,7 @@ class AttachmentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         attachments_type = request.query_params.get('type')
         group_by = request.query_params.get('group_by')
+        all = request.query_params.get("all", "true") == "true"
 
         # sorting is a prerequisite for group by queries
         # override order_by with group by value
@@ -275,9 +276,10 @@ class AttachmentFilter(filters.BaseFilterBackend):
                 for index, (qid, attachments) in \
                         enumerate(groupby(queryset, lambda att: (att.question_index, att.question))):
                     question = qid[1] if qid[1] else {'number': qid[0]}
-                    question['attachments'] = list(attachments)
-                    question['index'] = index
-                    result.append(question)
+                    if all or (not all and question.get("in_latest_version")):
+                        question['attachments'] = list(attachments)
+                        question['index'] = index
+                        result.append(question)
                 return result
 
         elif order_by and order_by == 'submission':
