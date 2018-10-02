@@ -301,7 +301,7 @@ export default class RESTServicesForm extends React.Component {
                 data-index={n}
                 onClick={this.removeCustomHeaderRow}
               >
-                <i className='k-icon-trash'/>
+                <i className='k-icon k-icon-trash'/>
               </button>
             </bem.FormModal__item>
           );
@@ -311,7 +311,8 @@ export default class RESTServicesForm extends React.Component {
           className='http-header-add'
           onClick={this.addNewCustomHeaderRow}
         >
-          <i className='k-icon-plus' />
+          <i className='k-icon k-icon-plus' />
+          {t('Add header')}
         </button>
       </bem.FormModal__item>
     )
