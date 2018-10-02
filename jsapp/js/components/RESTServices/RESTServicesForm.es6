@@ -67,7 +67,7 @@ export default class RESTServicesForm extends React.Component {
             url: data.endpoint,
             isActive: data.active,
             type: data.export_type,
-            securityLevel: SECURITY_OPTIONS[data.security_level] || null,
+            securityLevel: SECURITY_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
           };
 
@@ -172,7 +172,7 @@ export default class RESTServicesForm extends React.Component {
       endpoint: this.state.url,
       active: this.state.isActive,
       export_type: this.state.type,
-      security_level: securityLevel,
+      auth_level: securityLevel,
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
       }
