@@ -122,7 +122,7 @@ export class FormLanding extends React.Component {
     }
     return false;
   }
-  isFormNeedingRedeployment() {
+  isFormRedeploymentNeeded() {
     return this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
   }
   showLanguagesModal (evt) {
@@ -484,7 +484,7 @@ export class FormLanding extends React.Component {
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.isFormNeedingRedeployment() &&
+              {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
                   <i className='k-icon-alert' />
                   {t('If you want to make these changes public, you must deploy this form.')}
