@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import logging
 import itertools
 from collections import OrderedDict
 from copy import deepcopy
@@ -12,6 +11,7 @@ from formpack import FormPack
 from rest_framework import serializers
 
 from .constants import SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
+from kpi.utils.log import logging
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):

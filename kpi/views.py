@@ -5,7 +5,6 @@ from hashlib import md5
 import json
 import base64
 import datetime
-import logging
 
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -108,6 +107,7 @@ from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.mixin import KobocatDataProxyViewSetMixin
 from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
+from kpi.utils.log import logging
 
 
 @login_required
@@ -735,8 +735,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                 }
 
         except Exception as e:
-            logger = logging.getLogger("console_logger")
-            logger.error("SubmissionViewSet.create - {}".format(str(e)))
+            logging.error("SubmissionViewSet.create - {}".format(str(e)))
             response = {
                 "detail": _("An error has occurred when calling the external service. Please retry later.")
             }
