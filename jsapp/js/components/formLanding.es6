@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import Map from 'es6-map';
 import _ from 'underscore';
 import { Link } from 'react-router';
 import actions from '../actions';
