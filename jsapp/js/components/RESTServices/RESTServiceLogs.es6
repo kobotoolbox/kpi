@@ -175,7 +175,7 @@ export default class RESTServiceLogs extends React.Component {
           {t('Back to REST Services')}
         </a>
 
-        <h2 className='rest-services-list__header-label rest-services-list__header-right'>
+        <h2 className='rest-services-list__header-label rest-services-list__header-label--big'>
           {this.state.hookName}
         </h2>
       </header>
