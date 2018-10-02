@@ -123,7 +123,7 @@ export class FormLanding extends React.Component {
     return false;
   }
   isFormRedeploymentNeeded() {
-    return this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
+    return !this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
   }
   showLanguagesModal (evt) {
     evt.preventDefault();
