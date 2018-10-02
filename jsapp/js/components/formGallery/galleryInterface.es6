@@ -75,7 +75,7 @@ class GalleryStore extends Reflux.Store {
       filterQuery: '',
       filterGroupBy: GROUPBY_OPTIONS.question,
       filterOrder: ORDER_OPTIONS.asc,
-      filterAllVersions: false,
+      filterAllVersions: true,
       isLoadingGalleries: true,
     });
     assign(stateObj, this.getWipedGalleriesState());
@@ -279,7 +279,8 @@ class GalleryStore extends Reflux.Store {
       this.state.formUid,
       this.state.filterGroupBy.value,
       PAGE_SIZE,
-      this.state.filterOrder.value
+      this.state.filterOrder.value,
+      this.state.filterAllVersions
     )
       .done((response) => {
         this.buildAndAddGalleries(response.results);
@@ -317,7 +318,8 @@ class GalleryStore extends Reflux.Store {
       galleryIndex,
       pageToLoad,
       PAGE_SIZE,
-      sort
+      sort,
+      this.state.filterAllVersions
     )
       .done((response) => {
         const targetGallery = this.state.galleries[galleryIndex];

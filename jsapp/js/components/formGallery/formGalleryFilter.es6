@@ -1,10 +1,12 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import TextBox from '../textBox';
+import mixins from '../../mixins';
 import bem from '../../bem';
 import {
   ORDER_OPTIONS,
@@ -60,6 +62,9 @@ export default class FormGalleryFilter extends React.Component {
   }
 
   render() {
+    const currentAsset = this.currentAsset();
+    const deployedVersionsCount = currentAsset.deployed_versions.count;
+
     return (
       <bem.AssetGallery__heading>
         {this.state.totalMediaCount !== null &&
@@ -104,7 +109,10 @@ export default class FormGalleryFilter extends React.Component {
         </bem.AssetGallery__headingIconButton>
 
 
-        <bem.AssetGallery__headingCheckbox htmlFor='all-versions'>
+        <bem.AssetGallery__headingCheckbox
+          htmlFor='all-versions'
+          disabled={deployedVersionsCount < 2}
+        >
           <input
             type='checkbox'
             checked={this.state.filterAllVersions}
@@ -112,7 +120,7 @@ export default class FormGalleryFilter extends React.Component {
             id='all-versions'
           />
 
-          <span>{t('Include submissions from previous versions')}</span>
+          <span>{t('Include submissions from all ##count## deployed versions').replace('##count##', deployedVersionsCount)}</span>
         </bem.AssetGallery__headingCheckbox>
       </bem.AssetGallery__heading>
     );
@@ -120,3 +128,8 @@ export default class FormGalleryFilter extends React.Component {
 };
 
 reactMixin(FormGalleryFilter.prototype, Reflux.ListenerMixin);
+reactMixin(FormGalleryFilter.prototype, mixins.contextRouter);
+
+FormGalleryFilter.contextTypes = {
+  router: PropTypes.object
+};

@@ -119,6 +119,11 @@ $gallery-transition: 250ms ease-in-out;
       margin-top: $s-gallery-spacing;
       text-align: right;
 
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
       input[type="checkbox"] {
         opacity: 1;
         left: auto;

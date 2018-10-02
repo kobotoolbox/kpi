@@ -291,16 +291,7 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
-    getGalleryImages(uid){
-      return $ajax({
-        url: `${rootUrl}/assets/${uid}/attachments`,
-        method: 'GET',
-        data: {
-          type: 'image'
-        }
-      });
-    },
-    filterGalleryImages(uid, filter_by, page_size, sort='asc'){
+    filterGalleryImages(uid, filter_by, page_size, sort='asc', all_versions=true){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -308,11 +299,12 @@ var dataInterface;
           type: 'image',
           group_by: filter_by,
           limit: page_size,
-          sort: sort
+          sort: sort,
+          all: all_versions
         }
       });
     },
-    loadMoreAttachments(assetUid, filter_by, index, page, page_size, sort='asc'){
+    loadMoreAttachments(assetUid, filter_by, index, page, page_size, sort='asc', all_versions=true){
       return $ajax({
         url: `${rootUrl}/assets/${assetUid}/attachments`,
         method: 'GET',
@@ -322,11 +314,12 @@ var dataInterface;
           index: index,
           page_size: page_size,
           page: page,
-          sort: sort
+          sort: sort,
+          all: all_versions
         }
       });
     },
-    loadMoreRecords(uid, filter_by, page, page_size){
+    loadMoreRecords(uid, filter_by, page, page_size, all_versions=true){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -334,7 +327,8 @@ var dataInterface;
           type: 'image',
           group_by: filter_by,
           page_size: page_size,
-          page: page
+          page: page,
+          all: all_versions
         }
       });
     },
