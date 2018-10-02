@@ -361,7 +361,7 @@ class AssetRow extends React.Component {
                   data-asset-uid={this.props.uid}
                 >
                   <i className='k-icon-language' />
-                  {t('Manage translations')}
+                  {t('Manage Translations')}
                 </bem.PopoverMenu__link>
               }
               {this.props.downloads.map((dl)=>{
