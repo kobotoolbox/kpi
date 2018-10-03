@@ -6,7 +6,6 @@ import re
 import sys
 import copy
 import json
-import logging
 import StringIO
 from collections import OrderedDict
 
@@ -59,6 +58,7 @@ from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
+from kpi.utils.log import logging
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
