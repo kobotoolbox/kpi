@@ -76,7 +76,7 @@ class GalleryStore extends Reflux.Store {
       filterGroupBy: GROUPBY_OPTIONS.question,
       filterOrder: ORDER_OPTIONS.asc,
       filterAllVersions: true,
-      isLoadingGalleries: true,
+      isLoadingGalleries: false
     });
     assign(stateObj, this.getWipedGalleriesState());
     return stateObj;
@@ -116,7 +116,6 @@ class GalleryStore extends Reflux.Store {
     } else {
       this.wipeAndLoadData();
     }
-
   }
 
   onToggleFullscreen() {
@@ -138,9 +137,7 @@ class GalleryStore extends Reflux.Store {
     if (currentMedia.mediaIndex !== 0) {
       targetGalleryIndex = currentMedia.galleryIndex;
       targetMediaIndex = currentMedia.mediaIndex - 1;
-    }
-
-    else if (!currentMedia.isFirst) {
+    } else if (!currentMedia.isFirst) {
       targetGalleryIndex = currentMedia.galleryIndex - 1;
       targetMediaIndex = this.state.galleries[targetGalleryIndex].totalMediaCount - 1;
     }
@@ -161,9 +158,7 @@ class GalleryStore extends Reflux.Store {
     if (currentMedia.mediaIndex !== currentMediaGallery.totalMediaCount - 1) {
       targetGalleryIndex = currentMedia.galleryIndex;
       targetMediaIndex = currentMedia.mediaIndex + 1;
-    }
-
-    else if (!currentMedia.isLast) {
+    } else if (!currentMedia.isLast) {
       targetGalleryIndex = currentMedia.galleryIndex + 1;
       targetMediaIndex = 0;
     }
