@@ -157,7 +157,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   handleTypeRadioChange(name, value) {this.setState({[name]: value});}
-  
+
   handleCustomHeaderChange(evt) {
     const propName = evt.target.name;
     const propValue = evt.target.value;
