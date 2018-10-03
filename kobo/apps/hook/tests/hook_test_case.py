@@ -132,6 +132,7 @@ class HookTestCase(KpiTestCase):
             "group2/subgroup1/q4": u"¿Como está en el subgrupo uno la primera vez?",
             "group2/subgroup1/q5": u"¿Como está en el subgrupo uno la segunda vez?",
             "group2/subgroup1/q6": u"¿Como está en el subgrupo uno la tercera vez?",
+            "group2/subgroup11/q1": u"¿Cómo está en el subgrupo once?",
             "id": self._submission_pk
         }
         self.__inject_submission(self.asset, submission)
@@ -151,6 +152,9 @@ class HookTestCase(KpiTestCase):
                       "          <q5>¿Como está en el subgrupo uno la segunda vez?</q5>"
                       "          <q6>¿Como está en el subgrupo uno la tercera vez?</q6>"
                       "      </subgroup1>"
+                      "      <subgroup11>"
+                      "          <q1>¿Cómo está en el subgrupo once?</q1>"
+                      "      </subgroup11>"
                       "   </group2>"
                       "   <id>{id}</id>"
                       "</{asset_uid}>").format(
