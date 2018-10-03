@@ -91,7 +91,6 @@ class AssetRow extends React.Component {
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
-        linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
         tags = this.props.tags || [],
         ownedCollections = [],
         parent = undefined;
@@ -138,6 +137,14 @@ class AssetRow extends React.Component {
             onClick={this.clickAssetButton}
             data-asset-type={this.props.kind}
           >
+            <Link
+              to={hrefTo}
+              data-kind={this.props.kind}
+              data-asset-type={this.props.kind}
+              draggable={false}
+              className='asset-row__link-overlay'
+            />
+
             {/* "title" column */}
             <bem.AssetRow__cell
               m={'title'}
@@ -150,15 +157,9 @@ class AssetRow extends React.Component {
                 ) &&
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
-              <Link
-                to={hrefTo}
-                data-kind={this.props.kind}
-                data-asset-type={this.props.kind}
-                draggable={false}
-                className={`asset-row__celllink asset-row__celllink--name ${linkClassName}`}
-              >
+              <bem.AssetRow__cell m='name'>
                 <ui.AssetName {...this.props} />
-              </Link>
+              </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === 'survey' && this.props.settings.description &&
                 <bem.AssetRow__description>
                   {this.props.settings.description}
@@ -361,7 +362,7 @@ class AssetRow extends React.Component {
                   data-asset-uid={this.props.uid}
                 >
                   <i className='k-icon-language' />
-                  {t('Manage translations')}
+                  {t('Manage Translations')}
                 </bem.PopoverMenu__link>
               }
               {this.props.downloads.map((dl)=>{
