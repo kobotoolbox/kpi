@@ -124,7 +124,7 @@ class ServiceDefinitionInterface(object):
         try:
             # Try to load the log with a multiple field FK because
             # we don't know the log `uid` in this context, but we do know
-            # its `hook` FK and its `instance.uuid
+            # its `hook` FK and its `instance.id
             log = HookLog.objects.get(**fields)
         except HookLog.DoesNotExist:
             log = HookLog(**fields)

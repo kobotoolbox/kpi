@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
+import TagsInput from 'react-tagsinput';
 import alertify from 'alertifyjs';
 import bem from '../../bem';
 import {dataInterface} from '../../dataInterface';
@@ -42,6 +43,7 @@ export default class RESTServicesForm extends React.Component {
       endpointError: null,
       type: EXPORT_TYPES.JSON,
       isActive: true,
+      emailNotification: true,
       authLevel: null,
       authOptions: [
         AUTH_OPTIONS.no_auth,
@@ -49,16 +51,13 @@ export default class RESTServicesForm extends React.Component {
       ],
       authUsername: '',
       authPassword: '',
+      selectedFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
       ]
     };
     autoBind(this);
   }
-
-  /*
-   * initialization
-   */
 
   componentDidMount() {
     if (this.state.hookUid) {
@@ -69,6 +68,7 @@ export default class RESTServicesForm extends React.Component {
             name: data.name,
             endpoint: data.endpoint,
             isActive: data.active,
+            emailNotification: data.email_notification || true,
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
@@ -151,6 +151,10 @@ export default class RESTServicesForm extends React.Component {
   handleAuthPasswordChange(newPassword) {this.setState({authPassword: newPassword});}
 
   handleActiveChange(isChecked) {this.setState({isActive: isChecked});}
+    
+  handleEmailNotificationChange(isChecked) {
+    this.setState({emailNotification: isChecked});
+  }
 
   handleTypeRadioChange(name, value) {this.setState({[name]: value});}
 
@@ -182,6 +186,7 @@ export default class RESTServicesForm extends React.Component {
       name: this.state.name,
       endpoint: this.state.endpoint,
       active: this.state.isActive,
+      email_notification: this.state.emailNotification,
       export_type: this.state.type,
       auth_level: authLevel,
       settings: {
@@ -249,7 +254,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   /*
-   * rendering custom headers
+   * handle custom headers
    */
 
  onCustomHeaderInputKeyPress(evt) {
@@ -341,7 +346,36 @@ export default class RESTServicesForm extends React.Component {
   }
 
   /*
-   * initialization
+   * handle fields
+   */
+
+  onSelectedFieldsChange(evt) {
+    this.setState({selectedFields: evt});
+  }
+
+  renderFieldsSelector() {
+    const inputProps = {
+      placeholder: t('Add field(s)'),
+      id: 'selected-fields-input'
+    };
+
+    return (
+      <bem.FormModal__item>
+        <label htmlFor='selected-fields-input'>
+          {t('Select fields')}
+        </label>
+
+        <TagsInput
+          value={this.state.selectedFields}
+          onChange={this.onSelectedFieldsChange.bind(this)}
+          inputProps={inputProps}
+        />
+      </bem.FormModal__item>
+    )
+  }
+
+  /*
+   * rendering
    */
 
   render() {
@@ -389,7 +423,16 @@ export default class RESTServicesForm extends React.Component {
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
-                errors={['test', 'secn']}
+              />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item>
+              <Checkbox
+                name='emailNotification'
+                id='email-checkbox'
+                onChange={this.handleEmailNotificationChange.bind(this)}
+                checked={this.state.emailNotification}
+                label={t('Receive emails notifications')}
               />
             </bem.FormModal__item>
 
@@ -433,6 +476,8 @@ export default class RESTServicesForm extends React.Component {
                 menuPlacement='auto'
               />
             </bem.FormModal__item>
+
+            {this.renderFieldsSelector()}
 
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>

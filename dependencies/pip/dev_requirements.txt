@@ -25,6 +25,7 @@ defusedxml==0.5.0         # via djangorestframework-xml
 dj-database-url==0.4.2
 dj-static==0.0.6
 django-braces==1.11.0
+django-celery-beat==1.1.1
 django-constance[database]==2.2.0
 django-debug-toolbar==1.6
 django-extensions==1.7.6

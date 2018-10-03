@@ -1,0 +1,30 @@
+{% load i18n %}
+{% load strings %}
+{% trans "Asset" as i18n_asset %}
+{% trans "Hook" as i18n_hook %}
+{% trans "Submission" as i18n_submission %}
+{% trans "Status code" as i18n_status_code %}
+{% trans "Message" as i18n_message %}
+{% trans "Date" as i18n_date %}
+
+{% trans "Dear" %} {{ username }},
+
+{% trans "Some submissions could not be sent to their external endpoint." %}
+
+{% for asset_id, asset in assets.items %}
+
+{{ i18n_asset }}: {{ asset.name }}
+
+    {% with max_length=asset.max_length|add:"2" %}
+    {{ i18n_hook|center:max_length }}|{{ i18n_submission|center:25 }}|{{ i18n_status_code|center:15 }}|{{ i18n_message|truncatechars:23|center:25 }}|{{ i18n_date|center:25 }}
+    {{ "-"|repeat:max_length }}|{{ "-"|repeat:25 }}|{{ "-"|repeat:15 }}|{{ "-"|repeat:25 }}|{{ "-"|repeat:25 }}
+    {% for log in asset.logs %}
+    {{ log.hook_name|center:max_length }}|{{ log.uid|center:25 }}|{{ log.status_code|center:15 }}|{{ log.message|truncatechars:23|center:25 }}|{{ log.date_modified|date:"Y-m-d H:i"|center:25 }}
+    {{ "-"|repeat:max_length }}|{{ "-"|repeat:25 }}|{{ "-"|repeat:15 }}|{{ "-"|repeat:25 }}|{{ "-"|repeat:25 }}
+    {% endfor %}
+    {% endwith %}
+
+{% endfor %}
+
+{% trans "Best," %}
+KoBoToolbox

@@ -10,7 +10,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import detail_route
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -20,6 +19,7 @@ from ..models import Hook, HookLog
 from ..serializers.hook import HookSerializer
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
+from kpi.permissions import AssetOwnerNestedObjectsPermissions
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 from kpi.utils.log import logging
 
@@ -143,22 +143,13 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         AssetOwnerFilterBackend,
     )
     serializer_class = HookSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AssetOwnerNestedObjectsPermissions,)
 
     def get_queryset(self):
         asset_uid = self.get_parents_query_dict().get("asset")
         queryset = self.model.objects.filter(asset__uid=asset_uid)
         queryset = queryset.select_related("asset__uid")
         return queryset
-
-    def list(self, request, *args, **kwargs):
-        # Because object permissions is done on hook only,
-        # we need to check whether the user is the owner of the user to return a 404 when it's not.
-        # We prefer to return 404 instead of 403 to avoid to expose existence of the Asset/Hook
-        # to unauthorized user
-        asset_uid = self.get_parents_query_dict().get("asset")
-        asset = get_object_or_404(Asset, uid=asset_uid, owner=request.user)
-        return super(HookViewSet, self).list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         asset_uid = self.get_parents_query_dict().get("asset")
