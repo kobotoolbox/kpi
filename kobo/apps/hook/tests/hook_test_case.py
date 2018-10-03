@@ -63,7 +63,7 @@ class HookTestCase(KpiTestCase):
     def _send_and_fail(self):
         """
 
-        The public method which calls this method, needs to be decorated by `@responses.activate
+        The public method which calls this method, needs to be decorated by `@responses.activate`
         :return: dict
         """
         self.hook = self._create_hook()
