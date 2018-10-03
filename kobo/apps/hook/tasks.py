@@ -90,11 +90,11 @@ def failures_reports():
         # Prepare data for templates.
         # All logs will be grouped under their respective asset and user.
         for record in queryset:
-            # if user doesn't exist in dict, add him
+            # if users don't exist in dict, add them
             if record.hook.asset.owner.id not in records:
                 records[record.hook.asset.owner.id] = {
                     "username": record.hook.asset.owner.username,
-                    # language is in implemented yet.
+                    # language is not implemented yet.
                     # TODO add language to user table in registration process
                     "language": getattr(record.hook.asset.owner, "language", "en"),
                     "email": record.hook.asset.owner.email,
@@ -121,7 +121,7 @@ def failures_reports():
             hook_name_length = len(record.hook.name)
 
             # Max Length is used for plain text template. To display fixed size columns.
-            max_length = max_length if max_length > hook_name_length else hook_name_length
+            max_length = max(max_length, hook_name_length)
             records[record.hook.asset.owner.id]["assets"][record.hook.asset.id]["max_length"] = max_length
 
         # Get templates
