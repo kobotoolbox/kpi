@@ -9,13 +9,14 @@ import stores from '../../stores';
 import Select from 'react-select';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
+import TextBox from '../textBox';
 import {t} from '../../utils';
 
 const EXPORT_TYPES = {
   JSON: 'json',
   XML: 'xml'
 };
-const SECURITY_OPTIONS = {
+const AUTH_OPTIONS = {
   no_auth: {
     value: 'no_auth',
     label: t('No Authorization')
@@ -36,16 +37,18 @@ export default class RESTServicesForm extends React.Component {
       // will be empty if creating new service
       hookUid: props.hookUid,
       name: '',
-      url: '',
+      nameError: null,
+      endpoint: '',
+      endpointError: null,
       type: EXPORT_TYPES.JSON,
       isActive: true,
-      securityLevel: null,
-      securityOptions: [
-        SECURITY_OPTIONS.no_auth,
-        SECURITY_OPTIONS.basic_auth
+      authLevel: null,
+      authOptions: [
+        AUTH_OPTIONS.no_auth,
+        AUTH_OPTIONS.basic_auth
       ],
-      securityUsername: '',
-      securityPassword: '',
+      authUsername: '',
+      authPassword: '',
       customHeaders: [
         this.getEmptyHeaderRow()
       ]
@@ -64,10 +67,10 @@ export default class RESTServicesForm extends React.Component {
           const stateUpdate = {
             isLoadingHook: false,
             name: data.name,
-            url: data.endpoint,
+            endpoint: data.endpoint,
             isActive: data.active,
             type: data.export_type,
-            securityLevel: SECURITY_OPTIONS[data.auth_level] || null,
+            authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
           };
 
@@ -75,10 +78,10 @@ export default class RESTServicesForm extends React.Component {
             stateUpdate.customHeaders.push(this.getEmptyHeaderRow());
           }
           if (data.settings.username) {
-            stateUpdate.securityUsername = data.settings.username;
+            stateUpdate.authUsername = data.settings.username;
           }
           if (data.settings.password) {
-            stateUpdate.securityPassword = data.settings.password;
+            stateUpdate.authPassword = data.settings.password;
           }
 
           this.setState(stateUpdate);
@@ -127,21 +130,29 @@ export default class RESTServicesForm extends React.Component {
    * user input handling
    */
 
-  handleSecurityTypeChange(evt) {
-    this.setState({securityLevel: evt});
+  handleNameChange(newName) {
+    this.setState({
+      name: newName,
+      nameError: null
+    });
   }
 
-  handleFormItemChange(evt) {
-    this.setState({[evt.target.name]: evt.target.value});
+  handleEndpointChange(newEndpoint) {
+    this.setState({
+      endpoint: newEndpoint,
+      endpointError: null
+    });
   }
 
-  handleActiveChange(isChecked) {
-    this.setState({isActive: isChecked});
-  }
+  handleAuthTypeChange(evt) {this.setState({authLevel: evt});}
 
-  handleTypeRadioChange(name, value) {
-    this.setState({[name]: value});
-  }
+  handleAuthUsernameChange(newUsername) {this.setState({authUsername: newUsername});}
+
+  handleAuthPasswordChange(newPassword) {this.setState({authPassword: newPassword});}
+
+  handleActiveChange(isChecked) {this.setState({isActive: isChecked});}
+
+  handleTypeRadioChange(name, value) {this.setState({[name]: value});}
 
   handleCustomHeaderChange(evt) {
     const propName = evt.target.name;
@@ -161,39 +172,50 @@ export default class RESTServicesForm extends React.Component {
    * submitting form
    */
 
-  getDataForEndpoint() {
-    let securityLevel = SECURITY_OPTIONS.no_auth.value;
-    if (this.state.securityLevel !== null) {
-      securityLevel = this.state.securityLevel.value;
+  getDataForBackend() {
+    let authLevel = AUTH_OPTIONS.no_auth.value;
+    if (this.state.authLevel !== null) {
+      authLevel = this.state.authLevel.value;
     }
 
     const data = {
       name: this.state.name,
-      endpoint: this.state.url,
+      endpoint: this.state.endpoint,
       active: this.state.isActive,
       export_type: this.state.type,
-      auth_level: securityLevel,
+      auth_level: authLevel,
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
       }
     };
 
-    if (this.state.securityUsername) {
-      data.settings.username = this.state.securityUsername;
+    if (this.state.authUsername) {
+      data.settings.username = this.state.authUsername;
     }
-    if (this.state.securityPassword) {
-      data.settings.password = this.state.securityPassword;
+    if (this.state.authPassword) {
+      data.settings.password = this.state.authPassword;
     }
 
     return data;
   }
 
+  validateForm() {
+    let isValid = true;
+    if (this.state.name.trim() === '') {
+      this.setState({nameError: t('Name required')});
+      isValid = false;
+    }
+    if (this.state.endpoint.trim() === '') {
+      this.setState({endpointError: t('URL required')});
+      isValid = false;
+    }
+    return isValid;
+  }
+
   onSubmit(evt) {
     evt.preventDefault();
 
-    const data = this.getDataForEndpoint();
-
-    if (!data.name.trim() || !data.endpoint.trim()) {
+    if (!this.validateForm()) {
       alertify.error(t('Please enter both name and url of your service.'));
       return;
     }
@@ -213,13 +235,13 @@ export default class RESTServicesForm extends React.Component {
       actions.hooks.update(
         this.state.assetUid,
         this.state.hookUid,
-        data,
+        this.getDataForBackend(),
         callbacks
       );
     } else {
       actions.hooks.add(
         this.state.assetUid,
-        data,
+        this.getDataForBackend(),
         callbacks
       );
     }
@@ -339,28 +361,24 @@ export default class RESTServicesForm extends React.Component {
         <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
           <bem.FormModal__item m='wrapper'>
             <bem.FormModal__item>
-              <label htmlFor='rest-service-form--name'>{t('Name')}</label>
-
-              <input
+              <TextBox
+                label={t('Name')}
                 type='text'
-                id='rest-service-form--name'
-                name='name'
                 placeholder={t('Service Name')}
                 value={this.state.name}
-                onChange={this.handleFormItemChange.bind(this)}
+                errors={this.state.nameError}
+                onChange={this.handleNameChange.bind(this)}
               />
             </bem.FormModal__item>
 
             <bem.FormModal__item>
-              <label htmlFor='rest-service-form--url'>{t('Endpoint URL')}</label>
-
-              <input
+              <TextBox
+                label={t('Endpoint URL')}
                 type='text'
-                id='rest-service-form--url'
-                name='url'
                 placeholder={t('https://')}
-                value={this.state.url}
-                onChange={this.handleFormItemChange.bind(this)}
+                value={this.state.endpoint}
+                errors={this.state.endpointError}
+                onChange={this.handleEndpointChange.bind(this)}
               />
             </bem.FormModal__item>
 
@@ -405,41 +423,31 @@ export default class RESTServicesForm extends React.Component {
               </label>
 
               <Select
-                value={this.state.securityLevel}
-                options={this.state.securityOptions}
-                onChange={this.handleSecurityTypeChange.bind(this)}
+                value={this.state.authLevel}
+                options={this.state.authOptions}
+                onChange={this.handleAuthTypeChange.bind(this)}
                 className='kobo-select'
                 classNamePrefix='kobo-select'
                 id='rest-service-form--security'
-                name='securityLevel'
+                name='authLevel'
                 menuPlacement='auto'
               />
             </bem.FormModal__item>
 
-            {this.state.securityLevel && this.state.securityLevel.value === SECURITY_OPTIONS.basic_auth.value &&
+            {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
-                <label htmlFor='rest-service-form--username'>
-                  {t('Username')}
-                </label>
-
-                <input
+                <TextBox
+                  label={t('Username')}
                   type='text'
-                  id='rest-service-form--username'
-                  name='securityUsername'
-                  value={this.state.securityUsername}
-                  onChange={this.handleFormItemChange.bind(this)}
+                  value={this.state.authUsername}
+                  onChange={this.handleAuthUsernameChange.bind(this)}
                 />
 
-                <label htmlFor='rest-service-form--password'>
-                  {t('Password')}
-                </label>
-
-                <input
+                <TextBox
+                  label={t('Password')}
                   type='text'
-                  id='rest-service-form--password'
-                  name='securityPassword'
-                  value={this.state.securityPassword}
-                  onChange={this.handleFormItemChange.bind(this)}
+                  value={this.state.authPassword}
+                  onChange={this.handleAuthPasswordChange.bind(this)}
                 />
               </bem.FormModal__item>
             }
