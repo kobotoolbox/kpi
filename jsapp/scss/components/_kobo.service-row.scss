@@ -1,7 +1,6 @@
 $s-service-row-action-button: 36px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
-$c-service-row-hover: #f2f2f3;
 
 .service-row {
   display: flex;
@@ -16,7 +15,7 @@ $c-service-row-hover: #f2f2f3;
   }
 
   &:not(.service-row--header):hover {
-    background-color: $c-service-row-hover;
+    background-color: $cool-whitegray;
   }
 
   &.service-row--header {
@@ -25,11 +24,11 @@ $c-service-row-hover: #f2f2f3;
   }
 
   &.service-row--active {
-    color: $black;
+    color: $cool-darkgray;
   }
 
   &.service-row--inactive {
-    color: $cool-gray;
+    color: $cool-silver;
   }
 }
 
@@ -45,7 +44,7 @@ $c-service-row-hover: #f2f2f3;
       display: block;
       padding: $s-service-row-column-spacing 0;
 
-      &:hover {color: $cool-blue;}
+      &:hover {color: $cool-charcoal;}
     }
   }
 
@@ -66,7 +65,7 @@ $c-service-row-hover: #f2f2f3;
       }
 
       i {
-        color: $cool-gray;
+        color: inherit;
         vertical-align: inherit;
         line-height: inherit;
 
@@ -123,7 +122,7 @@ $c-service-row-hover: #f2f2f3;
   width: $s-service-row-action-button;
   height: $s-service-row-action-button;
   font-size: $s-service-row-action-button;
-  color: $cool-gray;
+  color: inherit;
   cursor: pointer;
   background: transparent;
   display: inline-block;

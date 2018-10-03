@@ -445,17 +445,17 @@ export default class RESTServicesForm extends React.Component {
             }
 
             {this.renderCustomHeaders()}
-
-            <bem.FormModal__item m='actions'>
-              <button
-                onClick={this.onSubmit}
-                disabled={this.state.isSubmitPending}
-                className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
-              >
-                { isEditingExistingHook ? t('Save') : t('Create') }
-              </button>
-            </bem.FormModal__item>
           </bem.FormModal__item>
+
+          <bem.Modal__footer>
+            <bem.Modal__footerButton
+              m='primary'
+              onClick={this.onSubmit}
+              disabled={this.state.isSubmitPending}
+            >
+              { isEditingExistingHook ? t('Save') : t('Create') }
+            </bem.Modal__footerButton>
+          </bem.Modal__footer>
         </bem.FormModal__form>
       );
     }
