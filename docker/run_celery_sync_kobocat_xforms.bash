@@ -12,4 +12,4 @@ exec celery worker -A kobo --loglevel=info \
     --pidfile=/tmp/celery_sync_kobocat_xforms.pid \
     --queues=sync_kobocat_xforms_queue \
     --concurrency=1 \
-    --max-memory-per-child=1
+    --max-tasks-per-child=1

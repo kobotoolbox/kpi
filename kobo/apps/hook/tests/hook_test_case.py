@@ -90,11 +90,11 @@ class HookTestCase(KpiTestCase):
         service_definition = ServiceDefinition(self.hook, instance_id)
         first_mock_response = {"error": "not found"}
 
-        # Mock first requests try
+        # Mock first request's try
         responses.add(responses.POST, self.hook.endpoint,
                       json=first_mock_response, status=status.HTTP_404_NOT_FOUND)
 
-        # Mock next requests tries
+        # Mock next requests' tries
         responses.add(responses.POST, self.hook.endpoint,
                       status=status.HTTP_200_OK,
                       content_type="application/json")

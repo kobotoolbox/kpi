@@ -1,7 +1,6 @@
 import re
 import pytz
 import base64
-import logging
 import datetime
 import requests
 import tempfile
@@ -31,6 +30,7 @@ from ..deployment_backends.mock_backend import MockDeploymentBackend
 from ..zip_importer import HttpContentParse
 from ..model_utils import create_assets, _load_library_content, \
                           remove_string_prefix
+from kpi.utils.log import logging
 
 
 def utcnow(*args, **kwargs):

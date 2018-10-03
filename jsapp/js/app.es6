@@ -102,9 +102,6 @@ class App extends React.Component {
       case 'EDGE':
         document.body.classList.toggle('hide-edge')
         break
-      case 'CLOSE_MODAL':
-        stores.pageState.hideModal()
-        break
     }
   }
   getChildContext() {

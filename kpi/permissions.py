@@ -61,7 +61,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
 class AssetOwnerNestedObjectsPermissions(permissions.BasePermission):
     """
     Permissions for objects that are nested under Asset which only owner should access.
-    Others should receive a 404 response (instead of 403) to avoid to reveal existence
+    Others should receive a 404 response (instead of 403) to avoid revealing existence
     of objects.
     """
     def has_permission(self, request, view):

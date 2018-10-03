@@ -74,7 +74,7 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.post(submission_url, data)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-    def test_not_owner_access(self):
+    def test_non_owner_cannot_access(self):
         hook = self._create_hook()
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
@@ -102,13 +102,13 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_not_owner_create(self):
+    def test_non_owner_cannot_create(self):
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
         response = self._create_hook(return_response_only=True, name="Hook for asset I don't own")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_not_owner_anonymous(self):
+    def test_anonymous_cannot_create(self):
         self.client.logout()
         response = self._create_hook(return_response_only=True, name="Hook for asset from anonymous")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

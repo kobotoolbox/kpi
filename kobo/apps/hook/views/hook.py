@@ -21,6 +21,7 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.permissions import AssetOwnerNestedObjectsPermissions
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
+from kpi.utils.log import logging
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

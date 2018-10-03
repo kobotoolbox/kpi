@@ -530,26 +530,28 @@ $z-modal-x: 10;
   .http-header-row-remove {
     height: 30px;
     min-height: 30px;
-    font-size: 1.5em;
     line-height: 30px;
-    padding: 0;
 
-    i {font-size: inherit;}
+    .k-icon {
+      font-size: 1.5em;
+      vertical-align: middle;
+    }
   }
 
   .http-header-add {
     @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-    width: calc(100% - 30px);
+    background: $cool-gray;
+    vertical-align: middle;
+    padding: 0 12px 0 6px;
 
-    background: $cool-green;
-
-    &:hover {background: darken($cool-green, 10%);}
+    &:hover {background: darken($cool-gray, 10%);}
   }
 
   .http-header-row-remove {
     @extend .mdl-button, .mdl-button--icon;
     width: 30px;
     vertical-align: top;
+    padding: 0;
     &:hover {color: $cool-red;}
   }
 }

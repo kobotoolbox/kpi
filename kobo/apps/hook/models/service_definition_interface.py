@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod
-import logging
 import json
 import os
 import re
@@ -14,6 +13,7 @@ from rest_framework import status
 from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
 from .hook import Hook
 from .hook_log import HookLog
+from kpi.utils.log import logging
 
 
 class ServiceDefinitionInterface(object):
@@ -33,10 +33,8 @@ class ServiceDefinitionInterface(object):
             submission = self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
-            logger = logging.getLogger("console_logger")
-            logger.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
+            logging.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
                 self._hook.uid, self._instance_id, str(e)), exc_info=True)
-
         return None
 
     @abstractmethod
@@ -112,8 +110,7 @@ class ServiceDefinitionInterface(object):
                 self.save_log(status_code, text)
 
             except Exception as e:
-                logger = logging.getLogger("console_logger")
-                logger.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
+                logging.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
                     self._hook.uid, self._instance_id, str(e)), exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
@@ -164,5 +161,4 @@ class ServiceDefinitionInterface(object):
         try:
             log.save()
         except Exception as e:
-            logger = logging.getLogger("console_logger")
-            logger.error("ServiceDefinitionInterface.save_log - {}".format(str(e)), exc_info=True)
+            logging.error("ServiceDefinitionInterface.save_log - {}".format(str(e)), exc_info=True)

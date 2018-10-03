@@ -41,7 +41,11 @@ export class TranslationSettings extends React.Component {
     this.listenTo(stores.asset, this.onAssetsChange);
 
     if (!this.state.asset && this.state.assetUid) {
-      stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
+      if (stores.asset.data[this.state.assetUid]) {
+        this.onAssetChange(stores.asset.data[this.state.assetUid]);
+      } else {
+        stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
+      }
     }
   }
   onAssetChange(asset) {

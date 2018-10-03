@@ -229,21 +229,6 @@ var dataInterface;
         method: 'GET'
       });
     },
-    assetSearch ({tags, q}) {
-      var params = [];
-      if (tags) {
-        tags.forEach(function(tag){
-          params.push(`tag:${tag}`);
-        });
-      }
-      if (q) {
-        params.push(`(${q})`);
-      }
-      return $ajax({
-        url: `${rootUrl}/assets/?${params.join(' AND ')}`,
-        method: 'GET'
-      });
-    },
     deleteCollection ({uid}) {
       return $ajax({
         url: `${rootUrl}/collections/${uid}/`,
@@ -319,6 +304,12 @@ var dataInterface;
         url: `${rootUrl}/assets/`,
         dataType: 'json',
         data: searchData,
+        method: 'GET'
+      });
+    },
+    assetsHash () {
+      return $ajax({
+        url: `${rootUrl}/assets/hash/`,
         method: 'GET'
       });
     },
