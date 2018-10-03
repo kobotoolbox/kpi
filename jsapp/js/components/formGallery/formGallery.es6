@@ -23,10 +23,10 @@ export default class FormGallery extends React.Component {
 
   componentDidMount() {
     if (this.hasAnyMediaQuestions()) {
-      galleryActions.setFormUid(this.props.uid);
       this.listenTo(galleryStore, (storeChanges) => {
         this.setState(storeChanges);
       });
+      galleryActions.setFormUid(this.props.uid);
     }
   }
 
@@ -65,8 +65,11 @@ export default class FormGallery extends React.Component {
 
     // CASE: loading data from the start
     else if (
-      this.state.isLoadingGalleries &&
-      this.state.galleries.length === 0
+      this.state.formUid === null ||
+      (
+        this.state.isLoadingGalleries &&
+        this.state.galleries.length === 0
+      )
     ) {
       return (
         <bem.FormView m={formViewModifiers}>
