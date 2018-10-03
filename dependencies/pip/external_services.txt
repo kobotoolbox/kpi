@@ -22,6 +22,7 @@ cookies==2.2.1            # via responses
 cryptography==2.2.2       # via pyopenssl
 cssselect==1.0.3          # via pyquery
 cyordereddict==1.0.0
+defusedxml==0.5.0         # via djangorestframework-xml
 dj-database-url==0.4.1
 dj-static==0.0.6
 django-braces==1.8.1
@@ -45,6 +46,7 @@ django-taggit==0.22.0
 django-toolbelt==0.0.1
 django-webpack-loader==0.3.0
 django==1.8.13
+djangorestframework-xml==1.3.0
 djangorestframework==3.3.3
 docutils==0.12            # via botocore, statistics
 drf-extensions==0.3.1

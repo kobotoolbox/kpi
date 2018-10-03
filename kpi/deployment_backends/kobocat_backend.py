@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
 import cStringIO
-import logging
+import json
 import re
 import requests
 import unicodecsv
@@ -11,16 +12,19 @@ import posixpath
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
+from rest_framework.request import Request
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route, list_route
 
-from base_backend import BaseDeploymentBackend
+from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
+from .kc_access.shadow_models import _models
+from ..exceptions import BadFormatException
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.utils.mongo_helper import MongoDecodingHelper
+from kpi.utils.log import logging
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -259,7 +263,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
             }
         )
-        payload = {u'downloadable': active}
+        payload = {
+            u"downloadable": active,
+            u"has_kpi_hook": self.asset.has_active_hooks
+        }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
@@ -289,8 +296,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
         )
         payload = {
-            u'downloadable': active,
-            u'title': self.asset.name
+            u"downloadable": active,
+            u"title": self.asset.name,
+            u"has_kpi_hook": self.asset.has_active_hooks
         }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         try:
@@ -325,6 +333,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             'active': json_response['downloadable'],
             'backend_response': json_response,
+        })
+
+    def set_has_kpi_hooks(self):
+        """
+        PATCH `has_kpi_hooks` boolean of survey.
+        It lets `kc` know whether it needs to ping `kpi`
+        each time a submission comes in.
+
+        Store results in self.asset._deployment_data
+        """
+        has_active_hooks = self.asset.has_active_hooks
+        url = self.external_to_internal_url(
+            self.backend_response["url"])
+        payload = {
+            u"has_kpi_hooks": has_active_hooks
+        }
+        json_response = self._kobocat_request("PATCH", url, data=payload)
+        assert(json_response["has_kpi_hooks"] == has_active_hooks)
+        self.store_data({
+            "has_kpi_hooks": json_response.get("has_kpi_hooks"),
+            "backend_response": json_response,
         })
 
     def delete(self):
@@ -449,132 +478,79 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-class KobocatDataProxyViewSetMixin(object):
-    '''
-    List, retrieve, and delete submission data for a deployed asset via the
-    KoBoCAT API.
-    '''
-    def _get_deployment(self, request):
-        '''
-        Presupposing the use of `NestedViewSetMixin`, return the deployment for
-        the asset specified by the KPI request
-        '''
-        asset_uid = self.get_parents_query_dict()['asset']
-        asset = get_object_or_404(self.parent_model, uid=asset_uid)
-        if not asset.has_deployment:
-            raise serializers.ValidationError(
-                _('The specified asset has not been deployed'))
-        if not isinstance(asset.deployment, KobocatDeploymentBackend):
-            raise NotImplementedError(
-                'This viewset can only be used with the KoBoCAT deployment '
-                'backend')
-        return asset.deployment
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
+        """
+        Retreives submissions through Postgres or Mongo depending on `format_type`.
+        It can be filtered on instances uuids.
+        `uuid` is used instead of `id` because `id` is not available in ReadOnlyInstance model
 
-    @staticmethod
-    def _kobocat_proxy_request(kpi_request, kc_request):
-        '''
-        Send `kc_request`, which must specify `method` and `url` at a minimum.
-        If `kpi_request`, i.e. the incoming request to be proxied, is
-        authenticated, logged-in user's API token will be added to
-        `kc_request.headers`
-        '''
-        user = kpi_request.user
-        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
-            token, created = Token.objects.get_or_create(user=user)
-            kc_request.headers['Authorization'] = 'Token %s' % token.key
-        session = requests.Session()
-        return session.send(kc_request.prepare())
+        :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+        :param instances_ids: list. Optional
+        :return: list: mixed
+        """
+        submissions = []
+        getter = getattr(self, "_{}__get_submissions_in_{}".format(
+            self.__class__.__name__,
+            format_type))
+        try:
+            submissions = getter(instances_ids)
+        except Exception as e:
+            logging.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
 
-    @staticmethod
-    def _requests_response_to_django_response(requests_response):
-        '''
-        Convert a `requests.models.Response` into a `django.http.HttpResponse`
-        '''
-        HEADERS_TO_COPY = ('Content-Type', 'Content-Language')
-        django_response = HttpResponse()
-        for header in HEADERS_TO_COPY:
-            try:
-                django_response[header] = requests_response.headers[header]
-            except KeyError:
-                continue
-        django_response.status_code = requests_response.status_code
-        django_response.write(requests_response.content)
-        return django_response
+        return submissions
 
+    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
+        """
+        Returns only one occurrence.
 
-    def list(self, kpi_request, *args, **kwargs):
-        return self.retrieve(kpi_request, None, *args, **kwargs)
+        :param pk: int. `Instance.id`
+        :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+        :return: mixed. JSON or XML
+        """
 
-    def retrieve(self, kpi_request, pk, *args, **kwargs):
-        deployment = self._get_deployment(kpi_request)
-        if pk is None:
-            kc_url = deployment.submission_list_url
+        if pk:
+            submissions = list(self.get_submissions(format_type, [pk]))
+            if len(submissions) > 0:
+                return submissions[0]
+            return None
         else:
-            kc_url = deployment.get_submission_detail_url(pk)
-        kc_request = requests.Request(
-            method='GET',
-            url=kc_url,
-            params=kpi_request.GET
-        )
-        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
-        return self._requests_response_to_django_response(kc_response)
+            raise ValueError("Primary key must be provided")
 
-    def delete(self, kpi_request, pk, *args, **kwargs):
-        deployment = self._get_deployment(kpi_request)
-        kc_url = deployment.get_submission_detail_url(pk)
-        kc_request = requests.Request(method='DELETE', url=kc_url)
-        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
-        return self._requests_response_to_django_response(kc_response)
+    def __get_submissions_in_json(self, instances_ids=[]):
+        """
+        Retrieves instances directly from Mongo.
 
-    @detail_route(methods=['GET'])
-    def edit(self, kpi_request, pk, *args, **kwargs):
-        deployment = self._get_deployment(kpi_request)
-        kc_url = deployment.get_submission_edit_url(pk)
-        kc_request = requests.Request(
-            method='GET',
-            url=kc_url,
-            params=kpi_request.GET
-        )
-        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
-        return self._requests_response_to_django_response(kc_response)
-
-    @detail_route(methods=["GET", "PATCH"])
-    def validation_status(self, kpi_request, pk, *args, **kwargs):
-        deployment = self._get_deployment(kpi_request)
-        kc_url = deployment.get_submission_validation_status_url(pk)
-
-        requests_params = {
-            "method": kpi_request.method,
-            "url": kc_url
+        :param instances_ids: list. Optional
+        :return: generator<JSON>
+        """
+        query = {
+            "_xform_id_string": self.asset.uid,
+            "_deleted_at": {"$exists": False}
         }
 
-        # According to HTTP method,
-        # params are passed to Request object in different ways.
-        http_method_params = {}
-        if kpi_request.method == "PATCH":
-            http_method_params = {"json": kpi_request.data}
-        else:
-            http_method_params = {"params": kpi_request.GET}
+        if len(instances_ids) > 0:
+            query.update({
+                "_id": {"$in": instances_ids}
+            })
 
-        requests_params.update(http_method_params)
-        kc_request = requests.Request(**requests_params)
-        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+        instances = settings.MONGO_DB.instances.find(query)
+        return (
+            MongoDecodingHelper.to_readable_dict(instance)
+            for instance in instances
+        )
 
-        return self._requests_response_to_django_response(kc_response)
+    def __get_submissions_in_xml(self, instances_ids=[]):
+        """
+        Retrieves instances directly from Postgres.
 
+        :param instances_ids: list. Optional
+        :return: list<XML>
+        """
+        queryset = _models.Instance.objects.filter(
+            xform__id_string=self.asset.uid,
+            deleted_at=None)
 
-    @list_route(methods=["PATCH"])
-    def validation_statuses(self, kpi_request, *args, **kwargs):
-        deployment = self._get_deployment(kpi_request)
-        kc_url = deployment.submission_list_url
+        if len(instances_ids) > 0:
+            queryset = queryset.filter(id__in=instances_ids)
 
-        requests_params = {
-            "method": kpi_request.method,
-            "url": kc_url,
-            "json": kpi_request.data
-        }
-
-        kc_request = requests.Request(**requests_params)
-        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
-
-        return self._requests_response_to_django_response(kc_response)
+        return (lazy_instance.xml for lazy_instance in queryset)
