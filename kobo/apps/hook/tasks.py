@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import logging
 import time
 
 from celery import shared_task
@@ -15,6 +14,7 @@ from django_celery_beat.models import PeriodicTask
 
 from .constants import HOOK_LOG_FAILED
 from .models import Hook, HookLog
+from kpi.utils.log import logging
 
 
 @shared_task(bind=True)
@@ -139,8 +139,8 @@ def failures_reports():
             text_content = plain_text_template.render(Context(variables))
             html_content = html_template.render(Context(variables))
 
-            msg = EmailMultiAlternatives(translation.ugettext("Hooks failures report"), text_content,
-                                         "support@kobotoolbox.org",
+            msg = EmailMultiAlternatives(translation.ugettext("REST Services Failure Report"), text_content,
+                                         constance.config.SUPPORT_EMAIL,
                                          [record.get("email")])
             msg.attach_alternative(html_content, "text/html")
             email_messages.append(msg)
@@ -151,8 +151,7 @@ def failures_reports():
                 with get_connection() as connection:
                     connection.send_messages(email_messages)
             except Exception as e:
-                logger = logging.getLogger("console_logger")
-                logger.error("failures_reports - {}".format(str(e)), exc_info=True)
+                logging.error("failures_reports - {}".format(str(e)), exc_info=True)
                 return False
 
     return True
