@@ -1,21 +1,25 @@
 import React from 'react'
 import ReactTable from 'react-table'
 import TextareaAutosize from 'react-autosize-textarea'
-
+import alertify from 'alertifyjs'
 import bem from 'js/bem'
 import actions from 'js/actions'
 import stores from 'js/stores'
-
 import {MODAL_TYPES} from 'js/constants'
 import {t} from 'utils'
 
-const SAVE_CHANGES_BUTTON_TEXT_DEFAULT = t('Save Changes');
+const SAVE_BUTTON_TEXT = {
+  DEFAULT: t('Save Changes'),
+  UNSAVED: t('* Save Changes'),
+  PENDING: t('Saving…')
+}
 
 export class TranslationTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      saveChangesButtonText: SAVE_CHANGES_BUTTON_TEXT_DEFAULT,
+      saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
+      hasUnsavedChanges: false,
       isSaveChangesButtonPending: false,
       tableData: []
     };
@@ -59,7 +63,7 @@ export class TranslationTable extends React.Component {
         minWidth: 130,
         Cell: cellInfo => cellInfo.original.original
       },{
-        Header: `${translations[langIndex]} ${t('Translation')}`,
+        Header: t('##lang## translation').replace('##lang##', translations[langIndex]),
         accessor: 'translation',
         className: 'translation',
         Cell: cellInfo => (
@@ -68,6 +72,7 @@ export class TranslationTable extends React.Component {
               const data = [...this.state.tableData];
               data[cellInfo.index].value = e.target.value;
               this.setState({ data });
+              this.markSaveButtonUnsaved();
             }}
             value={this.state.tableData[cellInfo.index].value || ''}/>
         )
@@ -75,18 +80,28 @@ export class TranslationTable extends React.Component {
     ];
   }
 
+  markSaveButtonUnsaved() {
+    this.setState({
+      saveChangesButtonText: SAVE_BUTTON_TEXT.UNSAVED,
+      hasUnsavedChanges: true,
+      isSaveChangesButtonPending: false
+    });
+  }
+
   markSaveButtonPending() {
     this.setState({
-      saveChangesButtonText: t('Saving…'),
-      isSaveChangesButtonPending: true,
-    })
+      saveChangesButtonText: SAVE_BUTTON_TEXT.PENDING,
+      hasUnsavedChanges: true,
+      isSaveChangesButtonPending: true
+    });
   }
 
   markSaveButtonIdle() {
     this.setState({
-      saveChangesButtonText: SAVE_CHANGES_BUTTON_TEXT_DEFAULT,
-      isSaveChangesButtonPending: false,
-    })
+      saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
+      hasUnsavedChanges: false,
+      isSaveChangesButtonPending: false
+    });
   }
 
   saveChanges() {
@@ -106,16 +121,30 @@ export class TranslationTable extends React.Component {
     this.markSaveButtonPending();
     actions.resources.updateAsset(
       this.props.asset.uid,
-      {content: JSON.stringify(content)},
       {
-        onComplete: () => {
-          this.markSaveButtonIdle();
-        },
-        onFailed: () => {
-          this.markSaveButtonIdle();
-        }
+        content: JSON.stringify(content)
+      },
+      {
+        onComplete: this.markSaveButtonIdle.bind(this),
+        onFailed: this.markSaveButtonUnsaved.bind(this)
       }
     );
+  }
+
+  onBack() {
+    if (this.state.hasUnsavedChanges) {
+      const dialog = alertify.dialog('confirm');
+      const opts = {
+        title: t('Go back?'),
+        message: t('You will lose all unsaved changes.'),
+        labels: {ok: t('Go back'), cancel: t('Cancel')},
+        onok: this.showManageLanguagesModal.bind(this),
+        oncancel: dialog.destroy
+      };
+      dialog.set(opts).show();
+    } else {
+      this.showManageLanguagesModal();
+    }
   }
 
   showManageLanguagesModal() {
@@ -147,7 +176,10 @@ export class TranslationTable extends React.Component {
         </div>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton m='back' onClick={this.showManageLanguagesModal.bind(this)}>
+          <bem.Modal__footerButton
+            m='back'
+            onClick={this.onBack.bind(this)}
+          >
             {t('Back')}
           </bem.Modal__footerButton>
 

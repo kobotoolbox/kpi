@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import Map from 'es6-map';
 import _ from 'underscore';
 import { Link } from 'react-router';
 import actions from '../actions';
@@ -45,7 +44,7 @@ export class FormLanding extends React.Component {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion = undefined;
 
-    if (this.state.deployed_version_id !== this.state.version_id && this.state.deployment__active) {
+    if (!this.isCurrentVersionDeployed()) {
       undeployedVersion = `(${t('undeployed')})`;
       dvcount = dvcount + 1;
     }
@@ -108,6 +107,22 @@ export class FormLanding extends React.Component {
       type: MODAL_TYPES.REPLACE_PROJECT,
       asset: this.state
     });
+  }
+  isCurrentVersionDeployed() {
+    if (
+      this.state.deployment__active &&
+      this.state.deployed_versions.count > 0 &&
+      this.state.deployed_version_id
+    ) {
+      const deployed_version = this.state.deployed_versions.results.find(
+        (version) => {return version.uid === this.state.deployed_version_id}
+      )
+      return deployed_version.content_hash === this.state.version__content_hash;
+    }
+    return false;
+  }
+  isFormRedeploymentNeeded() {
+    return !this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
   }
   showLanguagesModal (evt) {
     evt.preventDefault();
@@ -468,8 +483,7 @@ export class FormLanding extends React.Component {
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {userCanEdit && this.state.deployed_versions.count > 0 &&
-                this.state.deployed_version_id != this.state.version_id && this.state.deployment__active &&
+              {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
                   <i className='k-icon-alert' />
                   {t('If you want to make these changes public, you must deploy this form.')}
