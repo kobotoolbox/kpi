@@ -17,7 +17,7 @@ from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from django.utils.http import urlquote
 from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination, _positive_int
+from rest_framework.pagination import LimitOffsetPagination, _positive_int, PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy, reverse
 from rest_framework.utils.urls import replace_query_param, remove_query_param
@@ -190,6 +190,13 @@ class HybridPagination(LimitOffsetPagination):
             html_json['page_links'][i] = page_link._replace(url=link)
 
         return html_json
+
+
+class TinyPaginated(PageNumberPagination):
+    """
+    Same as Paginated with a small page size
+    """
+    page_size = 50
 
 
 class WritableJSONField(serializers.Field):
@@ -660,6 +667,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
 
+    # Only add link instead of hooks list to avoid multiple access to DB.
+    hooks_link = serializers.SerializerMethodField()
+
     class Meta:
         model = Asset
         lookup_field = 'uid'
@@ -693,6 +703,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'embeds',
                   'koboform_link',
                   'xform_link',
+                  'hooks_link',
                   'tag_string',
                   'uid',
                   'kind',
@@ -753,6 +764,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
+
+    def get_hooks_link(self, obj):
+        return reverse('hook-list', args=(obj.uid,), request=self.context.get('request', None))
 
     def get_embeds(self, obj):
         request = self.context.get('request', None)

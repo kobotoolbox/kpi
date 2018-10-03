@@ -1,8 +1,6 @@
-from rest_framework import renderers
-from kpi.serializers import UserSerializer
-from kpi.models import AssetSnapshot
-
 import json
+
+from rest_framework import renderers
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):

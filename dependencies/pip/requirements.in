@@ -43,6 +43,7 @@ django-taggit
 django-storages
 django-private-storage
 djangorestframework
+djangorestframework-xml
 drf-extensions
 gunicorn
 jsonfield

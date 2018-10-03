@@ -6,7 +6,6 @@ import re
 import sys
 import copy
 import json
-import logging
 import StringIO
 from collections import OrderedDict
 
@@ -59,6 +58,7 @@ from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
+from kpi.utils.log import logging
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -748,6 +748,14 @@ class Asset(ObjectPermissionMixin,
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
+    @property
+    def has_active_hooks(self):
+        """
+        Returns if asset has active hooks.
+        Useful to update `kc.XForm.has_kpi_hooks` field.
+        :return: {boolean}
+        """
+        return self.hooks.filter(active=True).exists()
     @staticmethod
     def optimize_queryset_for_list(queryset):
         ''' Used by serializers to improve performance when listing assets '''

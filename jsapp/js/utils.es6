@@ -3,7 +3,6 @@ import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
 import cookie from 'react-cookie';
-import Promise from 'es6-promise';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
