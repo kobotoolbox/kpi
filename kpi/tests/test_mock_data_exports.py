@@ -198,7 +198,7 @@ class MockDataExports(TestCase):
         self.asset.save(create_version=False)
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
-            submission_stream=self.asset.deployment._get_submissions()
+            submission_stream=self.asset.deployment.get_submissions()
         )
 
     def run_csv_export_test(self, expected_lines, export_options=None):

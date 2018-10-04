@@ -1,7 +1,6 @@
 import re
 import pytz
 import base64
-import logging
 import datetime
 import requests
 import tempfile
@@ -27,9 +26,11 @@ from kobo.apps.reports.report_data import build_formpack
 
 from ..fields import KpiUidField
 from ..models import Collection, Asset
+from ..deployment_backends.mock_backend import MockDeploymentBackend
 from ..zip_importer import HttpContentParse
 from ..model_utils import create_assets, _load_library_content, \
                           remove_string_prefix
+from kpi.utils.log import logging
 
 
 def utcnow(*args, **kwargs):
@@ -516,10 +517,10 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        if hasattr(source.deployment, '_get_submissions'):
+        if isinstance(source.deployment, MockDeploymentBackend):
             # Currently used only for unit testing (`MockDeploymentBackend`)
             # TODO: Have the KC backend also implement `_get_submissions()`?
-            submission_stream = source.deployment._get_submissions()
+            submission_stream = source.deployment.get_submissions()
         else:
             submission_stream = None
 

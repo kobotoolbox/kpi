@@ -19,6 +19,7 @@ import Submission from '../components/modalForms/submission';
 import TableColumnFilter from '../components/modalForms/tableColumnFilter';
 import TranslationSettings from '../components/modalForms/translationSettings';
 import TranslationTable from '../components/modalForms/translationTable';
+import RESTServicesForm from '../components/RESTServices/RESTServicesForm';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -70,6 +71,14 @@ class Modal extends React.Component {
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid
         });
+      break;
+
+      case MODAL_TYPES.REST_SERVICES:
+        if (this.props.params.hookUid) {
+          this.setState({title: t('Edit REST Service')});
+        } else {
+          this.setState({title: t('New REST Service')});
+        }
         break;
 
       case MODAL_TYPES.REPLACE_PROJECT:
@@ -238,6 +247,12 @@ class Modal extends React.Component {
                                  columns={this.props.params.columns}
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
+            }
+            { this.props.params.type == MODAL_TYPES.REST_SERVICES &&
+              <RESTServicesForm
+                assetUid={this.props.params.assetUid}
+                hookUid={this.props.params.hookUid}
+              />
             }
             { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
               <TranslationSettings

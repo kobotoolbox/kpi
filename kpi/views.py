@@ -104,8 +104,10 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
-from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
+from deployment_backends.mixin import KobocatDataProxyViewSetMixin
+from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
+from kpi.utils.log import logging
 
 
 @login_required
@@ -701,9 +703,45 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                         KobocatDataProxyViewSetMixin):
     '''
     TODO: Access the submission data directly instead of merely proxying to
-    KoBoCAT
+    KoBoCAT. We can now use `KobocatBackend.get_submissions()` and
+     `KobocatBackend.get_submission()`
     '''
     parent_model = Asset
+
+    def create(self, request, *args, **kwargs):
+        """
+        This endpoint is handled by the SubmissionViewSet (not KobocatDataProxyViewSetMixin)
+        because it doesn't use KC proxy.
+        It's only used to trigger hook services of the Asset (so far).
+
+        :param request:
+        :return:
+        """
+        # Follow Open Rosa responses by default
+        response_status_code = status.HTTP_202_ACCEPTED
+        response = {
+            "detail": _(
+                "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
+        }
+        try:
+            asset_uid = self.get_parents_query_dict().get("asset")
+            asset = get_object_or_404(self.parent_model, uid=asset_uid)
+            instance_id = request.data.get("instance_id")
+            if not HookUtils.call_services(asset, instance_id):
+                response_status_code = status.HTTP_409_CONFLICT
+                response = {
+                    "detail": _(
+                        "Your data for instance {} has been already submitted.".format(instance_id))
+                }
+
+        except Exception as e:
+            logging.error("SubmissionViewSet.create - {}".format(str(e)))
+            response = {
+                "detail": _("An error has occurred when calling the external service. Please retry later.")
+            }
+            response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response(response, status=response_status_code)
 
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -725,7 +763,6 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         _queryset = self.model.objects.filter(asset__uid=_asset_uid)
         if _deployed is not None:
             _queryset = _queryset.filter(deployed=_deployed)
-        _queryset = _queryset.filter(asset__uid=_asset_uid)
         if self.action == 'list':
             # Save time by only retrieving fields from the DB that the
             # serializer will use

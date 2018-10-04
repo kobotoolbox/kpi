@@ -18,17 +18,25 @@ from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
-    For use with AssetVersions
+    For use with nested models of Asset.
     Restricts access to items that are owned by the current user
     """
     def filter_queryset(self, request, queryset, view):
-        return queryset.filter(asset__owner=request.user)
+        # Because HookLog is two level nested,
+        # we need to specify the relation in the filter field
+        if type(view).__name__ == "HookLogViewSet":
+            fields = {"hook__asset__owner": request.user}
+        else:
+            fields = {"asset__owner": request.user}
+
+        return queryset.filter(**fields)
 
 
 class KpiObjectPermissionsFilter(object):
     perm_format = '%(app_label)s.view_%(model_name)s'
 
     def filter_queryset(self, request, queryset, view):
+
         user = request.user
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's

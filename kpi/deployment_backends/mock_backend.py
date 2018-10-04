@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from base_backend import BaseDeploymentBackend
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.exceptions import BadFormatException
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
@@ -56,5 +58,32 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'submissions': submissions,
             })
 
-    def _get_submissions(self):
-        return self.asset._deployment_data.get('submissions', [])
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
+        """
+        Returns a list of json representation of instances.
+
+        :param format: str. xml or json
+        :param instances_ids: list. Ids of instances to retrieve
+        :return: list
+        """
+        if format_type == INSTANCE_FORMAT_TYPE_XML:
+            raise BadFormatException("XML is not supported")
+        else:
+            submissions = self.asset._deployment_data.get("submissions", [])
+            if len(instances_ids) > 0:
+                instances_ids = [instance_id for instance_id in instances_ids]
+                submissions = [submission for submission in submissions if submission.get("id") in instances_ids]
+
+            return submissions
+
+    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
+         return self.get_submissions(format_type=format_type, instances_ids=[pk])[0]
+
+    def set_has_kpi_hooks(self):
+        """
+        Store results in self.asset._deployment_data
+        """
+        has_active_hooks = self.asset.has_active_hooks
+        self.store_data({
+            "has_kpi_hooks": has_active_hooks,
+        })

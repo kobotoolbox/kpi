@@ -72,6 +72,72 @@ var dataInterface;
         data: data
       });
     },
+
+    /*
+     * external services
+     */
+
+    getHooks(uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/`,
+        method: 'GET'
+      });
+    },
+    getHook(uid, hookUid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
+        method: 'GET'
+      });
+    },
+    addExternalService(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+    },
+    updateExternalService(uid, hookUid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+    },
+    deleteExternalService(uid, hookUid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
+        method: 'DELETE'
+      });
+    },
+    getHookLogs(uid, hookUid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${hookUid}/logs/`,
+        method: 'GET'
+      })
+    },
+    getHookLog(uid, hookUid, lid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
+        method: 'GET'
+      })
+    },
+    retryExternalServiceLogs(uid, hookUid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${hookUid}/retry/`,
+        method: 'PATCH'
+      })
+    },
+    retryExternalServiceLog(uid, hookUid, lid) {
+      return $ajax({
+        url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
+        method: 'PATCH'
+      })
+    },
+
     getReportData (data) {
       let identifierString;
       if (data.identifiers) {

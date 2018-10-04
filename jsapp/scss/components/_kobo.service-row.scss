@@ -1,0 +1,143 @@
+$s-service-row-action-button: 36px;
+$s-service-row-leading: 18px;
+$s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
+
+.service-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: $s-service-row-action-button;
+  box-sizing: content-box;
+  line-height: $s-service-row-leading;
+
+  &:not(:last-of-type) {
+    border-bottom: 1px solid $divider-color;
+  }
+
+  &:not(.service-row--header):hover {
+    background-color: $cool-whitegray;
+  }
+
+  &.service-row--header {
+    font-weight: 600;
+    border-bottom-width: 2px;
+  }
+
+  &.service-row--active {
+    color: $cool-darkgray;
+  }
+
+  &.service-row--inactive {
+    color: $cool-silver;
+  }
+}
+
+.service-row__column {
+  &.service-row__column--name {
+    flex: 6;
+    padding: 0 $s-service-row-column-spacing;
+
+    .service-row--header & {padding: $s-service-row-column-spacing;}
+
+    a {
+      color: inherit;
+      display: block;
+      padding: $s-service-row-column-spacing 0;
+
+      &:hover {color: $cool-charcoal;}
+    }
+  }
+
+  &.service-row__column--count {
+    flex: 1;
+    padding: $s-service-row-column-spacing;
+    line-height: 18px;
+
+    .count-information-wrapper {
+      display: inline-block;
+      vertical-align: bottom;
+      font-size: 36px;
+
+      &[data-tip]::before,
+      &[data-tip]::after {
+        // to align with action buttons
+        margin-top: 9px;
+      }
+
+      i {
+        color: inherit;
+        vertical-align: inherit;
+        line-height: inherit;
+
+        &::before {
+          vertical-align: inherit;
+          line-height: inherit;
+        }
+      }
+    }
+  }
+
+
+  &.service-row__column--actions {
+    flex: 1;
+    padding: 0 $s-service-row-column-spacing;
+    box-sizing: content-box;
+    white-space: nowrap;
+  }
+
+  &.service-row__column--submission {
+    flex: 3;
+    padding: $s-service-row-column-spacing;
+  }
+
+  &.service-row__column--status {
+    flex: 1;
+    padding: 0 $s-service-row-column-spacing;
+    line-height: $s-service-row-action-button;
+    white-space: nowrap;
+  }
+
+  &.service-row__column--date {
+    flex: 1;
+    padding: $s-service-row-column-spacing;
+  }
+
+  &.service-row__column--success {
+    color: $cool-gray;
+  }
+
+  &.service-row__column--pending {
+    color: $cool-green;
+  }
+
+  &.service-row__column--failed {
+    color: $cool-red;
+  }
+}
+
+.service-row__action-button {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  width: $s-service-row-action-button;
+  height: $s-service-row-action-button;
+  font-size: $s-service-row-action-button;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  display: inline-block;
+  vertical-align: top;
+
+  &:first-of-type {
+    margin-left: 12px;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  &:hover {
+    color: $cool-blue;
+  }
+}

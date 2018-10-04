@@ -221,6 +221,16 @@ actions.permissions = Reflux.createActions({
   },
 });
 
+actions.hooks = Reflux.createActions({
+  getAll: {children: ['completed', 'failed']},
+  add: {children: ['completed', 'failed']},
+  update: {children: ['completed', 'failed']},
+  delete: {children: ['completed', 'failed']},
+  getLogs: {children: ['completed', 'failed']},
+  retryLog: {children: ['completed', 'failed']},
+  retryLogs: {children: ['completed', 'failed']},
+});
+
 actions.misc = Reflux.createActions({
   checkUsername: {
     asyncResult: true,
@@ -696,6 +706,153 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
     console.error(error);
     actions.resources.updateSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.hooks.getAll.listen((assetUid, callbacks = {}) => {
+  dataInterface.getHooks(assetUid)
+    .done((...args) => {
+      actions.hooks.getAll.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.getAll.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.hooks.add.listen((assetUid, data, callbacks = {}) => {
+  dataInterface.addExternalService(assetUid, data)
+    .done((...args) => {
+      actions.hooks.getAll(assetUid);
+      actions.hooks.add.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.add.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.add.completed.listen((response) => {
+  notify(t('REST Service added successfully'));
+});
+actions.hooks.add.failed.listen((response) => {
+  notify(t('Failed adding REST Service'), 'error');
+});
+
+actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
+  dataInterface.updateExternalService(assetUid, hookUid, data)
+    .done((...args) => {
+      actions.hooks.getAll(assetUid);
+      actions.hooks.update.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.update.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.update.completed.listen((response) => {
+  notify(t('REST Service updated successfully'));
+});
+actions.hooks.update.failed.listen((response) => {
+  notify(t('Failed saving REST Service'), 'error');
+});
+
+actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.deleteExternalService(assetUid, hookUid)
+    .done((...args) => {
+      actions.hooks.getAll(assetUid);
+      actions.hooks.delete.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.delete.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.delete.completed.listen((response) => {
+  notify(t('REST Service deleted permanently'));
+});
+actions.hooks.delete.failed.listen((response) => {
+  notify(t('Could not delete REST Service'), 'error');
+});
+
+actions.hooks.getLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.getHookLogs(assetUid, hookUid)
+    .done((...args) => {
+      actions.hooks.getLogs.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.getLogs.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLog(assetUid, hookUid, lid)
+    .done((...args) => {
+      actions.hooks.getLogs(assetUid, hookUid);
+      actions.hooks.retryLog.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.retryLog.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.retryLog.completed.listen((response) => {
+  notify(t('Submission retried successfully'));
+});
+actions.hooks.retryLog.failed.listen((response) => {
+  notify(t('Retrying submission failed'), 'error');
+});
+
+actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLogs(assetUid, hookUid)
+    .done((...args) => {
+      actions.hooks.retryLogs.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.getLogs(assetUid, hookUid);
+      actions.hooks.retryLogs.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.retryLogs.completed.listen((response) => {
+  notify(t(response.detail), 'warning');
+});
+actions.hooks.retryLogs.failed.listen((response) => {
+  notify(t('Retrying all submissions failed'), 'error');
 });
 
 module.exports = actions;

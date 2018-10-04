@@ -482,6 +482,14 @@ iframe {
     margin-bottom: 15px;
   }
 
+  &.form-modal__item--inline {
+    display: inline-block;
+    &:not(:last-child) {
+      margin-bottom: 0;
+      margin-right: 20px;
+    }
+  }
+
   &--sector, &--country {
     width: 50%;
     float: left;
@@ -546,6 +554,12 @@ iframe {
     overflow: hidden;
     resize: none;
     height: auto;
+
+    &.questions {
+      height: 60px;
+      overflow: auto;
+      font-size: 13px;
+    }
   }
 
   input[type="checkbox"] {
@@ -672,15 +686,15 @@ span.svg-icon {
 // Checkboxes
 
 // Remove default checkbox
-[type="checkbox"]:not(:checked),
-[type="checkbox"]:checked {
+[type="checkbox"]:not(.checkbox .checkbox__input):not(:checked),
+[type="checkbox"]:not(.checkbox .checkbox__input):checked {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
 
 // Checkbox Styles
-[type="checkbox"] {
+[type="checkbox"]:not(.checkbox .checkbox__input) {
   + label {
     position: relative;
     padding-left: 35px;

@@ -33,13 +33,14 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
+from kobo.apps.hook.views import HookViewSet, HookLogViewSet
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
 # https://docs.djangoproject.com/en/1.8/intro/tutorial03/#namespacing-url-names
 
 router = ExtendedDefaultRouter()
-asset_routes = router.register(r'assets', AssetViewSet)
+asset_routes = router.register(r'assets', AssetViewSet, base_name='asset')
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       base_name='asset-version',
@@ -56,6 +57,17 @@ asset_routes.register(r'files',
                       parents_query_lookups=['asset'],
                       )
 
+hook_routes = asset_routes.register(r'hooks',
+                      HookViewSet,
+                      base_name='hook',
+                      parents_query_lookups=['asset'],
+                      )
+
+hook_routes.register(r'logs',
+                     HookLogViewSet,
+                     base_name='hook-log',
+                     parents_query_lookups=['asset', 'hook'],
+                     )
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(

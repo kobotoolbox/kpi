@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'constance',
     'constance.backends.database',
     'guardian', # For access to KC permissions ONLY
+    'kobo.apps.hook',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -136,7 +137,9 @@ CONSTANCE_CONFIG = {
                                        'help@kobotoolbox.org'),
                       'Email address for users to contact, e.g. when they '
                       'encounter unhandled errors in the application'),
-
+    'HOOK_MAX_RETRIES': (3,
+                         'Number of times the system will retry '
+                         'to send data to remote server before giving up')
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -269,6 +272,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+    ]
 }
 
 TEMPLATES = [
@@ -475,6 +483,37 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
 
+
+# Need a default logger when sentry is not activated
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s' +
+                      ' %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'console_logger': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    }
+}
+
 ''' Sentry configuration '''
 if os.environ.get('RAVEN_DSN', False):
     import raven
@@ -540,6 +579,11 @@ if os.environ.get('RAVEN_DSN', False):
                 'level': 'DEBUG',
                 'handlers': ['console'],
                 'propagate': False,
+            },
+            'console_logger': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': True
             },
         },
     }
