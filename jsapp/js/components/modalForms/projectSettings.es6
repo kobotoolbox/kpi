@@ -257,25 +257,29 @@ class ProjectSettings extends React.Component {
    * handling asset creation
    */
 
-  onUpdateAssetCompleted(asset) {
-    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING) {
-      // no need to open asset from within asset's settings view
-      return;
-    } else if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-      this.handleReplaceDone();
-    } else {
+  onUpdateAssetCompleted() {
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
+    ) {
       this.goToFormLanding();
     }
   }
 
   onUpdateAssetFailed(response) {
-    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
+    ) {
       this.resetApplyTemplateButton();
     }
   }
 
   onCloneAssetCompleted(asset) {
-    if (this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE) {
+    if (
+      (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE || this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) &&
+      this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE
+    ) {
       this.setState({
         formAsset: asset,
         name: asset.name,
@@ -290,7 +294,12 @@ class ProjectSettings extends React.Component {
   }
 
   onCloneAssetFailed() {
-    this.resetApplyTemplateButton();
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
+    ) {
+      this.resetApplyTemplateButton();
+    }
   }
 
   getOrCreateFormAsset() {
@@ -399,7 +408,7 @@ class ProjectSettings extends React.Component {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
-                  this.handleReplaceDone();
+                  this.goToFormLanding();
                 } else {
                   this.setState({
                     formAsset: finalAsset,
@@ -450,7 +459,7 @@ class ProjectSettings extends React.Component {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
-                  this.handleReplaceDone();
+                  this.goToFormLanding();
                 } else {
                   // try proposing something more meaningful than "Untitled"
                   const newName = files[0].name.split('.')[0];
@@ -489,10 +498,6 @@ class ProjectSettings extends React.Component {
         }
       );
     }
-  }
-
-  handleReplaceDone() {
-    this.goToFormLanding();
   }
 
   handleSubmit(evt) {
