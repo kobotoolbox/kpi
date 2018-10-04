@@ -51,6 +51,8 @@ class ProjectSettings extends React.Component {
       PROJECT_DETAILS: 'project-details'
     }
 
+    this.unlisteners = [];
+
     const formAsset = this.props.formAsset;
 
     this.state = {
@@ -93,10 +95,16 @@ class ProjectSettings extends React.Component {
         isSessionLoaded: true,
       });
     });
-    actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this));
-    actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this));
-    actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this));
-    actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this));
+    this.unlisteners.push(
+      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
+      actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
+      actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
+      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this))
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   setInitialStep() {
@@ -383,13 +391,7 @@ class ProjectSettings extends React.Component {
         this.state.formAsset.uid,
         {
           clone_from: this.state.chosenTemplateUid,
-          name: this.state.formAsset.name,
-          settings: JSON.stringify({
-            description: this.state.formAsset.description,
-            sector: this.state.formAsset.sector,
-            country: this.state.formAsset.country,
-            'share-metadata': this.state.formAsset['share-metadata']
-          })
+          name: this.state.formAsset.name
         }
       );
     } else {
