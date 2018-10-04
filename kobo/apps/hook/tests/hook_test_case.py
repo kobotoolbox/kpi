@@ -127,11 +127,11 @@ class HookTestCase(KpiTestCase):
         submission = {
             "__version__": v_uid,
             "q1": u"¿Qué tal?",
-            "group1/q2": u"¿Como está en el grupo uno la primera vez?",
-            "group1/q3": u"¿Como está en el grupo uno la segunda vez?",
-            "group2/subgroup1/q4": u"¿Como está en el subgrupo uno la primera vez?",
-            "group2/subgroup1/q5": u"¿Como está en el subgrupo uno la segunda vez?",
-            "group2/subgroup1/q6": u"¿Como está en el subgrupo uno la tercera vez?",
+            "group1/q2": u"¿Cómo está en el grupo uno la primera vez?",
+            "group1/q3": u"¿Cómo está en el grupo uno la segunda vez?",
+            "group2/subgroup1/q4": u"¿Cómo está en el subgrupo uno la primera vez?",
+            "group2/subgroup1/q5": u"¿Cómo está en el subgrupo uno la segunda vez?",
+            "group2/subgroup1/q6": u"¿Cómo está en el subgrupo uno la tercera vez?",
             "group2/subgroup11/q1": u"¿Cómo está en el subgrupo once?",
             "id": self._submission_pk
         }
@@ -143,14 +143,14 @@ class HookTestCase(KpiTestCase):
                       "   <__version__>{v_uid}</__version__>"
                       "   <q1>¿Qué tal?</q1>"
                       "   <group1>"
-                      "      <q2>¿Como está en el grupo uno la primera vez?</q2>"
-                      "      <q3>¿Como está en el grupo uno la segunda vez?</q3>"
+                      "      <q2>¿Cómo está en el grupo uno la primera vez?</q2>"
+                      "      <q3>¿Cómo está en el grupo uno la segunda vez?</q3>"
                       "   </group1>"
                       "   <group2>"
                       "      <subgroup1>"
-                      "          <q4>¿Como está en el subgrupo uno la primera vez?</q4>"
-                      "          <q5>¿Como está en el subgrupo uno la segunda vez?</q5>"
-                      "          <q6>¿Como está en el subgrupo uno la tercera vez?</q6>"
+                      "          <q4>¿Cómo está en el subgrupo uno la primera vez?</q4>"
+                      "          <q5>¿Cómo está en el subgrupo uno la segunda vez?</q5>"
+                      "          <q6>¿Cómo está en el subgrupo uno la tercera vez?</q6>"
                       "      </subgroup1>"
                       "      <subgroup11>"
                       "          <q1>¿Cómo está en el subgrupo once?</q1>"

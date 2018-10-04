@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 from lxml import etree
 import json
+import re
 
 from .hook_test_case import HookTestCase
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML
@@ -18,10 +19,10 @@ class ParserTestCase(HookTestCase):
         uuid = submissions[0].get("id")
         service_definition = ServiceDefinition(hook, uuid)
         expected_data = {
-            "group1/q3": u"¿Como está en el grupo uno la segunda vez?",
-            "group2/subgroup1/q4": u"¿Como está en el subgrupo uno la primera vez?",
-            "group2/subgroup1/q5": u"¿Como está en el subgrupo uno la segunda vez?",
-            "group2/subgroup1/q6": u"¿Como está en el subgrupo uno la tercera vez?",
+            "group1/q3": u"¿Cómo está en el grupo uno la segunda vez?",
+            "group2/subgroup1/q4": u"¿Cómo está en el subgrupo uno la primera vez?",
+            "group2/subgroup1/q5": u"¿Cómo está en el subgrupo uno la segunda vez?",
+            "group2/subgroup1/q6": u"¿Cómo está en el subgrupo uno la tercera vez?",
             "id": 1
         }
         self.assertEquals(service_definition._get_data(), expected_data)
@@ -45,13 +46,13 @@ class ParserTestCase(HookTestCase):
         service_definition = ServiceDefinition(hook, uuid)
         expected_etree = etree.fromstring(("<{asset_uid}>"
                          "   <group1>"
-                         "      <q3>¿Como está en el grupo uno la segunda vez?</q3>"
+                         "      <q3>¿Cómo está en el grupo uno la segunda vez?</q3>"
                          "   </group1>"
                          "   <group2>"
                          "      <subgroup1>"
-                         "          <q4>¿Como está en el subgrupo uno la primera vez?</q4>"
-                         "          <q5>¿Como está en el subgrupo uno la segunda vez?</q5>"
-                         "          <q6>¿Como está en el subgrupo uno la tercera vez?</q6>"
+                         "          <q4>¿Cómo está en el subgrupo uno la primera vez?</q4>"
+                         "          <q5>¿Cómo está en el subgrupo uno la segunda vez?</q5>"
+                         "          <q6>¿Cómo está en el subgrupo uno la tercera vez?</q6>"
                          "      </subgroup1>"
                          "   </group2>"
                          "   <id>{id}</id>"
@@ -60,4 +61,9 @@ class ParserTestCase(HookTestCase):
             id=uuid)
         )
         expected_xml = etree.tostring(expected_etree, pretty_print=True)
-        self.assertEquals(service_definition._get_data(), expected_xml)
+
+        def remove_whitespace(str_):
+            return re.sub(r">\s+<", "><", str_)
+
+        self.assertEquals(remove_whitespace(service_definition._get_data()),
+                          remove_whitespace(expected_xml))

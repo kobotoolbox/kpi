@@ -23,6 +23,12 @@ class ServiceDefinition(ServiceDefinitionInterface):
             def remove_root_path(path_):
                 return path_.replace(root_path, "")
 
+            def is_group(node_):
+                for nested_node_ in node_.iterchildren():
+                    if nested_node_.iterchildren():
+                        return True
+                return False
+
             def process_node(node_, matched_nodes_paths_):
                 """
                 Removes node from XML tree if it's not included in subset of fields
@@ -75,7 +81,11 @@ class ServiceDefinition(ServiceDefinitionInterface):
             # Keep all paths of nodes that match the subset of fields
             for field_ in fields:
                 for node in tree.iter(field_):
-                    matched_nodes_paths.append(remove_root_path(tree.getpath(node)))
+                    matched_node_path = remove_root_path(tree.getpath(node))
+                    # If node is a group, we need to add a trailing slash for later comparison in `process_node`
+                    if is_group(node):
+                        matched_node_path += "/"
+                    matched_nodes_paths.append(matched_node_path)
 
             process_node(root_element, tuple(matched_nodes_paths))
 
