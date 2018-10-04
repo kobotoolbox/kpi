@@ -686,15 +686,14 @@ span.svg-icon {
 // Checkboxes
 
 // Remove default checkbox
-[type="checkbox"]:not(.checkbox .checkbox__input):not(:checked),
-[type="checkbox"]:not(.checkbox .checkbox__input):checked {
+[type="checkbox"]:not(.checkbox__input) {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
 
 // Checkbox Styles
-[type="checkbox"]:not(.checkbox .checkbox__input) {
+[type="checkbox"]:not(.checkbox__input) {
   + label {
     position: relative;
     padding-left: 35px;
