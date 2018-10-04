@@ -215,7 +215,19 @@ class ProjectSettings extends React.Component {
 
   goToFormLanding() {
     stores.pageState.hideModal();
-    hashHistory.push(`/forms/${this.state.formAsset.uid}/landing`);
+
+    let targetUid;
+    if (this.state.formAsset) {
+      targetUid = this.state.formAsset.uid
+    } else if (this.context.router && this.context.router.params.assetid) {
+      targetUid = this.context.router.params.assetid;
+    }
+
+    if (!targetUid) {
+      throw new Error('Unknown uid!');
+    }
+
+    hashHistory.push(`/forms/${targetUid}/landing`);
   }
 
   /*
