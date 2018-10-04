@@ -90,7 +90,10 @@ class ServiceDefinition(ServiceDefinitionInterface):
             for field_ in fields:
                 for node in tree.iter(field_):
                     matched_node_path = remove_root_path(tree.getpath(node))
-                    # If node is a group, we need to add a trailing slash for later comparison in `process_node`
+                    # To make a difference between groups with same beginning of name, we need to add a trailing slash
+                    # for later comparison in `process_node`.
+                    # e.g `subgroup1` and `subgroup11` both start with `subgroup1` but
+                    # `subgroup11/` and # `subgroup1/` don't.
                     if is_group(node):
                         matched_node_path += "/"
                     matched_nodes_paths.append(matched_node_path)
