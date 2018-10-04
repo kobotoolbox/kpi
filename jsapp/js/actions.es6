@@ -340,7 +340,7 @@ actions.resources.listTags.completed.listen(function(results){
   }
 });
 
-actions.resources.updateAsset.listen(function(uid, values) {
+actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
       actions.resources.updateAsset.completed(asset, uid, values);
