@@ -13,15 +13,23 @@ class ServiceDefinition(ServiceDefinitionInterface):
     def _parse_data(self, submission, fields):
         if len(fields) > 0:
 
+            # Build xml to be parsed
+            xml_doc = etree.fromstring(submission)
+            tree = etree.ElementTree(xml_doc)
+            matched_nodes_paths = []
+            root_element = tree.getroot()
+            root_path = tree.getpath(root_element)
+
             def remove_root_path(path_):
                 return path_.replace(root_path, "")
 
-            def process_node(node_):
+            def process_node(node_, matched_nodes_paths_):
                 """
                 Removes node from XML tree if it's not included in subset of fields
                 :param node_: lxml.etree._Element
+                :param matched_nodes_paths_: tuple. Nodes to keep
                 """
-                # Calling remove_node(xml) will first loop through all children of the root element.
+                # Calling process_node(xml, `matched_nodes_path`) will first loop through all children of the root element.
                 # Then for each child, it will loop through its children if any etc...
                 # When all children are processed, it checks whether the node should be removed or not.
                 # Trivial case, it's removed. Otherwise, the parent of the current node is tagged as `do_not_delete`.
@@ -50,13 +58,13 @@ class ServiceDefinition(ServiceDefinitionInterface):
                 # </root>
 
                 for child in node_.getchildren():
-                    process_node(child)
+                    process_node(child, matched_nodes_paths_)
 
                 node_path = remove_root_path(tree.getpath(node_))
 
                 # if `node_path` does not match one of the occurrences previously found,
                 # it must be removed.
-                if not node_path.startswith(matched_nodes_paths_tuple) and node_.get("do_not_delete", False) != "true":
+                if not node_path.startswith(matched_nodes_paths_) and node_.get("do_not_delete") != "true":
                     node_.getparent().remove(node_)
                 elif node_path != "":
                     node_.getparent().set("do_not_delete", "true")
@@ -64,21 +72,12 @@ class ServiceDefinition(ServiceDefinitionInterface):
                 if node_.attrib.get("do_not_delete"):
                     del node_.attrib["do_not_delete"]
 
-            # Build xml to be parsed
-            xml_doc = etree.fromstring(submission)
-            tree = etree.ElementTree(xml_doc)
-            matched_nodes_paths = []
-            root_element = tree.getroot()
-            root_path = tree.getpath(root_element)
-
             # Keep all paths of nodes that match the subset of fields
             for field_ in fields:
                 for node in tree.iter(field_):
                     matched_nodes_paths.append(remove_root_path(tree.getpath(node)))
 
-            matched_nodes_paths_tuple = tuple(matched_nodes_paths)
-
-            process_node(root_element)
+            process_node(root_element, tuple(matched_nodes_paths))
 
             return etree.tostring(tree, pretty_print=True)
 

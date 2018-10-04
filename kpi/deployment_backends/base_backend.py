@@ -3,6 +3,9 @@
 
 
 class BaseDeploymentBackend(object):
+
+    # TODO. Stop using protected property `_deployement_data`.
+
     def __init__(self, asset):
         self.asset = asset
 

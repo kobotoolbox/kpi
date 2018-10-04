@@ -109,7 +109,7 @@ class HookTestCase(KpiTestCase):
             "parent_lookup_hook": self.hook.uid
         })
 
-        response = self.client.get(url, format=INSTANCE_FORMAT_TYPE_JSON)
+        response = self.client.get(url)
         first_hooklog_response = response.data.get("results")[0]
 
         # Result should match first try
@@ -162,5 +162,4 @@ class HookTestCase(KpiTestCase):
 
     def __inject_submission(self, asset, submission):
         self._submission_pk += 1
-        asset.deployment._mock_submission(submission)
-        asset.save(create_version=False)
+        asset.deployment.mock_submissions([submission])

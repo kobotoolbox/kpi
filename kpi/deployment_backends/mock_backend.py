@@ -12,6 +12,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     only used for unit testing and interface testing.
 
     defines the interface for a deployment backend.
+
+    # TODO. Stop using protected property `_deployement_data`.
     '''
     def connect(self, active=False):
         self.store_data({
@@ -53,11 +55,23 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return len(submissions)
 
     def _mock_submission(self, submission):
+        """
+        @TODO may be useless because of mock_submissions. Remove if it's not used anymore anywhere else.
+        :param submission:
+        """
         submissions = self.asset._deployment_data.get('submissions', [])
         submissions.append(submission)
         self.store_data({
             'submissions': submissions,
             })
+
+    def mock_submissions(self, submissions):
+        """
+        Insert dummy submissions into `asset._deployment_data`
+        :param submissions: list
+        """
+        self.store_data({"submissions": submissions})
+        self.asset.save(create_version=False)
 
     def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
         """
@@ -70,7 +84,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         submissions = self.asset._deployment_data.get("submissions", [])
 
         if len(instances_ids) > 0:
-            # Force str type for `instances_uuids` because `uuid`s can be str or int.
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 # ugly way to find matches, but it avoids to load each xml in memory.
                 pattern = "|".join(instances_ids)
