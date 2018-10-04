@@ -24,6 +24,14 @@ class ServiceDefinition(ServiceDefinitionInterface):
                 return path_.replace(root_path, "")
 
             def is_group(node_):
+                """
+                Checks whether `node_` has children that are also xml nodes with children.
+                Not text.
+                It lets us assume `node_` is a group.
+
+                :param node_: lxml.etree._Element
+                :return: bool
+                """
                 for nested_node_ in node_.iterchildren():
                     if nested_node_.iterchildren():
                         return True
