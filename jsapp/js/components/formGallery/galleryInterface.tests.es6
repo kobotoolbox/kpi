@@ -77,7 +77,21 @@ describe('galleryInterface', () => {
     });
 
     it('should select media', () => {
-      chai.expect(false).to.equal(true);
+      chai.expect(galleryStore.state.selectedMedia.isLoading).to.equal(true);
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(null);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(null);
+      chai.expect(galleryStore.state.selectedMedia.data).to.equal(null);
+
+      galleryActions.openMediaModal({galleryIndex: 0, mediaIndex: 0});
+
+      chai.expect(galleryStore.state.selectedMedia.isLoading).to.equal(false);
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(0);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(0);
+      chai.expect(galleryStore.state.selectedMedia.data).not.to.equal(null);
+      chai.expect(galleryStore.state.selectedMedia.isFirst).to.equal(true);
+      chai.expect(galleryStore.state.selectedMedia.isLast).to.equal(true);
+      chai.expect(galleryStore.state.selectedMedia.isFirstInGallery).to.equal(true);
+      chai.expect(galleryStore.state.selectedMedia.isLastInGallery).to.equal(true);
     });
   });
 
@@ -85,7 +99,7 @@ describe('galleryInterface', () => {
     it('should produce new SelectedMedia', () => {
       chai.expect(false).to.equal(true);
     });
-    it('should prouduce pending SelectedMedia if not present in loaded data', () => {
+    it('should prouduce pending SelectedMedia if media or gallery not present in loaded data', () => {
       chai.expect(false).to.equal(true);
     });
     it('should load more galleries if selected gallery not loaded', () => {
