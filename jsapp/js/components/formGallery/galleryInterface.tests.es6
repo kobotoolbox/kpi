@@ -43,12 +43,27 @@ describe('galleryInterface', () => {
         response_aaa,
         () => {
           chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
+          chai.expect(galleryStore.state.galleries[0].title).to.equal('Your face');
           chai.expect(galleryStore.state.galleries.length).to.equal(1);
-          done();
+
+          mockResponse(
+            '/assets/bbb/attachments',
+            response_bbb,
+            () => {
+              chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
+              chai.expect(galleryStore.state.galleries[0].title).to.equal('Their head');
+              chai.expect(galleryStore.state.galleries.length).to.equal(2);
+              done();
+            }
+          );
+          galleryActions.setFormUid('bbb');
+          chai.expect(galleryStore.state.isLoadingGalleries).to.equal(true);
+          chai.expect(galleryStore.state.galleries.length).to.equal(0);
         }
       );
       galleryActions.setFormUid('aaa');
       chai.expect(galleryStore.state.isLoadingGalleries).to.equal(true);
+      chai.expect(galleryStore.state.galleries.length).to.equal(0);
     });
   });
 
@@ -96,6 +111,11 @@ describe('galleryInterface', () => {
   });
 
   describe('selectGalleryMedia action', () => {
+    beforeEach((done) => {
+      mockResponse('/assets/bbb/attachments', response_bbb, done);
+      galleryActions.setFormUid('bbb');
+    });
+
     it('should produce new SelectedMedia', () => {
       chai.expect(false).to.equal(true);
     });

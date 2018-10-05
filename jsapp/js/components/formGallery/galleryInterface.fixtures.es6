@@ -55,8 +55,8 @@ export const response_bbb = {
     index: 0,
     number: 3,
     type: 'image',
-    name: 'Your_face',
-    label: 'Your face',
+    name: 'Their_head',
+    label: 'Their head',
     url: 'api/assets/bbb/attachments/?all=false&group_by=question&index=0&sort=asc&type=image',
     attachments: {
       count: 1,
@@ -82,9 +82,9 @@ export const response_bbb = {
         can_view_submission: true,
         question: {
           in_latest_version: true,
-          label: 'Your face',
+          label: 'Their head',
           type: 'image',
-          name: 'Your_face',
+          name: 'Their_head',
           number: 3
         },
         download_url: 'api/media/tester/attachments/cats.jpg',
@@ -97,8 +97,8 @@ export const response_bbb = {
     index: 1,
     number: 4,
     type: 'image',
-    name: 'Your_fingers',
-    label: 'Your fingers',
+    name: 'Their_fingers',
+    label: 'Their fingers',
     url: 'api/assets/bbb/attachments/?all=false&group_by=question&index=1&sort=asc&type=image',
     attachments: {
       count: 5,
@@ -124,9 +124,9 @@ export const response_bbb = {
         can_view_submission: true,
         question: {
           in_latest_version: true,
-          label: 'Your fingers',
+          label: 'Their fingers',
           type: 'image',
-          name: 'Your_fingers',
+          name: 'Their_fingers',
           number: 4
         },
         download_url: 'api/media/tester/attachments/dolphins.jpg',
@@ -151,9 +151,9 @@ export const response_bbb = {
         can_view_submission: true,
         question: {
           in_latest_version: true,
-          label: 'Your fingers',
+          label: 'Their fingers',
           type: 'image',
-          name: 'Your_fingers',
+          name: 'Their_fingers',
           number: 4
         },
         download_url: 'api/media/tester/attachments/zebra.jpg',
@@ -178,9 +178,9 @@ export const response_bbb = {
         can_view_submission: true,
         question: {
           in_latest_version: true,
-          label: 'Your fingers',
+          label: 'Their fingers',
           type: 'image',
-          name: 'Your_fingers',
+          name: 'Their_fingers',
           number: 4
         },
         download_url: 'api/media/tester/attachments/dog.jpg',
@@ -205,9 +205,9 @@ export const response_bbb = {
         can_view_submission: true,
         question: {
           in_latest_version: true,
-          label: 'Your fingers',
+          label: 'Their fingers',
           type: 'image',
-          name: 'Your_fingers',
+          name: 'Their_fingers',
           number: 4
         },
         download_url: 'api/media/tester/attachments/earthling.jpg',
@@ -232,9 +232,9 @@ export const response_bbb = {
         can_view_submission: true,
         question: {
           in_latest_version: true,
-          label: 'Your fingers',
+          label: 'Their fingers',
           type: 'image',
-          name: 'Your_fingers',
+          name: 'Their_fingers',
           number: 4
         },
         download_url: 'api/media/tester/attachments/thunderbolt.jpg',
