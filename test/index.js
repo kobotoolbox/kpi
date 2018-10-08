@@ -1,4 +1,6 @@
 var chai = require('chai');
+var chaiSpies = require('chai-spies');
+chai.use(chaiSpies);
 var expect = chai.expect;
 
 window.jQuery = window.$ = require('jquery');
