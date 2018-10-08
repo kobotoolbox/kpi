@@ -1,6 +1,8 @@
 import {
    galleryActions,
-   galleryStore
+   galleryStore,
+   GROUPBY_OPTIONS,
+   ORDER_OPTIONS
 } from './galleryInterface';
 
 import {
@@ -30,6 +32,7 @@ describe('galleryInterface', () => {
   afterEach(() => {
     chai.expect($.mockjax.unmockedAjaxCalls().length).to.equal(0);
     $.mockjax.clear();
+    galleryStore.resetStateToInitial();
   });
 
   describe('setFormUid action', () => {
@@ -71,6 +74,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/aaa/attachments', response_aaa, done);
       galleryActions.setFormUid('aaa');
+      $.mockjax.clear();
     });
 
     it('should produce proper gallery title and date', () => {
@@ -89,6 +93,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/aaa/attachments', response_aaa, done);
       galleryActions.setFormUid('aaa');
+      $.mockjax.clear();
     });
 
     it('should select media', () => {
@@ -114,6 +119,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/bbb/attachments', response_bbb, done);
       galleryActions.setFormUid('bbb');
+      $.mockjax.clear();
     });
 
     it('should produce new SelectedMedia', () => {
@@ -141,6 +147,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/bbb/attachments', response_bbb, done);
       galleryActions.setFormUid('bbb');
+      $.mockjax.clear();
     });
 
     it('should select last media from previous gallery if on first media', () => {
@@ -166,6 +173,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/bbb/attachments', response_bbb, done);
       galleryActions.setFormUid('bbb');
+      $.mockjax.clear();
     });
 
     it('should select first media from next gallery if on last media', () => {
@@ -188,20 +196,61 @@ describe('galleryInterface', () => {
   });
 
   describe('setFilters action', () => {
-    it('should wipe and load new data when filterGroupBy changes', () => {
-      chai.expect(false).to.equal(true);
+    afterEach(() => {
+      chai.spy.restore(galleryStore, 'wipeAndLoadData');
     });
 
-    it('should wipe and load new data when filterOrder changes', () => {
-      chai.expect(false).to.equal(true);
+    beforeEach((done) => {
+      mockResponse('/assets/bbb/attachments', response_bbb, done);
+      galleryActions.setFormUid('bbb');
+      $.mockjax.clear();
     });
 
-    it('should wipe and load new data when filterAllVersions changes', () => {
-      chai.expect(false).to.equal(true);
+    it('should wipe and load new data when filterGroupBy changes', (done) => {
+      chai.spy.on(galleryStore, 'wipeAndLoadData');
+      mockResponse('/assets/bbb/attachments', response_bbb, () => {
+        chai.expect(galleryStore.wipeAndLoadData).to.have.been.called();
+        chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
+        chai.expect(galleryStore.state.galleries.length).to.equal(2);
+        done();
+      });
+      galleryActions.setFilters({filterGroupBy: GROUPBY_OPTIONS.submission.value});
+      chai.expect(galleryStore.state.isLoadingGalleries).to.equal(true);
+      chai.expect(galleryStore.state.galleries.length).to.equal(0);
+    });
+
+    it('should wipe and load new data when filterOrder changes', (done) => {
+      chai.spy.on(galleryStore, 'wipeAndLoadData');
+      mockResponse('/assets/bbb/attachments', response_bbb, () => {
+        chai.expect(galleryStore.wipeAndLoadData).to.have.been.called();
+        chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
+        chai.expect(galleryStore.state.galleries.length).to.equal(2);
+        done();
+      });
+      galleryActions.setFilters({filterOrder: ORDER_OPTIONS.desc.value});
+      chai.expect(galleryStore.state.isLoadingGalleries).to.equal(true);
+      chai.expect(galleryStore.state.galleries.length).to.equal(0);
+    });
+
+    it('should wipe and load new data when filterAllVersions changes', (done) => {
+      chai.spy.on(galleryStore, 'wipeAndLoadData');
+      mockResponse('/assets/bbb/attachments', response_bbb, () => {
+        chai.expect(galleryStore.wipeAndLoadData).to.have.been.called();
+        chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
+        chai.expect(galleryStore.state.galleries.length).to.equal(2);
+        done();
+      });
+      galleryActions.setFilters({filterAllVersions: false});
+      chai.expect(galleryStore.state.isLoadingGalleries).to.equal(true);
+      chai.expect(galleryStore.state.galleries.length).to.equal(0);
     });
 
     it('should update filtered galleries when filterQuery changes', () => {
-      chai.expect(false).to.equal(true);
+      chai.expect(galleryStore.state.filteredMediaCount).to.equal(6);
+      chai.expect(galleryStore.state.filteredGalleries.length).to.equal(2);
+      galleryActions.setFilters({filterQuery: 'fingers'});
+      chai.expect(galleryStore.state.filteredMediaCount).to.equal(5);
+      chai.expect(galleryStore.state.filteredGalleries.length).to.equal(1);
     });
   });
 
@@ -209,6 +258,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/aaa/attachments', response_aaa, done);
       galleryActions.setFormUid('aaa');
+      $.mockjax.clear();
     });
 
     it('should throw if no more galleries to load', () => {
@@ -220,6 +270,7 @@ describe('galleryInterface', () => {
     beforeEach((done) => {
       mockResponse('/assets/aaa/attachments', response_aaa, done);
       galleryActions.setFormUid('aaa');
+      $.mockjax.clear();
     });
 
     it('should throw if no more medias to load', () => {
