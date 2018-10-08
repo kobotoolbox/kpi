@@ -117,34 +117,73 @@ describe('galleryInterface', () => {
     });
 
     it('should produce new SelectedMedia', () => {
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(null);
+      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 1});
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(1);
+      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 3});
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
+    });
+
+    it('should produce pending SelectedMedia if media or gallery not present in loaded data', () => {
       chai.expect(false).to.equal(true);
     });
-    it('should prouduce pending SelectedMedia if media or gallery not present in loaded data', () => {
-      chai.expect(false).to.equal(true);
-    });
+
     it('should load more galleries if selected gallery not loaded', () => {
       chai.expect(false).to.equal(true);
     });
+
     it('should load more gallery medias if selected media not loaded', () => {
       chai.expect(false).to.equal(true);
     });
   });
 
   describe('selectPreviousGalleryMedia action', () => {
-    it('should select last media from previous gallery if on first media', () => {
-      chai.expect(false).to.equal(true);
+    beforeEach((done) => {
+      mockResponse('/assets/bbb/attachments', response_bbb, done);
+      galleryActions.setFormUid('bbb');
     });
+
+    it('should select last media from previous gallery if on first media', () => {
+      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 0});
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(0);
+      galleryActions.selectPreviousGalleryMedia();
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(0);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(0);
+    });
+
     it('should select previous media', () => {
-      chai.expect(false).to.equal(true);
+      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 4});
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(4);
+      galleryActions.selectPreviousGalleryMedia();
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
     });
   });
 
   describe('selectNextGalleryMedia action', () => {
-    it('should select first media from next gallery if on last media', () => {
-      chai.expect(false).to.equal(true);
+    beforeEach((done) => {
+      mockResponse('/assets/bbb/attachments', response_bbb, done);
+      galleryActions.setFormUid('bbb');
     });
+
+    it('should select first media from next gallery if on last media', () => {
+      galleryActions.selectGalleryMedia({galleryIndex: 0, mediaIndex: 0});
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(0);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(0);
+      galleryActions.selectNextGalleryMedia();
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(0);
+    });
+
     it('should select next media', () => {
-      chai.expect(false).to.equal(true);
+      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 3});
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
+      galleryActions.selectNextGalleryMedia();
+      chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(4);
     });
   });
 
@@ -152,26 +191,39 @@ describe('galleryInterface', () => {
     it('should wipe and load new data when filterGroupBy changes', () => {
       chai.expect(false).to.equal(true);
     });
+
     it('should wipe and load new data when filterOrder changes', () => {
       chai.expect(false).to.equal(true);
     });
+
     it('should wipe and load new data when filterAllVersions changes', () => {
       chai.expect(false).to.equal(true);
     });
+
     it('should update filtered galleries when filterQuery changes', () => {
       chai.expect(false).to.equal(true);
     });
   });
 
   describe('loadMoreGalleries action', () => {
+    beforeEach((done) => {
+      mockResponse('/assets/aaa/attachments', response_aaa, done);
+      galleryActions.setFormUid('aaa');
+    });
+
     it('should throw if no more galleries to load', () => {
-      chai.expect(false).to.equal(true);
+      chai.expect(galleryActions.loadMoreGalleries).to.throw('No more galleries to load!');
     });
   });
 
   describe('loadMoreGalleryMedias action', () => {
+    beforeEach((done) => {
+      mockResponse('/assets/aaa/attachments', response_aaa, done);
+      galleryActions.setFormUid('aaa');
+    });
+
     it('should throw if no more medias to load', () => {
-      chai.expect(false).to.equal(true);
+      chai.expect(() => {galleryActions.loadMoreGalleryMedias(0)}).to.throw('No more gallery medias to load!');
     });
   });
 });
