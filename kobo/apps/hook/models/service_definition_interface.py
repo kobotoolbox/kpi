@@ -30,11 +30,24 @@ class ServiceDefinitionInterface(object):
         Retrieves data from deployment backend of the asset.
         """
         try:
-            return self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
+            submission = self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
+            return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
             logging.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
                 self._hook.uid, self._instance_id, str(e)), exc_info=True)
         return None
+
+    @abstractmethod
+    def _parse_data(self, submission, fields):
+        """
+        Data must be parsed to include only `self._hook.subset_fields` if there are any.
+        :param submission: json|xml
+        :param fields: list
+        :return: mixed: json|xml
+        """
+        if len(fields) > 0:
+            pass
+        return submission
 
     @abstractmethod
     def _prepare_request_kwargs(self):

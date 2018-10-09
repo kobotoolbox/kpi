@@ -71,7 +71,9 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >           "name": {string},
     >           "endpoint": {string},
     >           "active": {boolean},
+    >           "email_notification": {boolean},
     >           "export_type": {string},
+    >           "subset_fields": [{string}],
     >           "auth_level": {string},
     >           "settings": {
     >               "username": {string},
@@ -93,11 +95,13 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         1. `json` (_default_)
         2. `xml`
 
+    * `email_notification` is a boolean. If true, User will be notified when request to remote server has failed.
     * `auth_level` must be one these values:
 
         1. `no_auth` (_default_)
         2. `basic_auth`
 
+    * `subset_fields` is the list of fields of the form definition. Only these fields should be present in data sent to remote server
     * `settings`.`custom_headers` is dictionary of `custom header`: `value`
 
     For example:
@@ -129,11 +133,18 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X DELETE https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
 
-    #### Retries all failed attempts <span class='label label-danger'>Not implemented yet</span>
+    #### Retries all failed attempts
     <pre class="prettyprint">
     <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/retry/
     </pre>
 
+    **This call is asynchronous. Job is sent to Celery to be run in background**
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/retry/
+
+    It returns all logs `uid`s that are being retried.
 
     ### CURRENT ENDPOINT
     """

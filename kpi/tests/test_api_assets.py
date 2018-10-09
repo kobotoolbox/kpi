@@ -513,8 +513,7 @@ class AssetExportTaskTest(APITestCase):
             '__version__': v_uid,
             'q1': u'¿Qué tal?'
         }
-        self.asset.deployment._mock_submission(submission)
-        self.asset.save(create_version=False)
+        self.asset.deployment.mock_submissions([submission])
         settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def result_stored_locally(self, detail_response):
