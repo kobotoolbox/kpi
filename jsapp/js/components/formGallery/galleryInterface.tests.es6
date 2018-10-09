@@ -78,15 +78,13 @@ describe('galleryInterface', () => {
       $.mockjax.clear();
     });
 
-    it('should produce proper gallery title and date', () => {
+    it('should produce proper gallery title', () => {
       chai.expect(galleryStore.state.galleries[0].title).to.equal('Your face');
-      chai.expect(galleryStore.state.galleries[0].date).to.equal('October 3, 2018 12:45 PM');
     });
 
-    it('should produce proper media labels and date', () => {
+    it('should produce proper media labels', () => {
       chai.expect(galleryStore.state.galleries[0].findMedia(0).submissionLabel).to.equal('Record 1');
       chai.expect(galleryStore.state.galleries[0].findMedia(0).questionLabel).to.equal('Your face');
-      chai.expect(galleryStore.state.galleries[0].findMedia(0).date).to.equal('October 3, 2018 12:45 PM');
     });
   });
 
