@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from importlib import import_module
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 from jsonbfield.fields import JSONField as JSONBField
@@ -41,6 +42,11 @@ class Hook(models.Model):
     settings = JSONBField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
+    email_notification = models.BooleanField(default=True)
+    subset_fields = ArrayField(
+        models.CharField(max_length=500, blank=False),
+        default=[],
+    )
 
     class Meta:
         ordering = ["name"]
