@@ -10,7 +10,7 @@ from rest_framework import status
 
 from ..constants import HOOK_LOG_FAILED
 from ..models import HookLog, Hook
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.tests.kpi_test_case import KpiTestCase
 
 
@@ -46,9 +46,12 @@ class HookTestCase(KpiTestCase):
 
         format_type = kwargs.get("format_type", INSTANCE_FORMAT_TYPE_JSON)
 
-        submission_preparer = getattr(self, "_HookTestCase__prepare_{}_submission".format(
-            format_type))
-        submission_preparer()
+        if format_type == INSTANCE_FORMAT_TYPE_JSON:
+            self.__prepare_json_submission()
+        elif format_type == INSTANCE_FORMAT_TYPE_XML:
+            self.__prepare_xml_submission()
+        else:
+            raise BadFormatException("This format {} is supported".format(format_type))
 
         # use correct asset depending on format type. Default is `self.asset`
         _asset = getattr(self, "asset_{}".format(format_type), self.asset)

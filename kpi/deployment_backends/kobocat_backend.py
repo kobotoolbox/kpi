@@ -489,13 +489,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: list: mixed
         """
         submissions = []
-
-        if format_type == INSTANCE_FORMAT_TYPE_JSON:
-            submissions = self.__prepare_json_submission(instances_ids)
-        elif format_type == INSTANCE_FORMAT_TYPE_XML:
-            submissions = self.__prepare_xml_submission(instances_ids)
-        else:
-            raise BadFormatException("This format {} is supported".format(format_type))
+        getter = getattr(self, "_{}__get_submissions_in_{}".format(
+            self.__class__.__name__,
+            format_type))
+        try:
+            submissions = getter(instances_ids)
+        except Exception as e:
+            logging.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
 
         return submissions
 
