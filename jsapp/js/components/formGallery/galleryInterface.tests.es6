@@ -6,8 +6,9 @@ import {
 } from './galleryInterface';
 
 import {
-  response_aaa,
-  response_bbb
+  response_1_1,
+  response_1_1_next,
+  response_2_6
 } from './galleryInterface.fixtures'
 
 const mockResponse = (url, response, callback) => {
@@ -43,7 +44,7 @@ describe('galleryInterface', () => {
 
       mockResponse(
         '/assets/aaa/attachments',
-        response_aaa,
+        response_1_1,
         () => {
           chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
           chai.expect(galleryStore.state.galleries[0].title).to.equal('Your face');
@@ -51,7 +52,7 @@ describe('galleryInterface', () => {
 
           mockResponse(
             '/assets/bbb/attachments',
-            response_bbb,
+            response_2_6,
             () => {
               chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
               chai.expect(galleryStore.state.galleries[0].title).to.equal('Their head');
@@ -72,7 +73,7 @@ describe('galleryInterface', () => {
 
   describe('building gallery data', () => {
     beforeEach((done) => {
-      mockResponse('/assets/aaa/attachments', response_aaa, done);
+      mockResponse('/assets/aaa/attachments', response_1_1, done);
       galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });
@@ -91,7 +92,7 @@ describe('galleryInterface', () => {
 
   describe('openMediaModal action', () => {
     beforeEach((done) => {
-      mockResponse('/assets/aaa/attachments', response_aaa, done);
+      mockResponse('/assets/aaa/attachments', response_1_1, done);
       galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });
@@ -116,37 +117,52 @@ describe('galleryInterface', () => {
   });
 
   describe('selectGalleryMedia action', () => {
-    beforeEach((done) => {
-      mockResponse('/assets/bbb/attachments', response_bbb, done);
-      galleryActions.setFormUid('bbb');
-      $.mockjax.clear();
-    });
-
-    it('should produce new SelectedMedia', () => {
+    it('should produce new SelectedMedia', (done) => {
       chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(null);
-      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 1});
-      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(1);
-      galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 3});
-      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
+
+      mockResponse('/assets/aaa/attachments', response_2_6, () => {
+        galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 1});
+        chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(1);
+        galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 3});
+        chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
+        $.mockjax.clear();
+        done();
+      });
+      galleryActions.setFormUid('aaa');
     });
 
-    it('should produce pending SelectedMedia if media or gallery not present in loaded data', () => {
-      chai.expect(false).to.equal(true);
-    });
+    it('should produce pending SelectedMedia if media or gallery not present in loaded data and call for new data', (done) => {
+      chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(null);
 
-    it('should load more galleries if selected gallery not loaded', () => {
-      chai.expect(false).to.equal(true);
-    });
+      mockResponse('/assets/aaa/attachments', response_1_1_next, () => {
+        galleryActions.selectGalleryMedia({galleryIndex: 0, mediaIndex: 0});
+        chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(0);
+        chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(0);
+        chai.expect(galleryStore.state.selectedMedia.data).not.to.equal(null);
+        chai.expect(galleryStore.state.selectedMedia.isLoading).to.equal(false);
 
-    it('should load more gallery medias if selected media not loaded', () => {
-      chai.expect(false).to.equal(true);
+        mockResponse('/assets/aaa/attachments_next', response_2_6, () => {
+          chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+          chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
+          chai.expect(galleryStore.state.selectedMedia.data).not.to.equal(null);
+          chai.expect(galleryStore.state.selectedMedia.isLoading).to.equal(false);
+          $.mockjax.clear();
+          done();
+        });
+        galleryActions.selectGalleryMedia({galleryIndex: 1, mediaIndex: 3});
+        chai.expect(galleryStore.state.selectedMedia.galleryIndex).to.equal(1);
+        chai.expect(galleryStore.state.selectedMedia.mediaIndex).to.equal(3);
+        chai.expect(galleryStore.state.selectedMedia.data).to.equal(null);
+        chai.expect(galleryStore.state.selectedMedia.isLoading).to.equal(true);
+      });
+      galleryActions.setFormUid('aaa');
     });
   });
 
   describe('selectPreviousGalleryMedia action', () => {
     beforeEach((done) => {
-      mockResponse('/assets/bbb/attachments', response_bbb, done);
-      galleryActions.setFormUid('bbb');
+      mockResponse('/assets/aaa/attachments', response_2_6, done);
+      galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });
 
@@ -171,8 +187,8 @@ describe('galleryInterface', () => {
 
   describe('selectNextGalleryMedia action', () => {
     beforeEach((done) => {
-      mockResponse('/assets/bbb/attachments', response_bbb, done);
-      galleryActions.setFormUid('bbb');
+      mockResponse('/assets/aaa/attachments', response_2_6, done);
+      galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });
 
@@ -201,14 +217,14 @@ describe('galleryInterface', () => {
     });
 
     beforeEach((done) => {
-      mockResponse('/assets/bbb/attachments', response_bbb, done);
-      galleryActions.setFormUid('bbb');
+      mockResponse('/assets/aaa/attachments', response_2_6, done);
+      galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });
 
     it('should wipe and load new data when filterGroupBy changes', (done) => {
       chai.spy.on(galleryStore, 'wipeAndLoadData');
-      mockResponse('/assets/bbb/attachments', response_bbb, () => {
+      mockResponse('/assets/aaa/attachments', response_2_6, () => {
         chai.expect(galleryStore.wipeAndLoadData).to.have.been.called();
         chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
         chai.expect(galleryStore.state.galleries.length).to.equal(2);
@@ -221,7 +237,7 @@ describe('galleryInterface', () => {
 
     it('should wipe and load new data when filterOrder changes', (done) => {
       chai.spy.on(galleryStore, 'wipeAndLoadData');
-      mockResponse('/assets/bbb/attachments', response_bbb, () => {
+      mockResponse('/assets/aaa/attachments', response_2_6, () => {
         chai.expect(galleryStore.wipeAndLoadData).to.have.been.called();
         chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
         chai.expect(galleryStore.state.galleries.length).to.equal(2);
@@ -234,7 +250,7 @@ describe('galleryInterface', () => {
 
     it('should wipe and load new data when filterAllVersions changes', (done) => {
       chai.spy.on(galleryStore, 'wipeAndLoadData');
-      mockResponse('/assets/bbb/attachments', response_bbb, () => {
+      mockResponse('/assets/aaa/attachments', response_2_6, () => {
         chai.expect(galleryStore.wipeAndLoadData).to.have.been.called();
         chai.expect(galleryStore.state.isLoadingGalleries).to.equal(false);
         chai.expect(galleryStore.state.galleries.length).to.equal(2);
@@ -256,7 +272,7 @@ describe('galleryInterface', () => {
 
   describe('loadMoreGalleries action', () => {
     beforeEach((done) => {
-      mockResponse('/assets/aaa/attachments', response_aaa, done);
+      mockResponse('/assets/aaa/attachments', response_1_1, done);
       galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });
@@ -268,7 +284,7 @@ describe('galleryInterface', () => {
 
   describe('loadMoreGalleryMedias action', () => {
     beforeEach((done) => {
-      mockResponse('/assets/aaa/attachments', response_aaa, done);
+      mockResponse('/assets/aaa/attachments', response_1_1, done);
       galleryActions.setFormUid('aaa');
       $.mockjax.clear();
     });

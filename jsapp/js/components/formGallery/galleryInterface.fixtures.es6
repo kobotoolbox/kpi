@@ -1,5 +1,7 @@
+import clonedeep from 'lodash.clonedeep';
+
 // 1 gallery with 1 image
-export const response_aaa = {
+export const response_1_1 = {
   count: 1,
   attachments_count: 1,
   results: [{
@@ -47,8 +49,12 @@ export const response_aaa = {
   }]
 };
 
+const response_1_1_clone = clonedeep(response_1_1);
+response_1_1_clone.next = '/assets/aaa/attachments_next';
+export const response_1_1_next = response_1_1_clone;
+
 // 2 galleries with 1 and 5 images
-export const response_bbb = {
+export const response_2_6 = {
   count: 2,
   attachments_count: 6,
   results: [{
@@ -57,7 +63,7 @@ export const response_bbb = {
     type: 'image',
     name: 'Their_head',
     label: 'Their head',
-    url: 'api/assets/bbb/attachments/?all=false&group_by=question&index=0&sort=asc&type=image',
+    url: 'api/assets/aaa/attachments/?all=false&group_by=question&index=0&sort=asc&type=image',
     attachments: {
       count: 1,
       next: null,
@@ -65,7 +71,7 @@ export const response_bbb = {
       previous: null,
       previous_page: null,
       results: [{
-        url: 'api/assets/bbb/attachments/2/',
+        url: 'api/assets/aaa/attachments/2/',
         filename: 'tester/attachments/cats.jpg',
         short_filename: 'cats.jpg',
         mimetype: 'image/jpeg',
@@ -73,7 +79,7 @@ export const response_bbb = {
         submission: {
           instance_uuid: '45df36bc-ca0d-4a2a-95aa-ed026d58319e',
           username: 'tester',
-          xform_id: 'bbb',
+          xform_id: 'aaa',
           date_modified: '2018-10-05T14:37:32.146Z',
           status: 'submitted_via_web',
           date_created: '2018-10-05T14:37:32.145Z',
@@ -88,9 +94,9 @@ export const response_bbb = {
           number: 3
         },
         download_url: 'api/media/tester/attachments/cats.jpg',
-        small_download_url: 'api/assets/bbb/attachments/2?filename=tester/attachments/cats.jpg&size=small',
-        medium_download_url: 'api/assets/bbb/attachments/2?filename=tester/attachments/cats.jpg&size=medium',
-        large_download_url: 'api/assets/bbb/attachments/2?filename=tester/attachments/cats.jpg&size=large'
+        small_download_url: 'api/assets/aaa/attachments/2?filename=tester/attachments/cats.jpg&size=small',
+        medium_download_url: 'api/assets/aaa/attachments/2?filename=tester/attachments/cats.jpg&size=medium',
+        large_download_url: 'api/assets/aaa/attachments/2?filename=tester/attachments/cats.jpg&size=large'
       }]
     }
   }, {
@@ -99,7 +105,7 @@ export const response_bbb = {
     type: 'image',
     name: 'Their_fingers',
     label: 'Their fingers',
-    url: 'api/assets/bbb/attachments/?all=false&group_by=question&index=1&sort=asc&type=image',
+    url: 'api/assets/aaa/attachments/?all=false&group_by=question&index=1&sort=asc&type=image',
     attachments: {
       count: 5,
       next: null,
@@ -107,7 +113,7 @@ export const response_bbb = {
       previous: null,
       previous_page: null,
       results: [{
-        url: 'api/assets/bbb/attachments/3/',
+        url: 'api/assets/aaa/attachments/3/',
         filename: 'tester/attachments/dolphins.jpg',
         short_filename: 'dolphins.jpg',
         mimetype: 'image/jpeg',
@@ -115,7 +121,7 @@ export const response_bbb = {
         submission: {
           instance_uuid: '45df36bc-ca0d-4a2a-95aa-ed026d58319e',
           username: 'tester',
-          xform_id: 'bbb',
+          xform_id: 'aaa',
           date_modified: '2018-10-05T14:37:32.146Z',
           status: 'submitted_via_web',
           date_created: '2018-10-05T14:37:32.145Z',
@@ -130,11 +136,11 @@ export const response_bbb = {
           number: 4
         },
         download_url: 'api/media/tester/attachments/dolphins.jpg',
-        small_download_url: 'api/assets/bbb/attachments/3?filename=tester/attachments/dolphins.jpg&size=small',
-        medium_download_url: 'api/assets/bbb/attachments/3?filename=tester/attachments/dolphins.jpg&size=medium',
-        large_download_url: 'api/assets/bbb/attachments/3?filename=tester/attachments/dolphins.jpg&size=large'
+        small_download_url: 'api/assets/aaa/attachments/3?filename=tester/attachments/dolphins.jpg&size=small',
+        medium_download_url: 'api/assets/aaa/attachments/3?filename=tester/attachments/dolphins.jpg&size=medium',
+        large_download_url: 'api/assets/aaa/attachments/3?filename=tester/attachments/dolphins.jpg&size=large'
       }, {
-        url: 'api/assets/bbb/attachments/4/',
+        url: 'api/assets/aaa/attachments/4/',
         filename: 'tester/attachments/zebra.jpg',
         short_filename: 'zebra.jpg',
         mimetype: 'image/jpeg',
@@ -142,7 +148,7 @@ export const response_bbb = {
         submission: {
           instance_uuid: 'c0f8b868-1343-4b84-9c37-7a672b2fc030',
           username: 'tester',
-          xform_id: 'bbb',
+          xform_id: 'aaa',
           date_modified: '2018-10-05T14:37:40.126Z',
           status: 'submitted_via_web',
           date_created: '2018-10-05T14:37:40.126Z',
@@ -157,11 +163,11 @@ export const response_bbb = {
           number: 4
         },
         download_url: 'api/media/tester/attachments/zebra.jpg',
-        small_download_url: 'api/assets/bbb/attachments/4?filename=tester/attachments/zebra.jpg&size=small',
-        medium_download_url: 'api/assets/bbb/attachments/4?filename=tester/attachments/zebra.jpg&size=medium',
-        large_download_url: 'api/assets/bbb/attachments/4?filename=tester/attachments/zebra.jpg&size=large'
+        small_download_url: 'api/assets/aaa/attachments/4?filename=tester/attachments/zebra.jpg&size=small',
+        medium_download_url: 'api/assets/aaa/attachments/4?filename=tester/attachments/zebra.jpg&size=medium',
+        large_download_url: 'api/assets/aaa/attachments/4?filename=tester/attachments/zebra.jpg&size=large'
       }, {
-        url: 'api/assets/bbb/attachments/5/',
+        url: 'api/assets/aaa/attachments/5/',
         filename: 'tester/attachments/dog.jpg',
         short_filename: 'dog.jpg',
         mimetype: 'image/jpeg',
@@ -169,7 +175,7 @@ export const response_bbb = {
         submission: {
           instance_uuid: '63c2757f-c658-4c45-bb6f-0683b877b320',
           username: 'tester',
-          xform_id: 'bbb',
+          xform_id: 'aaa',
           date_modified: '2018-10-05T14:37:46.053Z',
           status: 'submitted_via_web',
           date_created: '2018-10-05T14:37:46.053Z',
@@ -184,11 +190,11 @@ export const response_bbb = {
           number: 4
         },
         download_url: 'api/media/tester/attachments/dog.jpg',
-        small_download_url: 'api/assets/bbb/attachments/5?filename=tester/attachments/dog.jpg&size=small',
-        medium_download_url: 'api/assets/bbb/attachments/5?filename=tester/attachments/dog.jpg&size=medium',
-        large_download_url: 'api/assets/bbb/attachments/5?filename=tester/attachments/dog.jpg&size=large'
+        small_download_url: 'api/assets/aaa/attachments/5?filename=tester/attachments/dog.jpg&size=small',
+        medium_download_url: 'api/assets/aaa/attachments/5?filename=tester/attachments/dog.jpg&size=medium',
+        large_download_url: 'api/assets/aaa/attachments/5?filename=tester/attachments/dog.jpg&size=large'
       }, {
-        url: 'api/assets/bbb/attachments/6/',
+        url: 'api/assets/aaa/attachments/6/',
         filename: 'tester/attachments/earthling.jpg',
         short_filename: 'earthling.jpg',
         mimetype: 'image/jpeg',
@@ -196,7 +202,7 @@ export const response_bbb = {
         submission: {
           instance_uuid: '952fb03d-f333-4476-b96c-0e98b8b42889',
           username: 'tester',
-          xform_id: 'bbb',
+          xform_id: 'aaa',
           date_modified: '2018-10-05T14:37:53.345Z',
           status: 'submitted_via_web',
           date_created: '2018-10-05T14:37:53.345Z',
@@ -211,11 +217,11 @@ export const response_bbb = {
           number: 4
         },
         download_url: 'api/media/tester/attachments/earthling.jpg',
-        small_download_url: 'api/assets/bbb/attachments/6?filename=tester/attachments/earthling.jpg&size=small',
-        medium_download_url: 'api/assets/bbb/attachments/6?filename=tester/attachments/earthling.jpg&size=medium',
-        large_download_url: 'api/assets/bbb/attachments/6?filename=tester/attachments/earthling.jpg&size=large'
+        small_download_url: 'api/assets/aaa/attachments/6?filename=tester/attachments/earthling.jpg&size=small',
+        medium_download_url: 'api/assets/aaa/attachments/6?filename=tester/attachments/earthling.jpg&size=medium',
+        large_download_url: 'api/assets/aaa/attachments/6?filename=tester/attachments/earthling.jpg&size=large'
       }, {
-        url: 'api/assets/bbb/attachments/7/',
+        url: 'api/assets/aaa/attachments/7/',
         filename: 'tester/attachments/thunderbolt.jpg',
         short_filename: 'thunderbolt.jpg',
         mimetype: 'image/jpeg',
@@ -223,7 +229,7 @@ export const response_bbb = {
         submission: {
           instance_uuid: 'c971b647-f6d7-4aec-af00-ab1cca6187a0',
           username: 'tester',
-          xform_id: 'bbb',
+          xform_id: 'aaa',
           date_modified: '2018-10-05T14:37:59.285Z',
           status: 'submitted_via_web',
           date_created: '2018-10-05T14:37:59.285Z',
@@ -238,9 +244,9 @@ export const response_bbb = {
           number: 4
         },
         download_url: 'api/media/tester/attachments/thunderbolt.jpg',
-        small_download_url: 'api/assets/bbb/attachments/7?filename=tester/attachments/thunderbolt.jpg&size=small',
-        medium_download_url: 'api/assets/bbb/attachments/7?filename=tester/attachments/thunderbolt.jpg&size=medium',
-        large_download_url: 'api/assets/bbb/attachments/7?filename=tester/attachments/thunderbolt.jpg&size=large'
+        small_download_url: 'api/assets/aaa/attachments/7?filename=tester/attachments/thunderbolt.jpg&size=small',
+        medium_download_url: 'api/assets/aaa/attachments/7?filename=tester/attachments/thunderbolt.jpg&size=medium',
+        large_download_url: 'api/assets/aaa/attachments/7?filename=tester/attachments/thunderbolt.jpg&size=large'
       }]
     }
   }]
