@@ -18,10 +18,10 @@ from rest_framework import exceptions, status, serializers
 from rest_framework.request import Request
 from rest_framework.authtoken.models import Token
 
+from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
 from .kc_access.shadow_models import _models
-from ..exceptions import BadFormatException
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.utils.mongo_helper import MongoDecodingHelper
 from kpi.utils.log import logging
@@ -489,14 +489,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: list: mixed
         """
         submissions = []
-        getter = getattr(self, "_{}__get_submissions_in_{}".format(
-            self.__class__.__name__,
-            format_type))
-        try:
-            submissions = getter(instances_ids)
-        except Exception as e:
-            logging.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
-
+        if format_type == INSTANCE_FORMAT_TYPE_JSON:
+            submissions = self.__get_submissions_in_json(instances_ids)
+        elif format_type == INSTANCE_FORMAT_TYPE_XML:
+            submissions = self.__get_submissions_in_xml(instances_ids)
+        else:
+            raise BadFormatException(
+                "The format {} is not supported".format(format_type)
+            )
         return submissions
 
     def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):

@@ -3,15 +3,16 @@ from __future__ import absolute_import
 
 import json
 
-from django.conf import settings
-from django.core.urlresolvers import reverse
 import responses
+from django.conf import settings
 from rest_framework import status
+from django.core.urlresolvers import reverse
 
-from ..constants import HOOK_LOG_FAILED
 from ..models import HookLog, Hook
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from ..constants import HOOK_LOG_FAILED
+from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 
 
 class HookTestCase(KpiTestCase):
@@ -48,13 +49,14 @@ class HookTestCase(KpiTestCase):
 
         if format_type == INSTANCE_FORMAT_TYPE_JSON:
             self.__prepare_json_submission()
+            _asset = self.asset
         elif format_type == INSTANCE_FORMAT_TYPE_XML:
             self.__prepare_xml_submission()
+            _asset = self.asset_xml
         else:
-            raise BadFormatException("This format {} is supported".format(format_type))
-
-        # use correct asset depending on format type. Default is `self.asset`
-        _asset = getattr(self, "asset_{}".format(format_type), self.asset)
+            raise BadFormatException(
+                "The format {} is not supported".format(format_type)
+            )
 
         url = reverse("hook-list", kwargs={"parent_lookup_asset": _asset.uid})
         data = {
@@ -69,7 +71,7 @@ class HookTestCase(KpiTestCase):
             "active": kwargs.get("active", True),
             "subset_fields": kwargs.get("subset_fields", [])
         }
-        response = self.client.post(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
+        response = self.client.post(url, data, format='json')
         if return_response_only:
             return response
         else:
@@ -82,7 +84,8 @@ class HookTestCase(KpiTestCase):
     def _send_and_fail(self):
         """
 
-        The public method which calls this method, needs to be decorated by `@responses.activate
+        The public method which calls this method, needs to be decorated by
+        `@responses.activate`
         :return: dict
         """
         self.hook = self._create_hook()

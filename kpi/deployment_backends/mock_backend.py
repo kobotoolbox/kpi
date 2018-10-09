@@ -4,7 +4,6 @@ import re
 
 from base_backend import BaseDeploymentBackend
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.exceptions import BadFormatException
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
