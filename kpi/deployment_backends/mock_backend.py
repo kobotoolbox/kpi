@@ -13,7 +13,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     defines the interface for a deployment backend.
 
-    # TODO. Stop using protected property `_deployement_data`.
+    # TODO. Stop using protected property `_deployment_data`.
     '''
     def connect(self, active=False):
         self.store_data({
