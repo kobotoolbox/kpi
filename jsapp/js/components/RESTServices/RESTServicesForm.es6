@@ -51,7 +51,7 @@ export default class RESTServicesForm extends React.Component {
       ],
       authUsername: '',
       authPassword: '',
-      selectedFields: [],
+      subsetFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
       ]
@@ -68,7 +68,8 @@ export default class RESTServicesForm extends React.Component {
             name: data.name,
             endpoint: data.endpoint,
             isActive: data.active,
-            emailNotification: data.email_notification || true,
+            emailNotification: data.email_notification,
+            subsetFields: data.subset_fields,
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
@@ -151,7 +152,7 @@ export default class RESTServicesForm extends React.Component {
   handleAuthPasswordChange(newPassword) {this.setState({authPassword: newPassword});}
 
   handleActiveChange(isChecked) {this.setState({isActive: isChecked});}
-    
+
   handleEmailNotificationChange(isChecked) {
     this.setState({emailNotification: isChecked});
   }
@@ -186,6 +187,7 @@ export default class RESTServicesForm extends React.Component {
       name: this.state.name,
       endpoint: this.state.endpoint,
       active: this.state.isActive,
+      subset_fields: this.state.subsetFields,
       email_notification: this.state.emailNotification,
       export_type: this.state.type,
       auth_level: authLevel,
@@ -349,25 +351,25 @@ export default class RESTServicesForm extends React.Component {
    * handle fields
    */
 
-  onSelectedFieldsChange(evt) {
-    this.setState({selectedFields: evt});
+  onSubsetFieldsChange(evt) {
+    this.setState({subsetFields: evt});
   }
 
   renderFieldsSelector() {
     const inputProps = {
       placeholder: t('Add field(s)'),
-      id: 'selected-fields-input'
+      id: 'subset-fields-input'
     };
 
     return (
       <bem.FormModal__item>
-        <label htmlFor='selected-fields-input'>
-          {t('Select fields')}
+        <label htmlFor='subset-fields-input'>
+          {t('Select fields subset')}
         </label>
 
         <TagsInput
-          value={this.state.selectedFields}
-          onChange={this.onSelectedFieldsChange.bind(this)}
+          value={this.state.subsetFields}
+          onChange={this.onSubsetFieldsChange.bind(this)}
           inputProps={inputProps}
         />
       </bem.FormModal__item>

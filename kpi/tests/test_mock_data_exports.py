@@ -194,8 +194,7 @@ class MockDataExports(TestCase):
             submission.update({
                 '__version__': v_uid
             })
-            self.asset.deployment._mock_submission(submission)
-        self.asset.save(create_version=False)
+        self.asset.deployment.mock_submissions(self.submissions)
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
             submission_stream=self.asset.deployment.get_submissions()
