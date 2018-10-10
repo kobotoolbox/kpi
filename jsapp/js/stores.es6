@@ -77,6 +77,26 @@ var assetSearchStore = Reflux.createStore({
   }
 });
 
+const translationsStore = Reflux.createStore({
+  init() {
+    this.state = {
+      isTranslationTableUnsaved: false
+    }
+  },
+  setState (change) {
+    const changed = changes(this.state, change);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
+  setTranslationTableUnsaved (isUnsaved) {
+    this.setState({
+      isTranslationTableUnsaved: isUnsaved
+    });
+  },
+});
+
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
@@ -497,6 +517,7 @@ if (window.Intercom) {
 assign(stores, {
   tags: tagsStore,
   pageState: pageStateStore,
+  translations: translationsStore,
   assetSearch: assetSearchStore,
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,
