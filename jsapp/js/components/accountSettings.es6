@@ -10,6 +10,7 @@ import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
 import TextBox from './textBox';
+import Checkbox from './checkbox';
 import ui from '../ui';
 import $ from 'jquery';
 import {
@@ -132,7 +133,7 @@ export class AccountSettings extends React.Component {
         val = evt.target.value;
       }
     } else {
-      // react-select and TextBox just passes a string
+      // react-select, TextBox and Checkbox just passes a value
       val = evt;
     }
     this.setState({[attr]: val});
@@ -149,7 +150,7 @@ export class AccountSettings extends React.Component {
   cityChange (e) {this.handleChange(e, 'city');}
   countryChange (e) {this.handleChange(e, 'country');}
   defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');}
-  requireAuthChange (e) {this.handleChange(e, 'requireAuth');}
+  requireAuthChange (newVal) {this.handleChange(newVal, 'requireAuth');}
   twitterChange (e) {this.handleChange(e, 'twitter');}
   linkedinChange (e) {this.handleChange(e, 'linkedin');}
   instagramChange (e) {this.handleChange(e, 'instagram');}
@@ -206,16 +207,12 @@ export class AccountSettings extends React.Component {
                   <label htmlFor='requireAuth'>{t('Privacy')}</label>
                 </bem.AccountSettings__item>
 
-                <input
-                  type='checkbox'
+                <Checkbox
                   id='requireAuth'
                   checked={this.state.requireAuth}
                   onChange={this.requireAuthChange}
+                  label={t('Require authentication to see forms and submit data')}
                 />
-
-                <label htmlFor='requireAuth'>
-                  {t('Require authentication to see forms and submit data')}
-                </label>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
