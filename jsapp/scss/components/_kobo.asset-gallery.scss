@@ -113,7 +113,7 @@ $gallery-transition: 250ms ease-in-out;
       overflow: visible;
     }
 
-    .asset-gallery__heading__checkbox {
+    .checkbox {
       display: block;
       width: 100%;
       margin-top: $s-gallery-spacing;
@@ -122,12 +122,6 @@ $gallery-transition: 250ms ease-in-out;
       &[disabled] {
         pointer-events: none;
         opacity: 0.5;
-      }
-
-      input[type="checkbox"] {
-        opacity: 1;
-        left: auto;
-        position: static;
       }
     }
   }

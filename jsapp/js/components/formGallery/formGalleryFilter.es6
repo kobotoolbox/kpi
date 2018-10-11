@@ -6,6 +6,7 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import TextBox from '../textBox';
+import Checkbox from '../checkbox';
 import mixins from '../../mixins';
 import bem from '../../bem';
 import {
@@ -53,8 +54,8 @@ export default class FormGalleryFilter extends React.Component {
     galleryActions.setFilters({filterOrder: newVal});
   }
 
-  onFilterAllVersionsChange(evt) {
-    galleryActions.setFilters({filterAllVersions: evt.currentTarget.checked});
+  onFilterAllVersionsChange(newVal) {
+    galleryActions.setFilters({filterAllVersions: newVal});
   }
 
   toggleFullscreen () {
@@ -109,19 +110,12 @@ export default class FormGalleryFilter extends React.Component {
         </bem.AssetGallery__headingIconButton>
 
 
-        <bem.AssetGallery__headingCheckbox
-          htmlFor='all-versions'
+        <Checkbox
+          checked={this.state.filterAllVersions}
+          onChange={this.onFilterAllVersionsChange}
           disabled={deployedVersionsCount < 2}
-        >
-          <input
-            type='checkbox'
-            checked={this.state.filterAllVersions}
-            onChange={this.onFilterAllVersionsChange}
-            id='all-versions'
-          />
-
-          <span>{t('Include submissions from all ##count## deployed versions').replace('##count##', deployedVersionsCount)}</span>
-        </bem.AssetGallery__headingCheckbox>
+          label={t('Include submissions from all ##count## deployed versions').replace('##count##', deployedVersionsCount)}
+        />
       </bem.AssetGallery__heading>
     );
   }
