@@ -28,8 +28,7 @@ class TextBox extends React.Component {
   }
 
   onChange(evt) {
-    const val = evt.target.value;
-    this.props.onChange(val)
+    this.props.onChange(evt.currentTarget.value)
   }
 
   render() {
