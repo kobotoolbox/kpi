@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-
+import Checkbox from './checkbox';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -236,11 +236,10 @@ class CustomReportForm extends React.Component {
     r.name = e.target.value;
     this.setState({customReport: r});
   }
-  customReportQuestionChange(e) {
+  customReportQuestionChange(name, newVal) {
     var r = this.state.customReport;
-    var name = e.target.getAttribute('data-name');
 
-    if (e.target.checked) {
+    if (newVal) {
       r.questions.push(name);
     } else {
       r.questions.splice(r.questions.indexOf(name), 1);
@@ -266,14 +265,11 @@ class CustomReportForm extends React.Component {
     var questionList = this.props.reportData.map(function(q, i){
       return (
         <div className='graph-settings__question' key={i}>
-            <input type='checkbox' name='chart_question'
+            <Checkbox
               checked={this.state.customReport.questions.includes(q.name)}
-              onChange={this.customReportQuestionChange}
-              data-name={q.name}
-              id={'q-' + q.name} />
-            <label htmlFor={'q-' + q.name}>
-              {q.row.label ? q.row.label[0] : t('Unlabeled') }
-            </label>
+              onChange={this.customReportQuestionChange.bind(this, q.name)}
+              label={q.row.label ? q.row.label[0] : t('Unlabeled') }
+            />
         </div>
       );
     }, this);
