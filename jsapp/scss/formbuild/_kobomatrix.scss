@@ -131,10 +131,6 @@
     > label {
       display: inline-block;
     }
-
-    [type="checkbox"]:not(:checked) + label:after {
-      background-color: #FFF;
-    }
   }
 
   .matrix-cols__delete {

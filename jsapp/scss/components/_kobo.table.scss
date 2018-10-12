@@ -311,14 +311,6 @@
     li {
       margin-bottom: 5px;
       max-width: 100%;
-
-      label {
-        display: inline-block;
-      }
-
-      input[type="checkbox"]:checked + label {
-        color: darken($cool-gray, 10%);
-      }
     }
   }
 }
