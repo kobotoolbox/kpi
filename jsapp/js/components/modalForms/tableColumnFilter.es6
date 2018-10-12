@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
-
+import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import ui from 'js/ui';
 import actions from 'js/actions';
@@ -26,17 +26,17 @@ export class TableColumnFilter extends React.Component {
 
     let _sett = props.asset.settings;
     if (_sett['data-table']) {
-      if (_sett['data-table']['selected-columns'])
+      if (_sett['data-table']['selected-columns'] !== null)
         this.state.selectedColumns = _sett['data-table']['selected-columns'];
-      if (_sett['data-table']['frozen-column']) {
+      if (typeof _sett['data-table']['frozen-column'] !== 'undefined') {
         const cols = this.listColumns();
         this.state.frozenColumn = _.find(cols, (col) => {return col.value === _sett['data-table']['frozen-column']});
       }
-      if (_sett['data-table']['show-group-name'])
+      if (typeof _sett['data-table']['show-group-name'] !== 'undefined')
         this.state.showGroupName = _sett['data-table']['show-group-name'];
-      if (_sett['data-table']['translation-index'])
+      if (typeof _sett['data-table']['translation-index'] !== 'undefined')
         this.state.translationIndex = _sett['data-table']['translation-index'];
-      if (_sett['data-table']['show-hxl-tags'])
+      if (typeof _sett['data-table']['show-hxl-tags'] !== 'undefined')
         this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
     }
 
@@ -90,14 +90,14 @@ export class TableColumnFilter extends React.Component {
       frozenColumn: col ? col : false
     })
   }
-  updateGroupHeaderDisplay(e) {
+  updateGroupHeaderDisplay(newVal) {
     this.setState({
-      showGroupName: e.target.checked
+      showGroupName: newVal
     })
   }
-  onHXLTagsChange(evt) {
+  onHXLTagsChange(newVal) {
     this.setState({
-      showHXLTags: evt.currentTarget.checked
+      showHXLTags: newVal
     })
   }
   onLabelChange(e) {
@@ -170,26 +170,19 @@ export class TableColumnFilter extends React.Component {
           </div>
         </bem.FormModal__item>
         <bem.FormModal__item m='group-headings'>
-          <input
-            type='checkbox'
+          <Checkbox
             checked={this.state.showGroupName}
             onChange={this.updateGroupHeaderDisplay}
-            id='check-group-headings'/>
-          <label htmlFor='check-group-headings'>
-            {t('Show group names in table headers')}
-          </label>
+            label={t('Show group names in table headers')}
+          />
         </bem.FormModal__item>
 
         <bem.FormModal__item>
-          <input
-            type='checkbox'
+          <Checkbox
             checked={this.state.showHXLTags}
             onChange={this.onHXLTagsChange}
-            id='hxl-tags'
+            label={t('Show HXL tags')}
           />
-          <label htmlFor='hxl-tags'>
-            {t('Show HXL tags')}
-          </label>
         </bem.FormModal__item>
 
         {this.userCan('change_asset', this.props.asset) &&
