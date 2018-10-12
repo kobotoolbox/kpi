@@ -407,7 +407,7 @@ $t-form-builder-aside-open: 200ms;
     flex: 1;
     margin-right: 10px;
 
-    .form-builder-meta__row {
+    .checkbox:not(:last-of-type) {
       margin-bottom: 10px;
     }
   }
