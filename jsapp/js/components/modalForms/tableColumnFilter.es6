@@ -70,15 +70,14 @@ export class TableColumnFilter extends React.Component {
       this.props.overrideLabelsAndGroups(overrides);
     }
   }
-  toggleCheckboxChange(evt) {
-    let selectedColumns = this.state.selectedColumns,
-        id = evt.target.value,
-        idx = selectedColumns.indexOf(id);
+  toggleCheckboxChange(columnId) {
+    const selectedColumns = this.state.selectedColumns;
+    const idx = selectedColumns.indexOf(columnId);
 
     if (idx !== -1) {
       selectedColumns.splice(idx, 1);
     } else {
-      selectedColumns.push(id);
+      selectedColumns.push(columnId);
     }
 
     this.setState({
@@ -213,17 +212,11 @@ export class TableColumnFilter extends React.Component {
                 {this.listColumns().map(function(col) {
                   return (
                     <li key={col.value}>
-                      <input
-                        type='checkbox'
-                        value={col.value}
+                      <Checkbox
                         checked={_this.state.selectedColumns.includes(col.value)}
-                        onChange={_this.toggleCheckboxChange}
-                        id={`colcheck-${col.value}`}
+                        onChange={_this.toggleCheckboxChange.bind(this, col.value)}
+                        label={col.label}
                       />
-
-                      <label htmlFor={`colcheck-${col.value}`}>
-                        {col.label}
-                      </label>
                     </li>
                   );
                 })}
