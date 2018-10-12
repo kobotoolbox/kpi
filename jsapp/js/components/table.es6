@@ -6,7 +6,7 @@ import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import $ from 'jquery';
 import {dataInterface} from '../dataInterface';
-
+import Checkbox from './checkbox';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
@@ -194,11 +194,10 @@ export class DataTable extends React.Component {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
-              <input type='checkbox'
-                id={'ch-head'}
+              <Checkbox
                 checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-                onChange={this.bulkSelectAllRows} />
-              <label htmlFor={'ch-head'} />
+                onChange={this.bulkSelectAllRows}
+              />
             </div>
           ),
         accessor: 'sub-checkbox',
@@ -210,12 +209,11 @@ export class DataTable extends React.Component {
         resizable: false,
         className: 'rt-checkbox',
         Cell: row => (
-          <div>
-            <input type='checkbox'
-                id={`ch-${row.original._id}`}
-                checked={this.state.selectedRows[row.original._id] ? true : false}
-                onChange={this.bulkUpdateChange} data-sid={row.original._id} />
-            <label htmlFor={`ch-${row.original._id}`} />
+          <div class='table-header-checkbox'>
+            <Checkbox
+              checked={this.state.selectedRows[row.original._id] ? true : false}
+              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+            />
           </div>
         )
       });
@@ -701,11 +699,10 @@ export class DataTable extends React.Component {
   clearPromptRefresh() {
     this.setState({ promptRefresh: false });
   }
-  bulkUpdateChange(evt) {
-    const sid = evt.target.getAttribute('data-sid');
+  bulkUpdateChange(sid, isChecked) {
     var selectedRows = this.state.selectedRows;
 
-    if (evt.target.checked) {
+    if (isChecked) {
       selectedRows[sid] = true;
     } else {
       delete selectedRows[sid];
@@ -716,12 +713,11 @@ export class DataTable extends React.Component {
       selectAll: false
     });
   }
-  bulkSelectAllRows(evt) {
-    var s = this.state.selectedRows,
-        selectAll = this.state.selectAll;
+  bulkSelectAllRows(isChecked) {
+    var s = this.state.selectedRows;
 
     this.state.tableData.forEach(function(r) {
-      if (evt.target.checked) {
+      if (isChecked) {
         s[r._id] = true;
       } else {
         delete s[r._id];

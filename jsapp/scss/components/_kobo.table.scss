@@ -49,6 +49,9 @@
       .table-header-checkbox {
         min-height: 24px;
         display: block;
+        text-align: center;
+
+        .checkbox__input {vertical-align: middle;}
       }
     }
 
