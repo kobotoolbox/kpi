@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
@@ -121,3 +123,36 @@ class TestAssetSnapshotList(KpiTestCase):
         for xml_url in snapshot_xml_urls:
             detail_response = self.client.get(xml_url)
             self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+
+    def test_xml_renderer(self):
+        '''
+        Make sure the API endpoint returns the same XML as the ORM
+        '''
+        def kludgy_is_xml_equal(*args):
+            '''
+            Compare strings after removing newlines and whitespace between
+            tags. Returns True if all strings are equal after this manipulation
+            '''
+            xml_strings = list(args)
+            for i, xml in enumerate(xml_strings):
+                xml = xml.replace('\n', '')
+                xml = re.sub(r'>\s+<', '><', xml)
+                xml_strings[i] = xml
+
+            return len(set(xml_strings)) == 1
+
+        creation_response = self._create_asset_snapshot_from_asset()
+        snapshot_uid = creation_response.data['uid']
+        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_orm_xml = AssetSnapshot.objects.get(uid=snapshot_uid).xml
+        # Test both DRF conventions of specifying the format
+        snapshot_xml_urls = (
+            snapshot_url.rstrip('/') + '.xml',
+            snapshot_url + '?format=xml',
+        )
+        for xml_url in snapshot_xml_urls:
+            xml_response = self.client.get(xml_url)
+            self.assertEqual(xml_response.status_code, status.HTTP_200_OK)
+            self.assertTrue(
+                kludgy_is_xml_equal(xml_response.content, snapshot_orm_xml)
+            )
