@@ -236,10 +236,10 @@ class CustomReportForm extends React.Component {
     r.name = e.target.value;
     this.setState({customReport: r});
   }
-  customReportQuestionChange(name, newVal) {
+  customReportQuestionChange(name, isChecked) {
     var r = this.state.customReport;
 
-    if (newVal) {
+    if (isChecked) {
       r.questions.push(name);
     } else {
       r.questions.splice(r.questions.indexOf(name), 1);

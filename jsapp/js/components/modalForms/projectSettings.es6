@@ -167,9 +167,9 @@ class ProjectSettings extends React.Component {
     this.onAnyDataChange('sector', val);
   }
 
-  onShareMetadataChange(newVal) {
-    this.setState({'share-metadata': newVal});
-    this.onAnyDataChange('share-metadata', newVal);
+  onShareMetadataChange(isChecked) {
+    this.setState({'share-metadata': isChecked});
+    this.onAnyDataChange('share-metadata', isChecked);
   }
 
   onImportUrlChange(value) {

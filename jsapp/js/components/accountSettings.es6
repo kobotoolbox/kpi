@@ -150,7 +150,7 @@ export class AccountSettings extends React.Component {
   cityChange (e) {this.handleChange(e, 'city');}
   countryChange (e) {this.handleChange(e, 'country');}
   defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');}
-  requireAuthChange (newVal) {this.handleChange(newVal, 'requireAuth');}
+  requireAuthChange (isChecked) {this.handleChange(isChecked, 'requireAuth');}
   twitterChange (e) {this.handleChange(e, 'twitter');}
   linkedinChange (e) {this.handleChange(e, 'linkedin');}
   instagramChange (e) {this.handleChange(e, 'instagram');}

@@ -89,14 +89,14 @@ export class TableColumnFilter extends React.Component {
       frozenColumn: col ? col : false
     })
   }
-  updateGroupHeaderDisplay(newVal) {
+  updateGroupHeaderDisplay(isChecked) {
     this.setState({
-      showGroupName: newVal
+      showGroupName: isChecked
     })
   }
-  onHXLTagsChange(newVal) {
+  onHXLTagsChange(isChecked) {
     this.setState({
-      showHXLTags: newVal
+      showHXLTags: isChecked
     })
   }
   onLabelChange(e) {

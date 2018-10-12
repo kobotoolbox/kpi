@@ -212,9 +212,9 @@ class ListExpandToggle extends React.Component {
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
-  onExpandedToggleChange (newVal) {
-    stores.pageState.setState({assetNavExpanded: newVal});
-    this.setState({assetNavExpanded: newVal});
+  onExpandedToggleChange (isChecked) {
+    stores.pageState.setState({assetNavExpanded: isChecked});
+    this.setState({assetNavExpanded: isChecked});
   }
   render () {
     let count = this.state.defaultQueryCount;

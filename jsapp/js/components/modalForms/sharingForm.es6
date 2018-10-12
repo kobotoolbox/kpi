@@ -100,7 +100,7 @@ class PublicPermDiv extends React.Component {
     super(props);
     autoBind(this);
   }
-  togglePerms(permRole, newVal) {
+  togglePerms(permRole) {
     var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
 
     if (permission) {
