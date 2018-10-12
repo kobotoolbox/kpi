@@ -209,7 +209,7 @@ export class DataTable extends React.Component {
         resizable: false,
         className: 'rt-checkbox',
         Cell: row => (
-          <div class='table-header-checkbox'>
+          <div className='table-header-checkbox'>
             <Checkbox
               checked={this.state.selectedRows[row.original._id] ? true : false}
               onChange={this.bulkUpdateChange.bind(this, row.original._id)}
