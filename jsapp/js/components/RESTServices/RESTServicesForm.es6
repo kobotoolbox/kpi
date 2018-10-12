@@ -69,7 +69,7 @@ export default class RESTServicesForm extends React.Component {
             endpoint: data.endpoint,
             isActive: data.active,
             emailNotification: data.email_notification,
-            subsetFields: data.subset_fields,
+            subsetFields: data.subset_fields || [],
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers)
