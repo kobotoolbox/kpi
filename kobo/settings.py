@@ -45,6 +45,11 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
+# Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
+# It avoids to add `8000` port the kpi urls.
+if os.getenv("USE_X_FORWARDED_HOST", "True") == "True":
+    USE_X_FORWARDED_HOST = True
+
 UPCOMING_DOWNTIME = False
 
 # Domain must not exclude KoBoCAT when sharing sessions
