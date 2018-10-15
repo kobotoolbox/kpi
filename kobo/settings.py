@@ -46,7 +46,7 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
-# It avoids to add `8000` port the kpi urls.
+# It avoids to add the debugger webserver port (i.e. `:8000`) at the end of urls.
 if os.getenv("USE_X_FORWARDED_HOST", "True") == "True":
     USE_X_FORWARDED_HOST = True
 
