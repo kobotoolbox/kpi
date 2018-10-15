@@ -1,11 +1,23 @@
 .radio,
 .checkbox {
-  .radio__wrapper,
+  .radio__row,
   .checkbox__wrapper {
     color: $black;
     font-size: 14px;
     padding: 4px 0;
     cursor: pointer;
+
+    &:hover .radio__input:not([disabled]),
+    &:hover .checkbox__input:not([disabled]) {
+      &:checked::after { opacity: 0.8; }
+      &:not(:checked)::after { opacity: 0.1; }
+    }
+
+    &:active .radio__input:not([disabled]),
+    &:active .checkbox__input:not([disabled]) {
+      &:checked::after { opacity: 0.6; }
+      &:not(:checked)::after { opacity: 0.3; }
+    }
   }
 
   .radio__input,
@@ -84,17 +96,5 @@
       pointer-events: none;
       opacity: 0.5;
     }
-  }
-
-  &:hover .radio__input:not([disabled]),
-  &:hover .checkbox__input:not([disabled]) {
-    &:checked::after { opacity: 0.8; }
-    &:not(:checked)::after { opacity: 0.1; }
-  }
-
-  &:active .radio__input:not([disabled]),
-  &:active .checkbox__input:not([disabled]) {
-    &:checked::after { opacity: 0.6; }
-    &:not(:checked)::after { opacity: 0.3; }
   }
 }

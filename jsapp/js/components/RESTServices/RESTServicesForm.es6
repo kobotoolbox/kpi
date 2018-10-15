@@ -14,9 +14,16 @@ import TextBox from '../textBox';
 import {t} from '../../utils';
 
 const EXPORT_TYPES = {
-  JSON: 'json',
-  XML: 'xml'
+  json: {
+    value: 'json',
+    label: t('JSON')
+  },
+  xml: {
+    value: 'xml',
+    label: t('XML')
+  }
 };
+
 const AUTH_OPTIONS = {
   no_auth: {
     value: 'no_auth',
@@ -41,7 +48,11 @@ export default class RESTServicesForm extends React.Component {
       nameError: null,
       endpoint: '',
       endpointError: null,
-      type: EXPORT_TYPES.JSON,
+      type: EXPORT_TYPES.json.value,
+      typeOptions: [
+        EXPORT_TYPES.json,
+        EXPORT_TYPES.xml
+      ],
       isActive: true,
       emailNotification: true,
       authLevel: null,
@@ -439,27 +450,13 @@ export default class RESTServicesForm extends React.Component {
             </bem.FormModal__item>
 
             <bem.FormModal__item>
-              <label>{t('Type')}</label>
-
-              <bem.FormModal__item m='inline'>
-                <Radio
-                  value={EXPORT_TYPES.JSON}
-                  name='type'
-                  onChange={this.handleTypeRadioChange.bind(this)}
-                  checked={this.state.type === EXPORT_TYPES.JSON}
-                  label={t('JSON')}
-                />
-              </bem.FormModal__item>
-
-              <bem.FormModal__item m='inline'>
-                <Radio
-                  value={EXPORT_TYPES.XML}
-                  name='type'
-                  onChange={this.handleTypeRadioChange.bind(this)}
-                  checked={this.state.type === EXPORT_TYPES.XML}
-                  label={t('XML')}
-                />
-              </bem.FormModal__item>
+              <Radio
+                name='type'
+                options={this.state.typeOptions}
+                onChange={this.handleTypeRadioChange.bind(this)}
+                selected={this.state.type}
+                title={t('Type')}
+              />
             </bem.FormModal__item>
 
             <bem.FormModal__item>
