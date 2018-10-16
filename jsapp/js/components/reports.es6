@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
+import Radio from './radio';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -581,14 +582,14 @@ class ReportStyleSettings extends React.Component {
       this.setState({reportStyle: styles});
     }
   }
-  translationIndexChange (evt) {
+  translationIndexChange (name, value) {
     let styles = this.state.reportStyle;
-    styles.translationIndex = evt.target.value;
+    styles.translationIndex = parseInt(value);
     this.setState({reportStyle: styles});
   }
-  groupDataBy (evt) {
+  onGroupByChange (name, value) {
     let styles = this.state.reportStyle;
-    styles.groupDataBy = evt.target.value;
+    styles.groupDataBy = value;
     this.setState({reportStyle: styles});
   }
   saveReportStyles() {
@@ -611,21 +612,40 @@ class ReportStyleSettings extends React.Component {
         translations = this.props.parentState.translations,
         reportStyle = this.state.reportStyle;
 
-    var groupByList = [];
-
-    for (var key in rows) {
-      if (rows.hasOwnProperty(key)
-          && rows[key].hasOwnProperty('type')
-          && rows[key].type == 'select_one') {
-        groupByList.push(rows[key]);
+    const groupByOptions = [];
+    groupByOptions.push({
+      value: '',
+      label: t('No grouping')
+    });
+    for (let key in rows) {
+      if (
+        rows.hasOwnProperty(key) &&
+        rows[key].hasOwnProperty('type') &&
+        rows[key].type == 'select_one'
+      ) {
+        const row = rows[key];
+        const val = row.name || row.$autoname;
+        const label = translations ? row.label[reportStyle.translationIndex] : row.label;
+        groupByOptions.push({
+          value: val,
+          label: label
+        });
       }
     }
 
     var tabs = [t('Chart Type'), t('Colors')];
 
-    if (groupByList.length > 0) {
+    if (groupByOptions.length > 1) {
       tabs.push(t('Group By'));
     }
+
+    const selectedTranslationOptions = [];
+    this.props.parentState.asset.content.translations.map((row, i) => {
+      selectedTranslationOptions.push({
+        value: i,
+        label: row || t('Unnamed language')
+      });
+    })
 
     if (translations) {
       tabs.push(t('Translation'));
@@ -668,48 +688,24 @@ class ReportStyleSettings extends React.Component {
                   onChange={this.reportSizeChange} />
               </div>
             }
-            {this.state.activeModalTab === 2 && groupByList.length > 0 &&
+            {this.state.activeModalTab === 2 && groupByOptions.length > 1 &&
               <div className='graph-tab__groupby' id='graph-labels'>
-                <label htmlFor={'groupby-00'} key='00'>
-                  <input type='radio' name='group_by'
-                    value={''}
-                    onChange={this.groupDataBy}
-                    checked={reportStyle.groupDataBy.length === 0 ? true : false}
-                    id={'groupby-00'} />
-                      {t('No grouping')}
-                </label>
-
-                {groupByList.map((row, i)=>{
-                    var val = row.name || row.$autoname;
-                    return (
-                      <label htmlFor={'groupby-' + i} key={i}>
-                        <input type='radio' name='group_by'
-                          value={val}
-                          onChange={this.groupDataBy}
-                          checked={reportStyle.groupDataBy === val ? true : false}
-                          id={'groupby-' + i} />
-                          {translations ? row.label[reportStyle.translationIndex] : row.label}
-                      </label>
-                    );
-                  })
-                }
+                <Radio
+                  name='reports-groupby'
+                  options={groupByOptions}
+                  onChange={this.onGroupByChange}
+                  selected={reportStyle.groupDataBy}
+                />
               </div>
             }
             {this.state.activeModalTab === 3 && translations &&
               <div className='graph-tab__translation' id='graph-labels'>
-                {this.props.parentState.asset.content.translations.map((row, i)=>{
-                    return (
-                      <label htmlFor={'translation-' + i} key={i}>
-                        <input type='radio' name='trnsltn'
-                          value={i}
-                          onChange={this.translationIndexChange}
-                          checked={this.props.parentState.asset.content.translations[reportStyle.translationIndex] === row ? true : false}
-                          id={'translation-' + i} />
-                        {row || t('Unnamed language')}
-                      </label>
-                    );
-                  })
-                }
+                <Radio
+                  name='reports-selected-translation'
+                  options={selectedTranslationOptions}
+                  onChange={this.translationIndexChange}
+                  selected={reportStyle.translationIndex}
+                />
               </div>
             }
           </div>

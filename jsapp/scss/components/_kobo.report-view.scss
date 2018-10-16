@@ -303,19 +303,6 @@
 .graph-tab__groupby,
 .graph-tab__translation {
   padding: 20px 30px;
-
-  > label {
-    display: block;
-    padding: 8px 0px;
-    padding-left: 30px;
-    position: relative;
-    font-size: 14px;
-
-    input {
-      position: absolute;
-      left: 0px;
-    }
-  }
 }
 
 .custom-report--title {
