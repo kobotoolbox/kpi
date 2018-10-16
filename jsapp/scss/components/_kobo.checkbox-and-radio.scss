@@ -2,8 +2,6 @@
 .checkbox {
   .radio__row,
   .checkbox__wrapper {
-    color: $black;
-    font-size: 14px;
     padding: 4px 0;
     cursor: pointer;
 
@@ -31,6 +29,8 @@
   .radio__label,
   .checkbox__label {
     max-width: calc(100% - 28px);
+    color: $black;
+    font-size: 14px;
   }
 
   .radio__input + .radio__label,

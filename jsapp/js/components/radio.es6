@@ -29,7 +29,7 @@ class Radio extends React.Component {
     return (
       <bem.Radio>
         {this.props.title &&
-          <bem.Radio__row>{this.props.title}</bem.Radio__row>
+          <bem.Radio__row m='title'>{this.props.title}</bem.Radio__row>
         }
         {this.props.options.map((option) => {
           return (
