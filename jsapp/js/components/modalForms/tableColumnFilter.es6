@@ -6,6 +6,7 @@ import reactMixin from 'react-mixin';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/checkbox';
+import Radio from 'js/components/radio';
 import bem from 'js/bem';
 import ui from 'js/ui';
 import actions from 'js/actions';
@@ -99,9 +100,9 @@ export class TableColumnFilter extends React.Component {
       showHXLTags: isChecked
     })
   }
-  onLabelChange(e) {
+  onLabelChange(name, value) {
     this.setState({
-      translationIndex: e.target.value
+      translationIndex: parseInt(value)
     })
   }
   settingsUpdateFailed() {
@@ -136,37 +137,36 @@ export class TableColumnFilter extends React.Component {
 
     return colsArray;
   }
+  getDisplayedLabelOptions () {
+    const options = [];
+    options.push({
+      value: -1,
+      label: t('XML Values')
+    });
+    this.props.asset.content.translations.map((trns, n) => {
+      let label = t('Labels');
+      if (trns) {
+        label += ` - ${trns}`;
+      }
+      options.push({
+        value: n,
+        label: label
+      });
+    });
+    return options;
+  }
   render () {
     let _this = this;
 
     return (
       <div className='tableColumn-modal'>
         <bem.FormModal__item m='translation-radios'>
-          <bem.FormView__cell m='label'>
-            {t('Display labels or XML values?')}
-          </bem.FormView__cell>
-          <div>
-            <label htmlFor={'trnsl-xml'}>
-              <input type='radio' name='translation'
-                     value='-1' id={'trnsl-xml'}
-                     checked={this.state.translationIndex == '-1'}
-                     onChange={this.onLabelChange} />
-              {t('XML Values')}
-            </label>
-            {
-              this.props.asset.content.translations.map((trns, n) => {
-                return (
-                  <label htmlFor={`trnsl-${n}`} key={n}>
-                    <input type='radio' name='translation'
-                           value={n} id={`trnsl-${n}`}
-                           checked={this.state.translationIndex == n}
-                           onChange={this.onLabelChange} />
-                    {t('Labels')} {trns ? ` - ${trns}` : null}
-                  </label>
-                )
-              })
-            }
-          </div>
+          <Radio
+            title={t('Display labels or XML values?')}
+            options={this.getDisplayedLabelOptions()}
+            selected={this.state.translationIndex}
+            onChange={this.onLabelChange}
+          />
         </bem.FormModal__item>
         <bem.FormModal__item m='group-headings'>
           <Checkbox

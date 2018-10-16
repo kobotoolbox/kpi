@@ -290,14 +290,10 @@
   }
 
   .form-modal__item--translation-radios {
-    label {
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 13px;
-
-      input {
-        margin-right: 4px;
-      }
+    .radio__row--title {
+      font-size: inherit;
+      color: inherit;
+      font-weight: 500;
     }
   }
 
