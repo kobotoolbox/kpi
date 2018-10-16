@@ -77,6 +77,26 @@ var assetSearchStore = Reflux.createStore({
   }
 });
 
+const translationsStore = Reflux.createStore({
+  init() {
+    this.state = {
+      isTranslationTableUnsaved: false
+    }
+  },
+  setState (change) {
+    const changed = changes(this.state, change);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
+  setTranslationTableUnsaved (isUnsaved) {
+    this.setState({
+      isTranslationTableUnsaved: isUnsaved
+    });
+  },
+});
+
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
@@ -114,14 +134,10 @@ var pageStateStore = Reflux.createStore({
   // use it when you have one modal opened and want to display different one
   // because just calling showModal has weird outcome
   switchModal (params) {
-    this.setState({
-      modal: false
-    });
+    this.hideModal();
     // HACK switch to setState callback after updating to React 16+
     window.setTimeout(() => {
-      this.setState({
-        modal: params
-      });
+      this.showModal(params);
     }, 0);
   }
 });
@@ -497,6 +513,7 @@ if (window.Intercom) {
 assign(stores, {
   tags: tagsStore,
   pageState: pageStateStore,
+  translations: translationsStore,
   assetSearch: assetSearchStore,
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,

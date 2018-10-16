@@ -165,7 +165,10 @@ class Modal extends React.Component {
     dialog.set(opts).show();
   }
   onModalClose(evt) {
-    if (this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE) {
+    if (
+      this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
+      stores.translations.state.isTranslationTableUnsaved
+    ) {
       this.displaySafeCloseConfirm(
         t('Close Translations Table?'),
         t('You will lose all unsaved changes.')
