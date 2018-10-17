@@ -146,8 +146,9 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   showLogInfo(log, evt) {
+    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.uid);
     const escapedMessage = $('<div/>').text(log.message).html();
-    alertify.alert(log.uid, `<pre>${escapedMessage}</pre>`);
+    alertify.alert(title, `<pre>${escapedMessage}</pre>`);
   }
 
   hasAnyFailedLogs() {
