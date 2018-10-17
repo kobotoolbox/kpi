@@ -489,7 +489,7 @@ class ReportContents extends React.Component {
         }
       }
 
-      if (_type === 'select_one' || _type === 'select_multiple') {
+      if ((_type === 'select_one' || _type === 'select_multiple') && asset.content.choices) {
         let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
         let resps = reportData[i].data.responses;
         if (resps) {
@@ -640,15 +640,14 @@ class ReportStyleSettings extends React.Component {
     }
 
     const selectedTranslationOptions = [];
-    this.props.parentState.asset.content.translations.map((row, i) => {
-      selectedTranslationOptions.push({
-        value: i,
-        label: row || t('Unnamed language')
-      });
-    })
-
     if (translations) {
       tabs.push(t('Translation'));
+      this.props.parentState.asset.content.translations.map((row, i) => {
+        selectedTranslationOptions.push({
+          value: i,
+          label: row || t('Unnamed language')
+        });
+      })
     }
 
     var modalTabs = tabs.map(function(tab, i){
@@ -669,7 +668,7 @@ class ReportStyleSettings extends React.Component {
         </ui.Modal.Tabs>
         <ui.Modal.Body>
           <div className='tabs-content'>
-            {this.state.activeModalTab === 0 &&
+            {tabs[this.state.activeModalTab] === t('Chart Type') &&
               <div id='graph-type'>
                 <ChartTypePicker
                   defaultStyle={reportStyle}
@@ -677,7 +676,7 @@ class ReportStyleSettings extends React.Component {
                 />
               </div>
             }
-            {this.state.activeModalTab === 1 &&
+            {tabs[this.state.activeModalTab] === t('Colors') &&
               <div id='graph-colors'>
                 <ChartColorsPicker
                   defaultStyle={reportStyle}
@@ -688,7 +687,7 @@ class ReportStyleSettings extends React.Component {
                   onChange={this.reportSizeChange} />
               </div>
             }
-            {this.state.activeModalTab === 2 && groupByOptions.length > 1 &&
+            {tabs[this.state.activeModalTab] === t('Group By') && groupByOptions.length > 1 &&
               <div className='graph-tab__groupby' id='graph-labels'>
                 <Radio
                   name='reports-groupby'
@@ -698,7 +697,7 @@ class ReportStyleSettings extends React.Component {
                 />
               </div>
             }
-            {this.state.activeModalTab === 3 && translations &&
+            {tabs[this.state.activeModalTab] === t('Translation') && selectedTranslationOptions.length > 1 &&
               <div className='graph-tab__translation' id='graph-labels'>
                 <Radio
                   name='reports-selected-translation'
