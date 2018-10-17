@@ -33,24 +33,27 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 }
 
 .service-row__column {
-  &.service-row__column--name {
-    flex: 6;
-    padding: 0 $s-service-row-column-spacing;
+  a {
+    color: inherit;
+    display: block;
+    &:hover {color: $cool-charcoal;}
+  }
+
+  &.service-row__column--name,
+  &.service-row__column--count {
+    padding: 0;
 
     .service-row--header & {padding: $s-service-row-column-spacing;}
 
-    a {
-      color: inherit;
-      display: block;
-      padding: $s-service-row-column-spacing 0;
+    a {padding: $s-service-row-column-spacing;}
+  }
 
-      &:hover {color: $cool-charcoal;}
-    }
+  &.service-row__column--name {
+    flex: 6;
   }
 
   &.service-row__column--count {
     flex: 1;
-    padding: $s-service-row-column-spacing;
     line-height: 18px;
 
     .count-information-wrapper {

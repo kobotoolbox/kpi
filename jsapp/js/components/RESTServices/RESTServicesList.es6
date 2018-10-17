@@ -153,20 +153,23 @@ export default class RESTServicesList extends React.Component {
             </bem.ServiceRow>
 
             {this.state.hooks.map((hook, n) => {
+              const logsUrl = `/#/forms/${this.state.assetUid}/settings/rest/${hook.uid}`;
               return (
                 <bem.ServiceRow key={hook.uid} m={hook.active ? 'active' : 'inactive'}>
                   <bem.ServiceRow__column m='name'>
-                    <a href={`/#/forms/${this.state.assetUid}/settings/rest/${hook.uid}`}>{hook.name}</a>
+                    <a href={logsUrl}>{hook.name}</a>
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='count'>
-                    {hook.success_count + hook.pending_count + hook.failed_count}
-                    <span
-                      className='count-information-wrapper'
-                      data-tip={`${t('Success')} ${hook.success_count} · ${t('Pending')} ${hook.pending_count} · ${t('Failed')} ${hook.failed_count}`}
-                    >
-                      <i className='k-icon-help'/>
-                    </span>
+                    <a href={logsUrl}>
+                      {hook.success_count + hook.pending_count + hook.failed_count}
+                      <span
+                        className='count-information-wrapper'
+                        data-tip={`${t('Success')} ${hook.success_count} · ${t('Pending')} ${hook.pending_count} · ${t('Failed')} ${hook.failed_count}`}
+                      >
+                        <i className='k-icon-help'/>
+                      </span>
+                    </a>
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='actions'>
