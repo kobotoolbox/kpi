@@ -160,6 +160,10 @@ export default class RESTServiceLogs extends React.Component {
     return hasAny;
   }
 
+  hasInfoToDisplay(log) {
+    return log.status !== HOOK_LOG_STATUSES.SUCCESS && log.message.length > 0;
+  }
+
   /*
    * rendering methods
    */
@@ -229,6 +233,10 @@ export default class RESTServiceLogs extends React.Component {
             if (log.status === HOOK_LOG_STATUSES.PENDING) {
               statusMod = 'pending';
               statusLabel = t('Pending');
+
+              if (log.tries && log.tries > 1) {
+                statusLabel = t('Pending (##count##×)').replace('##count##', log.tries);
+              }
             }
             if (log.status === HOOK_LOG_STATUSES.FAILED) {
               statusMod = 'failed';
@@ -238,7 +246,12 @@ export default class RESTServiceLogs extends React.Component {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
-                  {log.uid}
+                  {this.hasInfoToDisplay(log)
+                    ?
+                    <a onClick={this.showLogInfo.bind(this, log)}>{log.uid}</a>
+                    :
+                    <span className='service-row__fake-link'>{log.uid}</span>
+                  }
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
@@ -256,7 +269,7 @@ export default class RESTServiceLogs extends React.Component {
                     </bem.ServiceRow__actionButton>
                   }
 
-                  {log.status === HOOK_LOG_STATUSES.FAILED && log.message.length > 0 &&
+                  {this.hasInfoToDisplay(log) &&
                     <bem.ServiceRow__actionButton
                       onClick={this.showLogInfo.bind(this, log)}
                       data-tip={t('More info')}

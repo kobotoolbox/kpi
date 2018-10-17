@@ -36,16 +36,21 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   a {
     color: inherit;
     display: block;
+    cursor: pointer;
     &:hover {color: $cool-charcoal;}
   }
 
   &.service-row__column--name,
-  &.service-row__column--count {
+  &.service-row__column--count,
+  &.service-row__column--submission {
     padding: 0;
 
     .service-row--header & {padding: $s-service-row-column-spacing;}
 
-    a {padding: $s-service-row-column-spacing;}
+    a,
+    .service-row__fake-link {
+      padding: $s-service-row-column-spacing;
+    }
   }
 
   &.service-row__column--name {
@@ -90,7 +95,6 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
   &.service-row__column--submission {
     flex: 3;
-    padding: $s-service-row-column-spacing;
   }
 
   &.service-row__column--status {
