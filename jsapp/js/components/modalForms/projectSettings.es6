@@ -200,6 +200,23 @@ class ProjectSettings extends React.Component {
     });
   }
 
+  isArchived() {
+    return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
+  }
+
+  toggleArchiveProject() {
+    if (this.isArchived()) {
+      this.unarchiveAsset(
+        this.state.formAsset.uid,
+        this.goToProjectsList.bind(this)
+      );
+    } else {
+      this.archiveAsset(
+        this.state.formAsset.uid,
+        this.goToProjectsList.bind(this)
+      );
+    }
+  }
 
   deleteProject() {
     this.deleteAsset(
@@ -207,6 +224,7 @@ class ProjectSettings extends React.Component {
       this.goToProjectsList.bind(this)
     );
   }
+
   /*
    * routes navigation
    */
@@ -762,6 +780,24 @@ class ProjectSettings extends React.Component {
             <bem.FormView__cell m='iframe'>
               <iframe src={this.props.iframeUrl} />
             </bem.FormView__cell>
+          }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+            <bem.FormModal__item>
+              <bem.FormModal__item m='inline'>
+                <button
+                  type='button'
+                  className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+                  onClick={this.toggleArchiveProject}
+                >
+                  {this.isArchived() ? t('Unarchive Project') : t('Archive Project')}
+                </button>
+              </bem.FormModal__item>
+
+              <bem.FormModal__item m='inline'>
+                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
+              </bem.FormModal__item>
+            </bem.FormModal__item>
           }
 
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
