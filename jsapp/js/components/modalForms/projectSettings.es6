@@ -200,6 +200,13 @@ class ProjectSettings extends React.Component {
     });
   }
 
+
+  deleteProject() {
+    this.deleteAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
+  }
   /*
    * routes navigation
    */
@@ -212,6 +219,11 @@ class ProjectSettings extends React.Component {
   goToFormLanding() {
     stores.pageState.hideModal();
     hashHistory.push(`/forms/${this.state.formAsset.uid}/landing`);
+  }
+
+  goToProjectsList() {
+    stores.pageState.hideModal();
+    hashHistory.push('/forms/');
   }
 
   /*
@@ -637,6 +649,7 @@ class ProjectSettings extends React.Component {
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
             <bem.Modal__footerButton
+              type='submit'
               m='primary'
               onClick={this.handleSubmit}
               className='mdl-js-button'
@@ -750,6 +763,18 @@ class ProjectSettings extends React.Component {
               <iframe src={this.props.iframeUrl} />
             </bem.FormView__cell>
           }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+            <bem.FormModal__item>
+              <button
+                type='button'
+                className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+                onClick={this.deleteProject}
+              >
+                {t('Delete Project')}
+              </button>
+            </bem.FormModal__item>
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
@@ -808,6 +833,7 @@ class ProjectSettings extends React.Component {
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
+reactMixin(ProjectSettings.prototype, mixins.dmix);
 
 ProjectSettings.contextTypes = {
   router: PropTypes.object
