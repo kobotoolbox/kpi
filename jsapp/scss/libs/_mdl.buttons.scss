@@ -70,6 +70,16 @@ input.mdl-button[type="submit"] {
       color: #FFF;
     }
   }
+
+  &.mdl-button--colored.mdl-button--danger {
+    background: $cool-red;
+    color: #FFF;
+
+    &:hover {
+      background-color: darken($cool-red, 5%);
+      color: #FFF;
+    }
+  }
 }
 
 // Icon buttons
