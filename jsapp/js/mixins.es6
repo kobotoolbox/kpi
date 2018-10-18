@@ -153,8 +153,15 @@ mixins.dmix = {
       this._redeployAsset(asset);
     }
   },
-  unarchiveAsset () {
-    mixins.clickAssets.click.asset.unarchive.call(this, this.state);
+  archiveAsset (uid, callback) {
+    mixins.clickAssets.click.asset.archive(uid, callback);
+  },
+  unarchiveAsset (uid=null, callback) {
+    if (uid === null) {
+      mixins.clickAssets.click.asset.unarchive.call(this, this.state, callback);
+    } else {
+      mixins.clickAssets.click.asset.unarchive(uid, callback);
+    }
   },
   deleteAsset (uid, callback) {
     mixins.clickAssets.click.asset.delete(uid, callback);
@@ -567,8 +574,8 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      archive: function(uid) {
-        let asset = stores.selectedAsset.asset;
+      archive: function(uid, callback) {
+        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Archive Project'),
@@ -580,6 +587,9 @@ mixins.clickAssets = {
               asset: asset,
               active: false
             });
+            if (typeof callback === 'function') {
+              callback();
+            }
           },
           oncancel: () => {
             dialog.destroy();
@@ -587,8 +597,13 @@ mixins.clickAssets = {
         };
         dialog.set(opts).show();
       },
-      unarchive: function(assetOrUid) {
-        let asset = (typeof assetOrUid == 'object') ? assetOrUid : stores.selectedAsset.asset;
+      unarchive: function(assetOrUid, callback) {
+        let asset;
+        if (typeof assetOrUid == 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Unarchive Project'),
@@ -599,6 +614,9 @@ mixins.clickAssets = {
               asset: asset,
               active: true
             });
+            if (typeof callback === 'function') {
+              callback();
+            }
           },
           oncancel: () => {
             dialog.destroy();
