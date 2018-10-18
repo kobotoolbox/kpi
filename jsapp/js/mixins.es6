@@ -156,6 +156,9 @@ mixins.dmix = {
   unarchiveAsset () {
     mixins.clickAssets.click.asset.unarchive.call(this, this.state);
   },
+  deleteAsset (uid, callback) {
+    mixins.clickAssets.click.asset.delete(uid, callback);
+  },
   toggleDeploymentHistory () {
     this.setState({
       historyExpanded: !this.state.historyExpanded,
@@ -184,16 +187,26 @@ mixins.dmix = {
       );
   },
   dmixAssetStoreChange (data) {
-    var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
-      asset = data[uid];
+    const uid = this._getAssetUid();
+    const asset = data[uid];
     if (asset) {
       this.setState(assign({}, data[uid]));
+    }
+  },
+  _getAssetUid () {
+    if (this.props.params) {
+      return this.props.params.assetid || this.props.params.uid
+    } else if (this.props.formAsset) {
+      return this.props.formAsset.uid;
+    } else {
+      return this.props.uid
     }
   },
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
-    var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
+    const uid = this._getAssetUid();
+
     if (this.props.randdelay && uid) {
       window.setTimeout(()=>{
         actions.resources.loadAsset({id: uid});
@@ -484,8 +497,8 @@ mixins.clickAssets = {
         else
           hashHistory.push(`/forms/${uid}/edit`);
       },
-      delete: function(uid){
-        let asset = stores.selectedAsset.asset;
+      delete: function(uid, callback){
+        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
         var assetTypeLabel = t('project');
 
         if (asset.asset_type != 'survey') {
@@ -500,6 +513,9 @@ mixins.clickAssets = {
             onComplete: ()=> {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
               $('.alertify-toggle input').prop('checked', false);
+              if (typeof callback === 'function') {
+                callback();
+              }
             }
           });
         };
