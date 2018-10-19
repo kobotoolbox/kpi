@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
@@ -8,12 +9,16 @@ import alertify from 'alertifyjs';
 import stores from '../../stores';
 import bem from '../../bem';
 import actions from '../../actions';
+import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
 import {
   t,
   formatTime
 } from '../../utils';
-import {HOOK_LOG_STATUSES} from '../../constants';
+import {
+  HOOK_LOG_STATUSES,
+  MODAL_TYPES
+} from '../../constants';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){
@@ -146,9 +151,19 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   showLogInfo(log, evt) {
-    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.uid);
+    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.instance_id);
     const escapedMessage = $('<div/>').text(log.message).html();
     alertify.alert(title, `<pre>${escapedMessage}</pre>`);
+  }
+
+  openSubmissionModal(log) {
+    const currentAsset = this.currentAsset();
+    stores.pageState.switchModal({
+      type: MODAL_TYPES.SUBMISSION,
+      sid: log.instance_id,
+      asset: currentAsset,
+      ids: [log.instance_id]
+    });
   }
 
   hasAnyFailedLogs() {
@@ -247,12 +262,14 @@ export default class RESTServiceLogs extends React.Component {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
-                  {this.hasInfoToDisplay(log)
-                    ?
-                    <a onClick={this.showLogInfo.bind(this, log)}>{log.uid}</a>
-                    :
-                    <span className='service-row__fake-link'>{log.uid}</span>
-                  }
+                  {log.instance_id}
+
+                  <bem.ServiceRow__actionButton
+                    onClick={this.openSubmissionModal.bind(this, log)}
+                    data-tip={t('Open submission')}
+                  >
+                    <i className='k-icon-view' />
+                  </bem.ServiceRow__actionButton>
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
@@ -310,3 +327,8 @@ export default class RESTServiceLogs extends React.Component {
 }
 
 reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);
+reactMixin(RESTServiceLogs.prototype, mixins.contextRouter);
+
+RESTServiceLogs.contextTypes = {
+  router: PropTypes.object
+};

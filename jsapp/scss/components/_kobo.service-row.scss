@@ -41,16 +41,12 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   }
 
   &.service-row__column--name,
-  &.service-row__column--count,
-  &.service-row__column--submission {
+  &.service-row__column--count {
     padding: 0;
 
     .service-row--header & {padding: $s-service-row-column-spacing;}
 
-    a,
-    .service-row__fake-link {
-      padding: $s-service-row-column-spacing;
-    }
+    a {padding: $s-service-row-column-spacing;}
   }
 
   &.service-row__column--name {
@@ -93,10 +89,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
     white-space: nowrap;
   }
 
-  &.service-row__column--submission {
-    flex: 3;
-  }
-
+  &.service-row__column--submission,
   &.service-row__column--status {
     flex: 1;
     padding: 0 $s-service-row-column-spacing;
