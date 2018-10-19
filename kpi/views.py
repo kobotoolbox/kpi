@@ -708,6 +708,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
     '''
     parent_model = Asset
 
+    # @TODO Handle list of ids before using it
     # def list(self, request, *args, **kwargs):
     #     asset_uid = self.get_parents_query_dict().get("asset")
     #     asset = get_object_or_404(self.parent_model, uid=asset_uid)
