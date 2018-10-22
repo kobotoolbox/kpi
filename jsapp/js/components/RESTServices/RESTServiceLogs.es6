@@ -30,7 +30,8 @@ export default class RESTServiceLogs extends React.Component {
       hookUid: props.hookUid,
       isLoadingHook: true,
       isLoadingLogs: true,
-      logs: []
+      logs: [],
+      nextPageUrl: null
     };
     autoBind(this);
   }
@@ -63,7 +64,9 @@ export default class RESTServiceLogs extends React.Component {
         onComplete: (data) => {
           this.setState({
             isLoadingLogs: false,
-            logs: data.results
+            logs: data.results,
+            nextPageUrl: data.next,
+            totalLogsCount: data.count
           });
         },
         onFail: (data) => {
@@ -74,6 +77,10 @@ export default class RESTServiceLogs extends React.Component {
         }
       }
     );
+  }
+
+  loadMore() {
+    console.log('load more');
   }
 
   onLogsUpdated(data) {
@@ -202,6 +209,21 @@ export default class RESTServiceLogs extends React.Component {
     )
   }
 
+  renderLoadMoreButton() {
+    if (this.state.nextPageUrl === null) {
+      return null;
+    }
+
+    return (
+      <button
+        className='rest-services-list__load-more-button'
+        onClick={this.loadMore}
+      >
+        {t('Load more logs')}
+      </button>
+    )
+  }
+
   renderEmptyView() {
     return (
       <bem.FormView__cell m='rest-services-list' className='rest-services-list--empty'>
@@ -304,6 +326,8 @@ export default class RESTServiceLogs extends React.Component {
             );
           })}
         </bem.FormView__cell>
+
+        {this.renderLoadMoreButton()}
       </bem.FormView__cell>
     );
   }
