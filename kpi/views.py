@@ -105,6 +105,7 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.mixin import KobocatDataProxyViewSetMixin
+from formpack.constants import UNTRANSLATED, UNSPECIFIED_TRANSLATION
 from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.log import logging
@@ -560,6 +561,16 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             opt_val = request.POST.get(opt, None)
             if opt_val is not None:
                 task_data[opt] = opt_val
+
+        # To be compliant with `ExportTask` docstring,
+        # override `lang` if needed.
+        lang = task_data.get("lang")
+        if lang == "_default":
+            lang = UNTRANSLATED
+        elif lang == "_xml":
+            lang = UNSPECIFIED_TRANSLATION
+        task_data["lang"] = lang
+
         # Complain if no source was specified
         if not task_data.get('source', False):
             raise exceptions.ValidationError(

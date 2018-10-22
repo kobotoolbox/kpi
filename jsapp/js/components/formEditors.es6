@@ -159,10 +159,33 @@ export class ProjectDownloads extends React.Component {
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
       if (data.count > 0) {
         data.results.reverse();
-        this.setState({exports: data.results});
+        let results = data.results.map(result => {
+          if (result.data) {
+            let lang = result.data.lang,
+                langDescription = lang;
+
+            // Backend now changes `_default` to `FormPack.constant.UNTRANSLATED` in `ExportTaskViewSet`.
+            // `FormPack.constant.UNTRANSLATED` constant equals `None`.
+            // Old exports can still have `_default` as value for `lang` though.
+            if (lang === '_default' || lang === null) {
+              langDescription = t('Default');
+            }
+            // Because `xml` can be a code for an existing language (https://en.wikipedia.org/wiki/Malaysian_Sign_Language),
+            // `_xml` is now sent to backend instead of `xml`.
+            // Backend also changes `_xml` to `FormPack.constant.UNSPECIFIED_TRANSLATION`
+            // `FormPack.constant.UNSPECIFIED_TRANSLATION` constant equals `False`.
+            else if (lang === '_xml' || lang === false) {
+              langDescription = t('XML values and headers');
+            }
+            result.data['lang_desc'] = langDescription;
+          }
+          return result;
+        });
+
+        this.setState({exports: results});
 
         // Start a polling Interval if there is at least one export is not yet complete
-        data.results.every((item) => {
+        results.every((item) => {
           if(item.status === 'created' || item.status === 'processing'){
             this.pollingInterval = setInterval(this.refreshExport, 4000, item.url);
             return false;
@@ -232,7 +255,7 @@ export class ProjectDownloads extends React.Component {
                           <label htmlFor='lang'>{t('Value and header format')}</label>
                           <select name='lang' value={this.state.lang}
                               onChange={this.langChange}>
-                            <option value='xml'>{t('XML values and headers')}</option>
+                            <option value='_xml'>{t('XML values and headers')}</option>
                             { translations.length < 2 &&
                               <option value='_default'>{t('Labels')}</option>
                             }
@@ -320,7 +343,7 @@ export class ProjectDownloads extends React.Component {
                           {formatTime(item.date_created)}
                         </bem.FormView__label>
                         <bem.FormView__label m='lang'>
-                        {item.data.lang === '_default' ? t('Default') : item.data.lang}
+                          {item.data.lang_desc}
                         </bem.FormView__label>
                         <bem.FormView__label m='include-groups'>
                           {item.data.hierarchy_in_labels === 'false' ? t('No') : t('Yes')}

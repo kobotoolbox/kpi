@@ -20,6 +20,7 @@ from django.core.urlresolvers import Resolver404, resolve
 from django.utils.six.moves.urllib import parse as urlparse
 
 import formpack.constants
+from formpack.schema.fields import ValidationStatusCopyField
 from pyxform import xls2json_backends
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
@@ -342,9 +343,11 @@ class ExportTask(ImportExportTask):
     `data` attribute to a dictionary with the following keys:
     * `type`: required; `xls` or `csv`
     * `source`: required; URL of a deployed `Asset`
-    * `lang`: optional; `xml` for XML names or the name of the language to be
-              used for labels. Leave unset, or use `_default` or `None`, for
-              labels in the default language
+    * `lang`: optional; It can be:
+        - unset (`None`) or `formpack.constants.UNTRANSLATED` for labels in the default language (default: `None`).
+        - `formpack.constants.UNSPECIFIED_TRANSLATION` for XML names.
+        - language code for labels in one of the translated language (e.g. `en` for English).
+
     * `hierarchy_in_labels`: optional; when `true`, include the labels for all
                              ancestor groups in each field label, separated by
                              `group_sep`. Defaults to `False`
@@ -375,7 +378,13 @@ class ExportTask(ImportExportTask):
     last_submission_time = models.DateTimeField(null=True)
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
-    COPY_FIELDS = ('_id', '_uuid', '_submission_time')
+    COPY_FIELDS = (
+        '_id',
+        '_uuid',
+        '_submission_time',
+        ValidationStatusCopyField
+    )
+
     TIMESTAMP_KEY = '_submission_time'
     # Above 244 seems to cause 'Download error' in Chrome 64/Linux
     MAXIMUM_FILENAME_LENGTH = 240
@@ -445,8 +454,6 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
-        if lang == '_default':
-            lang = formpack.constants.UNTRANSLATED
         tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
 
         return {
