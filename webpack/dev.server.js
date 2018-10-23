@@ -3,7 +3,11 @@ const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const BundleTracker = require('webpack-bundle-tracker');
-var publicPath = 'http://kpi.kobo.local:3000/static/compiled/';
+var isPublicDomainDefined = process.env.KOBOFORM_PUBLIC_SUBDOMAIN &&
+  process.env.PUBLIC_DOMAIN_NAME;
+var publicDomain = isPublicDomainDefined ? process.env.KOBOFORM_PUBLIC_SUBDOMAIN
+  + '.' + process.env.PUBLIC_DOMAIN_NAME : 'localhost';
+var publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
 
 module.exports = WebpackCommon({
   mode: "development",
