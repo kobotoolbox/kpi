@@ -81,7 +81,7 @@ from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    AssetSnapshotXFormRenderer,
+    XMLRenderer,
     XlsRenderer,
     MediaFileRenderer)
 from .serializers import (
@@ -720,7 +720,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     queryset = AssetSnapshot.objects.all()
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        AssetSnapshotXFormRenderer,
+        XMLRenderer,
     ]
 
     def filter_queryset(self, queryset):
@@ -831,6 +831,14 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
      `KobocatBackend.get_submission()`
     '''
     parent_model = Asset
+
+    # @TODO Handle list of ids before using it
+    # def list(self, request, *args, **kwargs):
+    #     asset_uid = self.get_parents_query_dict().get("asset")
+    #     asset = get_object_or_404(self.parent_model, uid=asset_uid)
+    #     format_type = kwargs.get("format", "json")
+    #     submissions = asset.deployment.get_submissions(format_type=format_type)
+    #     return Response(list(submissions))
 
     def create(self, request, *args, **kwargs):
         """
