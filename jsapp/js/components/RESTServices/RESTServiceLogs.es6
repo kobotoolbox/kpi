@@ -80,13 +80,26 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   loadMore() {
-    console.log('load more');
+    this.setState({isLoadingLogs: false});
+
+    dataInterface.loadNextPageUrl(this.state.nextPageUrl)
+      .done((data) => {
+        const newLogs = [].concat(this.state.logs, data.results);
+        this.setState({
+          isLoadingLogs: false,
+          logs: newLogs,
+          nextPageUrl: data.next,
+          totalLogsCount: data.count
+        });
+      })
+      .fail((data) => {
+        this.setState({isLoadingLogs: false});
+        alertify.error(t('Could not load REST Service logs'));
+      });
   }
 
   onLogsUpdated(data) {
-    this.setState({
-      logs: data.results
-    });
+    this.setState({logs: data.results});
   }
 
   retryAll(evt) {
@@ -215,12 +228,12 @@ export default class RESTServiceLogs extends React.Component {
     }
 
     return (
-      <button
-        className='rest-services-list__load-more-button'
+      <bem.ServiceRowButton
+        m={this.state.isLoadingLogs ? 'loading' : null}
         onClick={this.loadMore}
       >
-        {t('Load more logs')}
-      </button>
+        {this.state.isLoadingLogs ? t('Loading…') : t('Load more')}
+      </bem.ServiceRowButton>
     )
   }
 
@@ -333,7 +346,7 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   render() {
-    if (this.state.isLoadingHook || this.state.isLoadingLogs) {
+    if (this.state.isLoadingHook || (this.state.isLoadingLogs && this.state.logs.length === 0)) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
