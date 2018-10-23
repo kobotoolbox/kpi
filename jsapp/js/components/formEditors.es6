@@ -159,6 +159,25 @@ export class ProjectDownloads extends React.Component {
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
       if (data.count > 0) {
         data.results.reverse();
+        data.results.map(result => {
+          switch(result.data.lang) {
+            case '_default':
+            case null: // The value of `formpack.constants.UNTRANSLATED`,
+                       // which shouldn't be revealed here, but just in case...
+              result.data.langDescription = t('Default');
+              break;
+            case '_xml':
+            case false: // `formpack.constants.UNSPECIFIED_TRANSLATION`
+              // Exports previously used `xml` (no underscore) for this, which
+              // works so long as the form has no language called `xml`. In
+              // reality, we shouldn't bank on that:
+              // https://en.wikipedia.org/wiki/Malaysian_Sign_Language
+              result.data.langDescription = t('XML');
+              break;
+            default:
+              result.data.langDescription = result.data.lang;
+          }
+        });
         this.setState({exports: data.results});
 
         // Start a polling Interval if there is at least one export is not yet complete
@@ -232,7 +251,7 @@ export class ProjectDownloads extends React.Component {
                           <label htmlFor='lang'>{t('Value and header format')}</label>
                           <select name='lang' value={this.state.lang}
                               onChange={this.langChange}>
-                            <option value='xml'>{t('XML values and headers')}</option>
+                            <option value='_xml'>{t('XML values and headers')}</option>
                             { translations.length < 2 &&
                               <option value='_default'>{t('Labels')}</option>
                             }
@@ -320,7 +339,7 @@ export class ProjectDownloads extends React.Component {
                           {formatTime(item.date_created)}
                         </bem.FormView__label>
                         <bem.FormView__label m='lang'>
-                        {item.data.lang === '_default' ? t('Default') : item.data.lang}
+                          {item.data.langDescription}
                         </bem.FormView__label>
                         <bem.FormView__label m='include-groups'>
                           {item.data.hierarchy_in_labels === 'false' ? t('No') : t('Yes')}
