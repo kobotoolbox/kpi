@@ -145,11 +145,9 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         django_response.write(requests_response.content)
         return django_response
 
-    #@renderer_classes((JSONRenderer, XMLRenderer))
     def list(self, kpi_request, *args, **kwargs):
         return self.retrieve(kpi_request, None, *args, **kwargs)
 
-    #@renderer_classes((JSONRenderer, XMLRenderer))
     def retrieve(self, kpi_request, pk, *args, **kwargs):
 
         asset_uid = self.get_parents_query_dict()['asset']
