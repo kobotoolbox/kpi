@@ -141,3 +141,30 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
     color: $cool-blue;
   }
 }
+
+.service-row-button {
+  @include box-shadow;
+  margin-top: $s-service-row-column-spacing;
+  width: 100%;
+  min-height: $s-service-row-action-button;
+  box-sizing: content-box;
+  line-height: $s-service-row-leading;
+  border: 0;
+  padding: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: $cool-charcoal;
+
+  &:hover {
+    color: $cool-darkgray;
+  }
+
+  &:active {
+    color: $cool-gray;
+  }
+
+  &.service-row-button--loading {
+    pointer-events: none;
+    color: $cool-silver;
+  }
+}
