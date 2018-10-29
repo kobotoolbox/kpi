@@ -40,6 +40,10 @@
             {% endif %}
             {{ field.errors }}
           </div>
+
+          {% if field.name == 'password1' %}
+            <div class="field" id="registration-password-app"></div>
+          {% endif %}
       {% endfor %}
       <input type="submit" value="{% trans 'Create Account' %}" class="registration__action" />
       <div class="registration__orlogin">
