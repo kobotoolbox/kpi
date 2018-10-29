@@ -16,11 +16,7 @@ class PasswordStrength extends React.Component {
 
   render() {
     const report = zxcvbn(this.props.password);
-
     const barModifier = `score-${report.score}`;
-
-    console.log(report);
-
     return (
       <bem.PasswordStrength>
         <bem.PasswordStrength__title>
@@ -31,7 +27,7 @@ class PasswordStrength extends React.Component {
           <bem.PasswordStrength__indicator/>
         </bem.PasswordStrength__bar>
 
-        {(report.feedback.warning || report.feedback.suggestions) &&
+        {(report.feedback.warning || report.feedback.suggestions.length > 0) &&
           <bem.PasswordStrength__messages>
             {report.feedback.warning &&
               <bem.PasswordStrength__message m='warning'>
@@ -39,7 +35,7 @@ class PasswordStrength extends React.Component {
               </bem.PasswordStrength__message>
             }
 
-            {report.feedback.suggestions && report.feedback.suggestions.length !== 0 &&
+            {report.feedback.suggestions.length > 0 &&
               report.feedback.suggestions.map((suggestion, index) => {
                 return (
                   <bem.PasswordStrength__message key={index}>
