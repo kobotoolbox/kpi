@@ -1,4 +1,5 @@
 import RunRoutes, {routes} from './app';
+import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
 import 'babel-polyfill'; // required to support Array.prototypes.includes in IE11
@@ -41,3 +42,10 @@ if (document.head.querySelector('meta[name=kpi-root-url]')) {
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }
+
+document.addEventListener('DOMContentLoaded', (evt) => {
+  const registrationPasswordAppEl = document.getElementById('registration-password-app');
+  if (registrationPasswordAppEl) {
+    render(<AppContainer><RegistrationPasswordApp /></AppContainer>, registrationPasswordAppEl);
+  }
+});
