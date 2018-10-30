@@ -713,7 +713,7 @@ class Asset(ObjectPermissionMixin,
 
     @transaction.atomic
     def _snapshot(self, regenerate=True):
-        asset_version = self.asset_versions.first()
+        asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
