@@ -5,11 +5,11 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from .delete_base_command import BaseCommand
+from .delete_base_command import DeleteBaseCommand
 from kpi.models import ImportTask
 
 
-class Command(BaseCommand):
+class Command(DeleteBaseCommand):
 
     help = "Deletes import tasks"
 

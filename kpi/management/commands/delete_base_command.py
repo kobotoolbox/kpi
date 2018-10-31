@@ -3,19 +3,19 @@ from __future__ import unicode_literals
 
 import sys
 
-from django.core.management.base import BaseCommand as DjangoBaseCommand
+from django.core.management.base import BaseCommand
 from django.db import transaction, connection
 
 
-class BaseCommand(DjangoBaseCommand):
+class DeleteBaseCommand(BaseCommand):
 
 
     def __init__(self, stdout=None, stderr=None, no_color=False):
-        super(BaseCommand, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
+        super(DeleteBaseCommand, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
         self._model = None
 
     def add_arguments(self, parser):
-        super(BaseCommand, self).add_arguments(parser)
+        super(DeleteBaseCommand, self).add_arguments(parser)
         parser.add_argument(
             "--days",
             default=90,
@@ -56,28 +56,29 @@ class BaseCommand(DjangoBaseCommand):
             raise Exception("No models declared!")
 
         chunked_delete_ids = []
-        chunks_cpt = 1
+        chunks_counter = 1
         total = delete_queryset.count()
 
         for record_id in delete_queryset.values_list("id", flat=True).iterator():
 
             chunked_delete_ids.append(record_id)
 
-            if (chunks_cpt % chunks) == 0 or chunks_cpt == total:
+            if (chunks_counter % chunks) == 0 or chunks_counter == total:
                 with transaction.atomic():  # Wrap into a transaction because of CASCADE, post_delete signals
-                    chuncked_objects_to_delete = self._model.objects.filter(id__in=chunked_delete_ids)
+                    chunked_objects_to_delete = self._model.objects.filter(id__in=chunked_delete_ids)
                     if verbosity >= 1:
                         progress = "\rDeleting {chunk}/{total} records...".format(
-                            chunk=chunks_cpt,
+                            chunk=chunks_counter,
                             total=total
                         )
                         sys.stdout.write(progress)
                         sys.stdout.flush()
-                    chuncked_objects_to_delete.delete()
+                    chunked_objects_to_delete.delete()
                 chunked_delete_ids = []
 
-            chunks_cpt += 1
+            chunks_counter += 1
 
+        # Print new line
         print("")
 
         if vacuum is True or vacuum_full is True:
