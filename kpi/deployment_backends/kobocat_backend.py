@@ -208,6 +208,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.asset._deployment_data.get('backend_response', {}).get('id_string')
 
     @property
+    def xform_id(self):
+        pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
+        xform = _models.XForm.objects.filter(pk=pk).only(
+            'user__username', 'id_string').first()
+        if not (xform.user.username == self.asset.owner.username and
+                xform.id_string == self.xform_id_string):
+            raise Exception('Deployment links to an unexpected KoBoCAT XForm')
+        return pk
+
+    @property
     def mongo_userform_id(self):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
@@ -524,7 +534,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: generator<JSON>
         """
         query = {
-            "_xform_id_string": self.asset.uid,
+            "_userform_id": self.mongo_userform_id,
             "_deleted_at": {"$exists": False}
         }
 
@@ -547,8 +557,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: list<XML>
         """
         queryset = _models.Instance.objects.filter(
-            xform__id_string=self.asset.uid,
-            deleted_at=None)
+            xform_id=self.xform_id,
+            deleted_at=None
+        )
 
         if len(instances_ids) > 0:
             queryset = queryset.filter(id__in=instances_ids)
