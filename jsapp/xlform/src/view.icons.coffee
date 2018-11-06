@@ -114,10 +114,17 @@ module.exports = do ->
       grouping: "r5"
       id: "rank"
     ,
+
+    # r6
       label: _t("Calculate")
       faClass: "lato-calculate"
-      grouping: "r4"
+      grouping: "r6"
       id: "calculate"
+    ,
+      label: _t("Range")
+      faClass: "lato-range"
+      grouping: "r6"
+      id: "range"
     ,
     ]
 
