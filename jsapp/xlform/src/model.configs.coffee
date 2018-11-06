@@ -150,6 +150,9 @@ module.exports = do ->
     date:
       label:
         value: "Enter a date"
+    range:
+      label:
+        value: "Choose a range"
     calculate:
       calculation:
         value: ""
@@ -177,6 +180,7 @@ module.exports = do ->
       ["text", "Text"], # expects text
       ["integer", "Integer"], #e.g. 42
       ["decimal", "Decimal"], #e.g. 3.14
+      ["range", "Range"], #e.g. 1-5
       ["geopoint", "Geopoint (GPS)"], # Can use satelite GPS coordinates
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
