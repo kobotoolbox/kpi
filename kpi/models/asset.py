@@ -818,9 +818,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.asset_version is None:
-                self.asset_version = self.asset.latest_version
             if self.source is None:
+                if self.asset_version is None:
+                    self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
             if self.owner is None:
                 self.owner = self.asset.owner
