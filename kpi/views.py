@@ -47,7 +47,7 @@ from private_storage.views import PrivateStorageDetailView
 from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import AssetOwnerFilterBackend
 from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
-from .filters import SearchFilter
+from .filters import SearchFilter, AssetTypeFilter
 from .highlighters import highlight_xform
 from hub.models import SitewideMessage
 from .models import (
@@ -928,7 +928,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
+    filter_backends = (KpiObjectPermissionsFilter, SearchFilter, AssetTypeFilter)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
