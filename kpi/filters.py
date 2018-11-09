@@ -231,26 +231,6 @@ class SearchFilter(filters.BaseFilterBackend):
         return queryset.filter(pk__in=filter_pks)
 
 
-class AssetTypeFilter(filters.BaseFilterBackend):
-    """
-    Filter assets by their type.
-    `asset_type` should be pass among querystring parameters.
-    """
-
-    def filter_queryset(self, request, queryset, view):
-        # No need to filter queryset if:
-        #  - not in list
-        #  - `asset_type` is not present (or empty) in parameters
-        #  - view is not AssetViewSet
-        asset_type = request.query_params.get("asset_type", "")
-        if view.__class__.__name__ != "AssetViewSet" or view.action != "list" or \
-                asset_type == "":
-            return queryset
-
-        queryset = queryset.filter(asset_type=asset_type)
-        return queryset
-
-
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         # TODO: omit objects for which the user has only a deny permission
