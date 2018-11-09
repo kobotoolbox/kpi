@@ -238,7 +238,6 @@ class AssetTypeFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        logging.info(view.__class__.__name__)
         # No need to filter queryset if:
         #  - not in list
         #  - `asset_type` is not present (or empty) in parameters
