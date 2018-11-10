@@ -756,6 +756,7 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         ''' Used by serializers to improve performance when listing assets '''
