@@ -1,4 +1,6 @@
 import {
+  readParameters,
+  writeParameters,
   getLangAsObject,
   getLangString,
   nullifyTranslations,
@@ -357,6 +359,108 @@ describe('translations hack', () => {
       expect(
         unnullifyTranslations(test.surveyDataJSON, test.assetContent)
       ).to.deep.equal(target);
+    });
+  });
+});
+
+describe('readParameters', () => {
+  const validReadPairs = [
+    {
+      str:'abc:1',
+      obj: {},
+      note: 'empty object from invalid string'
+    },
+    {
+      str:'foo=bar',
+      obj: {foo: 'bar'},
+      note: 'valid object from single parameter'
+    },
+    {
+      str:'foo=1 bar=10 fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid object from space-separated parameters'
+    },
+    {
+      str:'foo=1,bar=10,fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid object from comma-separated parameters'
+    },
+    {
+      str:'foo=1;bar=10;fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid object from semicolon-separated parameters'
+    },
+    {
+      str:'foo  = 1    bar  =  10    fum  =  1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid object from space-dirty space-separated parameters'
+    },
+    {
+      str:'foo = 1 , bar = 10 , fum = 1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid object from space-dirty comma-separated parameters'
+    },
+    {
+      str:'foo = 1  ; bar = 10 ; fum = 1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid object from space-dirty semicolon-separated parameters'
+    },
+    {
+      str:'foo=1 bar=10,fum=1;baz=0',
+      obj: {foo: '1 bar=10,fum=1', baz: '0'},
+      note: 'valid-ish object from parameters with mixed separators'
+    },
+    {
+      str:'foo    =2',
+      obj: {foo: '2'},
+      note: 'valid object from left-space-dirty single parameter'
+    },
+    {
+      str:'foo     =   2',
+      obj: {foo: '2'},
+      note: 'valid object from both-space-dirty single parameter'
+    },
+    {
+      str:'foo=      2',
+      obj: {foo: '2'},
+      note: 'valid object from right-space-dirty single parameter'
+    },
+    {
+      str:'foo = 2, 4  ; bar =  4 , , 4 a   ,  ; fum=baz',
+      obj: {foo: '2, 4', bar: '4 , , 4 a', fum: 'baz'},
+      note: 'valid-ish object from dirty parameters with mixed separators'
+    },
+  ];
+
+  validReadPairs.forEach((pair) => {
+    it(`should return ${pair.note}`, () => {
+      chai.expect(readParameters(pair.str)).to.deep.equal(pair.obj);
+    });
+  });
+});
+
+describe('writeParameters', () => {
+  const validWritePairs = [
+    {
+      str: 'foo=1;bar=10;fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid string from object with multiple parameters'
+    },
+    {
+      str: 'foo=2',
+      obj: {foo: '2'},
+      note: 'valid string from object with single parameter'
+    },
+    {
+      str: 'bar=0;baz=false',
+      obj: {foo: null, bar: 0, fum: undefined, baz: false},
+      note: 'valid string omitting empty values from object with multiple parameters'
+    },
+  ];
+
+  validWritePairs.forEach((pair) => {
+    it(`should return ${pair.note}`, () => {
+      chai.expect(writeParameters(pair.obj)).to.equal(pair.str);
     });
   });
 });

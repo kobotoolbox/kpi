@@ -418,3 +418,41 @@ export function escapeHtml(str) {
   div.appendChild(document.createTextNode(str));
   return div.innerHTML;
 }
+
+export function readParameters(str) {
+  const params = {};
+
+  const separators = ';, ';
+  let separator = ' ';
+  let otherSeparators = separators.replace(' ', '');
+  if (str.includes(';')) {
+    separator = ';';
+    otherSeparators = separators.replace(';', '');
+  } else if (str.includes(',')) {
+    separator = ',';
+    otherSeparators = separators.replace(',', '');
+  }
+
+  const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=');
+  const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'));
+
+  parts.forEach((part) => {
+    if (part.includes('=')) {
+      const key = part.slice(0, part.indexOf('='));
+      const value = part.slice(key.length + 1);
+      params[key] = value;
+    }
+  });
+
+  return params;
+}
+
+export function writeParameters(obj) {
+  let params = [];
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined && obj[key] !== null) {
+      params.push(`${key}=${obj[key]}`);
+    }
+  });
+  return params.join(';');
+}
