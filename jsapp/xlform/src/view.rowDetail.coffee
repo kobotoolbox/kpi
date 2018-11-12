@@ -177,11 +177,8 @@ module.exports = do ->
       @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.parameters =
-    html: ->
-      @$el.addClass("card__settings__fields--active qwerty")
-      viewRowDetail.Templates.textbox(@cid, @model.key, _t("Parameters"), 'text')
-    afterRender: ->
-      @listenForInputChange()
+    html: -> false
+    insertInDOM: (rowView)-> return
 
   viewRowDetail.DetailViewMixins.relevant =
     html: ->
