@@ -437,6 +437,14 @@ describe('readParameters', () => {
       chai.expect(readParameters(pair.str)).to.deep.equal(pair.obj);
     });
   });
+
+  it('should read parameters values as strings', () => {
+    const obj = readParameters('foo=1;bar=false;fum=0.5;baz=[1,2,3]');
+    chai.expect(typeof obj.foo).to.equal('string');
+    chai.expect(typeof obj.bar).to.equal('string');
+    chai.expect(typeof obj.fum).to.equal('string');
+    chai.expect(typeof obj.baz).to.equal('string');
+  });
 });
 
 describe('writeParameters', () => {
