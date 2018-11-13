@@ -464,6 +464,11 @@ describe('writeParameters', () => {
       obj: {foo: null, bar: 0, fum: undefined, baz: false},
       note: 'valid string omitting empty values from object with multiple parameters'
     },
+    {
+      str: 'foo={"bar":"a","fum":{"baz":"b"}}',
+      obj: {foo: {bar: 'a', fum: {baz: 'b'}}},
+      note: 'valid string from nested object'
+    },
   ];
 
   validWritePairs.forEach((pair) => {

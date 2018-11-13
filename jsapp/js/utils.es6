@@ -451,7 +451,11 @@ export function writeParameters(obj) {
   let params = [];
   Object.keys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
-      params.push(`${key}=${obj[key]}`);
+      let value = obj[key];
+      if (typeof value === 'object') {
+        value = JSON.stringify(value);
+      }
+      params.push(`${key}=${value}`);
     }
   });
   return params.join(';');
