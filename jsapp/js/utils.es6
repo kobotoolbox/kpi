@@ -420,19 +420,19 @@ export function escapeHtml(str) {
 }
 
 export function readParameters(str) {
-  const params = {};
-
-  const separators = ';, ';
-  let separator = ' ';
-  let otherSeparators = separators.replace(' ', '');
-  if (str.includes(';')) {
-    separator = ';';
-    otherSeparators = separators.replace(';', '');
-  } else if (str.includes(',')) {
-    separator = ',';
-    otherSeparators = separators.replace(',', '');
+  if (typeof str !== 'string') {
+    return null;
   }
 
+  const params = {};
+
+  let separator = ' ';
+  if (str.includes(';')) {
+    separator = ';';
+  } else if (str.includes(',')) {
+    separator = ',';
+  }
+  const otherSeparators = ';, '.replace(separator, '');
   const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=');
   const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'));
 
@@ -444,6 +444,9 @@ export function readParameters(str) {
     }
   });
 
+  if (Object.keys(params).length < 1) {
+    return null;
+  }
   return params;
 }
 
