@@ -1,4 +1,6 @@
 import {
+  readParameters,
+  writeParameters,
   getLangAsObject,
   getLangString,
   nullifyTranslations,
@@ -357,6 +359,128 @@ describe('translations hack', () => {
       expect(
         unnullifyTranslations(test.surveyDataJSON, test.assetContent)
       ).to.deep.equal(target);
+    });
+  });
+});
+
+describe('readParameters', () => {
+  const validReadPairs = [
+    {
+      str:'foo=bar',
+      obj: {foo: 'bar'},
+      note: 'single parameter'
+    },
+    {
+      str:'foo=1 bar=10 fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'space-separated parameters'
+    },
+    {
+      str:'foo=1,bar=10,fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'comma-separated parameters'
+    },
+    {
+      str:'foo=1;bar=10;fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'semicolon-separated parameters'
+    },
+    {
+      str:'foo  = 1    bar  =  10    fum  =  1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'space-dirty space-separated parameters'
+    },
+    {
+      str:'foo = 1 , bar = 10 , fum = 1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'space-dirty comma-separated parameters'
+    },
+    {
+      str:'foo = 1  ; bar = 10 ; fum = 1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'space-dirty semicolon-separated parameters'
+    },
+    {
+      str:'foo=1 bar=10,fum=1;baz=0',
+      obj: {foo: '1 bar=10,fum=1', baz: '0'},
+      note: 'parameters with mixed separators'
+    },
+    {
+      str:'foo    =2',
+      obj: {foo: '2'},
+      note: 'left-space-dirty single parameter'
+    },
+    {
+      str:'foo     =   2',
+      obj: {foo: '2'},
+      note: 'both-space-dirty single parameter'
+    },
+    {
+      str:'foo=      2',
+      obj: {foo: '2'},
+      note: 'right-space-dirty single parameter'
+    },
+    {
+      str:'foo = 2, 4  ; bar =  4 , , 4 a   ,  ; fum=baz',
+      obj: {foo: '2, 4', bar: '4 , , 4 a', fum: 'baz'},
+      note: 'dirty parameters with mixed separators'
+    },
+  ];
+
+  validReadPairs.forEach((pair) => {
+    it(`should return valid object from ${pair.note}`, () => {
+      chai.expect(readParameters(pair.str)).to.deep.equal(pair.obj);
+    });
+  });
+
+  it('should read parameters values as strings', () => {
+    const obj = readParameters('foo=1;bar=false;fum=0.5;baz=[1,2,3]');
+    chai.expect(typeof obj.foo).to.equal('string');
+    chai.expect(typeof obj.bar).to.equal('string');
+    chai.expect(typeof obj.fum).to.equal('string');
+    chai.expect(typeof obj.baz).to.equal('string');
+  });
+
+  it('should return null for invalid parameter string', () => {
+    chai.expect(readParameters('abc:1')).to.equal(null);
+    chai.expect(readParameters('1')).to.equal(null);
+    chai.expect(readParameters('')).to.equal(null);
+    chai.expect(readParameters(0)).to.equal(null);
+    chai.expect(readParameters(false)).to.equal(null);
+    chai.expect(readParameters(null)).to.equal(null);
+    chai.expect(readParameters(undefined)).to.equal(null);
+    chai.expect(readParameters({})).to.equal(null);
+    chai.expect(readParameters([])).to.equal(null);
+  });
+});
+
+describe('writeParameters', () => {
+  const validWritePairs = [
+    {
+      str: 'foo=1;bar=10;fum=1',
+      obj: {foo: '1', bar: '10', fum: '1'},
+      note: 'valid string from object with multiple parameters'
+    },
+    {
+      str: 'foo=2',
+      obj: {foo: '2'},
+      note: 'valid string from object with single parameter'
+    },
+    {
+      str: 'bar=0;baz=false',
+      obj: {foo: null, bar: 0, fum: undefined, baz: false},
+      note: 'valid string omitting empty values from object with multiple parameters'
+    },
+    {
+      str: 'foo={"bar":"a","fum":{"baz":"b"}}',
+      obj: {foo: {bar: 'a', fum: {baz: 'b'}}},
+      note: 'valid string from nested object'
+    },
+  ];
+
+  validWritePairs.forEach((pair) => {
+    it(`should return ${pair.note}`, () => {
+      chai.expect(writeParameters(pair.obj)).to.equal(pair.str);
     });
   });
 });
