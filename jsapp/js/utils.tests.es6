@@ -444,6 +444,7 @@ describe('readParameters', () => {
   it('should return null for invalid parameter string', () => {
     chai.expect(readParameters('abc:1')).to.equal(null);
     chai.expect(readParameters('1')).to.equal(null);
+    chai.expect(readParameters('')).to.equal(null);
     chai.expect(readParameters(0)).to.equal(null);
     chai.expect(readParameters(false)).to.equal(null);
     chai.expect(readParameters(null)).to.equal(null);
