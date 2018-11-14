@@ -184,8 +184,11 @@ $cardIndicatorIconWidth: 21px;
         font-size: 0.95em;
         background-color: #8595A5;
     }
-    .fa-lato-calculate, .fa-lato-decimal,
-    .fa-lato-integer, .fa-lato-text {
+    .fa-lato-range,
+    .fa-lato-calculate,
+    .fa-lato-decimal,
+    .fa-lato-integer,
+    .fa-lato-text {
         font-size: 15px;
         width: $cardIndicatorIconWidth;
     }
