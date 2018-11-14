@@ -104,6 +104,33 @@
         }
     },
     {
+        "model": "kpi.asset",
+        "pk": 2,
+        "collection": 2,
+        "fields": {
+            "name": "fixture asset with translations",
+            "content": {"survey": [
+                {
+                  "type": "text",
+                  "label": "fixture q1",
+                  "label::English": "fixture q1 translated",
+                  "name": "q1",
+                  "kuid": "abc"
+                }, {
+                  "type": "text",
+                  "label": "fixture q2",
+                  "label::English": "fixture q2 translated",
+                  "name": "q2",
+                  "kuid": "def"
+                }
+            ]},
+            "date_created": "2015-02-12T19:52:14.406Z",
+            "date_modified": "2015-02-12T19:52:14.406Z",
+            "owner": 2,
+            "uid": "aPEANgNgTH3xzhJGcctURu"
+        }
+    },
+    {
         "model": "authtoken.token",
         "pk": 1,
         "fields": {

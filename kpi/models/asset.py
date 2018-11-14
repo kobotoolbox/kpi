@@ -302,7 +302,20 @@ class FormpackXLSFormUtils(object):
         if is_new and (translation_name in _translations):
             raise ValueError('cannot add existing translation')
         elif (not is_new) and (translation_name not in _translations):
-            raise ValueError('translation cannot be found')
+            # if there are no translations available, don't try to prioritize,
+            # just ignore the translation `translation_name`
+            if len(_translations) == 1 and _translations[0] is None:
+                return
+            else:  # Otherwise raise an error.
+                # Remove None from translations we want to display to users
+                valid_translations = [t for t in _translations if t is not None]
+                raise ValueError("Translation `{translation_name}` could not be found in your form. "
+                                 "We found the translations: `{translations}`. " \
+                                 "Please select one of these with the exact same spelling.".format(
+                    translation_name=translation_name,
+                    translations="`, `".join(valid_translations)
+                ))
+
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
             for sheet_name in 'survey', 'choices':

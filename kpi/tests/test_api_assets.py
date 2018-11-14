@@ -118,7 +118,7 @@ class AssetVersionApiTests(APITestCase):
                                         args=(self.asset.uid,))
 
     def test_asset_version(self):
-        self.assertEqual(Asset.objects.count(), 1)
+        self.assertEqual(Asset.objects.count(), 2)
         self.assertEqual(AssetVersion.objects.count(), 1)
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
