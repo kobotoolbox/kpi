@@ -121,6 +121,11 @@ module.exports = do ->
       grouping: "r6"
       id: "calculate"
     ,
+      label: _t("File")
+      faClass: "file"
+      grouping: "r6"
+      id: "file"
+    ,
       label: _t("Range")
       faClass: "lato-range"
       grouping: "r6"
