@@ -210,6 +210,15 @@ class LibrarySidebar extends Reflux.Component {
       assetid: collectionUid
     });
   }
+  isCollectionPublic(collection) {
+    let isPublic = false;
+    collection.permissions.forEach((perm) => {
+      if (perm.user.endsWith('/users/AnonymousUser/')) {
+        isPublic = true;
+      }
+    });
+    return isPublic;
+  }
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
@@ -302,7 +311,7 @@ class LibrarySidebar extends Reflux.Component {
             <bem.FormSidebar__grouping>
               {this.state.sidebarCollections.map((collection)=>{
                 var iconClass = 'k-icon-folder';
-                if (collection.discoverable_when_public)
+                if (collection.discoverable_when_public || this.isCollectionPublic(collection))
                   iconClass = 'k-icon-folder-public';
                 if (collection.access_type == 'shared')
                   iconClass = 'k-icon-folder-shared';
