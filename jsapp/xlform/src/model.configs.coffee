@@ -126,6 +126,8 @@ module.exports = do ->
     image:
       label:
         value: "Point and shoot! Use the camera to take a photo"
+      parameters:
+        value: "max-pixels="
     video:
       label:
         value: "Use the camera to record a video"
@@ -175,6 +177,12 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+    select_one:
+      parameters:
+        value: "randomize="
+    select_multiple:
+      parameters:
+        value: "randomize="
 
   configs.columns = ["type", "name", "label", "hint", "required", "relevant", "default", "constraint"]
 
