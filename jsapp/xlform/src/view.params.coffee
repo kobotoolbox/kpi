@@ -13,6 +13,34 @@ module.exports = do ->
       @$el = @rowView.$('.params-view')
 
     render: ->
+      for param, value in @parameters
+        new ParamOption(@attributes.type.attributes.typeId, param, value).render().$el.appendTo(@$el)
       return @
+
+  class ParamOption extends $baseView
+    className: "param-option"
+    events:
+      "input": "oninput"
+      "click .js-clear-option": "onclear"
+
+    initialize: (@rowType, @paramName, @paramValue) ->
+
+    render: ->
+      @inputEl = $('<input>')
+      @container = $('<div>')
+
+      @container.append(@inputEl)
+
+      @$el.html(@d)
+      return @
+
+    oninput: (evt) ->
+      console.log('oninput', evt)
+
+    clear: () ->
+      console.log('clear')
+
+    saveValue: (newValue)->
+      console.log('saveValue', newValue)
 
   ParamsView: ParamsView
