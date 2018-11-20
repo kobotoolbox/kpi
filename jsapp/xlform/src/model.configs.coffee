@@ -156,6 +156,8 @@ module.exports = do ->
     range:
       label:
         value: "Choose a range"
+      parameters:
+        value: "start=;end=;step=;"
     calculate:
       calculation:
         value: ""
