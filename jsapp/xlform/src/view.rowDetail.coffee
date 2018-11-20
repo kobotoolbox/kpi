@@ -176,6 +176,7 @@ module.exports = do ->
     afterRender: ->
       @listenForInputChange()
 
+  # parameters are handled per case
   viewRowDetail.DetailViewMixins.parameters =
     html: -> false
     insertInDOM: (rowView)-> return
