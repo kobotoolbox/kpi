@@ -807,7 +807,7 @@ class ProjectSettings extends React.Component {
                 className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
                 onClick={this.deleteProject}
               >
-                {t('Delete Project')}
+                {t('Delete Project and Data')}
               </button>
             </bem.FormModal__item>
           }
