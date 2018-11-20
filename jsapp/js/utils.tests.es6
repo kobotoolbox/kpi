@@ -366,6 +366,16 @@ describe('translations hack', () => {
 describe('readParameters', () => {
   const validReadPairs = [
     {
+      str:'foo=',
+      obj: {foo: ''},
+      note: 'empty parameter'
+    },
+    {
+      str:'foo=;bar=1;fum=;baz=',
+      obj: {foo: '', bar: '1', fum: '', baz: ''},
+      note: 'empty parameters'
+    },
+    {
       str:'foo=bar',
       obj: {foo: 'bar'},
       note: 'single parameter'
