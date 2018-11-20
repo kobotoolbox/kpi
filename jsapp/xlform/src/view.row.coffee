@@ -7,6 +7,7 @@ $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
+$viewParams = require './view.params'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
@@ -74,6 +75,12 @@ module.exports = do ->
         @is_expanded = true
 
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
+
+      parameters = @model.getParameters()
+      if parameters
+        @$card.addClass('card--paramsquestion')
+        @is_expanded = true
+        @paramsView = new $viewParams.ParamsView(model: cl, rowView: @).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)

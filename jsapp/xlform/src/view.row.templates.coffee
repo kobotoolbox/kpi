@@ -242,10 +242,12 @@ module.exports = do ->
     </div>
     """
 
-  rangeQuestionExpansion = ->
+  paramsQuestionContent = ->
     """
-    <div class="card--rangequestion__expansion">
-      range question expansion
+    <div class="card--paramsquestion__content">
+      <div class="params-view">
+        list of parameters
+      </div>
     </div>
     """
 
@@ -274,6 +276,7 @@ module.exports = do ->
 
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
+  paramsQuestionContent: paramsQuestionContent
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView

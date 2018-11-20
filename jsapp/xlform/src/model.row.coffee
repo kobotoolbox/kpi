@@ -420,9 +420,7 @@ module.exports = do ->
       # TODO [ald]: pull this from $aliases
       @get('type').get('typeId') in ['select_one', 'select_multiple']
 
-    getParameters: ->
-      console.log('getParameters', @)
-      return readParameters()
+    getParameters: -> readParameters(@attributes.parameters?.attributes?.value)
 
     setParameters: (obj) ->
       console.log('setParameters', @, obj)

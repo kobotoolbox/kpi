@@ -17,6 +17,19 @@
   padding: 23px 10px 23px 60px;
 }
 
+.card--paramsquestion__content {
+  padding: 13px 10px 13px 20px;
+  @extend %card-content;
+}
+
+.survey__row--selected {
+  .card--paramsquestion__content {
+    border-left-color: $linkColor;
+    border-right-color: $linkColor;
+    border-bottom-color: $linkColor;
+  }
+}
+
 //== ul.card__settings__tabs
 .card__settings__tabs {
   float: left;
