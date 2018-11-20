@@ -179,10 +179,29 @@ module.exports = do ->
         value: "Acknowledge"
     select_one:
       parameters:
-        value: "randomize="
+        value: "randomize=;seed="
     select_multiple:
       parameters:
-        value: "randomize="
+        value: "randomize=;seed="
+
+  configs.paramTypes = {
+    range: {
+      start: 'number'
+      end: 'number'
+      step: 'number'
+    }
+    image: {
+      'max-pixels': 'number'
+    }
+    select_one: {
+      randomize: 'boolean'
+      seed: 'number'
+    }
+    select_multiple: {
+      randomize: 'boolean'
+      seed: 'number'
+    }
+  }
 
   configs.columns = ["type", "name", "label", "hint", "required", "relevant", "default", "constraint"]
 
