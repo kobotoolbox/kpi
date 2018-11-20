@@ -242,6 +242,12 @@ module.exports = do ->
     </div>
     """
 
+  rangeQuestionExpansion = ->
+    """
+    <div class="card--rangequestion__expansion">
+      range question expansion
+    </div>
+    """
 
   selectQuestionExpansion = ->
     """
