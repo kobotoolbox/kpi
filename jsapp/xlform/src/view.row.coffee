@@ -73,7 +73,7 @@ module.exports = do ->
       context = {warnings: []}
 
       questionType = @model.get('type').get('typeId')
-      paramsConfig = $configs.paramTypes[questionType]
+      paramsConfig = $configs.questionParams[questionType]
       if paramsConfig
         @$card.addClass('card--paramsquestion')
 
@@ -83,8 +83,7 @@ module.exports = do ->
         @paramsView = new $viewParams.ParamsView({
           rowView: @,
           parameters: parameters,
-          paramsConfig: paramsConfig,
-          questionType: questionType
+          paramsConfig: paramsConfig
         }).render()
 
       if 'getList' of @model and (cl = @model.getList())

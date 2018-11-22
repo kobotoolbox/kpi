@@ -2,7 +2,7 @@ module.exports = do ->
   _t = require('utils').t
 
   numberParam = (label, number) ->
-    """
+    return """
     <label class='text-box'>
       <span class='text-box__label'>#{label}</span>
       <input class='text-box__input' type='number' value='#{number}'/>
@@ -13,7 +13,7 @@ module.exports = do ->
     if isChecked is 'true'
       checkedAttr = 'checked'
 
-    """
+    return """
     <div class='checkbox'>
       <label class='checkbox__wrapper'>
         <input class='checkbox__input' type='checkbox' #{checkedAttr}/>
