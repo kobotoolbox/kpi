@@ -1,6 +1,7 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 $ = require 'jquery'
+$configs = require './model.configs'
 $rowSelector = require './view.rowSelector'
 $row = require './model.row'
 $modelUtils = require './model.utils'
@@ -71,10 +72,20 @@ module.exports = do ->
       @$header = @$('.card__header')
       context = {warnings: []}
 
-      if 'getParameters' of @model and (parameters = @model.getParameters())
+      questionType = @model.get('type').get('typeId')
+      paramsConfig = $configs.paramTypes[questionType]
+      if paramsConfig
         @$card.addClass('card--paramsquestion')
-        @is_expanded = true
-        @paramsView = new $viewParams.ParamsView(rowView: @, parameters: parameters).render()
+
+        if 'getParameters' of @model
+          parameters = @model.getParameters()
+
+        @paramsView = new $viewParams.ParamsView({
+          rowView: @,
+          parameters: parameters,
+          paramsConfig: paramsConfig,
+          questionType: questionType
+        }).render()
 
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')

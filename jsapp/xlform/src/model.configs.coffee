@@ -126,8 +126,6 @@ module.exports = do ->
     image:
       label:
         value: "Point and shoot! Use the camera to take a photo"
-      parameters:
-        value: "max-pixels="
     video:
       label:
         value: "Use the camera to record a video"
@@ -158,8 +156,6 @@ module.exports = do ->
     range:
       label:
         value: "Choose a range"
-      parameters:
-        value: "start=;end=;step=;"
     calculate:
       calculation:
         value: ""
@@ -177,12 +173,6 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
-    select_one:
-      parameters:
-        value: "randomize=;seed="
-    select_multiple:
-      parameters:
-        value: "randomize=;seed="
 
   configs.paramTypes = {
     range: {
