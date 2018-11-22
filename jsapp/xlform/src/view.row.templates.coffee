@@ -244,10 +244,8 @@ module.exports = do ->
 
   paramsQuestionContent = ->
     """
-    <div class="card--paramsquestion__content">
-      <div class="params-view">
-        list of parameters
-      </div>
+    <div class="card--paramsquestion__content js-cancel-sort">
+      <div class="params-view"></div>
     </div>
     """
 
