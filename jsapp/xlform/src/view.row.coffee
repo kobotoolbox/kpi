@@ -70,16 +70,16 @@ module.exports = do ->
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
+
+      if 'getParameters' of @model and (parameters = @model.getParameters())
+        @$card.addClass('card--paramsquestion')
+        @is_expanded = true
+        @paramsView = new $viewParams.ParamsView(rowView: @, parameters: parameters).render()
+
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
-
-      parameters = @model.getParameters()
-      if parameters
-        @$card.addClass('card--paramsquestion')
-        @is_expanded = true
-        @paramsView = new $viewParams.ParamsView(rowView: @, parameters: parameters).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
