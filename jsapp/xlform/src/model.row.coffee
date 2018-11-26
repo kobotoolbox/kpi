@@ -422,9 +422,9 @@ module.exports = do ->
 
     getParameters: -> readParameters(@attributes.parameters?.attributes?.value)
 
-    setParameters: (obj) ->
-      console.log('setParameters', @, obj)
-      @.set('parameters', writeParameters(obj))
+    setParameters: (paramObject) ->
+      paramString = writeParameters(paramObject)
+      @set('parameters', paramString)
       return
 
     getList: ->

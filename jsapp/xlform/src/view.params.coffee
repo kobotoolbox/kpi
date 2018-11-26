@@ -9,7 +9,6 @@ module.exports = do ->
     initialize: ({@rowView, @parameters={}, @paramsConfig})->
       $($.parseHTML $viewTemplates.row.paramsQuestionContent()).insertAfter @rowView.$('.card__header')
       @$el = @rowView.$('.params-view')
-      console.log('paramsView init', @rowView)
       return
 
     render: ->
@@ -19,8 +18,8 @@ module.exports = do ->
 
     onParamChange: (paramName, paramValue) ->
       @parameters[paramName] = paramValue
-      console.log('onParamChange', @parameters)
-      @$el.trigger('params-update', @rowView.model.cid, @parameters)
+      @rowView.model.setParameters(@parameters)
+      @rowView.model.getSurvey().trigger('change')
       return
 
   class ParamOption extends $baseView
