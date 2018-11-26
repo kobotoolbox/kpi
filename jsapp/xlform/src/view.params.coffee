@@ -33,7 +33,7 @@ module.exports = do ->
       return
 
   class ParamOption extends $baseView
-    className: 'param-option js-cancel-select-row'
+    className: 'param-option'
     events: {
       'input input': 'onChange'
     }

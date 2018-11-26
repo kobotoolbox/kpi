@@ -1,20 +1,8 @@
-.card--paramsquestion__content {
-  @extend %card-content;
-}
-
-.survey__row--selected {
-  .card--paramsquestion__content {
-    border-left-color: $linkColor;
-    border-right-color: $linkColor;
-    border-bottom-color: $linkColor;
-  }
-}
-
 .params-view {
-  padding: 10px;
-
   .param-option {
-    padding: 5px 10px;
-    display: inline-block;
+    display: block;
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
   }
 }
