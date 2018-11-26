@@ -424,7 +424,7 @@ module.exports = do ->
 
     setParameters: (obj) ->
       console.log('setParameters', @, obj)
-      params = writeParameters(obj)
+      @.set('parameters', writeParameters(obj))
       return
 
     getList: ->
