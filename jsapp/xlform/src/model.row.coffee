@@ -424,7 +424,7 @@ module.exports = do ->
 
     setParameters: (paramObject) ->
       paramString = writeParameters(paramObject)
-      @set('parameters', paramString)
+      @setDetail('parameters', paramString)
       return
 
     getList: ->

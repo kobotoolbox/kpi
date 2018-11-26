@@ -242,10 +242,13 @@ module.exports = do ->
     </div>
     """
 
-  paramsQuestionContent = ->
+  paramsSettingsField = ->
     """
-    <div class="card--paramsquestion__content js-cancel-sort">
-      <div class="params-view"></div>
+    <div class="card__settings__fields__field">
+      <label>#{_t('Parameters')}:</label>
+      <span class="settings__input">
+        <div class="params-view"></div>
+      </span>
     </div>
     """
 
@@ -274,7 +277,7 @@ module.exports = do ->
 
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
-  paramsQuestionContent: paramsQuestionContent
+  paramsSettingsField: paramsSettingsField
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView

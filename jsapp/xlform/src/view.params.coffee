@@ -6,20 +6,30 @@ $viewTemplates = require './view.templates'
 
 module.exports = do ->
   class ParamsView extends $baseView
-    initialize: ({@rowView, @parameters={}, @paramsConfig})->
-      $($.parseHTML $viewTemplates.row.paramsQuestionContent()).insertAfter @rowView.$('.card__header')
-      @$el = @rowView.$('.params-view')
+    initialize: ({@rowView, @parameters={}, @paramsConfig}) ->
+      $().insertAfter @rowView.$('.card__header')
+      @$el = $($.parseHTML($viewTemplates.row.paramsSettingsField()))
+      @$paramsViewEl = @$el.find('.params-view')
       return
 
     render: ->
       for paramName, paramType of @paramsConfig
-        new ParamOption(paramName, paramType, @parameters[paramName], @onParamChange.bind(@)).render().$el.appendTo(@$el)
+        new ParamOption(
+          paramName,
+          paramType,
+          @parameters[paramName],
+          @onParamChange.bind(@)
+        ).render().$el.appendTo(@$paramsViewEl)
       return @
 
     onParamChange: (paramName, paramValue) ->
       @parameters[paramName] = paramValue
       @rowView.model.setParameters(@parameters)
       @rowView.model.getSurvey().trigger('change')
+      return
+
+    insertInDOM: (rowView)->
+      @$el.appendTo(rowView.defaultRowDetailParent)
       return
 
   class ParamOption extends $baseView

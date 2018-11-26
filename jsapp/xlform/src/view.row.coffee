@@ -72,20 +72,6 @@ module.exports = do ->
       @$header = @$('.card__header')
       context = {warnings: []}
 
-      questionType = @model.get('type').get('typeId')
-      paramsConfig = $configs.questionParams[questionType]
-      if paramsConfig
-        @$card.addClass('card--paramsquestion')
-
-        if 'getParameters' of @model
-          parameters = @model.getParameters()
-
-        @paramsView = new $viewParams.ParamsView({
-          rowView: @,
-          parameters: parameters,
-          paramsConfig: paramsConfig
-        }).render()
-
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
@@ -222,9 +208,19 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list']
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters']
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
-      @
+
+      questionType = @model.get('type').get('typeId')
+      paramsConfig = $configs.questionParams[questionType]
+      if paramsConfig and 'getParameters' of @model
+        @paramsView = new $viewParams.ParamsView({
+          rowView: @,
+          parameters: @model.getParameters(),
+          paramsConfig: paramsConfig
+        }).render().insertInDOM(@)
+
+      return @
 
     hideMultioptions: ->
       @$card.removeClass('card--expandedchoices')
