@@ -169,13 +169,6 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
             serializer.save()
 
     def perform_destroy(self, instance):
-        # Only directly-applied permissions may be modified; forbid deleting
-        # permissions inherited from ancestors
-        if instance.inherited:
-            raise exceptions.MethodNotAllowed(
-                self.request.method,
-                detail='Cannot delete inherited permissions.'
-            )
         # Make sure the requesting user has the share_ permission on
         # the affected object
         with transaction.atomic():
