@@ -132,14 +132,14 @@ class BasePermissionsTestCase(TestCase):
         self._test_add_inherited_perm(ancestor_collection,
                                       perm_name_prefix, user,
                                       descendant_obj)
-        descendant_perm_name= self._get_perm_name(perm_name_prefix, descendant_obj)
-        ancestor_perm_name= self._get_perm_name(perm_name_prefix, ancestor_collection)
+        descendant_perm_name = self._get_perm_name(perm_name_prefix, descendant_obj)
+        ancestor_perm_name = self._get_perm_name(perm_name_prefix, ancestor_collection)
         ancestor_collection.remove_perm(user, ancestor_perm_name)
         self.assertFalse(user.has_perm(descendant_perm_name, descendant_obj))
 
 
 class PermissionsTestCase(BasePermissionsTestCase):
-    fixtures= ['test_data']
+    fixtures = ['test_data']
 
     def setUp(self):
         self.admin = User.objects.get(username='admin')

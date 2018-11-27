@@ -55,13 +55,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         kwargs.update({'name': name})
-        response= self.client.post(reverse('collection-list'), kwargs)
+        response = self.client.post(reverse('collection-list'), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
             self.client.logout()
 
-        collection= self.url_to_obj(response.data['url'])
+        collection = self.url_to_obj(response.data['url'])
         return collection
 
     def create_asset(self, name, content=None, owner=None,
@@ -94,14 +94,14 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url= reverse('collection-detail',
+        parent_url = reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
-        parent_detail_response= self.client.get(parent_url)
+        parent_detail_response = self.client.get(parent_url)
         self.assertEqual(
             parent_detail_response.status_code, status.HTTP_200_OK)
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
+        child_view_name = child._meta.model_name + '-detail'
+        child_url = reverse(child_view_name,
                            kwargs={'uid': child.uid})
         child_detail_response= self.client.get(child_url)
         self.assertEqual(child_detail_response.status_code, status.HTTP_200_OK)
@@ -109,8 +109,8 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.client.logout()
 
-        parent_data= parent_detail_response.data
-        child_data= child_detail_response.data
+        parent_data = parent_detail_response.data
+        child_data = child_detail_response.data
         self.assertIn(parent_url, child_data['parent'])
 
         child_field= 'children'
@@ -128,13 +128,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url= reverse('collection-detail',
+        parent_url = reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
+        child_view_name = child._meta.model_name + '-detail'
+        child_url = reverse(child_view_name,
                            kwargs={'uid': child.uid})
-        response= self.client.patch(child_url, {'parent': parent_url})
+        response = self.client.patch(child_url, {'parent': parent_url})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assert_child_of(child, parent_collection, owner, owner_password)
 

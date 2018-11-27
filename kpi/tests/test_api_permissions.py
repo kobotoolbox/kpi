@@ -56,18 +56,19 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
     def setUp(self):
         KpiTestCase.setUp(self)
 
-        self.anon= get_anonymous_user()
-        self.admin= User.objects.get(username='admin')
-        self.admin_password= 'pass'
-        self.someuser= User.objects.get(username='someuser')
-        self.someuser_password= 'someuser'
+        self.anon = get_anonymous_user()
+        self.admin = User.objects.get(username='admin')
+        self.admin_password = 'pass'
+        self.someuser = User.objects.get(username='someuser')
+        self.someuser_password = 'someuser'
+        self.anotheruser = User.objects.get(username='anotheruser')
 
         self.login(self.admin.username, self.admin_password)
-        self.admins_public_asset= self.create_asset('admins_public_asset')
+        self.admins_public_asset = self.create_asset('admins_public_asset')
         self.add_perm(self.admins_public_asset, self.anon, 'view')
 
         self.login(self.someuser.username, self.someuser_password)
-        self.someusers_public_asset= self.create_asset('someusers_public_asset')
+        self.someusers_public_asset = self.create_asset('someusers_public_asset')
         self.add_perm(self.someusers_public_asset, self.anon, 'view')
 
     def test_user_can_view_public_asset(self):
@@ -75,29 +76,29 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
 
     def test_public_asset_not_in_list_user(self):
         self.assert_object_in_object_list(self.admins_public_asset, self.someuser, self.someuser_password,
-                                     in_list=False)
+                                          in_list=False)
 
     def test_public_asset_not_in_list_admin(self):
         self.assert_object_in_object_list(self.someusers_public_asset, self.admin, self.admin_password,
-                                     in_list=False)
+                                          in_list=False)
 
 
 class ApiPermissionsTestCase(KpiTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.admin= User.objects.get(username='admin')
-        self.admin_password= 'pass'
-        self.someuser= User.objects.get(username='someuser')
-        self.someuser_password= 'someuser'
+        self.admin = User.objects.get(username='admin')
+        self.admin_password = 'pass'
+        self.someuser = User.objects.get(username='someuser')
+        self.someuser_password = 'someuser'
         self.anotheruser = User.objects.get(username='anotheruser')
         self.anotheruser_password = 'anotheruser'
 
         self.assertTrue(self.client.login(username=self.admin.username,
                                           password=self.admin_password))
-        self.admin_asset= self.create_asset('admin_asset')
-        self.admin_collection= self.create_collection('admin_collection')
-        self.child_collection= self.create_collection('child_collection')
+        self.admin_asset = self.create_asset('admin_asset')
+        self.admin_collection = self.create_collection('admin_collection')
+        self.child_collection = self.create_collection('child_collection')
         self.add_to_collection(self.child_collection, self.admin_collection)
         self.client.logout()
 
@@ -119,7 +120,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Wow, that's quite a function name...
         # Ensure that "someuser" doesn't have permission to view the survey
         #   asset owned by "admin".
-        perm_name= self._get_perm_name('view_', self.admin_asset)
+        perm_name = self._get_perm_name('view_', self.admin_asset)
         self.assertFalse(self.someuser.has_perm(perm_name, self.admin_asset))
 
         # Verify they can't view the asset through the API.
@@ -181,14 +182,14 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the asset.
-        delete_perm= self._get_perm_name('delete_', self.admin_asset)
+        delete_perm = self._get_perm_name('delete_', self.admin_asset)
         self.assertFalse(self.someuser.has_perm(delete_perm, self.admin_asset))
 
         # Test that "someuser" can't delete the asset.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url= reverse('asset-detail', kwargs={'uid': self.admin_asset.uid})
-        response= self.client.delete(url)
+        url = reverse('asset-detail', kwargs={'uid': self.admin_asset.uid})
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_inherited_viewable_asset_not_deletable(self):
@@ -205,8 +206,8 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Test that "someuser" can't delete the asset.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url= reverse('asset-detail', kwargs={'uid': self.admin_asset.uid})
-        response= self.client.delete(url)
+        url = reverse('asset-detail', kwargs={'uid': self.admin_asset.uid})
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_copy_permissions_between_assets(self):
@@ -362,7 +363,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Wow, that's quite a function name...
         # Ensure that "someuser" doesn't have permission to view the survey
         #   collection owned by "admin".
-        perm_name= self._get_perm_name('view_', self.admin_collection)
+        perm_name = self._get_perm_name('view_', self.admin_collection)
         self.assertFalse(self.someuser.has_perm(perm_name, self.admin_collection))
 
         # Verify they can't view the collection through the API.
@@ -377,7 +378,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.someuser_password)
 
     def test_viewable_collection_inheritance_conflict(self):
-        grandchild_collection= self.create_collection('grandchild_collection',
+        grandchild_collection = self.create_collection('grandchild_collection',
                                                       self.admin, self.admin_password)
         self.add_to_collection(grandchild_collection, self.child_collection,
                                self.admin, self.admin_password)
@@ -398,7 +399,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.someuser_password)
 
     def test_non_viewable_collection_inheritance_conflict(self):
-        grandchild_collection= self.create_collection('grandchild_collection',
+        grandchild_collection = self.create_collection('grandchild_collection',
                                                       self.admin, self.admin_password)
         self.add_to_collection(grandchild_collection, self.child_collection,
                                self.admin, self.admin_password)
@@ -420,16 +421,16 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the collection.
-        delete_perm= self._get_perm_name('delete_', self.admin_collection)
+        delete_perm = self._get_perm_name('delete_', self.admin_collection)
         self.assertFalse(self.someuser.has_perm(delete_perm,
                                                 self.admin_collection))
 
         # Test that "someuser" can't delete the collection.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url= reverse('collection-detail', kwargs={'uid':
-                                                  self.admin_collection.uid})
-        response= self.client.delete(url)
+        url = reverse('collection-detail', kwargs={'uid':
+                                                   self.admin_collection.uid})
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_inherited_viewable_collection_not_deletable(self):
@@ -437,13 +438,14 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the child collection.
-        delete_perm= self._get_perm_name('delete_', self.child_collection)
+        delete_perm = self._get_perm_name('delete_', self.child_collection)
         self.assertFalse(self.someuser.has_perm(delete_perm, self.child_collection))
 
         # Test that "someuser" can't delete the child collection.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url= reverse('collection-detail', kwargs={'uid':
+        url = reverse('collection-detail', kwargs={'uid':
                                                   self.child_collection.uid})
-        response= self.client.delete(url)
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
