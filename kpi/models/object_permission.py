@@ -399,15 +399,6 @@ class ObjectPermissionMixin(object):
             # Anonymous users weren't considered; no filtering is necessary
             return effective_perms
 
-    def get_effective_perms(self, include_calculated=True):
-        effective_perms = self.get_effective_perms(include_calculated=include_calculated)
-        users_ids = []
-        permissions_ids = []
-        for user_id, permission_id in effective_perms:
-            users_ids.append(user_id)
-            permissions_ids.append(permission_id)
-        return list(set(users_ids)), list(set(permissions_ids))
-
     def recalculate_descendants_perms(self):
         ''' Recalculate the inherited permissions of all descendants. Expects
         either self.get_mixed_children() or self.get_children() to exist. The
