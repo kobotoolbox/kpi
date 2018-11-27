@@ -188,6 +188,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
                 instance.permission.codename
             )
 
+
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.select_related(
