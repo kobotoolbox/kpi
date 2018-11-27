@@ -532,7 +532,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_permissions(self, obj):
         queries = []
-        for user_id, perm_id in list(obj._get_effective_perms()):
+        for user_id, perm_id in list(obj.get_effective_perms()):
             queries.append(Q(permission_id=perm_id, user_id=user_id))
 
         # Take one Q object from the list

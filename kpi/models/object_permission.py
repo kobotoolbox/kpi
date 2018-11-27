@@ -303,7 +303,7 @@ class ObjectPermissionMixin(object):
                     filtered_set.remove((user_id, permission_id))
         return filtered_set
 
-    def _get_effective_perms(
+    def get_effective_perms(
         self, user=None, codename=None, include_calculated=True
     ):
         ''' Reconcile all grant and deny permissions, and return an
@@ -400,7 +400,7 @@ class ObjectPermissionMixin(object):
             return effective_perms
 
     def get_effective_perms(self, include_calculated=True):
-        effective_perms = self._get_effective_perms(include_calculated=include_calculated)
+        effective_perms = self.get_effective_perms(include_calculated=include_calculated)
         users_ids = []
         permissions_ids = []
         for user_id, permission_id in effective_perms:
@@ -433,7 +433,7 @@ class ObjectPermissionMixin(object):
                 break
             # Get the effective permissions once per parent so that each child
             # does not have to query the database for the same information
-            parent_effective_perms = parent._get_effective_perms(
+            parent_effective_perms = parent.get_effective_perms(
                 include_calculated=False)
             # Get all children, retrieving only the necessary fields from the
             # database. NB: `content` is particularly heavy
@@ -528,7 +528,7 @@ class ObjectPermissionMixin(object):
             # Get our parent's effective permissions from the database if they
             # were not passed in as an argument
             if parent_effective_perms is None:
-                parent_effective_perms = self.parent._get_effective_perms(
+                parent_effective_perms = self.parent.get_effective_perms(
                     include_calculated=False)
             # All our parent's effective permissions become our inherited
             # permissions. Store translations in the translate_perm dictionary
@@ -708,7 +708,7 @@ class ObjectPermissionMixin(object):
     def get_perms(self, user_obj):
         ''' Return a list of codenames of all effective grant permissions that
         user_obj has on this object. '''
-        user_perm_ids = self._get_effective_perms(user=user_obj)
+        user_perm_ids = self.get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
         return Permission.objects.filter(pk__in=perm_ids).values_list(
             'codename', flat=True)
@@ -717,7 +717,7 @@ class ObjectPermissionMixin(object):
         ''' Return a QuerySet of all users with any effective grant permission
         on this object. If attach_perms=True, then return a dict with
         users as the keys and lists of their permissions as the values. '''
-        user_perm_ids = self._get_effective_perms()
+        user_perm_ids = self.get_effective_perms()
         if attach_perms:
             user_perm_dict = {}
             for user_id, perm_id in user_perm_ids:
@@ -746,7 +746,7 @@ class ObjectPermissionMixin(object):
         if user_obj.is_active and user_obj.is_superuser:
             return True
         # Look for matching permissions
-        result = len(self._get_effective_perms(
+        result = len(self.get_effective_perms(
             user=user_obj,
             codename=codename
         )) == 1
