@@ -10,6 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.db import transaction
+from django.db.models import Q
 from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
@@ -508,7 +509,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
+    permissions = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -528,6 +529,28 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
+
+    def get_permissions(self, obj):
+        queries = []
+        for user_id, perm_id in list(obj._get_effective_perms()):
+            queries.append(Q(permission_id=perm_id, user_id=user_id))
+
+        # Take one Q object from the list
+        query = queries.pop()
+
+        # `OR` the Q object with the ones remaining in the list
+        for item in queries:
+            query |= item
+
+        # Concatenate all `OR` and `object_id`
+        object_permissions = ObjectPermission.objects.filter(object_id=obj.id)
+        object_permissions = object_permissions.filter(query)
+
+        serializer = ObjectPermissionNestedSerializer(instance=object_permissions,
+                                                      context=self.context,
+                                                      many=True,
+                                                      read_only=True)
+        return serializer.data
 
     class Meta:
         model = Asset
