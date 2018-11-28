@@ -1178,7 +1178,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         elif request.method == 'POST':
             if not asset.can_be_deployed:
                 raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    self.asset_type))
+                    asset.asset_type))
             else:
                 if asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -1198,7 +1198,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         elif request.method == 'PATCH':
             if not asset.can_be_deployed:
                 raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    self.asset_type))
+                    asset.asset_type))
             else:
                 if not asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
