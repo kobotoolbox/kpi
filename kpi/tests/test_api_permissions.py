@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from ..models.object_permission import get_anonymous_user
+from ..models.asset import Asset
 from .kpi_test_case import KpiTestCase
 
 
@@ -445,7 +446,32 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
         url = reverse('collection-detail', kwargs={'uid':
-                                                  self.child_collection.uid})
+                                                   self.child_collection.uid})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_effective_permissions(self):
+        self.client.login(username=self.someuser.username,
+                          password=self.someuser_password)
+        user_asset = self.create_asset('user_asset')
+        user_collection = self.create_collection('user_collection')
+        self.add_to_collection(user_asset, user_collection)
+
+        self.add_perm(user_collection, self.anotheruser, 'view_')
+
+        asset_detail_url = reverse("asset-detail", kwargs={"uid": user_asset.uid})
+        asset_detail_response = self.client.get(asset_detail_url)
+        anotheruser_permissions = [p.get("uid") for p in asset_detail_response.data.get("permissions")
+                                   if p.get("user").split("/")[-2] == self.anotheruser.username]
+
+        permission_detail_url = reverse("objectpermission-detail", kwargs={"uid": anotheruser_permissions[0]})
+        permission_detail_response = self.client.get(permission_detail_url)
+        self.assertEqual(user_asset.get_perms(self.anotheruser)[0], permission_detail_response.data.get("permission"))
+        self.client.delete(permission_detail_url)
+        self.assertTrue(len(user_asset.get_perms(self.anotheruser)) == 0)
+
+        self.assertTrue(user_asset.permissions.filter(deny=True,
+                                                      user_id=self.anotheruser.id)
+                        .count() == len(Asset.ASSIGNABLE_PERMISSIONS))
+        self.assertTrue(user_asset.permissions.filter(deny=False,
+                                                      user_id=self.anotheruser.id).count() == 0)
