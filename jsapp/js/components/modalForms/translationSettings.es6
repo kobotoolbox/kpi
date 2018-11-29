@@ -265,9 +265,9 @@ export class TranslationSettings extends React.Component {
         <bem.FormModal__item>
           {(translations && translations[0] === null) ?
             <bem.FormView__cell m='translation-note'>
-              {t('Here you can add more languages to your project, and translate the strings in each of them.')}
-              <br/>
-              <strong>{t('Please name your default language before adding languages and translations.')}</strong>
+              <p>{t('Here you can add more languages to your project, and translate the strings in each of them.')}</p>
+              <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
+              <p>{t('For the language code field, we suggest using the <a href="##code_url##">official language code</a> (e.g. `English (en)` or `Rohingya (rhg)`). <a href="##more_url##">Read more.</a>').replace('##code_url', 'https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry').replace('##more_url', 'http://xlsform.org/en/#multiple-language-support')}</p>
             </bem.FormView__cell>
             :
             <bem.FormView__cell m='label'>
