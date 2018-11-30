@@ -79,6 +79,11 @@ $t-form-builder-aside-open: 200ms;
     margin: 24px auto;
     padding: 12px 20px;
 
+    p {
+      font-family: monospace;
+      white-space: pre;
+    }
+
     &__strong {
       border: 1px solid black;
       padding-right: 12px;
