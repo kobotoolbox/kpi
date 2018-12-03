@@ -584,8 +584,20 @@ export default assign({
     }
   },
 
-  safeNavigateToFormsList() {
-    this.safeNavigateToRoute('/forms/');
+  safeNavigateToList() {
+    if (this.state.asset_type) {
+      if (this.state.asset_type === 'survey') {
+        this.safeNavigateToRoute('/forms/');
+      } else {
+        this.safeNavigateToRoute('/library/');
+      }
+    } else {
+      if (this.props.location.pathname.startsWith('/library/new')) {
+        this.safeNavigateToRoute('/library/');
+      } else {
+        this.safeNavigateToRoute('/forms/');
+      }
+    }
   },
 
   safeNavigateToForm() {
@@ -641,7 +653,7 @@ export default assign({
             m={'logo'}
             data-tip={t('Return to list')}
             className='left-tooltip'
-            onClick={this.safeNavigateToFormsList}
+            onClick={this.safeNavigateToList}
           >
             <i className='k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
