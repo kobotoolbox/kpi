@@ -191,7 +191,7 @@ module.exports = do ->
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
       ["image", "Image", isMedia: true], # Can use phone camera, for example
-      ["barcode", "Barcode"], # Can scan a barcode using the phone camera
+      ["barcode", "Barcode / QR code"], # Can scan a barcode using the phone camera
       ["date", "Date"], #e.g. (4 July, 1776)
       ["time", "Time"], #e.g. (4 July, 1776)
       ["datetime", "Date and Time"], #e.g. (2012-Jan-4 3:04PM)
