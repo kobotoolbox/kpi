@@ -197,7 +197,7 @@ module.exports = do ->
         if value == ''
           return newValue: new Array(10).join('&nbsp;')
         else
-        return newValue: value;
+          return newValue: value;
 
   class RowView extends BaseRowView
     _expandedRender: ->
