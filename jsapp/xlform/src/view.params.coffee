@@ -7,7 +7,6 @@ $viewTemplates = require './view.templates'
 module.exports = do ->
   class ParamsView extends $baseView
     initialize: ({@rowView, @parameters={}, @paramsConfig}) ->
-      $().insertAfter @rowView.$('.card__header')
       @$el = $($.parseHTML($viewTemplates.row.paramsSettingsField()))
       @$paramsViewEl = @$el.find('.params-view')
       return

@@ -1,6 +1,4 @@
 module.exports = do ->
-  _t = require('utils').t
-
   numberParam = (label, number) ->
     return """
     <label class='text-box'>
