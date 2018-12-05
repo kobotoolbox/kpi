@@ -1,7 +1,9 @@
 import $ from 'jquery';
 
 import {
+  t,
   assign,
+  notify
 } from './utils';
 
 var dataInterface;
@@ -24,6 +26,16 @@ var dataInterface;
     }
   })();
   this.rootUrl = rootUrl;
+
+  $(document).ajaxError((event, request, settings) => {
+    if (request.status === 403 || request.status === 401) {
+      let errorMessage = t("It seems you're not logged in anymore. Try reloading the page")
+      if (request.responseJSON && request.responseJSON.detail) {
+        errorMessage = request.responseJSON.detail;
+      }
+      notify(errorMessage, 'error');
+    }
+  });
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
