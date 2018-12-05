@@ -69,7 +69,10 @@ module.exports = do ->
       for mrow in $icons.grouped()
         menurow = $("<div>", class: "questiontypelist__row").appendTo $menu
         for mitem, i in mrow when mitem
-          menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
+          if mitem.id is 'range'
+            console.warn("range question type is not fully supported yet")
+          else
+            menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
 
       @scrollFormBuilder('+=220')
       @$('.questiontypelist__item').click _.bind(@selectMenuItem, @)
