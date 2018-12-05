@@ -1,12 +1,14 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 $ = require 'jquery'
+$configs = require './model.configs'
 $rowSelector = require './view.rowSelector'
 $row = require './model.row'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
+$viewParams = require './view.params'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
@@ -69,10 +71,10 @@ module.exports = do ->
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
+
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
-
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
@@ -206,9 +208,19 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list']
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters']
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
-      @
+
+      questionType = @model.get('type').get('typeId')
+      paramsConfig = $configs.questionParams[questionType]
+      if paramsConfig and 'getParameters' of @model
+        @paramsView = new $viewParams.ParamsView({
+          rowView: @,
+          parameters: @model.getParameters(),
+          paramsConfig: paramsConfig
+        }).render().insertInDOM(@)
+
+      return @
 
     hideMultioptions: ->
       @$card.removeClass('card--expandedchoices')
