@@ -149,7 +149,7 @@ class AssetImportTaskTest(APITestCase):
         self.assertEqual(detail_response.data['status'], 'error')
         self.assertTrue(
             detail_response.data['messages']['error'].startswith(
-                "Translation `English (en)` could not be found in your form. "
-                "We found the translations: `English`. Please select one of these with the exact same spelling."
+                "`English (en)` is specified as the default language, "
+                "but only these translations are present in the form:"
             )
         )
