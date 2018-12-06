@@ -536,6 +536,15 @@ class ProjectSettings extends React.Component {
    * rendering
    */
 
+  renderChooseTemplateButton() {
+    return (
+      <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
+        <i className='k-icon-template' />
+        {t('Use a template')}
+      </button>
+    )
+  }
+
   renderStepFormSource() {
     return (
       <bem.FormModal__form className='project-settings project-settings--form-source'>
@@ -553,10 +562,9 @@ class ProjectSettings extends React.Component {
             </button>
           }
 
-          <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-            <i className='k-icon-template' />
-            {t('Use a template')}
-          </button>
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
+            this.renderChooseTemplateButton()
+          }
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
             <i className='k-icon-upload' />
@@ -567,6 +575,10 @@ class ProjectSettings extends React.Component {
             <i className='k-icon-link' />
             {t('Import an XLSForm via URL')}
           </button>
+
+          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.NEW &&
+            this.renderChooseTemplateButton()
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
