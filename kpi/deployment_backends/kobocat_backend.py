@@ -18,10 +18,10 @@ from rest_framework import exceptions, status, serializers
 from rest_framework.request import Request
 from rest_framework.authtoken.models import Token
 
+from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
 from .kc_access.shadow_models import _models
-from ..exceptions import BadFormatException
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.utils.mongo_helper import MongoDecodingHelper
 from kpi.utils.log import logging
@@ -206,6 +206,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform_id_string(self):
         return self.asset._deployment_data.get('backend_response', {}).get('id_string')
+
+    @property
+    def xform_id(self):
+        pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
+        xform = _models.XForm.objects.filter(pk=pk).only(
+            'user__username', 'id_string').first()
+        if not (xform.user.username == self.asset.owner.username and
+                xform.id_string == self.xform_id_string):
+            raise Exception('Deployment links to an unexpected KoBoCAT XForm')
+        return pk
 
     @property
     def mongo_userform_id(self):
@@ -489,14 +499,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: list: mixed
         """
         submissions = []
-        getter = getattr(self, "_{}__get_submissions_in_{}".format(
-            self.__class__.__name__,
-            format_type))
-        try:
-            submissions = getter(instances_ids)
-        except Exception as e:
-            logging.error("KobocatDeploymentBackend.get_submissions  - {}".format(str(e)))
-
+        if format_type == INSTANCE_FORMAT_TYPE_JSON:
+            submissions = self.__get_submissions_in_json(instances_ids)
+        elif format_type == INSTANCE_FORMAT_TYPE_XML:
+            submissions = self.__get_submissions_in_xml(instances_ids)
+        else:
+            raise BadFormatException(
+                "The format {} is not supported".format(format_type)
+            )
         return submissions
 
     def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
@@ -524,7 +534,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: generator<JSON>
         """
         query = {
-            "_xform_id_string": self.asset.uid,
+            "_userform_id": self.mongo_userform_id,
             "_deleted_at": {"$exists": False}
         }
 
@@ -547,10 +557,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: list<XML>
         """
         queryset = _models.Instance.objects.filter(
-            xform__id_string=self.asset.uid,
-            deleted_at=None)
+            xform_id=self.xform_id,
+            deleted_at=None
+        )
 
         if len(instances_ids) > 0:
             queryset = queryset.filter(id__in=instances_ids)
+
+        queryset = queryset.order_by("id")
 
         return (lazy_instance.xml for lazy_instance in queryset)

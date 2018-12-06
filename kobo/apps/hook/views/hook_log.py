@@ -14,6 +14,7 @@ from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
 from kpi.models import Asset
+from kpi.permissions import AssetOwnerNestedObjectsPermissions
 from kpi.serializers import TinyPaginated
 from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
 
@@ -72,7 +73,7 @@ class HookLogViewSet(NestedViewSetMixin,
         AssetOwnerFilterBackend,
     )
     serializer_class = HookLogSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AssetOwnerNestedObjectsPermissions,)
     pagination_class = TinyPaginated
 
     def get_queryset(self):
@@ -82,12 +83,6 @@ class HookLogViewSet(NestedViewSetMixin,
         queryset = queryset.select_related("hook__asset__uid")
 
         return queryset
-
-    def list(self, request, *args, **kwargs):
-        # Same as HookViewSet.list()
-        asset_uid = self.get_parents_query_dict().get("asset")
-        asset = get_object_or_404(Asset, uid=asset_uid, owner=request.user)
-        return super(HookLogViewSet, self).list(request, *args, **kwargs)
 
     @detail_route(methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):

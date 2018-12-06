@@ -513,9 +513,8 @@ class AssetExportTaskTest(APITestCase):
             '__version__': v_uid,
             'q1': u'¿Qué tal?'
         }
-        self.asset.deployment._mock_submission(submission)
-        self.asset.save(create_version=False)
-        settings.CELERY_ALWAYS_EAGER = True
+        self.asset.deployment.mock_submissions([submission])
+        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def result_stored_locally(self, detail_response):
         '''
@@ -535,7 +534,7 @@ class AssetExportTaskTest(APITestCase):
         # Create the export task
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'complete')
@@ -549,8 +548,8 @@ class AssetExportTaskTest(APITestCase):
             result_content = result_response.content
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
-            '"q1";"_id";"_uuid";"_submission_time";"_index"\r\n',
-            '"¿Qué tal?";"";"";"";"1"\r\n',
+            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_index"\r\n',
+            '"¿Qué tal?";"";"";"";"";"1"\r\n',
         ])
         self.assertEqual(result_content, expected_content)
         return detail_response

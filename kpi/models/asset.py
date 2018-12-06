@@ -756,6 +756,7 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         ''' Used by serializers to improve performance when listing assets '''
@@ -818,9 +819,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.asset_version is None:
-                self.asset_version = self.asset.latest_version
             if self.source is None:
+                if self.asset_version is None:
+                    self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
             if self.owner is None:
                 self.owner = self.asset.owner

@@ -448,6 +448,7 @@ mixins.clickAssets = {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
+              hashHistory.push(`/forms/${asset.uid}/landing`);
               notify(t('cloned project created'));
             }
             });

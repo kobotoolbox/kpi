@@ -313,7 +313,7 @@ export default assign({
     if (this.state.asset) {
       surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
     }
-    let params = {content: surveyJSON};
+    let params = {source: surveyJSON};
 
     params = koboMatrixParser(params);
 

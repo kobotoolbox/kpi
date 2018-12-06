@@ -7,12 +7,14 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
+from __future__ import absolute_import
 
 from datetime import timedelta
 import multiprocessing
 import os
 import subprocess
 
+from celery.schedules import crontab
 import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
@@ -21,7 +23,7 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from static_lists import EXTRA_LANG_INFO
+from .static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -42,6 +44,11 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscs
 if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
+
+# Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
+# It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
+if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
+    USE_X_FORWARDED_HOST = True
 
 UPCOMING_DOWNTIME = False
 
@@ -93,6 +100,7 @@ INSTALLED_APPS = (
     'constance.backends.database',
     'guardian', # For access to KC permissions ONLY
     'kobo.apps.hook',
+    'django_celery_beat',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -137,6 +145,9 @@ CONSTANCE_CONFIG = {
                                        'help@kobotoolbox.org'),
                       'Email address for users to contact, e.g. when they '
                       'encounter unhandled errors in the application'),
+    'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
+                                       'Allow the use of unsecured endpoints for hooks. '
+                                       '(e.g http://hook.example.com)'),
     'HOOK_MAX_RETRIES': (3,
                          'Number of times the system will retry '
                          'to send data to remote server before giving up')
@@ -273,9 +284,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-        'rest_framework_xml.renderers.XMLRenderer',
+       'rest_framework.renderers.JSONRenderer',
+       'rest_framework.renderers.BrowsableAPIRenderer',
+       'kpi.renderers.XMLRenderer',
     ]
 }
 
@@ -373,29 +384,37 @@ ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 
 ''' Celery configuration '''
+# Celery 4.0 New lowercase settings.
+# Uppercase settings can be used when using a PREFIX
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
+# http://docs.celeryproject.org/en/4.0/whatsnew-4.0.html#step-2-update-your-configuration-with-the-new-setting-names
+
+CELERY_TIMEZONE = "UTC"
 
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
-    CELERY_ALWAYS_EAGER = True
+    CELERY_TASK_ALWAYS_EAGER = True
 
 # Celery defaults to having as many workers as there are cores. To avoid
 # excessive resource consumption, don't spawn more than 6 workers by default
 # even if there more than 6 cores.
+
 CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
 if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
-    CELERYD_CONCURRENCY = CELERYD_MAX_CONCURRENCY
+    CELERY_WORKER_CONCURRENCY = CELERYD_MAX_CONCURRENCY
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
-CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
+CELERY_WORKER_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Default to a 30-minute soft time limit and a 35-minute hard time limit
-CELERYD_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
-CELERYD_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
+CELERY_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
+
+CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
     'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
 
-CELERYBEAT_SCHEDULE = {
+CELERY_BEAT_SCHEDULE = {
     # Failsafe search indexing: update the Haystack index twice per day to
     # catch any stragglers that might have gotten past
     # haystack.signals.RealtimeSignalProcessor
@@ -403,6 +422,11 @@ CELERYBEAT_SCHEDULE = {
     #    'task': 'kpi.tasks.update_search_index',
     #    'schedule': timedelta(hours=12)
     #},
+    # Schedule every day at midnight UTC. Can be customized in admin section
+    "send-hooks-failures-reports": {
+        "task": "kobo.apps.hook.tasks.failures_reports",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 
 if 'KOBOCAT_URL' in os.environ:
@@ -413,7 +437,7 @@ if 'KOBOCAT_URL' in os.environ:
         # Create/update KPI assets to match KC forms
         SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
             os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
-        CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
+        CELERY_BEAT_SCHEDULE['sync-kobocat-xforms'] = {
             'task': 'kpi.tasks.sync_kobocat_xforms',
             'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
             'options': {'queue': 'sync_kobocat_xforms_queue',
@@ -428,7 +452,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
+CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
@@ -510,7 +534,12 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True
-        }
+        },
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': True
+        },
     }
 }
 

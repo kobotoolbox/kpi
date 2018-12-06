@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -170,6 +171,7 @@ class SharingForm extends React.Component {
       userInputStatus: false,
       permInput: 'view'
     };
+    this._usernameCheckDebounced = _.debounce(this._usernameCheckCall.bind(this), 500);
     autoBind(this);
   }
   assetChange (data) {
@@ -210,6 +212,10 @@ class SharingForm extends React.Component {
     return this.usernameField().value;
   }
   usernameCheck (evt) {
+    evt.persist();
+    this._usernameCheckDebounced(evt);
+  }
+  _usernameCheckCall (evt) {
     var username = evt.target.value;
     if (username && username.length > 1) {
       var result = stores.userExists.checkUsername(username);

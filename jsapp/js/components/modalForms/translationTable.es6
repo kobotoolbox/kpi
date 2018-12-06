@@ -19,10 +19,10 @@ export class TranslationTable extends React.Component {
     super(props);
     this.state = {
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
-      hasUnsavedChanges: false,
       isSaveChangesButtonPending: false,
       tableData: []
     };
+    stores.translations.setTranslationTableUnsaved(false);
     const {translated, survey, choices, translations} = props.asset.content;
     const langIndex = props.langIndex;
 
@@ -72,7 +72,7 @@ export class TranslationTable extends React.Component {
               const data = [...this.state.tableData];
               data[cellInfo.index].value = e.target.value;
               this.setState({ data });
-              this.markSaveButtonUnsaved();
+              this.markFormUnsaved();
             }}
             value={this.state.tableData[cellInfo.index].value || ''}/>
         )
@@ -80,28 +80,28 @@ export class TranslationTable extends React.Component {
     ];
   }
 
-  markSaveButtonUnsaved() {
+  markFormUnsaved() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.UNSAVED,
-      hasUnsavedChanges: true,
       isSaveChangesButtonPending: false
     });
+    stores.translations.setTranslationTableUnsaved(true);
   }
 
-  markSaveButtonPending() {
+  markFormPending() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.PENDING,
-      hasUnsavedChanges: true,
       isSaveChangesButtonPending: true
     });
+    stores.translations.setTranslationTableUnsaved(true);
   }
 
-  markSaveButtonIdle() {
+  markFormIdle() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
-      hasUnsavedChanges: false,
       isSaveChangesButtonPending: false
     });
+    stores.translations.setTranslationTableUnsaved(false);
   }
 
   saveChanges() {
@@ -118,26 +118,26 @@ export class TranslationTable extends React.Component {
       }
     }
 
-    this.markSaveButtonPending();
+    this.markFormPending();
     actions.resources.updateAsset(
       this.props.asset.uid,
       {
         content: JSON.stringify(content)
       },
       {
-        onComplete: this.markSaveButtonIdle.bind(this),
-        onFailed: this.markSaveButtonUnsaved.bind(this)
+        onComplete: this.markFormIdle.bind(this),
+        onFailed: this.markFormUnsaved.bind(this)
       }
     );
   }
 
   onBack() {
-    if (this.state.hasUnsavedChanges) {
+    if (stores.translations.state.isTranslationTableUnsaved) {
       const dialog = alertify.dialog('confirm');
       const opts = {
         title: t('Go back?'),
         message: t('You will lose all unsaved changes.'),
-        labels: {ok: t('Go back'), cancel: t('Cancel')},
+        labels: {ok: t('Confirm'), cancel: t('Cancel')},
         onok: this.showManageLanguagesModal.bind(this),
         oncancel: dialog.destroy
       };

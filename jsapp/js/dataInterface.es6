@@ -85,7 +85,7 @@ var dataInterface;
     },
     getHook(uid, hookUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}/`,
         method: 'GET'
       });
     },
@@ -100,7 +100,7 @@ var dataInterface;
     },
     updateExternalService(uid, hookUid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}/`,
         method: 'PATCH',
         data: JSON.stringify(data),
         dataType: 'json',
@@ -109,7 +109,7 @@ var dataInterface;
     },
     deleteExternalService(uid, hookUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}`,
+        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}/`,
         method: 'DELETE'
       });
     },

@@ -5,17 +5,17 @@
 #    pip-compile --output-file dependencies/pip/external_services.txt dependencies/pip/external_services.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@c94751b25f315e15db6d32fa2ebf816263cb6c56#egg=formpack
-amqp==1.4.9
+-e git+https://github.com/kobotoolbox/formpack.git@40110eeb001b1a581aad6836f746fedef8be5752#egg=formpack
+amqp==2.3.2
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
 begins==0.9
-billiard==3.3.0.23
+billiard==3.5.0.4
 boto3==1.5.8
 boto==2.40.0
 botocore==1.8.22          # via boto3, s3transfer
-celery==3.1.23
+celery==4.2.1
 cffi==1.8.3               # via cryptography
 contextlib2==0.5.4        # via raven
 cookies==2.2.1            # via responses
@@ -26,6 +26,7 @@ defusedxml==0.5.0         # via djangorestframework-xml
 dj-database-url==0.4.1
 dj-static==0.0.6
 django-braces==1.8.1
+django-celery-beat==1.1.1
 django-constance[database]==2.2.0
 django-debug-toolbar==1.4
 django-extensions==1.6.7
@@ -61,7 +62,7 @@ ipaddress==1.0.17         # via cryptography
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==1.0.3
 jsonschema==2.6.0
-kombu==3.0.35
+kombu==4.2.1
 linecache2==1.0.0         # via traceback2
 lxml==4.2.1
 markdown==2.6.6
@@ -101,6 +102,7 @@ unicodecsv==0.14.1
 unittest2==1.1.0          # via pyxform
 urllib3==1.15.1           # via transifex-client
 uwsgi==2.0.17
+vine==1.1.4               # via amqp
 whitenoise==3.3.1
 whoosh==2.7.4
 xlrd==1.1.0
