@@ -422,6 +422,14 @@ mixins.collectionList = {
   },
 };
 
+const renderCheckbox = (id, label, isImportant) => {
+  let additionalClass = '';
+  if (isImportant) {
+    additionalClass += 'alertify-toggle-important';
+  }
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
+}
+
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
@@ -513,10 +521,10 @@ mixins.clickAssets = {
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
-            <div class="alertify-toggle"><input type='checkbox' id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type='checkbox' id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type='checkbox' id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
-            <div class="alertify-toggle alertify-toggle-important"><input type='checkbox' id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
+            ${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}
+            ${renderCheckbox('dt2', t('All questions created for this form will be deleted.'))}
+            ${renderCheckbox('dt3', t('The form associated with this project will be deleted.'))}
+            ${renderCheckbox('dt4', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;

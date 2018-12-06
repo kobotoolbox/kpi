@@ -6,6 +6,7 @@ import $ from 'jquery';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
+import Checkbox from '../components/checkbox';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
@@ -56,7 +57,12 @@ class FormSettingsEditor extends React.Component {
               mtype.key = `meta-${mtype.name}`;
             }
             return (
-              <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+              <Checkbox
+                key={mtype.key}
+                label={mtype.label}
+                checked={mtype.value}
+                onChange={this.props.onCheckboxChange.bind(this, mtype.name)}
+              />
             );
           })}
         </bem.FormBuilderMeta__column>
@@ -66,7 +72,12 @@ class FormSettingsEditor extends React.Component {
               mtype.key = `meta-${mtype.name}`;
             }
             return (
-              <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+              <Checkbox
+                key={mtype.key}
+                label={mtype.label}
+                checked={mtype.value}
+                onChange={this.props.onCheckboxChange.bind(this, mtype.name)}
+              />
             );
           })}
         </bem.FormBuilderMeta__column>
@@ -75,28 +86,6 @@ class FormSettingsEditor extends React.Component {
   }
   focusSelect () {
     this.refs.webformStyle.focus();
-  }
-};
-
-class FormCheckbox extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render () {
-    // TODO: use better written (styled) checkboxes from https://github.com/kobotoolbox/kpi/pull/1864 after merge
-    return (
-      <bem.FormBuilderMeta__row>
-        <input
-          type='checkbox'
-          id={this.props.name}
-          checked={this.props.value}
-          onChange={this.props.onChange}
-        />
-        <label htmlFor={this.props.name}>
-          {this.props.label}
-        </label>
-      </bem.FormBuilderMeta__row>
-    );
   }
 };
 
@@ -140,8 +129,8 @@ class FormSettingsBox extends React.Component {
     };
   }
 
-  onCheckboxChange(evt) {
-    this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
+  onCheckboxChange(name, isChecked) {
+    this.getSurveyDetail(name).set('value', isChecked);
     this.updateState();
     if (typeof this.props.onChange === 'function') {
       this.props.onChange();

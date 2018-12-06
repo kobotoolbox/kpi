@@ -355,13 +355,6 @@ $t-form-builder-aside-open: 200ms;
   box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
   z-index: $z-form-builder-aside;
 
-  [type="checkbox"] + label {
-    user-select: none;
-    // match checkbox rectangle size
-    line-height: 22px;
-    display: inline-block;
-  }
-
   &:not(.form-builder-aside--visible) {
     right: -1 * $s-form-builder-aside - 10px;
   }
@@ -407,7 +400,7 @@ $t-form-builder-aside-open: 200ms;
     flex: 1;
     margin-right: 10px;
 
-    .form-builder-meta__row {
+    .checkbox:not(:last-of-type) {
       margin-bottom: 10px;
     }
   }
