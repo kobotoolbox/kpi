@@ -12,6 +12,4 @@ exec celery worker -A kobo --loglevel=info \
     --pidfile=/tmp/celery_sync_kobocat_xforms.pid \
     --queues=sync_kobocat_xforms_queue \
     --concurrency=1 \
-    --maxtasksperchild=1
-    # Watch out: this may be changed in 4.x to `--max-tasks-per-child` per
-    # http://docs.celeryproject.org/en/latest/reference/celery.bin.worker.html#cmdoption-celery-worker-max-tasks-per-child
+    --max-tasks-per-child=1

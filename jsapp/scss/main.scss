@@ -5,14 +5,15 @@
 @import "~font-awesome/scss/font-awesome";
 @import "~select2/select2.css";
 @import "~react-table/react-table.css";
+@import "~alertifyjs/build/css/alertify.css";
 
-@import "./libs/alertify";
+@import "./libs/alertify.overrides";
+@import "./libs/react-select.overrides";
 @import "./libs/react-tagsinput";
-@import "./libs/react-select";
 
 @import "./components/kobo.bem.ui";
+@import "./components/kobo.checkbox-and-radio";
 @import "./components/kobo.modal";
-@import "./components/kobo.alertify-overrides";
 @import "./components/kobo.tooltips";
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
@@ -28,11 +29,14 @@
 @import "./components/kobo.form-view";
 @import "./components/kobo.form-summary";
 @import "./components/kobo.report-view";
-@import "./components/kobo.select-underlined";
 @import "./components/kobo.table";
 @import "./components/kobo.account-settings";
 @import "./components/kobo.sharing-modal";
 @import "./components/kobo.map";
+@import "./components/kobo.rest-services";
+@import "./components/kobo.service-row";
+@import "./components/kobo.empty-content";
+@import "./components/kobo.map.marker-colors";
 @import "./components/kobo.templates-list";
 @import "./components/kobo.text-box";
 

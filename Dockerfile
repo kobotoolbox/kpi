@@ -127,6 +127,8 @@ RUN ln -s "${KPI_SRC_DIR}/docker/init.bash" /etc/my_init.d/10_init_kpi.bash && \
     ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run && \
     mkdir -p /etc/service/celery && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" /etc/service/celery/run && \
+    mkdir -p /etc/service/celery_beat && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" /etc/service/celery_beat/run && \
     mkdir -p /etc/service/celery_sync_kobocat_xforms && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery_sync_kobocat_xforms.bash" /etc/service/celery_sync_kobocat_xforms/run
 

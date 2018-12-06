@@ -23,15 +23,6 @@ module.exports = do ->
         for warning in surveyApp.warnings
           warnings_html += """<p class="survey-warnings__warning">#{warning}</p>"""
         warnings_html += """<button class="survey-warnings__close-button js-close-warning">x</button></div>"""
-      if survey.translations
-        t0 = survey._translation_1
-        t1 = survey._translation_2
-        print_translation = (tx)-> if tx is null then "Unnamed translation" else tx
-        translations_content = "#{print_translation(t0)}"
-        if t1
-          translations_content += " [<small>#{print_translation(t1)}</small>]"
-      else
-        translations_content = ""
 
       """
         #{warnings_html}

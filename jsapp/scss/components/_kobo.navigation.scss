@@ -306,38 +306,33 @@ $headerAccountTextColor: #dbedf7;
   vertical-align: middle;
   margin: 0px;
   display: flex;
+  align-items: center;
   width: calc(100% - 300px);
-  display: inline-block;
+  color: $cool-gray;
 
   > i {
     font-size: 38px;
     vertical-align: middle;
     width: 38px;
-    color: #FFF;
-    opacity: 0.25;
   }
 
-  &__name {
-    width: calc(70% - 40px);
-    display: inline-block;
-    vertical-align: middle;
+  .form-title__name {
+    flex: 1;
+    color: #FFF;
+    font-size: 18px;
+    padding-right: 20px;
 
-    > div {
-      width: 100%;
+    input[name='title'] {
+      color: #FFF;
+      font-size: 18px;
+      min-width: 100%;
+      line-height: 1.3333;
+      padding: 0 20px 0 5px;
     }
-  }
 
-  &__submissions {
-    display: inline-block;
-    vertical-align: middle;
-    width: 30%;
-    text-align: right;
-    overflow: hidden;
-    height: 24px;
-    line-height: 24px;
-    font-size: 14px;
-    opacity: 0.6;
-    color: #FFF;
+    &.form-title__name--long input[name='title'] {
+      font-size: 14px;
+    }
   }
 
   input {
@@ -347,10 +342,9 @@ $headerAccountTextColor: #dbedf7;
     width: 100%;
     background: transparent;
     padding: 3px 6px;
-    margin: 0px;
+    margin: 0;
     border: none;
     border-bottom: 1px solid transparent;
-
     // keep these pseudo-states separate
     &::-webkit-input-placeholder {
       color: darken($cool-gray, 10%);
@@ -370,10 +364,8 @@ $headerAccountTextColor: #dbedf7;
     }
   }
 
-  input[name='title'] {
-    color: #FFF;
-    font-size: 18px;
-    min-width: 100%;
+  .form-title__submissions {
+    font-size: 14px;
   }
 }
 

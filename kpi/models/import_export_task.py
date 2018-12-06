@@ -1,7 +1,6 @@
 import re
 import pytz
 import base64
-import logging
 import datetime
 import requests
 import tempfile
@@ -23,6 +22,9 @@ from django.utils.six.moves.urllib import parse as urlparse
 import formpack.constants
 from pyxform import xls2json_backends
 from formpack.utils.string import ellipsize
+from formpack.schema.fields import ValidationStatusCopyField
+
+from kpi.utils.log import logging
 from kobo.apps.reports.report_data import build_formpack
 
 from ..fields import KpiUidField
@@ -30,6 +32,15 @@ from ..models import Collection, Asset
 from ..zip_importer import HttpContentParse
 from ..model_utils import create_assets, _load_library_content, \
                           remove_string_prefix
+from ..deployment_backends.mock_backend import MockDeploymentBackend
+
+
+def utcnow(*args, **kwargs):
+    '''
+    Stupid, and exists only to facilitate mocking during unit testing.
+    If you know of a better way, please remove this.
+    '''
+    return datetime.datetime.utcnow()
 
 
 def _resolve_url_to_asset_or_collection(item_path):
@@ -333,9 +344,10 @@ class ExportTask(ImportExportTask):
     `data` attribute to a dictionary with the following keys:
     * `type`: required; `xls` or `csv`
     * `source`: required; URL of a deployed `Asset`
-    * `lang`: optional; `xml` for XML names or the name of the language to be
-              used for labels. Leave unset, or use `_default` or `None`, for
-              labels in the default language
+    * `lang`: optional; the name of the translation to be used for headers and
+              response values. Specify `_xml` to use question and choice names
+              instead of labels. Leave unset, or use `_default` for labels in
+              the default language
     * `hierarchy_in_labels`: optional; when `true`, include the labels for all
                              ancestor groups in each field label, separated by
                              `group_sep`. Defaults to `False`
@@ -366,7 +378,21 @@ class ExportTask(ImportExportTask):
     last_submission_time = models.DateTimeField(null=True)
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
-    COPY_FIELDS = ('_id', '_uuid', '_submission_time')
+    COPY_FIELDS = (
+        '_id',
+        '_uuid',
+        '_submission_time',
+        ValidationStatusCopyField,
+    )
+
+    # It's not very nice to ask our API users to submit `null` or `false`,
+    # so replace friendlier language strings with the constants that formpack
+    # expects
+    API_LANGUAGE_TO_FORMPACK_LANGUAGE = {
+        '_default': formpack.constants.UNTRANSLATED,
+        '_xml': formpack.constants.UNSPECIFIED_TRANSLATION,
+    }
+
     TIMESTAMP_KEY = '_submission_time'
     # Above 244 seems to cause 'Download error' in Chrome 64/Linux
     MAXIMUM_FILENAME_LENGTH = 240
@@ -377,14 +403,25 @@ class ExportTask(ImportExportTask):
             'fields_from_all_versions', 'true'
         ).lower() == 'true'
 
-    def _build_export_filename(self, export, extension):
+    def _build_export_filename(self, export, export_type):
         '''
         Internal method to build the export filename based on the export title
         (which should be set when calling the `FormPack()` constructor),
         whether the latest or all versions are included, the label language,
-        the current date and time, and the given `extension`
+        the current date and time, and the appropriate extension for the given
+        `export_type`
         '''
-        if export.lang == formpack.constants.UNTRANSLATED:
+
+        if export_type == 'xls':
+            extension = 'xlsx'
+        elif export_type == 'spss_labels':
+            extension = 'zip'
+        else:
+            extension = export_type
+
+        if export_type == 'spss_labels':
+            lang = 'SPSS Labels'
+        elif export.lang == formpack.constants.UNTRANSLATED:
             lang = 'labels'
         else:
             lang = export.lang
@@ -399,7 +436,7 @@ class ExportTask(ImportExportTask):
             u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
             u'.{ext}'.format(
                 version=version,
-                date=datetime.datetime.utcnow(),
+                date=utcnow(),
                 ext=extension
             )
         )
@@ -425,8 +462,12 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
-        if lang == '_default':
-            lang = formpack.constants.UNTRANSLATED
+        try:
+            # If applicable, substitute the constants that formpack expects for
+            # friendlier language strings used by the API
+            lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
+        except KeyError:
+            pass
         tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
 
         return {
@@ -490,17 +531,17 @@ class ExportTask(ImportExportTask):
             raise Exception('the source must be deployed prior to export')
 
         export_type = self.data.get('type', '').lower()
-        if export_type not in ('xls', 'csv'):
+        if export_type not in ('xls', 'csv', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls` and `csv` are valid export types')
+                'only `xls`, `csv`, and `spss_labels` are valid export types')
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        if hasattr(source.deployment, '_get_submissions'):
+        if isinstance(source.deployment, MockDeploymentBackend):
             # Currently used only for unit testing (`MockDeploymentBackend`)
             # TODO: Have the KC backend also implement `_get_submissions()`?
-            submission_stream = source.deployment._get_submissions()
+            submission_stream = source.deployment.get_submissions()
         else:
             submission_stream = None
 
@@ -514,8 +555,7 @@ class ExportTask(ImportExportTask):
 
         options = self._build_export_options(pack)
         export = pack.export(**options)
-        extension = 'xlsx' if export_type == 'xls' else export_type
-        filename = self._build_export_filename(export, extension)
+        filename = self._build_export_filename(export, export_type)
         self.result.save(filename, ContentFile(''))
         # FileField files are opened read-only by default and must be
         # closed and reopened to allow writing
@@ -545,6 +585,8 @@ class ExportTask(ImportExportTask):
                             break
                     '''
                     output_file.write(xlsx_output_file.read())
+            elif export_type == 'spss_labels':
+                export.to_spss_labels(output_file)
 
         # Restore the FileField to its typical state
         self.result.open('rb')
@@ -574,7 +616,7 @@ class ExportTask(ImportExportTask):
         # How long can an export possibly run, not including time spent waiting
         # in the Celery queue?
         max_export_run_time = getattr(
-            settings, 'CELERYD_TASK_TIME_LIMIT', 2100)
+            settings, 'CELERY_TASK_TIME_LIMIT', 2100)
         # Allow a generous grace period
         max_allowed_export_age = datetime.timedelta(
             seconds=max_export_run_time * 4)

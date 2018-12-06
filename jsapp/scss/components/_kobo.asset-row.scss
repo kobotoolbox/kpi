@@ -1,13 +1,13 @@
-$hover-asset-row: #F2F2F3;
+$hover-asset-row: $cool-whitegray;
 $hover-transition: 0.3s opacity;
+$asset-row-spacing: 6px;
 
 .asset-row {
   list-style-type: none;
   border-top: 1px solid $divider-color;
-  padding: 6px 12px;
-  white-space: nowrap;
+  padding: $asset-row-spacing $asset-row-spacing * 2;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height: 52px;
+  min-height: 49px;
   opacity: 1;
   position: relative;
   align-items: flex-start;
@@ -19,17 +19,23 @@ $hover-transition: 0.3s opacity;
     z-index: 1;
   }
 
+  .asset-row__link-overlay {
+    cursor: pointer;
+    position: absolute;
+    top: -1 * $asset-row-spacing;
+    left: -2 * $asset-row-spacing;
+    width: calc(100% + #{4 * $asset-row-spacing});
+    height: calc(100% + #{2 * $asset-row-spacing});
+  }
+
   > .asset-row__cell {
     width: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 
     > .asset-row__cell {
       min-width: 0;
       vertical-align: top;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
 
       &.asset-row__cell--type {
         text-transform: capitalize;
@@ -41,11 +47,11 @@ $hover-transition: 0.3s opacity;
     border-top: 1px solid $divider-color;
   }
 
-  &--deleting {
+  &.asset-row--deleting {
     opacity: 0.5;
   }
 
-  &--deleted {
+  &.asset-row--deleted {
     transition: max-height 0.5s ease, opacity 0.5s ease;
     opacity: 0;
     max-height: 0px;
@@ -55,14 +61,26 @@ $hover-transition: 0.3s opacity;
     overflow: hidden;
   }
 
-  .asset-row__celllink--name {
-    display: inline-block;
-    width: 98%;
-    text-overflow: ellipsis;
-    overflow: hidden;
+  .asset-row__cell--asset-details {
+    position: relative;
+
+    &:hover {
+      color: $cool-charcoal;
+    }
+  }
+
+  .asset-row__cell--name {
     font-size: 14px;
-    vertical-align: top;
-    padding: 4px 0px;
+  }
+
+  .asset-row__description,
+  .asset-row__cell--name .asset-name,
+  .asset-row__cell--date-created .date,
+  .asset-row__cell--date-modified .date {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   // default row-icon styles are meant for "--question"
@@ -88,21 +106,22 @@ $hover-transition: 0.3s opacity;
     }
   }
 
-  .row-icon + .asset-row__celllink--name {
-    width: calc(100% - 50px);
+  .asset-row__cell--title .row-icon {
+    float: left;
+    margin-top: -1px;
+    margin-bottom: -1px;
   }
 
   .asset-row__description {
+    margin-top: $asset-row-spacing;
     display: block;
     color: $cool-gray;
     font-size: 13px;
-    max-width: 96%;
-    text-overflow: ellipsis;
-    overflow: hidden;
   }
 
   .asset-row__cell--tags {
     white-space: normal;
+    margin-top: 0;
   }
 
   .asset-row__cell--date-created,
@@ -115,19 +134,27 @@ $hover-transition: 0.3s opacity;
     text-align: right;
   }
 
+  // buttons are aligned to the asset title regardless of description or tags being present
   > .asset-row__buttons {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 6px;
+    top: 0;
+    right: 0;
+    padding: $asset-row-spacing $asset-row-spacing 4px;
     width: auto;
     text-align: right;
     opacity: 0;
     visibility: hidden;
     transition: $hover-transition;
     background: $hover-asset-row;
-    padding-left: 4px;
     box-shadow: -5px 0px 15px 0px $hover-asset-row;
+    z-index: 1;
+  }
+
+  .asset-row__action-icon,
+  .popover-menu {
+    height: 36px;
+    display: inline-block;
+    vertical-align: top;
   }
 
   .asset-row__action-icon {
@@ -135,8 +162,6 @@ $hover-transition: 0.3s opacity;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
-    display: inline-block;
-    vertical-align: middle;
 
     &:hover {
       background-color: transparent;
@@ -153,19 +178,9 @@ $hover-transition: 0.3s opacity;
     }
   }
 
-  &--display-tags .asset-row__action-icon--tagsToggle {
+  &.asset-row--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
     color: $cool-blue;
-  }
-
-  a.asset-row__celllink {
-    color: lighten($black, 20%);
-    display: block;
-  }
-
-  i.row-icon + a.asset-row__celllink {
-    display: inline-block;
-    width: calc(100% - 48px);
   }
 
   &:hover {
@@ -176,10 +191,6 @@ $hover-transition: 0.3s opacity;
 
       // make them appear moment after items behind starts to disappear
       transition-delay: 0.1s;
-    }
-
-    a.asset-row__celllink {
-      color: $black;
     }
   }
 }

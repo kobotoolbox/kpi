@@ -19,7 +19,7 @@ class AssetImportTaskTest(APITestCase):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.first()
-        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def _assert_assets_contents_equal(self, a1, a2):
         def _prep_row_for_comparison(row):
@@ -38,7 +38,7 @@ class AssetImportTaskTest(APITestCase):
         post_url = reverse('importtask-list')
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'complete')
@@ -90,7 +90,7 @@ class AssetImportTaskTest(APITestCase):
         post_url = reverse('importtask-list')
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'error')
@@ -112,7 +112,7 @@ class AssetImportTaskTest(APITestCase):
             post_url = reverse('importtask-list')
             response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         # FIXME: this fails because the detail request returns a 404, even
         # after the POST returns a 201!

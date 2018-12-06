@@ -355,9 +355,11 @@ $t-form-builder-aside-open: 200ms;
   box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
   z-index: $z-form-builder-aside;
 
-  .Select-menu-outer {
-    // getting select menus to appear over checkboxes
-    z-index: 2;
+  [type="checkbox"] + label {
+    user-select: none;
+    // match checkbox rectangle size
+    line-height: 22px;
+    display: inline-block;
   }
 
   &:not(.form-builder-aside--visible) {

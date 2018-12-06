@@ -1,0 +1,121 @@
+# -*- coding: utf-8 -*-
+from datetime import datetime, timedelta
+from importlib import import_module
+
+import constance
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import ugettext as _
+from jsonbfield.fields import JSONField as JSONBField
+import requests
+from rest_framework import status
+from rest_framework.reverse import reverse
+
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
+from kpi.fields import KpiUidField
+from kpi.utils.log import logging
+
+
+class HookLog(models.Model):
+
+    hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
+    uid = KpiUidField(uid_prefix="hl")
+    instance_id = models.IntegerField(default=0, db_index=True)  # `kc.logger.Instance.id`.
+    tries = models.PositiveSmallIntegerField(default=0)
+    status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries.
+    status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
+    message = models.TextField(default="")
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date_created"]
+
+    def can_retry(self):
+        """
+        Returns whether instance can be resent to external endpoint.
+        Notice: even if returns false, `self.retry()` can be triggered.
+
+        :return: bool
+        """
+        if self.hook.active:
+            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
+            threshold = timezone.now() - timedelta(seconds=seconds)
+            # We can retry only if system has already tried 3 times.
+            # If log is still pending after 3 times, there was an issue, we allow the retry
+            return self.status == HOOK_LOG_FAILED or \
+                (self.date_modified < threshold and self.status == HOOK_LOG_PENDING)
+
+        return False
+
+    def change_status(self, status=HOOK_LOG_PENDING, message=None, status_code=None):
+        self.status = status
+
+        if message:
+            self.message = message
+
+        if status_code:
+            self.status_code = status_code
+
+        self.save(reset_status=True)
+
+    @staticmethod
+    def get_elapsed_seconds(retries_count):
+        """
+        Calculate number of elapsed seconds since first try
+        :param retries_count: int.
+        :return: int. Number of seconds
+        """
+        # We need to sum all seconds between each retry
+        seconds = 0
+        for retries_count in range(retries_count):
+            seconds += HookLog.get_remaining_seconds(retries_count)  # Range is zero-indexed
+
+        return seconds
+
+    @staticmethod
+    def get_remaining_seconds(retries_count):
+        """
+        Calculate number of remaining seconds before next retry
+        :param retries_count: int.
+        :return: int. Number of seconds
+        """
+        return 60 * (10 ** retries_count)
+
+    def retry(self):
+        """
+        Retries to send data to external service
+        :return: boolean
+        """
+        try:
+            ServiceDefinition = self.hook.get_service_definition()
+            service_definition = ServiceDefinition(self.hook, self.instance_id)
+            service_definition.send()
+            self.refresh_from_db()
+        except Exception as e:
+            logging.error("HookLog.retry - {}".format(str(e)), exc_info=True)
+            self.change_status(HOOK_LOG_FAILED)
+            return False
+
+        return True
+
+    def save(self, *args, **kwargs):
+        # Update date_modified each time object is saved
+        self.date_modified = timezone.now()
+        # We don't want to alter tries when we only change the status
+        if kwargs.pop("reset_status", False) is False:
+            self.tries += 1
+            self.hook.reset_totals()
+        super(HookLog, self).save(*args, **kwargs)
+
+    @property
+    def status_str(self):
+        if self.status == HOOK_LOG_PENDING:
+            return "Pending"
+        elif self.status == HOOK_LOG_FAILED:
+            return "Failed"
+        elif self.status == HOOK_LOG_SUCCESS:
+            return "Success"
+
+    def __unicode__(self):
+        return "<HookLog {uid}>".format(uid=self.uid)

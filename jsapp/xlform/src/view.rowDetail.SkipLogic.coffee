@@ -41,8 +41,11 @@ module.exports = do ->
       @
 
     addCriterion: (evt) =>
+      @facade.view_factory.survey.trigger('change')
       @facade.add_empty()
+
     deleteCriterion: (evt)->
+      @facade.view_factory.survey.trigger('change')
       $target = $(evt.target)
       modelId = $target.data("criterionId")
       @facade.remove modelId
@@ -82,6 +85,8 @@ module.exports = do ->
         if e.val is PLACEHOLDER_VALUE
           console.error("Changing question to #{PLACEHOLDER_VALUE} should not happen!")
 
+        @model.survey.trigger('change')
+
         @mark_question_specified(e.val isnt PLACEHOLDER_VALUE)
         @presenter.change_question(e.val)
         return
@@ -89,13 +94,17 @@ module.exports = do ->
       return
 
     bind_operator_picker: () ->
-      @$operator_picker.on 'change', () =>
+      @$operator_picker.on('change', () =>
         @operator_picker_view.value = @$operator_picker.select2 'val'
-        @presenter.change_operator @operator_picker_view.value
+        @presenter.change_operator(@operator_picker_view.value)
+        @model.survey.trigger('change')
+      )
 
     bind_response_value: () ->
-      @response_value_view.bind_event () =>
-        @presenter.change_response @response_value_view.val()
+      @response_value_view.bind_event(() =>
+        @presenter.change_response(@response_value_view.val())
+        @model.survey.trigger('change')
+      )
 
     response_value_handler: () ->
       @presenter.change_response @response_value_view.val()

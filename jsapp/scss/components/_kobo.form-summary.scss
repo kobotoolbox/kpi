@@ -18,17 +18,15 @@
 }
 
 .form-view__group--summary-details-cols {
-  display: block;
+  display: flex;
+  align-items: flex-start;
 
   > .form-view__cell {
-    border-bottom: 1px solid $divider-color;
     padding: 15px 20px;
-    margin-bottom: 10px;
+    flex-grow: 1;
 
-    &:last-child {
-      margin-bottom: 0px;
-      border-bottom: none;
-      padding-bottom: 20px;
+    &:first-child {
+      flex-grow: 2;
     }
 
     .form-view__label {
@@ -105,7 +103,7 @@
 .form-view__cell--data-tabs {
   a {
     display: block;
-    padding: 5px 10px;
+    padding: 6px 10px;
     color: $cool-gray;
     border-bottom: 1px solid $divider-color;
     position: relative;

@@ -26,7 +26,7 @@
   display: flex;
   flex-wrap: wrap;
 
-  .Select {
+  .kobo-select {
     width: 100%;
   }
 }
@@ -84,7 +84,7 @@
 .lib-nav__header .collection-filter {
   position: relative;
 
-  .Select-menu-outer {
+  .kobo-select__menu {
     max-width: 390px;
   }
 

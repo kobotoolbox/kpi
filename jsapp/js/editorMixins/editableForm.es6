@@ -11,9 +11,10 @@ import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
-import {ProjectSettings} from '../components/formEditors';
+import ProjectSettings from '../components/modalForms/projectSettings';
 import {
   surveyToValidJson,
+  unnullifyTranslations,
   notify,
   assign,
   t,
@@ -167,25 +168,21 @@ class FormSettingsBox extends React.Component {
   }
 };
 
+const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
+
 export default assign({
   componentDidMount() {
     document.body.classList.add('hide-edge');
+
+    this.loadAsideSettings();
 
     if (this.state.editorState === 'existing') {
       let uid = this.props.params.assetid;
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        let translations = (
-          asset.content &&
-          asset.content.translations &&
-          // slice makes shallow copy
-          asset.content.translations.slice(0)
-        ) || [];
-
         this.launchAppForSurveyContent(asset.content, {
           name: asset.name,
-          translations: translations,
           settings__style: asset.settings__style,
           asset_uid: asset.uid,
           asset_type: asset.asset_type,
@@ -205,6 +202,17 @@ export default assign({
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
+  },
+
+  loadAsideSettings() {
+    const asideSettings = sessionStorage.getItem(ASIDE_CACHE_NAME);
+    if (asideSettings) {
+      this.setState(JSON.parse(asideSettings));
+    }
+  },
+
+  saveAsideSettings(asideSettings) {
+    sessionStorage.setItem(ASIDE_CACHE_NAME, JSON.stringify(asideSettings));
   },
 
   onFormSettingsBoxChange() {
@@ -234,6 +242,12 @@ export default assign({
       settings__style: settingsStyle
     });
     this.onSurveyChange();
+  },
+
+  getStyleSelectVal(optionVal) {
+    return _.find(AVAILABLE_FORM_STYLES, (option) => {
+      return option.value === optionVal;
+    });
   },
 
   onSurveyChange: _.debounce(function () {
@@ -295,9 +309,11 @@ export default assign({
     if (this.state.name)
       this.app.survey.settings.set('title', this.state.name);
 
-    var params = {
-      source: surveyToValidJson(this.app.survey),
-    };
+    let surveyJSON = surveyToValidJson(this.app.survey)
+    if (this.state.asset) {
+      surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
+    }
+    let params = {source: surveyJSON};
 
     params = koboMatrixParser(params);
 
@@ -331,9 +347,11 @@ export default assign({
       this.app.survey.settings.set('style', this.state.settings__style);
     }
 
-    let params = {
-      content: surveyToValidJson(this.app.survey),
-    };
+    let surveyJSON = surveyToValidJson(this.app.survey)
+    if (this.state.asset) {
+      surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
+    }
+    let params = {content: surveyJSON};
 
     if (this.state.name) {
       params.name = this.state.name;
@@ -462,18 +480,22 @@ export default assign({
 
   toggleAsideLibrarySearch(evt) {
     evt.target.blur();
-    this.setState({
+    const asideSettings = {
       asideLayoutSettingsVisible: false,
       asideLibrarySearchVisible: !this.state.asideLibrarySearchVisible,
-    });
+    };
+    this.setState(asideSettings);
+    this.saveAsideSettings(asideSettings);
   },
 
   toggleAsideLayoutSettings(evt) {
     evt.target.blur();
-    this.setState({
+    const asideSettings = {
       asideLayoutSettingsVisible: !this.state.asideLayoutSettingsVisible,
       asideLibrarySearchVisible: false
-    });
+    };
+    this.setState(asideSettings);
+    this.saveAsideSettings(asideSettings);
   },
 
   hidePreview() {
@@ -586,12 +608,6 @@ export default assign({
       name,
       saveButtonText,
     } = this.buttonStates();
-
-    let translations = this.state.translations || [];
-    // HACK FIX: filter out weird case of single `null` item array
-    if (translations.length === 1 && translations[0] === null) {
-      translations = [];
-    }
 
     let nameFieldLabel;
     switch (this.state.asset_type) {
@@ -729,17 +745,6 @@ export default assign({
             }
           </bem.FormBuilderHeader__cell>
 
-          { translations.length > 0 &&
-            <bem.FormBuilderHeader__cell m='translations'>
-              <p>
-                {translations[0]}
-                {translations.length > 1 &&
-                  <small>{translations[1]}</small>
-                }
-              </p>
-            </bem.FormBuilderHeader__cell>
-          }
-
           <bem.FormBuilderHeader__cell m='verticalRule'/>
 
           <bem.FormBuilderHeader__cell m='spacer'/>
@@ -807,7 +812,7 @@ export default assign({
               </bem.FormBuilderAside__header>
 
               <label
-                className='Select__label'
+                className='kobo-select-label'
                 htmlFor='webform-style'
               >
                 { hasSettings ?
@@ -818,15 +823,16 @@ export default assign({
               </label>
 
               <Select
-                className='Select--underlined'
+                className='kobo-select'
+                classNamePrefix='kobo-select'
                 id='webform-style'
                 name='webform-style'
                 ref='webformStyle'
-                value={styleValue}
+                value={this.getStyleSelectVal(styleValue)}
                 onChange={this.onStyleChange}
-                allowCreate
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
+                menuPlacement='auto'
               />
             </bem.FormBuilderAside__row>
 
@@ -912,7 +918,7 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
             <bem.FormBuilder__contents>
-              <div ref="form-wrap" className='form-wrap'>
+              <div ref='form-wrap' className='form-wrap'>
                 {!this.state.surveyAppRendered &&
                   this.renderNotLoadedMessage()
                 }
@@ -928,7 +934,7 @@ export default assign({
               title={t('Form Preview')}
             >
               <ui.Modal.Body>
-                <div className="enketo-holder">
+                <div className='enketo-holder'>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </div>
               </ui.Modal.Body>

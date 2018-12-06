@@ -1,6 +1,7 @@
 from distutils.util import strtobool
 from itertools import chain
 import copy
+from hashlib import md5
 import json
 import base64
 import datetime
@@ -30,7 +31,7 @@ from rest_framework import (
 )
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -41,6 +42,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 import constance
 from taggit.models import Tag
+from private_storage.views import PrivateStorageDetailView
 
 from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import AssetOwnerFilterBackend
@@ -53,6 +55,7 @@ from .models import (
     Asset,
     AssetVersion,
     AssetSnapshot,
+    AssetFile,
     ImportTask,
     ExportTask,
     ObjectPermission,
@@ -73,12 +76,13 @@ from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    AssetSnapshotXFormRenderer,
+    XMLRenderer,
     XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetVersionListSerializer,
     AssetVersionSerializer,
+    AssetFileSerializer,
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -100,8 +104,10 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
-from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
+from deployment_backends.mixin import KobocatDataProxyViewSetMixin
+from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
+from kpi.utils.log import logging
 
 
 @login_required
@@ -590,7 +596,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     queryset = AssetSnapshot.objects.all()
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        AssetSnapshotXFormRenderer,
+        XMLRenderer,
     ]
 
     def filter_queryset(self, queryset):
@@ -645,13 +651,105 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return Response(response_data, template_name='preview_error.html')
 
 
+class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
+    model = AssetFile
+    lookup_field = 'uid'
+    filter_backends = (RelatedAssetPermissionsFilter,)
+    serializer_class = AssetFileSerializer
+
+    def get_queryset(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
+        return _queryset
+
+    def perform_create(self, serializer):
+        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
+        if not self.request.user.has_perm('change_asset', asset):
+            raise exceptions.PermissionDenied()
+        serializer.save(
+            asset=asset,
+            user=self.request.user
+        )
+
+    def perform_destroy(self, *args, **kwargs):
+        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
+        if not self.request.user.has_perm('change_asset', asset):
+            raise exceptions.PermissionDenied()
+        return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
+
+    class PrivateContentView(PrivateStorageDetailView):
+        model = AssetFile
+        model_file_field = 'content'
+        def can_access_file(self, private_file):
+            return private_file.request.user.has_perm(
+                'view_asset', private_file.parent_object.asset)
+
+    @detail_route(methods=['get'])
+    def content(self, *args, **kwargs):
+        view = self.PrivateContentView.as_view(
+            model=AssetFile,
+            slug_url_kwarg='uid',
+            slug_field='uid',
+            model_file_field='content'
+        )
+        af = self.get_object()
+        # TODO: simply redirect if external storage with expiring tokens (e.g.
+        # Amazon S3) is used?
+        #   return HttpResponseRedirect(af.content.url)
+        return view(self.request, uid=af.uid)
+
+
 class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                         KobocatDataProxyViewSetMixin):
     '''
     TODO: Access the submission data directly instead of merely proxying to
-    KoBoCAT
+    KoBoCAT. We can now use `KobocatBackend.get_submissions()` and
+     `KobocatBackend.get_submission()`
     '''
     parent_model = Asset
+
+    # @TODO Handle list of ids before using it
+    # def list(self, request, *args, **kwargs):
+    #     asset_uid = self.get_parents_query_dict().get("asset")
+    #     asset = get_object_or_404(self.parent_model, uid=asset_uid)
+    #     format_type = kwargs.get("format", "json")
+    #     submissions = asset.deployment.get_submissions(format_type=format_type)
+    #     return Response(list(submissions))
+
+    def create(self, request, *args, **kwargs):
+        """
+        This endpoint is handled by the SubmissionViewSet (not KobocatDataProxyViewSetMixin)
+        because it doesn't use KC proxy.
+        It's only used to trigger hook services of the Asset (so far).
+
+        :param request:
+        :return:
+        """
+        # Follow Open Rosa responses by default
+        response_status_code = status.HTTP_202_ACCEPTED
+        response = {
+            "detail": _(
+                "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
+        }
+        try:
+            asset_uid = self.get_parents_query_dict().get("asset")
+            asset = get_object_or_404(self.parent_model, uid=asset_uid)
+            instance_id = request.data.get("instance_id")
+            if not HookUtils.call_services(asset, instance_id):
+                response_status_code = status.HTTP_409_CONFLICT
+                response = {
+                    "detail": _(
+                        "Your data for instance {} has been already submitted.".format(instance_id))
+                }
+
+        except Exception as e:
+            logging.error("SubmissionViewSet.create - {}".format(str(e)))
+            response = {
+                "detail": _("An error has occurred when calling the external service. Please retry later.")
+            }
+            response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response(response, status=response_status_code)
 
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -673,7 +771,6 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         _queryset = self.model.objects.filter(asset__uid=_asset_uid)
         if _deployed is not None:
             _queryset = _queryset.filter(deployed=_deployed)
-        _queryset = _queryset.filter(asset__uid=_asset_uid)
         if self.action == 'list':
             # Save time by only retrieving fields from the DB that the
             # serializer will use
@@ -703,6 +800,17 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     > Example
     >
     >       curl -X GET https://[kpi-url]/assets/
+
+    Get an hash of all `version_id`s of assets.
+    Useful to detect any changes in assets with only one call to `API`
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/hash/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/hash/
 
     ## CRUD
 
@@ -813,17 +921,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     ### CURRENT ENDPOINT
     """
+
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = Asset.objects.select_related(
-        'owner', 'parent'
-    ).prefetch_related(
-        'permissions',
-        'permissions__permission',
-        'permissions__user',
-        'permissions__content_object',
-        # Getting the tag_string is making one query per object, but
-        # prefetch_related doesn't seem to help
-    ).all()
+    queryset = Asset.objects.all()
+
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
@@ -843,15 +944,13 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        ''' Really temporary way to exclude a taxing field from the database
-        query when the request instructs us to do so. '''
         queryset = super(AssetViewSet, self).get_queryset(*args, **kwargs)
-        # See also AssetSerializer.get_fields()
-        excludes = self.request.GET.get('exclude', '')
-        excludes = excludes.split(',')
-        if 'content' in excludes:
-            queryset = queryset.defer('content')
-        return queryset
+        if self.action == 'list':
+            return queryset.model.optimize_queryset_for_list(queryset)
+        else:
+            # This is called to retrieve an individual record. How much do we
+            # have to care about optimizations for that?
+            return queryset
 
     def _get_clone_serializer(self, current_asset=None):
         """
@@ -892,9 +991,11 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         :return: dict
         """
         if self._validate_destination_type(original_asset):
+            # `to_clone_dict()` returns only `name`, `content`, `asset_type`,
+            # and `tag_string`
             cloned_data = original_asset.to_clone_dict(version=source_version)
 
-            # Merge cloned_data with user's request data.
+            # Allow the user's request data to override `cloned_data`
             cloned_data.update(self.request.data.items())
 
             if partial_update:
@@ -914,9 +1015,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             if cloned_asset_type in [None, ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY] and \
                 original_asset.asset_type in [ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY]:
 
-                settings = original_asset.settings
+                settings = original_asset.settings.copy()
                 settings.pop("share-metadata", None)
-                cloned_data.update({"settings": json.dumps(settings)})
+                settings.update(cloned_data.get('settings', {}))
+                cloned_data['settings'] = json.dumps(settings)
 
             # until we get content passed as a dict, transform the content obj to a str
             # TODO, verify whether `Asset.content.settings.id_string` should be cleared out.
@@ -954,6 +1056,36 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
+
+    @list_route(methods=["GET"], renderer_classes=[renderers.JSONRenderer])
+    def hash(self, request):
+        """
+        Creates an hash of `version_id` of all accessible assets by the user.
+        Useful to detect changes between each request.
+
+        :param request:
+        :return: JSON
+        """
+        user = self.request.user
+        if user.is_anonymous():
+            raise exceptions.NotAuthenticated()
+        else:
+            accessible_assets = get_objects_for_user(
+                user, "view_asset", Asset).filter(asset_type=ASSET_TYPE_SURVEY)\
+                .order_by("uid")
+
+            assets_version_ids = [asset.version_id for asset in accessible_assets if asset.version_id is not None]
+            # Sort alphabetically
+            assets_version_ids.sort()
+
+            if len(assets_version_ids) > 0:
+                hash = md5("".join(assets_version_ids)).hexdigest()
+            else:
+                hash = ""
+
+            return Response({
+                "hash": hash
+            })
 
     @detail_route(renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -1017,6 +1149,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             contents, but does not change the deployment's identifier
         '''
         asset = self.get_object()
+        serializer_context = self.get_serializer_context()
+        serializer_context['asset'] = asset
 
         # TODO: Require the client to provide a fully-qualified identifier,
         # otherwise provide less kludgy solution
@@ -1036,14 +1170,15 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise Http404
             else:
                 serializer = DeploymentSerializer(
-                    asset.deployment, context=self.get_serializer_context())
+                    asset.deployment, context=serializer_context
+                )
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
         elif request.method == 'POST':
             if not asset.can_be_deployed:
                 raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    self.asset_type))
+                    asset.asset_type))
             else:
                 if asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -1052,7 +1187,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         )
                 serializer = DeploymentSerializer(
                     data=request.data,
-                    context={'asset': asset}
+                    context=serializer_context
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
@@ -1063,7 +1198,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         elif request.method == 'PATCH':
             if not asset.can_be_deployed:
                 raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    self.asset_type))
+                    asset.asset_type))
             else:
                 if not asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -1073,7 +1208,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 serializer = DeploymentSerializer(
                     asset.deployment,
                     data=request.data,
-                    context={'asset': asset},
+                    context=serializer_context,
                     partial=True
                 )
                 serializer.is_valid(raise_exception=True)

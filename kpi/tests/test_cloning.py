@@ -69,7 +69,7 @@ class TestCloning(KpiTestCase):
 
         expected_status_code = kwargs.pop('expected_status_code',
                                           status_code)
-        response = action(endpoint, kwargs)
+        response = action(endpoint, data=kwargs, format='json')
         self.assertEqual(response.status_code, expected_status_code)
 
         if expected_status_code != status_code:
@@ -195,8 +195,8 @@ class TestCloning(KpiTestCase):
 
         self.assertRaises(BadAssetTypeException, _bad_clone)
 
-    def test_clone_template_to_existing_asset(self):
-        self.login(self.someuser.username, self.someuser_password)
+
+    def _create_sample_survey_and_template(self):
         survey_settings = {
             "sector": {
                 "value": "Arts, Entertainment, and Recreation",
@@ -233,6 +233,13 @@ class TestCloning(KpiTestCase):
             asset_type=ASSET_TYPE_TEMPLATE
         )
 
+        return survey_asset, template_asset
+
+
+    def test_clone_template_to_existing_asset(self):
+        self.login(self.someuser.username, self.someuser_password)
+        survey_asset, template_asset = self._create_sample_survey_and_template()
+
         modified_survey_asset = self._clone_asset(template_asset,
                                                   partial_update=True,
                                                   uid=survey_asset.uid,
@@ -242,6 +249,26 @@ class TestCloning(KpiTestCase):
         self.assertEqual(modified_survey_asset.settings.get("description"), "A template to be cloned")
         self.assertEqual(modified_survey_asset.settings.get("country").get("value"), "CAN")
         self.assertEqual(modified_survey_asset.asset_type, survey_asset.asset_type)
+
+
+    def test_override_settings_while_cloning_template_to_existing_asset(self):
+        self.login(self.someuser.username, self.someuser_password)
+        survey_asset, template_asset = self._create_sample_survey_and_template()
+        modified_survey_asset = self._clone_asset(
+            template_asset,
+            partial_update=True,
+            uid=survey_asset.uid,
+            asset_type=survey_asset.asset_type,
+            settings={'description': 'I prefer my own, thank you very much!'},
+        )
+        self.assertEqual(
+            modified_survey_asset.settings['description'],
+            'I prefer my own, thank you very much!'
+        )
+        self.assertEqual(
+            modified_survey_asset.settings["country"]["value"], "CAN"
+        )
+
 
 # TODO
 #     def test_clone_collection(self):

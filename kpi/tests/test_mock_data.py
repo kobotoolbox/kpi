@@ -95,12 +95,11 @@ class MockDataReports(TestCase):
             submission.update({
                 '__version__': v_uid
             })
-            self.asset.deployment._mock_submission(submission)
-        self.asset.save(create_version=False)
+        self.asset.deployment.mock_submissions(submissions)
         schemas = [v.to_formpack_schema() for v in self.asset.deployed_versions]
         self.fp = FormPack(versions=schemas, id_string=self.asset.uid)
         self.vs = self.fp.versions.keys()
-        self.submissions = self.asset.deployment._get_submissions()
+        self.submissions = self.asset.deployment.get_submissions()
 
     def test_kobo_apps_reports_report_data(self):
         values = report_data.data_by_identifiers(self.asset,
@@ -172,7 +171,7 @@ class MockDataReports(TestCase):
                           u'\u0627\u0644\u062b\u0627\u0646\u064a'))
 
     def test_export_works_if_no_version_value_provided_in_submission(self):
-        submissions = self.asset.deployment._get_submissions()
+        submissions = self.asset.deployment.get_submissions()
 
         for submission in submissions:
             del submission['__version__']
@@ -206,7 +205,7 @@ class MockDataReports(TestCase):
         self.assertTrue(self.asset.report_styles is not None)
 
     def test_formpack_results(self):
-        submissions = self.asset.deployment._get_submissions()
+        submissions = self.asset.deployment.get_submissions()
 
         def _get_autoreport_values(qname, key, lang=None, index=False):
             stats = OrderedDict(_get_stats_object(self.fp,
@@ -237,4 +236,4 @@ class MockDataReports(TestCase):
     def test_has_version_and_submissions(self):
         self.assertEqual(self.asset.asset_versions.count(), 2)
         self.assertTrue(self.asset.has_deployment)
-        self.assertEqual(self.asset.deployment._submission_count(), 4)
+        self.assertEqual(self.asset.deployment.submission_count, 4)

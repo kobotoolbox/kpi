@@ -52,6 +52,36 @@
       }
     }
 
+    // minimum body height so at least two rows are visible
+    .rt-tbody {
+      min-height: 72px;
+    }
+
+    .rt-thead {
+      .rt-tr {
+        align-items: center;
+      }
+
+      .rt-resizable-header-content {
+        overflow: visible;
+        text-overflow: inherit;
+        line-height: 1.2;
+        padding: 5px 0;
+
+        .column-header-title,
+        .column-header-hxl-tags {
+          display: block;
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .column-header-hxl-tags {
+          color: $cool-silver;
+        }
+      }
+    }
+
     .rt-thead {
       &.-filters input {
         padding: 2px 4px;
@@ -94,11 +124,13 @@
     }
 
     .rt-td.rt-status {
+      line-height: inherit;
       overflow: visible;
 
-      .Select-control {
+      .kobo-select__control {
         background: transparent;
         height: 30px;
+        min-height: 30px;
         border: none;
         border-radius: 0px;
         box-shadow: none;
@@ -106,27 +138,6 @@
 
         &:hover {
           box-shadow: none;
-        }
-
-        .Select-value {
-          line-height: 30px;
-          padding-left: 5px;
-          padding-right: 2px;
-          margin-top: 2px;
-
-          .Select-value-label {
-            color: lighten($black, 20%);
-          }
-        }
-
-        .Select-input {
-          height: 30px;
-          padding-left: 5px;
-          padding-right: 2px;
-        }
-
-        .Select-arrow {
-          opacity: 0.6;
         }
       }
     }
@@ -248,18 +259,6 @@
       top: 10px;
       background: lighten(#FFB775, 20%);
       cursor: pointer;
-    }
-  }
-}
-
-.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
-  .form-view--table {
-    padding: 0px;
-    overflow: hidden;
-    background: transparent !important;
-
-    .form-view__group--table-header {
-      padding-top: 0px;
     }
   }
 }

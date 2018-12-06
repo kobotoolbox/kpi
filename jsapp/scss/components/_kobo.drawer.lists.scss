@@ -11,16 +11,16 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    color: lighten($black, 40%);
+    color: $cool-silver;
     font-weight: normal;
 
     &:hover {
-      color: lighten($black, 10%);
+      color: $cool-charcoal;
     }
   }
 
   &__label, &__grouping {
-    color: lighten($black, 40%);
+    color: $cool-silver;
     cursor: pointer;
 
     i {
@@ -66,7 +66,7 @@
     }
 
     // &--visible, &--selected {
-    //   color: lighten($black, 10%);
+    //   color: $cool-charcoal;
     // }
 
   }

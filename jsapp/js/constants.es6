@@ -1,5 +1,11 @@
 import {t} from './utils';
 
+const HOOK_LOG_STATUSES = {
+  SUCCESS: 2,
+  PENDING: 1,
+  FAILED: 0
+}
+
 const MODAL_TYPES = {
   SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
@@ -7,7 +13,10 @@ const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_COLUMNS: 'table-columns'
+  TABLE_COLUMNS: 'table-columns',
+  REST_SERVICES: 'rest-services',
+  FORM_LANGUAGES: 'form-languages',
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
 }
 
 const PROJECT_SETTINGS_CONTEXTS = {
@@ -73,5 +82,6 @@ export default {
   VALIDATION_STATUSES: VALIDATION_STATUSES,
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES: MODAL_TYPES,
-  ASSET_TYPES: ASSET_TYPES
+  ASSET_TYPES: ASSET_TYPES,
+  HOOK_LOG_STATUSES: HOOK_LOG_STATUSES
 };

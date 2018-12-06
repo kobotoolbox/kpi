@@ -139,17 +139,17 @@ class LibrarySidebar extends Reflux.Component {
       message: t('are you sure you want to delete this collection? this action is not reversible'),
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        dataInterface.deleteCollection({uid: collectionUid}).then((data)=> {
-          this.quietUpdateStore({
-            parentUid: false,
-            parentName: false,
-            allPublic: false
-          });
-          this.searchValue();
-          this.queryCollections();
-          dialog.destroy();
-        }).fail((jqxhr)=> {
-          alertify.error(t('Failed to delete collection.'));
+        actions.resources.deleteCollection({uid: collectionUid}, {
+          onComplete: (data) => {
+            this.quietUpdateStore({
+              parentUid: false,
+              parentName: false,
+              allPublic: false
+            });
+            this.searchValue();
+            this.queryCollections();
+            dialog.destroy();
+          }
         });
       },
       oncancel: () => {
@@ -159,8 +159,8 @@ class LibrarySidebar extends Reflux.Component {
     dialog.set(opts).show();
   }
   renameCollection (evt) {
-    var collectionUid = $(evt.currentTarget).data('collection-uid');
-    var collectionName = $(evt.currentTarget).data('collection-name');
+    var collectionUid = evt.currentTarget.dataset.collectionUid;
+    var collectionName = evt.currentTarget.dataset.collectionName;
 
     let dialog = alertify.dialog('prompt');
     let opts = {

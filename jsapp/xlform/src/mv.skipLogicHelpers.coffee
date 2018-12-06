@@ -403,8 +403,14 @@ module.exports = do ->
       @criterion_builder_button.render().attach_to $parent
       @handcode_button.render().attach_to $parent
 
-      @criterion_builder_button.bind_event 'click', () => @context.use_criterion_builder_helper()
-      @handcode_button.bind_event 'click', () => @context.use_hand_code_helper()
+      @criterion_builder_button.bind_event('click', () =>
+        @context.view_factory.survey.trigger('change')
+        @context.use_criterion_builder_helper()
+      )
+      @handcode_button.bind_event('click', () =>
+        @context.view_factory.survey.trigger('change')
+        @context.use_hand_code_helper()
+      )
 
     serialize: () ->
       return ''

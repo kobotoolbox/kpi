@@ -6,7 +6,6 @@ import re
 import sys
 import copy
 import json
-import logging
 import StringIO
 from collections import OrderedDict
 
@@ -16,6 +15,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
+from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 import jsonbfield.fields
@@ -58,6 +58,7 @@ from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
+from kpi.utils.log import logging
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -101,7 +102,13 @@ class TagStringMixin:
 
     @property
     def tag_string(self):
-        return ','.join(self.tags.values_list('name', flat=True))
+        try:
+            tag_list = self.prefetched_tags
+        except AttributeError:
+            tag_names = self.tags.values_list('name', flat=True)
+        else:
+            tag_names = [t.name for t in tag_list]
+        return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
@@ -211,14 +218,18 @@ class FormpackXLSFormUtils(object):
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
 
-    def _adjust_active_translation(self, content):
-        # to get around the form builder's way of handling translations where
-        # the interface focuses on the "null translation" and shows other ones
-        # in advanced settings, we allow the builder to attach a parameter
-        # which says what to name the null translation.
-        _null_translation_as = content.pop('#active_translation_name', None)
-        if _null_translation_as:
-            self._rename_translation(content, None, _null_translation_as)
+    def _make_default_translation_first(self, content):
+        # The form builder only shows the first language, so make sure the
+        # default language is always at the top of the translations list. The
+        # new translations UI, on the other hand, shows all languages:
+        # https://github.com/kobotoolbox/kpi/issues/1273
+        try:
+            default_translation_name = content['settings']['default_language']
+        except KeyError:
+            # No `default_language`; don't do anything
+            return
+        else:
+            self._prioritize_translation(content, default_translation_name)
 
     def _strip_empty_rows(self, content, vals=None):
         if vals is None:
@@ -284,7 +295,9 @@ class FormpackXLSFormUtils(object):
                     )
 
     def _prioritize_translation(self, content, translation_name, is_new=False):
-        _translations = content.get('translations')
+        # the translations/languages present this particular content
+        _translations = content['translations']
+        # the columns that have translations
         _translated = content.get('translated', [])
         if is_new and (translation_name in _translations):
             raise ValueError('cannot add existing translation')
@@ -292,20 +305,17 @@ class FormpackXLSFormUtils(object):
             raise ValueError('translation cannot be found')
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
-            for row in content.get('survey', []):
-                for col in _translated:
-                    if is_new:
-                        val = '{}'.format(row[col][0])
-                    else:
-                        val = row[col].pop(_tindex)
-                    row[col].insert(0, val)
-            for row in content.get('choices', []):
-                for col in _translated:
-                    if is_new:
-                        val = '{}'.format(row[col][0])
-                    else:
-                        val = row[col].pop(_tindex)
-                    row[col].insert(0, val)
+            for sheet_name in 'survey', 'choices':
+                for row in content.get(sheet_name, []):
+                    for col in _translated:
+                        if is_new:
+                            val = '{}'.format(row[col][0])
+                        else:
+                            try:
+                                val = row[col].pop(_tindex)
+                            except KeyError:
+                                continue
+                        row[col].insert(0, val)
             if is_new:
                 _translations.insert(0, translation_name)
             else:
@@ -444,7 +454,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'asset'
 
     class Meta:
         ordering = ('-date_modified',)
@@ -537,7 +547,7 @@ class Asset(ObjectPermissionMixin,
         '''
         self._standardize(self.content)
 
-        self._adjust_active_translation(self.content)
+        self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
@@ -662,7 +672,15 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def latest_version(self):
-        return self.asset_versions.order_by('-date_modified').first()
+        versions = None
+        try:
+            versions = self.prefetched_latest_versions
+        except AttributeError:
+            versions = self.asset_versions.order_by('-date_modified')
+        try:
+            return versions[0]
+        except IndexError:
+            return None
 
     @property
     def deployed_versions(self):
@@ -675,9 +693,19 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
             return latest_version.uid
+
+    @property
+    def version__content_hash(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.content_hash
 
     @property
     def snapshot(self):
@@ -720,6 +748,50 @@ class Asset(ObjectPermissionMixin,
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
+    @property
+    def has_active_hooks(self):
+        """
+        Returns if asset has active hooks.
+        Useful to update `kc.XForm.has_kpi_hooks` field.
+        :return: {boolean}
+        """
+        return self.hooks.filter(active=True).exists()
+
+    @staticmethod
+    def optimize_queryset_for_list(queryset):
+        ''' Used by serializers to improve performance when listing assets '''
+        queryset = queryset.defer(
+            # Avoid pulling these `JSONField`s from the database because:
+            #   * they are stored as plain text, and just deserializing them
+            #     to Python objects is CPU-intensive;
+            #   * they are often huge;
+            #   * we don't need them for list views.
+            'content', 'report_styles'
+        ).select_related(
+            'owner__username',
+        ).prefetch_related(
+            # We previously prefetched `permissions__content_object`, but that
+            # actually pulled the entirety of each permission's linked asset
+            # from the database! For now, the solution is to remove
+            # `content_object` here *and* from
+            # `ObjectPermissionNestedSerializer`.
+            'permissions__permission',
+            'permissions__user',
+            # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
+            # related objects in a list (`prefetched_list`) that we can use in
+            # other methods to avoid additional queries; see:
+            # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
+            Prefetch('tags', to_attr='prefetched_tags'),
+            Prefetch(
+                'asset_versions',
+                queryset=AssetVersion.objects.order_by(
+                    '-date_modified'
+                ).only('uid', 'asset', 'date_modified', 'deployed'),
+                to_attr='prefetched_latest_versions',
+            ),
+        )
+        return queryset
+
 
 class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     '''
@@ -747,9 +819,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.asset_version is None:
-                self.asset_version = self.asset.latest_version
             if self.source is None:
+                if self.asset_version is None:
+                    self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
             if self.owner is None:
                 self.owner = self.asset.owner
@@ -758,7 +830,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         if _source is None:
             _source = {}
         self._standardize(_source)
-        self._adjust_active_translation(_source)
+        self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)

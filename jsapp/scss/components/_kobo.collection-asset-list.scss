@@ -53,7 +53,7 @@
 
   span.parent {
     font-weight: normal;
-    color: lighten($black, 10%);
+    color: $cool-charcoal;
   }
 
   i {
@@ -87,7 +87,7 @@
     right: 0;
     z-index: 1;
 
-    .Select {
+    .kobo-select {
       display: inline-block;
       vertical-align: middle;
       min-width: 120px;
@@ -133,7 +133,7 @@
   padding-right: 12px;
 
   .asset-list {
-    height: 100%;
+    min-height: 100%;
   }
 
   .asset-items {

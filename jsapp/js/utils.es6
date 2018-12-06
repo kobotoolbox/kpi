@@ -1,8 +1,8 @@
+import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
 import cookie from 'react-cookie';
-import Promise from 'es6-promise';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -47,6 +47,124 @@ export function surveyToValidJson(survey) {
   survey.toFlatJSON();
   // returning the result of the second call to "toFlatJSON()"
   return JSON.stringify(survey.toFlatJSON());
+}
+
+// TRANSLATIONS HACK (Part 2/2):
+// this function reverses nullifying default language - use it just before saving
+export function unnullifyTranslations(surveyDataJSON, assetContent) {
+  let surveyData = JSON.parse(surveyDataJSON);
+
+  let translatedProps = [];
+  if (assetContent.translated) {
+     translatedProps = assetContent.translated;
+  }
+
+  // set default_language
+  let defaultLang = assetContent.translations_0;
+  if (!defaultLang) {
+    defaultLang = null;
+  }
+  if (!surveyData.settings[0].default_language && defaultLang !== null) {
+    surveyData.settings[0].default_language = defaultLang;
+  }
+
+  if (defaultLang !== null) {
+    // replace every "translatedProp" with "translatedProp::defaultLang"
+    if (surveyData.choices) {
+      surveyData.choices.forEach((choice) => {
+        translatedProps.forEach((translatedProp) => {
+          if (typeof choice[translatedProp] !== 'undefined') {
+            choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
+            delete choice[translatedProp];
+          }
+        });
+      });
+    }
+    if (surveyData.survey) {
+      surveyData.survey.forEach((surveyRow) => {
+        translatedProps.forEach((translatedProp) => {
+          if (typeof surveyRow[translatedProp] !== 'undefined') {
+            surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
+            delete surveyRow[translatedProp];
+          }
+        });
+      });
+    }
+  }
+
+  return JSON.stringify(surveyData);
+}
+
+export function nullifyTranslations(translations, translatedProps, survey, baseSurvey) {
+  const data = {
+    survey: clonedeep(survey),
+    translations: clonedeep(translations)
+  };
+
+  if (typeof translations === 'undefined') {
+    data.translations = [null];
+    return data;
+  }
+
+  if (data.translations.length > 1 && data.translations.indexOf(null) !== -1) {
+    throw new Error('There is an unnamed translation in your form definition.\nPlease give a name to all translations in your form.\nUse "Manage Translations" option from form landing page.');
+  }
+
+  /*
+  TRANSLATIONS HACK (Part 1/2):
+  all the coffee code assumes first language to be null, and we don't want
+  to introduce potential code-breaking refactor in old code, so we store
+  first language, then replace with null and reverse this just before saving
+  NOTE: when importing assets from Library into form, we need to make sure
+  the default language is the same (or force baseSurvey default language)
+  */
+  if (baseSurvey) {
+    const formDefaultLang = baseSurvey._initialParams.translations_0 || null;
+    if (data.translations[0] === formDefaultLang) {
+      // case 1: nothing to do - same default language in both
+    } else if (data.translations.includes(formDefaultLang)) {
+      // case 2: imported asset has form default language but not as first, so
+      // we need to reorder things
+      const defaultLangIndex = data.translations.indexOf(formDefaultLang);
+      data.translations.unshift(data.translations.pop(defaultLangIndex));
+      data.survey.forEach((row) => {
+        translatedProps.forEach((translatedProp) => {
+          const transletedPropArr = row[translatedProp];
+          if (transletedPropArr) {
+            transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex));
+          }
+        });
+      });
+    }
+
+    if (!data.translations.includes(formDefaultLang)) {
+      // case 3: imported asset doesn't have form default language, so we
+      // force it onto the asset as the first language and try setting some
+      // meaningful property value
+      data.translations.unshift(formDefaultLang);
+      data.survey.forEach((row) => {
+        translatedProps.forEach((translatedProp) => {
+          if (row[translatedProp]) {
+            let propVal = null
+            if (row.name) {
+              propVal = row.name;
+            } else if (row.$autoname) {
+              propVal = row.$autoname;
+            }
+            row[translatedProp].unshift(propVal);
+          }
+        });
+      });
+    }
+  }
+
+  // no need to nullify null
+  if (data.translations[0] !== null) {
+    data.translations_0 = data.translations[0]
+    data.translations[0] = null
+  }
+
+  return data;
 }
 
 export function redirectTo(href) {
@@ -131,6 +249,38 @@ export function currentLang() {
   return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
+// langString contains name and code e.g. "English (en)"
+export function getLangAsObject(langString) {
+  const openingIndex = langString.indexOf('(');
+  const closingIndex = langString.indexOf(')');
+
+  const langCode = langString.substring(openingIndex + 1, closingIndex);
+
+  const langName = langString.substring(0, openingIndex).trim();
+
+  if (
+    langCode &&
+    langName &&
+    // make sure langString contains just name and bracket-wrapped code
+    langName.length + langCode.length + 3 === langString.length
+  ) {
+    return {
+      code: langCode,
+      name: langName
+    };
+  } else {
+    return undefined;
+  }
+}
+
+export function getLangString(obj) {
+  if (typeof obj === 'object' && obj.name && obj.code) {
+    return `${obj.name} (${obj.code})`;
+  } else {
+    return undefined;
+  }
+}
+
 log.t = function () {
   let _t = {};
   __strings.forEach(function(str){ _t[str] = str; })
@@ -188,6 +338,12 @@ export function isAValidUrl(url) {
     return false;
   }
 }
+
+export function checkLatLng(geolocation) {
+  if (geolocation && geolocation[0] && geolocation[1]) return true;
+  else return false;
+}
+
 
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
@@ -255,4 +411,10 @@ export function koboMatrixParser(params) {
       params.source = JSON.stringify(content);
   }
   return params;
+}
+
+export function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
 }

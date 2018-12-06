@@ -54,14 +54,11 @@ class AssetVersion(models.Model):
             'version_id_key': '__version__',
         }
 
-    def _content_hash(self):
+    @property
+    def content_hash(self):
         # used to determine changes in the content from version to version
-        # not saved, only compared with other asset_versions (in tests and
-        # migration scripts, initially)
-        _json_string = json.dumps({'version_content': self.version_content,
-                                   'deployed_content': self.deployed_content,
-                                   'deployed': self.deployed,
-                                   }, sort_keys=True)
+        # not saved, only compared with other asset_versions
+        _json_string = json.dumps(self.version_content, sort_keys=True)
         return hashlib.sha1(_json_string).hexdigest()
 
     def __unicode__(self):

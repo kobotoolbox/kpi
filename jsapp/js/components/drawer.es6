@@ -4,7 +4,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
-import Dropzone from 'react-dropzone';
 import Select from 'react-select';
 
 import {dataInterface} from '../dataInterface';

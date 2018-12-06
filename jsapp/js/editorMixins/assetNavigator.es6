@@ -29,10 +29,6 @@ class AssetNavigatorListView extends React.Component {
     this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
   }
-  componentWillReceiveProps () {
-    this.searchClear();
-    this.listenTo(this.searchStore, this.searchStoreChanged);
-  }
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
@@ -162,19 +158,13 @@ class AssetNavigator extends Reflux.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(stores.assetLibrary, this.assetLibraryTrigger);
     this.listenTo(stores.pageState, this.handlePageStateStore);
     this.state.searchContext.mixin.searchDefault();
   }
-  filterSearchResults (results) {
-    if (this.searchFieldValue() === results.query) {
-      return results;
+  filterSearchResults (response) {
+    if (this.searchFieldValue() === response.query) {
+      return response.results;
     }
-  }
-  assetLibraryTrigger (res) {
-    this.setState({
-      assetLibraryItems: res
-    });
   }
   handlePageStateStore (state) {
     this.setState(state);
@@ -183,59 +173,8 @@ class AssetNavigator extends Reflux.Component {
     return this.imports.filter((i)=> i.status === n );
   }
   searchFieldValue () {
-    return ReactDOM.findDOMNode(this.refs.navigatorSearchBox.refs.inp).value;
+    return this.refs.navigatorSearchBox.getValue();
   }
-  liveSearch () {
-    var queryInput = this.searchFieldValue(),
-      r;
-    if (queryInput && queryInput.length > 2) {
-      r = stores.assetSearch.getRecentSearch(queryInput);
-      if (r) {
-        this.setState({
-          searchResults: r
-        });
-      } else {
-        actions.search.assets(queryInput);
-      }
-    }
-  }
-  _displayAssetLibraryItems () {
-    var qresults = this.state.assetLibraryItems;
-    // var alItems;
-    // var contents;
-    if (qresults && qresults.count > 0) {
-      // var alItems = qresults.results;
-      return (
-        <bem.LibList ref='liblist'>
-          {qresults.results.map((item)=> {
-            var modifiers = [item.asset_type];
-            // var summ = item.summary;
-            return (
-              <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
-                <bem.LibList__dragbox />
-                <bem.LibList__label>
-                  <ui.AssetName {...item} />
-                </bem.LibList__label>
-                <bem.LibList__qtype>
-                  {t(item.asset_type)}
-                </bem.LibList__qtype>
-              </bem.LibList__item>
-            );
-          })}
-        </bem.LibList>
-      );
-    } else {
-      return (
-        <bem.LibList m={'loading'}>
-          <bem.LibList__item m={'message'}>
-            <i />
-            {t('loading library assets')}
-          </bem.LibList__item>
-        </bem.LibList>
-      );
-    }
-  }
-
   toggleTagSelected (tag) {
     var tags = this.state.selectedTags,
         _ti = tags.indexOf(tag);
@@ -255,6 +194,7 @@ class AssetNavigator extends Reflux.Component {
         <bem.LibNav__header>
           <bem.LibNav__search>
             <ListSearch
+              ref='navigatorSearchBox'
               placeholder={t('search library')}
               searchContext={this.state.searchContext}
             />

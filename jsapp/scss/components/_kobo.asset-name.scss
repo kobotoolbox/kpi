@@ -1,5 +1,5 @@
 .asset-name {
-  &--empty {
+  &.asset-name--empty {
     font-style: italic;
   }
 
@@ -12,7 +12,7 @@
 }
 
 .sidebar-asset-name {
-  &--noname {
+  &.asset-name--noname {
     font-style: italic;
   }
 }

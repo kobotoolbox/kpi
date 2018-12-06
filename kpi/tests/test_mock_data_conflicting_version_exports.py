@@ -31,7 +31,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         self.asset = Asset.objects.get(uid='axD3Wc8ZnfgLXBcURRt5fM')
         # To avoid cluttering the fixture, assign permissions here
         self.asset.assign_perm(self.user, 'view_submissions')
-        self.submissions = self.asset.deployment._get_submissions()
+        self.submissions = self.asset.deployment.get_submissions()
         self.submission_id_field = '_id'
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
@@ -67,7 +67,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         export_task.data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
-            'lang': 'xml'
+            'lang': '_xml'
         }
         messages = defaultdict(list)
         export_task._run_task(messages)

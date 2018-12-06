@@ -213,7 +213,7 @@ class FormSummary extends React.Component {
         {this.userCan('change_asset', this.state) &&
           <bem.PopoverMenu__link onClick={this.sharingModal}>
             <i className='k-icon-share'/>
-            {t('Share form')}
+            {t('Share project')}
             <i className='fa fa-angle-right' />
           </bem.PopoverMenu__link>
         }
@@ -376,17 +376,6 @@ class FormSummary extends React.Component {
               </bem.FormView__row>
             }
             {this.renderSubmissionsGraph()}
-          </bem.FormView__column>
-
-          <bem.FormView__column m='right'>
-            <bem.FormView__row m='quick-links'>
-              <bem.FormView__cell m='label'>
-                {t('Quick Links')}
-              </bem.FormView__cell>
-              <bem.FormView__cell m='box'>
-                {this.renderQuickLinks()}
-              </bem.FormView__cell>
-            </bem.FormView__row>
             <bem.FormView__row m='summary-details'>
               <bem.FormView__cell m='label'>
                 {t('Form details')}
@@ -425,6 +414,18 @@ class FormSummary extends React.Component {
                 </bem.FormView__group>
               </bem.FormView__cell>
             </bem.FormView__row>
+          </bem.FormView__column>
+
+          <bem.FormView__column m='right'>
+            <bem.FormView__row m='quick-links'>
+              <bem.FormView__cell m='label'>
+                {t('Quick Links')}
+              </bem.FormView__cell>
+              <bem.FormView__cell m='box'>
+                {this.renderQuickLinks()}
+              </bem.FormView__cell>
+            </bem.FormView__row>
+
             {this.state.deployment__submission_count > 0 &&
               <bem.FormView__row m='data-links'>
                 <bem.FormView__cell m='label'>

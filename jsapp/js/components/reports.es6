@@ -299,7 +299,6 @@ class CustomReportForm extends React.Component {
               {t('Delete')}
             </bem.Modal__footerButton>
           }
-
           <bem.Modal__footerButton
             m='primary'
             onClick={this.saveCustomReport}
@@ -493,7 +492,7 @@ class ReportContents extends React.Component {
         }
       }
 
-      if (_type === 'select_one' || _type === 'select_multiple') {
+      if ((_type === 'select_one' || _type === 'select_multiple') && asset.content.choices) {
         let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
         let resps = reportData[i].data.responses;
         if (resps) {
@@ -530,7 +529,12 @@ class ReportContents extends React.Component {
       <div>
         {
           reportData.map((rowContent, i)=>{
-            var label = (rowContent.row.label && rowContent.row.label[tnslIndex]) ? rowContent.row.label[tnslIndex] : t('Unlabeled');
+            let label = t('Unlabeled');
+            if (_.isArray(rowContent.row.label)) {
+              label = rowContent.row.label[tnslIndex];
+            } else if (_.isString(rowContent.row.label)) {
+              label = rowContent.row.label;
+            }
 
             if (!rowContent.data.provided)
               return false;
@@ -713,7 +717,6 @@ class ReportStyleSettings extends React.Component {
               </div>
             }
           </div>
-
           <ui.Modal.Footer>
             <bem.Modal__footerButton m='primary' onClick={this.saveReportStyles}>
               {t('Save')}
@@ -735,7 +738,7 @@ class Reports extends React.Component {
       translations: false,
       activeModalTab: 0,
       error: false,
-      showExpandedReport: false,
+      isFullscreen: false,
       reportLimit: 200,
       customReports: false,
       showReportGraphSettings: false,
@@ -957,19 +960,8 @@ class Reports extends React.Component {
   triggerDefaultReport() {
     this.setState({currentCustomReport: false});
   }
-  toggleExpandedReports () {
-    if (this.state.showExpandedReport) {
-      // load asset again to restore header title and submission count after exiting expanded report
-      actions.resources.loadAsset({id: this.props.params.assetid});
-    }
-    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
-    this.setState({
-      showExpandedReport: !this.state.showExpandedReport,
-    });
-  }
-  componentWillUnmount() {
-    if (this.state.showExpandedReport)
-      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
+  toggleFullscreen () {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
   launchPrinting () {
     window.print();
@@ -1026,9 +1018,11 @@ class Reports extends React.Component {
           </button>
         }
 
-        <button className='mdl-button mdl-button--icon report-button__expand'
-                onClick={this.toggleExpandedReports}
-                data-tip={t('Expand')}>
+        <button
+          className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+          onClick={this.toggleFullscreen}
+          data-tip={t('Toggle fullscreen')}
+        >
           <i className='k-icon-expand' />
         </button>
 
@@ -1162,52 +1156,59 @@ class Reports extends React.Component {
       );
     }
 
+    const formViewModifiers = [];
+    if (this.state.isFullscreen) {
+      formViewModifiers.push('fullscreen');
+    }
+
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.ReportView>
-          {this.renderReportButtons()}
+        <bem.FormView m={formViewModifiers}>
+          <bem.ReportView>
+            {this.renderReportButtons()}
 
-          <bem.ReportView__wrap>
-            <bem.PrintOnly>
-              <h3>{asset.name}</h3>
-            </bem.PrintOnly>
-            {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
-              <bem.FormView__cell m={['centered', 'reportLimit']}>
-                <div>
-                  {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
-                </div>
-                <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
-                  {t('Show all (##)').replace('##', this.state.reportData.length)}
-                </button>
-              </bem.FormView__cell>
+            <bem.ReportView__wrap>
+              <bem.PrintOnly>
+                <h3>{asset.name}</h3>
+              </bem.PrintOnly>
+              {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+                <bem.FormView__cell m={['centered', 'reportLimit']}>
+                  <div>
+                    {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
+                  </div>
+                  <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
+                    {t('Show all (##)').replace('##', this.state.reportData.length)}
+                  </button>
+                </bem.FormView__cell>
+              }
+
+              <bem.ReportView__warning>
+                <h4>{t('Warning')}</h4>
+                <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+              </bem.ReportView__warning>
+              <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
+            </bem.ReportView__wrap>
+
+            {this.state.showReportGraphSettings &&
+              <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Edit Report Style')}>
+                <ReportStyleSettings parentState={this.state} />
+              </ui.Modal>
             }
 
-            <bem.ReportView__warning>
-              <h4>{t('Warning')}</h4>
-              <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-            </bem.ReportView__warning>
-            <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
-          </bem.ReportView__wrap>
+            {this.state.showCustomReportModal &&
+              <ui.Modal open onClose={this.toggleCustomReportModal} title={t('Custom Report')}>
+                {this.renderCustomReportModal()}
+              </ui.Modal>
+            }
 
-          {this.state.showReportGraphSettings &&
-            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Edit Report Style')}>
-              <ReportStyleSettings parentState={this.state} />
-            </ui.Modal>
-          }
+            {this.state.currentQuestionGraph &&
+              <ui.Modal open onClose={this.closeQuestionSettings} title={t('Question Style')}>
+                <QuestionGraphSettings question={this.state.currentQuestionGraph} parentState={this.state} />
+              </ui.Modal>
+            }
 
-          {this.state.showCustomReportModal &&
-            <ui.Modal open onClose={this.toggleCustomReportModal} title={t('Custom Report')}>
-              {this.renderCustomReportModal()}
-            </ui.Modal>
-          }
-
-          {this.state.currentQuestionGraph &&
-            <ui.Modal open onClose={this.closeQuestionSettings} title={t('Question Style')}>
-              <QuestionGraphSettings question={this.state.currentQuestionGraph} parentState={this.state} />
-            </ui.Modal>
-          }
-
-        </bem.ReportView>
+          </bem.ReportView>
+        </bem.FormView>
       </DocumentTitle>
       );
   }

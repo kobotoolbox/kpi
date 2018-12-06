@@ -11,11 +11,15 @@ bem.Loading = BEM('loading');
 bem.Loading__inner = bem.Loading.__('inner');
 bem.Loading__msg = bem.Loading.__('msg');
 
+bem.EmptyContent = BEM('empty-content', '<section>');
+bem.EmptyContent__icon = bem.EmptyContent.__('icon', '<i>');
+bem.EmptyContent__title = bem.EmptyContent.__('title', '<h1>');
+bem.EmptyContent__message = bem.EmptyContent.__('message', '<p>');
+bem.EmptyContent__button = bem.EmptyContent.__('button', '<button>');
+
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
-
 bem.AssetRow__cellmeta    = bem.AssetRow.__('cellmeta');
-bem.AssetRow__name        = bem.AssetRow.__('name', '<span>');
 bem.AssetRow__description = bem.AssetRow.__('description', '<span>');
 bem.AssetRow__tags        = bem.AssetRow.__('tags');
 bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
@@ -23,6 +27,10 @@ bem.AssetRow__tags__notags = bem.AssetRow.__('tags__notags', '<span>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 bem.AssetRow__typeIcon  = bem.AssetRow.__('type-icon', '<span>');
+
+bem.ServiceRow = BEM('service-row');
+bem.ServiceRow__column = bem.ServiceRow.__('column');
+bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
 
 bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
@@ -136,7 +144,7 @@ bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
 bem.FormView__item = bem.FormView.__('item');
-bem.FormView__button = bem.FormView.__('button', '<button>');
+bem.FormView__iconButton = bem.FormView.__('icon-button', '<button>');
 
 bem.FormView__row = bem.FormView.__('row');
 bem.FormView__cell = bem.FormView.__('cell');
@@ -240,6 +248,16 @@ bem.TextBox__label = bem.TextBox.__('label');
 bem.TextBox__input = bem.TextBox.__('input', '<input>');
 bem.TextBox__description = bem.TextBox.__('description');
 bem.TextBox__error = bem.TextBox.__('error');
+
+bem.Checkbox = bem('checkbox');
+bem.Checkbox__wrapper = bem.Checkbox.__('wrapper', '<label>');
+bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
+bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
+
+bem.Radio = bem('radio');
+bem.Radio__wrapper = bem.Radio.__('wrapper', '<label>');
+bem.Radio__input = bem.Radio.__('input', '<input>');
+bem.Radio__label = bem.Radio.__('label', '<span>');
 
 bem.PrintOnly = BEM('print-only');
 
