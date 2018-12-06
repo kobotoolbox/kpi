@@ -1,7 +1,7 @@
 # Browsers that we support:
-# https://browserl.ist/?q=last+1+major+versions%2C+%3E+1%25%2C+not+dead%2C+IE+11%2C+Firefox+ESR
+# https://browserl.ist/?q=last+2+major+versions%2C+%3E+1%25%2C+not+dead%2C+IE+11%2C+Firefox+ESR
 
-last 1 major versions
+last 2 major versions
 > 1%
 not dead
 IE 11
