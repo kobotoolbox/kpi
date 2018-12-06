@@ -309,12 +309,12 @@ class FormpackXLSFormUtils(object):
             else:  # Otherwise raise an error.
                 # Remove None from translations we want to display to users
                 valid_translations = [t for t in _translations if t is not None]
-                raise ValueError("Translation `{translation_name}` could not be found in your form. "
-                                 "We found the translations: `{translations}`. " \
-                                 "Please select one of these with the exact same spelling.".format(
-                    translation_name=translation_name,
-                    translations="`, `".join(valid_translations)
-                ))
+                raise ValueError("`{translation_name}` is specified as the default language, "
+                                 "but only these translations are present in the form: `{translations}`".format(
+                                    translation_name=translation_name,
+                                    translations="`, `".join(valid_translations)
+                                    )
+                                 )
 
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
