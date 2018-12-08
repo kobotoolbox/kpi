@@ -283,15 +283,14 @@ export class ProjectDownloads extends React.Component {
                             label={t('Include groups in headers')}
                           />
                         </bem.FormModal__item>,
-                        this.state.hierInLabels ?
-                          <bem.FormModal__item key={'g'}>
-                            <label htmlFor='group_sep'>{t('Group separator')}</label>
-                            <input type='text' name='group_sep'
-                              value={this.state.groupSep}
-                              onChange={this.groupSepChange}
-                            />
-                          </bem.FormModal__item>
-                        : null,
+
+                        <bem.FormModal__item key={'g'}>
+                          <label htmlFor='group_sep'>{t('Group separator')}</label>
+                          <input type='text' name='group_sep'
+                            value={this.state.groupSep}
+                            onChange={this.groupSepChange}
+                          />
+                        </bem.FormModal__item>
                       ] : null,
                       dvcount > 1 ?
                         <bem.FormModal__item key={'v'} m='export-fields-from-all-versions'>
