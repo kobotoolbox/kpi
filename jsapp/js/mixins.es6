@@ -691,6 +691,9 @@ mixins.contextRouter = {
   currentAssetID () {
     return this.context.router.params.assetid;
   },
+  currentAsset () {
+    return stores.asset.data[this.currentAssetID()];
+  },
   isActiveRoute (path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
   },
