@@ -211,13 +211,7 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
   isCollectionPublic(collection) {
-    let isPublic = false;
-    collection.permissions.forEach((perm) => {
-      if (perm.user.endsWith('/users/AnonymousUser/')) {
-        isPublic = true;
-      }
-    });
-    return isPublic;
+    return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
   }
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
