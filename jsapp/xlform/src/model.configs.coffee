@@ -155,7 +155,7 @@ module.exports = do ->
         value: "Enter a date"
     range:
       label:
-        value: "Choose a range"
+        value: "Enter a number within a specified range"
     calculate:
       calculation:
         value: ""
