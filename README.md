@@ -66,3 +66,7 @@ As this is a Django project, you may find the admin panel at `<kpi base url>/adm
 Icons
 -----
 All project icons are kept in `jsapp/svg-icons/`. Adding new icon requires adding new `svg` file here and regenerating icons with `npm run generate-icons`. Filenames are used for icon font classnames, e.g. `.k-icon-arrow-last` for `arrow-last.svg` (please use kebab-case). You can see all available icons by running `npm run show-icons` - it will open a list in your browser.
+
+Supported Browsers
+------------------
+See [browsers list config](./.browserslistrc)
