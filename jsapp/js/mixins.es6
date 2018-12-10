@@ -158,7 +158,7 @@ mixins.dmix = {
   },
   unarchiveAsset (uid=null, callback) {
     if (uid === null) {
-      mixins.clickAssets.click.asset.unarchive.call(this, this.state, callback);
+      mixins.clickAssets.click.asset.unarchive(this.state, callback);
     } else {
       mixins.clickAssets.click.asset.unarchive(uid, callback);
     }

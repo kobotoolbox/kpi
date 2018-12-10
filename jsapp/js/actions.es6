@@ -418,7 +418,7 @@ actions.resources.setDeploymentActive.listen(function(details) {
     .fail(actions.resources.setDeploymentActive.failed);
 });
 actions.resources.setDeploymentActive.completed.listen((result) => {
-  if (result.active) {
+  if (result.deployment__active) {
     notify(t('Project unarchived successfully'));
   } else {
     notify(t('Project archived successfully'));

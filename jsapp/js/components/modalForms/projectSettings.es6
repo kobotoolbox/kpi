@@ -215,7 +215,7 @@ class ProjectSettings extends React.Component {
   unarchiveProject() {
     this.unarchiveAsset(
       this.state.formAsset.uid,
-      this.goToProjectsList.bind(this)
+      this.goToFormLanding.bind(this)
     );
   }
 
