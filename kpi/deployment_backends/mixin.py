@@ -7,10 +7,10 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 import requests
+from requests.utils import quote
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route, list_route
-from requests.utils import quote
 
 from .backends import DEPLOYMENT_BACKENDS
 from .kobocat_backend import KobocatDeploymentBackend
@@ -93,6 +93,7 @@ class MockDataProxyViewSetMixin(object):
 
         return asset
 
+
 class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
     """
     List, retrieve, and delete submission data for a deployed asset via the
@@ -144,7 +145,6 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         django_response.status_code = requests_response.status_code
         django_response.write(requests_response.content)
         return django_response
-
 
     def list(self, kpi_request, *args, **kwargs):
         return self.retrieve(kpi_request, None, *args, **kwargs)

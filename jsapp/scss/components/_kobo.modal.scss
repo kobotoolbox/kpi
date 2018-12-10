@@ -563,6 +563,10 @@ $z-modal-x: 10;
 
   .form-view__cell--translation-note {
     padding-bottom: 20px;
+
+    p {
+      margin: 0;
+    }
   }
   .form-view__cell--translation {
     display: flex;

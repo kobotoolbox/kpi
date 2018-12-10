@@ -5,7 +5,7 @@
 #    pip-compile --output-file dependencies/pip/external_services.txt dependencies/pip/external_services.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@c94751b25f315e15db6d32fa2ebf816263cb6c56#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@40110eeb001b1a581aad6836f746fedef8be5752#egg=formpack
 amqp==2.3.2
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2

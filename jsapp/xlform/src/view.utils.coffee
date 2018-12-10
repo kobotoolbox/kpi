@@ -62,7 +62,7 @@ module.exports = do ->
         if new_value.newValue?
           edit_box.remove()
           selector.show()
-          selector.html new_value.newValue
+          selector.html(_.escape(new_value.newValue))
         else
           error_box = $('<div class="error-message">' + new_value + '</div>')
           parent_element.append(error_box)

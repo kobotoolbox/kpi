@@ -4,7 +4,7 @@ import bem from '../bem';
 
 /*
 Properties:
-- value <boolean>
+- checked <boolean>
 - onChange <function>: required
 - label <string>
 */
@@ -14,14 +14,10 @@ class Checkbox extends React.Component {
       throw new Error('onChange callback missing!')
     }
     super(props);
-    this.state = {
-      checked: props.checked
-    }
     autoBind(this);
   }
 
   onChange(evt) {
-    this.setState({checked: evt.currentTarget.checked});
     this.props.onChange(evt.currentTarget.checked);
   }
 
@@ -34,7 +30,7 @@ class Checkbox extends React.Component {
             name={this.props.name}
             id={this.props.id}
             onChange={this.onChange}
-            checked={this.state.checked}
+            checked={this.props.checked}
           />
 
           {this.props.label &&

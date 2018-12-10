@@ -582,6 +582,9 @@ actions.permissions.assignPerm.listen(function(creds){
 actions.permissions.assignPerm.completed.listen(function(val){
   actions.resources.loadAsset({url: val.content_object});
 });
+actions.permissions.assignPerm.failed.listen(function(){
+  notify(t('failed to update permissions'), 'error');
+});
 
 // copies permissions from one asset to other
 actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
@@ -606,6 +609,9 @@ actions.permissions.removePerm.listen(function(details){
 
 actions.permissions.removePerm.completed.listen(function(uid){
   actions.resources.loadAsset({id: uid});
+});
+actions.permissions.removePerm.failed.listen(function(){
+  notify(t('failed to remove permissions'), 'error');
 });
 
 actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
