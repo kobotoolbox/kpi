@@ -557,6 +557,9 @@ actions.resources.cloneAsset.listen(function(details, params={}){
     })
     .fail(actions.resources.cloneAsset.failed);
 });
+actions.resources.cloneAsset.failed.listen(() => {
+  notify(t('Could not create project!'), 'error');
+});
 
 actions.search.assets.listen(function(searchData, params={}){
   dataInterface.searchAssets(searchData)

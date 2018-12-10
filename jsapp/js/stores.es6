@@ -316,9 +316,10 @@ var allAssetsStore = Reflux.createStore({
 
     this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
+    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-    this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
     if (this.byUid[uid] && this.byUid[uid].content) {
@@ -331,7 +332,15 @@ var allAssetsStore = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
-  loadAssetCompleted (asset) {
+  onUpdateAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
+    this.data.forEach((dataAsset, index) => {
+      if (dataAsset.uid === asset.uid) {
+        this.data[index] = asset;
+      }
+    });
+  },
+  onLoadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
   onCloneAssetCompleted (asset) {
