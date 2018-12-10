@@ -829,10 +829,10 @@ actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
     });
 });
 actions.hooks.retryLog.completed.listen((response) => {
-  notify(t('Rubmission retry requested successfully'));
+  notify(t('Submission retry requested successfully'));
 });
 actions.hooks.retryLog.failed.listen((response) => {
-  notify(t('Rubmission retry request failed'), 'error');
+  notify(t('Submission retry request failed'), 'error');
 });
 
 actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
