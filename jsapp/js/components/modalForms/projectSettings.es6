@@ -213,6 +213,31 @@ class ProjectSettings extends React.Component {
     });
   }
 
+  isArchived() {
+    return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
+  }
+
+  archiveProject() {
+    this.archiveAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
+  unarchiveProject() {
+    this.unarchiveAsset(
+      this.state.formAsset.uid,
+      this.goToFormLanding.bind(this)
+    );
+  }
+
+  deleteProject() {
+    this.deleteAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
   /*
    * routes navigation
    */
@@ -237,6 +262,11 @@ class ProjectSettings extends React.Component {
     }
 
     hashHistory.push(`/forms/${targetUid}/landing`);
+  }
+
+  goToProjectsList() {
+    stores.pageState.hideModal();
+    hashHistory.push('/forms/');
   }
 
   /*
@@ -694,6 +724,7 @@ class ProjectSettings extends React.Component {
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
             <bem.Modal__footerButton
+              type='submit'
               m='primary'
               onClick={this.handleSubmit}
               className='mdl-js-button'
@@ -801,6 +832,48 @@ class ProjectSettings extends React.Component {
               <iframe src={this.props.iframeUrl} />
             </bem.FormView__cell>
           }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+            <bem.FormModal__item>
+              <bem.FormModal__item m='inline'>
+                {this.isArchived() &&
+                  <button
+                    type='button'
+                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
+                    onClick={this.unarchiveProject}
+                  >
+                    {t('Unarchive Project')}
+                  </button>
+                }
+
+                {!this.isArchived() &&
+                  <button
+                    type='button'
+                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
+                    onClick={this.archiveProject}
+                  >
+                    {t('Archive Project')}
+                  </button>
+                }
+              </bem.FormModal__item>
+
+              <bem.FormModal__item m='inline'>
+                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
+              </bem.FormModal__item>
+            </bem.FormModal__item>
+          }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+            <bem.FormModal__item>
+              <button
+                type='button'
+                className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+                onClick={this.deleteProject}
+              >
+                {t('Delete Project and Data')}
+              </button>
+            </bem.FormModal__item>
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
@@ -859,6 +932,7 @@ class ProjectSettings extends React.Component {
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
+reactMixin(ProjectSettings.prototype, mixins.dmix);
 
 ProjectSettings.contextTypes = {
   router: PropTypes.object
