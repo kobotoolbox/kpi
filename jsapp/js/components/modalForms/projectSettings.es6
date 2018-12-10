@@ -205,18 +205,18 @@ class ProjectSettings extends React.Component {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
   }
 
-  toggleArchiveProject() {
-    if (this.isArchived()) {
-      this.unarchiveAsset(
-        this.state.formAsset.uid,
-        this.goToProjectsList.bind(this)
-      );
-    } else {
-      this.archiveAsset(
-        this.state.formAsset.uid,
-        this.goToProjectsList.bind(this)
-      );
-    }
+  archiveProject() {
+    this.archiveAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
+  unarchiveProject() {
+    this.unarchiveAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
   }
 
   deleteProject() {
@@ -780,13 +780,25 @@ class ProjectSettings extends React.Component {
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
-                <button
-                  type='button'
-                  className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
-                  onClick={this.toggleArchiveProject}
-                >
-                  {this.isArchived() ? t('Unarchive Project') : t('Archive Project')}
-                </button>
+                {this.isArchived() &&
+                  <button
+                    type='button'
+                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
+                    onClick={this.unarchiveProject}
+                  >
+                    {t('Unarchive Project')}
+                  </button>
+                }
+
+                {!this.isArchived() &&
+                  <button
+                    type='button'
+                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
+                    onClick={this.archiveProject}
+                  >
+                    {t('Archive Project')}
+                  </button>
+                }
               </bem.FormModal__item>
 
               <bem.FormModal__item m='inline'>
