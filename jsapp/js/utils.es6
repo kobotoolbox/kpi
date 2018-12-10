@@ -2,7 +2,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -11,6 +11,8 @@ export var assign = require('object-assign');
 alertify.defaults.notifier.delay = 10;
 alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
+
+const cookies = new Cookies();
 
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
@@ -246,7 +248,7 @@ export function replaceSupportEmail(str) {
 }
 
 export function currentLang() {
-  return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
+  return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
 // langString contains name and code e.g. "English (en)"
@@ -417,4 +419,49 @@ export function escapeHtml(str) {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(str));
   return div.innerHTML;
+}
+
+export function readParameters(str) {
+  if (typeof str !== 'string') {
+    return null;
+  }
+
+  const params = {};
+
+  let separator = ' ';
+  if (str.includes(';')) {
+    separator = ';';
+  } else if (str.includes(',')) {
+    separator = ',';
+  }
+  const otherSeparators = ';, '.replace(separator, '');
+  const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=');
+  const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'));
+
+  parts.forEach((part) => {
+    if (part.includes('=')) {
+      const key = part.slice(0, part.indexOf('='));
+      const value = part.slice(key.length + 1);
+      params[key] = value;
+    }
+  });
+
+  if (Object.keys(params).length < 1) {
+    return null;
+  }
+  return params;
+}
+
+export function writeParameters(obj) {
+  let params = [];
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined && obj[key] !== null) {
+      let value = obj[key];
+      if (typeof value === 'object') {
+        value = JSON.stringify(value);
+      }
+      params.push(`${key}=${value}`);
+    }
+  });
+  return params.join(';');
 }

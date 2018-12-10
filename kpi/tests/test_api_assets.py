@@ -118,7 +118,7 @@ class AssetVersionApiTests(APITestCase):
                                         args=(self.asset.uid,))
 
     def test_asset_version(self):
-        self.assertEqual(Asset.objects.count(), 1)
+        self.assertEqual(Asset.objects.count(), 2)
         self.assertEqual(AssetVersion.objects.count(), 1)
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -548,8 +548,8 @@ class AssetExportTaskTest(APITestCase):
             result_content = result_response.content
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
-            '"q1";"_id";"_uuid";"_submission_time";"_index"\r\n',
-            '"¿Qué tal?";"";"";"";"1"\r\n',
+            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_index"\r\n',
+            '"¿Qué tal?";"";"";"";"";"1"\r\n',
         ])
         self.assertEqual(result_content, expected_content)
         return detail_response

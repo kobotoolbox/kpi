@@ -66,7 +66,7 @@ class KpiObjectPermissionsFilter(object):
             get_anonymous_user(), permission, queryset)
         if view.action != 'list':
             # Not a list, so discoverability doesn't matter
-            return owned_and_explicitly_shared | public
+            return (owned_and_explicitly_shared | public).distinct()
 
         # For a list, do not include public objects unless they are also
         # discoverable
@@ -85,7 +85,7 @@ class KpiObjectPermissionsFilter(object):
         if all_public:
             # We were asked not to consider subscriptions; return all
             # discoverable objects
-            return owned_and_explicitly_shared | discoverable
+            return (owned_and_explicitly_shared | discoverable).distinct()
 
         # Of the discoverable objects, determine to which the user has
         # subscribed
@@ -101,7 +101,7 @@ class KpiObjectPermissionsFilter(object):
                 # Neither the model or its parent has a subscription relation
                 subscribed = public.none()
 
-        return owned_and_explicitly_shared | subscribed
+        return (owned_and_explicitly_shared | subscribed).distinct()
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):

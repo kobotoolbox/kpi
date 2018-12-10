@@ -67,7 +67,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         export_task.data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
-            'lang': 'xml'
+            'lang': '_xml'
         }
         messages = defaultdict(list)
         export_task._run_task(messages)

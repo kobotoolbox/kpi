@@ -8,6 +8,7 @@ import alertify from 'alertifyjs';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
+import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
@@ -166,9 +167,9 @@ class ProjectSettings extends React.Component {
     this.onAnyDataChange('sector', val);
   }
 
-  onShareMetadataChange(evt) {
-    this.setState({'share-metadata': evt.target.checked});
-    this.onAnyDataChange('share-metadata', evt.target.checked);
+  onShareMetadataChange(isChecked) {
+    this.setState({'share-metadata': isChecked});
+    this.onAnyDataChange('share-metadata', isChecked);
   }
 
   onImportUrlChange(value) {
@@ -742,17 +743,11 @@ class ProjectSettings extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item m='metadata-share'>
-            <input
-              type='checkbox'
-              id='share-metadata'
+            <Checkbox
               checked={this.state['share-metadata']}
               onChange={this.onShareMetadataChange}
+              label={t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             />
-            <label htmlFor='share-metadata'>
-              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
-              &nbsp;
-              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
-            </label>
           </bem.FormModal__item>
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
