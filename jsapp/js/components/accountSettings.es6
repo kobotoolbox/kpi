@@ -37,7 +37,9 @@ export class AccountSettings extends React.Component {
 
   componentDidMount() {
     this.listenTo(stores.session, ({currentAccount}) => {
-      this.setState(this.getStateFromCurrentAccount(currentAccount));
+      if (currentAccount) {
+        this.setState(this.getStateFromCurrentAccount(currentAccount));
+      }
     });
   }
 
