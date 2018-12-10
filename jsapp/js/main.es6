@@ -2,11 +2,13 @@ import RunRoutes, {routes} from './app';
 import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
 import 'babel-polyfill'; // required to support Array.prototypes.includes in IE11
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
 
 require('../scss/main.scss');
+
+const cookies = new Cookies();
 
 var el = (function(){
   var $d = $('<div>', {'class': 'kpiapp'});
@@ -14,7 +16,7 @@ var el = (function(){
   return $d.get(0);
 })();
 
-window.csrftoken = cookie.load('csrftoken');
+window.csrftoken = cookies.get('csrftoken');
 
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection

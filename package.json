@@ -46,7 +46,7 @@
     "react": "^16.5.2",
     "react-autobind": "^1.0.6",
     "react-autosize-textarea": "^4.0.0",
-    "react-cookie": "^0.2.3",
+    "react-cookie": "^3.0.4",
     "react-copy-to-clipboard": "^5.0.0",
     "react-debounce-input": "^3.1.0",
     "react-document-title": "^2.0.2",

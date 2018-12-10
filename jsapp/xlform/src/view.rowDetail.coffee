@@ -167,6 +167,13 @@ module.exports = do ->
     afterRender: ->
       @listenForInputChange()
 
+  viewRowDetail.DetailViewMixins.guidance_hint =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Guidance hint"), 'text'
+    afterRender: ->
+      @listenForInputChange()
+
   viewRowDetail.DetailViewMixins.constraint_message =
     html: ->
       @$el.addClass("card__settings__fields--active")

@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 import alertify from 'alertifyjs';
 
 import dkobo_xlform from '../xlform/src/_xlform.init';
@@ -11,6 +11,8 @@ import {
   notify,
   assign,
 } from './utils';
+
+const cookies = new Cookies();
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -376,7 +378,7 @@ var allAssetsStore = Reflux.createStore({
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = cookie.load('selectedAssetUid');
+    this.uid = cookies.get('selectedAssetUid');
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
   onCloneAssetCompleted (asset) {
@@ -395,7 +397,7 @@ var selectedAssetStore = Reflux.createStore({
       this.uid = false;
       this.asset = {};
     }
-    cookie.save('selectedAssetUid', this.uid);
+    cookies.set('selectedAssetUid', this.uid);
     this.trigger({
       selectedAssetUid: this.uid,
     });
