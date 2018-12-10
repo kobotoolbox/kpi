@@ -132,6 +132,9 @@ module.exports = do ->
     audio:
       label:
         value: "Use the camera's microphone to record a sound"
+    file:
+      label:
+        value: "Upload a file"
     note:
       label:
         value: "This note can be read out loud"
@@ -150,6 +153,9 @@ module.exports = do ->
     date:
       label:
         value: "Enter a date"
+    range:
+      label:
+        value: "Enter a number within a specified range"
     calculate:
       calculation:
         value: ""
@@ -187,6 +193,7 @@ module.exports = do ->
       ["text", "Text"], # expects text
       ["integer", "Integer"], #e.g. 42
       ["decimal", "Decimal"], #e.g. 3.14
+      ["range", "Range"], #e.g. 1-5
       ["geopoint", "Geopoint (GPS)"], # Can use satelite GPS coordinates
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
@@ -197,6 +204,7 @@ module.exports = do ->
       ["datetime", "Date and Time"], #e.g. (2012-Jan-4 3:04PM)
       ["audio", "Audio", isMedia: true], # Can use phone microphone to record audio
       ["video", "Video", isMedia: true], # Can use phone camera to record video
+      ["file", "File"],
       ["calculate", "Calculate"],
       ["select_one", "Select", orOtherOption: true, specifyChoice: true],
       ["score", "Score"],
