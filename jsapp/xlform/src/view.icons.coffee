@@ -82,8 +82,8 @@ module.exports = do ->
       grouping: "r4"
       id: "note"
     ,
-      label: _t("Barcode")
-      faClass: "barcode"
+      label: _t("Barcode / QR Code")
+      faClass: "qrcode"
       grouping: "r4"
       id: "barcode"
     ,

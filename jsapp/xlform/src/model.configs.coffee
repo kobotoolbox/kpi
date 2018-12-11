@@ -174,6 +174,30 @@ module.exports = do ->
       label:
         value: "Acknowledge"
 
+  configs.paramTypes = {
+    number: 'number',
+    boolean: 'boolean'
+  }
+
+  configs.questionParams = {
+    range: {
+      start: configs.paramTypes.number
+      end: configs.paramTypes.number
+      step: configs.paramTypes.number
+    }
+    image: {
+      'max-pixels': configs.paramTypes.number
+    }
+    select_one: {
+      randomize: configs.paramTypes.boolean
+      seed: configs.paramTypes.number
+    }
+    select_multiple: {
+      randomize: configs.paramTypes.boolean
+      seed: configs.paramTypes.number
+    }
+  }
+
   configs.columns = [
     "type",
     "name",
@@ -198,7 +222,7 @@ module.exports = do ->
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
       ["image", "Image", isMedia: true], # Can use phone camera, for example
-      ["barcode", "Barcode"], # Can scan a barcode using the phone camera
+      ["barcode", "Barcode / QR code"], # Can scan a barcode using the phone camera
       ["date", "Date"], #e.g. (4 July, 1776)
       ["time", "Time"], #e.g. (4 July, 1776)
       ["datetime", "Date and Time"], #e.g. (2012-Jan-4 3:04PM)
