@@ -93,6 +93,7 @@ class MockDataProxyViewSetMixin(object):
 
         return asset
 
+
 class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
     """
     List, retrieve, and delete submission data for a deployed asset via the

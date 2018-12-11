@@ -155,7 +155,7 @@ module.exports = do ->
         value: "Enter a date"
     range:
       label:
-        value: "Choose a range"
+        value: "Enter a number within a specified range"
     calculate:
       calculation:
         value: ""
@@ -198,7 +198,17 @@ module.exports = do ->
     }
   }
 
-  configs.columns = ["type", "name", "label", "hint", "required", "relevant", "default", "constraint"]
+  configs.columns = [
+    "type",
+    "name",
+    "label",
+    "hint",
+    "guidance_hint",
+    "required",
+    "relevant",
+    "default",
+    "constraint"
+  ]
 
   configs.lookupRowType = do->
     typeLabels = [
@@ -264,6 +274,8 @@ module.exports = do ->
     hint:
       value: ""
       _hideUnlessChanged: true
+    guidance_hint:
+      value: ""
     required:
       value: false
       _hideUnlessChanged: true
