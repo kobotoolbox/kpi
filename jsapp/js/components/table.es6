@@ -445,6 +445,10 @@ export class DataTable extends React.Component {
               let displayLabel = t('Unlabelled');
               if (item.label) {
                 displayLabel = item.label[0];
+              } else if (item.name) {
+                displayLabel = item.name;
+              } else if (item.$autoname) {
+                displayLabel = item.$autoname;
               }
               return (
                 <option value={item.name} key={n}>{displayLabel}</option>
