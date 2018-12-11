@@ -442,8 +442,16 @@ export class DataTable extends React.Component {
                   value={filter ? filter.value : ''}>
             <option value=''>Show All</option>
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
+              let displayLabel = t('Unlabelled');
+              if (item.label) {
+                displayLabel = item.label[0];
+              } else if (item.name) {
+                displayLabel = item.name;
+              } else if (item.$autoname) {
+                displayLabel = item.$autoname;
+              }
               return (
-                <option value={item.name} key={n}>{item.label[0]}</option>
+                <option value={item.name} key={n}>{displayLabel}</option>
               );
             })}
           </select>;

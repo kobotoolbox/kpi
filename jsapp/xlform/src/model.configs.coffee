@@ -132,6 +132,9 @@ module.exports = do ->
     audio:
       label:
         value: "Use the camera's microphone to record a sound"
+    file:
+      label:
+        value: "Upload a file"
     note:
       label:
         value: "This note can be read out loud"
@@ -150,6 +153,9 @@ module.exports = do ->
     date:
       label:
         value: "Enter a date"
+    range:
+      label:
+        value: "Enter a number within a specified range"
     calculate:
       calculation:
         value: ""
@@ -167,6 +173,30 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+
+  configs.paramTypes = {
+    number: 'number',
+    boolean: 'boolean'
+  }
+
+  configs.questionParams = {
+    range: {
+      start: configs.paramTypes.number
+      end: configs.paramTypes.number
+      step: configs.paramTypes.number
+    }
+    image: {
+      'max-pixels': configs.paramTypes.number
+    }
+    select_one: {
+      randomize: configs.paramTypes.boolean
+      seed: configs.paramTypes.number
+    }
+    select_multiple: {
+      randomize: configs.paramTypes.boolean
+      seed: configs.paramTypes.number
+    }
+  }
 
   configs.columns = [
     "type",
@@ -187,16 +217,18 @@ module.exports = do ->
       ["text", "Text"], # expects text
       ["integer", "Integer"], #e.g. 42
       ["decimal", "Decimal"], #e.g. 3.14
+      ["range", "Range"], #e.g. 1-5
       ["geopoint", "Geopoint (GPS)"], # Can use satelite GPS coordinates
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
       ["image", "Image", isMedia: true], # Can use phone camera, for example
-      ["barcode", "Barcode"], # Can scan a barcode using the phone camera
+      ["barcode", "Barcode / QR code"], # Can scan a barcode using the phone camera
       ["date", "Date"], #e.g. (4 July, 1776)
       ["time", "Time"], #e.g. (4 July, 1776)
       ["datetime", "Date and Time"], #e.g. (2012-Jan-4 3:04PM)
       ["audio", "Audio", isMedia: true], # Can use phone microphone to record audio
       ["video", "Video", isMedia: true], # Can use phone camera to record video
+      ["file", "File"],
       ["calculate", "Calculate"],
       ["select_one", "Select", orOtherOption: true, specifyChoice: true],
       ["score", "Score"],

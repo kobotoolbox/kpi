@@ -183,6 +183,11 @@ module.exports = do ->
     afterRender: ->
       @listenForInputChange()
 
+  # parameters are handled per case
+  viewRowDetail.DetailViewMixins.parameters =
+    html: -> false
+    insertInDOM: (rowView)-> return
+
   viewRowDetail.DetailViewMixins.relevant =
     html: ->
       @$el.addClass("card__settings__fields--active")
