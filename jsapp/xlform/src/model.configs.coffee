@@ -174,6 +174,30 @@ module.exports = do ->
       label:
         value: "Acknowledge"
 
+  configs.paramTypes = {
+    number: 'number',
+    boolean: 'boolean'
+  }
+
+  configs.questionParams = {
+    range: {
+      start: configs.paramTypes.number
+      end: configs.paramTypes.number
+      step: configs.paramTypes.number
+    }
+    image: {
+      'max-pixels': configs.paramTypes.number
+    }
+    select_one: {
+      randomize: configs.paramTypes.boolean
+      seed: configs.paramTypes.number
+    }
+    select_multiple: {
+      randomize: configs.paramTypes.boolean
+      seed: configs.paramTypes.number
+    }
+  }
+
   configs.columns = [
     "type",
     "name",

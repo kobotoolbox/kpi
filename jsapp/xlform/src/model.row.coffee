@@ -12,6 +12,8 @@ $rowDetail = require './model.rowDetail'
 $choices = require './model.choices'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 _t = require('utils').t
+readParameters = require('utils').readParameters
+writeParameters = require('utils').writeParameters
 
 module.exports = do ->
   row = {}
@@ -417,6 +419,13 @@ module.exports = do ->
     _isSelectQuestion: ->
       # TODO [ald]: pull this from $aliases
       @get('type').get('typeId') in ['select_one', 'select_multiple']
+
+    getParameters: -> readParameters(@attributes.parameters?.attributes?.value)
+
+    setParameters: (paramObject) ->
+      paramString = writeParameters(paramObject)
+      @setDetail('parameters', paramString)
+      return
 
     getList: ->
       _list = @get('type')?.get('list')
