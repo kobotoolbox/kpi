@@ -10,7 +10,9 @@ const postCssLoader = {
     config: {
        path: path.resolve(__dirname, '../postcss.config.js')
     },
-    plugins () { return []; }
+    plugins: [
+      require('autoprefixer')
+    ]
   }
 };
 
