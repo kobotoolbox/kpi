@@ -3,6 +3,9 @@ const webpack = require('webpack');
 const BundleTracker = require('webpack-bundle-tracker');
 var merge = require('lodash.merge');
 
+// HACK: we needed to define this postcss-loader because of a problem with
+// including CSS files from node_modules directory, i.e. this build error:
+// `Error: No PostCSS Config found in: /srv/node_modules/…`
 const postCssLoader = {
   loader: 'postcss-loader',
   options: {
