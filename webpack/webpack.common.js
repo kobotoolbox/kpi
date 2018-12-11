@@ -9,7 +9,8 @@ const postCssLoader = {
     sourceMap: true,
     config: {
        path: path.resolve(__dirname, '../postcss.config.js')
-    }
+    },
+    plugins () { return []; }
   }
 };
 
