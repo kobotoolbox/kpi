@@ -31,6 +31,7 @@ bem.AssetRow__typeIcon  = bem.AssetRow.__('type-icon', '<span>');
 bem.ServiceRow = BEM('service-row');
 bem.ServiceRow__column = bem.ServiceRow.__('column');
 bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
+bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
 bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
@@ -255,9 +256,16 @@ bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
 bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
 
 bem.Radio = bem('radio');
-bem.Radio__wrapper = bem.Radio.__('wrapper', '<label>');
+bem.Radio__row = bem.Radio.__('row', '<label>');
 bem.Radio__input = bem.Radio.__('input', '<input>');
 bem.Radio__label = bem.Radio.__('label', '<span>');
+
+bem.PasswordStrength = bem('password-strength');
+bem.PasswordStrength__title = bem.PasswordStrength.__('title');
+bem.PasswordStrength__bar = bem.PasswordStrength.__('bar');
+bem.PasswordStrength__indicator = bem.PasswordStrength.__('indicator');
+bem.PasswordStrength__messages = bem.PasswordStrength.__('messages', '<ul>');
+bem.PasswordStrength__message = bem.PasswordStrength.__('message', '<li>');
 
 bem.PrintOnly = BEM('print-only');
 

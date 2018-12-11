@@ -8,6 +8,7 @@ import alertify from 'alertifyjs';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
+import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
@@ -40,7 +41,7 @@ Identifying the purpose is done by checking `context` and `formAsset`.
 You can listen to field changes by `onProjectDetailsChange` prop function.
 */
 class ProjectSettings extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.STEPS = {
@@ -50,6 +51,8 @@ class ProjectSettings extends React.Component {
       IMPORT_URL: 'import-url',
       PROJECT_DETAILS: 'project-details'
     }
+
+    this.unlisteners = [];
 
     const formAsset = this.props.formAsset;
 
@@ -93,6 +96,16 @@ class ProjectSettings extends React.Component {
         isSessionLoaded: true,
       });
     });
+    this.unlisteners.push(
+      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
+      actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
+      actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
+      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this))
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   setInitialStep() {
@@ -166,9 +179,9 @@ class ProjectSettings extends React.Component {
     this.onAnyDataChange('sector', val);
   }
 
-  onShareMetadataChange(evt) {
-    this.setState({'share-metadata': evt.target.checked});
-    this.onAnyDataChange('share-metadata', evt.target.checked);
+  onShareMetadataChange(isChecked) {
+    this.setState({'share-metadata': isChecked});
+    this.onAnyDataChange('share-metadata', isChecked);
   }
 
   onImportUrlChange(value) {
@@ -200,6 +213,31 @@ class ProjectSettings extends React.Component {
     });
   }
 
+  isArchived() {
+    return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
+  }
+
+  archiveProject() {
+    this.archiveAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
+  unarchiveProject() {
+    this.unarchiveAsset(
+      this.state.formAsset.uid,
+      this.goToFormLanding.bind(this)
+    );
+  }
+
+  deleteProject() {
+    this.deleteAsset(
+      this.state.formAsset.uid,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
   /*
    * routes navigation
    */
@@ -211,7 +249,24 @@ class ProjectSettings extends React.Component {
 
   goToFormLanding() {
     stores.pageState.hideModal();
-    hashHistory.push(`/forms/${this.state.formAsset.uid}/landing`);
+
+    let targetUid;
+    if (this.state.formAsset) {
+      targetUid = this.state.formAsset.uid
+    } else if (this.context.router && this.context.router.params.assetid) {
+      targetUid = this.context.router.params.assetid;
+    }
+
+    if (!targetUid) {
+      throw new Error('Unknown uid!');
+    }
+
+    hashHistory.push(`/forms/${targetUid}/landing`);
+  }
+
+  goToProjectsList() {
+    stores.pageState.hideModal();
+    hashHistory.push('/forms/');
   }
 
   /*
@@ -252,6 +307,51 @@ class ProjectSettings extends React.Component {
   /*
    * handling asset creation
    */
+
+  onUpdateAssetCompleted() {
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
+    ) {
+      this.goToFormLanding();
+    }
+  }
+
+  onUpdateAssetFailed(response) {
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
+    ) {
+      this.resetApplyTemplateButton();
+    }
+  }
+
+  onCloneAssetCompleted(asset) {
+    if (
+      (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE || this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW) &&
+      this.state.currentStep === this.STEPS.CHOOSE_TEMPLATE
+    ) {
+      this.setState({
+        formAsset: asset,
+        name: asset.name,
+        description: asset.settings.description,
+        sector: asset.settings.sector,
+        country: asset.settings.country,
+        'share-metadata': asset.settings['share-metadata'] || false,
+      });
+      this.resetApplyTemplateButton();
+      this.displayStep(this.STEPS.PROJECT_DETAILS);
+    }
+  }
+
+  onCloneAssetFailed() {
+    if (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
+    ) {
+      this.resetApplyTemplateButton();
+    }
+  }
 
   getOrCreateFormAsset() {
     const assetPromise = new Promise((resolve, reject) => {
@@ -305,13 +405,6 @@ class ProjectSettings extends React.Component {
           country: this.state.country,
           'share-metadata': this.state['share-metadata']
         }),
-      }, {
-        onComplete: () => {
-          // no need to open asset from within asset's settings view
-          if (this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING) {
-            this.goToFormLanding();
-          }
-        }
       }
     );
   }
@@ -324,32 +417,20 @@ class ProjectSettings extends React.Component {
       applyTemplateButton: t('Please wait…')
     });
 
-    actions.resources.cloneAsset({
-      uid: this.state.chosenTemplateUid,
-      new_asset_type: 'survey'
-    }, {
-      onComplete: (asset) => {
-        if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-          // when replacing, we omit PROJECT_DETAILS step
-          this.handleReplaceDone();
-        } else {
-          this.setState({
-            formAsset: asset,
-            name: asset.name,
-            description: asset.settings.description,
-            sector: asset.settings.sector,
-            country: asset.settings.country,
-            'share-metadata': asset.settings['share-metadata'] || false,
-          });
-          this.resetApplyTemplateButton();
-          this.displayStep(this.STEPS.PROJECT_DETAILS);
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
+      actions.resources.updateAsset(
+        this.state.formAsset.uid,
+        {
+          clone_from: this.state.chosenTemplateUid,
+          name: this.state.formAsset.name
         }
-      },
-      onFailed: (asset) => {
-        this.resetApplyTemplateButton();
-        alertify.error(t('Could not create project!'));
-      }
-    });
+      );
+    } else {
+      actions.resources.cloneAsset({
+        uid: this.state.chosenTemplateUid,
+        new_asset_type: 'survey'
+      });
+    }
   }
 
   importFromURL(evt) {
@@ -372,7 +453,7 @@ class ProjectSettings extends React.Component {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
-                  this.handleReplaceDone();
+                  this.goToFormLanding();
                 } else {
                   this.setState({
                     formAsset: finalAsset,
@@ -423,7 +504,7 @@ class ProjectSettings extends React.Component {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
-                  this.handleReplaceDone();
+                  this.goToFormLanding();
                 } else {
                   // try proposing something more meaningful than "Untitled"
                   const newName = files[0].name.split('.')[0];
@@ -464,10 +545,6 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  handleReplaceDone() {
-    this.updateAndOpenAsset();
-  }
-
   handleSubmit(evt) {
     evt.preventDefault();
 
@@ -490,6 +567,15 @@ class ProjectSettings extends React.Component {
    * rendering
    */
 
+  renderChooseTemplateButton() {
+    return (
+      <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
+        <i className='k-icon-template' />
+        {t('Use a template')}
+      </button>
+    )
+  }
+
   renderStepFormSource() {
     return (
       <bem.FormModal__form className='project-settings project-settings--form-source'>
@@ -507,11 +593,8 @@ class ProjectSettings extends React.Component {
             </button>
           }
 
-          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-            <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-              <i className='k-icon-template' />
-              {t('Use a template')}
-            </button>
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
+            this.renderChooseTemplateButton()
           }
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
@@ -523,6 +606,10 @@ class ProjectSettings extends React.Component {
             <i className='k-icon-link' />
             {t('Import an XLSForm via URL')}
           </button>
+
+          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.NEW &&
+            this.renderChooseTemplateButton()
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
@@ -637,6 +724,7 @@ class ProjectSettings extends React.Component {
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
             <bem.Modal__footerButton
+              type='submit'
               m='primary'
               onClick={this.handleSubmit}
               className='mdl-js-button'
@@ -711,17 +799,11 @@ class ProjectSettings extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item m='metadata-share'>
-            <input
-              type='checkbox'
-              id='share-metadata'
+            <Checkbox
               checked={this.state['share-metadata']}
               onChange={this.onShareMetadataChange}
+              label={t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             />
-            <label htmlFor='share-metadata'>
-              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
-              &nbsp;
-              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
-            </label>
           </bem.FormModal__item>
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
@@ -749,6 +831,48 @@ class ProjectSettings extends React.Component {
             <bem.FormView__cell m='iframe'>
               <iframe src={this.props.iframeUrl} />
             </bem.FormView__cell>
+          }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+            <bem.FormModal__item>
+              <bem.FormModal__item m='inline'>
+                {this.isArchived() &&
+                  <button
+                    type='button'
+                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
+                    onClick={this.unarchiveProject}
+                  >
+                    {t('Unarchive Project')}
+                  </button>
+                }
+
+                {!this.isArchived() &&
+                  <button
+                    type='button'
+                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
+                    onClick={this.archiveProject}
+                  >
+                    {t('Archive Project')}
+                  </button>
+                }
+              </bem.FormModal__item>
+
+              <bem.FormModal__item m='inline'>
+                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
+              </bem.FormModal__item>
+            </bem.FormModal__item>
+          }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+            <bem.FormModal__item>
+              <button
+                type='button'
+                className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+                onClick={this.deleteProject}
+              >
+                {t('Delete Project and Data')}
+              </button>
+            </bem.FormModal__item>
           }
         </bem.FormModal__item>
       </bem.FormModal__form>
@@ -808,6 +932,7 @@ class ProjectSettings extends React.Component {
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
+reactMixin(ProjectSettings.prototype, mixins.dmix);
 
 ProjectSettings.contextTypes = {
   router: PropTypes.object

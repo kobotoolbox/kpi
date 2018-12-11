@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
-
+import Checkbox from './checkbox';
 import ui from '../ui';
 import bem from '../bem';
 import actions from '../actions';
@@ -212,9 +212,9 @@ class ListExpandToggle extends React.Component {
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
-  onExpandedToggleChange (/*event*/) {
-    stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded});
-    this.setState({assetNavExpanded: !this.state.assetNavExpanded});
+  onExpandedToggleChange (isChecked) {
+    stores.pageState.setState({assetNavExpanded: isChecked});
+    this.setState({assetNavExpanded: isChecked});
   }
   render () {
     let count = this.state.defaultQueryCount;
@@ -228,16 +228,11 @@ class ListExpandToggle extends React.Component {
           {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
-          <input
-            type='checkbox'
-            className='mdl-checkbox__input'
-            id='expandedToggleCheckbox'
+          <Checkbox
             checked={this.state.assetNavExpanded}
             onChange={this.onExpandedToggleChange}
+            label={t('expand details')}
           />
-          <label htmlFor='expandedToggleCheckbox'>
-            {t('expand details')}
-          </label>
         </bem.LibNav__expandedToggle>
       </bem.LibNav__expanded>
       );

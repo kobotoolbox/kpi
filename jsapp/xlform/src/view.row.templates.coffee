@@ -242,6 +242,15 @@ module.exports = do ->
     </div>
     """
 
+  paramsSettingsField = ->
+    """
+    <div class="card__settings__fields__field">
+      <label>#{_t('Parameters')}:</label>
+      <span class="settings__input">
+        <div class="params-view"></div>
+      </span>
+    </div>
+    """
 
   selectQuestionExpansion = ->
     """
@@ -268,6 +277,7 @@ module.exports = do ->
 
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
+  paramsSettingsField: paramsSettingsField
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView

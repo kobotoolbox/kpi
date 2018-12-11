@@ -418,7 +418,7 @@ actions.resources.setDeploymentActive.listen(function(details) {
     .fail(actions.resources.setDeploymentActive.failed);
 });
 actions.resources.setDeploymentActive.completed.listen((result) => {
-  if (result.active) {
+  if (result.deployment__active) {
     notify(t('Project unarchived successfully'));
   } else {
     notify(t('Project archived successfully'));
@@ -557,6 +557,9 @@ actions.resources.cloneAsset.listen(function(details, params={}){
     })
     .fail(actions.resources.cloneAsset.failed);
 });
+actions.resources.cloneAsset.failed.listen(() => {
+  notify(t('Could not create project!'), 'error');
+});
 
 actions.search.assets.listen(function(searchData, params={}){
   dataInterface.searchAssets(searchData)
@@ -582,6 +585,9 @@ actions.permissions.assignPerm.listen(function(creds){
 actions.permissions.assignPerm.completed.listen(function(val){
   actions.resources.loadAsset({url: val.content_object});
 });
+actions.permissions.assignPerm.failed.listen(function(){
+  notify(t('failed to update permissions'), 'error');
+});
 
 // copies permissions from one asset to other
 actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
@@ -606,6 +612,9 @@ actions.permissions.removePerm.listen(function(details){
 
 actions.permissions.removePerm.completed.listen(function(uid){
   actions.resources.loadAsset({id: uid});
+});
+actions.permissions.removePerm.failed.listen(function(){
+  notify(t('failed to remove permissions'), 'error');
 });
 
 actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
@@ -823,10 +832,10 @@ actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
     });
 });
 actions.hooks.retryLog.completed.listen((response) => {
-  notify(t('Submission retried successfully'));
+  notify(t('Submission retry requested successfully'));
 });
 actions.hooks.retryLog.failed.listen((response) => {
-  notify(t('Retrying submission failed'), 'error');
+  notify(t('Submission retry request failed'), 'error');
 });
 
 actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
