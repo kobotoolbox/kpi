@@ -301,13 +301,6 @@ body .leaflet-control-layers,
   }
 }
 
-.leaflet-control-layers-overlays [type='checkbox']:not(:checked),
-.leaflet-control-layers-overlays [type='checkbox']:checked {
-  position: static;
-  left: auto;
-  opacity: 1;
-}
-
 .map-settings {
   .form-modal__item--layer-upload label {
     display: block;

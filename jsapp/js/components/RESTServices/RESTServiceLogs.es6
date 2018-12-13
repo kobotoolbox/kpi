@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
@@ -8,12 +9,16 @@ import alertify from 'alertifyjs';
 import stores from '../../stores';
 import bem from '../../bem';
 import actions from '../../actions';
+import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
 import {
   t,
   formatTime
 } from '../../utils';
-import {HOOK_LOG_STATUSES} from '../../constants';
+import {
+  HOOK_LOG_STATUSES,
+  MODAL_TYPES
+} from '../../constants';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){
@@ -25,7 +30,8 @@ export default class RESTServiceLogs extends React.Component {
       hookUid: props.hookUid,
       isLoadingHook: true,
       isLoadingLogs: true,
-      logs: []
+      logs: [],
+      nextPageUrl: null
     };
     autoBind(this);
   }
@@ -58,7 +64,9 @@ export default class RESTServiceLogs extends React.Component {
         onComplete: (data) => {
           this.setState({
             isLoadingLogs: false,
-            logs: data.results
+            logs: data.results,
+            nextPageUrl: data.next,
+            totalLogsCount: data.count
           });
         },
         onFail: (data) => {
@@ -71,10 +79,27 @@ export default class RESTServiceLogs extends React.Component {
     );
   }
 
+  loadMore() {
+    this.setState({isLoadingLogs: false});
+
+    dataInterface.loadNextPageUrl(this.state.nextPageUrl)
+      .done((data) => {
+        const newLogs = [].concat(this.state.logs, data.results);
+        this.setState({
+          isLoadingLogs: false,
+          logs: newLogs,
+          nextPageUrl: data.next,
+          totalLogsCount: data.count
+        });
+      })
+      .fail((data) => {
+        this.setState({isLoadingLogs: false});
+        alertify.error(t('Could not load REST Service logs'));
+      });
+  }
+
   onLogsUpdated(data) {
-    this.setState({
-      logs: data.results
-    });
+    this.setState({logs: data.results});
   }
 
   retryAll(evt) {
@@ -146,8 +171,19 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   showLogInfo(log, evt) {
+    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.instance_id);
     const escapedMessage = $('<div/>').text(log.message).html();
-    alertify.alert(log.uid, `<pre>${escapedMessage}</pre>`);
+    alertify.alert(title, `<pre>${escapedMessage}</pre>`);
+  }
+
+  openSubmissionModal(log) {
+    const currentAsset = this.currentAsset();
+    stores.pageState.switchModal({
+      type: MODAL_TYPES.SUBMISSION,
+      sid: log.instance_id,
+      asset: currentAsset,
+      ids: [log.instance_id]
+    });
   }
 
   hasAnyFailedLogs() {
@@ -158,6 +194,10 @@ export default class RESTServiceLogs extends React.Component {
       }
     });
     return hasAny;
+  }
+
+  hasInfoToDisplay(log) {
+    return log.status !== HOOK_LOG_STATUSES.SUCCESS && log.message.length > 0;
   }
 
   /*
@@ -179,6 +219,21 @@ export default class RESTServiceLogs extends React.Component {
           {this.state.hookName}
         </h2>
       </header>
+    )
+  }
+
+  renderLoadMoreButton() {
+    if (this.state.nextPageUrl === null) {
+      return null;
+    }
+
+    return (
+      <bem.ServiceRowButton
+        m={this.state.isLoadingLogs ? 'loading' : null}
+        onClick={this.loadMore}
+      >
+        {this.state.isLoadingLogs ? t('Loading…') : t('Load more')}
+      </bem.ServiceRowButton>
     )
   }
 
@@ -229,6 +284,10 @@ export default class RESTServiceLogs extends React.Component {
             if (log.status === HOOK_LOG_STATUSES.PENDING) {
               statusMod = 'pending';
               statusLabel = t('Pending');
+
+              if (log.tries && log.tries > 1) {
+                statusLabel = t('Pending (##count##×)').replace('##count##', log.tries);
+              }
             }
             if (log.status === HOOK_LOG_STATUSES.FAILED) {
               statusMod = 'failed';
@@ -238,7 +297,14 @@ export default class RESTServiceLogs extends React.Component {
             return (
               <bem.ServiceRow key={n} >
                 <bem.ServiceRow__column m='submission'>
-                  {log.uid}
+                  <bem.ServiceRow__actionButton
+                    onClick={this.openSubmissionModal.bind(this, log)}
+                    data-tip={t('Open submission')}
+                  >
+                    <i className='k-icon-view' />
+                  </bem.ServiceRow__actionButton>
+
+                  {log.instance_id}
                 </bem.ServiceRow__column>
 
                 <bem.ServiceRow__column
@@ -256,7 +322,7 @@ export default class RESTServiceLogs extends React.Component {
                     </bem.ServiceRow__actionButton>
                   }
 
-                  {log.status === HOOK_LOG_STATUSES.FAILED && log.message.length > 0 &&
+                  {this.hasInfoToDisplay(log) &&
                     <bem.ServiceRow__actionButton
                       onClick={this.showLogInfo.bind(this, log)}
                       data-tip={t('More info')}
@@ -273,12 +339,14 @@ export default class RESTServiceLogs extends React.Component {
             );
           })}
         </bem.FormView__cell>
+
+        {this.renderLoadMoreButton()}
       </bem.FormView__cell>
     );
   }
 
   render() {
-    if (this.state.isLoadingHook || this.state.isLoadingLogs) {
+    if (this.state.isLoadingHook || (this.state.isLoadingLogs && this.state.logs.length === 0)) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -296,3 +364,8 @@ export default class RESTServiceLogs extends React.Component {
 }
 
 reactMixin(RESTServiceLogs.prototype, Reflux.ListenerMixin);
+reactMixin(RESTServiceLogs.prototype, mixins.contextRouter);
+
+RESTServiceLogs.contextTypes = {
+  router: PropTypes.object
+};

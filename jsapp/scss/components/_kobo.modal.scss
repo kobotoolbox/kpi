@@ -408,8 +408,11 @@ $z-modal-x: 10;
 .project-settings {
   // make sure it doesn't get too small (but only inside modal)
   .modal & {
-    width: 600px;
-    max-width: 100%;
+    width: 100%;
+
+    @media screen and (min-width: 768px) {
+      min-width: 600px;
+    }
   }
 
   .intro {

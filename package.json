@@ -46,7 +46,7 @@
     "react": "^16.5.2",
     "react-autobind": "^1.0.6",
     "react-autosize-textarea": "^4.0.0",
-    "react-cookie": "^0.2.3",
+    "react-cookie": "^3.0.4",
     "react-copy-to-clipboard": "^5.0.0",
     "react-debounce-input": "^3.1.0",
     "react-document-title": "^2.0.2",
@@ -72,7 +72,8 @@
     "webpack": "^4.20.2",
     "webpack-bundle-tracker": "0.4.0-beta",
     "webpack-cli": "^3.1.1",
-    "webpack-dev-server": "^3.1.8"
+    "webpack-dev-server": "^3.1.8",
+    "zxcvbn": "^4.4.2"
   },
   "scripts": {
     "build": "webpack --config webpack/prod.config.js --progress --colors",

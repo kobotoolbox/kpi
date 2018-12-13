@@ -369,6 +369,12 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
+    loadNextPageUrl(nextPageUrl){
+      return $ajax({
+        url: nextPageUrl,
+        method: 'GET'
+      });
+    },
     deployAsset (asset, redeployment) {
       var data = {
         'active': true,
