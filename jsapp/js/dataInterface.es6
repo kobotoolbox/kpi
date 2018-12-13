@@ -1,5 +1,5 @@
 import $ from 'jquery';
-
+import alertify from 'alertifyjs';
 import {
   t,
   assign,
@@ -27,13 +27,20 @@ var dataInterface;
   })();
   this.rootUrl = rootUrl;
 
+  // hook up to all AJAX requests to check auth problems
   $(document).ajaxError((event, request, settings) => {
     if (request.status === 403 || request.status === 401) {
-      let errorMessage = t("It seems you're not logged in anymore. Try reloading the page")
-      if (request.responseJSON && request.responseJSON.detail) {
-        errorMessage = request.responseJSON.detail;
-      }
-      notify(errorMessage, 'error');
+      dataInterface.selfProfile().done((data) => {
+        if (data.message === 'user is not logged in') {
+          let errorMessage = t("It seems you're not logged in anymore. Try reloading the page. The server said: ##server_message##")
+          if (request.responseJSON && request.responseJSON.detail) {
+            errorMessage = errorMessage.replace('##server_message##', request.responseJSON.detail);
+          } else {
+            errorMessage = errorMessage.replace('##server_message##', request.status);
+          }
+          alertify.alert(t('Auth Error'), errorMessage);
+        }
+      });
     }
   });
 
