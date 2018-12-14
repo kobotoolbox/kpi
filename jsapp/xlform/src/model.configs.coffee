@@ -104,6 +104,9 @@ module.exports = do ->
   ###
   Default values for rows of each question type
   ###
+  configs.defaultsGeneral =
+    label:
+      value: 'New Question'
   configs.defaultsForType =
     geotrace:
       label:
@@ -267,8 +270,6 @@ module.exports = do ->
   configs.newRowDetails =
     name:
       value: ""
-    label:
-      value: "new question"
     type:
       value: "text"
     hint:
@@ -304,7 +305,6 @@ module.exports = do ->
         "group_#{$utils.txtid()}"
     label:
       value: "Group"
-
     type:
       value: "group"
     _isRepeat:
