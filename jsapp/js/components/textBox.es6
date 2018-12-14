@@ -29,9 +29,7 @@ class TextBox extends React.Component {
   }
 
   onChange(evt) {
-    const val = evt.target.value;
-    this.setState({value: val});
-    this.props.onChange(val)
+    this.props.onChange(evt.currentTarget.value)
   }
 
   render() {
@@ -51,7 +49,7 @@ class TextBox extends React.Component {
     if (this.props.type && this.AVAILABLE_TYPES.indexOf(this.props.type) !== -1) {
       type = this.props.type;
     } else if (this.props.type) {
-      throw new Error(`Unknown textBox type: ${this.props.type}!`);
+      throw new Error(`Unknown TextBox type: ${this.props.type}!`);
     }
 
     return (

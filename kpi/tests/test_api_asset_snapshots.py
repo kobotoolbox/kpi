@@ -67,6 +67,25 @@ class TestAssetSnapshotList(KpiTestCase):
     def test_create_asset_snapshot_from_asset(self):
         self._create_asset_snapshot_from_asset()
 
+    def test_create_two_asset_snapshots_from_source_and_asset(self):
+        '''
+        Make sure it's possible to preview unsaved changes to an asset multiple
+        times; see https://github.com/kobotoolbox/kpi/issues/2058
+        '''
+        self.client.login(username='someuser', password='someuser')
+        snapshot_list_url = reverse('assetsnapshot-list')
+        asset = self.create_asset(
+            'Take my snapshot!', self.form_source, format='json')
+        asset_url = reverse('asset-detail', args=(asset.uid,))
+        data = {'source': self.form_source, 'asset': asset_url}
+        for _ in range(2):
+            response = self.client.post(snapshot_list_url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED,
+                             msg=response.data)
+            xml_resp = self.client.get(response.data['xml'])
+            self.assertTrue(len(xml_resp.content) > 0)
+        self.client.logout()
+
     def test_asset_owner_can_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']

@@ -302,7 +302,20 @@ class FormpackXLSFormUtils(object):
         if is_new and (translation_name in _translations):
             raise ValueError('cannot add existing translation')
         elif (not is_new) and (translation_name not in _translations):
-            raise ValueError('translation cannot be found')
+            # if there are no translations available, don't try to prioritize,
+            # just ignore the translation `translation_name`
+            if len(_translations) == 1 and _translations[0] is None:
+                return
+            else:  # Otherwise raise an error.
+                # Remove None from translations we want to display to users
+                valid_translations = [t for t in _translations if t is not None]
+                raise ValueError("`{translation_name}` is specified as the default language, "
+                                 "but only these translations are present in the form: `{translations}`".format(
+                                    translation_name=translation_name,
+                                    translations="`, `".join(valid_translations)
+                                    )
+                                 )
+
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
             for sheet_name in 'survey', 'choices':
@@ -713,7 +726,7 @@ class Asset(ObjectPermissionMixin,
 
     @transaction.atomic
     def _snapshot(self, regenerate=True):
-        asset_version = self.asset_versions.first()
+        asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -756,6 +769,7 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         ''' Used by serializers to improve performance when listing assets '''
@@ -818,9 +832,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.asset_version is None:
-                self.asset_version = self.asset.latest_version
             if self.source is None:
+                if self.asset_version is None:
+                    self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
             if self.owner is None:
                 self.owner = self.asset.owner

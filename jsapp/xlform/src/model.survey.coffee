@@ -36,6 +36,9 @@ module.exports = do ->
         if !$inputParser.hasBeenParsed(options)
           options.survey = $inputParser.parseArr(options.survey)
         for r in options.survey
+          if typeof r.id isnt 'undefined'
+            throw new Error("Forbidden column `id` for row: #{JSON.stringify(r, null, 2)}")
+
           if r.type in $configs.surveyDetailSchema.typeList()
             @surveyDetails.importDetail(r)
           else

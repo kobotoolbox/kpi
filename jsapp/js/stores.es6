@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 import alertify from 'alertifyjs';
 import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
@@ -11,6 +11,8 @@ import {
   assign,
   stateChanges
 } from './utils';
+
+const cookies = new Cookies();
 
 var stores = {};
 
@@ -69,7 +71,7 @@ const translationsStore = Reflux.createStore({
     }
   },
   setState (change) {
-    const changed = changes(this.state, change);
+    const changed = stateChanges(this.state, change);
     if (changed) {
       assign(this.state, changed);
       this.trigger(changed);
@@ -299,9 +301,10 @@ var allAssetsStore = Reflux.createStore({
 
     this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
+    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-    this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
     if (this.byUid[uid] && this.byUid[uid].content) {
@@ -314,7 +317,15 @@ var allAssetsStore = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
-  loadAssetCompleted (asset) {
+  onUpdateAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
+    this.data.forEach((dataAsset, index) => {
+      if (dataAsset.uid === asset.uid) {
+        this.data[index] = asset;
+      }
+    });
+  },
+  onLoadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
   onCloneAssetCompleted (asset) {
@@ -361,7 +372,7 @@ var allAssetsStore = Reflux.createStore({
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = cookie.load('selectedAssetUid');
+    this.uid = cookies.get('selectedAssetUid');
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
   onCloneAssetCompleted (asset) {
@@ -380,7 +391,7 @@ var selectedAssetStore = Reflux.createStore({
       this.uid = false;
       this.asset = {};
     }
-    cookie.save('selectedAssetUid', this.uid);
+    cookies.set('selectedAssetUid', this.uid);
     this.trigger({
       selectedAssetUid: this.uid,
     });

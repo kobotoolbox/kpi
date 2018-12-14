@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -7,7 +8,7 @@ import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import Select from 'react-select';
-
+import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
@@ -100,8 +101,7 @@ class PublicPermDiv extends React.Component {
     super(props);
     autoBind(this);
   }
-  togglePerms(evt) {
-    var permRole = evt.currentTarget.dataset.perm;
+  togglePerms(permRole) {
     var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
 
     if (permission) {
@@ -131,12 +131,11 @@ class PublicPermDiv extends React.Component {
     return (
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='perms-link'>
-          <input  type='checkbox'
-                  checked={anonCanView ? true : false}
-                  onChange={this.togglePerms}
-                  id='share-by-link'
-                  data-perm='view_asset'/>
-          <label htmlFor='share-by-link'>{t('Share by link')}</label>
+          <Checkbox
+            checked={anonCanView ? true : false}
+            onChange={this.togglePerms.bind(this, 'view_asset')}
+            label={t('Share by link')}
+          />
           { anonCanView &&
             <bem.FormModal__item m='shareable-link'>
               <label>
@@ -148,12 +147,11 @@ class PublicPermDiv extends React.Component {
         </bem.FormModal__item>
         { this.props.deploymentActive &&
           <bem.FormModal__item m='perms-public-data'>
-            <input type='checkbox'
-                  checked={anonCanViewData ? true : false}
-                  onChange={this.togglePerms}
-                  id='share-data-publicly'
-                  data-perm='view_submissions'/>
-            <label htmlFor='share-data-publicly'>{t('Share data publicly')}</label>
+            <Checkbox
+              checked={anonCanViewData ? true : false}
+              onChange={this.togglePerms.bind(this, 'view_submissions')}
+              label={t('Share data publicly')}
+            />
           </bem.FormModal__item>
         }
       </bem.FormModal__item>
@@ -170,6 +168,7 @@ class SharingForm extends React.Component {
       userInputStatus: false,
       permInput: 'view'
     };
+    this._usernameCheckDebounced = _.debounce(this._usernameCheckCall.bind(this), 500);
     autoBind(this);
   }
   assetChange (data) {
@@ -210,6 +209,10 @@ class SharingForm extends React.Component {
     return this.usernameField().value;
   }
   usernameCheck (evt) {
+    evt.persist();
+    this._usernameCheckDebounced(evt);
+  }
+  _usernameCheckCall (evt) {
     var username = evt.target.value;
     if (username && username.length > 1) {
       var result = stores.userExists.checkUsername(username);
