@@ -5,7 +5,8 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
-
+import Checkbox from 'js/components/checkbox';
+import Radio from 'js/components/radio';
 import bem from 'js/bem';
 import ui from 'js/ui';
 import actions from 'js/actions';
@@ -26,17 +27,17 @@ export class TableColumnFilter extends React.Component {
 
     let _sett = props.asset.settings;
     if (_sett['data-table']) {
-      if (_sett['data-table']['selected-columns'])
+      if (_sett['data-table']['selected-columns'] !== null)
         this.state.selectedColumns = _sett['data-table']['selected-columns'];
-      if (_sett['data-table']['frozen-column']) {
+      if (typeof _sett['data-table']['frozen-column'] !== 'undefined') {
         const cols = this.listColumns();
         this.state.frozenColumn = _.find(cols, (col) => {return col.value === _sett['data-table']['frozen-column']});
       }
-      if (_sett['data-table']['show-group-name'])
+      if (typeof _sett['data-table']['show-group-name'] !== 'undefined')
         this.state.showGroupName = _sett['data-table']['show-group-name'];
-      if (_sett['data-table']['translation-index'])
+      if (typeof _sett['data-table']['translation-index'] !== 'undefined')
         this.state.translationIndex = _sett['data-table']['translation-index'];
-      if (_sett['data-table']['show-hxl-tags'])
+      if (typeof _sett['data-table']['show-hxl-tags'] !== 'undefined')
         this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
     }
 
@@ -70,15 +71,14 @@ export class TableColumnFilter extends React.Component {
       this.props.overrideLabelsAndGroups(overrides);
     }
   }
-  toggleCheckboxChange(evt) {
-    let selectedColumns = this.state.selectedColumns,
-        id = evt.target.value,
-        idx = selectedColumns.indexOf(id);
+  toggleCheckboxChange(columnId) {
+    const selectedColumns = this.state.selectedColumns;
+    const idx = selectedColumns.indexOf(columnId);
 
     if (idx !== -1) {
       selectedColumns.splice(idx, 1);
     } else {
-      selectedColumns.push(id);
+      selectedColumns.push(columnId);
     }
 
     this.setState({
@@ -90,19 +90,19 @@ export class TableColumnFilter extends React.Component {
       frozenColumn: col ? col : false
     })
   }
-  updateGroupHeaderDisplay(e) {
+  updateGroupHeaderDisplay(isChecked) {
     this.setState({
-      showGroupName: e.target.checked
+      showGroupName: isChecked
     })
   }
-  onHXLTagsChange(evt) {
+  onHXLTagsChange(isChecked) {
     this.setState({
-      showHXLTags: evt.currentTarget.checked
+      showHXLTags: isChecked
     })
   }
-  onLabelChange(e) {
+  onLabelChange(name, value) {
     this.setState({
-      translationIndex: e.target.value
+      translationIndex: parseInt(value)
     })
   }
   settingsUpdateFailed() {
@@ -137,59 +137,51 @@ export class TableColumnFilter extends React.Component {
 
     return colsArray;
   }
+  getDisplayedLabelOptions () {
+    const options = [];
+    options.push({
+      value: -1,
+      label: t('XML Values')
+    });
+    this.props.asset.content.translations.map((trns, n) => {
+      let label = t('Labels');
+      if (trns) {
+        label += ` - ${trns}`;
+      }
+      options.push({
+        value: n,
+        label: label
+      });
+    });
+    return options;
+  }
   render () {
     let _this = this;
 
     return (
       <div className='tableColumn-modal'>
         <bem.FormModal__item m='translation-radios'>
-          <bem.FormView__cell m='label'>
-            {t('Display labels or XML values?')}
-          </bem.FormView__cell>
-          <div>
-            <label htmlFor={'trnsl-xml'}>
-              <input type='radio' name='translation'
-                     value='-1' id={'trnsl-xml'}
-                     checked={this.state.translationIndex == '-1'}
-                     onChange={this.onLabelChange} />
-              {t('XML Values')}
-            </label>
-            {
-              this.props.asset.content.translations.map((trns, n) => {
-                return (
-                  <label htmlFor={`trnsl-${n}`} key={n}>
-                    <input type='radio' name='translation'
-                           value={n} id={`trnsl-${n}`}
-                           checked={this.state.translationIndex == n}
-                           onChange={this.onLabelChange} />
-                    {t('Labels')} {trns ? ` - ${trns}` : null}
-                  </label>
-                )
-              })
-            }
-          </div>
+          <Radio
+            title={t('Display labels or XML values?')}
+            options={this.getDisplayedLabelOptions()}
+            selected={this.state.translationIndex}
+            onChange={this.onLabelChange}
+          />
         </bem.FormModal__item>
         <bem.FormModal__item m='group-headings'>
-          <input
-            type='checkbox'
+          <Checkbox
             checked={this.state.showGroupName}
             onChange={this.updateGroupHeaderDisplay}
-            id='check-group-headings'/>
-          <label htmlFor='check-group-headings'>
-            {t('Show group names in table headers')}
-          </label>
+            label={t('Show group names in table headers')}
+          />
         </bem.FormModal__item>
 
         <bem.FormModal__item>
-          <input
-            type='checkbox'
+          <Checkbox
             checked={this.state.showHXLTags}
             onChange={this.onHXLTagsChange}
-            id='hxl-tags'
+            label={t('Show HXL tags')}
           />
-          <label htmlFor='hxl-tags'>
-            {t('Show HXL tags')}
-          </label>
         </bem.FormModal__item>
 
         {this.userCan('change_asset', this.props.asset) &&
@@ -220,17 +212,11 @@ export class TableColumnFilter extends React.Component {
                 {this.listColumns().map(function(col) {
                   return (
                     <li key={col.value}>
-                      <input
-                        type='checkbox'
-                        value={col.value}
+                      <Checkbox
                         checked={_this.state.selectedColumns.includes(col.value)}
-                        onChange={_this.toggleCheckboxChange}
-                        id={`colcheck-${col.value}`}
+                        onChange={_this.toggleCheckboxChange.bind(this, col.value)}
+                        label={col.label}
                       />
-
-                      <label htmlFor={`colcheck-${col.value}`}>
-                        {col.label}
-                      </label>
                     </li>
                   );
                 })}

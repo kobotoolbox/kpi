@@ -68,7 +68,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
                      owner_password=None, **kwargs):
         if owner and owner_password:
             if isinstance(owner, basestring):
-                self.login(owner.username, owner_password)
+                self.login(owner, owner_password)
             self.login(owner.username, owner_password)
 
         if content is None:
@@ -80,7 +80,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             "asset_type": kwargs.get("asset_type", "survey")
         })
 
-        response= self.client.post(reverse('asset-list'), kwargs)
+        response = self.client.post(reverse('asset-list'), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:

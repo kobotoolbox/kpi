@@ -228,7 +228,11 @@ class MainHeader extends Reflux.Component {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
 
     const formTitleNameMods = [];
-    if (typeof this.state.asset.name === 'string' && this.state.asset.name.length > 125) {
+    if (
+      this.state.asset &&
+      typeof this.state.asset.name === 'string' &&
+      this.state.asset.name.length > 125
+    ) {
       formTitleNameMods.push('long');
     }
 

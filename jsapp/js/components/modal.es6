@@ -2,28 +2,24 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {hashHistory} from 'react-router';
-
+import alertify from 'alertifyjs';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
-import mixins from '../mixins';
-
-import {t, notify} from '../utils';
-
+import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES
 } from '../constants';
-
 import ProjectSettings from '../components/modalForms/projectSettings';
 import SharingForm from '../components/modalForms/sharingForm';
 import Submission from '../components/modalForms/submission';
 import TableColumnFilter from '../components/modalForms/tableColumnFilter';
 import TranslationSettings from '../components/modalForms/translationSettings';
 import TranslationTable from '../components/modalForms/translationTable';
+import RESTServicesForm from '../components/RESTServices/RESTServicesForm';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -75,6 +71,14 @@ class Modal extends React.Component {
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid
         });
+      break;
+
+      case MODAL_TYPES.REST_SERVICES:
+        if (this.props.params.hookUid) {
+          this.setState({title: t('Edit REST Service')});
+        } else {
+          this.setState({title: t('New REST Service')});
+        }
         break;
 
       case MODAL_TYPES.REPLACE_PROJECT:
@@ -86,12 +90,12 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.FORM_LANGUAGES:
-        this.setModalTitle(t('Manage languages'));
+        this.setModalTitle(t('Manage Languages'));
         break;
 
       case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
         this.setState({
-          title: t('Translations table'),
+          title: t('Translations Table'),
           modalClass: 'modal--large'
         });
         break;
@@ -149,11 +153,35 @@ class Modal extends React.Component {
 
     return title;
   }
+  displaySafeCloseConfirm(title, message) {
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: title,
+      message: message,
+      labels: {ok: t('Close'), cancel: t('Cancel')},
+      onok: stores.pageState.hideModal,
+      oncancel: dialog.destroy
+    };
+    dialog.set(opts).show();
+  }
+  onModalClose(evt) {
+    if (
+      this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
+      stores.translations.state.isTranslationTableUnsaved
+    ) {
+      this.displaySafeCloseConfirm(
+        t('Close Translations Table?'),
+        t('You will lose all unsaved changes.')
+      );
+    } else {
+      stores.pageState.hideModal();
+    }
+  }
   render() {
     return (
       <ui.Modal
         open
-        onClose={()=>{stores.pageState.hideModal()}}
+        onClose={this.onModalClose}
         title={this.state.title}
         className={this.state.modalClass}
       >
@@ -222,6 +250,12 @@ class Modal extends React.Component {
                                  columns={this.props.params.columns}
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
+            }
+            { this.props.params.type == MODAL_TYPES.REST_SERVICES &&
+              <RESTServicesForm
+                assetUid={this.props.params.assetUid}
+                hookUid={this.props.params.hookUid}
+              />
             }
             { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
               <TranslationSettings

@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import logging
 import itertools
 from collections import OrderedDict
 from copy import deepcopy
@@ -11,21 +10,8 @@ from django.utils.translation import ugettext as _
 from formpack import FormPack
 from rest_framework import serializers
 
-from kpi.utils.mongo_helper import MongoDecodingHelper
-
-from .constants import (SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
-                        )
-
-
-def get_instances_for_userform_id(userform_id, submission=None):
-    query = {'_userform_id': userform_id, '_deleted_at': {'$exists': False}}
-    if submission:
-        query['_id'] = submission
-    instances = settings.MONGO_DB.instances.find(query)
-    return (
-        MongoDecodingHelper.to_readable_dict(instance)
-            for instance in instances
-    )
+from .constants import SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
+from kpi.utils.log import logging
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
@@ -115,7 +101,8 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         _userform_id = asset.deployment.mongo_userform_id
         if not _userform_id.startswith(asset.owner.username):
             raise Exception('asset has unexpected `mongo_userform_id`')
-        submission_stream = get_instances_for_userform_id(_userform_id)
+
+        submission_stream = asset.deployment.get_submissions()
 
     submission_stream = (
         _infer_version_id(submission) for submission in submission_stream

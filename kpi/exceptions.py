@@ -2,3 +2,6 @@
 
 class BadAssetTypeException(Exception):
     pass
+
+class BadFormatException(Exception):
+    pass

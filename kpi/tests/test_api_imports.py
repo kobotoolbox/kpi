@@ -19,7 +19,7 @@ class AssetImportTaskTest(APITestCase):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.first()
-        settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def _assert_assets_contents_equal(self, a1, a2):
         def _prep_row_for_comparison(row):
@@ -38,7 +38,7 @@ class AssetImportTaskTest(APITestCase):
         post_url = reverse('importtask-list')
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'complete')
@@ -90,7 +90,7 @@ class AssetImportTaskTest(APITestCase):
         post_url = reverse('importtask-list')
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'error')
@@ -112,8 +112,44 @@ class AssetImportTaskTest(APITestCase):
             post_url = reverse('importtask-list')
             response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         # FIXME: this fails because the detail request returns a 404, even
         # after the POST returns a 201!
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+
+    def test_import_xls_with_default_language_but_no_translations(self):
+        xls_io = self.asset.to_xls_io(append={"settings": {"default_language": "English (en)"}})
+        task_data = {
+            'file': xls_io,
+            'name': 'I was imported via XLS!',
+        }
+        post_url = reverse('importtask-list')
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'complete')
+
+    def test_import_xls_with_default_language_not_in_translations(self):
+        asset = Asset.objects.get(pk=2)
+        xls_io = asset.to_xls_io(append={
+            "settings": {"default_language": "English (en)"}
+        })
+        task_data = {
+            'file': xls_io,
+            'name': 'I was imported via XLS!',
+        }
+        post_url = reverse('importtask-list')
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'error')
+        self.assertTrue(
+            detail_response.data['messages']['error'].startswith(
+                "`English (en)` is specified as the default language, "
+                "but only these translations are present in the form:"
+            )
+        )

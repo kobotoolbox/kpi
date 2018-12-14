@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 import alertify from 'alertifyjs';
 
 import dkobo_xlform from '../xlform/src/_xlform.init';
@@ -11,6 +11,8 @@ import {
   notify,
   assign,
 } from './utils';
+
+const cookies = new Cookies();
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -77,6 +79,26 @@ var assetSearchStore = Reflux.createStore({
   }
 });
 
+const translationsStore = Reflux.createStore({
+  init() {
+    this.state = {
+      isTranslationTableUnsaved: false
+    }
+  },
+  setState (change) {
+    const changed = changes(this.state, change);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
+  setTranslationTableUnsaved (isUnsaved) {
+    this.setState({
+      isTranslationTableUnsaved: isUnsaved
+    });
+  },
+});
+
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
@@ -114,14 +136,10 @@ var pageStateStore = Reflux.createStore({
   // use it when you have one modal opened and want to display different one
   // because just calling showModal has weird outcome
   switchModal (params) {
-    this.setState({
-      modal: false
-    });
+    this.hideModal();
     // HACK switch to setState callback after updating to React 16+
     window.setTimeout(() => {
-      this.setState({
-        modal: params
-      });
+      this.showModal(params);
     }, 0);
   }
 });
@@ -298,9 +316,10 @@ var allAssetsStore = Reflux.createStore({
 
     this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
+    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-    this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
     if (this.byUid[uid] && this.byUid[uid].content) {
@@ -313,7 +332,15 @@ var allAssetsStore = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
-  loadAssetCompleted (asset) {
+  onUpdateAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
+    this.data.forEach((dataAsset, index) => {
+      if (dataAsset.uid === asset.uid) {
+        this.data[index] = asset;
+      }
+    });
+  },
+  onLoadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
   onCloneAssetCompleted (asset) {
@@ -360,7 +387,7 @@ var allAssetsStore = Reflux.createStore({
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = cookie.load('selectedAssetUid');
+    this.uid = cookies.get('selectedAssetUid');
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
   onCloneAssetCompleted (asset) {
@@ -379,7 +406,7 @@ var selectedAssetStore = Reflux.createStore({
       this.uid = false;
       this.asset = {};
     }
-    cookie.save('selectedAssetUid', this.uid);
+    cookies.set('selectedAssetUid', this.uid);
     this.trigger({
       selectedAssetUid: this.uid,
     });
@@ -497,6 +524,7 @@ if (window.Intercom) {
 assign(stores, {
   tags: tagsStore,
   pageState: pageStateStore,
+  translations: translationsStore,
   assetSearch: assetSearchStore,
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,

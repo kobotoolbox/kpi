@@ -1,12 +1,14 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 $ = require 'jquery'
+$configs = require './model.configs'
 $rowSelector = require './view.rowSelector'
 $row = require './model.row'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
+$viewParams = require './view.params'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
@@ -69,10 +71,10 @@ module.exports = do ->
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
+
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
-
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
@@ -197,7 +199,7 @@ module.exports = do ->
         if value == ''
           return newValue: new Array(10).join('&nbsp;')
         else
-        return newValue: value;
+          return newValue: value;
 
   class RowView extends BaseRowView
     _expandedRender: ->
@@ -206,9 +208,19 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list']
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters']
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
-      @
+
+      questionType = @model.get('type').get('typeId')
+      paramsConfig = $configs.questionParams[questionType]
+      if paramsConfig and 'getParameters' of @model
+        @paramsView = new $viewParams.ParamsView({
+          rowView: @,
+          parameters: @model.getParameters(),
+          paramsConfig: paramsConfig
+        }).render().insertInDOM(@)
+
+      return @
 
     hideMultioptions: ->
       @$card.removeClass('card--expandedchoices')
@@ -269,10 +281,6 @@ module.exports = do ->
     className: "survey__row survey__row--score"
     _renderRow: (args...)->
       super(args)
-      beta_elem = $('<p>', {
-              class: 'scorerank-beta-warning'
-              text: _t('Note: Rank and Matrix question types are currently in beta.')
-              })
       while @model._scoreChoices.options.length < 2
         @model._scoreChoices.options.add(label: 'Option')
       score_choices = for sc in @model._scoreChoices.options.models
@@ -307,7 +315,6 @@ module.exports = do ->
 
       extra_score_contents = $viewTemplates.$$render('row.scoreView', template_args)
       @$('.card--selectquestion__expansion').eq(0).append(extra_score_contents).addClass('js-cancel-select-row')
-      @$('.card').eq(0).append(beta_elem)
       $rows = @$('.score__contents--rows').eq(0)
       $choices = @$('.score__contents--choices').eq(0)
 
@@ -396,10 +403,6 @@ module.exports = do ->
     className: "survey__row survey__row--rank"
     _renderRow: (args...)->
       super(args)
-      beta_elem = $('<p>', {
-                    class: 'scorerank-beta-warning'
-                    text: _t('Note: Rank and Matrix question types are currently in beta')
-                    })
       template_args = {}
       template_args.rank_constraint_msg = @model.get('kobo--rank-constraint-message')?.get('value')
 
@@ -441,7 +444,7 @@ module.exports = do ->
         cid: model.cid
       template_args.rank_rows = rank_rows
       extra_score_contents = $viewTemplates.$$render('row.rankView', @, template_args)
-      @$('.card').append(beta_elem)
+      @$('.card--selectquestion__expansion').eq(0).append(extra_score_contents).addClass('js-cancel-select-row')
       @$('.card--selectquestion__expansion').eq(0).append(extra_score_contents).addClass('js-cancel-select-row')
       @editRanks()
     editRanks: ->

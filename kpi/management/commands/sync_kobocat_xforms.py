@@ -2,7 +2,6 @@ import StringIO
 import datetime
 import io
 import json
-import logging
 import re
 import requests
 import xlwt
@@ -26,6 +25,8 @@ from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from ...deployment_backends.kc_access.shadow_models import _models
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
+from kpi.utils.log import logging
+
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 

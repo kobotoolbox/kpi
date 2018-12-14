@@ -6,9 +6,11 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
 import $ from 'jquery';
+import SparkMD5 from 'spark-md5';
 
 import stores from './stores';
 import actions from './actions';
+import {dataInterface} from './dataInterface';
 import {assign} from './utils';
 import assetParserUtils from './assetParserUtils';
 
@@ -239,6 +241,18 @@ function SearchContext(opts={}) {
     }
   };
 
+  const assetsHash = function (assets) {
+    if (assets.length < 1) return false;
+
+    let assetVersionIds = assets.map((asset) => {
+      return asset.version_id;
+    });
+    // Sort alphabetically, same as backend sort
+    assetVersionIds.sort();
+
+    return SparkMD5.hash(assetVersionIds.join(''));
+  }
+
   search.listen(function(_opts={}){
     /*
     search will query whatever values are in the store
@@ -377,6 +391,27 @@ function SearchContext(opts={}) {
       searchStore.quietUpdate(vals);
     },
     searchStore: searchStore,
+    searchSemaphore: function () {
+      // when searchStore exists, display current result set and compare hashes in background,
+      // if hashes don't match, relaunch search (otherwise, current result set is same as BE)
+
+      if (searchStore.state.defaultQueryResultsList === undefined) {
+        this.searchDefault();
+      } else {
+        searchStore.update({defaultQueryState: 'done'});
+
+        dataInterface.assetsHash()
+          .done((data) => {
+            if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {
+              // if hashes don't match launch new search request
+              this.searchDefault();
+            }
+          })
+          .fail(() => {
+            this.searchDefault();
+          });
+      }
+    },
     searchDefault: function () {
       searchStore.quietUpdate(assign({
         cleared: true,
@@ -433,9 +468,6 @@ var commonMethods = {
       });
       this.debouncedSearch();
     }
-  },
-  refreshSearch () {
-    this.debouncedSearch();
   },
   searchClear () {
     this.searchStore.removeItem('searchString');

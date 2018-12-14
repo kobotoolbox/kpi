@@ -1,6 +1,4 @@
-import logging
 import json
-import logging
 from collections import Iterable
 
 from django.conf import settings
@@ -13,6 +11,7 @@ from rest_framework.authtoken.models import Token
 import requests
 
 from .shadow_models import _models, safe_kc_read
+from kpi.utils.log import logging
 
 
 class _KoboCatProfileException(Exception):
