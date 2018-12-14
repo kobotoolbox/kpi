@@ -1,0 +1,8 @@
+.params-view {
+  .param-option {
+    display: block;
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
+  }
+}

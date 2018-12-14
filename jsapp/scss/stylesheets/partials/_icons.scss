@@ -35,6 +35,7 @@
 .fa.fa-lato-text:before,
 .fa.fa-lato-integer:before,
 .fa.fa-lato-decimal:before,
+.fa.fa-lato-range:before,
 .fa.fa-lato-calculate:before {
   font-family: $font;
   font-weight: 600;
@@ -52,6 +53,11 @@
 
 .fa.fa-lato-decimal:before {
   content: "1.0";
+  font-size: 0.9em;
+}
+
+.fa.fa-lato-range:before {
+  content: "1..1";
   font-size: 0.9em;
 }
 

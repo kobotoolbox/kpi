@@ -4,10 +4,10 @@ import bem from '../bem';
 
 /*
 Properties:
-- label <string>
-- value <string>: required
-- checked <boolean>: initial value
+- options {label: <string>, value: <string>}[] - array of objects, required
+- name <string>: required
 - onChange <function>: required
+- selected <value>: selected option
 */
 class Radio extends React.Component {
   constructor(props){
@@ -18,29 +18,36 @@ class Radio extends React.Component {
     autoBind(this);
   }
 
-  onChange() {
-    this.props.onChange(this.props.name, this.props.value);
+  onChange(evt) {
+    this.props.onChange(
+      evt.currentTarget.name,
+      evt.currentTarget.value
+    );
   }
 
   render() {
     return (
       <bem.Radio>
-        <bem.Radio__wrapper>
-          <bem.Radio__input
-            type='radio'
-            value={this.props.value}
-            name={this.props.name}
-            id={this.props.id}
-            onChange={this.onChange}
-            checked={this.props.checked}
-          />
+        {this.props.title &&
+          <bem.Radio__row m='title'>{this.props.title}</bem.Radio__row>
+        }
+        {this.props.options.map((option) => {
+          return (
+            <bem.Radio__row key={option.value}>
+              <bem.Radio__input
+                type='radio'
+                value={option.value}
+                name={this.props.name}
+                onChange={this.onChange}
+                checked={this.props.selected === option.value}
+              />
 
-          {this.props.label &&
-            <bem.Radio__label htmlFor={this.props.id}>
-              {this.props.label}
-            </bem.Radio__label>
-          }
-        </bem.Radio__wrapper>
+              <bem.Radio__label>
+                {option.label}
+              </bem.Radio__label>
+            </bem.Radio__row>
+          )
+        })}
       </bem.Radio>
     )
   }

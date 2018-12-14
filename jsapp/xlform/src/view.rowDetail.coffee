@@ -167,6 +167,13 @@ module.exports = do ->
     afterRender: ->
       @listenForInputChange()
 
+  viewRowDetail.DetailViewMixins.guidance_hint =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Guidance hint"), 'text'
+    afterRender: ->
+      @listenForInputChange()
+
   viewRowDetail.DetailViewMixins.constraint_message =
     html: ->
       @$el.addClass("card__settings__fields--active")
@@ -175,6 +182,11 @@ module.exports = do ->
       @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
     afterRender: ->
       @listenForInputChange()
+
+  # parameters are handled per case
+  viewRowDetail.DetailViewMixins.parameters =
+    html: -> false
+    insertInDOM: (rowView)-> return
 
   viewRowDetail.DetailViewMixins.relevant =
     html: ->
