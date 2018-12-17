@@ -1,12 +1,14 @@
 module.exports = do ->
   _t = require('utils').t
 
-  acceptedFilesInput = (value) ->
+  acceptedFilesInput = (value, placeholder) ->
     return """
-    <label class='text-box'>
-      <span class='text-box__label'>#{_t('Accepted files')}</span>
-      <input class='text-box__input' type='text' value='#{value}'/>
-    </label>
+    <div class='card__settings__fields__field'>
+      <label>#{_t('Accepted files')}</label>
+      <span class='settings__input'>
+        <input class='text' type='text' value='#{value}' placeholder='#{placeholder}'/>
+      </span>
+    </div>
     """
 
   acceptedFilesInput: acceptedFilesInput

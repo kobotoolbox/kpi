@@ -420,7 +420,11 @@ module.exports = do ->
       # TODO [ald]: pull this from $aliases
       @get('type').get('typeId') in ['select_one', 'select_multiple']
 
-    getAcceptedFiles: ->  return @attributes['body::accept']?
+    getAcceptedFiles: -> return @attributes['body::accept']?.attributes?.value
+
+    setAcceptedFiles: (bodyAcceptString) ->
+      @setDetail('body::accept', bodyAcceptString)
+      return
 
     getParameters: -> readParameters(@attributes.parameters?.attributes?.value)
 
