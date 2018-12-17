@@ -104,6 +104,9 @@ module.exports = do ->
   ###
   Default values for rows of each question type
   ###
+  configs.defaultsGeneral =
+    label:
+      value: 'New Question'
   configs.defaultsForType =
     geotrace:
       label:
@@ -155,7 +158,7 @@ module.exports = do ->
         value: "Enter a date"
     range:
       label:
-        value: "Choose a range"
+        value: "Enter a number within a specified range"
     calculate:
       calculation:
         value: ""
@@ -222,7 +225,7 @@ module.exports = do ->
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
       ["image", "Image", isMedia: true], # Can use phone camera, for example
-      ["barcode", "Barcode"], # Can scan a barcode using the phone camera
+      ["barcode", "Barcode / QR code"], # Can scan a barcode using the phone camera
       ["date", "Date"], #e.g. (4 July, 1776)
       ["time", "Time"], #e.g. (4 July, 1776)
       ["datetime", "Date and Time"], #e.g. (2012-Jan-4 3:04PM)
@@ -267,8 +270,6 @@ module.exports = do ->
   configs.newRowDetails =
     name:
       value: ""
-    label:
-      value: "new question"
     type:
       value: "text"
     hint:
@@ -304,7 +305,6 @@ module.exports = do ->
         "group_#{$utils.txtid()}"
     label:
       value: "Group"
-
     type:
       value: "group"
     _isRepeat:

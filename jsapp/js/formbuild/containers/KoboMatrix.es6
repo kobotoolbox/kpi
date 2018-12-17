@@ -7,6 +7,7 @@ import { sluggify, txtid } from '../../../xlform/src/model.utils';
 import { Map } from 'immutable';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
+import Checkbox from 'js/components/checkbox';
 
 const bem = bemComponents({
   Matrix: 'kobomatrix',
@@ -145,10 +146,18 @@ class KoboMatrix extends React.Component {
   colChange(e) {
     const colKuid = this.state.expandedColKuid;
     var data = this.state.data;
-    const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    const val = e.target.value;
     const type = e.target.getAttribute('data-type');
     data = data.setIn([colKuid, type], val);
 
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  requiredChange(isChecked) {
+    const colKuid = this.state.expandedColKuid;
+    var data = this.state.data;
+    data = data.setIn([colKuid, 'required'], isChecked);
     this.setState({data: data});
     this.toLocalStorage(data);
   }
@@ -429,14 +438,11 @@ class KoboMatrix extends React.Component {
                 </label>
                 <label>
                   <span>{t('Required')}</span>
-                  <input type='checkbox'
-                    id={`required-${expandedCol}`}
-                    name={`required-${expandedCol}`}
+                  <Checkbox
                     checked={this.getRequiredStatus(expandedCol)}
-                    onChange={this.colChange}
+                    onChange={this.requiredChange}
                     className='js-cancel-sort'
-                    data-type='required' />
-                  <label htmlFor={`required-${expandedCol}`}/>
+                  />
                 </label>
                 {this.getCol(expandedCol, 'select_from_list_name') &&
                   <div className='matrix-cols__options'>
