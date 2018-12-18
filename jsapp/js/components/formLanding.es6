@@ -40,6 +40,9 @@ export class FormLanding extends React.Component {
       assetid: this.state.uid
     });
   }
+  callUnarchiveAsset(evt) {
+    this.unarchiveAsset();
+  }
   renderFormInfo (userCanEdit) {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion = undefined;
@@ -86,7 +89,7 @@ export class FormLanding extends React.Component {
             {userCanEdit && this.state.has_deployment && !this.state.deployment__active &&
               <a
                 className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.unarchiveAsset}>
+                onClick={this.callUnarchiveAsset}>
                   {t('unarchive')}
               </a>
             }

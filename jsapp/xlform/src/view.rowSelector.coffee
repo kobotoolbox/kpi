@@ -3,6 +3,7 @@ Backbone = require 'backbone'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 $icons = require './view.icons'
+$configs = require './model.configs'
 
 module.exports = do ->
   viewRowSelector = {}
@@ -72,7 +73,7 @@ module.exports = do ->
           menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
 
       @scrollFormBuilder('+=220')
-      @$('.questiontypelist__item').click _.bind(@selectMenuItem, @)
+      @$('.questiontypelist__item').click _.bind(@onSelectNewQuestionType, @)
 
     shrink: ->
       # click .js-close-row-selector
@@ -94,22 +95,29 @@ module.exports = do ->
           .removeClass("expanded")
           .addClass("survey-editor__null-top-row--hidden")
 
-    selectMenuItem: (evt)->
+    onSelectNewQuestionType: (evt)->
       @question_name = @line.find('input').val()
       $rowSelect = $('select.skiplogic__rowselect')
       if $rowSelect.data('select2')
         $rowSelect.select2('destroy')
       rowType = $(evt.target).closest('.questiontypelist__item').data("menuItem")
-      value = (@question_name || 'New Question').replace(/\t/g, ' ')
+
+      # if question name not provided by user, use default one for type or general one
+      if @question_name
+        questionLabelValue = @question_name.replace(/\t/g, ' ')
+      else if rowType of $configs.defaultsForType
+        questionLabelValue = $configs.defaultsForType[rowType].label.value
+      else
+        questionLabelValue = $configs.defaultsGeneral.label.value
 
       rowDetails =
         type: rowType
 
       if rowType is 'calculate'
 
-        rowDetails.calculation = value
+        rowDetails.calculation = questionLabelValue
       else
-        rowDetails.label = value
+        rowDetails.label = questionLabelValue
 
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)

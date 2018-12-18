@@ -11,10 +11,10 @@ class HookLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HookLog
-        fields = ("url", "uid", "tries", "status", "status_str", "status_code",
+        fields = ("url", "uid", "instance_id", "tries", "status", "status_str", "status_code",
                   "message", "date_modified")
 
-        read_only_fields = ("uid", "tries", "status", "status_str", "status_code", "message", "date_modified")
+        read_only_fields = ("uid", "instance_id", "tries", "status", "status_str", "status_code", "message", "date_modified")
 
     url = serializers.SerializerMethodField()
 
