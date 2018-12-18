@@ -64,6 +64,9 @@ class MainHeader extends Reflux.Component {
   logout () {
     actions.auth.logout();
   }
+  toggleLanguageSelector() {
+    this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible})
+  }
   accountSettings () {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
@@ -139,13 +142,16 @@ class MainHeader extends Reflux.Component {
                   </bem.AccountBox__menuLI>
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
-                  <bem.AccountBox__menuLink>
+                  <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
                     <i className='k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
-                  <ul>
-                    {langs.map(this.renderLangItem)}
-                  </ul>
+
+                  {this.state.isLanguageSelectorVisible &&
+                    <ul>
+                      {langs.map(this.renderLangItem)}
+                    </ul>
+                  }
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
