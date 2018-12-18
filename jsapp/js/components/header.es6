@@ -29,6 +29,7 @@ class MainHeader extends Reflux.Component {
     this.state = assign({
       asset: false,
       currentLang: currentLang(),
+      isLanguageSelectorVisible: false,
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
