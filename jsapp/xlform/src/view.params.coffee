@@ -8,7 +8,13 @@ module.exports = do ->
   class ParamsView extends $baseView
     initialize: ({@rowView, @parameters={}, @questionType}) ->
       @typeConfig = $configs.questionParams[@questionType]
-      @$el = $($.parseHTML($viewTemplates.row.paramsSettingsField()))
+
+      if @questionType is 'range'
+        template = $viewTemplates.row.paramsSimple()
+      else
+        template = $viewTemplates.row.paramsSettingsField()
+
+      @$el = $($.parseHTML(template))
       @$paramsViewEl = @$el.find('.params-view')
       return
 
@@ -29,8 +35,12 @@ module.exports = do ->
       @rowView.model.getSurvey().trigger('change')
       return
 
-    insertInDOM: (rowView)->
+    insertInDOM: (rowView) ->
       @$el.appendTo(rowView.defaultRowDetailParent)
+      return
+
+    insertInDOMAfter: ($el) ->
+      @$el.insertAfter($el)
       return
 
   class ParamOption extends $baseView
