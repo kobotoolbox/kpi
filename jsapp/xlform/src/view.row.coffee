@@ -212,12 +212,11 @@ module.exports = do ->
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
-      paramsConfig = $configs.questionParams[questionType]
-      if paramsConfig and 'getParameters' of @model
+      if $configs.questionParams[questionType] and 'getParameters' of @model
         @paramsView = new $viewParams.ParamsView({
           rowView: @,
           parameters: @model.getParameters(),
-          paramsConfig: paramsConfig
+          questionType: questionType
         }).render().insertInDOM(@)
 
       return @

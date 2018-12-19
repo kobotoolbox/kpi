@@ -1,9 +1,12 @@
 module.exports = do ->
-  numberParam = (label, number) ->
+  numberParam = (label, number, defaultValue) ->
+    if defaultValue
+      defaultValueAttr = "placeholder='#{defaultValue}'"
+
     return """
     <label class='text-box'>
       <span class='text-box__label'>#{label}</span>
-      <input class='text-box__input' type='number' value='#{number}'/>
+      <input class='text-box__input' type='number' value='#{number}' #{defaultValueAttr}/>
     </label>
     """
 

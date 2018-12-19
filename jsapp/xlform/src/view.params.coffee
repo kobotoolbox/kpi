@@ -6,16 +6,18 @@ $viewTemplates = require './view.templates'
 
 module.exports = do ->
   class ParamsView extends $baseView
-    initialize: ({@rowView, @parameters={}, @paramsConfig}) ->
+    initialize: ({@rowView, @parameters={}, @questionType}) ->
+      @typeConfig = $configs.questionParams[@questionType]
       @$el = $($.parseHTML($viewTemplates.row.paramsSettingsField()))
       @$paramsViewEl = @$el.find('.params-view')
       return
 
     render: ->
-      for paramName, paramType of @paramsConfig
+      for paramName, paramConfig of @typeConfig
         new ParamOption(
           paramName,
-          paramType,
+          paramConfig.type,
+          paramConfig.defaultValue,
           @parameters[paramName],
           @onParamChange.bind(@)
         ).render().$el.appendTo(@$paramsViewEl)
@@ -37,10 +39,10 @@ module.exports = do ->
       'input input': 'onChange'
     }
 
-    initialize: (@paramName, @paramType, @paramValue='', @onParamChange) -> return
+    initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) -> return
 
     render: ->
-      template = $($viewTemplates.$$render("ParamsView.#{@paramType}Param", @paramName, @paramValue))
+      template = $($viewTemplates.$$render("ParamsView.#{@paramType}Param", @paramName, @paramValue, @paramDefault))
       @$el.html(template)
       return @
 
