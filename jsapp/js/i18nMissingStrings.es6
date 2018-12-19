@@ -5,7 +5,7 @@ import {
   t,
 } from './utils';
 
-// strings for zxcvbn package
+// strings for zxcvbn 4.4.2 package
 // copied from https://github.com/dropbox/zxcvbn/blob/master/src/feedback.coffee
 test = t('Use a few words, avoid common phrases');
 test = t('No need for symbols, digits, or uppercase letters');
