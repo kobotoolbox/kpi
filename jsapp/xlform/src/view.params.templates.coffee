@@ -1,6 +1,6 @@
 module.exports = do ->
   numberParam = (label, number, defaultValue) ->
-    if defaultValue
+    if typeof defaultValue isnt 'undefined'
       defaultValueAttr = "placeholder='#{defaultValue}'"
 
     return """
