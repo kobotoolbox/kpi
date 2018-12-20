@@ -38,7 +38,7 @@ from ..deployment_backends.mock_backend import MockDeploymentBackend
 # TODO: Remove lines below (38:58) when django and django-storages are upgraded
 # to latest version.
 # Because current version of Django is 1.8, we can't upgrade `django-storages`.
-# `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.2) requires `Django 1.11`
+# `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.1) requires `Django 1.11`
 from storages.backends.s3boto3 import S3Boto3StorageFile
 
 
