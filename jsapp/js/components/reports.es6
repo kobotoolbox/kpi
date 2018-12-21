@@ -911,6 +911,15 @@ class Reports extends React.Component {
       showReportGraphSettings: !this.state.showReportGraphSettings,
     });
   }
+  hasAnyProvidedData (reportData) {
+    let hasAny = false;
+    reportData.map((rowContent, i)=>{
+      if (rowContent.data.provided) {
+        hasAny = true;
+      }
+    });
+    return hasAny;
+  }
   setCustomReport (e) {
     var crid = e ? e.target.getAttribute('data-crid') : false;
 
@@ -1136,25 +1145,27 @@ class Reports extends React.Component {
       formViewModifiers.push('fullscreen');
     }
 
+    const hasAnyProvidedData = this.hasAnyProvidedData(reportData);
+
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={formViewModifiers}>
           <bem.ReportView>
             {this.renderReportButtons()}
 
-            {this.state.reportData && reportData.length === 0 &&
+            {!hasAnyProvidedData &&
               <bem.ReportView__wrap>
                 <bem.Loading>
                   <bem.Loading__inner>
                     {t('This report has no data.')}
 
-                    {this.state.groupBy !== '' && ' ' + t('Try changing Report Style to "No grouping".')}
+                    {this.state.groupBy && ' ' + t('Try changing Report Style to "No grouping".')}
                   </bem.Loading__inner>
                 </bem.Loading>
               </bem.ReportView__wrap>
             }
 
-            {this.state.reportData && reportData.length !== 0 &&
+            {hasAnyProvidedData &&
               <bem.ReportView__wrap>
                 <bem.PrintOnly>
                   <h3>{asset.name}</h3>
@@ -1174,6 +1185,7 @@ class Reports extends React.Component {
                   <h4>{t('Warning')}</h4>
                   <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
                 </bem.ReportView__warning>
+
                 <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
               </bem.ReportView__wrap>
             }
