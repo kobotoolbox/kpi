@@ -1146,6 +1146,7 @@ class Reports extends React.Component {
     }
 
     const hasAnyProvidedData = this.hasAnyProvidedData(reportData);
+    const hasGroupBy = this.state.groupBy.length !== 0;
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -1159,7 +1160,7 @@ class Reports extends React.Component {
                   <bem.Loading__inner>
                     {t('This report has no data.')}
 
-                    {this.state.groupBy && ' ' + t('Try changing Report Style to "No grouping".')}
+                    {hasGroupBy && ' ' + t('Try changing Report Style to "No grouping".')}
                   </bem.Loading__inner>
                 </bem.Loading>
               </bem.ReportView__wrap>
