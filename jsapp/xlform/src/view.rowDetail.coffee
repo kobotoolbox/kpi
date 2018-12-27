@@ -96,11 +96,6 @@ module.exports = do ->
         if transformFn
           $elVal = transformFn($elVal)
         changeModelValue($elVal)
-
-      $el.on('keyup', (evt) =>
-        if evt.key is 'Enter' or evt.keyCode is 13
-          $el.blur()
-      )
       return
 
     _insertInDOM: (where, how) ->
@@ -166,15 +161,11 @@ module.exports = do ->
       @
 
   viewRowDetail.DetailViewMixins.hint =
-    html: -> false
-    insertInDOM: (rowView) ->
-      hintEl = rowView.$hint
-      return @
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Question hint"), 'text'
     afterRender: ->
-      @listenForInputChange({
-        el: this.rowView.$hint
-      })
-      return
+      @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.guidance_hint =
     html: ->
