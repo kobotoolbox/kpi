@@ -735,6 +735,12 @@ mixins.contextRouter = {
     if (this.context.router.isActive('/library/new'))
       return true;
 
+    if (this.context.router.isActive('/library/new/question'))
+      return true;
+
+    if (this.context.router.isActive('/library/new/block'))
+      return true;
+
     if (this.context.router.isActive('/library/new/template'))
       return true;
 

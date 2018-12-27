@@ -276,6 +276,8 @@ export var routes = (
 
     <Route path='library' >
       <Route path='new' component={AddToLibrary} />
+      <Route path='new/question' component={AddToLibrary} />
+      <Route path='new/block' component={AddToLibrary} />
       <Route path='new/template' component={AddToLibrary} />
       <Route path='/library/:assetid'>
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}

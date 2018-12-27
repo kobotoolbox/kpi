@@ -408,6 +408,14 @@ export class AddToLibrary extends React.Component {
       backRoute: '/library'
     };
 
+    if (this.props.location.pathname === '/library/new/question') {
+      this.state.desiredAssetType = ASSET_TYPES.question.id;
+    }
+
+    if (this.props.location.pathname === '/library/new/block') {
+      this.state.desiredAssetType = ASSET_TYPES.block.id;
+    }
+
     if (this.props.location.pathname === '/library/new/template') {
       this.state.desiredAssetType = ASSET_TYPES.template.id;
     }

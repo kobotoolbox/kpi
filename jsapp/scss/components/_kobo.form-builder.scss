@@ -173,6 +173,10 @@ $t-form-builder-aside-open: 200ms;
         text-transform: uppercase;
       }
 
+      label:only-child {
+        padding: 7px 0;
+      }
+
       input {
         border-radius: 0px;
         padding-left: 0;

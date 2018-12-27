@@ -375,7 +375,7 @@ export default assign({
       if (this.state.desiredAssetType) {
         params.asset_type = this.state.desiredAssetType;
       } else {
-        params.asset_type = 'block';
+        params.asset_type = ASSET_TYPES.block.id;
       }
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
@@ -610,30 +610,13 @@ export default assign({
       saveButtonText,
     } = this.buttonStates();
 
-    let nameFieldLabel;
-    switch (this.state.asset_type) {
-      case ASSET_TYPES.template.id:
-        nameFieldLabel = ASSET_TYPES.template.label;
-        break;
-      case ASSET_TYPES.survey.id:
-        nameFieldLabel = ASSET_TYPES.survey.label;
-        break;
-      case ASSET_TYPES.block.id:
-        nameFieldLabel = ASSET_TYPES.block.label;
-        break;
-      case ASSET_TYPES.question.id:
-        nameFieldLabel = ASSET_TYPES.question.label;
-        break;
-      default:
-        nameFieldLabel = null;
+    const targetType = this.state.asset_type || this.state.desiredAssetType;
+    let nameFieldLabel
+    if (targetType) {
+      nameFieldLabel = ASSET_TYPES[targetType].label;
     }
 
-    if (
-      nameFieldLabel === null &&
-      this.state.desiredAssetType === ASSET_TYPES.template.id
-    ) {
-      nameFieldLabel = ASSET_TYPES.template.label;
-    }
+    console.log(targetType, nameFieldLabel);
 
     return (
       <bem.FormBuilderHeader>
@@ -648,17 +631,24 @@ export default assign({
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'name'} >
-            <bem.FormModal__item>
-              {nameFieldLabel &&
-                <label>{nameFieldLabel}</label>
-              }
-              <input
-                type='text'
-                onChange={this.nameChange}
-                value={this.state.name}
-                id='nameField'
-              />
-            </bem.FormModal__item>
+            {targetType === ASSET_TYPES.question.id &&
+              <bem.FormModal__item>
+                <label className='left-tooltip left-aligned-tooltip' data-tip={t('Question name is automatically generated')}>{nameFieldLabel}</label>
+              </bem.FormModal__item>
+            }
+            {targetType !== ASSET_TYPES.question.id &&
+              <bem.FormModal__item>
+                {nameFieldLabel &&
+                  <label>{nameFieldLabel}</label>
+                }
+                <input
+                  type='text'
+                  onChange={this.nameChange}
+                  value={this.state.name}
+                  id='nameField'
+                />
+              </bem.FormModal__item>
+            }
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >

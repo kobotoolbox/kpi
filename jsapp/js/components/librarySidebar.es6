@@ -261,9 +261,14 @@ class LibrarySidebar extends Reflux.Component {
           type='new-menu'
           triggerLabel={t('new')}
         >
-          <Link to={'/library/new'} className='popover-menu__link'>
+          <Link to={'/library/new/question'} className='popover-menu__link'>
             <i className='k-icon-question' />
             {t('Question')}
+          </Link>
+
+          <Link to={'/library/new/block'} className='popover-menu__link'>
+            <i className='k-icon-block' />
+            {t('Block')}
           </Link>
 
           <Link to={'/library/new/template'} className='popover-menu__link'>

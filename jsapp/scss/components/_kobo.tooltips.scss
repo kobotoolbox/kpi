@@ -81,10 +81,24 @@
     transform: translate(0);
   }
 
-  // left aligned tooltips
+  // left aligned tooltip triangle
   .left-tooltip [data-tip]::after,
   .left-tooltip[data-tip]::after {
     left: calc(50% - 10px);
+    right: auto;
+    transform: translate(0);
+  }
+
+  // left aligned tooltip and triangle
+  .left-aligned-tooltip [data-tip]::before,
+  .left-aligned-tooltip[data-tip]::before {
+    left: 10px;
+    right: auto;
+    transform: translate(0);
+  }
+  .left-aligned-tooltip [data-tip]::after,
+  .left-aligned-tooltip[data-tip]::after {
+    left: 0;
     right: auto;
     transform: translate(0);
   }
