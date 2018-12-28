@@ -270,7 +270,7 @@ class MainHeader extends Reflux.Component {
                     name='title'
                     placeholder={t('Project title')}
                     value={this.state.asset.name ? this.state.asset.name : ''}
-                    onChange={this.assetTitleChange}
+                    onChange={this.assetTitleChange.bind(this)}
                     onKeyDown={this.assetTitleKeyDown}
                     disabled={!userCanEditAsset}
                   />

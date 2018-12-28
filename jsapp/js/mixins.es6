@@ -163,8 +163,8 @@ mixins.dmix = {
       mixins.clickAssets.click.asset.unarchive(uid, callback);
     }
   },
-  deleteAsset (uid, callback) {
-    mixins.clickAssets.click.asset.delete(uid, callback);
+  deleteAsset (uid, name, callback) {
+    mixins.clickAssets.click.asset.delete(uid, name, callback);
   },
   toggleDeploymentHistory () {
     this.setState({
@@ -513,11 +513,11 @@ mixins.clickAssets = {
         else
           hashHistory.push(`/forms/${uid}/edit`);
       },
-      delete: function(uid, callback){
-        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
-        var assetTypeLabel = t('project');
+      delete: function(uid, name, callback) {
+        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+        let assetTypeLabel = ASSET_TYPES.survey.label;
 
-        if (asset.asset_type != 'survey') {
+        if (asset.asset_type != ASSET_TYPES.survey.id) {
           assetTypeLabel = t('library item');
         }
 
@@ -528,7 +528,6 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
-              $('.alertify-toggle input').prop('checked', false);
               if (typeof callback === 'function') {
                 callback();
               }
@@ -537,7 +536,7 @@ mixins.clickAssets = {
         };
 
         if (!deployed) {
-          if (asset.asset_type != 'survey')
+          if (asset.asset_type != ASSET_TYPES.survey.id)
             msg = t('You are about to permanently delete this item from your library.');
           else
             msg = t('You are about to permanently delete this draft.');
@@ -552,10 +551,13 @@ mixins.clickAssets = {
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
             let $els = $('.alertify-toggle input');
+
             ok_button.disabled = true;
+            $els.each(function () {$(this).prop('checked', false);});
+
             $els.change(function () {
               ok_button.disabled = false;
-              $els.each(function ( index ) {
+              $els.each(function () {
                 if (!$(this).prop('checked')) {
                   ok_button.disabled = true;
                 }
@@ -564,7 +566,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel}`,
+          title: `${t('Delete')} ${assetTypeLabel} "${name}"`,
           message: msg,
           labels: {
             ok: t('Delete'),

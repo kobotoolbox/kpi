@@ -234,6 +234,7 @@ class ProjectSettings extends React.Component {
   deleteProject() {
     this.deleteAsset(
       this.state.formAsset.uid,
+      this.state.formAsset.name,
       this.goToProjectsList.bind(this)
     );
   }

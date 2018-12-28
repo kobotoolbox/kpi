@@ -424,10 +424,11 @@ class AssetRow extends React.Component {
               }
               {userCanEdit &&
                 <bem.PopoverMenu__link
-                      m={'delete'}
-                      data-action={'delete'}
-                      data-asset-type={this.props.kind}
-                    >
+                  m={'delete'}
+                  data-action={'delete'}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={this.props.name}
+                >
                   <i className='k-icon-trash' />
                   {t('Delete')}
                 </bem.PopoverMenu__link>
