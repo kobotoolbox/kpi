@@ -515,11 +515,7 @@ mixins.clickAssets = {
       },
       delete: function(uid, name, callback) {
         const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
-        let assetTypeLabel = ASSET_TYPES.survey.label;
-
-        if (asset.asset_type != ASSET_TYPES.survey.id) {
-          assetTypeLabel = t('library item');
-        }
+        let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
