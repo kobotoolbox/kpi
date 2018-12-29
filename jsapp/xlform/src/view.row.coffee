@@ -12,6 +12,7 @@ $viewParams = require './view.params'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
+alertify = require 'alertifyjs'
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -179,7 +180,7 @@ module.exports = do ->
           $appearanceField.find('input:checkbox').prop('checked', false)
           appearanceModel = @model.get('appearance')
           if appearanceModel.getValue()
-            @surveyView.ngScope.miscUtils.alert(_t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
+            alertify.warning(_t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
           appearanceModel.set('value', '')
 
       @model.on 'remove', (row) =>
