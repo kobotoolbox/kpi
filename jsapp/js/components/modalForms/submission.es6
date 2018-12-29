@@ -263,6 +263,13 @@ class Submission extends React.Component {
       case 'video':
         return this.renderAttachment(submissionValue, q.type);
         break;
+      case 'begin_repeat':
+        const list = submissionValue.map((r) => {
+          const stringified = JSON.stringify(r);
+          return <li key={stringified}>{stringified}</li>
+        });
+        return <ul>{list}</ul>
+        break;
       default:
         return submissionValue;
         break;
