@@ -100,7 +100,8 @@ class ProjectSettings extends React.Component {
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
       actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
-      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this))
+      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
+      hashHistory.listen(this.onRouteChange.bind(this))
     )
   }
 
@@ -241,6 +242,10 @@ class ProjectSettings extends React.Component {
   /*
    * routes navigation
    */
+
+  onRouteChange(loc) {
+    console.log('onRouteChange', loc);
+  }
 
   goToFormBuilder(assetUid) {
     stores.pageState.hideModal();
