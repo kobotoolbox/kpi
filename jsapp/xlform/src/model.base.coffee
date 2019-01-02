@@ -161,9 +161,20 @@ module.exports = do ->
       #     @_parent.trigger "change", @key, val, ctxt
 
       # when attributes change, register changes with parent survey
-      if @key in ["name", "label", "hint", "guidance_hint", "required",
-                  "calculation", "default", "appearance",
-                  "constraint_message", "tags"] or @key.match(/^.+::.+/)
+      observedAttrs = [
+        'name',
+        'label',
+        'hint',
+        'guidance_hint',
+        'required',
+        'read_only'
+        'calculation',
+        'default',
+        'appearance',
+        'constraint_message',
+        'tags'
+      ]
+      if @key in observedAttrs or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
 
