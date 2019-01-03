@@ -19,7 +19,12 @@ class ReadOnlyModelError(ValueError):
     pass
 
 
-class _ReadOnlyModel(models.Model):
+class _ShadowModel(models.Model):
+    ''' Allows identification of writeable and read-only shadow models '''
+    class Meta:
+        abstract = True
+
+class _ReadOnlyModel(_ShadowModel):
     class Meta:
         abstract = True
 
@@ -121,7 +126,7 @@ class LazyModelGroup:
             uuid = models.CharField(max_length=249, default=u'')
 
 
-        class _UserProfile(models.Model):
+        class _UserProfile(_ShadowModel):
             '''
             From onadata/apps/main/models/user_profile.py
             Not read-only because we need write access to `require_auth`
@@ -156,7 +161,7 @@ class LazyModelGroup:
             metadata = JSONField(default={}, blank=True)
 
 
-        class _UserObjectPermission(models.Model):
+        class _UserObjectPermission(_ShadowModel):
             '''
             For the _sole purpose_ of letting us manipulate KoBoCAT
             permissions, this comprises the following django-guardian classes
@@ -180,10 +185,19 @@ class LazyModelGroup:
             class Meta:
                 db_table = 'guardian_userobjectpermission'
                 unique_together = ['user', 'permission', 'object_pk']
+                verbose_name = 'user object permission'
 
             def __unicode__(self):
+                # `unicode(self.content_object)` fails when the object's model
+                # isn't known to this Django project. Let's use something more
+                # benign instead.
+                content_object_str = '{app_label}_{model} ({pk})'.format(
+                    app_label=self.content_type.app_label,
+                    model=self.content_type.model,
+                    pk=self.object_pk)
                 return '%s | %s | %s' % (
-                    unicode(self.content_object),
+                    #unicode(self.content_object),
+                    content_object_str,
                     unicode(getattr(self, 'user', False) or self.group),
                     unicode(self.permission.codename))
 
