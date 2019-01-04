@@ -99,8 +99,10 @@ module.exports = do ->
         @options.cl.options.add(@model)
         @p.html("Option #{1+@options.i}").addClass("preliminary")
 
+      console.debug('makeEditable', @p)
       $viewUtils.makeEditable @, @model, @p, edit_callback: _.bind @saveValue, @
       @n = $('span', @c)
+      console.debug('makeEditable', @n)
       $viewUtils.makeEditable @, @model, @n, edit_callback: (val) =>
         other_names = @options.cl.getNames()
         if @model.get('name')? && val.toLowerCase() == @model.get('name').toLowerCase()

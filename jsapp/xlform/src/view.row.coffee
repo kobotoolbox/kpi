@@ -187,6 +187,7 @@ module.exports = do ->
           @$('.xlf-dv-appearance').eq(0).show()
       @
     make_label_editable: (view) ->
+      console.debug('makeEditable make_label_editable', @$label)
       $viewUtils.makeEditable view, view.model, @$label, options:
         placement: 'right'
         rows: 3
@@ -238,6 +239,7 @@ module.exports = do ->
         @is_expanded = true
       return
     make_label_editable: (view) ->
+      console.debug('makeEditable make_label_editable', @$label)
       $viewUtils.makeEditable view, view.model, @$label, options:
         placement: 'right'
         rows: 3
