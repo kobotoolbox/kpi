@@ -169,6 +169,7 @@ module.exports = do ->
     html: -> false
     insertInDOM: (rowView) ->
       hintEl = rowView.$hint
+      hintEl.value = @model.get("value")
       return @
     afterRender: ->
       @listenForInputChange({
