@@ -98,7 +98,6 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'constance',
     'constance.backends.database',
-    'guardian', # For access to KC permissions ONLY
     'kobo.apps.hook',
     'django_celery_beat',
 )
