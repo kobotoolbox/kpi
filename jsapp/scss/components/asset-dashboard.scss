@@ -21,7 +21,7 @@ $permEditorColor: #999;
 }
 
 .gravatar-img {
-  border: 1px solid #ddd;
+  border: 1px solid $cool-lightgray;
   border-radius: 2px;
 }
 
@@ -32,7 +32,7 @@ $permEditorColor: #999;
 .tag {
   font-size: 11px;
   margin-right: 4px;
-  color: #ddd;
+  color: $cool-lightgray;
 }
 
 .assetcollection__row--error {
@@ -77,7 +77,7 @@ $permEditorColor: #999;
 
 .cutout-placeholder {
   margin: 30px;
-  border: 3px dashed #ddd;
+  border: 3px dashed $cool-lightgray;
   text-align: center;
   height: 300px;
   border-radius: 15px;
@@ -146,7 +146,7 @@ $permEditorColor: #999;
   text-align: center;
   vertical-align: middle;
   margin-right: 15px;
-  background-color: #ddd;
+  background-color: $cool-lightgray;
   position: relative;
 
   &.k-icon-wrap--green {
@@ -202,7 +202,7 @@ $permEditorColor: #999;
 
 .hushed {
   font-style: italic;
-  color: #ddd;
+  color: $cool-lightgray;
   text-align: center;
 }
 

@@ -1,6 +1,4 @@
-import logging
 import json
-import logging
 from collections import Iterable
 
 from django.conf import settings
@@ -8,11 +6,11 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.checks import Warning, register as register_check
 from django.db import ProgrammingError, transaction
-from guardian.models import UserObjectPermission
 from rest_framework.authtoken.models import Token
 import requests
 
 from .shadow_models import _models, safe_kc_read
+from kpi.utils.log import logging
 
 
 class _KoboCatProfileException(Exception):
@@ -35,10 +33,13 @@ def _trigger_kc_profile_creation(user):
 
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
-    return _models.Instance.objects.filter(deleted_at__isnull=True,
-                                           xform__user_id=user_id,
-                                           xform__id_string=xform_id_string,
-                                           ).count()
+    try:
+        return _models.XForm.objects.only('num_of_submissions').get(
+            id_string=xform_id_string,
+            user_id=user_id
+        ).num_of_submissions
+    except _models.XForm.DoesNotExist:
+        return 0
 
 @safe_kc_read
 def last_submission_time(xform_id_string, user_id):
@@ -248,15 +249,12 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
     xform_content_type = ContentType.objects.get(**obj.KC_CONTENT_TYPE_KWARGS)
+    UserObjectPermission = _models.UserObjectPermission
     kc_permissions_already_assigned = UserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
-        # Since `logger` isn't in `INSTALLED_APPS`, `get_or_create()` raises
-        # `AttributeError: 'NoneType' object has no attribute '_base_manager'`.
-        # We hack around this with `bulk_create()`, which bypasses
-        # `UserObjectPermission.save()`
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(UserObjectPermission(
@@ -289,27 +287,8 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs(obj)
-    # Do NOT try to `print` or do anything else that would `repr()` this
-    # queryset, or you'll be greeted by
-    # `AttributeError: 'NoneType' object has no attribute '_base_manager'`
-    UserObjectPermission.objects.filter(
+    _models.UserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
         # `permission` has a FK to `ContentType`, but I'm paranoid
         **content_type_kwargs
     ).delete()
-
-
-@register_check()
-def guardian_message(app_configs, **kwargs):
-    r"""
-        Including `guardian` in `INSTALLED_APPS` but not using its
-        authentication backend causes Guardian to raise a warning through the
-        Django system check framework. Here we raise our own warning
-        instructing the administrator to ignore Guardian's warning.
-    """
-    return [
-        Warning(
-            '*** Please disregard warning guardian.W001. ***',
-            id='guardian.W001'
-        )
-    ]

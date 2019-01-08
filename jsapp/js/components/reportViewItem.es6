@@ -313,14 +313,14 @@ class ReportViewItem extends React.Component {
     ];
 
     var c1 = colors.slice(0).map((c,i)=>{
-      c = c.replace("1)", "0.75)");
-      return c.replace("0.8", "0.5");
+      c = c.replace('1)', '0.75)');
+      return c.replace('0.8', '0.5');
     });
     colors = colors.concat(c1);
 
     var c2 = colors.slice(0).map((c,i)=>{
-      c = c.replace("1)", "0.5)");
-      return c.replace("0.8", "0.25");
+      c = c.replace('1)', '0.5)');
+      return c.replace('0.8', '0.25');
     });
     colors = colors.concat(c2);
 
@@ -348,12 +348,12 @@ class ReportViewItem extends React.Component {
             {p.label}
           </h2>
           <bem.ReportView__headingMeta>
-            <span className="type">
+            <span className='type'>
               {
                 t('Type: ') + _type + t('. ')
               }
             </span>
-            <span className="respondents">
+            <span className='respondents'>
               {
                 t('#1 out of #2 respondents answered this question. ')
                   .replace('#1', d.provided)
@@ -367,11 +367,11 @@ class ReportViewItem extends React.Component {
             </span>
           </bem.ReportView__headingMeta>
           {d.show_graph &&
-            <button className="mdl-button mdl-button--icon report-button__question-settings"
+            <button className='mdl-button mdl-button--icon report-button__question-settings'
                   onClick={this.props.triggerQuestionSettings}
                   data-question={name}
                   data-tip={t('Override Graph Style')}>
-              <i className="k-icon-more" data-question={name} />
+              <i className='k-icon-more' data-question={name} />
             </button>
           }
         </bem.ReportView__itemHeading>
@@ -379,7 +379,7 @@ class ReportViewItem extends React.Component {
           {d.show_graph &&
             <bem.ReportView__chart
                 style={{width: this.props.style.graphWidth + 'px'}}>
-              <canvas ref="canvas" />
+              <canvas ref='canvas' />
             </bem.ReportView__chart>
           }
           {this.state.reportTable && ! d.values &&

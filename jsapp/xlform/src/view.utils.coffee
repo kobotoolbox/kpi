@@ -6,6 +6,12 @@ module.exports = do ->
   viewUtils = {}
   viewUtils.Validator = Validator
 
+  # replaces characters that jQuery can't handle in event name
+  viewUtils.normalizeEventName = (eventName) ->
+    regex = new RegExp('[: ()]', 'g')
+    eventName = eventName.replace(regex, '-');
+    return eventName
+
   viewUtils.makeEditable = (that, model, selector, {property, transformFunction, options, edit_callback}) ->
     if !(selector instanceof jQuery)
       selector =that.$el.find(selector)
@@ -56,7 +62,7 @@ module.exports = do ->
         if new_value.newValue?
           edit_box.remove()
           selector.show()
-          selector.html new_value.newValue
+          selector.html(_.escape(new_value.newValue))
         else
           error_box = $('<div class="error-message">' + new_value + '</div>')
           parent_element.append(error_box)

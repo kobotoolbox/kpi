@@ -4,6 +4,7 @@ import json
 import pytz
 from collections import OrderedDict
 
+import constance
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,16 +14,17 @@ from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
-from .fields import PaginatedApiField
+from .fields import PaginatedApiField, SerializerMethodFileField
 from .models import Asset
 from .models import AssetSnapshot
 from .models import AssetVersion
+from .models import AssetFile
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
@@ -47,6 +49,13 @@ class Paginated(LimitOffsetPagination):
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
+
+
+class TinyPaginated(PageNumberPagination):
+    """
+    Same as Paginated with a small page size
+    """
+    page_size = 50
 
 
 class WritableJSONField(serializers.Field):
@@ -269,6 +278,24 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             return content_object.assign_perm(user, perm)
 
 
+class ObjectPermissionNestedSerializer(ObjectPermissionSerializer):
+    '''
+    When serializing a list of permissions inside the object to which they are
+    assigned, omit `content_object` to improve performance significantly
+    '''
+    class Meta(ObjectPermissionSerializer.Meta):
+        fields = (
+            'uid',
+            'kind',
+            'url',
+            'user',
+            'permission',
+            #'content_object',
+            'deny',
+            'inherited',
+        )
+
+
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='collection-detail')
@@ -377,11 +404,50 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                   )
 
 
+class AssetFileSerializer(serializers.ModelSerializer):
+    uid = serializers.ReadOnlyField()
+    url = serializers.SerializerMethodField()
+    asset = RelativePrefixHyperlinkedRelatedField(
+        view_name='asset-detail', lookup_field='uid', read_only=True)
+    user = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail', lookup_field='username', read_only=True)
+    user__username = serializers.ReadOnlyField(source='user.username')
+    file_type = serializers.ChoiceField(choices=AssetFile.TYPE_CHOICES)
+    name = serializers.CharField()
+    date_created = serializers.ReadOnlyField()
+    content = SerializerMethodFileField()
+    metadata = WritableJSONField(required=False)
+
+    def get_url(self, obj):
+        return reverse('asset-file-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+    def get_content(self, obj, *args, **kwargs):
+        return reverse('asset-file-content', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+    class Meta:
+        model = AssetFile
+        fields = (
+            'uid',
+            'url',
+            'asset',
+            'user',
+            'user__username',
+            'file_type',
+            'name',
+            'date_created',
+            'content',
+            'metadata',
+        )
+
+
 class AssetVersionListSerializer(serializers.Serializer):
     # If you change these fields, please update the `only()` and
     # `select_related()` calls  in `AssetVersionViewSet.get_queryset()`
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
+    content_hash = serializers.ReadOnlyField()
     date_deployed = serializers.SerializerMethodField(read_only=True)
     date_modified = serializers.CharField(read_only=True)
 
@@ -408,6 +474,7 @@ class AssetVersionSerializer(AssetVersionListSerializer):
                     'version_id',
                     'date_deployed',
                     'date_modified',
+                    'content_hash',
                     'content',
                   )
 
@@ -441,9 +508,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    permissions = ObjectPermissionSerializer(many=True, read_only=True)
+    permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
+    version__content_hash = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = PaginatedApiField(
@@ -457,6 +525,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+
+    # Only add link instead of hooks list to avoid multiple access to DB.
+    hooks_link = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -472,6 +543,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'summary',
                   'date_modified',
                   'version_id',
+                  'version__content_hash',
                   'version_count',
                   'has_deployment',
                   'deployed_version_id',
@@ -490,6 +562,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'embeds',
                   'koboform_link',
                   'xform_link',
+                  'hooks_link',
                   'tag_string',
                   'uid',
                   'kind',
@@ -551,6 +624,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
 
+    def get_hooks_link(self, obj):
+        return reverse('hook-list', args=(obj.uid,), request=self.context.get('request', None))
+
     def get_embeds(self, obj):
         request = self.context.get('request', None)
 
@@ -590,17 +666,25 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return
-        if obj.asset_versions.filter(deployed=True).exists():
-            if isinstance(obj.deployment.version_id, int):
-                # this can be removed once the 'replace_deployment_ids'
-                # migration has been run
-                v_id = obj.deployment.version_id
-                try:
-                    return obj.asset_versions.get(_reversion_version_id=v_id).uid
-                except ObjectDoesNotExist, e:
-                    return obj.asset_versions.filter(deployed=True).first().uid
-            else:
-                return obj.deployment.version_id
+        if isinstance(obj.deployment.version_id, int):
+            asset_versions_uids_only = obj.asset_versions.only('uid')
+            # this can be removed once the 'replace_deployment_ids'
+            # migration has been run
+            v_id = obj.deployment.version_id
+            try:
+                return asset_versions_uids_only.get(
+                    _reversion_version_id=v_id
+                ).uid
+            except AssetVersion.DoesNotExist:
+                deployed_version = asset_versions_uids_only.filter(
+                    deployed=True
+                ).first()
+                if deployed_version:
+                    return deployed_version.uid
+                else:
+                    return None
+        else:
+            return obj.deployment.version_id
 
     def get_deployment__identifier(self, obj):
         if obj.has_deployment:
@@ -639,6 +723,7 @@ class DeploymentSerializer(serializers.Serializer):
     identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
     version_id = serializers.CharField(required=False)
+    asset = serializers.SerializerMethodField()
 
     @staticmethod
     def _raise_unless_current_version(asset, validated_data):
@@ -648,6 +733,10 @@ class DeploymentSerializer(serializers.Serializer):
                 validated_data['version_id'] != str(asset.version_id):
             raise NotImplementedError(
                 'Only the current version_id can be deployed')
+
+    def get_asset(self, obj):
+        asset = self.context['asset']
+        return AssetSerializer(asset, context=self.context).data
 
     def create(self, validated_data):
         asset = self.context['asset']
@@ -766,6 +855,9 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
+        # WARNING! If you're changing something here, please update
+        # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
+        # additional database query for each asset in the list.
         fields = ('url',
                   'date_modified',
                   'date_created',
@@ -822,7 +914,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
-    support = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
@@ -840,7 +931,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'server_time',
             'date_joined',
             'projects_url',
-            'support',
             'is_superuser',
             'gravatar',
             'is_staff',
@@ -863,12 +953,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
-
-    def get_support(self, obj):
-        return {
-            'email': settings.KOBO_SUPPORT_EMAIL,
-            'url': settings.KOBO_SUPPORT_URL,
-        }
 
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)
@@ -903,26 +987,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             rep['extra_details']['require_auth'] = get_kc_profile_data(
                 obj.pk).get('require_auth', False)
 
-        # Count the number of dkobo SurveyDrafts to determine migration status
-        from kpi.management.commands.import_survey_drafts_from_dkobo import \
-            SurveyDraft
-        try:
-            SurveyDraft.objects.exists()
-        except ProgrammingError:
-            # dkobo is not installed. Freude, schöner Götterfunken
-            pass
-        else:
-            survey_drafts = SurveyDraft.objects.filter(user=obj)
-            rep['dkobo_survey_drafts'] = {
-                'total': survey_drafts.count(),
-                'non_migrated': survey_drafts.filter(kpi_asset_uid='').count(),
-                'migrate_url': u'{switch_builder}?beta=1&migrate=1'.format(
-                    switch_builder=reverse(
-                        'toggle-preferred-builder',
-                        request=self.context.get('request', None)
-                    )
-                )
-            }
         return rep
 
     def update(self, instance, validated_data):
@@ -1036,14 +1100,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         # (http://www.django-rest-framework.org/api-guide/fields/#source).
         source='*',
         source_processor=lambda source: CollectionChildrenQuerySet(
-            source).select_related(
-                'owner', 'parent'
-            ).prefetch_related(
-                'permissions',
-                'permissions__permission',
-                'permissions__user',
-                'permissions__content_object',
-            ).all()
+            source
+        ).optimize_for_list()
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()

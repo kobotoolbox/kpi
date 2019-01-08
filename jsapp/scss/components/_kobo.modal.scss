@@ -1,14 +1,24 @@
-.modal-backdrop {
+$z-modal-backdrop: 1001;
+$z-enketo-iframe-icon: 1000;
+$z-modal-x: 10;
+
+// -----------------------------------------------------------------------------
+// common modal parts
+// -----------------------------------------------------------------------------
+
+.modal__backdrop {
   position: fixed;
   height: 100%;
   width: 100%;
-  z-index: 1001;
+  z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
   background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
-.modal-open {
+.modal {
+  align-items: stretch;
+  display: flex;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -18,122 +28,176 @@
   max-height: 95%;
   overflow-x: auto;
   box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
-}
+  border-radius: 2px;
+  visibility: hidden;
 
-.modal-content {
-  background-color: #FFF;
-  padding: 15px 20px;
-}
+  &.modal--open {
+    visibility: visible;
+  }
 
-.modal-large {
-  .modal-open {
+  &.modal--large {
     height: 80%;
     width: 80%;
     max-width: 1240px;
-    align-items: stretch;
-    display: flex;
-  }
 
-  .modal-content {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .modal-body {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-
-    .enketo-holder {
-      flex-grow: 1;
+    .modal__content {
+      height: 100%;
+      width: 100%;
       display: flex;
       flex-direction: column;
     }
 
-    iframe {
+    .modal__body {
       flex-grow: 1;
-      border: 1px solid white;
-      width: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .enketo-holder {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      iframe {
+        flex-grow: 1;
+        border: 1px solid white;
+        width: 100%;
+      }
     }
   }
 }
 
-.modal-title {
-  margin: 0px;
-  padding: 24px 30px;
-  font-size: 18px;
+.modal__body {
+  // we use margin for bottom to make it stack with modal__footer
+  padding: 30px 30px 0;
+  margin-bottom: 30px;
+
+  // in some cases adding custom footer requires it to be inside modal__body and
+  // then padding is not needed
+  .modal__footer {
+    padding: 0;
+  }
 }
 
-.modal-header {
-  min-height: 70px;
-  margin: -15px -20px 0;
+.modal__content {
+  overflow: auto;
+  background-color: #FFF;
+  width: 100%;
+}
+
+.modal__tabs {
   background: $cool-blue;
   color: #FFF;
 }
 
-.modal-body {
-  padding: 15px;
-  padding-top: 30px;
+.modal__header {
+  min-height: 70px;
+  background: $cool-blue;
+  color: #FFF;
 }
 
-.modal-footer {
-  min-height: 60px;
-  padding-top: 10px;
-  padding-right: 10px;
+.modal__title {
+  margin: 0px;
+  padding: 24px 30px;
+  font-size: 18px;
+  line-height: 22px;
 }
 
-.modal-x {
+.modal__x {
   position: absolute;
-  background-color: transparent;
+  z-index: $z-modal-x;
   top: 0;
   right: 0;
-  padding: 20px;
+  color: inherit;
+  background-color: inherit;
+  padding: 8px;
+  margin: 11px;
+  border-radius: 50%;
   font-size: 20px;
-  color: #FFF;
   cursor: pointer;
 
   i {
+    display: block;
     font-size: 32px;
   }
 
-  &:hover {
-    opacity: 0.7;
+  &:hover {opacity: 0.7;}
+}
+
+.modal__subheader {
+  background: #f8f8f8;
+  padding: 20px 30px;
+  margin: -30px -30px 20px;
+  color: $cool-silver;
+
+  i {
+    margin: 2px 10px 10px 0;
+    font-size: 32px;
+    float: left;
   }
 }
 
-.modal-footer {
+.modal__footer {
+  padding: 0 30px 30px;
+  margin-top: 20px;
   text-align: right;
 
-  button {
-    @extend .mdl-button;
+  &::before,
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
 
-    &.primary {
-      @extend .mdl-button--colored, .mdl-button--raised;
+  &:first-child {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+
+  .modal__footer-button {
+    @extend .mdl-button;
+    text-transform: uppercase;
+
+    &:not(:first-of-type) {
+      margin-left: 10px;
     }
 
-    &.reset {
+    &.modal__footer-button--primary {
+      @extend .mdl-button--colored, .mdl-button--raised;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+
+    &.modal__footer-button--secondary {
+      @extend .mdl-button--colored;
+    }
+
+    &.modal__footer-button--danger {
       @extend .mdl-button--colored, .mdl-button--danger;
     }
 
-    text-transform: uppercase;
-    padding-left: 40px;
-    padding-right: 40px;
+    &.modal__footer-button--back {
+      border-radius: 2px;
+      color: $cool-blue;
+      border: 1px solid currentColor;
+      opacity: 1;
+      float: left;
+
+      &:hover {
+        opacity: 0.8;
+        color: $cool-blue;
+      }
+    }
   }
 }
 
-.modal-submission {
-  .modal-open {
-    background-color: #FFF;
-  }
+// -----------------------------------------------------------------------------
+// custom parts and overrides
+// -----------------------------------------------------------------------------
 
-  .modal-header {
+.modal.modal-submission {
+  .modal__header {
     background-color: #F8F8F8;
-    color: $layout-text-color;
-  }
-
-  .modal-x {
     color: $layout-text-color;
   }
 
@@ -157,7 +221,7 @@
       width: 50%;
       text-align: left;
 
-      label, div.Select {
+      label, .kobo-select {
         display: inline-block;
         vertical-align: middle;
       }
@@ -170,6 +234,9 @@
     .switch--validation-status {
       width: 100%;
       text-align: right;
+      .kobo-select {
+        text-align: left;
+      }
     }
 
     .switch--label-language + .switch--validation-status {
@@ -180,8 +247,7 @@
       min-width: 100px;
     }
 
-    .Select {
-      text-align: left;
+    .kobo-select {
       min-width: 120px;
     }
   }
@@ -273,7 +339,7 @@
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: #F5F5F5;
+    background: $cool-whitegray;
     text-align: center;
     line-height: 1em;
 
@@ -299,16 +365,9 @@
   }
 }
 
-// modal tabs
-.modal-tabs {
-  background: $cool-blue;
-  color: #FFF;
-  margin: 0px -20px;
-}
-
 .enketo-holder {
   // resets modal window paddings
-  margin: -30px -35px;
+  margin: -30px -30px;
 
   .enketo-loading-message {
     p {
@@ -321,14 +380,14 @@
       font-size: 20px;
     }
   }
-}
 
-.touch .enketo-holder {
-  width: 94%;
-  left: 3%;
-  margin-left: 0px;
-  -webkit-overflow-scrolling: touch;
-  overflow-y: scroll;
+  .touch & {
+    width: 94%;
+    left: 3%;
+    margin-left: 0px;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
+  }
 }
 
 .enketo-iframe-icon {
@@ -340,64 +399,63 @@
   right: 6px;
   top: 6px;
   border-radius: 3px;
-  z-index: 1000;
+  z-index: $z-enketo-iframe-icon;
   width: 15px;
   height: 15px;
   cursor: pointer;
 }
 
-// create new project modal steps
-.form-modal__item--upload-note {
-  background: #F8F8F8;
-  padding: 20px 30px 10px 30px;
-  margin: -30px -35px;
-  margin-bottom: 20px;
+.project-settings {
+  // make sure it doesn't get too small (but only inside modal)
+  .modal & {
+    width: 100%;
 
-  i {
-    margin-right: 10px;
-    margin-top: 2px;
-    font-size: 32px;
-    vertical-align: top;
-    display: inline-block;
+    @media screen and (min-width: 768px) {
+      min-width: 600px;
+    }
   }
 
-  label.long {
-    font-size: 15px;
-    vertical-align: middle;
-    display: inline-block;
-    width: calc(100% - 48px);
-  }
-}
-
-.form-modal__item--newForm-step2 {
   .intro {
-    padding-bottom: 20px;
+    margin-bottom: 20px;
     text-align: left;
   }
 
-  .form-modal__item--new-project--buttons {
-    margin: 30px 0px 20px 0px;
-    display: flex;
-    justify-content: space-around;
+  // override two columns to rows
+  &.project-settings--narrow {
+    .form-modal__item--sector,
+    .form-modal__item--country {
+      width: 100%;
+      float: none;
+
+      .kobo-select {
+        margin-right: 0;
+      }
+    }
+  }
+
+  $buttons-spacing: 10px;
+
+  .form-modal__item--form-source-buttons {
+    margin: 0 auto;
+    max-width: 500px;
 
     button {
+      display: inline-block;
+      vertical-align: top;
       border: 1px solid $divider-color;
-      padding: 20px 10px;
       background: #F8F8F8;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
-      margin: 0px 10px;
-      flex-basis: 0;
-      flex-grow: 1;
+      margin: 0.5*$buttons-spacing;
+      padding: $buttons-spacing;
+      width: calc(50% - #{$buttons-spacing});
+      min-height: 120px;
 
       @media screen and (min-width: 768px) {
-        min-width: 200px;
-      }
-
-      @media screen and (min-width: 960px) {
-        min-width: 220px;
-        padding: 20px;
+        margin: $buttons-spacing;
+        padding: 2*$buttons-spacing;
+        width: calc(50% - #{2*$buttons-spacing});
       }
 
       i {
@@ -409,19 +467,13 @@
       &:hover {
         color: $cool-blue;
         border-color: $cool-blue;
-
-        i {
-          color: $cool-blue;
-        }
+        i {color: $cool-blue;}
       }
     }
   }
-}
 
-.form-modal__item--newForm-step3 {
   .dropzone {
-    background: #F5F5F5;
-    margin: 20px 0px 40px 0;
+    background: $cool-whitegray;
     padding: 30px;
     border: 2px dashed $divider-color;
     cursor: pointer;
@@ -435,188 +487,217 @@
       opacity: 0.5;
     }
 
-    &:hover {
-      border-color: $cool-blue;
+    .loading {
+      font-size: inherit;
     }
 
-    &.dropzone-active {
-      border-color: $cool-blue;
-    }
-
-    &.dropzone-reject {
-      border-color: $cool-red;
-    }
-  }
-
-  .form-modal__item--url-import {
-    margin: 30px 0px;
-
-    button {
+    .loading i {
+      font-size: 36px;
       margin-top: 20px;
-      float: right;
+      margin-bottom: 16px;
+    }
+
+    &:hover {border-color: $cool-blue;}
+    &.dropzone-active {border-color: $cool-blue;}
+    &.dropzone-reject {border-color: $cool-red;}
+  }
+}
+
+@media screen and (min-height: 600px) {
+  // on bigger screens make templates-list scrollable to always display back/next buttons
+  .project-settings.project-settings--choose-template {
+    .templates-list {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+  }
+}
+
+.form-modal__item--http-headers {
+  .form-modal__item--http-header-row {
+    margin-top: 10px;
+
+    input {
+      width: calc(50% - 20px);
+      background-color: rgba($black, 0.05);
+      padding-left: 5px;
+      padding-right: 5px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
     }
   }
 
-  .form-view__link--step3-back {
-    font-size: 14px;
-    color: $cool-blue;
-    opacity: 1;
+  .http-header-add,
+  .http-header-row-remove {
+    height: 30px;
+    min-height: 30px;
+    line-height: 30px;
 
-    &:hover {
-      opacity: 0.8;
+    .k-icon {
+      font-size: 1.5em;
+      vertical-align: middle;
     }
   }
-}
 
-// alertify overrides
+  .http-header-add {
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+    background: $cool-gray;
+    vertical-align: middle;
+    padding: 0 12px 0 6px;
 
-.alertify .ajs-dimmer {
-  background-color: #FFF;
-  opacity: 0.55;
-}
+    &:hover {background: darken($cool-gray, 10%);}
+  }
 
-.alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba(0, 0, 0, 0.15);
-}
-
-.alertify .ajs-header {
-  margin: 0px;
-  padding: 0px;
-  padding-bottom: 18px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.alertify.ajs-closable .ajs-commands button {
-  width: 32px;
-  height: 32px;
-  padding: 0px;
-}
-
-.alertify.ajs-closable .ajs-commands button.ajs-close {
-  background: transparent;
-  font-size: 32px;
-  color: lighten($cool-gray, 20%);
-
-  &:hover {
-    color: $cool-gray;
+  .http-header-row-remove {
+    @extend .mdl-button, .mdl-button--icon;
+    width: 30px;
+    vertical-align: top;
+    padding: 0;
+    &:hover {color: $cool-red;}
   }
 }
 
-.alertify.ajs-closable .ajs-commands button.ajs-close:before {
-  content: '\E806';
-  font-family: 'k-icons';
-}
-
-.alertify.ajs-closable .ajs-commands {
-  margin: 0px;
-  top: 20px;
-  right: 20px;
-  padding: 0px;
-}
-
-.alertify .ajs-body .ajs-content {
-  padding: 0px;
-
-  pre {
-    max-height: 300px;
-    overflow: auto;
-    word-wrap: break-word;
-    max-width: 100%;
-    padding-right: 20px;
-    white-space: initial;
-    font-size: 12px;
+.form-modal--translation-settings {
+  @media (min-width: 600px) {
+    min-width: 500px;
   }
-}
 
-.alertify .ajs-dialog {
-  max-width: 550px;
-  padding: 30px 30px 0 30px;
-}
+  .form-view__cell--translation-note {
+    padding-bottom: 20px;
 
-.alertify .ajs-footer {
-  margin: -4px;
-  padding: 17px 0px;
+    p {
+      margin: 0;
+    }
+  }
+  .form-view__cell--translation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid $divider-color;
+    padding: 6px 0px;
 
-  .ajs-buttons.ajs-primary {
+    .form-view__cell--translation-name .form-view__icon-button {
+      opacity: 0;
+      visibility: hidden;
+      transition: 250ms;
+    }
+
+    &:hover .form-view__cell--translation-name .form-view__icon-button {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  .form-view__cell--translation-actions {
+    white-space: nowrap;
+  }
+
+  .form-view__label--default-language {
+    display: inline;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+
+  .form-view__cell--add-language {
+    padding-top: 20px;
     text-align: right;
+    border-top: 1px solid $divider-color;
   }
 
-  button {
-    @extend .mdl-button;
+  .form-view__cell--add-language-form,
+  .form-view__cell--update-language-form {
+    background: #F8F8F8;
+    padding: 15px;
+    position: relative;
 
-    text-transform: uppercase;
-    padding-left: 20px;
-    padding-right: 20px;
+    .form-view__link--close {
+      position: absolute;
+      right: 0px;
+      top: 6px;
 
-    &.ajs-ok {
-      @extend .mdl-button--colored, .mdl-button--raised;
+      i {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .form-view__cell--add-language-form {
+    margin-top: 20px;
+  }
+
+  .form-view__form--add-language-fields {
+    display: flex;
+    justify-content: space-between;
+
+    .form-view__cell {
+      &:not(:first-child) {margin-left: 10px;}
+      &.form-view__cell--lang-name {flex: 3;}
+      &.form-view__cell--lang-code {flex: 2;}
+      &.form-view__cell--submit-button {padding-top: 10px;}
+    }
+  }
+}
+
+.form-modal--translation-table {
+  // assumption: parent is display flex
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+
+  .translation-table-container {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid $divider-color;
+  }
+
+  .ReactTable {
+    width: 100%;
+
+    .rt-thead.-header {
+      box-shadow: none;
+      border-bottom: 2px solid $divider-color;
     }
 
-    &.ajs-cancel {
-      @extend .mdl-button--colored;
+    .rt-thead > .rt-tr,
+    .rt-tr-group > .rt-tr {
+      .rt-td {
+        white-space: normal;
+      }
+      > .rt-th:first-child,
+      > .rt-td:first-child {
+        min-width: 30%;
+        color: lighten($cool-gray, 10%);
+      }
 
-      &:focus, &:focus:not(:active) {
-        background: transparent;
+      > .rt-th:last-child,
+      > .rt-td:last-child {
+        min-width: 70%;
+      }
+      .translation {
+        background: lighten($cool-green, 41%);
+        color: lighten($black, 15%);
+        padding: 0px;
+        textarea {
+          padding: 8px;
+          border: none;
+          background: transparent;
+          width: 100%;
+          &:focus {
+            background: lighten($cool-green, 35%);
+          }
+        }
       }
     }
   }
 }
 
-.alertify-notifier {
-  .ajs-message,
-  .ajs-message.ajs-error,
-  .ajs-message.ajs-success,
-  .ajs-message.ajs-warning {
-    background: #484b5a;
-    color: white;
-    padding: 17px 24px;
-    padding-right: 44px;
-    width: auto;
-    min-width: 320px;
-    max-width: 460px;
-    line-height: 1.3em;
-  }
-
-  .ajs-message .ajs-close {
-    background-image: none;
-    background: transparent;
-    right: 15px;
-    top: 50%;
-    margin-top: -10px;
-    opacity: 0.5;
-
-    @extend .k-icon, .k-icon-close;
-
-    color: white;
-  }
-}
-
-.alertify-toggle {
-  // border:2px solid red;
-  display: block;
-  padding-bottom: 5px;
-  padding-top: 5px;
-
-  input {
-    margin-right: 5px;
-  }
-
-  &:first-child {
-    padding-top: 15px;
-  }
-
-  &.alertify-toggle-important {
-    margin-top: 20px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    border-top: 1px solid #EDEDED;
-    font-weight: bold;
-  }
-}
-
 @media screen and (max-width: 767px) {
-  .modal-open {
+  .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
   }

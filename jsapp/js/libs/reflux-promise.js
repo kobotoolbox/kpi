@@ -16,8 +16,8 @@ function createFunctions(Reflux, PromiseFactory) {
         var args = arguments;
 
         var canHandlePromise =
-            this.children.indexOf("completed") >= 0 &&
-            this.children.indexOf("failed") >= 0;
+            this.children.indexOf('completed') >= 0 &&
+            this.children.indexOf('failed') >= 0;
 
         var createdPromise = new PromiseFactory(function(resolve, reject) {
             // If `listenAndPromise` is listening
@@ -78,11 +78,11 @@ function createFunctions(Reflux, PromiseFactory) {
         var me = this;
 
         var canHandlePromise =
-            this.children.indexOf("completed") >= 0 &&
-            this.children.indexOf("failed") >= 0;
+            this.children.indexOf('completed') >= 0 &&
+            this.children.indexOf('failed') >= 0;
 
         if (!canHandlePromise){
-            throw new Error("Publisher must have \"completed\" and \"failed\" child publishers");
+            throw new Error('Publisher must have "completed" and "failed" child publishers');
         }
 
         p.then(function(response) {
@@ -106,7 +106,7 @@ function createFunctions(Reflux, PromiseFactory) {
         var removeListen = this.listen(function() {
 
             if (!callback) {
-                throw new Error("Expected a function returning a promise but got " + callback);
+                throw new Error('Expected a function returning a promise but got ' + callback);
             }
 
             var args = arguments,

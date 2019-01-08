@@ -198,7 +198,7 @@ class ObjectPermission(models.Model):
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'objectpermission'
 
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',

@@ -1,5 +1,6 @@
 .form-view--table {
   padding: 0px 30px;
+  position: relative;
 
   .form-view__group--table-header {
     padding: 10px 0px 0px 0px;
@@ -44,16 +45,43 @@
 
     .rt-tbody, .rt-thead {
       overflow-x: hidden;
-      overflow-y: scroll;
-      direction: rtl;
-
-      > div {
-        direction: ltr;
-      }
 
       .table-header-checkbox {
         min-height: 24px;
         display: block;
+        text-align: center;
+
+        .checkbox__input {vertical-align: middle;}
+      }
+    }
+
+    // minimum body height so at least two rows are visible
+    .rt-tbody {
+      min-height: 72px;
+    }
+
+    .rt-thead {
+      .rt-tr {
+        align-items: center;
+      }
+
+      .rt-resizable-header-content {
+        overflow: visible;
+        text-overflow: inherit;
+        line-height: 1.2;
+        padding: 5px 0;
+
+        .column-header-title,
+        .column-header-hxl-tags {
+          display: block;
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .column-header-hxl-tags {
+          color: $cool-silver;
+        }
       }
     }
 
@@ -84,7 +112,7 @@
     }
 
     .rt-tr-group {
-      max-height: 50px;
+      max-height: 36px;
     }
 
     .rt-tr {
@@ -99,11 +127,13 @@
     }
 
     .rt-td.rt-status {
+      line-height: inherit;
       overflow: visible;
 
-      .Select-control {
+      .kobo-select__control {
         background: transparent;
         height: 30px;
+        min-height: 30px;
         border: none;
         border-radius: 0px;
         box-shadow: none;
@@ -112,33 +142,26 @@
         &:hover {
           box-shadow: none;
         }
-
-        .Select-value {
-          line-height: 30px;
-          padding-left: 5px;
-          padding-right: 2px;
-          margin-top: 2px;
-
-          .Select-value-label {
-            color: lighten($black, 20%);
-          }
-        }
-
-        .Select-input {
-          height: 30px;
-          padding-left: 5px;
-          padding-right: 2px;
-        }
-
-        .Select-arrow {
-          opacity: 0.6;
-        }
       }
     }
 
     .rt-link {
-      color: $cool-blue;
-      cursor: pointer;
+      overflow: visible;
+
+      .table-link {
+        cursor: pointer;
+        display: inline-block;
+        min-height: 28px;
+
+        &:hover {
+          color: $cool-blue;
+        }
+
+        i {
+          font-size: 32px;
+          vertical-align: middle;
+        }
+      }
     }
 
     .-pagination {
@@ -184,17 +207,106 @@
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
       background: rgba($cool-green, 0.1);
     }
+
+    &.has-frozen-column {
+      .frozen {
+        order: -1;
+        position: relative;
+        left: 0;
+        background: #F8F8F8;
+        height: 36px;
+        transition: left 0.2s;
+        margin-right: 6px;
+
+        &:not(.rt-status) {
+          z-index: 2;
+        }
+      }
+
+      &.-striped .rt-tr.-odd .frozen {
+        background: #F1F1F1;
+      }
+
+      &.-striped .rt-tr:hover .frozen {
+        background: #edf9fa;
+      }
+
+      .rt-th.frozen {
+        height: 34px;
+      }
+    }
+  }
+
+  .form-view__cell--table-warning {
+    position: absolute;
+    width: calc(100% - 60px);
+    background: lighten(#FFB775, 20%);
+    padding: 5px;
+    top: 10px;
+    z-index: 99;
+
+    i.k-icon-alert {
+      font-size: 32px;
+      vertical-align: middle;
+      color: #FFB775;
+    }
+
+    a {
+      cursor: pointer;
+    }
+
+    i.k-icon-close {
+      position: absolute;
+      right: 10px;
+      font-size: 24px;
+      top: 10px;
+      background: lighten(#FFB775, 20%);
+      cursor: pointer;
+    }
   }
 }
 
-.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
-  .form-view--table {
-    padding: 0px;
-    overflow: hidden;
-    background: transparent !important;
+.tableColumn-modal {
+  .form-view__cell--label {
+    padding-bottom: 10px;
+  }
 
-    .form-view__group--table-header {
-      padding-top: 0px;
+  .form-modal__item {
+    margin-bottom: 20px;
+
+    &--advanced-table-options {
+      border: 1px solid $divider-color;
+      padding: 20px;
+      background: #F8F8F8;
+
+      .form-view__cell--note {
+        padding-bottom: 20px;
+      }
+
+      .form-modal__item:last-child {
+        margin-bottom: 0px;
+      }
+    }
+  }
+
+  .form-modal__item--translation-radios {
+    .radio__row--title {
+      font-size: inherit;
+      color: inherit;
+      font-weight: 500;
+    }
+  }
+
+  ul {
+    max-height: 160px;
+    overflow: auto;
+    border: 1px solid $divider-color;
+    padding: 10px;
+    background: #FFF;
+
+    li {
+      margin-bottom: 5px;
+      max-width: 100%;
     }
   }
 }

@@ -1,4 +1,27 @@
+$s-form-builder-header: 125px;
+$z-form-builder-header: 20;
+$s-form-builder-aside: 400px;
+$z-form-builder-aside: 10;
+$t-form-builder-aside-open: 200ms;
+
 // FORM BUILDER MAIN LAYOUT
+
+.formBuilder {
+  background-color: #FFF;
+}
+
+.formBuilder-header {
+  height: $s-form-builder-header;
+}
+
+.formBuilder__contents {
+  height: calc(100% - #{$s-form-builder-header});
+  overflow: auto;
+  padding-top: 10px;
+  margin-right: 0px;
+  transition: margin $t-form-builder-aside-open;
+}
+
 @media screen and (min-width: 1400px) {
   .page-wrapper--in-formbuilder {
     &:before {
@@ -26,49 +49,18 @@
   }
 }
 
-.formBuilder {
-  background-color: #FFF;
-}
-
-.formBuilder-header {
-  height: 125px;
-  transition: margin 0.2s;
-}
-
-.formBuilder__contents {
-  height: calc(100% - 125px);
-  overflow: auto;
-  margin-top: 8px;
-  margin-right: 0px;
-  transition: margin 0.2s;
-}
-
 @media screen and (min-width: 1100px) {
+  .form-builder-aside--visible + .formBuilder,
   .lib-nav--visible + .formBuilder {
     .formBuilder__contents {
-      margin-right: 400px;
-      transition: margin 0.2s;
-    }
-
-    .form-style__panel--formstyle {
-      margin-right: 400px;
-      transition: margin 0.2s;
+      margin-right: $s-form-builder-aside;
     }
   }
 }
 
 .form-wrap {
-  padding: 0px 75px;
+  padding: 45px 75px;
   width: 100%;
-
-  > .formbuilder-wrap > .survey-editor > .survey-editor__list {
-    // height of viewport minus (form-meta box + formbuilder header)
-    min-height: calc(100vh - 200px);
-  }
-
-  .survey-header, .sub-header-bar {
-    display: none;
-  }
 
   input, textarea {
     box-shadow: none;
@@ -86,6 +78,11 @@
     width: 540px;
     margin: 24px auto;
     padding: 12px 20px;
+
+    p {
+      font-family: monospace;
+      white-space: pre;
+    }
 
     &__strong {
       border: 1px solid black;
@@ -112,42 +109,37 @@
   }
 }
 
-.formBuilder--formStyleDisplayed {
-  > .formBuilder-header {
-    height: 260px;
-  }
-
-  .formBuilder__contents {
-    height: calc(100% - 280px);
-  }
-
-  .formBuilder-header__button--formstyle {
-    color: $black;
-  }
-}
-
 // FORM BUILDER HEADER
 
 .formBuilder-header {
-  &__row {
+  position: relative;
+  z-index: $z-form-builder-header;
+
+  .formBuilder-header__row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    align-items: center;
 
-    &--first {
+    &.formBuilder-header__row--primary {
       background-color: #FFF;
       height: 75px;
       position: relative;
+      z-index: 2;
+      box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
     }
 
-    &--second {
-      background-color: #F1F1F1;
-      box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
+    &.formBuilder-header__row--secondary {
+      background: $cool-whitegray;
+      height: 50px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
     }
   }
 
-  &__cell {
-    &--project-icon {
+  .formBuilder-header__cell {
+    &.formBuilder-header__cell--logo {
       background-color: $cool-green;
       width: 75px;
       text-align: center;
@@ -157,7 +149,7 @@
       transition: background-color 0.2s, color 0.2s;
 
       &:hover {
-          background-color: darken($cool-green, 10%);
+        background-color: darken($cool-green, 10%);
       }
 
       i {
@@ -173,17 +165,21 @@
       }
     }
 
-    &--name {
-      width: calc(100% - 350px);
-      padding-left: 20px;
-      padding-top: 20px;
+    &.formBuilder-header__cell--name {
+      flex: 1;
+      margin-left: 20px;
+
+      label::first-letter {
+        text-transform: uppercase;
+      }
 
       input {
         border-radius: 0px;
+        padding-left: 0;
       }
     }
 
-    &--translations {
+    &.formBuilder-header__cell--translations {
       p {
         margin: 0 0 0 10px;
         line-height: 15px;
@@ -201,13 +197,16 @@
       }
     }
 
-    &--buttonsTopRight {
-      width: 270px;
+    &.formBuilder-header__cell--buttonsTopRight {
       text-align: right;
-      align-self: center;
+      margin: 0 10px;
+
+      button {
+        margin-left: 10px;
+      }
     }
 
-    &--close {
+    &.formBuilder-header__cell--close {
       width: 45px;
       text-align: right;
       padding: 5px;
@@ -215,22 +214,18 @@
     }
 
     // second row
-    &--buttons {
-      margin-left: 75px;
-
-      .formBuilder-header__item {
-        display: inline-block;
-        border-left: 1px solid $cool-gray;
-        border-right: 1px solid $cool-gray;
-        margin: 4px;
-        padding: 0px 6px;
-      }
+    &.formBuilder-header__cell--toolsButtons {
+      margin: 0 10px;
 
       button {
         color: $cool-gray;
+        // for tooltip
         overflow: visible;
-        vertical-align: middle;
-        padding: 0px 4px;
+        padding: 0;
+
+        &[data-tip]::after {
+          margin-left: 30px;
+        }
 
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
@@ -244,31 +239,27 @@
           font-size: 32px;
           vertical-align: middle;
 
-          &.fa {
-            font-size: 20px;
+          &::before {
+            vertical-align: bottom;
           }
         }
       }
     }
 
-    &--spacer {
+    &.formBuilder-header__cell--spacer {
       flex-grow: 1;
+      height: 100%;
     }
 
-    &--library-toggle {
-      width: 200px;
-      padding: 5px;
-
-      button {
-        min-width: 146px;
-      }
+    &.formBuilder-header__cell--verticalRule {
+      width: 1px;
+      background: $cool-lightgray;
+      height: 100%;
     }
   }
 }
 
 .formBuilder-header__close {
-  margin-left: 10px;
-  margin-top: -12px;
   border: none;
   color: lighten($cool-gray, 20%);
   cursor: pointer;
@@ -285,8 +276,6 @@
 
   > i {
     @extend .fa, .fa-fw;
-
-    margin-right: 5px;
   }
 
   &.formBuilder-header__button--create,
@@ -317,7 +306,8 @@
     }
   }
 
-  &.formBuilder-header__button--savefailed:after, &.formBuilder-header__button--saveneeded:after {
+  &.formBuilder-header__button--savefailed:after,
+  &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
   }
@@ -332,52 +322,92 @@
     color: white;
   }
 
-  &.formBuilder-header__button--showLibrary {
-    border: 1px solid #5D6971;
-    color: #5D6971;
+  &.formBuilder-header__button--panel-toggle {
+    padding: 0 10px;
+
+    &.formBuilder-header__button--active {
+      i.k-icon {
+        color: $cool-blue;
+      }
+    }
+
+    .panel-toggle-name {
+      margin-right: 10px;
+    }
+
+    i.k-icon {
+      font-size: 32px;
+      vertical-align: middle;
+    }
   }
 
   &[disabled] {
-    color: lighten($cool-gray, 20%) !important;
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 
 // FORM STYLE SETTINGS
 
-.form-style__panel {
-  padding: 12px 12px 20px;
-  margin: 12px 0;
-  background-color: #eee;
+.form-builder-aside {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  top: $s-form-builder-header;
+  width: $s-form-builder-aside;
+  background-color: $cool-whitegray;
+  transition: right $t-form-builder-aside-open;
+  box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
+  z-index: $z-form-builder-aside;
 
-  .Select {
-    z-index: 4;
-    max-width: calc(100% - 40px);
+  &:not(.form-builder-aside--visible) {
+    right: -1 * $s-form-builder-aside - 10px;
   }
 
-  i.k-icon-help {
-    font-size: 24px;
-    margin-left: 8px;
+  .form-builder-aside__content {
+    padding: 30px;
+    overflow-y: auto;
+    height: 100%;
   }
-}
 
-.form-style__panelheader {
-  font-size: 20px;
-  font-weight: bold;
-}
+  .form-builder-aside__header {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
 
-.form-style__paneltext {
-  margin: 8px 0;
+    .k-icon {
+      font-size: 28px;
+      vertical-align: bottom;
+
+      &::before {
+        vertical-align: inherit;
+      }
+    }
+  }
+
+  .form-builder-aside__header:not(:last-child) {
+    margin-bottom: 10px;
+  }
+
+  .form-builder-aside__row:not(:first-child) {
+    margin-top: 20px;
+  }
 }
 
 // FORM META
 
-.form-meta {
-  margin: 8px 75px;
-  margin-bottom: 16px;
-  margin-right: 60px;
+.form-builder-meta {
+  display: flex;
+  flex-direction: row;
 
-  .form-group {
-    margin-bottom: 10px;
+  .form-builder-meta__column {
+    flex: 1;
+    margin-right: 10px;
+
+    .checkbox:not(:last-of-type) {
+      margin-bottom: 10px;
+    }
   }
 }
 
@@ -446,10 +476,6 @@
 }
 
 .survey-editor {
-  > ul > li:last-child {
-    padding-bottom: 48px;
-  }
-
   .ui-sortable-placeholder.lib-list__item {
     border: 1px dashed #d9dde1;
     visibility: visible !important;
@@ -461,61 +487,25 @@
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
 @media screen and (max-width: 767px) {
-  .formBuilder-header__cell--project-icon {
+  .formBuilder-header__cell--logo {
     display: none;
   }
 
-  .formBuilder-header__cell--name {
-    width: calc(100% - 175px);
-  }
-
   .formBuilder-header__cell--buttonsTopRight {
-    width: 175px;
-
     .formBuilder-header__button--save {
       max-width: 120px;
       text-overflow: ellipsis;
     }
   }
 
-  .formBuilder-header__cell--buttons {
-    margin-left: 10px;
-
-    button {
-      padding: 0px 6px;
-
-      i {
-        margin-right: 0px;
-      }
-    }
-
-    .formBuilder-header__button--formstyle {
-      i.fa-angle-down {
-        display: none;
-      }
-    }
-
-    .formBuilder-header__item {
-      border-left: none;
-      border-right: none;
-      margin: 4px 0px;
-      padding: 0px;
-    }
-  }
-
-  .formBuilder-header__cell--library-toggle {
-    width: 150px;
-    max-width: 35%;
-
-    button {
-      min-width: 60px;
-      max-width: 100%;
-      padding: 0px 12px;
+  .formBuilder-header__button--panel-toggle {
+    .panel-toggle-name {
+      display: none;
     }
   }
 
   .form-wrap {
-    padding: 0px 25px;
+    padding: 30px 45px;
   }
 
   .form-meta {
@@ -537,20 +527,9 @@
 }
 
 @media screen and (max-width: 480px) {
-  .formBuilder-header__cell--buttons button {
+  .formBuilder-header__cell--toolsButtons button {
     padding: 0px;
     border-radius: 0px;
-  }
-
-  .form-style__panel {
-    margin: 0px;
-    padding: 8px 16px;
-  }
-
-  .formBuilder-header__button--formstyle {
-    span {
-      display: none;
-    }
   }
 
   .card--selectquestion__expansion {
@@ -583,7 +562,7 @@
   }
 
   .form-wrap {
-    padding: 0px 15px;
+    padding: 15px 30px;
   }
 
   .btn--addrow {
@@ -603,7 +582,7 @@
 
     .settings__input {
       input[type="text"] {
-        border: 1px solid #DDD;
+        border: 1px solid $cool-lightgray;
       }
     }
   }

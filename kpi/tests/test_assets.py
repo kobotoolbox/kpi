@@ -63,6 +63,7 @@ class AssetsTestCase(TestCase):
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
+
 class CreateAssetVersions(AssetsTestCase):
 
     def test_asset_with_versions(self):
@@ -145,20 +146,64 @@ class AssetContentTests(AssetsTestCase):
             {'list_name': 'yn', 'name': 'n', 'label': 'No'},
         ]}
 
-    def test_rename_null_translation(self):
+    def test_default_translation_first(self):
         '''
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
         '''
-        self.asset = Asset.objects.create(content={'survey': [
-            {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
-        ],
-            'translations': ['lang1', None],
-            '#active_translation_name': 'lang2',
+        def _check_content(content, expected_translations):
+            self.assertListEqual(
+                content['translations'], expected_translations
+            )
+            for sheet_name in 'survey', 'choices':
+                for row in content[sheet_name]:
+                    for col in 'label', 'hint':
+                        for index, cell in enumerate(row.get(col, [])):
+                            self.assertTrue(
+                                str(cell).endswith(
+                                    str(expected_translations[index])
+                                )
+                            )
+
+        self.asset = Asset.objects.create(content={
+            'survey': [
+                {
+                    'name': 'q1',
+                    'type': 'select_one',
+                    'label': ['q label lang1', None, 'q label lang3'],
+                    'hint': ['q hint lang1', 'q hint None', 'q hint lang3'],
+                    'select_from_list_name': 'choice_list',
+                },
+            ],
+            'choices': [
+                {'list_name': 'choice_list', 'name': 'c1',
+                 'label': ['c1 lang1', None, 'c1 lang3']},
+                {'list_name': 'choice_list', 'name': 'c2',
+                 'label': ['c2 lang1', 'c2 None', 'c2 lang3']},
+                {'list_name': 'choice_list', 'name': 'c3',
+                 'label': ['c3 lang1', 'c3 None', 'c3 lang3']},
+            ],
+            'settings': [{'default_language': 'lang3'}],
+            'translations': ['lang1', None, 'lang3'],
         })
-        self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
-        self.assertTrue('#active_translation_name' not in self.asset.content)
-        self.assertTrue('#null_translation' not in self.asset.content)
+        _check_content(
+            self.asset.content,
+            expected_translations=['lang3', 'lang1', None]
+        )
+
+        self.asset.content['settings']['default_language'] = None
+        self.asset.save()
+        _check_content(
+            self.asset.content,
+            expected_translations=[None, 'lang3', 'lang1']
+        )
+
+        del self.asset.content['settings']['default_language']
+        self.asset.save()
+        _check_content(
+            self.asset.content,
+            expected_translations=[None, 'lang3', 'lang1']
+        )
 
     def test_rename_translation(self):
         '''
@@ -357,6 +402,17 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('settings' in a1.content)
         self.assertEqual(a1.content['settings'].get('style'), 'pages')
 
+    def test_templates_retain_settings(self):
+        _content = self._content()
+        _content['settings'] = {
+            'style': 'pages',
+        }
+        a1 = Asset.objects.create(content=_content, owner=self.user,
+                                  asset_type='template')
+        self.assertEqual(a1.asset_type, 'template')
+        self.assertTrue('settings' in a1.content)
+        self.assertEqual(a1.content['settings'].get('style'), 'pages')
+
     def test_surveys_move_form_title_to_name(self):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
@@ -367,6 +423,15 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 
+    def test_templates_move_form_title_to_name(self):
+        a1 = Asset.objects.create(content=self._content('abcxyz'),
+                                  owner=self.user,
+                                  asset_type='template')
+        # settingslist
+        settings = a1.content['settings']
+        self.assertEqual(a1.asset_type, 'template')
+        self.assertTrue('form_title' not in settings)
+        self.assertEqual(a1.name, 'abcxyz')
 
 
 class AssetScoreTestCase(TestCase):

@@ -1,7 +1,7 @@
 import contextlib
 import copy
 import re
-import logging
+
 from django.apps import apps
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
@@ -12,6 +12,7 @@ from .models import Asset
 from .models import Collection
 from .models.object_permission import perm_parse
 from .haystack_utils import update_object_in_search_index
+
 
 '''
 This circular import will bite you if you don't import kpi.models before
@@ -198,3 +199,6 @@ def disable_auto_field_update(kls, field_name):
     finally:
         field.auto_now = original_auto_now
         field.auto_now_add = original_auto_now_add
+
+def remove_string_prefix(string, prefix):
+    return string[len(prefix):] if string.startswith(prefix) else string

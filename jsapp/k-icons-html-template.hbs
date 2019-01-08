@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{fontName}}</title>
+  <style>
+    body {
+      font-size: 20px;
+      margin: 2em;
+    }
+    
+    .preview-table {
+      border-collapse: collapse;
+    }
+
+    .preview-table th,
+    .preview-table td {
+      border-bottom: 1px solid hsl(0, 0%, 80%);
+      padding: 0.5em;
+      line-height: 1;
+    }
+
+    .preview-table th {
+      text-align: left;
+      border-bottom-width: 2px;
+    }
+    
+    .preview-table th.icon,
+    .preview-table td.icon {
+      text-align: center;
+    }
+    
+    .preview-table td.icon {
+      font-size: 2em;
+      padding: 0;
+    }
+    
+    .preview-table td.code {
+      font-family: monospace;
+      background: hsl(0, 0%, 90%);
+    }
+    
+    .preview-table pre {
+      margin: 0;
+    }
+    
+    .k-icon {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    {{{styles}}}
+  </style>
+</head>
+<body>
+  <h1>{{fontName}}</h1>
+
+  <table class="preview-table">
+    <tr>
+      <th>name</th>
+      <th class="icon">icon</th>
+      <th>code</th>
+    </tr>
+    
+    {{#each names}}
+    <tr>
+      <td class="name">{{this}}</td>
+      <td class="icon">
+        <i class="{{../baseClassName}} {{../classPrefix}}{{this}}"></i>
+      </td>
+      <td class="code">
+        <pre><code>&lt;i class="{{../baseClassName}} {{../classPrefix}}{{this}}"&gt;&lt;/i&gt;</code></pre>
+      </td>
+    </tr>
+    {{/each}}
+  </table>
+</body>
+</html>

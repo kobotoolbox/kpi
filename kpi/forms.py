@@ -33,14 +33,13 @@ class RegistrationForm(registration_forms.RegistrationForm):
     gender = forms.ChoiceField(
         label=_('Gender'),
         required=False,
+        widget=forms.RadioSelect,
         choices=(
-                 ('', ''),
                  ('male', _('Male')),
                  ('female', _('Female')),
                  ('other', _('Other')),
-                 )
+                )
     )
-
     sector = forms.ChoiceField(
         label=_('Sector'),
         required=False,
@@ -52,24 +51,17 @@ class RegistrationForm(registration_forms.RegistrationForm):
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
-    default_language = forms.ChoiceField(
-        label=_('Default language'),
-        choices=settings.LANGUAGES,
-        # TODO: Read the preferred language from the request?
-        initial='en',
-    )
 
     class Meta:
         model = User
         fields = [
             'name',
-            'username',
             'organization',
+            'username',
             'email',
-            'gender',
             'sector',
             'country',
-            'default_language',
+            'gender',
             # The 'password' field appears without adding it here; adding it
             # anyway results in a duplicate
         ]

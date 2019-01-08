@@ -67,7 +67,7 @@ class FormViewTabs extends Reflux.Component {
           activeClassName='active'>
           {t('Form')}
         </Link>
-        <bem.FormView__tab className="is-edge" m='summary'>
+        <bem.FormView__tab className='is-edge' m='summary'>
           {t('Summary')}
         </bem.FormView__tab>
         { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) &&
@@ -87,9 +87,9 @@ class FormViewTabs extends Reflux.Component {
           </Link>
         }
         <Link
-          to={`/forms`}
+          to={'/forms'}
           className='form-view__link form-view__link--close'>
-          <i className="k-icon-close" />
+          <i className='k-icon-close' />
         </Link>
 
       </bem.FormView__toptabs>
@@ -109,13 +109,15 @@ class FormViewTabs extends Reflux.Component {
       ];
     }
 
-    // if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
-    //   sideTabs = [
-    //     {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
-    //     {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
-    //     {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
-    //   ];
-    // }
+    if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
+       sideTabs = [
+          {label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`},
+          {label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`},
+          {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
+          {label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`},
+          {label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'},
+        ];
+    }
 
     if (sideTabs.length > 0) {
       return (

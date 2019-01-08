@@ -1,0 +1,177 @@
+// alertify overrides
+
+.alertify .ajs-dimmer {
+  background-color: #FFF;
+  opacity: 0.55;
+}
+
+.alertify .ajs-dialog {
+  box-shadow: 2px 2px 15px 2px rgba(0, 0, 0, 0.15);
+}
+
+.alertify .ajs-header {
+  margin: 0px;
+  padding: 0px;
+  padding-bottom: 18px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.alertify.ajs-closable .ajs-commands button {
+  width: 32px;
+  height: 32px;
+  padding: 0px;
+}
+
+.alertify.ajs-closable .ajs-commands button.ajs-close {
+  background: transparent;
+  font-size: 32px;
+  color: lighten($cool-gray, 20%);
+
+  &:hover {
+    color: $cool-gray;
+  }
+}
+
+.alertify.ajs-closable .ajs-commands button.ajs-close:before {
+  content: '\00d7';
+}
+
+.alertify.ajs-closable .ajs-commands {
+  margin: 0px;
+  top: 20px;
+  right: 20px;
+  padding: 0px;
+}
+
+.alertify .ajs-body {
+  min-height: 20px;
+}
+
+.alertify .ajs-body .ajs-content {
+  padding: 0px;
+
+  pre {
+    max-height: 250px;
+    overflow: auto;
+    word-wrap: break-word;
+    max-width: 100%;
+    padding-right: 20px;
+    white-space: initial;
+    font-size: 12px;
+  }
+}
+
+.alertify .ajs-dialog {
+  max-width: 550px;
+  padding: 30px 30px 0 30px;
+}
+
+.alertify .ajs-footer {
+  margin: -4px;
+  padding: 17px 0px;
+
+  .ajs-buttons.ajs-primary {
+    text-align: right;
+  }
+
+  button {
+    @extend .mdl-button;
+
+    text-transform: uppercase;
+    padding-left: 20px;
+    padding-right: 20px;
+
+    &.ajs-ok {
+      @extend .mdl-button--colored, .mdl-button--raised;
+    }
+
+    &.ajs-cancel {
+      @extend .mdl-button--colored;
+
+      &:focus, &:focus:not(:active) {
+        background: transparent;
+      }
+    }
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .alertify .ajs-dialog {
+    margin-top: 4%;
+    margin-bottom: 4%;
+  }
+
+  .alertify .ajs-body .ajs-content pre {
+    max-height: 150px;
+    font-size: 11px;
+  }
+}
+
+@media screen and (max-height: 475px) {
+  .alertify .ajs-dialog {
+    margin-top: 2%;
+    margin-bottom: 2%;
+  }
+
+  .alertify .ajs-body .ajs-content pre {
+    max-height: 100px;
+    font-size: 10px;
+  }
+}
+
+.alertify-notifier {
+  .ajs-message,
+  .ajs-message.ajs-error,
+  .ajs-message.ajs-success,
+  .ajs-message.ajs-warning {
+    background: #484b5a;
+    color: white;
+    padding: 17px 24px;
+    padding-right: 44px;
+    width: auto;
+    min-width: 320px;
+    max-width: 460px;
+    line-height: 1.3em;
+  }
+
+  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 $cool-red inset;}
+  .ajs-message.ajs-success {box-shadow: 0 2px 0 0 $warm-green inset;}
+  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $cool-orange inset;}
+
+  .ajs-message .ajs-close {
+    background-image: none;
+    background: transparent;
+    right: 15px;
+    top: 50%;
+    margin-top: -10px;
+    opacity: 0.5;
+
+    @extend .k-icon, .k-icon-close;
+
+    color: white;
+  }
+}
+
+.alertify-toggle {
+  // border:2px solid red;
+  display: block;
+  padding-bottom: 5px;
+  padding-top: 5px;
+
+  input {
+    margin-right: 5px;
+  }
+
+  &:first-child {
+    padding-top: 15px;
+  }
+
+  &.alertify-toggle-important {
+    margin-top: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-top: 1px solid #EDEDED;
+    font-weight: bold;
+  }
+}

@@ -1,5 +1,4 @@
-
-$tagBgColor: #a6b3ba;
+$tagBgColor: $cool-gray;
 $tagTextColor: white;
 
 $innerInputCursorColor: #777777;
@@ -17,6 +16,7 @@ $invalidColor: #90111a;
   padding-right: 6px;
   display: inline-block;
   font-size: 13px;
+  border-radius: 2px;
 }
 
 /* a.k-tagsinput-remove */
@@ -51,7 +51,8 @@ $invalidColor: #90111a;
 }
 
 .react-tagsinput-validating {
-  background: #fffacd;
+  background-color: #fffacd;
+  color: darken(#fffacd, 60%);
 }
 
 .react-tags-save-button {

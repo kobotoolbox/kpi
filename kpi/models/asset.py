@@ -6,7 +6,6 @@ import re
 import sys
 import copy
 import json
-import logging
 import StringIO
 from collections import OrderedDict
 
@@ -16,6 +15,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
+from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 import jsonbfield.fields
@@ -28,11 +28,14 @@ from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
+from asset_version import AssetVersion
 from kpi.utils.standardize_content import (standardize_content,
                                            needs_standardization,
                                            standardize_content_in_place)
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
+from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
+    ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -55,17 +58,7 @@ from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
-
-
-ASSET_TYPES = [
-    ('text', 'text'),               # uncategorized, misc
-
-    ('question', 'question'),       # has no name
-    ('block', 'block'),             # has a name, but no settings
-    ('survey', 'survey'),           # has name, settings
-
-    ('empty', 'empty'),             # useless, probably should be pruned
-]
+from kpi.utils.log import logging
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -109,7 +102,13 @@ class TagStringMixin:
 
     @property
     def tag_string(self):
-        return ','.join(self.tags.values_list('name', flat=True))
+        try:
+            tag_list = self.prefetched_tags
+        except AttributeError:
+            tag_names = self.tags.values_list('name', flat=True)
+        else:
+            tag_names = [t.name for t in tag_list]
+        return ','.join(tag_names)
 
     @tag_string.setter
     def tag_string(self, value):
@@ -119,16 +118,11 @@ class TagStringMixin:
 FLATTEN_OPTS = {
     'remove_columns': {
         'survey': [
-            '$autoname',
-            '$kuid',
             '$prev',
             'select_from_list_name',
             '_or_other',
         ],
-        'choices': [
-            '$autovalue',
-            '$kuid',
-        ]
+        'choices': []
     },
     'remove_sheets': [
         'schema',
@@ -176,15 +170,21 @@ class FormpackXLSFormUtils(object):
             if sht in content:
                 content[sht] += rows
 
-    def _xlsform_structure(self, content, ordered=True):
+    def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
+        opts = copy.deepcopy(FLATTEN_OPTS)
+        if not kobo_specific:
+            opts['remove_columns']['survey'].append('$kuid')
+            opts['remove_columns']['survey'].append('$autoname')
+            opts['remove_columns']['choices'].append('$kuid')
+            opts['remove_columns']['choices'].append('$autovalue')
         if ordered:
             if not isinstance(content, OrderedDict):
                 raise TypeError('content must be an ordered dict if '
                                 'ordered=True')
             flatten_to_spreadsheet_content(content, in_place=True,
-                                           **FLATTEN_OPTS)
+                                           **opts)
         else:
-            flatten_content(content, in_place=True, **FLATTEN_OPTS)
+            flatten_content(content, in_place=True, **opts)
 
     def _assign_kuids(self, content):
         for row in content['survey']:
@@ -212,20 +212,24 @@ class FormpackXLSFormUtils(object):
     def _unlink_list_items(self, content):
         arr = content['survey']
         for row in arr:
-            if '$kuid' in row:
-                del row['$kuid']
+            if '$prev' in row:
+                del row['$prev']
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
 
-    def _adjust_active_translation(self, content):
-        # to get around the form builder's way of handling translations where
-        # the interface focuses on the "null translation" and shows other ones
-        # in advanced settings, we allow the builder to attach a parameter
-        # which says what to name the null translation.
-        _null_translation_as = content.pop('#active_translation_name', None)
-        if _null_translation_as:
-            self._rename_translation(content, None, _null_translation_as)
+    def _make_default_translation_first(self, content):
+        # The form builder only shows the first language, so make sure the
+        # default language is always at the top of the translations list. The
+        # new translations UI, on the other hand, shows all languages:
+        # https://github.com/kobotoolbox/kpi/issues/1273
+        try:
+            default_translation_name = content['settings']['default_language']
+        except KeyError:
+            # No `default_language`; don't do anything
+            return
+        else:
+            self._prioritize_translation(content, default_translation_name)
 
     def _strip_empty_rows(self, content, vals=None):
         if vals is None:
@@ -291,28 +295,40 @@ class FormpackXLSFormUtils(object):
                     )
 
     def _prioritize_translation(self, content, translation_name, is_new=False):
-        _translations = content.get('translations')
+        # the translations/languages present this particular content
+        _translations = content['translations']
+        # the columns that have translations
         _translated = content.get('translated', [])
         if is_new and (translation_name in _translations):
             raise ValueError('cannot add existing translation')
         elif (not is_new) and (translation_name not in _translations):
-            raise ValueError('translation cannot be found')
+            # if there are no translations available, don't try to prioritize,
+            # just ignore the translation `translation_name`
+            if len(_translations) == 1 and _translations[0] is None:
+                return
+            else:  # Otherwise raise an error.
+                # Remove None from translations we want to display to users
+                valid_translations = [t for t in _translations if t is not None]
+                raise ValueError("`{translation_name}` is specified as the default language, "
+                                 "but only these translations are present in the form: `{translations}`".format(
+                                    translation_name=translation_name,
+                                    translations="`, `".join(valid_translations)
+                                    )
+                                 )
+
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
-            for row in content.get('survey', []):
-                for col in _translated:
-                    if is_new:
-                        val = '{}'.format(row[col][0])
-                    else:
-                        val = row[col].pop(_tindex)
-                    row[col].insert(0, val)
-            for row in content.get('choices', []):
-                for col in _translated:
-                    if is_new:
-                        val = '{}'.format(row[col][0])
-                    else:
-                        val = row[col].pop(_tindex)
-                    row[col].insert(0, val)
+            for sheet_name in 'survey', 'choices':
+                for row in content.get(sheet_name, []):
+                    for col in _translated:
+                        if is_new:
+                            val = '{}'.format(row[col][0])
+                        else:
+                            try:
+                                val = row[col].pop(_tindex)
+                            except KeyError:
+                                continue
+                        row[col].insert(0, val)
             if is_new:
                 _translations.insert(0, translation_name)
             else:
@@ -359,7 +375,7 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
-        self._xlsform_structure(content, ordered=True)
+        self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
     def to_xls_io(self, versioned=False, **kwargs):
@@ -432,7 +448,7 @@ class Asset(ObjectPermissionMixin,
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default='survey')
+        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey(
         'Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
@@ -451,7 +467,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def kind(self):
-        return self._meta.model_name
+        return 'asset'
 
     class Meta:
         ordering = ('-date_modified',)
@@ -544,7 +560,7 @@ class Asset(ObjectPermissionMixin,
         '''
         self._standardize(self.content)
 
-        self._adjust_active_translation(self.content)
+        self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
@@ -563,7 +579,7 @@ class Asset(ObjectPermissionMixin,
                 settings['id_string'] = id_string
             if not _title:
                 _title = filename
-        if self.asset_type != 'survey':
+        if not self.asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
 
@@ -583,12 +599,12 @@ class Asset(ObjectPermissionMixin,
         self._populate_summary()
 
         # infer asset_type only between question and block
-        if self.asset_type in ['question', 'block']:
+        if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
             row_count = self.summary.get('row_count')
             if row_count == 1:
-                self.asset_type = 'question'
+                self.asset_type = ASSET_TYPE_QUESTION
             elif row_count > 1:
-                self.asset_type = 'block'
+                self.asset_type = ASSET_TYPE_BLOCK
 
         self._populate_report_styles()
 
@@ -609,11 +625,21 @@ class Asset(ObjectPermissionMixin,
             raise ValueError('no translations available')
         self._rename_translation(self.content, _from, _to)
 
-    def to_clone_dict(self, version_uid=None):
-        if version_uid:
-            version = self.asset_versions.get(uid=version_uid)
-        else:
-            version = self.asset_versions.first()
+    def to_clone_dict(self, version_uid=None, version=None):
+        """
+        Returns a dictionary of the asset based on version_uid or version.
+        If `version` is specified, there are no needs to provide `version_uid` and make another request to DB.
+        :param version_uid: string
+        :param version: AssetVersion
+        :return: dict
+        """
+
+        if not isinstance(version, AssetVersion):
+            if version_uid:
+                version = self.asset_versions.get(uid=version_uid)
+            else:
+                version = self.asset_versions.first()
+
         return {
             'name': version.name,
             'content': version.version_content,
@@ -659,7 +685,15 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def latest_version(self):
-        return self.asset_versions.order_by('-date_modified').first()
+        versions = None
+        try:
+            versions = self.prefetched_latest_versions
+        except AttributeError:
+            versions = self.asset_versions.order_by('-date_modified')
+        try:
+            return versions[0]
+        except IndexError:
+            return None
 
     @property
     def deployed_versions(self):
@@ -672,9 +706,19 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
             return latest_version.uid
+
+    @property
+    def version__content_hash(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.content_hash
 
     @property
     def snapshot(self):
@@ -682,12 +726,7 @@ class Asset(ObjectPermissionMixin,
 
     @transaction.atomic
     def _snapshot(self, regenerate=True):
-        asset_version = self.asset_versions.first()
-
-        _note = None
-        if self.asset_type in ['question', 'block']:
-            _note = ('Note: This item is a {} and must be included in '
-                     'a form before deploying'.format(self.asset_type))
+        asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -722,6 +761,50 @@ class Asset(ObjectPermissionMixin,
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
+    @property
+    def has_active_hooks(self):
+        """
+        Returns if asset has active hooks.
+        Useful to update `kc.XForm.has_kpi_hooks` field.
+        :return: {boolean}
+        """
+        return self.hooks.filter(active=True).exists()
+
+    @staticmethod
+    def optimize_queryset_for_list(queryset):
+        ''' Used by serializers to improve performance when listing assets '''
+        queryset = queryset.defer(
+            # Avoid pulling these `JSONField`s from the database because:
+            #   * they are stored as plain text, and just deserializing them
+            #     to Python objects is CPU-intensive;
+            #   * they are often huge;
+            #   * we don't need them for list views.
+            'content', 'report_styles'
+        ).select_related(
+            'owner__username',
+        ).prefetch_related(
+            # We previously prefetched `permissions__content_object`, but that
+            # actually pulled the entirety of each permission's linked asset
+            # from the database! For now, the solution is to remove
+            # `content_object` here *and* from
+            # `ObjectPermissionNestedSerializer`.
+            'permissions__permission',
+            'permissions__user',
+            # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
+            # related objects in a list (`prefetched_list`) that we can use in
+            # other methods to avoid additional queries; see:
+            # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
+            Prefetch('tags', to_attr='prefetched_tags'),
+            Prefetch(
+                'asset_versions',
+                queryset=AssetVersion.objects.order_by(
+                    '-date_modified'
+                ).only('uid', 'asset', 'date_modified', 'deployed'),
+                to_attr='prefetched_latest_versions',
+            ),
+        )
+        return queryset
+
 
 class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     '''
@@ -749,9 +832,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.asset_version is None:
-                self.asset_version = self.asset.latest_version
             if self.source is None:
+                if self.asset_version is None:
+                    self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
             if self.owner is None:
                 self.owner = self.asset.owner
@@ -760,7 +843,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         if _source is None:
             _source = {}
         self._standardize(_source)
-        self._adjust_active_translation(_source)
+        self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)

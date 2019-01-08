@@ -29,10 +29,6 @@ class AssetNavigatorListView extends React.Component {
     this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
   }
-  componentWillReceiveProps () {
-    this.searchClear();
-    this.listenTo(this.searchStore, this.searchStoreChanged);
-  }
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
@@ -98,43 +94,46 @@ class AssetNavigatorListView extends React.Component {
       }, 1);
 
       return (
-            <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref="liblist">
-              {list.map((item)=> {
-                var modifiers = [item.asset_type];
-                var summ = item.summary;
-                if (summ.row_count == undefined) {
-                  return false;
+        <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref='liblist'>
+          {list.map((item)=> {
+            var modifiers = [item.asset_type];
+            var summ = item.summary;
+            if (summ.row_count == undefined) {
+              return false;
+            }
+            return (
+              <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
+                <bem.LibList__dragbox />
+                <bem.LibList__label m={'name'}>
+                  <ui.AssetName {...item} />
+                </bem.LibList__label>
+
+                { item.asset_type === 'block' &&
+                  <bem.LibList__qtype>
+                    {t('block of ___ questions').replace('___', summ.row_count)}
+                  </bem.LibList__qtype>
                 }
-                return (
-                    <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
-                      <bem.LibList__dragbox />
-                      <bem.LibList__label m={'name'}>
-                        <ui.AssetName {...item} />
-                      </bem.LibList__label>
-                      { item.asset_type === 'block' ?
-                        <bem.LibList__qtype>
-                          {t('block of ___ questions').replace('___', summ.row_count)}
-                        </bem.LibList__qtype>
-                      : null }
-                      { (stores.pageState.state.assetNavExpanded && item.asset_type === 'block') ?
-                        <ol>
-                          {summ.labels.map(function(lbl, i){
-                            return <li key={i}>{lbl}</li>;
-                          })}
-                        </ol>
-                      : null }
-                      { stores.pageState.state.assetNavExpanded ?
-                        <bem.LibList__tags>
-                          {(item.tags || []).map((tg, i)=>{
-                            return <bem.LibList__tag key={i}>{tg}</bem.LibList__tag>;
-                          })}
-                        </bem.LibList__tags>
-                      : null }
-                    </bem.LibList__item>
-                  );
-              })}
-            </bem.LibList>
-        );
+
+                { (stores.pageState.state.assetNavExpanded && item.asset_type === 'block') &&
+                  <ol>
+                    {summ.labels.map(function(lbl, i){
+                      return <li key={i}>{lbl}</li>;
+                    })}
+                  </ol>
+                }
+
+                { stores.pageState.state.assetNavExpanded &&
+                  <bem.LibList__tags>
+                    {(item.tags || []).map((tg, i)=>{
+                      return <bem.LibList__tag key={i}>{tg}</bem.LibList__tag>;
+                    })}
+                  </bem.LibList__tags>
+                }
+              </bem.LibList__item>
+            );
+          })}
+        </bem.LibList>
+      );
     }
   }
 };
@@ -150,30 +149,22 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block'
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template'
         }
       }),
-      selectedTags: [],
-      assetNavIntentOpen: stores.pageState.state.assetNavIntentOpen,
-      assetNavIsOpen: stores.pageState.state.assetNavIsOpen
+      selectedTags: []
     };
     this.store = stores.tags;
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(stores.assetLibrary, this.assetLibraryTrigger);
     this.listenTo(stores.pageState, this.handlePageStateStore);
     this.state.searchContext.mixin.searchDefault();
   }
-  filterSearchResults (results) {
-    if (this.searchFieldValue() === results.query) {
-      return results;
+  filterSearchResults (response) {
+    if (this.searchFieldValue() === response.query) {
+      return response.results;
     }
-  }
-  assetLibraryTrigger (res) {
-    this.setState({
-      assetLibraryItems: res
-    });
   }
   handlePageStateStore (state) {
     this.setState(state);
@@ -182,59 +173,7 @@ class AssetNavigator extends Reflux.Component {
     return this.imports.filter((i)=> i.status === n );
   }
   searchFieldValue () {
-    return ReactDOM.findDOMNode(this.refs.navigatorSearchBox.refs.inp).value;
-  }
-  liveSearch () {
-    var queryInput = this.searchFieldValue(),
-      r;
-    if (queryInput && queryInput.length > 2) {
-      r = stores.assetSearch.getRecentSearch(queryInput);
-      if (r) {
-        this.setState({
-          searchResults: r
-        });
-      } else {
-        actions.search.assets(queryInput);
-      }
-    }
-  }
-  _displayAssetLibraryItems () {
-    var qresults = this.state.assetLibraryItems;
-    // var alItems;
-    // var contents;
-    if (qresults && qresults.count > 0) {
-      // var alItems = qresults.results;
-      return (
-              <bem.LibList ref="liblist">
-                {qresults.results.map((item)=> {
-                  var modifiers = [item.asset_type];
-                  // var summ = item.summary;
-                  return (
-                      <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
-                        <bem.LibList__dragbox />
-                        <bem.LibList__label>
-                          <ui.AssetName {...item} />
-                        </bem.LibList__label>
-                        <bem.LibList__qtype>
-                          {t(item.asset_type)}
-                        </bem.LibList__qtype>
-                      </bem.LibList__item>
-                    );
-                })}
-              </bem.LibList>
-              );
-    } else {
-      return (
-              <bem.LibList m={'loading'}>
-                <bem.LibList__item m={'message'}>
-                  <i />
-                  {t('loading library assets')}
-                </bem.LibList__item>
-              </bem.LibList>
-              );
-    }
-  }
-  renderSearchResults () {
+    return this.refs.navigatorSearchBox.getValue();
   }
   toggleTagSelected (tag) {
     var tags = this.state.selectedTags,
@@ -248,39 +187,30 @@ class AssetNavigator extends Reflux.Component {
       selectedTags: tags
     });
   }
-  toggleOpen () {
-    stores.pageState.toggleAssetNavIntentOpen();
-  }
+
   render () {
     return (
-        <bem.LibNav m={{
-              deactivated: !this.state.assetNavIsOpen,
-              visible: this.state.assetNavIsOpen
-            }}>
-          {this.state.assetNavIsOpen &&
-            <bem.LibNav__header>
-              <bem.LibNav__logo onClick={this.toggleOpen}>
-                <i />
-              </bem.LibNav__logo>
-              <bem.LibNav__search>
-                <ListSearch
-                    placeholder={t('search library')}
-                    searchContext={this.state.searchContext}
-                  />
-              </bem.LibNav__search>
-              <ListTagFilter searchContext={this.state.searchContext} />
-              <ListCollectionFilter searchContext={this.state.searchContext} />
-              <ListExpandToggle searchContext={this.state.searchContext} />
-            </bem.LibNav__header>
-          }
-          {this.state.assetNavIsOpen &&
-            <bem.LibNav__content>
-              <AssetNavigatorListView searchContext={this.state.searchContext} />
-            </bem.LibNav__content>
-          }
-          <bem.LibNav__footer />
-        </bem.LibNav>
-      );
+      <bem.LibNav>
+        <bem.LibNav__header>
+          <bem.LibNav__search>
+            <ListSearch
+              ref='navigatorSearchBox'
+              placeholder={t('search library')}
+              searchContext={this.state.searchContext}
+            />
+          </bem.LibNav__search>
+          <ListTagFilter searchContext={this.state.searchContext} />
+          <ListCollectionFilter searchContext={this.state.searchContext} />
+          <ListExpandToggle searchContext={this.state.searchContext} />
+        </bem.LibNav__header>
+
+        <bem.LibNav__content>
+          <AssetNavigatorListView searchContext={this.state.searchContext} />
+        </bem.LibNav__content>
+
+        <bem.LibNav__footer />
+      </bem.LibNav>
+    );
   }
 };
 

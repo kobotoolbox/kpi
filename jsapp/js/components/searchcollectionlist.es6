@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-
 import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
@@ -12,8 +11,8 @@ import bem from '../bem';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
-
-import {t} from '../utils';
+import Dropzone from 'react-dropzone';
+import {t, validFileTypes} from '../utils';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -38,11 +37,12 @@ class SearchCollectionList extends Reflux.Component {
   }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
-    if (searchStoreState.searchState === 'done')
+    if (searchStoreState.searchState === 'done') {
       this.queryCollections();
+    }
   }
   queryCollections () {
-    if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -79,47 +79,44 @@ class SearchCollectionList extends Reflux.Component {
     var ownedCollections = this.state.ownedCollections;
 
     return (
-        <this.props.assetRowClass key={resource.uid}
-                      currentUsername={currentUsername}
-                      onActionButtonClick={this.onActionButtonClick}
-                      isSelected={isSelected}
-                      ownedCollections={ownedCollections}
-                      deleting={resource.deleting}
-                      {...resource}
-                        />
-      );
-  }
-  toggleCategory(c) {
-    return function (e) {
-    var selectedCategories = this.state.selectedCategories;
-    selectedCategories[c] = !selectedCategories[c];
-      this.setState({
-        selectedCategories: selectedCategories,
-      });
-    }.bind(this)
+      <this.props.assetRowClass key={resource.uid}
+        currentUsername={currentUsername}
+        onActionButtonClick={this.onActionButtonClick}
+        isSelected={isSelected}
+        ownedCollections={ownedCollections}
+        deleting={resource.deleting}
+        {...resource}
+      />
+    );
   }
   renderHeadings () {
     return [
       (
         <bem.List__heading key='1'>
-          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          <span className={this.state.parentName ? 'parent' : ''}>
+            {t('My Library')}
+          </span>
+
           {this.state.parentName &&
             <span>
-              <i className="k-icon-next" />
+              <i className='k-icon-next' />
               <span>{this.state.parentName}</span>
             </span>
           }
         </bem.List__heading>
       ),
       (
-        <bem.AssetListSorts className="mdl-grid" key='2'>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--8-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
+        <bem.AssetListSorts className='mdl-grid' key='2'>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
+          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
+            {t('Type')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Owner')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
+          <bem.AssetListSorts__item m={'modified'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Last Modified')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
@@ -127,21 +124,21 @@ class SearchCollectionList extends Reflux.Component {
   }
   renderGroupedHeadings () {
     return (
-        <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
+        <bem.AssetListSorts className='mdl-grid' style={{width: this.state.fixedHeadingsWidth}}>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone">
+          <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
             {t('Shared by')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone">
+          <bem.AssetListSorts__item m={'created'} className='mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone'>
             {t('Created')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
+          <bem.AssetListSorts__item m={'modified'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Last Modified')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone" >
-              {t('Submissions')}
+          <bem.AssetListSorts__item m={'submissions'} className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone' >
+            {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
@@ -163,7 +160,7 @@ class SearchCollectionList extends Reflux.Component {
           <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}
             {
-              (()=>{
+              (() => {
                 return this.state[[searchResultsBucket]][category].map(
                   this.renderAssetRow)
               })()
@@ -174,7 +171,7 @@ class SearchCollectionList extends Reflux.Component {
     );
 
     return [
-      <bem.List__heading key="h1" className="is-edge">
+      <bem.List__heading key='h1' className='is-edge'>
         {t('Active Projects')}
       </bem.List__heading>,
       results];
@@ -192,86 +189,102 @@ class SearchCollectionList extends Reflux.Component {
     }
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.List m={display} onScroll={this.handleScroll}>
-          {
-            (()=>{
-              if (display == 'regular') {
-                return this.renderHeadings();
-              }
-            })()
-          }
-          <bem.AssetList m={this.state.fixedHeadings}>
-          {
-            (()=>{
-              if (s.searchResultsDisplayed) {
-                if (s.searchState === 'loading') {
-                  return (
-                    <bem.Loading>
-                      <bem.Loading__inner>
-                        <i />
-                        {t('loading...')}
-                      </bem.Loading__inner>
-                    </bem.Loading>
-                  );
-                } else if (s.searchState === 'done') {
-                  if (s.searchResultsCount === 0) {
+        <Dropzone
+          onDrop={this.dropFiles}
+          disableClick
+          multiple
+          className='dropzone'
+          activeClassName='dropzone--active'
+          accept={validFileTypes()}
+        >
+          <bem.List m={display} onScroll={this.handleScroll}>
+            {
+              (()=>{
+                if (display == 'regular') {
+                  return this.renderHeadings();
+                }
+              })()
+            }
+            <bem.AssetList m={this.state.fixedHeadings}>
+            {
+              (()=>{
+                if (s.searchResultsDisplayed) {
+                  if (s.searchState === 'loading') {
                     return (
                       <bem.Loading>
                         <bem.Loading__inner>
-                          {t('Your search returned no results.')}
+                          <i />
+                          {t('loading...')}
                         </bem.Loading__inner>
                       </bem.Loading>
                     );
-                  } else if (display == 'grouped') {
-                    return this.renderGroupedResults();
-                  } else {
-                    return s.searchResultsList.map(this.renderAssetRow);
-                  }
-                }
-              } else {
-                if (s.defaultQueryState === 'loading') {
-                  return (
-                    <bem.Loading>
-                      <bem.Loading__inner>
-                        <i />
-                        {t('loading...')}
-                      </bem.Loading__inner>
-                    </bem.Loading>
-                  );
-                } else if (s.defaultQueryState === 'done') {
-                  if (s.defaultQueryCount < 1) {
-                    if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                  } else if (s.searchState === 'done') {
+                    if (s.searchResultsCount === 0) {
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t("Let's get started by creating your first project. Click the New button to create a new form.")}
+                            {t('Your search returned no results.')}
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
+                    } else if (display == 'grouped') {
+                      return this.renderGroupedResults();
                     } else {
-                      return (
-                        <bem.Loading>
-                          <bem.Loading__inner>
-                            {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")}
-                          </bem.Loading__inner>
-                        </bem.Loading>
-                      );
+                      return s.searchResultsList.map(this.renderAssetRow);
                     }
                   }
+                } else {
+                  if (s.defaultQueryState === 'loading') {
+                    return (
+                      <bem.Loading>
+                        <bem.Loading__inner>
+                          <i />
+                          {t('loading...')}
+                        </bem.Loading__inner>
+                      </bem.Loading>
+                    );
+                  } else if (s.defaultQueryState === 'done') {
+                    if (s.defaultQueryCount < 1) {
+                      if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                        return (
+                          <bem.Loading>
+                            <bem.Loading__inner>
+                              {t('Let\'s get started by creating your first project. Click the New button to create a new form.')}
+                              <div className='pro-tip'>
+                              {t('Advanced users: You also drag and drop XLSForms here and they will be uploaded and converted to projects.')}
+                              </div>
+                            </bem.Loading__inner>
+                          </bem.Loading>
+                        );
+                      } else {
+                        return (
+                          <bem.Loading>
+                            <bem.Loading__inner>
+                              {t('Let\'s get started by creating your first library question or question block. Click the New button to create a new question or block.')}
+                            </bem.Loading__inner>
+                          </bem.Loading>
+                        );
+                      }
+                    }
 
-                  if (display == 'grouped') {
-                    return this.renderGroupedResults();
-                  } else {
-                    return s.defaultQueryResultsList.map(this.renderAssetRow);
+                    if (display == 'grouped') {
+                      return this.renderGroupedResults();
+                    } else {
+                      return s.defaultQueryResultsList.map(this.renderAssetRow);
+                    }
                   }
                 }
-              }
-              // it shouldn't get to this point
-              return false;
-            })()
-          }
-          </bem.AssetList>
-        </bem.List>
+                // it shouldn't get to this point
+                return false;
+              })()
+            }
+            </bem.AssetList>
+            <div className='dropzone-active-overlay'>
+              <i className='k-icon-upload' />
+              {t('Drop files to upload')}
+            </div>
+          </bem.List>
+        </Dropzone>
       </DocumentTitle>
       );
   }
@@ -289,5 +302,6 @@ SearchCollectionList.contextTypes = {
 reactMixin(SearchCollectionList.prototype, searches.common);
 reactMixin(SearchCollectionList.prototype, mixins.clickAssets);
 reactMixin(SearchCollectionList.prototype, Reflux.ListenerMixin);
+reactMixin(SearchCollectionList.prototype, mixins.droppable);
 
 export default SearchCollectionList;

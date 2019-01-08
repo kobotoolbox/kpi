@@ -3,6 +3,7 @@ Backbone = require 'backbone'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 $icons = require './view.icons'
+$configs = require './model.configs'
 
 module.exports = do ->
   viewRowSelector = {}
@@ -40,14 +41,13 @@ module.exports = do ->
       @line.parents(".survey-editor__null-top-row").addClass "expanded"
       @line.css "height", "inherit"
       @line.html $viewTemplates.$$render('xlfRowSelector.namer')
-      @$el.parents('.formBuilder__contents').eq(0).scrollTo @line, 200
+      @scrollFormBuilder('+=50')
 
       if (@options.surveyView.features.multipleQuestions)
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
           if evt.which == 27
             @shrink()
-
       else
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
@@ -71,8 +71,9 @@ module.exports = do ->
         menurow = $("<div>", class: "questiontypelist__row").appendTo $menu
         for mitem, i in mrow when mitem
           menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
-      @$el.parents('.formBuilder__contents').eq(0).scrollTo @line, 200
-      @$('.questiontypelist__item').click _.bind(@selectMenuItem, @)
+
+      @scrollFormBuilder('+=220')
+      @$('.questiontypelist__item').click _.bind(@onSelectNewQuestionType, @)
 
     shrink: ->
       # click .js-close-row-selector
@@ -94,22 +95,29 @@ module.exports = do ->
           .removeClass("expanded")
           .addClass("survey-editor__null-top-row--hidden")
 
-    selectMenuItem: (evt)->
+    onSelectNewQuestionType: (evt)->
       @question_name = @line.find('input').val()
       $rowSelect = $('select.skiplogic__rowselect')
       if $rowSelect.data('select2')
         $rowSelect.select2('destroy')
       rowType = $(evt.target).closest('.questiontypelist__item').data("menuItem")
-      value = (@question_name || 'New Question').replace(/\t/g, ' ')
+
+      # if question name not provided by user, use default one for type or general one
+      if @question_name
+        questionLabelValue = @question_name.replace(/\t/g, ' ')
+      else if rowType of $configs.defaultsForType
+        questionLabelValue = $configs.defaultsForType[rowType].label.value
+      else
+        questionLabelValue = $configs.defaultsGeneral.label.value
 
       rowDetails =
         type: rowType
 
       if rowType is 'calculate'
 
-        rowDetails.calculation = value
+        rowDetails.calculation = questionLabelValue
       else
-        rowDetails.label = value
+        rowDetails.label = questionLabelValue
 
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)
@@ -122,8 +130,15 @@ module.exports = do ->
       newRow = survey.addRow(rowDetails, options)
       newRow.linkUp(warnings: [], errors: [])
       @hide()
-      @options.surveyView.reset().then () =>
-        view = @options.surveyView.getViewForRow(newRow)
-        $.scrollTo view.$el, 200, offset: -300
+
+    scrollFormBuilder: (scrollBy)->
+      $row = @$el.parents('.survey__row')
+      if !$row.length
+        return
+
+      $fbC = @$el.parents('.formBuilder__contents')
+
+      if $row.height() + $row.position().top + 50 > $fbC.height() + $fbC.prop('scrollTop')
+        $fbC.animate scrollTop: scrollBy
 
   viewRowSelector

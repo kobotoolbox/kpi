@@ -11,30 +11,72 @@
   position: relative;
   color: white;
   padding: 20px;
+  padding-bottom: 5px;
+
+  form.language-switcher {
+    margin: 0 auto;
+    position: relative;
+    max-width: 400px;
+    text-align: right;
+    margin-bottom: 10px;
+    margin-top: -5px;
+  }
 
   form.registration {
     margin: 0 auto;
-    margin-top: 40px;
     position: relative;
-    max-width: 380px;
-    background: rgba(0, 0, 0, 0.65);
-    padding: 20px;
+    max-width: 400px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 20px 30px;
+
+    a {
+      color: lighten($cool-blue, 20%);
+
+      &:hover {
+        color: $cool-blue;
+      }
+
+      &.registration__forgot {
+        float: right;
+        margin-top: -12px;
+        margin-bottom: 12px;
+      }
+    }
   }
 
   .registration--logo {
     margin-left: 10%;
     margin-right: 10%;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     max-width: 100%;
 
     img {
-      max-width: 100%;
+      max-width: 170px;
+      height: auto;
     }
   }
 
-  input {
-    color: black;
+  h1 {
+    font-weight: 400;
+    font-size: 1.8em;
+    line-height: 1.2em;
+    margin: 0.8em 0;
+  }
+
+  input[type=text],
+  input[type=password],
+  input[type=email],
+  select {
+    color: $layout-text-color;
+  }
+
+  p.help {
+    clear: both;
+    opacity: 0.7;
+    font-size: 12px;
+    line-height: 1.2em;
+    margin-bottom: 0px;
   }
 }
 
@@ -43,50 +85,137 @@
   margin-bottom: 16px;
 }
 
-.registration input, select {
+.registration input[type=text],
+.registration input[type=password],
+.registration input[type=submit],
+.registration input[type=email],
+.registration select {
   width: 100%;
   display: block;
-  padding: 8px;
+  padding: 5px 8px;
   border: none;
   border-radius: 0px;
-  font-size: 13px;
-  border-bottom: 2px solid #CBD0D7;
+  font-size: 14px;
+  border-bottom: 3px solid transparent;
+  padding-bottom: 3px;
+  margin-top: 1px;
+  opacity: 0.9;
+
+  &:focus {
+    border-bottom-color: $cool-blue;
+    opacity: 1;
+  }
 
   &.registration__action {
-    font-size: 14px;
+    font-size: 16px;
     padding: 10px;
     color: white;
     text-align: center;
     font-weight: 600;
     background: #39BF6E;
     border-bottom: 2px solid darken(#39BF6E, 20%);
+    clear: both;
 
     &:hover {
       background: lighten(#39BF6E, 10%);
     }
-
-    &.passwordreset__action {
-      width: 50%;
-      float: right;
-    }
   }
 }
 
-.registration select {
-  color: black;
-  background-color: white;
+.registration {
+  select {
+    margin-top: 4px;
+    border-bottom: none;
+  }
+
+  label {
+    opacity: 0.85;
+  }
+
+  span.required {
+    color: $cool-red;
+    margin-left: 3px;
+  }
+
+  .sector,
+  .name {
+    width: 48%;
+    float: left;
+    margin-top: 0px;
+  }
+
+  .country,
+  .organization {
+    width: 52%;
+    float: left;
+    padding-left: 4%;
+    margin-top: 0px;
+  }
+
+  .password1 {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .passwordreset__cancel {
+    color: white;
+    width: 45%;
+    float: left;
+    display: block;
+    text-align: center;
+    height: 40px;
+    line-height: 40px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .gender {
+    clear: both;
+    margin-bottom: 5px;
+  }
+
+  .gender > ul {
+    margin: 0;
+    padding: 0;
+    margin-bottom: 5px;
+    padding-top: 4px;
+
+    li {
+      display: inline-block;
+      margin-right: 16px;
+
+      input {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  ul.errorlist {
+    padding: 0px;
+    color: $cool-red;
+    margin: 8px 0px;
+  }
 }
 
-.registration .passwordreset__cancel {
-  color: white;
-  width: 45%;
-  float: left;
-  display: block;
-  text-align: center;
-  height: 40px;
-  line-height: 40px;
-  font-weight: 600;
-  font-size: 12px;
+.registration--register {
+  .registration--logo {
+    text-align: left;
+    margin: 0;
+    margin-left: -5px;
+  }
+
+  h1 {
+    margin-top: 0em;
+  }
+
+  div.field {
+    margin-bottom: 12px;
+  }
+
+  input[type=submit] {
+    margin-top: 20px;
+  }
 }
 
 .registration .registration__kc-domain + input {
@@ -99,86 +228,133 @@
   display: inline-block;
 }
 
-.registration__forgot {
-  position: absolute;
-  right: 60px;
-  font-size: 12px;
-  margin-top: -42px;
+.registration__orlogin {
+  padding-top: 10px;
+  text-align: center;
 }
 
 .registration__footer {
+  clear: both;
   text-align: center;
-  margin-top: 15px;
+  margin: 20px 10px 10px 10px;
 
   a {
     color: white;
   }
-}
 
-.registration .errorlist {
-  /* Rename this class with BEM */
-  margin-bottom: 12px;
-  font-size: 14px;
-  text-align: center;
+  .registration__legal a {
+    margin: 0px 8px;
+  }
 }
 
 .error-message {
   font-size: 14px;
-  color: red;
+  color: $cool-red;
   background-color: rgba(255, 0, 0, 0.075);
 }
 
 .registration__credit {
   position: absolute;
-  bottom: 0px;
-  right: 0px;
+  bottom: 5px;
+  right: 5px;
   font-size: 11px;
 
   a {
+    opacity: 0.8;
     color: white;
   }
 }
 
-@media screen and (min-width: 780px) {
+.registration__message {
+  font-size: 16px;
+  text-align: center;
+}
+
+@media screen and (min-width: 768px) {
   .registration__bg {
     form.registration {
-      margin-top: 30px;
-      padding: 50px;
-      padding-top: 40px;
+      padding: 30px 40px;
+      margin-top: 10px;
     }
 
-    // two-column
+    form.registration--login {
+      margin-top: 40px;
+    }
+
+    form.registration--register,
+    form.registration--complete,
+    form.language-switcher {
+      width: 80%;
+      max-width: 860px;
+    }
+
     form.registration--register {
-      min-width: 780px;
+      padding: 30px;
+
+      .registration--logo {
+        width: 48%;
+        float: right;
+
+        > * {
+          padding-left: 60px;
+        }
+      }
     }
 
     .registration__first-half {
-      width: 45%;
+      width: 52%;
       float: left;
     }
 
     .registration__second-half {
-      width: 55%;
-      float: left;
+      width: 48%;
+      float: right;
 
       > * {
-        padding-left: 50px;
+        padding-left: 60px;
       }
 
       p {
-        font-size: 13px;
-        text-align: justify;
+        font-size: 15px;
+        line-height: 1.3em;
       }
     }
 
     .registration--logo img {
-      width: 225px;
-      height: 51px;
+      max-height: 100px;
     }
   }
 
   .registration .registration__kc-domain {
     font-size: 14px;
     letter-spacing: 0em;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .registration__bg {
+    form.registration--register {
+      display: flex;
+      flex-direction: column;
+
+      h1 {
+        text-align: center;
+        margin-top: 0.5em;
+      }
+
+      .registration--logo {
+        display: block;
+        text-align: center;
+        order: 1;
+      }
+
+      .registration__first-half {
+        order: 3;
+      }
+
+      .registration__second-half {
+        order: 2;
+      }
+    }
   }
 }

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from hub.models import ExtraUserDetail
 
-class AssetsTestCase(TestCase):
+class UserDetailTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):

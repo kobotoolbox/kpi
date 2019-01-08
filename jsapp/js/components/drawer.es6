@@ -4,7 +4,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
-import Dropzone from 'react-dropzone';
 import Select from 'react-select';
 
 import {dataInterface} from '../dataInterface';
@@ -17,11 +16,12 @@ import mixins from '../mixins';
 
 import LibrarySidebar from '../components/librarySidebar';
 
+import {MODAL_TYPES} from '../constants';
+
 import {
   t,
   assign,
   anonUsername,
-  supportUrl,
   validFileTypes
 } from '../utils';
 
@@ -59,13 +59,13 @@ class FormSidebar extends Reflux.Component {
   newFormModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'new-form'
+      type: MODAL_TYPES.NEW_FORM
     });
   }
   render () {
     return (
       <bem.FormSidebar__wrapper>
-        <button onClick={this.newFormModal} className="mdl-button mdl-button--raised mdl-button--colored">
+        <button onClick={this.newFormModal} className='mdl-button mdl-button--raised mdl-button--colored'>
           {t('new')}
         </button>
         <SidebarFormsList/>
@@ -99,8 +99,8 @@ class DrawerLink extends React.Component {
     }
   }
   render () {
-    var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
-    var icon = (<i className={icon_class}></i>);
+    var icon_class = (this.props['ki-icon'] == undefined ? 'fa fa-globe' : `k-icon-${this.props['ki-icon']}`);
+    var icon = (<i className={icon_class}/>);
     var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;
@@ -134,24 +134,19 @@ class Drawer extends Reflux.Component {
     this.state = assign(stores.session, stores.pageState);
     this.stores = [
       stores.session,
-      stores.pageState
+      stores.pageState,
+      stores.serverEnvironment,
     ];
-  }
-  toggleFixedDrawer() {
-    stores.pageState.toggleFixedDrawer();
   }
   render () {
     return (
       <bem.Drawer className='k-drawer'>
         <nav className='k-drawer__icons'>
-          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' class='projects'/>
-          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' class='library' />
+          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' />
+          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' />
         </nav>
 
-        <div className="drawer__sidebar">
-          <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
-            <i className="k-icon-close"></i>
-          </button>
+        <div className='drawer__sidebar'>
           { this.isLibrary()
             ? <LibrarySidebar />
             : <FormSidebar />
@@ -162,17 +157,24 @@ class Drawer extends Reflux.Component {
           { stores.session.currentAccount &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
-              target="_blank"
-              data-tip={t('Projects (legacy)')}>
-              <i className="k-icon k-icon-globe" />
+              target='_blank'
+              data-tip={t('Projects (legacy)')}
+            >
+              <i className='k-icon k-icon-globe' />
             </a>
           }
-          <a href='https://github.com/kobotoolbox/' className='k-drawer__link' target="_blank" data-tip={t('source')}>
-            <i className="k-icon k-icon-github" />
-          </a>
-          { stores.session.currentAccount &&
-            <a href={supportUrl()} className='k-drawer__link' target="_blank" data-tip={t('help')}>
-              <i className="k-icon k-icon-help" />
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.source_code_url &&
+            <a href={stores.serverEnvironment.state.source_code_url}
+              className='k-drawer__link' target='_blank' data-tip={t('source')}>
+              <i className='k-icon k-icon-github' />
+            </a>
+          }
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <a href={stores.serverEnvironment.state.support_url}
+              className='k-drawer__link' target='_blank' data-tip={t('help')}>
+              <i className='k-icon k-icon-help' />
             </a>
           }
         </div>

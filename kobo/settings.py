@@ -7,12 +7,15 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
+from __future__ import absolute_import
 
 from datetime import timedelta
 import multiprocessing
 import os
 import subprocess
 
+from celery.schedules import crontab
+import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
@@ -20,7 +23,7 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from static_lists import NATIVE_LANGUAGE_NAMES
+from .static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -41,6 +44,11 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscs
 if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
+
+# Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
+# It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
+if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
+    USE_X_FORWARDED_HOST = True
 
 UPCOMING_DOWNTIME = False
 
@@ -90,7 +98,8 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'constance',
     'constance.backends.database',
-    'guardian', # For access to KC permissions ONLY
+    'kobo.apps.hook',
+    'django_celery_beat',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -107,14 +116,40 @@ MIDDLEWARE_CLASSES = (
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
+if os.environ.get('DEFAULT_FROM_EMAIL'):
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 # Configuration options that superusers can modify in the Django admin
 # interface. Please note that it's not as simple as moving a setting into the
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
 CONSTANCE_CONFIG = {
-    'REGISTRATION_OPEN': (True, 'Whether or not to allow registration of new '
-                                'accounts'),
+    'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
+                                'themselves'),
+    'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
+                            'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
+                          'URL for privacy policy'),
+    'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
+                        'URL of source code repository. When empty, a link '
+                        'will not be shown in the user interface'),
+    'SUPPORT_URL': (os.environ.get('KOBO_SUPPORT_URL',
+                                   'http://help.kobotoolbox.org/'),
+                    'URL of user support portal. When empty, a link will not '
+                    'be shown in the user interface'),
+    'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
+                        os.environ.get('DEFAULT_FROM_EMAIL',
+                                       'help@kobotoolbox.org'),
+                      'Email address for users to contact, e.g. when they '
+                      'encounter unhandled errors in the application'),
+    'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
+                                       'Allow the use of unsecured endpoints for hooks. '
+                                       '(e.g http://hook.example.com)'),
+    'HOOK_MAX_RETRIES': (3,
+                         'Number of times the system will retry '
+                         'to send data to remote server before giving up')
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -171,20 +206,10 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-def get_native_language_name(lang_code):
-    try:
-        return get_language_info(lang_code)['name_local']
-    except KeyError:
-        pass
-    try:
-        return NATIVE_LANGUAGE_NAMES[lang_code]
-    except KeyError:
-        raise KeyError(u'Please add an entry for {} to '
-                       u'kobo.static_lists.NATIVE_LANGUAGE_NAMES and try '
-                       u'again.'.format(lang_code))
+django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 LANGUAGES = [
-    (lang_code, get_native_language_name(lang_code))
+    (lang_code, get_language_info(lang_code)['name_local'])
         for lang_code in os.environ.get(
             'DJANGO_LANGUAGE_CODES', 'en').split(' ')
 ]
@@ -257,6 +282,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_RENDERER_CLASSES': [
+       'rest_framework.renderers.JSONRenderer',
+       'rest_framework.renderers.BrowsableAPIRenderer',
+       'kpi.renderers.XMLRenderer',
+    ]
 }
 
 TEMPLATES = [
@@ -276,10 +306,10 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
-                'constance.context_processors.config',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
+                'kpi.context_processors.config',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
         },
@@ -340,6 +370,8 @@ HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
+ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
+
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
 # The number of hours to keep a kobo survey preview (generated for enketo)
@@ -351,29 +383,37 @@ ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 
 ''' Celery configuration '''
+# Celery 4.0 New lowercase settings.
+# Uppercase settings can be used when using a PREFIX
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
+# http://docs.celeryproject.org/en/4.0/whatsnew-4.0.html#step-2-update-your-configuration-with-the-new-setting-names
+
+CELERY_TIMEZONE = "UTC"
 
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
-    CELERY_ALWAYS_EAGER = True
+    CELERY_TASK_ALWAYS_EAGER = True
 
 # Celery defaults to having as many workers as there are cores. To avoid
 # excessive resource consumption, don't spawn more than 6 workers by default
 # even if there more than 6 cores.
+
 CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
 if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
-    CELERYD_CONCURRENCY = CELERYD_MAX_CONCURRENCY
+    CELERY_WORKER_CONCURRENCY = CELERYD_MAX_CONCURRENCY
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
-CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
+CELERY_WORKER_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Default to a 30-minute soft time limit and a 35-minute hard time limit
-CELERYD_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
-CELERYD_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
+CELERY_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
+
+CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
     'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
 
-CELERYBEAT_SCHEDULE = {
+CELERY_BEAT_SCHEDULE = {
     # Failsafe search indexing: update the Haystack index twice per day to
     # catch any stragglers that might have gotten past
     # haystack.signals.RealtimeSignalProcessor
@@ -381,6 +421,11 @@ CELERYBEAT_SCHEDULE = {
     #    'task': 'kpi.tasks.update_search_index',
     #    'schedule': timedelta(hours=12)
     #},
+    # Schedule every day at midnight UTC. Can be customized in admin section
+    "send-hooks-failures-reports": {
+        "task": "kobo.apps.hook.tasks.failures_reports",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 
 if 'KOBOCAT_URL' in os.environ:
@@ -391,7 +436,7 @@ if 'KOBOCAT_URL' in os.environ:
         # Create/update KPI assets to match KC forms
         SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
             os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
-        CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
+        CELERY_BEAT_SCHEDULE['sync-kobocat-xforms'] = {
             'task': 'kpi.tasks.sync_kobocat_xforms',
             'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
             'options': {'queue': 'sync_kobocat_xforms_queue',
@@ -406,7 +451,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
+CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
@@ -444,13 +489,6 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-if os.environ.get('DEFAULT_FROM_EMAIL'):
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
-    SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://help.kobotoolbox.org/')
-KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL') or os.environ.get('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')
-
 if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -467,6 +505,42 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
+
+
+# Need a default logger when sentry is not activated
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s' +
+                      ' %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'console_logger': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True
+        },
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': True
+        },
+    }
+}
 
 ''' Sentry configuration '''
 if os.environ.get('RAVEN_DSN', False):
@@ -533,6 +607,11 @@ if os.environ.get('RAVEN_DSN', False):
                 'level': 'DEBUG',
                 'handlers': ['console'],
                 'propagate': False,
+            },
+            'console_logger': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': True
             },
         },
     }

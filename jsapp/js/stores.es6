@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 import alertify from 'alertifyjs';
 
 import dkobo_xlform from '../xlform/src/_xlform.init';
@@ -10,8 +10,9 @@ import {
   t,
   notify,
   assign,
-  setSupportDetails,
 } from './utils';
+
+const cookies = new Cookies();
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -29,67 +30,6 @@ function changes(orig_obj, new_obj) {
 }
 
 var stores = {};
-
-var assetLibraryStore = Reflux.createStore({
-  init () {
-    this.results = [];
-    this.listenTo(actions.search.libraryDefaultQuery.completed, this.libraryDefaultDone);
-  },
-  libraryDefaultDone (res) {
-    this.results = res;
-    this.trigger(res);
-  }
-});
-
-
-var historyStore = Reflux.createStore({
-  __historyKey: 'user.history',
-  init () {
-    if (this.__historyKey in localStorage) {
-      try {
-        this.history = JSON.parse(localStorage.getItem(this.__historyKey));
-      } catch (e) {
-        console.error('could not load history from localStorage', e);
-      }
-    }
-    if (!this.history) {
-      this.history = [];
-    }
-    this.listenTo(actions.navigation.historyPush, this.historyPush);
-    this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-    this.listenTo(actions.auth.logout.completed, this.historyClear);
-    this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-  },
-  historyClear () {
-    localStorage.removeItem(this.__historyKey);
-  },
-  onDeleteAssetCompleted (deleted) {
-    var oneDeleted = false;
-    this.history = this.history.filter(function(asset){
-      var match = asset.uid === deleted.uid;
-      if (match) {
-        oneDeleted = true;
-      }
-      return !match;
-    });
-    if (oneDeleted) {
-      this.trigger(this.history);
-    }
-  },
-  historyPush (item) {
-    this.history = [
-      item, ...this.history.filter(function(xi){ return item.uid !== xi.uid; })
-    ];
-    localStorage.setItem(this.__historyKey, JSON.stringify(this.history));
-    this.trigger(this.history);
-  },
-  routeUpdate (routes) {
-    const routeName = routes.names[routes.names.length - 1] || routes.names[routes.names.length - 2];
-    if (this.currentRoute)
-      this.previousRoute = this.currentRoute;
-    this.currentRoute = routeName;
-  }
-});
 
 var tagsStore = Reflux.createStore({
   init () {
@@ -119,7 +59,7 @@ var surveyStateStore = Reflux.createStore({
 var assetSearchStore = Reflux.createStore({
   init () {
     this.queries = {};
-    this.listenTo(actions.search.assets.completed, this.onAssetSearch);
+    this.listenTo(actions.search.assets.completed, this.onSearchAssetsCompleted);
   },
   getRecentSearch (queryString) {
     if (queryString in this.queries) {
@@ -130,29 +70,40 @@ var assetSearchStore = Reflux.createStore({
     }
     return false;
   },
-  onAssetSearch (queryString, results) {
-    results.query = queryString;
-    this.queries[queryString] = [results, new Date()];
-    if(results.count > 0) {
-      this.trigger(results);
+  onSearchAssetsCompleted (searchData, response) {
+    response.query = searchData.q;
+    this.queries[searchData.q] = [response, new Date()];
+    if(response.count > 0) {
+      this.trigger(response);
     }
   }
 });
 
+const translationsStore = Reflux.createStore({
+  init() {
+    this.state = {
+      isTranslationTableUnsaved: false
+    }
+  },
+  setState (change) {
+    const changed = changes(this.state, change);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
+  setTranslationTableUnsaved (isUnsaved) {
+    this.setState({
+      isTranslationTableUnsaved: isUnsaved
+    });
+  },
+});
+
 var pageStateStore = Reflux.createStore({
   init () {
-    var navIsOpen = cookie.load('assetNavIntentOpen');
-    if (navIsOpen === undefined) {
-      // default assetNav value.
-      navIsOpen = false;
-    }
     this.state = {
-      assetNavIsOpen: navIsOpen,
-      assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
-      showFixedDrawer: false,
-      headerHidden: false,
-      drawerHidden: false
+      showFixedDrawer: false
     };
   },
   setState (chz) {
@@ -169,21 +120,6 @@ var pageStateStore = Reflux.createStore({
     assign(this.state, _changes);
     this.trigger(_changes);
   },
-  toggleAssetNavIntentOpen () {
-    var newIntent = !this.state.assetNavIntentOpen,
-        isOpen = this.state.assetNavIsOpen,
-        _changes = {
-          assetNavIntentOpen: newIntent
-        };
-    cookie.save('assetNavIntentOpen', newIntent);
-
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      _changes.assetNavIsOpen = !isOpen;
-    }
-    assign(this.state, _changes);
-    this.trigger(_changes);
-  },
   showModal (params) {
     this.setState({
       modal: params
@@ -197,16 +133,14 @@ var pageStateStore = Reflux.createStore({
       modal: false
     });
   },
-  hideDrawerAndHeader (tf) {
-    var val = !!tf;
-    if (val !== this.state.drawerHidden) {
-      var _changes = {
-        drawerHidden: val,
-        headerHidden: val
-      };
-      assign(this.state, _changes);
-      this.trigger(this.state);
-    }
+  // use it when you have one modal opened and want to display different one
+  // because just calling showModal has weird outcome
+  switchModal (params) {
+    this.hideModal();
+    // HACK switch to setState callback after updating to React 16+
+    window.setTimeout(() => {
+      this.showModal(params);
+    }, 0);
   }
 });
 
@@ -265,13 +199,7 @@ var assetStore = Reflux.createStore({
 
 var sessionStore = Reflux.createStore({
   init () {
-    this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.login.passwordfail, ()=> {
-
-    });
-    this.listenTo(actions.auth.login.failed, () => {
-
-    });
+    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
       log('login confirmed anonymous', data.message);
@@ -280,9 +208,8 @@ var sessionStore = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
-    // dataInterface.selfProfile().then(function success(acct){
-    //   actions.auth.login.completed(acct);
-    // });
+    actions.auth.getEnvironment();
+
   },
   getInitialState () {
     return {
@@ -291,6 +218,9 @@ var sessionStore = Reflux.createStore({
     };
   },
   triggerAnonymous (/*data*/) {},
+  triggerEnv (environment) {
+    this.environment = environment;
+  },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
     if (acct.upcoming_downtime) {
@@ -314,9 +244,6 @@ var sessionStore = Reflux.createStore({
         localStorage.removeItem('downtimeNoticeSeen');
       }
     }
-    if (acct.support) {
-      setSupportDetails(acct.support)
-    }
     var nestedArrToChoiceObjs = function (_s) {
       return {
         value: _s[0],
@@ -336,28 +263,6 @@ var sessionStore = Reflux.createStore({
     }
     if (acct.all_languages) {
       acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
-    }
-    if (acct.dkobo_survey_drafts && acct.dkobo_survey_drafts.non_migrated) {
-      let wait_message = t(
-        `It may take several minutes for all of your survey drafts to finish
-        migrating from the legacy form builder. Refresh the page to view
-        newly-migrated drafts.`
-      );
-      let stuck_message = t(
-        `If this message persists longer than a few hours, click here to
-        restart the migration process.`
-      );
-      let notify_content = `${wait_message}<br/>
-        <a href="${acct.dkobo_survey_drafts.migrate_url}">${stuck_message}</a>
-        <small>
-        (${acct.dkobo_survey_drafts.non_migrated}/${acct.dkobo_survey_drafts.total})
-        </small>
-      `;
-      alertify.notify(
-        notify_content,
-        'warning',
-        0 // Persist until the user clicks the close button
-      );
     }
 
     this.trigger({
@@ -396,7 +301,7 @@ var surveyCompanionStore = Reflux.createStore({
   },
   addItemAtPosition ({position, survey, uid}) {
     stores.allAssets.whenLoaded(uid, function(asset){
-      var _s = dkobo_xlform.model.Survey.loadDict(asset.content)
+      var _s = dkobo_xlform.model.Survey.loadDict(asset.content, survey)
       survey.insertSurvey(_s, position);
     });
   }
@@ -408,11 +313,13 @@ var allAssetsStore = Reflux.createStore({
     this.data = [];
     this.byUid = {};
     this._waitingOn = {};
-    this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
-    this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
+
+    this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
+    this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
+    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-    this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
-    this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
+    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
     if (this.byUid[uid] && this.byUid[uid].content) {
@@ -425,17 +332,22 @@ var allAssetsStore = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
-  loadAssetCompleted (asset) {
+  onUpdateAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
+    this.data.forEach((dataAsset, index) => {
+      if (dataAsset.uid === asset.uid) {
+        this.data[index] = asset;
+      }
+    });
+  },
+  onLoadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
-  onCreateAssetCompleted (asset) {
+  onCloneAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
     this.byUid[asset.uid] = asset;
     this.data.unshift(asset);
     this.trigger(this.data);
-  },
-  onListAssetsFailed: function (/*err*/) {
-    notify(t('failed to list assets'));
   },
   onDeleteAssetCompleted (asset) {
     this.byUid[asset.uid].deleted = 'true';
@@ -448,9 +360,8 @@ var allAssetsStore = Reflux.createStore({
     }, 500);
   },
   registerAssetOrCollection (asset) {
-    asset.tags = asset.tag_string.split(',').filter((tg) => {
-      return tg.length > 1;
-    });
+    const parsedObj = assetParserUtils.parseTags(asset);
+    asset.tags = parsedObj.tags;
     this.byUid[asset.uid] = asset;
     if (asset.content) {
       this.callCallbacks(asset);
@@ -464,31 +375,22 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
-  byKind (kind) {
-    var kinds = [].concat(kind);
-    return this.data.filter(function(asset){
-      return kinds.indexOf(asset.kind) !== -1;
-    });
-  },
-  byAssetType (asset_type) {
-    var asset_types = [].concat(asset_type);
-    return this.data.filter(function(asset){
-      return asset_types.indexOf(asset.asset_type) !== -1;
-    });
-  },
-  onListAssetsCompleted: function(resp/*, req, jqxhr*/) {
-    resp.results.forEach(this.registerAssetOrCollection);
-    this.data = resp.results;
+  onListAssetsCompleted: function(searchData, response) {
+    response.results.forEach(this.registerAssetOrCollection);
+    this.data = response.results;
     this.trigger(this.data);
+  },
+  onListAssetsFailed: function (/*searchData, response*/) {
+    notify(t('failed to list assets'));
   }
 });
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = cookie.load('selectedAssetUid');
-    this.listenTo(actions.resources.createAsset.completed, this.onAssetCreated);
+    this.uid = cookies.get('selectedAssetUid');
+    this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
-  onAssetCreated (asset) {
+  onCloneAssetCompleted (asset) {
     this.uid = asset.uid;
     this.asset = allAssetsStore.byUid[asset.uid];
     if (!this.asset) {
@@ -504,27 +406,11 @@ var selectedAssetStore = Reflux.createStore({
       this.uid = false;
       this.asset = {};
     }
-    cookie.save('selectedAssetUid', this.uid);
+    cookies.set('selectedAssetUid', this.uid);
     this.trigger({
       selectedAssetUid: this.uid,
     });
     return this.uid !== false;
-  }
-});
-
-var collectionAssetsStore = Reflux.createStore({
-  init () {
-    this.collections = {};
-    this.listenTo(actions.resources.readCollection.completed, this.readCollectionCompleted);
-  },
-  readCollectionCompleted (data) {
-    var children = data.children && data.children.results;
-
-    children.forEach((childAsset)=> {
-      stores.allAssets.registerAssetOrCollection(childAsset);
-    });
-    this.collections[data.uid] = data;
-    this.trigger(data, data.uid);
   }
 });
 
@@ -586,6 +472,24 @@ stores.collections = Reflux.createStore({
   }
 });
 
+var serverEnvironmentStore = Reflux.createStore({
+  init() {
+    this.state = {};
+    this.listenTo(actions.misc.getServerEnvironment.completed,
+                  this.updateEnvironment);
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+  updateEnvironment(response) {
+    this.setState(response);
+  },
+});
+
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -594,7 +498,7 @@ if (window.Intercom) {
       this.listenTo(actions.auth.logout.completed, this.loggedOut);
     },
     routeUpdate (routes) {
-      window.Intercom("update");
+      window.Intercom('update');
     },
     loggedIn (acct) {
       let name = acct.extra_details.name;
@@ -609,7 +513,7 @@ if (window.Intercom) {
           (new Date(acct.date_joined)).getTime() / 1000),
         'app_id': window.IntercomAppId
       }
-      window.Intercom("boot", userData);
+      window.Intercom('boot', userData);
     },
     loggedOut () {
       window.Intercom('shutdown');
@@ -618,19 +522,18 @@ if (window.Intercom) {
 }
 
 assign(stores, {
-  history: historyStore,
   tags: tagsStore,
   pageState: pageStateStore,
+  translations: translationsStore,
   assetSearch: assetSearchStore,
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,
   asset: assetStore,
-  assetLibrary: assetLibraryStore,
-  collectionAssets: collectionAssetsStore,
   allAssets: allAssetsStore,
   session: sessionStore,
   userExists: userExistsStore,
   surveyState: surveyStateStore,
+  serverEnvironment: serverEnvironmentStore,
 });
 
 module.exports = stores;

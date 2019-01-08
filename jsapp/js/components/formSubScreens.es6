@@ -4,8 +4,8 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
-import {dataInterface} from '../dataInterface';
 
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -13,15 +13,16 @@ import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
-import SharingForm from '../components/sharingForm';
+import SharingForm from '../components/modalForms/sharingForm';
+import ProjectSettings from '../components/modalForms/projectSettings';
 import DataTable from '../components/table';
 
-import {
-  ProjectSettingsEditor,
-  ProjectDownloads
-} from '../components/formEditors';
+import {ProjectDownloads} from '../components/formEditors';
+
+import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 
 import FormMap from '../components/map';
+import RESTServices from '../components/RESTServices';
 
 import {
   assign,
@@ -87,9 +88,6 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
           break;
-        // case `/forms/${this.state.uid}/settings/kobocat`:
-        //   iframeUrl = deployment__identifier+'/form_settings';
-        //   break;
         case `/forms/${this.state.uid}/data/downloads`:
           return this.renderProjectDownloads();
           break;
@@ -97,6 +95,21 @@ export class FormSubScreens extends React.Component {
           if (deployment__identifier != '')
             iframeUrl = deployment__identifier+'/form_settings';
           return this.renderSettingsEditor(iframeUrl);
+          break;
+        case `/forms/${this.state.uid}/settings/media`:
+          iframeUrl = deployment__identifier+'/form_settings';
+          break;
+        case `/forms/${this.state.uid}/settings/sharing`:
+          return this.renderSharing();
+          break;
+        case `/forms/${this.state.uid}/settings/rest`:
+          return <RESTServices asset={this.state} />;
+          break;
+        case `/forms/${this.state.uid}/settings/rest/${this.props.params.hookUid}`:
+          return <RESTServices asset={this.state} hookUid={this.props.params.hookUid}/>;
+          break;
+        case `/forms/${this.state.uid}/settings/kobocat`:
+          iframeUrl = deployment__identifier+'/form_settings';
           break;
         case `/forms/${this.state.uid}/reset`:
           return this.renderReset();
@@ -121,7 +134,11 @@ export class FormSubScreens extends React.Component {
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m='form-settings'>
-            <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+            <ProjectSettings
+              context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
+              formAsset={this.state}
+              iframeUrl={iframeUrl}
+            />
           </bem.FormView>
         </DocumentTitle>
     );
@@ -132,6 +149,13 @@ export class FormSubScreens extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ProjectDownloads asset={this.state} />
       </DocumentTitle>
+    );
+  }
+  renderSharing() {
+    return (
+      <bem.FormView m='form-settings-sharing'>
+        <SharingForm uid={this.props.params.assetid} />
+      </bem.FormView>
     );
   }
   renderReset() {

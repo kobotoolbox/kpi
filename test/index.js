@@ -1,5 +1,7 @@
+var chai = require('chai');
+var expect = chai.expect;
+
 window.jQuery = window.$ = require('jquery');
-require('jquery.scrollto');
 require('jquery-ui/ui/widgets/sortable');
 
 require('./xlform/aliases.tests')
@@ -13,3 +15,5 @@ require('./xlform/translations.tests')
 require('./xlform/model.tests')
 require('./xlform/survey.tests')
 require('./xlform/utils.tests')
+
+require('../jsapp/js/utils.tests')

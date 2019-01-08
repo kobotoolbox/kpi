@@ -76,10 +76,15 @@ module.exports = do ->
       @_parent.at(ii+1)
     getSurvey: ->
       parent = @_parent
-      if parent == null
+      if parent is null or parent is undefined
         return null
-      while parent._parent
-        parent = parent._parent
+      while parent._parent or parent.collection
+        if parent._parent
+          parent = parent._parent
+        else if parent.collection and parent.collection._parent
+          parent = parent.collection._parent
+        else
+          break
       parent
 
   _innerValue = (val)->
@@ -156,9 +161,9 @@ module.exports = do ->
       #     @_parent.trigger "change", @key, val, ctxt
 
       # when attributes change, register changes with parent survey
-      if @key in ["name", "label", "hint", "required",
+      if @key in ["name", "label", "hint", "guidance_hint", "required",
                   "calculation", "default", "appearance",
-                  "constraint_message", "tags"]
+                  "constraint_message", "tags"] or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
 

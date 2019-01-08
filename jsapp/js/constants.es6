@@ -1,6 +1,30 @@
-import {
-  t,
-} from './utils';
+import {t} from './utils';
+
+const HOOK_LOG_STATUSES = {
+  SUCCESS: 2,
+  PENDING: 1,
+  FAILED: 0
+}
+
+const MODAL_TYPES = {
+  SHARING: 'sharing',
+  UPLOADING_XLS: 'uploading-xls',
+  NEW_FORM: 'new-form',
+  ENKETO_PREVIEW: 'enketo-preview',
+  SUBMISSION: 'submission',
+  REPLACE_PROJECT: 'replace-project',
+  TABLE_COLUMNS: 'table-columns',
+  REST_SERVICES: 'rest-services',
+  FORM_LANGUAGES: 'form-languages',
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
+}
+
+const PROJECT_SETTINGS_CONTEXTS = {
+  NEW: 'newForm',
+  EXISTING: 'existingForm',
+  REPLACE: 'replaceProject',
+  BUILDER: 'formBuilderAside'
+};
 
 const update_states = {
   UNSAVED_CHANGES: -1,
@@ -33,8 +57,31 @@ const VALIDATION_STATUSES = [
   },
 ];
 
+const ASSET_TYPES = {
+  question: {
+    id: 'question',
+    label: t('question')
+  },
+  block: {
+    id: 'block',
+    label: t('block')
+  },
+  template: {
+    id: 'template',
+    label: t('template')
+  },
+  survey: {
+    id: 'survey',
+    label: t('project')
+  }
+}
+
 export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
-  VALIDATION_STATUSES: VALIDATION_STATUSES
+  VALIDATION_STATUSES: VALIDATION_STATUSES,
+  PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
+  MODAL_TYPES: MODAL_TYPES,
+  ASSET_TYPES: ASSET_TYPES,
+  HOOK_LOG_STATUSES: HOOK_LOG_STATUSES
 };

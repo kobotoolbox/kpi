@@ -9,6 +9,7 @@ from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
     AssetSnapshotViewSet,
+    AssetFileViewSet,
     SubmissionViewSet,
     UserViewSet,
     CurrentUserViewSet,
@@ -22,6 +23,7 @@ from kpi.views import (
     OneTimeAuthenticationKeyViewSet,
     UserCollectionSubscriptionViewSet,
     TokenView,
+    EnvironmentView,
 )
 
 from kpi.views import home, one_time_login, browser_tests
@@ -30,9 +32,15 @@ from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
+from hub.models import ConfigurationFile
+from kobo.apps.hook.views import HookViewSet, HookLogViewSet
+
+# TODO: Give other apps their own `urls.py` files instead of importing their
+# views directly! See
+# https://docs.djangoproject.com/en/1.8/intro/tutorial03/#namespacing-url-names
 
 router = ExtendedDefaultRouter()
-asset_routes = router.register(r'assets', AssetViewSet)
+asset_routes = router.register(r'assets', AssetViewSet, base_name='asset')
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       base_name='asset-version',
@@ -43,7 +51,23 @@ asset_routes.register(r'submissions',
                       base_name='submission',
                       parents_query_lookups=['asset'],
                       )
+asset_routes.register(r'files',
+                      AssetFileViewSet,
+                      base_name='asset-file',
+                      parents_query_lookups=['asset'],
+                      )
 
+hook_routes = asset_routes.register(r'hooks',
+                      HookViewSet,
+                      base_name='hook',
+                      parents_query_lookups=['asset'],
+                      )
+
+hook_routes.register(r'logs',
+                     HookLogViewSet,
+                     base_name='hook-log',
+                     parents_query_lookups=['asset', 'hook'],
+                     )
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
@@ -90,10 +114,14 @@ urlpatterns = [
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
     url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
+    url(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
+    url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
+    url(r'^configurationfile/(?P<slug>[^/]+)/?',
+        ConfigurationFile.redirect_view, name='configurationfile'),
     url(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     url(r'^superuser_stats/user_report/$',

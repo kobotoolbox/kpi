@@ -3,15 +3,14 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
-import Select from 'react-select';
 import alertify from 'alertifyjs';
 import ui from '../ui';
-
 import stores from '../stores';
 import Reflux from 'reflux';
 import bem from '../bem';
 import actions from '../actions';
 import mixins from '../mixins';
+import {dataInterface} from '../dataInterface';
 import {
   t,
   assign,
@@ -20,46 +19,28 @@ import {
   stringToColor,
 } from '../utils';
 import searches from '../searches';
-import cookie from 'react-cookie';
+import {ListSearch} from '../components/list';
 
-import {
-  ListSearch,
-  ListTagFilter,
-} from '../components/list';
-
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
-var cookieDomain = stores.pageState.cookieDomain;
 let typingTimer;
-
-function langsToValues (langs) {
-  return langs.map(function(lang) {
-    return {
-      value: lang[0],
-      label: lang[1],
-    };
-  });
-}
 
 class MainHeader extends Reflux.Component {
   constructor(props){
     super(props);
     this.state = assign({
-      dataPopoverShowing: false,
       asset: false,
       currentLang: currentLang(),
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
         },
-        filterTags: 'asset_type:question OR asset_type:block',
+        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
       }),
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
           assetType: 'asset_type:survey',
         },
         filterTags: 'asset_type:survey',
-      }),
-      _langIndex: 0
+      })
     }, stores.pageState.state);
     this.stores = [
       stores.session,
@@ -67,44 +48,18 @@ class MainHeader extends Reflux.Component {
     ];
     autoBind(this);
   }
-  getInitialState () {
-    this.listenTo(stores.session, ({currentAccount}) => {
-      this.setState({
-        languages: currentAccount.languages,
-      });
-    });
-
-    return assign({
-      dataPopoverShowing: false,
-      asset: false,
-      currentLang: currentLang(),
-      libraryFiltersContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
-        },
-        filterTags: 'asset_type:question OR asset_type:block',
-      }),
-      formFiltersContext: searches.getSearchContext('forms', {
-        filterParams: {
-          assetType: 'asset_type:survey',
-        },
-        filterTags: 'asset_type:survey',
-      }),
-      _langIndex: 0
-    }, stores.pageState.state);
-  }
   componentDidMount() {
     document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
   }
+  componentWillUpdate(newProps) {
+    if (this.props.assetid !== newProps.assetid) {
+      this.setState({asset: false});
+    }
+  }
   assetLoad(data) {
-    var assetid = this.props.assetid;
-    var asset = data[assetid];
-
-    this.setState(assign({
-        asset: asset
-      }
-    ));
+    const asset = data[this.props.assetid];
+    this.setState(assign({asset: asset}));
   }
   logout () {
     actions.auth.logout();
@@ -116,18 +71,17 @@ class MainHeader extends Reflux.Component {
     });
   }
   languageChange (evt) {
-    var langCode = $(evt.target).data('key');
+    evt.preventDefault();
+    let langCode = $(evt.target).data('key');
     if (langCode) {
-      var cookieParams = {path: '/'};
-      if (cookieDomain) {
-        cookieParams.domain = cookieDomain;
-      }
-      cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
-      if ('reload' in window.location) {
-        window.location.reload();
-      } else {
-        window.alert(t('Please refresh the page'));
-      }
+      // use .always (instead of .done) here since Django 1.8 redirects the request
+      dataInterface.setLanguage({language: langCode}).always((r)=>{
+        if ('reload' in window.location) {
+          window.location.reload();
+        } else {
+          window.alert(t('Please refresh the page'));
+        }
+      });
     }
   }
   renderLangItem(lang) {
@@ -165,27 +119,37 @@ class MainHeader extends Reflux.Component {
                     {accountMenuLabel}
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'mini-profile'}>
-                    <span className="account-username">{accountName}</span>
-                    <span className="account-email">{accountEmail}</span>
+                    <span className='account-username'>{accountName}</span>
+                    <span className='account-email'>{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
-                    <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
+                    <button onClick={this.accountSettings} className='mdl-button mdl-button--raised mdl-button--colored'>
                       {t('Account Settings')}
                     </button>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'lang'} key='2'>
+                {stores.session && stores.session.environment &&
+                  <bem.AccountBox__menuLI key='2' className='environment-links'>
+                    <a href={stores.session.environment.terms_of_service_url} target='_blank'>
+                      {t('Terms of Service')}
+                    </a>
+                    <a href={stores.session.environment.privacy_policy_url} target='_blank'>
+                      {t('Privacy Policy')}
+                    </a>
+                  </bem.AccountBox__menuLI>
+                }
+                <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink>
-                    <i className="k-icon-language" />
+                    <i className='k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
                   <ul>
                     {langs.map(this.renderLangItem)}
                   </ul>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'logout'} key='3'>
+                <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className="k-icon-logout" />
+                    <i className='k-icon-logout' />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
@@ -219,6 +183,23 @@ class MainHeader extends Reflux.Component {
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
+  updateAssetTitle() {
+    if (!this.state.asset.name.trim()) {
+      alertify.error(t('Please enter a title for your project'));
+      return false;
+    } else {
+      actions.resources.updateAsset(
+        this.state.asset.uid,
+        {
+          name: this.state.asset.name,
+          settings: JSON.stringify({
+            description: this.state.asset.settings.description
+          })
+        }
+      );
+      return true;
+    }
+  }
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
@@ -231,34 +212,35 @@ class MainHeader extends Reflux.Component {
     });
 
     clearTimeout(typingTimer);
-
-    typingTimer = setTimeout(() => {
-      if (!this.state.asset.name.trim()) {
-        alertify.error(t('Please enter a title for your project'));
-      } else {
-        actions.resources.updateAsset(
-          this.state.asset.uid,
-          {
-            name: this.state.asset.name,
-            settings: JSON.stringify({
-              description: this.state.asset.settings.description,
-            }),
-          }
-        );
+    typingTimer = setTimeout(this.updateAssetTitle.bind(this), 1500);
+  }
+  assetTitleKeyDown(evt) {
+    if (evt.key === 'Enter') {
+      clearTimeout(typingTimer);
+      if (this.updateAssetTitle()) {
+        evt.currentTarget.blur();
       }
-    }, 1500);
-
+    }
   }
   render () {
     var userCanEditAsset = false;
     if (this.state.asset)
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
 
+    const formTitleNameMods = [];
+    if (
+      this.state.asset &&
+      typeof this.state.asset.name === 'string' &&
+      this.state.asset.name.length > 125
+    ) {
+      formTitleNameMods.push('long');
+    }
+
     return (
-        <header className="mdl-layout__header">
-          <div className="mdl-layout__header-row">
-            <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
-              <i className="fa fa-bars"></i>
+        <header className='mdl-layout__header'>
+          <div className='mdl-layout__header-row'>
+            <button className='mdl-button mdl-button--icon' onClick={this.toggleFixedDrawer}>
+              <i className='fa fa-bars' />
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
@@ -266,29 +248,31 @@ class MainHeader extends Reflux.Component {
               </a>
             </span>
             { this.isFormList() &&
-              <div className="mdl-layout__header-searchers">
+              <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
             { this.isLibrary() &&
-              <div className="mdl-layout__header-searchers">
+              <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               </div>
             }
             { this.isFormSingle() && this.state.asset &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
-                  <i className="k-icon-deploy" />
+                  <i className='k-icon-deploy' />
                 :
-                  <i className="k-icon-drafts" />
+                  <i className='k-icon-drafts' />
                 }
-                <bem.FormTitle__name>
-                  <input type="text"
-                        name="title"
-                        placeholder={t('Project title')}
-                        value={this.state.asset.name ? this.state.asset.name : ''}
-                        onChange={this.assetTitleChange}
-                        disabled={!userCanEditAsset}
+                <bem.FormTitle__name m={formTitleNameMods}>
+                  <input
+                    type='text'
+                    name='title'
+                    placeholder={t('Project title')}
+                    value={this.state.asset.name ? this.state.asset.name : ''}
+                    onChange={this.assetTitleChange}
+                    onKeyDown={this.assetTitleKeyDown}
+                    disabled={!userCanEditAsset}
                   />
                 </bem.FormTitle__name>
                 { this.state.asset.has_deployment &&

@@ -43,9 +43,10 @@ module.exports = do ->
     constructor: (@model, @view, @current_question, @survey, @view_factory) ->
       @view.presenter = @
       if @survey
-        update_choice_list = (cid) =>
+        update_choice_list = (choicelist_cid) =>
           question = @model._get_question()
-          if question._isSelectQuestion() && question.getList().cid == cid
+
+          if question && question._isSelectQuestion() && question.getList().cid == choicelist_cid
 
             current_response_value = @model.get('response_value').get('cid')
 
@@ -402,8 +403,14 @@ module.exports = do ->
       @criterion_builder_button.render().attach_to $parent
       @handcode_button.render().attach_to $parent
 
-      @criterion_builder_button.bind_event 'click', () => @context.use_criterion_builder_helper()
-      @handcode_button.bind_event 'click', () => @context.use_hand_code_helper()
+      @criterion_builder_button.bind_event('click', () =>
+        @context.view_factory.survey.trigger('change')
+        @context.use_criterion_builder_helper()
+      )
+      @handcode_button.bind_event('click', () =>
+        @context.view_factory.survey.trigger('change')
+        @context.use_hand_code_helper()
+      )
 
     serialize: () ->
       return ''

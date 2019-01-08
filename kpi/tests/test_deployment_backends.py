@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import pytest
+
 from django.test import TestCase
 from kpi.models.asset import Asset
 from kpi.models.asset_version import AssetVersion
@@ -25,6 +27,27 @@ class CreateDeployment(TestCase):
         _uid = self.asset.uid
         self.asset.connect_deployment(backend='mock')
         self.assertEqual(self.asset._deployment_data['backend'], 'mock')
+
+
+@pytest.mark.django_db
+def test_initial_kuids():
+    initial_kuid = 'aaaa1111'
+    asset = Asset.objects.create(content={
+        'survey': [
+            {u'type': 'text',
+                u'name': 'q1',
+                u'label': 'Q1.',
+                u'$kuid': initial_kuid,
+             }
+            ]
+        })
+    assert asset.content['survey'][0]['$kuid'] == initial_kuid
+
+    asset.deploy(backend='mock', active=False)
+    asset.save()
+    assert '$kuid' in asset.content['survey'][0]
+    second_kuid = asset.content['survey'][0]['$kuid']
+    assert asset.content['survey'][0]['$kuid'] == initial_kuid
 
 
 class MockDeployment(TestCase):

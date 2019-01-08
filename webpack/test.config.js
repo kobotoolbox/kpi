@@ -1,15 +1,13 @@
-var path = require('path');
-var WebpackConfig = require('./webpack-config');
+const path = require('path');
+const webpack = require('webpack');
+const WebpackCommon = require('./webpack.common');
 
-module.exports = WebpackConfig({
-  hash: false,
-  debug: true,
-  entry: path.resolve(__dirname, '..', 'test', 'index'),
-  optimize: false,
-  saveStats: false,
-  hot: true,
-  failOnError: true,
-  outputDir: path.resolve(__dirname, '..', 'test', 'compiled'),
-  outputHash: false,
-  // devTool: 'eval'
+module.exports = WebpackCommon({
+  mode: 'development',
+  entry: path.resolve(__dirname, '../test/index.js'),
+  output: {
+    library: 'tests',
+    path: path.resolve(__dirname, '../test/compiled/'),
+    filename: 'app.js'
+  }
 });

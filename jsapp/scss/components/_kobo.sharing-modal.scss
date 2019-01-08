@@ -3,20 +3,11 @@ $s-gray-row-select-width: 200px;
 $s-gray-row-width: 560px;
 $s-gray-row-spacing: 10px;
 
-.form-view__cell--asset-name {
-  background: #F8F8F8;
-  margin: -30px -35px;
-  margin-bottom: 20px;
-  padding: 20px 30px;
-  font-size: 18px;
-  color: lighten($black, 40%);
-}
-
 .user-row {
   display: flex;
   min-height: 50px;
   max-height: 50px;
-  border-bottom: 1px solid #DDD;
+  border-bottom: 1px solid $cool-lightgray;
   margin-bottom: 5px;
   padding-bottom: 5px;
   padding-top: 5px;
@@ -63,35 +54,6 @@ $s-gray-row-spacing: 10px;
     color: #D08B8C;
     margin-right: -4px;
   }
-
-  .Select {
-    .Select-arrow-zone {
-      position: absolute;
-      right: 15px;
-      top: 2px;
-      padding-right: 0px;
-    }
-
-    .Select-clear-zone {
-      position: absolute;
-      right: 0px;
-      top: 4px;
-    }
-
-    .Select-control {
-      border: none !important;
-      border-radius: none;
-    }
-
-    .Select-placeholder {
-      padding-top: 4px;
-      padding-bottom: 4px;
-    }
-
-    .Select-value {
-      padding-right: 40px;
-    }
-  }
 }
 
 .sharing-form__user {
@@ -103,47 +65,32 @@ $s-gray-row-spacing: 10px;
 // -----------------------------------------------------------------------------
 
 .form-modal__item--gray-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
   position: relative;
   background: #F8F8F8;
   padding: 15px;
 
-  input[type="text"] {
-    @include box-shadow;
+  > *:not(:first-child) {
+    margin-left: $s-gray-row-spacing;
+  }
 
-    border-bottom: 0px;
-    display: inline-block;
+  .kobo-select {
+    min-width: $s-gray-row-select-width;
+    .kobo-select__control {
+      height: 40px;
+    }
+  }
+
+  > input[type="text"] {
+    flex: 1;
     padding: $s-gray-row-spacing;
-    vertical-align: middle;
+    height: 40px;
   }
 
   button {
     min-width: $s-gray-row-button-width;
-    vertical-align: middle;
-    text-transform: uppercase;
-    margin-top: 1px;
-  }
-
-  .Select {
-    display: inline-block;
-    vertical-align: middle;
-  }
-
-  .Select-control {
-    @include box-shadow;
-
-    padding: 4px $s-gray-row-spacing;
-    border-bottom: 0px;
-
-    .Select-input {
-      padding-left: 0px;
-      margin-left: -2px;
-    }
-
-    .Select-value,
-    .Select-placeholder {
-      line-height: 40px;
-      padding-left: $s-gray-row-spacing;
-    }
   }
 }
 
@@ -158,46 +105,17 @@ $s-gray-row-spacing: 10px;
 }
 
 // -----------------------------------------------------------------------------
-// Invite collaborators parts
-// -----------------------------------------------------------------------------
-
-.form-modal__item--invite-collaborators {
-  input[type="text"] {
-    width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-select-width + $s-gray-row-spacing * 2});
-    margin-right: $s-gray-row-spacing;
-  }
-
-  .Select {
-    width: $s-gray-row-select-width;
-    margin-right: $s-gray-row-spacing;
-  }
-}
-
-// -----------------------------------------------------------------------------
 // copy team permissions parts
 // -----------------------------------------------------------------------------
-
-.form-modal__item--copy-team-permissions {
-  .Select {
-    width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-spacing});
-    margin-right: $s-gray-row-spacing;
-
-    // HACK FIX: override menu position, because select is near the end
-    // of scrollable container area, see:
-    // https://github.com/JedWatson/react-select/issues/404
-    .Select-menu-outer {
-      @include box-shadow-reversed;
-
-      top: auto;
-      bottom: 100%;
-    }
-  }
-}
 
 .form-view__cell--copy-team-permissions {
   margin-top: 30px;
   border-top: 1px solid $divider-color;
   padding-top: 20px;
+
+  .form-modal__item--gray-row .kobo-select {
+    flex: 1;
+  }
 }
 
 .form-modal__item--copy-team-permissions-opener {

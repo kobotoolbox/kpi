@@ -22,6 +22,6 @@ _.extend(Backbone.Validation.validators, {
         if(viewUtils.Validator.__validators.unique(value, values)) {
             return;
         }
-        return "Question name isn't unique";
+        return 'Question name isn\'t unique';
     }
 });

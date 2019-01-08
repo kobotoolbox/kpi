@@ -6,6 +6,11 @@ import {Link, hashHistory} from 'react-router';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 
+import {
+  PROJECT_SETTINGS_CONTEXTS,
+  MODAL_TYPES,
+  ASSET_TYPES
+} from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
 import bem from './bem';
@@ -21,10 +26,13 @@ import {
   t,
   assign,
   notify,
-  stringToColor
+  stringToColor,
+  escapeHtml
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
+
+const IMPORT_CHECK_INTERVAL = 500;
 
 var mixins = {};
 
@@ -38,8 +46,8 @@ mixins.dmix = {
 
     let dialog = alertify.dialog('prompt');
     let opts = {
-      title: t('Clone form'),
-      message: t('Enter the name of the cloned form'),
+      title: `${t('Clone')} ${ASSET_TYPES.survey.label}`,
+      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -63,10 +71,38 @@ mixins.dmix = {
       }
     };
     dialog.set(opts).show();
-
   },
-  reDeployConfirm (asset, onComplete) {
-    let dialog = alertify.dialog('confirm');
+  cloneAsTemplate: function(evt) {
+    const sourceUid = evt.currentTarget.dataset.assetUid;
+    const sourceName = evt.currentTarget.dataset.assetName;
+    mixins.cloneAssetAsNewType.dialog({
+      sourceUid: sourceUid,
+      sourceName: sourceName,
+      targetType: ASSET_TYPES.template.id,
+      promptTitle: t('Create new template from this project'),
+      promptMessage: t('Enter the name of the new template.')
+    });
+  },
+  _deployAssetFirstTime (asset) {
+    let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
+    actions.resources.deployAsset(asset, false, {
+      onDone: () => {
+        notify(t('deployed form'));
+        actions.resources.loadAsset({id: asset.uid});
+        hashHistory.push(`/forms/${asset.uid}`);
+        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
+          deployment_alert.dismiss();
+        }
+      },
+      onFail: () => {
+        if (deployment_alert && typeof deployment_alert.dismiss === 'function') {
+          deployment_alert.dismiss();
+        }
+      }
+    });
+  },
+  _redeployAsset (asset) {
+    const dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Overwrite existing deployment'),
       message: t(
@@ -79,10 +115,18 @@ mixins.dmix = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
         ok_button.innerText = t('Deploying...');
-        actions.resources.deployAsset(asset, true, dialog, {
-          onComplete: () => {
+        actions.resources.deployAsset(asset, true, {
+          onDone: () => {
             notify(t('redeployed form'));
             actions.resources.loadAsset({id: asset.uid});
+            if (dialog && typeof dialog.destroy === 'function') {
+              dialog.destroy();
+            }
+          },
+          onFail: () => {
+            if (dialog && typeof dialog.destroy === 'function') {
+              dialog.destroy();
+            }
           }
         });
         // keep the dialog open
@@ -94,33 +138,33 @@ mixins.dmix = {
     };
     dialog.set(opts).show();
   },
-  deployAsset (asset, onComplete) {
+  deployAsset (asset) {
     if (!asset || asset.kind != 'asset') {
         if (this.state && this.state.kind == 'asset') {
           asset = this.state;
         } else {
-          console.error(
-            'Neither the arguments nor the state supplied an asset.');
+          console.error('Neither the arguments nor the state supplied an asset.');
           return;
         }
     }
     if (!asset.has_deployment) {
-      // There's no existing deployment for this asset
-      let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
-      actions.resources.deployAsset(asset, false, deployment_alert, {
-        onComplete: () => {
-          notify(t('deployed form'));
-          actions.resources.loadAsset({id: asset.uid});
-          hashHistory.push(`/forms/${asset.uid}`);
-        }
-      });
+      this._deployAssetFirstTime(asset);
     } else {
-      // We are about to overwrite(!) an existing deployment
-      this.reDeployConfirm(asset, onComplete);
+      this._redeployAsset(asset);
     }
   },
-  unarchiveAsset () {
-    mixins.clickAssets.click.asset.unarchive.call(this, this.state);
+  archiveAsset (uid, callback) {
+    mixins.clickAssets.click.asset.archive(uid, callback);
+  },
+  unarchiveAsset (uid=null, callback) {
+    if (uid === null) {
+      mixins.clickAssets.click.asset.unarchive(this.state, callback);
+    } else {
+      mixins.clickAssets.click.asset.unarchive(uid, callback);
+    }
+  },
+  deleteAsset (uid, callback) {
+    mixins.clickAssets.click.asset.delete(uid, callback);
   },
   toggleDeploymentHistory () {
     this.setState({
@@ -150,16 +194,26 @@ mixins.dmix = {
       );
   },
   dmixAssetStoreChange (data) {
-    var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
-      asset = data[uid];
+    const uid = this._getAssetUid();
+    const asset = data[uid];
     if (asset) {
       this.setState(assign({}, data[uid]));
+    }
+  },
+  _getAssetUid () {
+    if (this.props.params) {
+      return this.props.params.assetid || this.props.params.uid
+    } else if (this.props.formAsset) {
+      return this.props.formAsset.uid;
+    } else {
+      return this.props.uid
     }
   },
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
-    var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
+    const uid = this._getAssetUid();
+
     if (this.props.randdelay && uid) {
       window.setTimeout(()=>{
         actions.resources.loadAsset({id: uid});
@@ -170,64 +224,169 @@ mixins.dmix = {
   }
 };
 
+/*
+ * helper function for apply*ToAsset droppable mixin methods
+ * returns an interval-driven promise
+ */
+const applyImport = (params) => {
+  const applyPromise = new Promise((resolve, reject) => {
+    dataInterface.postCreateImport(params).then((data)=> {
+      const doneCheckInterval = setInterval(() => {
+        dataInterface.getImportDetails({
+          uid: data.uid,
+        }).done((importData) => {
+          switch (importData.status) {
+            case 'complete':
+              const finalData = importData.messages.updated || importData.messages.created;
+              if (finalData && finalData.length > 0 && finalData[0].uid) {
+                clearInterval(doneCheckInterval);
+                resolve(finalData[0]);
+              } else {
+                clearInterval(doneCheckInterval);
+                reject(importData);
+              }
+              break;
+            case 'processing':
+            case 'created':
+              // TODO: notify promise awaiter about delay (after multiple interval rounds)
+              break;
+            case 'error':
+            default:
+              clearInterval(doneCheckInterval);
+              reject(importData);
+          }
+        }).fail((failData)=>{
+          clearInterval(doneCheckInterval);
+          reject(failData);
+        });
+      }, IMPORT_CHECK_INTERVAL);
+    });
+  });
+  return applyPromise;
+};
+
 mixins.droppable = {
+  /*
+   * returns an interval-driven promise
+   */
+  applyFileToAsset(file, asset) {
+    const applyPromise = new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const params = {
+          destination: asset.url,
+          assetUid: asset.uid,
+          name: file.name,
+          base64Encoded: evt.target.result,
+          lastModified: file.lastModified,
+          totalFiles: 1
+        };
+
+        applyImport(params).then(
+          (data) => {resolve(data);},
+          (data) => {reject(data);}
+        );
+      };
+      reader.readAsDataURL(file);
+    });
+    return applyPromise;
+  },
+
+  /*
+   * returns an interval-driven promise
+   */
+  applyUrlToAsset(url, asset) {
+    const applyPromise = new Promise((resolve, reject) => {
+      const params = {
+        destination: asset.url,
+        url: url,
+        name: asset.name,
+        assetUid: asset.uid
+      };
+
+      applyImport(params).then(
+        (data) => {resolve(data);},
+        (data) => {reject(data);}
+      );
+    });
+    return applyPromise;
+  },
+
   _forEachDroppedFile (params={}) {
     let router = this.context.router;
-    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
+    let isProjectReplaceInForm = (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
+      && router.isActive('forms')
+      && router.params.assetid != undefined
+    );
     var library = router.isActive('library');
+    var multipleFiles = params.totalFiles > 1 ? true : false;
     params = assign({library: library}, params);
 
     if (params.base64Encoded) {
       stores.pageState.showModal({
-        type: 'uploading-xls',
-        filename: params.name
+        type: MODAL_TYPES.UPLOADING_XLS,
+        filename: multipleFiles ? t('## files').replace('##', params.totalFiles) : params.name
       });
     }
 
+    delete params.totalFiles;
+
     if (!library && params.base64Encoded) {
       let destination = params.destination || this.state.url;
-      params = assign({destination: destination}, params);
+      if (destination) {
+        params = assign({ destination: destination }, params);
+      }
     }
 
     dataInterface.postCreateImport(params).then((data)=> {
-      window.setTimeout((()=>{
+      window.setTimeout((() => {
         dataInterface.getImportDetails({
           uid: data.uid,
-        }).done((importData/*, status, jqxhr*/) => {
+        }).done((importData) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
-            if (!assetUid) {
-              // TODO: use a more specific error message here
-              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace with XLS" icon.'));
-              if (params.assetUid)
-                hashHistory.push(`/forms/${params.assetUid}`);
+            if (multipleFiles) {
+              this.searchDefault();
+              // No message shown for multiple files when successful, to avoid overloading screen
             } else {
-              if (isXLSReplaceInForm) {
-                actions.resources.loadAsset({id: assetUid});
-              } else if (library) {
-                this.searchDefault();
+              if (!assetUid) {
+                // TODO: use a more specific error message here
+                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace project" icon.'));
+                if (params.assetUid)
+                  hashHistory.push(`/forms/${params.assetUid}`);
               } else {
-                hashHistory.push(`/forms/${assetUid}`);
+                if (isProjectReplaceInForm) {
+                  actions.resources.loadAsset({id: assetUid});
+                } else if (library) {
+                  this.searchDefault();
+                } else {
+                  hashHistory.push(`/forms/${assetUid}`);
+                }
+                notify(t('XLS Import completed'));
               }
-              notify(t('XLS Import completed'));
             }
-          }
-          // If the import task didn't complete immediately, inform the user accordingly.
-          else if (importData.status === 'processing') {
+          } else if (importData.status === 'processing') {
+            // If the import task didn't complete immediately, inform the user accordingly.
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
-            let error_message = t('Import Failure.');
-            if (importData.messages.error)
-              error_message = `<strong>${t('Import Failure.')}</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`;
-            alertify.error(error_message);
+            const errLines = [];
+            errLines.push(t('Import Failed!'));
+            if (params.name) {
+              errLines.push(`<code>Name: ${params.name}</code>`);
+            }
+            if (importData.messages.error) {
+              errLines.push(`<code>${importData.messages.error_type}: ${escapeHtml(importData.messages.error)}</code>`);
+            }
+            alertify.error(errLines.join('<br/>'));
           } else {
-            alertify.error(t('Import Failure.'));
+            alertify.error(t('Import Failed!'));
           }
         }).fail((failData)=>{
-          alertify.error(t('Import Failed.'));
+          alertify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();
@@ -237,7 +396,8 @@ mixins.droppable = {
       alertify.error(t('Failed to create import.'));
     });
   },
-  dropFiles (files, rejectedFiles, pms={}) {
+
+  dropFiles (files, rejectedFiles, evt, pms={}) {
     files.map((file) => {
       var reader = new FileReader();
       reader.onload = (e)=> {
@@ -245,6 +405,7 @@ mixins.droppable = {
           base64Encoded: e.target.result,
           name: file.name,
           lastModified: file.lastModified,
+          totalFiles: files.length
         }, pms);
 
         this._forEachDroppedFile(params);
@@ -252,10 +413,16 @@ mixins.droppable = {
       reader.readAsDataURL(file);
     });
 
-    rejectedFiles.map((rej) => {
-      var errMsg = t('Upload error: could not recognize Excel file.');
-      alertify.error(errMsg);
-    });
+    for (var i = 0; i < rejectedFiles.length; i++) {
+      if (rejectedFiles[i].type && rejectedFiles[i].name) {
+        var errMsg = t('Upload error: could not recognize Excel file.');
+        errMsg += ` (${t('Uploaded file name: ')} ${rejectedFiles[i].name})`;
+        alertify.error(errMsg);
+      } else {
+        alertify.error(t('Could not recognize the dropped item(s).'));
+        break;
+      }
+    }
   }
 };
 
@@ -275,6 +442,14 @@ mixins.collectionList = {
   },
 };
 
+const renderCheckbox = (id, label, isImportant) => {
+  let additionalClass = '';
+  if (isImportant) {
+    additionalClass += 'alertify-toggle-important';
+  }
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
+}
+
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
@@ -282,22 +457,27 @@ mixins.clickAssets = {
   click: {
     asset: {
       clone: function(uid, name){
+        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
         let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
+        let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
-          title: t('Clone form'),
-          message: t('Enter the name of the cloned form'),
+          title: `${t('Clone')} ${assetType}`,
+          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
+            ok_button.disabled = true;
+            ok_button.innerText = t('Cloning...');
             actions.resources.cloneAsset({
               uid: uid,
               name: value,
             }, {
             onComplete: (asset) => {
+              ok_button.disabled = false;
               dialog.destroy();
+              hashHistory.push(`/forms/${asset.uid}/landing`);
               notify(t('cloned project created'));
-              this.refreshSearch && this.refreshSearch();
             }
             });
             // keep the dialog open
@@ -308,7 +488,24 @@ mixins.clickAssets = {
           }
         };
         dialog.set(opts).show();
-
+      },
+      cloneAsTemplate: function(sourceUid, sourceName) {
+        mixins.cloneAssetAsNewType.dialog({
+          sourceUid: sourceUid,
+          sourceName: sourceName,
+          targetType: ASSET_TYPES.template.id,
+          promptTitle: t('Create new template from this project'),
+          promptMessage: t('Enter the name of the new template.')
+        });
+      },
+      cloneAsSurvey: function(sourceUid, sourceName) {
+        mixins.cloneAssetAsNewType.dialog({
+          sourceUid: sourceUid,
+          sourceName: sourceName,
+          targetType: 'survey',
+          promptTitle: t('Create new project from this template'),
+          promptMessage: t('Enter the name of the new project.')
+        });
       },
       edit: function (uid) {
         if (this.context.router.isActive('library'))
@@ -316,8 +513,8 @@ mixins.clickAssets = {
         else
           hashHistory.push(`/forms/${uid}/edit`);
       },
-      delete: function(uid){
-        let asset = stores.selectedAsset.asset;
+      delete: function(uid, callback){
+        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
         var assetTypeLabel = t('project');
 
         if (asset.asset_type != 'survey') {
@@ -331,7 +528,10 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
-              $('.alertify-toggle input').prop("checked", false);
+              $('.alertify-toggle input').prop('checked', false);
+              if (typeof callback === 'function') {
+                callback();
+              }
             }
           });
         };
@@ -344,10 +544,10 @@ mixins.clickAssets = {
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
-            <div class="alertify-toggle"><input type="checkbox" id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type="checkbox" id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type="checkbox" id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
-            <div class="alertify-toggle alertify-toggle-important"><input type="checkbox" id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
+            ${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}
+            ${renderCheckbox('dt2', t('All questions created for this form will be deleted.'))}
+            ${renderCheckbox('dt3', t('The form associated with this project will be deleted.'))}
+            ${renderCheckbox('dt4', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -374,7 +574,7 @@ mixins.clickAssets = {
           onok: onok,
           oncancel: () => {
             dialog.destroy();
-            $('.alertify-toggle input').prop("checked", false);
+            $('.alertify-toggle input').prop('checked', false);
           }
         };
         dialog.set(opts).show();
@@ -383,8 +583,8 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      archive: function(uid) {
-        let asset = stores.selectedAsset.asset;
+      archive: function(uid, callback) {
+        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Archive Project'),
@@ -392,16 +592,13 @@ mixins.clickAssets = {
             <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.resources.setDeploymentActive(
-              {
-                asset: asset,
-                active: false
-              },
-              {onComplete: ()=> {
-                this.refreshSearch && this.refreshSearch();
-                notify(t('archived project'));
-              }}
-            );
+            actions.resources.setDeploymentActive({
+              asset: asset,
+              active: false
+            });
+            if (typeof callback === 'function') {
+              callback();
+            }
           },
           oncancel: () => {
             dialog.destroy();
@@ -409,25 +606,26 @@ mixins.clickAssets = {
         };
         dialog.set(opts).show();
       },
-      unarchive: function(assetOrUid) {
-        let asset = (typeof assetOrUid == 'object') ? assetOrUid : stores.selectedAsset.asset;
+      unarchive: function(assetOrUid, callback) {
+        let asset;
+        if (typeof assetOrUid == 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Unarchive Project'),
           message: `${t('Are you sure you want to unarchive this project?')}`,
           labels: {ok: t('Unarchive'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.resources.setDeploymentActive(
-              {
-                asset: asset,
-                active: true
-              },
-              {onComplete: ()=> {
-                actions.resources.loadAsset({id: asset.uid});
-                this.refreshSearch && this.refreshSearch();
-                notify(t('unarchived project'));
-              }}
-            );
+            actions.resources.setDeploymentActive({
+              asset: asset,
+              active: true
+            });
+            if (typeof callback === 'function') {
+              callback();
+            }
           },
           oncancel: () => {
             dialog.destroy();
@@ -437,14 +635,20 @@ mixins.clickAssets = {
       },
       sharing: function(uid){
         stores.pageState.showModal({
-          type: 'sharing',
+          type: MODAL_TYPES.SHARING,
           assetid: uid
         });
       },
       refresh: function(uid) {
         stores.pageState.showModal({
-          type: 'replace-xls',
+          type: MODAL_TYPES.REPLACE_PROJECT,
           asset: stores.selectedAsset.asset
+        });
+      },
+      translations: function(uid) {
+        stores.pageState.showModal({
+          type: MODAL_TYPES.FORM_LANGUAGES,
+          assetUid: uid
         });
       }
 
@@ -521,11 +725,17 @@ mixins.contextRouter = {
   currentAssetID () {
     return this.context.router.params.assetid;
   },
+  currentAsset () {
+    return stores.asset.data[this.currentAssetID()];
+  },
   isActiveRoute (path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder () {
-    if (this.context.router.isActive(`/library/new`))
+    if (this.context.router.isActive('/library/new'))
+      return true;
+
+    if (this.context.router.isActive('/library/new/template'))
       return true;
 
     if (this.context.router.params.assetid == undefined)
@@ -536,7 +746,60 @@ mixins.contextRouter = {
       return true;
 
     return this.context.router.isActive(`/forms/${assetid}/edit`);
-  },
-
+  }
 }
+
+/*
+ * generates dialog when cloning an asset as new type
+ */
+mixins.cloneAssetAsNewType = {
+  dialog(params) {
+    const dialog = alertify.dialog('prompt');
+    const opts = {
+      title: params.promptTitle,
+      message: params.promptMessage,
+      value: params.sourceName,
+      labels: {ok: t('Create'), cancel: t('Cancel')},
+      onok: (evt, value) => {
+        // disable buttons
+        dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
+        dialog.elements.buttons.primary.children[0].innerText = t('Please wait…');
+        dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
+
+        actions.resources.cloneAsset({
+          uid: params.sourceUid,
+          name: value,
+          new_asset_type: params.targetType
+        }, {
+          onComplete: (asset) => {
+            dialog.destroy();
+
+            switch (asset.asset_type) {
+              case ASSET_TYPES.survey.id:
+                hashHistory.push(`/forms/${asset.uid}/landing`);
+                break;
+              case ASSET_TYPES.template.id:
+              case ASSET_TYPES.block.id:
+              case ASSET_TYPES.question.id:
+                hashHistory.push('/library');
+                break;
+            }
+          },
+          onFailed: (asset) => {
+            dialog.destroy();
+            alertify.error(t('Failed to create new asset!'));
+          }
+        });
+
+        // keep the dialog open
+        return false;
+      },
+      oncancel: (evt, value) => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
+}
+
 export default mixins;

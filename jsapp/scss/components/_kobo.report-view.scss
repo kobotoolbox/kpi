@@ -303,19 +303,6 @@
 .graph-tab__groupby,
 .graph-tab__translation {
   padding: 20px 30px;
-
-  > label {
-    display: block;
-    padding: 8px 0px;
-    padding-left: 30px;
-    position: relative;
-    font-size: 14px;
-
-    input {
-      position: absolute;
-      left: 0px;
-    }
-  }
 }
 
 .custom-report--title {
@@ -329,18 +316,13 @@
 }
 
 .custom-report--questions {
-  height: 300px;
-  margin: 10px 0px;
+  margin: 10px 0;
   overflow: auto;
   width: 100%;
 
   .graph-settings__question {
     width: 100%;
-    padding: 5px 10px;
-
-    input[type="checkbox"] + label {
-      display: inline-block;
-    }
+    padding: 5px 0;
   }
 }
 

@@ -1,31 +1,63 @@
-{% extends "registration.html" %} {% load staticfiles %} {% block content %}
-<div class="registration__bg">
+{% extends "registration.html" %} {% load staticfiles %}
+{% load i18n %}
 
-    <form action="." method="post" class="registration registration--register">
-        <div class="registration--logo">
-            <a href="/"><img src="{% static 'img/kobologo.svg' %}" /></a>
-        </div>
+{% block content %}
+<form action="{% url 'set_language' %}" method="post" class="language-switcher">
+  {% csrf_token %}
+    <input name="next" type="hidden" value="{{ redirect_to }}" />
+    <select name="language" onchange="this.form.submit()">
+        {% get_current_language as LANGUAGE_CODE %}
+        {% get_available_languages as LANGUAGES %}
+        {% get_language_info_list for LANGUAGES as languages %}
+        {% for language in languages %}
+            <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+                {{ language.name_local }}
+            </option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Go" class="hidden" />
+</form>
 
-        <div class="registration__first-half">
-            {% csrf_token%} {{ form.as_p }}
-            <input type="submit" value="Create Account" class="registration__action" />
-            <div class="registration__footer">
-                or <a href="{% url 'auth_login' %}">login</a>
-            </div>
-        </div>
-
-        <div class="registration__second-half">
-            {% if welcome_message %} {{ welcome_message|safe }} {% else %}
-            <p>KoBoToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or
-                post-conflict environments.</p>
-            <p>You can download and install KoBoToolbox on <a href="http://support.kobotoolbox.org/customer/portal/articles/1691108-install-kobotoolbox-on-your-own-server">your own server</a> or <a href="http://support.kobotoolbox.org/customer/portal/articles/1691105-using-kobotoolbox-offline">on your own computer</a>.</p>
+<form action="." method="post" class="registration registration--register">
+  <div class="registration--logo">
+    <a href="/">
+      {% block logo %}{{ block.super }}{% endblock %}
+    </a>
+  </div>
+  <div class="registration__first-half">
+    <h1>{% trans "Create an account" %}</h1>
+      {% csrf_token %}
+      {% for field in form %}
+          <div class="field {{ field.name }}">
+            {{ field.label_tag|cut:':' }}
+            {% if field.field.required %}
+              <span class="required">*</span>
             {% endif %}
-        </div>
-        <div style="clear:both;"></div>
-    </form>
 
-    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
-</div>
+            {{ field }}
+            {% if field.help_text %}
+              <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {{ field.errors }}
+          </div>
 
+          {% if field.name == 'password1' %}
+            <div class="field" id="registration-password-app"></div>
+          {% endif %}
+      {% endfor %}
+      <input type="submit" value="{% trans 'Create Account' %}" class="registration__action" />
+      <div class="registration__orlogin">
+        {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "login" %}</a>
+      </div>
+  </div>
 
+  <div class="registration__second-half">
+      {% if welcome_message %} {{ welcome_message|safe }} {% else %}
+      <p>KoBoToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or
+          post-conflict environments. <a href="http://www.kobotoolbox.org">Read more</a></p>
+      <p>You can download and install KoBoToolbox on <a href="http://support.kobotoolbox.org/customer/portal/articles/1691108-install-kobotoolbox-on-your-own-server">your own server</a> or <a href="http://support.kobotoolbox.org/customer/portal/articles/1691105-using-kobotoolbox-offline">on your own computer</a>.</p>
+      {% endif %}
+  </div>
+  <div style="clear:both;"></div>
+</form>
 {% endblock %}

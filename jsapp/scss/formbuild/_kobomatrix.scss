@@ -41,15 +41,15 @@
 .matrix-cols--header {
   display: flex;
   flex-wrap: nowrap;
-  border-top: 1px solid #DDD;
-  border-left: 1px solid #DDD;
+  border-top: 1px solid $cool-lightgray;
+  border-left: 1px solid $cool-lightgray;
 
   .matrix-cols__col {
     flex-grow: 1;
     flex-basis: 0;
     padding: 10px 20px;
     text-align: center;
-    border-right: 1px solid #DDD;
+    border-right: 1px solid $cool-lightgray;
     position: relative;
     padding-right: 30px;
     vertical-align: middle;
@@ -85,7 +85,7 @@
 .matrix-cols__settings {
   width: 100%;
   background: #F8F8F8;
-  border: 1px solid #DDD;
+  border: 1px solid $cool-lightgray;
   border-bottom: none;
   padding: 15px;
   display: none;
@@ -101,6 +101,10 @@
   margin: 0 auto;
   padding: 0px 20px;
 
+  .checkbox {
+    display: inline-block;
+  }
+
   label {
     display: block;
     margin-bottom: 10px;
@@ -111,7 +115,8 @@
       vertical-align: middle;
     }
 
-    > div.Select, > input {
+    > .kobo-select,
+    > input {
       width: 310px;
       display: inline-block;
       vertical-align: middle;
@@ -125,10 +130,6 @@
 
     > label {
       display: inline-block;
-    }
-
-    [type="checkbox"]:not(:checked) + label:after {
-      background-color: #FFF;
     }
   }
 
@@ -153,7 +154,7 @@
 
 .matrix-cols__options {
   background: #F1F1F1;
-  border: 1px solid #DDD;
+  border: 1px solid $cool-lightgray;
   padding: 10px;
   margin: 20px 0px;
   clear: both;
@@ -169,7 +170,7 @@
     input {
       padding: 4px 8px;
       border-radius: 4px;
-      border: 1px solid #DDD;
+      border: 1px solid $cool-lightgray;
     }
 
     &.matrix-options__value {
@@ -212,19 +213,19 @@
     flex-grow: 1;
     flex-basis: 0;
     padding: 5px;
-    border-top: 1px solid #DDD;
+    border-top: 1px solid $cool-lightgray;
     vertical-align: middle;
     position: relative;
   }
 
   .matrix-cols__col {
-    border-right: 1px solid #DDD;
+    border-right: 1px solid $cool-lightgray;
     text-align: center;
   }
 
   .matrix-items__itemattr {
-    border-right: 1px solid #DDD;
-    border-left: 1px solid #DDD;
+    border-right: 1px solid $cool-lightgray;
+    border-left: 1px solid $cool-lightgray;
     position: relative;
     line-height: 28px;
 
@@ -250,7 +251,7 @@
   }
 
   &--new {
-    border-top: 1px solid #DDD;
+    border-top: 1px solid $cool-lightgray;
 
     i {
       font-size: 28px;
@@ -267,7 +268,7 @@
   .matrix-items__itemsettings {
     width: 100%;
     background: #F8F8F8;
-    border: 1px solid #DDD;
+    border: 1px solid $cool-lightgray;
     border-bottom: none;
     padding: 15px;
     display: none;

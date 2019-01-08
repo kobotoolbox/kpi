@@ -1,3 +1,4 @@
+import re
 import haystack
 from distutils.util import strtobool
 from django.conf import settings
@@ -17,17 +18,25 @@ from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
-    For use with AssetVersions
+    For use with nested models of Asset.
     Restricts access to items that are owned by the current user
     """
     def filter_queryset(self, request, queryset, view):
-        return queryset.filter(asset__owner=request.user)
+        # Because HookLog is two level nested,
+        # we need to specify the relation in the filter field
+        if type(view).__name__ == "HookLogViewSet":
+            fields = {"hook__asset__owner": request.user}
+        else:
+            fields = {"asset__owner": request.user}
+
+        return queryset.filter(**fields)
 
 
 class KpiObjectPermissionsFilter(object):
     perm_format = '%(app_label)s.view_%(model_name)s'
 
     def filter_queryset(self, request, queryset, view):
+
         user = request.user
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
@@ -57,7 +66,7 @@ class KpiObjectPermissionsFilter(object):
             get_anonymous_user(), permission, queryset)
         if view.action != 'list':
             # Not a list, so discoverability doesn't matter
-            return owned_and_explicitly_shared | public
+            return (owned_and_explicitly_shared | public).distinct()
 
         # For a list, do not include public objects unless they are also
         # discoverable
@@ -76,7 +85,7 @@ class KpiObjectPermissionsFilter(object):
         if all_public:
             # We were asked not to consider subscriptions; return all
             # discoverable objects
-            return owned_and_explicitly_shared | discoverable
+            return (owned_and_explicitly_shared | discoverable).distinct()
 
         # Of the discoverable objects, determine to which the user has
         # subscribed
@@ -92,7 +101,7 @@ class KpiObjectPermissionsFilter(object):
                 # Neither the model or its parent has a subscription relation
                 subscribed = public.none()
 
-        return owned_and_explicitly_shared | subscribed
+        return (owned_and_explicitly_shared | subscribed).distinct()
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
@@ -116,6 +125,11 @@ class SearchFilter(filters.BaseFilterBackend):
     ''' Filter objects by searching with Whoosh if the request includes a `q`
     parameter. Another parameter, `parent`, is recognized when its value is an
     empty string; this restricts the queryset to objects without parents. '''
+
+    library_collection_pattern = re.compile(
+        r'\(((?:asset_type:(?:[^ ]+)(?: OR )*)+)\) AND \(parent__uid:([^)]+)\)'
+    )
+
     def filter_queryset(self, request, queryset, view):
         if ('parent' in request.query_params and
                 request.query_params['parent'] == ''):
@@ -125,25 +139,48 @@ class SearchFilter(filters.BaseFilterBackend):
             q = request.query_params['q']
         except KeyError:
             return queryset
+
         # Short-circuit some commonly used queries
         COMMON_QUERY_TO_ORM_FILTER = {
             'asset_type:block': {'asset_type': 'block'},
             'asset_type:question': {'asset_type': 'question'},
+            'asset_type:template': {'asset_type': 'template'},
             'asset_type:survey': {'asset_type': 'survey'},
             'asset_type:question OR asset_type:block': {
                 'asset_type__in': ('question', 'block')
-            }
+            },
+            'asset_type:question OR asset_type:block OR asset_type:template': {
+                'asset_type__in': ('question', 'block', 'template')
+            },
         }
         try:
             return queryset.filter(**COMMON_QUERY_TO_ORM_FILTER[q])
         except KeyError:
-            # We don't know how to short-circuit this query; pass it along to
-            # the search engine
+            # We don't know how to short-circuit this query; pass it along
             pass
         except FieldError:
             # The user passed a query we recognized as commonly-used, but the
             # field was invalid for the requested model
             return queryset.none()
+
+        # Queries for library questions/blocks inside collections are also
+        # common (and buggy when using Whoosh: see #1707)
+        library_collection_match = self.library_collection_pattern.match(q)
+        if library_collection_match:
+            asset_types = [
+                type_query.split(':')[1] for type_query in
+                    library_collection_match.groups()[0].split(' OR ')
+            ]
+            parent__uid = library_collection_match.groups()[1]
+            try:
+                return queryset.filter(
+                    asset_type__in=asset_types,
+                    parent__uid=parent__uid
+                )
+            except FieldError:
+                return queryset.none()
+
+        # Fall back to Whoosh
         queryset_pks = list(queryset.values_list('pk', flat=True))
         if not len(queryset_pks):
             return queryset

@@ -29,7 +29,6 @@
             "last_login": "2015-02-12T19:52:14.406Z",
             "last_name": "User",
             "password": "pbkdf2_sha256$15000$AGA044bkjSNO$jQx/SdL6ok6mFPRQhCuWtU9zNNFvRUQ7qexLZgLRiys=",
-            "user_permissions": [],
             "username": "someuser",
             "user_permissions" : [
                ["add_collection", "kpi", "collection"],
@@ -65,7 +64,6 @@
             "last_login": "2015-02-12T19:52:14.406Z",
             "last_name": "User",
             "password": "pbkdf2_sha256$15000$MQp3yLvTajFx$yttM5DVFuGpK8cSJI09tC55SeaEL2geWzk9ZDVMFWRw=",
-            "user_permissions": [],
             "username": "anotheruser",
             "user_permissions" : [
                ["add_collection", "kpi", "collection"],
@@ -106,12 +104,55 @@
         }
     },
     {
+        "model": "kpi.asset",
+        "pk": 2,
+        "collection": 2,
+        "fields": {
+            "name": "fixture asset with translations",
+            "content": {"survey": [
+                {
+                  "type": "text",
+                  "label": "fixture q1",
+                  "label::English": "fixture q1 translated",
+                  "name": "q1",
+                  "kuid": "abc"
+                }, {
+                  "type": "text",
+                  "label": "fixture q2",
+                  "label::English": "fixture q2 translated",
+                  "name": "q2",
+                  "kuid": "def"
+                }
+            ]},
+            "date_created": "2015-02-12T19:52:14.406Z",
+            "date_modified": "2015-02-12T19:52:14.406Z",
+            "owner": 2,
+            "uid": "aPEANgNgTH3xzhJGcctURu"
+        }
+    },
+    {
         "model": "authtoken.token",
         "pk": 1,
         "fields": {
             "key": "3a8da043dd1b669688dae523b015177a1d4201d5",
             "created": "2017-05-09 10:49:34.273769-04",
             "user": 3
+        }
+    },
+    {
+        "model": "hub.sitewidemessage",
+        "pk": 1,
+        "fields": {
+            "slug": "welcome_message",
+            "body": "Global welcome message"
+        }
+    },
+    {
+        "model": "hub.sitewidemessage",
+        "pk": 2,
+        "fields": {
+            "slug": "welcome_message_fr",
+            "body": "Le message de bienvenue"
         }
     }
 ]

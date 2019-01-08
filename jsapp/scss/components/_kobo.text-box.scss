@@ -1,0 +1,9 @@
+// TODO: this uses a lot of global styles defined in _kobo.bem.ui.scss
+
+.text-box {
+  &.text-box--error {
+    color: $cool-red;
+
+    .text-box__input {border-bottom-color: $cool-red;}
+  }
+}

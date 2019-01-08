@@ -1,42 +1,58 @@
-# FIXME: clean up these imports!
-import base64
-import pytz
-from io import BytesIO
-import datetime
-import dateutil.parser
 import re
-import logging
-import posixpath
+import pytz
+import base64
+import datetime
+import requests
 import tempfile
+import posixpath
+import dateutil.parser
+from io import BytesIO
 from os.path import splitext
 from collections import defaultdict
-from django.db import models, transaction
-from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.urlresolvers import get_script_prefix, resolve
-from django.utils.six.moves.urllib import parse as urlparse
+
 from jsonfield import JSONField
-import requests
-from pyxform import xls2json_backends
+from django.conf import settings
+from rest_framework import exceptions
+from django.db import models, transaction
+from django.core.files.base import ContentFile
 from private_storage.fields import PrivateFileField
-from kobo.apps.reports.report_data import build_formpack
-from formpack import FormPack
-from formpack.utils.string import ellipsize
+from django.core.urlresolvers import Resolver404, resolve
+from django.utils.six.moves.urllib import parse as urlparse
+
 import formpack.constants
+from pyxform import xls2json_backends
+from formpack.utils.string import ellipsize
+from formpack.schema.fields import ValidationStatusCopyField
+
+from kpi.utils.log import logging
+from kobo.apps.reports.report_data import build_formpack
+
 from ..fields import KpiUidField
 from ..models import Collection, Asset
-from ..model_utils import create_assets, _load_library_content
 from ..zip_importer import HttpContentParse
-from rest_framework import exceptions
+from ..model_utils import create_assets, _load_library_content, \
+                          remove_string_prefix
+from ..deployment_backends.mock_backend import MockDeploymentBackend
+
+
+def utcnow(*args, **kwargs):
+    '''
+    Stupid, and exists only to facilitate mocking during unit testing.
+    If you know of a better way, please remove this.
+    '''
+    return datetime.datetime.utcnow()
 
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
         item_path = urlparse.urlparse(item_path).path
-        if settings.KPI_PREFIX and (settings.KPI_PREFIX != '/') and \
-                item_path.startswith(settings.KPI_PREFIX):
-            item_path = item_path.replace(settings.KPI_PREFIX, '', 1)
-    match = resolve(item_path)
+    try:
+        match = resolve(item_path)
+    except Resolver404:
+        # If the app is mounted in uWSGI with a path prefix, try to resolve
+        # again after removing the prefix
+        match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
+
     uid = match.kwargs.get('uid')
     if match.url_name == 'asset-detail':
         return ('asset', Asset.objects.get(uid=uid))
@@ -140,7 +156,7 @@ class ImportTask(ImportExportTask):
             (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
             necessary_perm = 'change_%s' % dest_kls
             if not dest_item.has_perm(self.user, necessary_perm):
-                raise exceptions.PermissionDenied('user cannot update %s' % kls)
+                raise exceptions.PermissionDenied('user cannot update %s' % dest_kls)
             else:
                 has_necessary_perm = True
 
@@ -270,15 +286,15 @@ class ImportTask(ImportExportTask):
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
-                    'content': survey_dict,
-                    'owner': self.user,
-                    'name': filename
-                })
+                'content': survey_dict,
+                'owner': self.user,
+                'name': filename
+            })
             messages['created'].append({
-                    'uid': collection.uid,
-                    'kind': 'collection',
-                    'owner__username': self.user.username,
-                })
+                'uid': collection.uid,
+                'kind': 'collection',
+                'owner__username': self.user.username,
+            })
         elif 'survey' in survey_dict_keys:
             if not destination:
                 if library and len(survey_dict.get('survey')) > 1:
@@ -301,11 +317,11 @@ class ImportTask(ImportExportTask):
                 msg_key = 'updated'
 
             messages[msg_key].append({
-                    'uid': asset.uid,
-                    'summary': asset.summary,
-                    'kind': 'asset',
-                    'owner__username': self.user.username,
-                })
+                'uid': asset.uid,
+                'summary': asset.summary,
+                'kind': 'asset',
+                'owner__username': self.user.username,
+            })
         else:
             raise SyntaxError('xls upload must have one of these sheets: {}'
                               .format('survey, library'))
@@ -328,9 +344,10 @@ class ExportTask(ImportExportTask):
     `data` attribute to a dictionary with the following keys:
     * `type`: required; `xls` or `csv`
     * `source`: required; URL of a deployed `Asset`
-    * `lang`: optional; `xml` for XML names or the name of the language to be
-              used for labels. Leave unset, or use `_default` or `None`, for
-              labels in the default language
+    * `lang`: optional; the name of the translation to be used for headers and
+              response values. Specify `_xml` to use question and choice names
+              instead of labels. Leave unset, or use `_default` for labels in
+              the default language
     * `hierarchy_in_labels`: optional; when `true`, include the labels for all
                              ancestor groups in each field label, separated by
                              `group_sep`. Defaults to `False`
@@ -361,7 +378,21 @@ class ExportTask(ImportExportTask):
     last_submission_time = models.DateTimeField(null=True)
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
-    COPY_FIELDS = ('_id', '_uuid', '_submission_time')
+    COPY_FIELDS = (
+        '_id',
+        '_uuid',
+        '_submission_time',
+        ValidationStatusCopyField,
+    )
+
+    # It's not very nice to ask our API users to submit `null` or `false`,
+    # so replace friendlier language strings with the constants that formpack
+    # expects
+    API_LANGUAGE_TO_FORMPACK_LANGUAGE = {
+        '_default': formpack.constants.UNTRANSLATED,
+        '_xml': formpack.constants.UNSPECIFIED_TRANSLATION,
+    }
+
     TIMESTAMP_KEY = '_submission_time'
     # Above 244 seems to cause 'Download error' in Chrome 64/Linux
     MAXIMUM_FILENAME_LENGTH = 240
@@ -372,14 +403,25 @@ class ExportTask(ImportExportTask):
             'fields_from_all_versions', 'true'
         ).lower() == 'true'
 
-    def _build_export_filename(self, export, extension):
+    def _build_export_filename(self, export, export_type):
         '''
         Internal method to build the export filename based on the export title
         (which should be set when calling the `FormPack()` constructor),
         whether the latest or all versions are included, the label language,
-        the current date and time, and the given `extension`
+        the current date and time, and the appropriate extension for the given
+        `export_type`
         '''
-        if export.lang == formpack.constants.UNTRANSLATED:
+
+        if export_type == 'xls':
+            extension = 'xlsx'
+        elif export_type == 'spss_labels':
+            extension = 'zip'
+        else:
+            extension = export_type
+
+        if export_type == 'spss_labels':
+            lang = 'SPSS Labels'
+        elif export.lang == formpack.constants.UNTRANSLATED:
             lang = 'labels'
         else:
             lang = export.lang
@@ -394,7 +436,7 @@ class ExportTask(ImportExportTask):
             u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
             u'.{ext}'.format(
                 version=version,
-                date=datetime.datetime.utcnow(),
+                date=utcnow(),
                 ext=extension
             )
         )
@@ -420,8 +462,12 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
-        if lang == '_default':
-            lang = formpack.constants.UNTRANSLATED
+        try:
+            # If applicable, substitute the constants that formpack expects for
+            # friendlier language strings used by the API
+            lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
+        except KeyError:
+            pass
         tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
 
         return {
@@ -485,17 +531,17 @@ class ExportTask(ImportExportTask):
             raise Exception('the source must be deployed prior to export')
 
         export_type = self.data.get('type', '').lower()
-        if export_type not in ('xls', 'csv'):
+        if export_type not in ('xls', 'csv', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls` and `csv` are valid export types')
+                'only `xls`, `csv`, and `spss_labels` are valid export types')
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        if hasattr(source.deployment, '_get_submissions'):
+        if isinstance(source.deployment, MockDeploymentBackend):
             # Currently used only for unit testing (`MockDeploymentBackend`)
             # TODO: Have the KC backend also implement `_get_submissions()`?
-            submission_stream = source.deployment._get_submissions()
+            submission_stream = source.deployment.get_submissions()
         else:
             submission_stream = None
 
@@ -509,8 +555,7 @@ class ExportTask(ImportExportTask):
 
         options = self._build_export_options(pack)
         export = pack.export(**options)
-        extension = 'xlsx' if export_type == 'xls' else export_type
-        filename = self._build_export_filename(export, extension)
+        filename = self._build_export_filename(export, export_type)
         self.result.save(filename, ContentFile(''))
         # FileField files are opened read-only by default and must be
         # closed and reopened to allow writing
@@ -540,6 +585,8 @@ class ExportTask(ImportExportTask):
                             break
                     '''
                     output_file.write(xlsx_output_file.read())
+            elif export_type == 'spss_labels':
+                export.to_spss_labels(output_file)
 
         # Restore the FileField to its typical state
         self.result.open('rb')
@@ -569,7 +616,7 @@ class ExportTask(ImportExportTask):
         # How long can an export possibly run, not including time spent waiting
         # in the Celery queue?
         max_export_run_time = getattr(
-            settings, 'CELERYD_TASK_TIME_LIMIT', 2100)
+            settings, 'CELERY_TASK_TIME_LIMIT', 2100)
         # Allow a generous grace period
         max_allowed_export_age = datetime.timedelta(
             seconds=max_export_run_time * 4)
@@ -620,6 +667,7 @@ def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
     survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
     return _strip_header_keys(survey_dict)
+
 
 def _strip_header_keys(survey_dict):
     for sheet_name, sheet in survey_dict.items():

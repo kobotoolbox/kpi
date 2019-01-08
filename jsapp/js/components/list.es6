@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
-
+import Checkbox from './checkbox';
 import ui from '../ui';
 import bem from '../bem';
 import actions from '../actions';
@@ -28,14 +28,17 @@ class ListSearch extends React.Component {
     }
     this.setState(searchStoreState);
   }
+  getValue() {
+    return this.refs['formlist-search'].getValue();
+  }
   render () {
     return (
-          <bem.Search m={[this.state.searchState]} >
-            <bem.Search__icon />
-            <ui.SearchBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
-            <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
-          </bem.Search>
-        );
+      <bem.Search m={[this.state.searchState]} >
+        <bem.Search__icon />
+        <ui.SearchBox ref='formlist-search' placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+        <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
+      </bem.Search>
+    );
   }
 };
 
@@ -59,7 +62,7 @@ class ListTagFilter extends React.Component {
   componentDidMount () {
     this.listenTo(stores.tags, this.tagsLoaded);
     this.listenTo(this.searchStore, this.searchStoreChanged);
-    actions.resources.listTags(this.searchStore.filterTagQueryData());
+    actions.resources.listTags(this.searchStore.filterTagQueryData);
   }
   searchStoreChanged (searchStoreState) {
     if (searchStoreState.cleared) {
@@ -67,11 +70,12 @@ class ListTagFilter extends React.Component {
       this.setState(searchStoreState);
     } else {
       if (searchStoreState.searchTags) {
-        var tags = searchStoreState.searchTags.map(function(tag){
-          return tag.value;
-        }).join(',');
+        let tags = null;
+        if (searchStoreState.searchTags.length !== 0) {
+          tags = searchStoreState.searchTags;
+        }
         this.setState({
-          selectedTag: tags
+          selectedTags: tags
         });
       }
     }
@@ -86,41 +90,30 @@ class ListTagFilter extends React.Component {
           value: tag.name.replace(/\s/g, '-'),
         };
       }),
-      selectedTag: ''
+      selectedTags: null
     });
   }
-  onTagChange (tagString) {
-    this.searchTagsChange(tagString);
+  onTagsChange (tagsList) {
+    this.searchTagsChange(tagsList);
   }
   render () {
-    if (!this.state.tagsLoaded) {
-      return (
-        <bem.tagSelect>
-          <i className="fa fa-search" />
-          <Select
-              name="tags"
-              value=""
-              disabled
-              multi={false}
-              placeholder={t('Tags are loading...')}
-              className={this.props.hidden ? 'hidden' : null}
-            />
-        </bem.tagSelect>
-        );
-    }
     return (
       <bem.tagSelect>
-        <i className="fa fa-search" />
+        <i className='fa fa-search' />
         <Select
-            name="tags"
-            multi
-            placeholder={t('Search Tags')}
-            noResultsText={t('No results found')}
-            options={this.state.availableTags}
-            onChange={this.onTagChange}
-            className={this.props.hidden ? 'hidden' : null}
-            value={this.state.selectedTag}
-          />
+          name='tags'
+          isMulti
+          isLoading={!this.state.tagsLoaded}
+          loadingMessage={() => {return t('Tags are loading...')}}
+          placeholder={t('Search Tags')}
+          noOptionsMessage={() => {return t('No results found')}}
+          options={this.state.availableTags}
+          onChange={this.onTagsChange}
+          className={[this.props.hidden ? 'hidden' : null, 'kobo-select'].join(' ')}
+          classNamePrefix='kobo-select'
+          value={this.state.selectedTags}
+          menuPlacement='auto'
+        />
       </bem.tagSelect>
     );
   }
@@ -160,44 +153,39 @@ class ListCollectionFilter extends React.Component {
             value: collection.uid,
           };
         }),
-        selectedCollection: ''
+        selectedCollection: false
       });
 
     });
   }
-  onCollectionChange (collectionUid) {
-    if (collectionUid) {
-      this.searchCollectionChange(collectionUid.value);
+  onCollectionChange (evt) {
+    if (evt) {
+      this.searchCollectionChange(evt.value);
       this.setState({
-        selectedCollection: collectionUid.value
+        selectedCollection: evt
       });
     } else {
       this.searchClear();
       this.setState({
-        selectedCollection: ''
+        selectedCollection: false
       });
     }
   }
   render () {
-    if (!this.state.collectionsLoaded) {
-      return (
-        <bem.collectionFilter>
-          {t('Collections are loading...')}
-        </bem.collectionFilter>
-        );
-    }
     return (
       <bem.collectionFilter>
-        <label>
-          {t('Filter by')}
-        </label>
         <Select
-            name="collections"
-            placeholder={t('Select Collection Name')}
-            options={this.state.availableCollections}
-            onChange={this.onCollectionChange}
-            value={this.state.selectedCollection}
-          />
+          name='collections'
+          placeholder={t('Select Collection Name')}
+          isLoading={!this.state.collectionsLoaded}
+          loadingMessage={() => {return t('Collections are loading...');}}
+          options={this.state.availableCollections}
+          onChange={this.onCollectionChange}
+          value={this.state.selectedCollection}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          menuPlacement='auto'
+        />
       </bem.collectionFilter>
     );
   }
@@ -224,18 +212,14 @@ class ListExpandToggle extends React.Component {
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
-  handleChange (/*event*/) {
-    stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded});
-    this.setState({assetNavExpanded: !this.state.assetNavExpanded});
+  onExpandedToggleChange (isChecked) {
+    stores.pageState.setState({assetNavExpanded: isChecked});
+    this.setState({assetNavExpanded: isChecked});
   }
   render () {
-    var count,
-        isSearch = this.state.searchResultsDisplayed;
-
-    if (isSearch) {
+    let count = this.state.defaultQueryCount;
+    if (this.state.searchResultsDisplayed) {
       count = this.state.searchResultsCount;
-    } else {
-      count = this.state.defaultQueryCount;
     }
 
     return (
@@ -244,10 +228,11 @@ class ListExpandToggle extends React.Component {
           {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
-          <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
-          <label htmlFor='expandedToggleCheckbox'>
-            {t('expand details')}
-          </label>
+          <Checkbox
+            checked={this.state.assetNavExpanded}
+            onChange={this.onExpandedToggleChange}
+            label={t('expand details')}
+          />
         </bem.LibNav__expandedToggle>
       </bem.LibNav__expanded>
       );
@@ -275,8 +260,10 @@ class ListSearchSummary extends React.Component {
     this.setState(state);
   }
   render () {
-    var messages = [], modifier,
-        s = this.state;
+    var messages = [];
+    var modifier;
+    var s = this.state;
+
     if (s.searchFor && s.searchFor.tags && s.searchFor.tags.length > 0) {
       var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
     }
@@ -312,12 +299,12 @@ class ListSearchSummary extends React.Component {
     }
 
     return (
-        <bem.Search__summary m={modifier}>
-          {messages.map(function(message, i){
-            return <div key={`prop-${i}`}>{message}</div>;
-          })}
-        </bem.Search__summary>
-      );
+      <bem.Search__summary m={modifier}>
+        {messages.map(function(message, i){
+          return <div key={`prop-${i}`}>{message}</div>;
+        })}
+      </bem.Search__summary>
+    );
   }
 };
 

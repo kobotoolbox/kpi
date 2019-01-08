@@ -10,14 +10,9 @@ var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
     CascadePopup__button = bem.create('cascade-popup__button', '<button>');
 
-var choiceListHelpUrl = 'http://support.kobotoolbox.org/customer/en/portal/articles/1682856';
+var choiceListHelpUrl = 'http://support.kobotoolbox.org/creating-forms/general/adding-cascading-select-questions';
 
-import {
-  surveyToValidJson,
-  notify,
-  assign,
-  t,
-} from '../utils';
+import {t} from '../utils';
 
 export default {
   toggleCascade () {
@@ -90,26 +85,26 @@ export default {
                 {this.state.cascadeMessage.message}
               </CascadePopup__message>
             :
-              <CascadePopup__message m="instructions">
+              <CascadePopup__message m='instructions'>
                 {t('Paste your formatted table from excel in the box below.')}
               </CascadePopup__message>
             }
 
             {this.state.cascadeReady ?
-              <CascadePopup__message m="ready">
+              <CascadePopup__message m='ready'>
                 {t('OK')}
               </CascadePopup__message>
             : null}
 
-            <textarea ref="cascade" onChange={this.cascadePopopChange}
+            <textarea ref='cascade' onChange={this.cascadePopopChange}
               value={this.state.cascadeTextareaValue} />
 
             {choiceListHelpUrl ?
-              <div className="cascade-help right-tooltip">
+              <div className='cascade-help right-tooltip'>
                 <a href={choiceListHelpUrl}
-                  target="_blank"
+                  target='_blank'
                   data-tip={t('Learn more about importing cascading lists from Excel')}>
-                    <i className="k-icon-help" />
+                    <i className='k-icon-help' />
                 </a>
               </div>
             : null}

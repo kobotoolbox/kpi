@@ -1,11 +1,14 @@
+import copy
 from collections import OrderedDict
 
 from django.db import models
 from django.core.exceptions import FieldError
-from jsonbfield.fields import JSONField as JSONBField
-from rest_framework.serializers import ReadOnlyField
-from rest_framework.pagination import LimitOffsetPagination
+
 from shortuuid import ShortUUID
+from rest_framework import serializers
+from rest_framework.reverse import reverse
+from jsonbfield.fields import JSONField as JSONBField
+from rest_framework.pagination import LimitOffsetPagination
 
 # should be 22 per shortuuid documentation, but keeping at 21 to avoid having
 # to migrate dkobo (see SurveyDraft.kpi_asset_uid)
@@ -86,7 +89,7 @@ class LazyDefaultJSONBField(JSONBField):
         return value
 
 
-class PaginatedApiField(ReadOnlyField):
+class PaginatedApiField(serializers.ReadOnlyField):
     '''
     Serializes a manager or queryset `source` to a paginated representation
     '''
@@ -131,3 +134,22 @@ class PaginatedApiField(ReadOnlyField):
             ('previous', self.paginator.get_previous_link()),
             ('results', serializer.data)
         ])
+
+
+class SerializerMethodFileField(serializers.FileField):
+    '''
+    A `FileField` that gets its representation from calling a method on the
+    parent serializer class, like a `SerializerMethodField`. The method called
+    will be of the form "get_{field_name}", and should take a single argument,
+    which is the object being serialized.
+    '''
+    def __init__(self, *args, **kwargs):
+        self._serializer_method_field = serializers.SerializerMethodField()
+        super(SerializerMethodFileField, self).__init__(*args, **kwargs)
+
+    def bind(self, *args, **kwargs):
+        self._serializer_method_field.bind(*args, **kwargs)
+        super(SerializerMethodFileField, self).bind(*args, **kwargs)
+
+    def to_representation(self, obj):
+        return self._serializer_method_field.to_representation(obj.instance)
