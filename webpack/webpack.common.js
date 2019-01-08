@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const BundleTracker = require('webpack-bundle-tracker');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 var merge = require('lodash.merge');
 
 // HACK: we needed to define this postcss-loader because of a problem with
@@ -74,6 +75,9 @@ var defaultOptions = {
     }
   },
   plugins: [
+    new StyleLintPlugin({
+      files: './jsapp/**/*.scss'
+    }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
   ]
 }
