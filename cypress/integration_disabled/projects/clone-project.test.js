@@ -3,7 +3,7 @@ describe('Clone project', () => {
     const assetName = 'First mammals on Earth';
 
     cy.flushDatabase();
-    cy.login();
+    cy.loginByInterface();
     cy.createAsset(assetName);
 
     cy.visit('/');

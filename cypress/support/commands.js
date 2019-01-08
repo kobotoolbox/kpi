@@ -1,16 +1,20 @@
-// login user programmaticaly
-Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
+const DEFAULT_USERNAME = 'kobo';
+const DEFAULT_PASSWORD = 'kobo';
+
+// fast login using raw HTTP requests
+Cypress.Commands.add('login', (username = DEFAULT_USERNAME, password = DEFAULT_PASSWORD) => {
   cy.request({
     method: 'GET',
     url: '/accounts/login/'
-  }).then((data) => {
+  }).then((response) => {
     const tokenName = 'csrftoken=';
     let tokenVal;
-    for (let cookieVal of data.headers['set-cookie']) {
+    for (let cookieVal of response.headers['set-cookie']) {
       if (cookieVal.startsWith(tokenName)) {
         tokenVal = cookieVal.substring(tokenName.length, cookieVal.indexOf(';'));
       }
     }
+
     cy.request({
       method: 'POST',
       url: '/accounts/login/',
@@ -22,6 +26,14 @@ Cypress.Commands.add('login', (username = 'kobo', password = 'kobo') => {
       }
     });
   });
+});
+
+// slow login using interface
+Cypress.Commands.add('loginByInterface', (username = DEFAULT_USERNAME, password = DEFAULT_PASSWORD) => {
+  cy.visit('/');
+  cy.get('#id_username').type('kobo').should('have.value', username);
+  cy.get('#id_password').type('kobo').should('have.value', password);
+  cy.get('form.registration').submit();
 });
 
 // flush database

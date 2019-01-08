@@ -3,7 +3,7 @@ describe('Delete project', () => {
     const assetName = 'Pterodactyl feathers';
 
     cy.flushDatabase();
-    cy.login();
+    cy.loginByInterface();
     cy.createAsset(assetName);
 
     cy.visit('/');
