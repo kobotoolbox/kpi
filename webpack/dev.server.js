@@ -32,7 +32,9 @@ module.exports = WebpackCommon({
   },
   plugins: [
     new StyleLintPlugin({
-      failOnError: true,
+      failOnError: false,
+      emitErrors: true,
+      syntax: 'scss',
       files: './jsapp/**/*.scss'
     }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),

@@ -76,7 +76,7 @@ var defaultOptions = {
   },
   plugins: [
     new StyleLintPlugin({
-      failOnError: true,
+      failOnError: false,
       emitErrors: true,
       syntax: 'scss',
       files: './jsapp/**/*.scss'
