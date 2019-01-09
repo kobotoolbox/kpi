@@ -76,6 +76,9 @@ var defaultOptions = {
   },
   plugins: [
     new StyleLintPlugin({
+      failOnError: true,
+      emitErrors: true,
+      syntax: 'scss',
       files: './jsapp/**/*.scss'
     }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})

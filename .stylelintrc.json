@@ -178,7 +178,6 @@
             "never",
             { "severity": "warning" }
         ],
-        "no-descending-specificity": [true, { "severity": "warning" }],
         "no-duplicate-at-import-rules": true,
         "no-duplicate-selectors": [true, { "severity": "warning" }],
         "no-empty-source": true,
