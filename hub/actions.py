@@ -13,7 +13,8 @@ from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy, ugettext as _
 
-from kpi.deployment_backends.kc_access.shadow_models import _ShadowModel
+from kpi.deployment_backends.kc_access.shadow_models import ShadowModel
+
 
 def delete_related_objects(modeladmin, request, queryset):
     """
@@ -47,7 +48,7 @@ def delete_related_objects(modeladmin, request, queryset):
                 # element. We can skip it since delete() on the first
                 # level of related objects will cascade.
                 continue
-            elif not isinstance(obj, _ShadowModel):
+            elif not isinstance(obj, ShadowModel):
                 first_level_related_objects.append(obj)
 
     # Populate deletable_objects, a data structure of (string representations

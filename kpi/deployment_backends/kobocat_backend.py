@@ -18,31 +18,13 @@ from rest_framework import exceptions, status, serializers
 from rest_framework.request import Request
 from rest_framework.authtoken.models import Token
 
-from ..exceptions import BadFormatException
+from ..exceptions import BadFormatException, KobocatDeploymentException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
-from .kc_access.shadow_models import _models
+from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.utils.mongo_helper import MongoDecodingHelper
 from kpi.utils.log import logging
-
-
-class KobocatDeploymentException(exceptions.APIException):
-    def __init__(self, *args, **kwargs):
-        if 'response' in kwargs:
-            self.response = kwargs.pop('response')
-        super(KobocatDeploymentException, self).__init__(*args, **kwargs)
-
-    @property
-    def invalid_form_id(self):
-        # We recognize certain KC API responses as indications of an
-        # invalid form id:
-        invalid_form_id_responses = (
-            'Form with this id or SMS-keyword already exists.',
-            'In strict mode, the XForm ID must be a valid slug and '
-                'contain no spaces.',
-        )
-        return self.detail in invalid_form_id_responses
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -210,7 +192,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform_id(self):
         pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
-        xform = _models.XForm.objects.filter(pk=pk).only(
+        xform = ReadOnlyXForm.objects.filter(pk=pk).only(
             'user__username', 'id_string').first()
         if not (xform.user.username == self.asset.owner.username and
                 xform.id_string == self.xform_id_string):
@@ -556,7 +538,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param instances_ids: list. Optional
         :return: list<XML>
         """
-        queryset = _models.Instance.objects.filter(
+        queryset = ReadOnlyInstance.objects.filter(
             xform_id=self.xform_id,
             deleted_at=None
         )
