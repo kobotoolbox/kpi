@@ -29,7 +29,7 @@ dj-static==0.0.6
 django-braces==1.11.0
 django-celery-beat==1.1.1
 django-constance[database]==2.2.0
-django-debug-toolbar==1.6
+django-debug-toolbar==1.4
 django-extensions==1.7.6
 django-haystack==2.6.0
 django-jsonbfield==0.1.0
