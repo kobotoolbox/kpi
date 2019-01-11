@@ -7,8 +7,16 @@ from kpi.utils.log import logging
 
 # When using `./manage.py runserver_plus`, print output is not
 # displayed in the console. This monkey-patch makes it work.
-# Very buggy, only for dev environment
+# Pretty buggy, only for dev environment
+
 old_stdout = sys.stdout
+is_ipython = False
+
+try:
+    get_ipython()
+    is_ipython = True
+except Exception as e:
+    pass
 
 
 class F:
@@ -19,10 +27,10 @@ class F:
         logging.debug(message.rstrip())
 
 
-F.flush = old_stdout.flush
-
-
-try:
-    sys.stdout = F()
-except Exception as e:
-    sys.stdout = old_stdout
+# Patch only if not in iPython console
+if not is_ipython:
+    F.flush = old_stdout.flush
+    try:
+        sys.stdout = F()
+    except Exception as e:
+        sys.stdout = old_stdout
