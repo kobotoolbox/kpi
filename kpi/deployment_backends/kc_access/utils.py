@@ -12,7 +12,7 @@ from django.db import ProgrammingError, transaction
 from rest_framework.authtoken.models import Token
 import requests
 
-from .shadow_models import safe_kc_read, ReadOnlyXForm
+from .shadow_models import safe_kc_read, ReadOnlyXForm, UserProfile
 from kpi.utils.log import logging
 from kpi.exceptions import KoboCatProfileException
 
