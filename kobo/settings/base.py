@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Django settings for kobo project.
 
@@ -23,11 +24,13 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from .static_lists import EXTRA_LANG_INFO
+from ..static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+settings_dirname = os.path.dirname(os.path.abspath(__file__))
+parent_dirname = os.path.dirname(settings_dirname)
+BASE_DIR = os.path.abspath(os.path.dirname(parent_dirname))
 
 
 # Quick-start development settings - unsuitable for production
@@ -193,7 +196,6 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 # @TODO remove this when `KC_DATABASE_URL is added to:
 #  - `kobo-install` templates
 #  - `kobo-docker` templates

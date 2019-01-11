@@ -39,7 +39,7 @@ env:
        PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache
        DJANGO_DEBUG=False
        DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM
-       DJANGO_SETTINGS_MODULE=kobo.settings
+       DJANGO_SETTINGS_MODULE=kobo.settings.prod
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/

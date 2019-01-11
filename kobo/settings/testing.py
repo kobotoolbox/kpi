@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from .settings import *
+from .base import *
 
 # For tests, don't use Kobocat DB
 DATABASES = {

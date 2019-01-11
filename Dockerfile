@@ -7,7 +7,7 @@ ENV KPI_LOGS_DIR=/srv/logs \
     BUILD_DIR=/srv/build \
     FONTS_DIR=/srv/fonts \
     WEBPACK_STATS_PATH=/srv/webpack-stats.json \
-    DJANGO_SETTINGS_MODULE=kobo.settings \
+    DJANGO_SETTINGS_MODULE=kobo.settings.prod \
     # The mountpoint of a volume shared with the `nginx` container. Static files will
     #   be copied there.
     NGINX_STATIC_DIR=/srv/static
