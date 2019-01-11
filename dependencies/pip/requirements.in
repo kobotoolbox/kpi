@@ -51,7 +51,6 @@ mock
 oauthlib
 psycopg2
 pymongo
-pytest-django
 python-dateutil
 pytz
 pyxform
