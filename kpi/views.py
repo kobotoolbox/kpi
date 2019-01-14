@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from distutils.util import strtobool
 from itertools import chain
 import copy
@@ -77,6 +78,7 @@ from .renderers import (
     SSJsonRenderer,
     XFormRenderer,
     XMLRenderer,
+    SubmissionRenderer,
     XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
@@ -187,6 +189,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
                 instance.user,
                 instance.permission.codename
             )
+
 
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
@@ -701,20 +704,55 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
 
 class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                         KobocatDataProxyViewSetMixin):
-    '''
+    """
     TODO: Access the submission data directly instead of merely proxying to
     KoBoCAT. We can now use `KobocatBackend.get_submissions()` and
      `KobocatBackend.get_submission()`
-    '''
+    """
     parent_model = Asset
+    renderer_classes = (renderers.BrowsableAPIRenderer,
+                        renderers.JSONRenderer,
+                        SubmissionRenderer
+                        )
 
-    # @TODO Handle list of ids before using it
-    # def list(self, request, *args, **kwargs):
-    #     asset_uid = self.get_parents_query_dict().get("asset")
-    #     asset = get_object_or_404(self.parent_model, uid=asset_uid)
-    #     format_type = kwargs.get("format", "json")
-    #     submissions = asset.deployment.get_submissions(format_type=format_type)
-    #     return Response(list(submissions))
+    # def _get_asset(self, asset):
+    #     if asset is None:
+    #         asset_uid = self.get_parents_query_dict()['asset']
+    #         asset = get_object_or_404(self.parent_model, uid=asset_uid)
+    #
+    #     return asset
+    #
+    # def _get_deployment(self, request, asset=None):
+    #     """
+    #     Presupposing the use of `NestedViewSetMixin`, return the deployment for
+    #     the asset specified by the KPI request
+    #     """
+    #     asset = self._get_asset(asset)
+    #
+    #     if not asset.has_deployment:
+    #         raise serializers.ValidationError(
+    #             _('The specified asset has not been deployed'))
+    #     if not isinstance(asset.deployment, KobocatDeploymentBackend):
+    #         raise NotImplementedError(
+    #             'This viewset can only be used with the KoBoCAT deployment '
+    #             'backend')
+    #     return asset.deployment
+
+    def list(self, request, *args, **kwargs):
+        # @todo support mongo querying
+        # @todo add paging
+        format_type = kwargs.get("format", "json")
+        deployment = self._get_deployment(request)
+        filters = request.GET.dict()
+        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        return Response(list(submissions))
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        # @todo support mongo querying
+        format_type = kwargs.get("format", "json")
+        deployment = self._get_deployment(request)
+        submission = deployment.get_submission(pk, format_type=format_type)
+        return Response(submission)
 
     def create(self, request, *args, **kwargs):
         """

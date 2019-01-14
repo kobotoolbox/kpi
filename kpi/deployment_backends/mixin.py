@@ -25,7 +25,7 @@ class DeployableMixin:
             backend = kwargs.pop('backend')
             try:
                 DEPLOYMENT_BACKENDS[backend](self).connect(**kwargs)
-            except KeyError, e:
+            except KeyError as e:
                 raise KeyError(
                     'cannot retrieve asset backend: "{}"'.format(backend))
         else:
@@ -146,64 +146,64 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         django_response.write(requests_response.content)
         return django_response
 
-    def list(self, kpi_request, *args, **kwargs):
-        return self.retrieve(kpi_request, None, *args, **kwargs)
+    # def list(self, kpi_request, *args, **kwargs):
+    #     return self.retrieve(kpi_request, None, *args, **kwargs)
 
-    def retrieve(self, kpi_request, pk, *args, **kwargs):
-
-        asset_uid = self.get_parents_query_dict()['asset']
-        asset = get_object_or_404(self.parent_model, uid=asset_uid)
-
-        if isinstance(asset.deployment, MockDeploymentBackend):
-            return super(KobocatDataProxyViewSetMixin, self).retrieve(
-                request=kpi_request,
-                pk=pk,
-                *args,
-                **kwargs)
-        else:
-            deployment = self._get_deployment(kpi_request, asset=asset)
-            if pk is None:
-                kc_url = deployment.submission_list_url
-            else:
-                kc_url = deployment.get_submission_detail_url(pk)
-
-            # We need to append query string parameters to url
-            # if any.
-            query_string_params = []
-            for key, value in kwargs.items():
-                if key.startswith("?"):
-                    query_string_params.append("{}={}".format(
-                        key[1:],
-                        value
-                    ))
-                    kwargs.pop(key)
-            if query_string_params:
-                kc_url = "{}?{}".format(
-                    kc_url,
-                    "&".join(query_string_params)
-                )
-
-            # We can now retrieve XML or JSON format from `kc`
-            # Request can be:
-            # - /assets/<parent_lookup_asset>/submissions/<pk>/
-
-            # - /assets/<parent_lookup_asset>/submissions/<pk>.<format>/
-            #   where `format` is among `kwargs`
-
-            # - /assets/<parent_lookup_asset>/submissions/<pk>?format=<format>/
-            #   where `format` is among `request.GET`
-            format = kwargs.pop("format", None)
-            params = kpi_request.GET.copy()
-            if format:
-                params.update({"format": format})
-
-            kc_request = requests.Request(
-                method='GET',
-                url=kc_url,
-                params=params
-            )
-            kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
-            return self._requests_response_to_django_response(kc_response)
+    # def retrieve(self, kpi_request, pk, *args, **kwargs):
+    #
+    #     asset_uid = self.get_parents_query_dict()['asset']
+    #     asset = get_object_or_404(self.parent_model, uid=asset_uid)
+    #
+    #     if isinstance(asset.deployment, MockDeploymentBackend):
+    #         return super(KobocatDataProxyViewSetMixin, self).retrieve(
+    #             request=kpi_request,
+    #             pk=pk,
+    #             *args,
+    #             **kwargs)
+    #     else:
+    #         deployment = self._get_deployment(kpi_request, asset=asset)
+    #         if pk is None:
+    #             kc_url = deployment.submission_list_url
+    #         else:
+    #             kc_url = deployment.get_submission_detail_url(pk)
+    #
+    #         # We need to append query string parameters to url
+    #         # if any.
+    #         query_string_params = []
+    #         for key, value in kwargs.items():
+    #             if key.startswith("?"):
+    #                 query_string_params.append("{}={}".format(
+    #                     key[1:],
+    #                     value
+    #                 ))
+    #                 kwargs.pop(key)
+    #         if query_string_params:
+    #             kc_url = "{}?{}".format(
+    #                 kc_url,
+    #                 "&".join(query_string_params)
+    #             )
+    #
+    #         # We can now retrieve XML or JSON format from `kc`
+    #         # Request can be:
+    #         # - /assets/<parent_lookup_asset>/submissions/<pk>/
+    #
+    #         # - /assets/<parent_lookup_asset>/submissions/<pk>.<format>/
+    #         #   where `format` is among `kwargs`
+    #
+    #         # - /assets/<parent_lookup_asset>/submissions/<pk>?format=<format>/
+    #         #   where `format` is among `request.GET`
+    #         format = kwargs.pop("format", None)
+    #         params = kpi_request.GET.copy()
+    #         if format:
+    #             params.update({"format": format})
+    #
+    #         kc_request = requests.Request(
+    #             method='GET',
+    #             url=kc_url,
+    #             params=params
+    #         )
+    #         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+    #         return self._requests_response_to_django_response(kc_response)
 
     def delete(self, kpi_request, pk, *args, **kwargs):
         deployment = self._get_deployment(kpi_request)
@@ -247,7 +247,6 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
 
         return self._requests_response_to_django_response(kc_response)
-
 
     @list_route(methods=["PATCH"])
     def validation_statuses(self, kpi_request, *args, **kwargs):

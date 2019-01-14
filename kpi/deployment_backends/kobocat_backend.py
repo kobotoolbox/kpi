@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import cStringIO
 import json
@@ -10,6 +10,7 @@ import unicodecsv
 import urlparse
 import posixpath
 
+from bson import json_util
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
@@ -23,7 +24,7 @@ from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
 from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.utils.mongo_helper import MongoDecodingHelper
+from kpi.utils.mongo_helper import MongoDecodingHelper, MongoHelper
 from kpi.utils.log import logging
 
 
@@ -32,6 +33,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     Used to deploy a project into KC. Stores the project identifiers in the
     "self.asset._deployment_data" JSONField.
     '''
+
+    USERFORM_ID = "_userform_id"
+    DEFAULT_LIMIT = 30000
+    DEFAULT_BATCHSIZE = 1000
 
     @staticmethod
     def make_identifier(username, id_string):
@@ -463,14 +468,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
 
-
     def get_submission_validation_status_url(self, submission_pk):
         url = '{detail_url}/validation_status'.format(
             detail_url=self.get_submission_detail_url(submission_pk)
         )
         return url
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
         """
         Retreives submissions through Postgres or Mongo depending on `format_type`.
         It can be filtered on instances uuids.
@@ -478,9 +482,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
         :param instances_ids: list. Optional
+        :param kwargs: dict. Optional. Mostly for Mongo query.
         :return: list: mixed
         """
         submissions = []
+        parsed_arguments = MongoHelper(**kwargs)
+
+        print(parsed_arguments)
+
         if format_type == INSTANCE_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(instances_ids)
         elif format_type == INSTANCE_FORMAT_TYPE_XML:
@@ -501,7 +510,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         if pk:
-            submissions = list(self.get_submissions(format_type, [pk]))
+            submissions = list(self.get_submissions(format_type, [int(pk)]))
             if len(submissions) > 0:
                 return submissions[0]
             return None
@@ -516,7 +525,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: generator<JSON>
         """
         query = {
-            "_userform_id": self.mongo_userform_id,
+            self.USERFORM_ID: self.mongo_userform_id,
             "_deleted_at": {"$exists": False}
         }
 
@@ -549,3 +558,94 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         queryset = queryset.order_by("id")
 
         return (lazy_instance.xml for lazy_instance in queryset)
+
+    def __get_mongo_cursor(self, **kwargs):
+
+        query = {
+            self.USERFORM_ID: self.mongo_userform_id,
+            "_deleted_at": {"$exists": False}
+        }
+
+        start = kwargs.get("start")
+        limit = kwargs.get("limit")
+        sort = kwargs.get("sort")
+        fields = kwargs.get("fields")
+
+        if isinstance(sort, basestring):
+            sort = json.loads(sort, object_hook=json_util.object_hook)
+        sort = sort if sort else {}
+
+        if isinstance(query, basestring):
+            query = json.loads(query, object_hook=json_util.object_hook)
+        query = query if query else {}
+        query = MongoHelper.to_safe_dict(query, reading=True)
+
+        if username and id_string:
+            query[cls.USERFORM_ID] = u'%s_%s' % (username, id_string)
+            # check if query contains and _id and if its a valid ObjectID
+            if '_uuid' in query and ObjectId.is_valid(query['_uuid']):
+                query['_uuid'] = ObjectId(query['_uuid'])
+
+        # fields must be a string array i.e. '["name", "age"]'
+        if isinstance(fields, basestring):
+            fields = json.loads(fields, object_hook=json_util.object_hook)
+        fields = fields if fields else []
+
+        # TODO: current mongo (3.4 of this writing)
+        # cant mix including and excluding fields in a single query
+        if type(fields) == list and len(fields) > 0:
+            fields.pop(self.USERFORM_ID)
+            fields_to_select = dict(
+                [(MongoHelper.encode(field), 1) for field in fields])
+        else:
+            fields_to_select = {self.USERFORM_ID: 0}
+
+        if start < 0 or limit < 0:
+            raise ValueError(_("Invalid start/limit params"))
+
+        if limit > cls.DEFAULT_LIMIT:
+            limit = cls.DEFAULT_LIMIT
+
+        return cls._get_paginated_and_sorted_cursor(cursor, start, limit, sort)
+
+
+        @classmethod
+        def _get_mongo_cursor(cls, query, fields, hide_deleted, username=None, id_string=None):
+            """
+            Returns a Mongo cursor based on the query.
+
+            :param query: JSON string
+            :param fields: Array string
+            :param hide_deleted: boolean
+            :param username: string
+            :param id_string: string
+            :return: pymongo Cursor
+            """
+
+
+            return xform_instances.find(query, fields_to_select)
+
+        @classmethod
+        def _get_paginated_and_sorted_cursor(cls, cursor, start, limit, sort):
+            """
+            Applies pagination and sorting on mongo cursor.
+
+            :param mongo_cursor: pymongo.cursor.Cursor
+            :param start: integer
+            :param limit: integer
+            :param sort: dict
+            :return: pymongo.cursor.Cursor
+            """
+            cursor.skip(start).limit(limit)
+
+            if type(sort) == dict and len(sort) == 1:
+                sort = MongoHelper.to_safe_dict(sort, reading=True)
+                sort_key = sort.keys()[0]
+                sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
+                cursor.sort(sort_key, sort_dir)
+
+            # set batch size
+            cursor.batch_size = cls.DEFAULT_BATCHSIZE
+            return cursor
+
+
