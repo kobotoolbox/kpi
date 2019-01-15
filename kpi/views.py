@@ -739,9 +739,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
     #     return asset.deployment
 
     def list(self, request, *args, **kwargs):
-        # @todo support mongo querying
-        # @todo add paging
-        format_type = kwargs.get("format", "json")
+        format_type = kwargs.get("format", request.GET.get("format", "json"))
         deployment = self._get_deployment(request)
         filters = request.GET.dict()
         submissions = deployment.get_submissions(format_type=format_type, **filters)
@@ -749,9 +747,10 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
 
     def retrieve(self, request, pk, *args, **kwargs):
         # @todo support mongo querying
-        format_type = kwargs.get("format", "json")
+        format_type = kwargs.get("format", request.GET.get("format", "json"))
         deployment = self._get_deployment(request)
-        submission = deployment.get_submission(pk, format_type=format_type)
+        filters = request.GET.dict()
+        submission = deployment.get_submission(pk, format_type=format_type, **filters)
         return Response(submission)
 
     def create(self, request, *args, **kwargs):
