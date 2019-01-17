@@ -353,7 +353,7 @@ mixins.droppable = {
             } else {
               if (!assetUid) {
                 // TODO: use a more specific error message here
-                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace project" icon.'));
+                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
                 if (params.assetUid)
                   hashHistory.push(`/forms/${params.assetUid}`);
               } else {

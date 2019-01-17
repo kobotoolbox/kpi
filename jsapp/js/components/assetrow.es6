@@ -353,7 +353,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                 >
                   <i className='k-icon-replace' />
-                  {t('Replace project')}
+                  {t('Replace form')}
                 </bem.PopoverMenu__link>
               }
               { userCanEdit &&
