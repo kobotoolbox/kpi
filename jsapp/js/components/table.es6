@@ -150,15 +150,36 @@ export class DataTable extends React.Component {
       console.error(error);
     });
   }
-  _prepColumns(data) {
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID', 'meta/deprecatedID', '_validation_status'];
 
-    var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
+  _prepColumns(data) {
+    const excludedKeys = [
+      '_xform_id_string',
+      '_attachments',
+      '_notes',
+      '_bamboo_dataset_id',
+      '_status',
+      'formhub/uuid',
+      '_tags',
+      '_geolocation',
+      '_submitted_by',
+      'meta/instanceID',
+      'meta/deprecatedID',
+      '_validation_status'
+    ];
+
+    const dataKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
     }, {}));
 
-    uniqueKeys = uniqueKeys.filter((el, ind, arr) => excludes.includes(el) === false);
+    const surveyKeys = [];
+    this.props.asset.content.survey.forEach((row) => {
+      surveyKeys.push(row.$autoname);
+    });
+
+    // make sure the survey columns are displayed, even if current data's
+    // submissions doesn't have them
+    let uniqueKeys = [...new Set([...dataKeys, ...surveyKeys])];
+    uniqueKeys = uniqueKeys.filter((key) => excludedKeys.includes(key) === false);
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
