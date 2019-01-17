@@ -74,6 +74,8 @@ export class DataTable extends React.Component {
       filter.forEach(function(f, i) {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
+        } else if (f.id === '__ValidationStatus') {
+          filterQuery += `"_validation_status.uid":"${f.value}"`;
         } else {
           filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
         }
