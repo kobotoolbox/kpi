@@ -6,48 +6,49 @@
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
 -e git+https://github.com/kobotoolbox/formpack.git@6f39abc642920964b6fbcfae16deb4b935956ad3#egg=formpack
-amqp==2.1.4
+amqp==2.3.2
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
+bcrypt==3.1.6             # via paramiko
 begins==0.9
-billiard==3.5.0.2
+billiard==3.5.0.4
 boto3==1.5.8
-boto==2.45.0
+boto==2.40.0
 botocore==1.8.22          # via boto3, s3transfer
-celery==4.0.2
-cffi==1.9.1               # via cryptography
+celery==4.2.1
+cffi==1.8.3               # via bcrypt, cryptography, pynacl
 cookies==2.2.1            # via responses
 cryptography==2.2.2       # via paramiko, pyopenssl
 cssselect==1.0.3          # via pyquery
 cyordereddict==1.0.0
 defusedxml==0.5.0         # via djangorestframework-xml
-dj-database-url==0.4.2
+dj-database-url==0.4.1
 dj-static==0.0.6
-django-braces==1.11.0
+django-braces==1.8.1
 django-celery-beat==1.1.1
 django-constance[database]==2.2.0
-django-debug-toolbar==1.6
-django-extensions==1.7.6
+django-debug-toolbar==1.4
+django-extensions==1.6.7
 django-haystack==2.6.0
 django-jsonbfield==0.1.0
 django-loginas==0.2.3
 django-markitup==3.0.0
 django-mptt==0.8.7
-django-oauth-toolkit==0.11.0
+django-oauth-toolkit==0.10.0
 django-picklefield==1.0.0  # via django-constance
 django-private-storage==2.1.2
 django-registration-redux==1.3
 django-reversion==2.0.8
-django-ses==0.8.1
+django-ses==0.7.1
 django-storages==1.6.5
 django-taggit==0.22.0
 django-toolbelt==0.0.1
-django-webpack-loader==0.4.1
-django==1.8.17
+django-webpack-loader==0.3.0
+django==1.8.19
 djangorestframework-xml==1.3.0
-djangorestframework==3.5.4
-docutils==0.13.1          # via botocore, statistics
+djangorestframework==3.3.3
+docutils==0.12            # via botocore, statistics
 drf-extensions==0.3.1
 enum34==1.1.6             # via cryptography
 fabric==1.13.1
@@ -55,53 +56,54 @@ formencode==1.3.1         # via pyxform
 funcsigs==1.0.2           # via begins, mock
 functools32==3.2.3.post2  # via jsonschema
 futures==3.1.1            # via s3transfer
-gunicorn==19.6.0
-idna==2.2                 # via cryptography
-ipaddress==1.0.18         # via cryptography
+gunicorn==19.4.5
+idna==2.1                 # via cryptography
+ipaddress==1.0.17         # via cryptography
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==1.0.3
 jsonschema==2.6.0
-kombu==4.0.2
+kombu==4.2.1
 linecache2==1.0.0         # via traceback2
 lxml==4.2.1
-markdown==2.6.8
+markdown==2.6.6
 mock==2.0.0
 ndg-httpsclient==0.4.2
-oauthlib==1.1.2
-paramiko==2.1.1           # via fabric
+oauthlib==1.0.3
+paramiko==2.4.2           # via fabric
 path.py==11.0.1
 pbr==4.0.2                # via mock
 psycopg2==2.7.3.2
-py==1.4.32                # via pytest
-pyasn1==0.2.2
-pycparser==2.17           # via cffi
-pygments==2.2.0
-pymongo==3.4.0
+py==1.4.31                # via pytest
+pyasn1==0.1.9
+pycparser==2.14           # via cffi
+pygments==2.1.3
+pymongo==3.3.0
+pynacl==1.3.0             # via paramiko
 pyopenssl==18.0.0
 pyquery==1.4.0
 pytest-django==3.1.2
-pytest==3.0.6             # via pytest-django
+pytest==3.0.3             # via pytest-django
 python-dateutil==2.6.0
 python-digest==1.7
-pytz==2016.10
+pytz==2016.4
 pyxform==0.12.0
-requests==2.13.0
+requests==2.10.0
 responses==0.9.0
 s3transfer==0.1.11        # via boto3
 shortuuid==0.4.3
 six==1.10.0
-sqlparse==0.2.2
+sqlparse==0.1.19
 static3==0.7.0
 statistics==1.0.3.5
-tabulate==0.7.7
+tabulate==0.7.5
 traceback2==1.4.0         # via unittest2
 unicodecsv==0.14.1
 unittest2==1.1.0          # via pyxform
 uwsgi==2.0.17
-vine==1.1.3               # via amqp
-werkzeug==0.11.15
+vine==1.1.4               # via amqp
+werkzeug==0.14.1
 whitenoise==3.3.1
 whoosh==2.7.4
 xlrd==1.1.0
 xlsxwriter==1.0.4
-xlwt==1.2.0
+xlwt==1.0.0
