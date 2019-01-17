@@ -423,23 +423,26 @@ export class FormLanding extends React.Component {
   }
   renderLanguages (canEdit) {
     let translations = this.state.content.translations;
-    if (!translations || translations.length < 2)
-      return false;
 
     return (
       <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
         <bem.FormView__cell m='translation-list'>
           <strong>{t('Languages:')}</strong>
           &nbsp;
-          <ul>
-            {translations.map((langString, n)=>{
-              return (
-                <li key={n}>
-                  {langString || t('Unnamed language')}
-                </li>
-              );
-            })}
-          </ul>
+          {!translations || translations.length < 2 &&
+            t('This project has no languages defined yet')
+          }
+          {translations && translations.length >= 2 &&
+            <ul>
+              {translations.map((langString, n)=>{
+                return (
+                  <li key={n}>
+                    {langString || t('Unnamed language')}
+                  </li>
+                );
+              })}
+            </ul>
+          }
         </bem.FormView__cell>
 
         {canEdit &&
