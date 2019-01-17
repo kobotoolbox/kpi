@@ -293,7 +293,7 @@ var dataInterface;
     },
     getAssetXformView (uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/xform`,
+        url: `${rootUrl}/assets/${uid}/xform/`,
         dataType: 'html'
       });
     },
@@ -417,13 +417,13 @@ var dataInterface;
         filter += '&count=1';
 
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
+        url: `${rootUrl}/assets/${uid}/submissions/?${query}${s}${f}${filter}`,
         method: 'GET'
       });
     },
     getSubmission(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/`,
         method: 'GET'
       });
     },
@@ -443,7 +443,7 @@ var dataInterface;
     },
     getSubmissionsQuery(uid, query='') {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions?${query}`,
+        url: `${rootUrl}/assets/${uid}/submissions/?${query}`,
         method: 'GET'
       });
     },
@@ -455,7 +455,7 @@ var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=false`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit/?return_url=false`,
         method: 'GET'
       });
     },
@@ -475,13 +475,13 @@ var dataInterface;
     },
     getAssetFiles(uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/files`,
+        url: `${rootUrl}/assets/${uid}/files/`,
         method: 'GET'
       });
     },
     deleteAssetFile(assetUid, uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${assetUid}/files/${uid}`,
+        url: `${rootUrl}/assets/${assetUid}/files/${uid}/`,
         method: 'DELETE'
       });
     },
