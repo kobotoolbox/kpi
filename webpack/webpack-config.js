@@ -191,21 +191,9 @@ module.exports = function (options) {
       }
     },
     module: {
-      preLoaders: [
-        {
-          test: /\.(js|jsx|es6)$/,
-          exclude: /(node_modules|bower_components)/,
-          loader: 'eslint-loader'
-        }
-      ],
       loaders: loaders
     },
     plugins: plugins,
-    eslint: {
-      configFile: path.join(__dirname, '../.eslintrc'),
-      failOnError: options.failOnError,
-      emitError: options.failOnError
-    },
     postcss: function () {
       return [autoprefixer(autoprefixerOptions)];
     },
