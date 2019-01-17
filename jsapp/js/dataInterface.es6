@@ -423,7 +423,7 @@ var dataInterface;
     },
     getSubmission(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/`,
         method: 'GET'
       });
     },
