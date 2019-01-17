@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 import re
 
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
+from rest_framework import status
+
 from base_backend import BaseDeploymentBackend
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 
@@ -46,6 +50,43 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
 
+    @property
+    def submission_list_url(self):
+        # This doesn't really need to be implemented.
+        # We keep it to stay close to `KobocatDeploymentBackend`
+        return reverse("submission-list", kwargs={"parent_lookup_asset": self.asset.uid})
+
+    def get_submission_detail_url(self, submission_pk):
+        # Same comment as in `submission_list_url()`
+        url = '{list_url}{pk}/'.format(
+            list_url=self.submission_list_url,
+            pk=submission_pk
+        )
+        return url
+
+    def get_submission_edit_url(self, submission_pk, user, params=None):
+        """
+        Gets edit URL of the submission in a format FE can understand
+
+        :param submission_pk: int
+        :param user: User
+        :param params: dict
+        :return: JSON
+        """
+        return {
+            "url": "http://server.mock/enketo/{}".format(submission_pk)
+        }
+
+    def delete_submission(self, pk, user):
+        """
+        Deletes submission
+        :param pk: int
+        :param user: User
+        :return:
+        """
+        # No need to delete data, just fake it
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
     def get_data_download_links(self):
         return {}
 
@@ -72,7 +113,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
         """
         Returns a list of json representation of instances.
 
@@ -89,13 +130,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions
                                if re.search(r"<id>({})<\/id>".format(pattern), submission)]
             else:
-                submissions = [submission for submission in submissions if submission.get("id") in instances_ids]
+                submissions = [submission for submission in submissions if submission.get("id") in
+                               list(map(int, instances_ids))]
 
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
+    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
         if pk:
-            submissions = list(self.get_submissions(format_type, [pk]))
+            submissions = list(self.get_submissions(format_type, [pk], **kwargs))
             if len(submissions) > 0:
                 return submissions[0]
             return None

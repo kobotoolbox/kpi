@@ -13,6 +13,7 @@ import posixpath
 from bson import json_util
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
@@ -132,15 +133,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 u'This backend does not implement the {} method'.format(method)
             )
 
-        # Get or create the API authorization token for the asset's owner
-        (token, is_new) = Token.objects.get_or_create(user=self.asset.owner)
-        headers = kwargs.pop('headers', {})
-        headers[u'Authorization'] = 'Token ' + token.key
-
         # Make the request to KC
         try:
-            response = requests.request(
-                method, url, headers=headers, **kwargs)
+            kc_request = requests.Request(method=method, url=url, **kwargs)
+            response = self.__kobocat_proxy_request(kc_request, user=self.asset.owner)
+
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
@@ -362,6 +359,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise
         super(KobocatDeploymentBackend, self).delete()
 
+    def delete_submission(self, pk, user):
+        """
+        Deletes submission through `KoBoCat` proxy
+        :param pk: int
+        :param user: User
+        :return:
+        """
+        kc_url = self.get_submission_detail_url(pk)
+        kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__requests_response_to_django_response(kc_response)
+
     def get_enketo_survey_links(self):
         data = {
             'server_url': u'{}/{}'.format(
@@ -452,11 +461,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission_edit_url(self, submission_pk):
+    def get_submission_edit_url(self, submission_pk, user, params=None):
+        """
+        Gets edit URL of the submission from `kc` through proxy
+
+        :param submission_pk: int
+        :param user: User
+        :param params: dict
+        :return: JSON
+        """
         url = '{detail_url}/enketo'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
-        )
-        return url
+            detail_url=self.get_submission_detail_url(submission_pk))
+        kc_request = requests.Request(method='GET', url=url, params=params)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        print(type(kc_response))
+        print(kc_response.__dict__)
+        return self.__requests_response_to_django_response(kc_response)
 
     def _last_submission_time(self):
         _deployment_data = self.asset._deployment_data
@@ -472,9 +492,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
         """
-        Retreives submissions through Postgres or Mongo depending on `format_type`.
-        It can be filtered on instances uuids.
-        `uuid` is used instead of `id` because `id` is not available in ReadOnlyInstance model
+        Retrieves submissions through Postgres or Mongo depending on `format_type`.
+        It can be filtered on instances ids.
 
         :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
         :param instances_ids: list. Optional
@@ -580,3 +599,37 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             queryset = queryset[offset:limit]
 
         return (lazy_instance.xml for lazy_instance in queryset)
+
+    @staticmethod
+    def __kobocat_proxy_request(kc_request, user=None):
+        """
+        Send `kc_request`, which must specify `method` and `url` at a minimum.
+        If the incoming request to be proxied is authenticated,
+        logged-in user's API token will be added to `kc_request.headers`
+
+        :param kc_request: requests.models.Request
+        :param user: User
+        :return: requests.models.Response
+        """
+        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
+            token, created = Token.objects.get_or_create(user=user)
+            kc_request.headers['Authorization'] = 'Token %s' % token.key
+        session = requests.Session()
+        return session.send(kc_request.prepare())
+
+    @staticmethod
+    def __requests_response_to_django_response(requests_response):
+        """
+        Convert a `requests.models.Response` into a `django.http.HttpResponse`
+        """
+        HEADERS_TO_COPY = ('Content-Type', 'Content-Language')
+        django_response = HttpResponse()
+        for header in HEADERS_TO_COPY:
+            try:
+                django_response[header] = requests_response.headers[header]
+            except KeyError:
+                continue
+        django_response.status_code = requests_response.status_code
+        django_response.write(requests_response.content)
+        return django_response
+

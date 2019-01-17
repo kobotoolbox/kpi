@@ -62,8 +62,8 @@ class ApiHookTestCase(HookTestCase):
 
         # Create second hook
         second_hook = self._create_hook(name="other dummy external service",
-                                       endpoint="http://otherdummy.service.local/",
-                                       settings={})
+                                        endpoint="http://otherdummy.service.local/",
+                                        settings={})
         responses.add(responses.POST, second_hook.endpoint,
                       status=status.HTTP_200_OK,
                       content_type="application/json")

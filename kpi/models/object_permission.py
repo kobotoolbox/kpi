@@ -26,11 +26,12 @@ def perm_parse(perm, obj=None):
         app_label, codename = perm.split('.', 1)
         if obj_app_label is not None and app_label != obj_app_label:
             raise ValidationError('The given object does not belong to the app '
-                'specified in the permission string.')
+                                  'specified in the permission string.')
     except ValueError:
         app_label = obj_app_label
         codename = perm
     return app_label, codename
+
 
 def get_all_objects_for_user(user, klass):
     ''' Return all objects of type klass to which user has been assigned any
@@ -39,6 +40,7 @@ def get_all_objects_for_user(user, klass):
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
+
 
 def get_objects_for_user(user, perms, klass=None):
     """
@@ -76,10 +78,10 @@ def get_objects_for_user(user, perms, klass=None):
         codenames.add(codename)
         if app_label is not None:
             new_ctype = ContentType.objects.get(app_label=app_label,
-                permission__codename=codename)
+                                                permission__codename=codename)
             if ctype is not None and ctype != new_ctype:
                 raise ValidationError("Computed ContentTypes do not match "
-                    "(%s != %s)" % (ctype, new_ctype))
+                                      "(%s != %s)" % (ctype, new_ctype))
             else:
                 ctype = new_ctype
 
@@ -124,6 +126,7 @@ def get_objects_for_user(user, perms, klass=None):
     objects = queryset.filter(pk__in=values)
 
     return objects
+
 
 def get_anonymous_user():
     ''' Return a real User in the database to represent AnonymousUser. '''

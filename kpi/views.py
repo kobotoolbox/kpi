@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals, absolute_import
+
 from distutils.util import strtobool
 from itertools import chain
 import copy
@@ -72,6 +74,7 @@ from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
     get_perm_name,
+    SubmissionsPermissions
 )
 from .renderers import (
     AssetJsonRenderer,
@@ -105,8 +108,9 @@ from .tasks import import_in_background, export_in_background
 from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
-from deployment_backends.backends import DEPLOYMENT_BACKENDS
-from deployment_backends.mixin import KobocatDataProxyViewSetMixin
+from .deployment_backends.backends import DEPLOYMENT_BACKENDS
+from .deployment_backends.mixin import KobocatDataProxyViewSetMixin
+
 from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.log import logging
@@ -702,61 +706,36 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
         return view(self.request, uid=af.uid)
 
 
-class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
-                        KobocatDataProxyViewSetMixin):
+class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     """
-    TODO: Access the submission data directly instead of merely proxying to
-    KoBoCAT. We can now use `KobocatBackend.get_submissions()` and
-     `KobocatBackend.get_submission()`
+    @TODO API Doc
     """
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
                         SubmissionRenderer
                         )
+    permission_classes = (SubmissionsPermissions,)
 
-    # def _get_asset(self, asset):
-    #     if asset is None:
-    #         asset_uid = self.get_parents_query_dict()['asset']
-    #         asset = get_object_or_404(self.parent_model, uid=asset_uid)
-    #
-    #     return asset
-    #
-    # def _get_deployment(self, request, asset=None):
-    #     """
-    #     Presupposing the use of `NestedViewSetMixin`, return the deployment for
-    #     the asset specified by the KPI request
-    #     """
-    #     asset = self._get_asset(asset)
-    #
-    #     if not asset.has_deployment:
-    #         raise serializers.ValidationError(
-    #             _('The specified asset has not been deployed'))
-    #     if not isinstance(asset.deployment, KobocatDeploymentBackend):
-    #         raise NotImplementedError(
-    #             'This viewset can only be used with the KoBoCAT deployment '
-    #             'backend')
-    #     return asset.deployment
+    def _get_asset(self):
+        asset_uid = self.get_parents_query_dict()['asset']
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
 
-    def list(self, request, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
-        deployment = self._get_deployment(request)
-        filters = request.GET.dict()
-        submissions = deployment.get_submissions(format_type=format_type, **filters)
-        return Response(list(submissions))
+        return asset
 
-    def retrieve(self, request, pk, *args, **kwargs):
-        # @todo support mongo querying
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
-        deployment = self._get_deployment(request)
-        filters = request.GET.dict()
-        submission = deployment.get_submission(pk, format_type=format_type, **filters)
-        return Response(submission)
+    def _get_deployment(self):
+        """
+        Returns the deployment for the asset specified by the request
+        """
+        asset = self._get_asset()
+
+        if not asset.has_deployment:
+            raise serializers.ValidationError(
+                _('The specified asset has not been deployed'))
+        return asset.deployment
 
     def create(self, request, *args, **kwargs):
         """
-        This endpoint is handled by the SubmissionViewSet (not KobocatDataProxyViewSetMixin)
-        because it doesn't use KC proxy.
         It's only used to trigger hook services of the Asset (so far).
 
         :param request:
@@ -787,6 +766,30 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
             response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
         return Response(response, status=response_status_code)
+
+    def destroy(self, request, *args, **kwargs):
+        deployment = self._get_deployment()
+        pk = kwargs.get("pk")
+        return deployment.delete_submission(pk, user=request.user)
+
+    @detail_route(methods=['GET'])
+    def edit(self, request, pk, *args, **kwargs):
+        deployment = self._get_deployment()
+        return deployment.get_submission_edit_url(pk, user=request.user, params=request.GET)
+
+    def list(self, request, *args, **kwargs):
+        format_type = kwargs.get("format", request.GET.get("format", "json"))
+        deployment = self._get_deployment()
+        filters = request.GET.dict()
+        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        return Response(list(submissions))
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        format_type = kwargs.get("format", request.GET.get("format", "json"))
+        deployment = self._get_deployment()
+        filters = request.GET.dict()
+        submission = deployment.get_submission(pk, format_type=format_type, **filters)
+        return Response(submission)
 
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
