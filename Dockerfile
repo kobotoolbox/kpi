@@ -104,7 +104,7 @@ RUN ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
 ###########################
 
 RUN pip install --upgrade pip
-RUN python manage.py collectstatic --noinput
+#RUN python manage.py collectstatic --noinput
 
 
 #####################################
