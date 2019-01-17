@@ -72,7 +72,7 @@ ndg-httpsclient==0.4.2
 oauthlib==1.0.3
 path.py==11.0.1
 pbr==4.0.2                # via mock
-psycopg2==2.7.6.1
+psycopg2-binary==2.7.6.1
 py==1.4.31                # via pytest
 pyasn1==0.1.9
 pycparser==2.14           # via cffi
