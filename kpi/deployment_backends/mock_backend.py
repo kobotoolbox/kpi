@@ -86,7 +86,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         url = '{detail_url}validation_status/'.format(
             detail_url=self.get_submission_detail_url(submission_pk)
         )
-        print(url)
         return url
 
     def delete_submission(self, pk, user):
