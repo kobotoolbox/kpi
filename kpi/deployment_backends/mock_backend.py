@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 import re
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from rest_framework import status
 
-from base_backend import BaseDeploymentBackend
+from .base_backend import BaseDeploymentBackend
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 
 
@@ -73,19 +74,33 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         :param params: dict
         :return: JSON
         """
+
         return {
-            "url": "http://server.mock/enketo/{}".format(submission_pk)
+            "data": {
+                "url": "http://server.mock/enketo/{}".format(submission_pk)
+            }
         }
+
+    def get_submission_validation_status_url(self, submission_pk):
+        # Same comment as in `submission_list_url()`
+        url = '{detail_url}validation_status/'.format(
+            detail_url=self.get_submission_detail_url(submission_pk)
+        )
+        print(url)
+        return url
 
     def delete_submission(self, pk, user):
         """
         Deletes submission
         :param pk: int
         :param user: User
-        :return:
+        :return: JSON
         """
         # No need to delete data, just fake it
-        return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+        return {
+            "content_type": "application/json",
+            "status": status.HTTP_204_NO_CONTENT,
+        }
 
     def get_data_download_links(self):
         return {}
@@ -143,6 +158,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             return None
         else:
             raise ValueError("Primary key must be provided")
+
+    def get_validate_status(self, submission_pk, params, user):
+        submission = self.get_submission(submission_pk, INSTANCE_FORMAT_TYPE_JSON)
+        return {
+            "data": submission.get("_validation_status")
+        }
+
+    def set_validate_status(self, submission_pk, data, user):
+        pass
+
+    def set_validate_statuses(self, data, user):
+        pass
 
     def set_has_kpi_hooks(self):
         """

@@ -133,7 +133,13 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
     }
 
     action_map = {
-        'edit': 'PATCH'
+        "edit": {
+            "GET": ["%(app_label)s.change_%(model_name)s"],
+        },
+        "validation_status": {
+            "PATCH": ["%(app_label)s.validate_%(model_name)s"],
+        }
+
     }
 
     def has_permission(self, request, view):
@@ -178,12 +184,12 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
         }
 
         # Handle
-        method = self.action_map.get(action, method)
-        print(action)
-        print(method)
+        if action in self.action_map and self.action_map.get(action).get(method):
+            perm = self.action_map.get(action).get(method)[0] % kwargs
+        else:
+            if method not in self.perms_map:
+                raise exceptions.MethodNotAllowed(method)
 
-        if method not in self.perms_map:
-            raise exceptions.MethodNotAllowed(method)
+            perm = self.perms_map[method][0] % kwargs
 
-        perm = self.perms_map[method][0] % kwargs
         return perm.replace("{}.".format(app_label), "")

@@ -48,7 +48,7 @@ class XFormRenderer(XMLRenderer):
                                                  relationship="snapshot")
 
 
-class SubmissionRenderer(DRFXMLRenderer):
+class SubmissionXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         if renderer_context.get("view").action == "list":

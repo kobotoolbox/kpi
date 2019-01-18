@@ -23,8 +23,6 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import ugettext_lazy as _
-
-
 from rest_framework import (
     viewsets,
     mixins,
@@ -81,7 +79,7 @@ from .renderers import (
     SSJsonRenderer,
     XFormRenderer,
     XMLRenderer,
-    SubmissionRenderer,
+    SubmissionXMLRenderer,
     XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
@@ -109,7 +107,6 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from .deployment_backends.backends import DEPLOYMENT_BACKENDS
-from .deployment_backends.mixin import KobocatDataProxyViewSetMixin
 
 from kobo.apps.hook.utils import HookUtils
 from kpi.exceptions import BadAssetTypeException
@@ -713,7 +710,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
-                        SubmissionRenderer
+                        SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionsPermissions,)
 
@@ -770,12 +767,14 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     def destroy(self, request, *args, **kwargs):
         deployment = self._get_deployment()
         pk = kwargs.get("pk")
-        return deployment.delete_submission(pk, user=request.user)
+        json_response = deployment.delete_submission(pk, user=request.user)
+        return Response(**json_response)
 
-    @detail_route(methods=['GET'])
+    @detail_route(methods=['GET'], renderer_classes=[renderers.JSONRenderer])
     def edit(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        return deployment.get_submission_edit_url(pk, user=request.user, params=request.GET)
+        json_response = deployment.get_submission_edit_url(pk, user=request.user, params=request.GET)
+        return Response(**json_response)
 
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get("format", request.GET.get("format", "json"))
@@ -790,6 +789,23 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         filters = request.GET.dict()
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
         return Response(submission)
+
+    @detail_route(methods=["GET", "PATCH"], renderer_classes=[renderers.JSONRenderer])
+    def validation_status(self, request, pk, *args, **kwargs):
+        deployment = self._get_deployment()
+        if request.method == "PATCH":
+            json_response = deployment.set_validate_status(pk, request.data, request.user)
+        else:
+            json_response = deployment.get_validate_status(pk, request.GET, request.user)
+
+        return Response(**json_response)
+
+    @list_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    def validation_statuses(self, request, *args, **kwargs):
+        deployment = self._get_deployment()
+        json_response = deployment.set_validate_statuses(request.data, request.user)
+
+        return Response(**json_response)
 
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

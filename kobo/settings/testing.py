@@ -7,4 +7,3 @@ from .base import *
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
-

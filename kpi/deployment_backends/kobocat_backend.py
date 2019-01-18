@@ -364,12 +364,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Deletes submission through `KoBoCat` proxy
         :param pk: int
         :param user: User
-        :return:
+        :return: JSON
         """
+
         kc_url = self.get_submission_detail_url(pk)
-        kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_request = requests.delete(kc_url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
-        return self.__requests_response_to_django_response(kc_response)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
 
     def get_enketo_survey_links(self):
         data = {
@@ -474,9 +476,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             detail_url=self.get_submission_detail_url(submission_pk))
         kc_request = requests.Request(method='GET', url=url, params=params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
-        print(type(kc_response))
-        print(kc_response.__dict__)
-        return self.__requests_response_to_django_response(kc_response)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
 
     def _last_submission_time(self):
         _deployment_data = self.asset._deployment_data
@@ -529,6 +530,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return None
         else:
             raise ValueError(_("Primary key must be provided"))
+
+    def get_validate_status(self, submission_pk, params, user):
+        url = self.get_submission_validation_status_url(submission_pk)
+        kc_request = requests.Request(method="GET", url=url, data=params)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def set_validate_status(self, submission_pk, data, user):
+        url = self.get_submission_validation_status_url(submission_pk)
+        kc_request = requests.Request(method="PATCH", url=url, json=data)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def set_validate_statuses(self, data, user):
+        url = self.submission_list_url
+        kc_request = requests.Request(method="PATCH", url=url, json=data)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__prepare_as_drf_response_signature(kc_response)
 
     def __get_submissions_in_json(self, instances_ids=[], **kwargs):
         """
@@ -618,18 +637,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return session.send(kc_request.prepare())
 
     @staticmethod
-    def __requests_response_to_django_response(requests_response):
+    def __prepare_as_drf_response_signature(requests_response):
         """
-        Convert a `requests.models.Response` into a `django.http.HttpResponse`
+        Prepares a dict from `Requests` response.
+        Useful to get response from `kc` and use it as a dict or pass it to
+        DRF Response
         """
-        HEADERS_TO_COPY = ('Content-Type', 'Content-Language')
-        django_response = HttpResponse()
-        for header in HEADERS_TO_COPY:
-            try:
-                django_response[header] = requests_response.headers[header]
-            except KeyError:
-                continue
-        django_response.status_code = requests_response.status_code
-        django_response.write(requests_response.content)
-        return django_response
+
+        prepared_drf_response = {}
+
+        try:
+            prepared_drf_response["content_type"] = requests_response.headers.get("Content-Type")
+            prepared_drf_response["headers"] = {
+                "Content-Language": requests_response.headers.get("Content-Language")
+            }
+        except (KeyError, AttributeError):
+            pass
+
+        prepared_drf_response["status"] = requests_response.status_code
+
+        try:
+            prepared_drf_response["data"] = json.loads(requests_response.content)
+        except ValueError as e:
+            if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
+                raise Exception(str(e))
+
+        return prepared_drf_response
 
