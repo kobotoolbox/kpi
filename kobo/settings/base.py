@@ -199,26 +199,12 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-# @TODO remove this when `KC_DATABASE_URL is added to:
-#  - `kobo-install` templates
-#  - `kobo-docker` templates
-#  - `kobo-deployments` templates`
-# And use `os.getenv("KC_DATABASE_URL", "sqlite:///%s/db.sqlite3" % BASE_DIR)` instead
-kobocat_database_url = os.getenv("KC_DATABASE_URL", os.getenv("DATABASE_URL", "sqlite:///%s/db.sqlite3" % BASE_DIR))
-
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
-    'kobocat': dj_database_url.parse(kobocat_database_url)
+    'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
 
 DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
-
-# TODO - Remove the following lines when we are sure `django.contrib.gis.db.backends.postgis can be used
-# This project does not use GIS (yet). Change the database engine accordingly
-# to avoid unnecessary dependencies.
-#for db in DATABASES.values():
-#    if db['ENGINE'] == 'django.contrib.gis.db.backends.postgis':
-#        db['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
 
 
 # Internationalization
