@@ -128,7 +128,7 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
     fields_by_name = OrderedDict([
-            (field.name, field) for field in
+            (field.contextual_name, field) for field in
                 pack.get_fields_for_versions(versions=_all_versions)
         ])
     if field_names is None:
@@ -157,15 +157,15 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
                          'percentages': percentages})
 
     def _package_stat(field, _, stat, split_by):
-        identifier = kuids.get(field.name)
+        identifier = kuids.get(field.contextual_name)
         if not split_by:
-            _stat_dict_to_array(stat, field.name)
+            _stat_dict_to_array(stat, field.contextual_name)
         elif 'values' in stat:
             for _, sub_stat in stat['values']:
-                _stat_dict_to_array(sub_stat, field.name)
+                _stat_dict_to_array(sub_stat, field.contextual_name)
         return {
-            'name': field.name,
-            'row': {'type': fields_by_name.get(field.name).data_type},
+            'name': field.contextual_name,
+            'row': {'type': fields_by_name.get(field.contextual_name).data_type},
             'data': stat,
             'kuid': identifier,
             'style': specified_styles.get(identifier, {}),
