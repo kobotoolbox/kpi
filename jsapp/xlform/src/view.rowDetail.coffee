@@ -373,9 +373,14 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins.required =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
+      # viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
+      viewRowDetail.Templates.textbox(@cid, @model.key, _t("Mandatory response"), 'text')
+
+      # (o) yes <true>
+      # ( ) no <false>
+      # ( ) custom <text>
     afterRender: ->
-      @listenForCheckboxChange()
+      @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->
