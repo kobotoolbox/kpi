@@ -49,7 +49,11 @@ module.exports = do ->
       'input input': 'onChange'
     }
 
-    initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) -> return
+    initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) ->
+      if @paramValue is '' and typeof @paramDefault isnt 'undefined'
+        # make sure that params without values use default one
+        @onParamChange(@paramName, @paramDefault)
+      return
 
     render: ->
       template = $($viewTemplates.$$render("ParamsView.#{@paramType}Param", @paramName, @paramValue, @paramDefault))
@@ -59,6 +63,9 @@ module.exports = do ->
     onChange: (evt) ->
       if @paramType is $configs.paramTypes.number
         val = evt.currentTarget.value
+        # make sure that params without removed values keep using default one
+        if val is '' and typeof @paramDefault isnt 'undefined'
+          val = "#{@paramDefault}"
       else if @paramType is $configs.paramTypes.boolean
         val = evt.currentTarget.checked
       @onParamChange(@paramName, val)
