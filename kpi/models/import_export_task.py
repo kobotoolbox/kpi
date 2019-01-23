@@ -35,6 +35,30 @@ from ..model_utils import create_assets, _load_library_content, \
 from ..deployment_backends.mock_backend import MockDeploymentBackend
 
 
+# TODO: Remove lines below (38:58) when django and django-storages are upgraded
+# to latest version.
+# Because current version of Django is 1.8, we can't upgrade `django-storages`.
+# `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.1) requires `Django 1.11`
+from storages.backends.s3boto3 import S3Boto3StorageFile
+
+
+def _flush_write_buffer(self):
+    """
+    Flushes the write buffer.
+    """
+    if self._buffer_file_size:
+        self._write_counter += 1
+        self.file.seek(0)
+        part = self._multipart.Part(self._write_counter)
+        part.upload(Body=self.file.read())
+        self.file.seek(0)
+        self.file.truncate()
+
+
+# Monkey Patch S3Boto3StorageFile class with 1.7.1 version of the method
+S3Boto3StorageFile._flush_write_buffer = _flush_write_buffer
+
+
 def utcnow(*args, **kwargs):
     '''
     Stupid, and exists only to facilitate mocking during unit testing.
@@ -115,7 +139,7 @@ class ImportExportTask(models.Model):
             # This method must be implemented by a subclass
             self._run_task(msgs)
             self.status = self.COMPLETE
-        except Exception, err:
+        except Exception as err:
             msgs['error_type'] = type(err).__name__
             msgs['error'] = err.message
             self.status = self.ERROR
@@ -131,7 +155,7 @@ class ImportExportTask(models.Model):
         ).total_seconds()
         try:
             self.save(update_fields=['status', 'messages', 'data'])
-        except TypeError, e:
+        except TypeError as e:
             self.status = self.ERROR
             logging.error('Failed to save %s: %s' % (self._meta.model_name,
                                                    repr(e)),
@@ -576,6 +600,8 @@ class ExportTask(ImportExportTask):
                     # TODO: chunk again once
                     # https://github.com/jschneier/django-storages/issues/449
                     # is fixed
+                    # TODO: Check if monkey-patch (line 57) can restore writing
+                    # by chunk
                     '''
                     while True:
                         chunk = xlsx_output_file.read(5 * 1024 * 1024)
