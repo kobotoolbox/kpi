@@ -1,12 +1,17 @@
 module.exports = do ->
-  numberParam = (label, number, defaultValue) ->
+  numberParam = (label, currentValue, defaultValue) ->
     if typeof defaultValue isnt 'undefined'
       defaultValueAttr = "placeholder='#{defaultValue}'"
+
+    if currentValue isnt ''
+      valueAttr = "value='#{currentValue}'"
+    else if typeof defaultValue isnt 'undefined'
+      valueAttr = "value='#{defaultValue}'"
 
     return """
     <label class='text-box'>
       <span class='text-box__label'>#{label}</span>
-      <input class='text-box__input' type='number' value='#{number}' #{defaultValueAttr}/>
+      <input class='text-box__input' type='number' #{valueAttr} #{defaultValueAttr}/>
     </label>
     """
 
