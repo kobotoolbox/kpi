@@ -202,13 +202,13 @@ class SubmissionEditApiTests(BaseTestCase):
 
 class SubmissionValidationStatusApiTests(BaseTestCase):
 
+    # @TODO Test PATCH
+
     def setUp(self):
         super(SubmissionValidationStatusApiTests, self).setUp()
         self.submission = self.submissions[0]
         self.validation_status_url = self.asset.deployment.get_submission_validation_status_url(
             self.submission.get("id"))
-
-        print(self.validation_status_url)
 
     def test_submission_validate_status_owner(self):
         response = self.client.get(self.validation_status_url, {"format": "json"})
@@ -230,3 +230,4 @@ class SubmissionValidationStatusApiTests(BaseTestCase):
         self.client.logout()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
