@@ -2,15 +2,12 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # Formpack
--e git+https://github.com/kobotoolbox/formpack.git@40110eeb001b1a581aad6836f746fedef8be5752#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@6f39abc642920964b6fbcfae16deb4b935956ad3#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 python-digest==1.7
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
-
-# django-guardian must match KoBoCAT's version
-django-guardian==1.4.1
 
 # Regular PyPI packages
 Django<1.9

@@ -230,6 +230,18 @@ class PopoverMenu extends React.Component {
     if (isBlur && this.props.blurEventDisabled)
       return false;
 
+    if (
+      isBlur &&
+      evt.relatedTarget &&
+      evt.relatedTarget.dataset &&
+      evt.relatedTarget.dataset.popoverMenuStopBlur
+    ) {
+      // bring back focus to trigger to still enable this toggle callback
+      // but don't close the menu
+      evt.target.focus();
+      return false;
+    }
+
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
         this.setState({

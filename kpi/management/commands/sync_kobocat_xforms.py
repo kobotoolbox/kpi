@@ -16,7 +16,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
-from guardian.models import UserObjectPermission
 from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
@@ -303,7 +302,7 @@ def _sync_permissions(asset, xform):
         return []
 
     # Get all applicable KC permissions set for this xform
-    xform_user_perms = UserObjectPermission.objects.filter(
+    xform_user_perms = _models.UserObjectPermission.objects.filter(
         permission_id__in=PERMISSIONS_MAP.keys(),
         content_type=XFORM_CT,
         object_pk=xform.pk

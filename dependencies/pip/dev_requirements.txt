@@ -5,7 +5,7 @@
 #    pip-compile --output-file dependencies/pip/dev_requirements.txt dependencies/pip/dev_requirements.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@40110eeb001b1a581aad6836f746fedef8be5752#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@6f39abc642920964b6fbcfae16deb4b935956ad3#egg=formpack
 amqp==2.1.4
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
@@ -29,7 +29,6 @@ django-celery-beat==1.1.1
 django-constance[database]==2.2.0
 django-debug-toolbar==1.6
 django-extensions==1.7.6
-django-guardian==1.4.1
 django-haystack==2.6.0
 django-jsonbfield==0.1.0
 django-loginas==0.2.3
@@ -85,7 +84,7 @@ pytest==3.0.6             # via pytest-django
 python-dateutil==2.6.0
 python-digest==1.7
 pytz==2016.10
-pyxform==0.11.5
+pyxform==0.12.0
 requests==2.13.0
 responses==0.9.0
 s3transfer==0.1.11        # via boto3
