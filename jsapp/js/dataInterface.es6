@@ -29,7 +29,7 @@ var dataInterface;
 
   // hook up to all AJAX requests to check auth problems
   $(document).ajaxError((event, request, settings) => {
-    if (request.status === 403 || request.status === 401) {
+    if (request.status === 403 || request.status === 401 || request.status === 404) {
       dataInterface.selfProfile().done((data) => {
         if (data.message === 'user is not logged in') {
           let errorMessage = t("It seems you're not logged in anymore. Try reloading the page. The server said: ##server_message##")
