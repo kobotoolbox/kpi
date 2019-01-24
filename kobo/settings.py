@@ -451,7 +451,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
+CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
@@ -468,7 +468,7 @@ WEBPACK_LOADER = {
 
 # Email configuration from dkobo; expects SES
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
-    'django.core.mail.backends.filebased.EmailBackend')
+                               'django.core.mail.backends.filebased.EmailBackend')
 
 if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     EMAIL_FILE_PATH = os.environ.get(

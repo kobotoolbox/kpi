@@ -1,9 +1,10 @@
 # http://celery.readthedocs.org/en/latest/django/first-steps-with-django.html
 from __future__ import absolute_import
 import os
-import celery
 import logging
 
+import celery
+from django.apps import apps
 from django.conf import settings
 
 # Attempt to determine the project name from the directory containing this file
@@ -17,6 +18,7 @@ Celery = celery.Celery
 if hasattr(settings, 'RAVEN_CONFIG'):
     from raven.contrib.celery import register_signal, register_logger_signal
     from raven.contrib.django.raven_compat.models import client as raven_client
+
     # Log to Sentry from Celery jobs per
     # https://docs.getsentry.com/hosted/clients/python/integrations/celery/
     class RavenCelery(celery.Celery):
@@ -32,6 +34,14 @@ app = Celery(PROJECT_NAME)
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+app.conf.broker_transport_options = {
+    "fanout_patterns": True,
+    "fanout_prefix": True,
+    # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
+    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService 
+}
+
+
 # The `app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)` technique
 # described in
 # http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
@@ -40,8 +50,8 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # https://docs.djangoproject.com/en/1.8/ref/applications/#configuring-applications.
 # Ask Solem recommends the following workaround; see
 # https://github.com/celery/celery/issues/2248#issuecomment-97404667
-from django.apps import apps
 app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
+
 
 @app.task(bind=True)
 def debug_task(self):
