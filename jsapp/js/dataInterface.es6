@@ -32,13 +32,13 @@ var dataInterface;
     if (request.status === 403 || request.status === 401 || request.status === 404) {
       dataInterface.selfProfile().done((data) => {
         if (data.message === 'user is not logged in') {
-          let errorMessage = t("It seems you're not logged in anymore. Try reloading the page. The server said: ##server_message##")
+          let errorMessage = t("Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>")
+          let serverMessage = request.status.toString();
           if (request.responseJSON && request.responseJSON.detail) {
-            errorMessage = errorMessage.replace('##server_message##', request.responseJSON.detail);
-          } else {
-            errorMessage = errorMessage.replace('##server_message##', request.status);
+            serverMessage += ": " + request.responseJSON.detail;
           }
-          alertify.alert(t('Auth Error'), errorMessage);
+          errorMessage = errorMessage.replace('##server_message##', serverMessage);
+          alertify.alert(t('You are not logged in'), errorMessage);
         }
       });
     }
