@@ -9,6 +9,7 @@ $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
 $viewParams = require './view.params'
+$acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
@@ -212,12 +213,19 @@ module.exports = do ->
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
+
       paramsConfig = $configs.questionParams[questionType]
       if paramsConfig and 'getParameters' of @model
         @paramsView = new $viewParams.ParamsView({
           rowView: @,
           parameters: @model.getParameters(),
           paramsConfig: paramsConfig
+        }).render().insertInDOM(@)
+
+      if questionType is 'file'
+        @acceptedFilesView = new $acceptedFilesView.AcceptedFilesView({
+          rowView: @,
+          acceptedFiles: @model.getAcceptedFiles()
         }).render().insertInDOM(@)
 
       return @
