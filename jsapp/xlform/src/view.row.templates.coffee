@@ -252,27 +252,38 @@ module.exports = do ->
     </div>
     """
 
-  mandatorySettingSelector = (uniqueName) ->
+  mandatorySettingSelector = (uniqueName, currentValue) ->
+    checkedYes = ''
+    checkedNo = ''
+    checkedCustom = ''
+
+    if currentValue is 'true'
+      checkedYes = 'checked'
+    else if currentValue is 'false'
+      checkedNo = 'checked'
+    else
+      checkedCustom = 'checked'
+
     """
-    <div class="card__settings__fields__field">
+    <div class="card__settings__fields__field mandatory-setting">
       <label>#{_t('Mandatory response')}:</label>
       <span class="settings__input">
         <div class="radio">
           <label class="radio__row">
-            <input class="radio__input" type="radio" name="#{uniqueName}" value="true">
+            <input class="radio__input js-mandatory-setting-radio" type="radio" name="#{uniqueName}" value="true" #{checkedYes}>
             <span class="radio__label">#{_t('Yes')}</span>
           </label>
           <label class="radio__row">
-            <input class="radio__input" type="radio" name="#{uniqueName}" value="false">
+            <input class="radio__input js-mandatory-setting-radio" type="radio" name="#{uniqueName}" value="false" #{checkedNo}>
             <span class="radio__label">#{_t('No')}</span>
           </label>
           <label class="radio__row">
-            <input class="radio__input" type="radio" name="#{uniqueName}" value="custom">
+            <input class="radio__input js-mandatory-setting-radio" type="radio" name="#{uniqueName}" value="custom" #{checkedCustom}>
             <span class="radio__label">
               #{_t('Custom')}
 
               <label class="text-box">
-                <input type="text" class="text-box__input">
+                <input type="text" class="text-box__input js-mandatory-setting-custom-text" value="#{currentValue}">
               </label>
             </span>
           </label>

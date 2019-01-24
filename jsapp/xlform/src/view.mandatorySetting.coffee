@@ -8,23 +8,26 @@ module.exports = do ->
   class MandatorySettingView extends $baseView
     className: 'mandatory-setting'
     events: {
-      'input input': 'onChange'
+      'input .js-mandatory-setting-radio': 'onRadioChange'
+      'input .js-mandatory-setting-custom-text': 'onCustomTextChange'
     }
 
-    initialize: ({@rowView, @required={}}) ->
-      @$el = $($.parseHTML($viewTemplates.row.mandatorySettingSelector()))
+    initialize: ({@rowView, @required}) ->
+      console.log('initialize', @rowView, @required)
       return
 
-    insertInDOM: (rowView)->
-      @$el.appendTo(rowView.defaultRowDetailParent)
+    render: ->
+      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@required.cid}", String(@required.attributes.value)))
+      @$el.html(template)
+      @$el.appendTo(@rowView.defaultRowDetailParent)
+      return @
+
+    onRadioChange: (evt) ->
+      console.log('onRadioChange', evt.currentTarget.value)
       return
 
-    onChange: (evt) ->
-      if @paramType is $configs.paramTypes.number
-        val = evt.currentTarget.value
-      else if @paramType is $configs.paramTypes.boolean
-        val = evt.currentTarget.checked
-      @onParamChange(@paramName, val)
+    onCustomTextChange: (evt) ->
+      console.log('onCustomTextChange', evt.currentTarget.value)
       return
 
   MandatorySettingView: MandatorySettingView

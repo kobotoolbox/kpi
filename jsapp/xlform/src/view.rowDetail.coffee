@@ -370,6 +370,7 @@ module.exports = do ->
     afterRender: ->
       @listenForCheckboxChange()
 
+  # handled by mandatorySettingSelector
   viewRowDetail.DetailViewMixins.required =
     html: -> false
     insertInDOM: -> return
