@@ -252,6 +252,35 @@ module.exports = do ->
     </div>
     """
 
+  mandatorySettingSelector = (uniqueName) ->
+    """
+    <div class="card__settings__fields__field">
+      <label>#{_t('Mandatory response')}:</label>
+      <span class="settings__input">
+        <div class="radio">
+          <label class="radio__row">
+            <input class="radio__input" type="radio" name="#{uniqueName}" value="true">
+            <span class="radio__label">#{_t('Yes')}</span>
+          </label>
+          <label class="radio__row">
+            <input class="radio__input" type="radio" name="#{uniqueName}" value="false">
+            <span class="radio__label">#{_t('No')}</span>
+          </label>
+          <label class="radio__row">
+            <input class="radio__input" type="radio" name="#{uniqueName}" value="custom">
+            <span class="radio__label">
+              #{_t('Custom')}
+
+              <label class="text-box">
+                <input type="text" class="text-box__input">
+              </label>
+            </span>
+          </label>
+        </div>
+      </span>
+    </div>
+    """
+
   selectQuestionExpansion = ->
     """
     <div class="card--selectquestion__expansion row__multioptions js-cancel-sort">
@@ -277,6 +306,7 @@ module.exports = do ->
 
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
+  mandatorySettingSelector: mandatorySettingSelector
   paramsSettingsField: paramsSettingsField
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView

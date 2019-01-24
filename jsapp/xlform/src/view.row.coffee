@@ -9,6 +9,7 @@ $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
 $viewParams = require './view.params'
+$viewMandatorySetting = require './view.mandatorySetting'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
@@ -208,7 +209,7 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters']
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters', 'required']
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
@@ -219,6 +220,11 @@ module.exports = do ->
           parameters: @model.getParameters(),
           paramsConfig: paramsConfig
         }).render().insertInDOM(@)
+
+      @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
+        rowView: @
+        required: @model.get('required')
+      }).insertInDOM(@)
 
       return @
 
