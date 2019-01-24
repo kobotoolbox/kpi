@@ -253,34 +253,45 @@ module.exports = do ->
     """
 
   mandatorySettingSelector = (uniqueName, currentValue) ->
-    checkedYes = ''
-    checkedNo = ''
-    checkedCustom = ''
-
     if currentValue is 'true'
-      checkedYes = 'checked'
+      modifier = 'true'
     else if currentValue is 'false'
-      checkedNo = 'checked'
+      modifier = 'false'
     else
-      checkedCustom = 'checked'
+      modifier = 'custom'
 
     """
     <div class="card__settings__fields__field mandatory-setting">
       <label>#{_t('Mandatory response')}:</label>
       <span class="settings__input">
         <div class="radio">
-          <label class="radio__row">
-            <input class="radio__input js-mandatory-setting-radio" type="radio" name="#{uniqueName}" value="true" #{checkedYes}>
+          <label class="radio__row mandatory-setting__row mandatory-setting__row--true">
+            <input
+              class="radio__input js-mandatory-setting-radio"
+              type="radio"
+              name="#{uniqueName}"
+              value="true" #{if modifier is 'true' then 'checked' else ''}
+            >
             <span class="radio__label">#{_t('Yes')}</span>
           </label>
-          <label class="radio__row">
-            <input class="radio__input js-mandatory-setting-radio" type="radio" name="#{uniqueName}" value="false" #{checkedNo}>
+          <label class="radio__row mandatory-setting__row mandatory-setting__row--false">
+            <input
+              class="radio__input js-mandatory-setting-radio"
+              type="radio"
+              name="#{uniqueName}"
+              value="false" #{if modifier is 'false' then 'checked' else ''}
+            >
             <span class="radio__label">#{_t('No')}</span>
           </label>
-          <label class="radio__row">
-            <input class="radio__input js-mandatory-setting-radio" type="radio" name="#{uniqueName}" value="custom" #{checkedCustom}>
+          <label class="radio__row mandatory-setting__row mandatory-setting__row--custom">
+            <input
+              class="radio__input js-mandatory-setting-radio"
+              type="radio"
+              name="#{uniqueName}"
+              value="custom" #{if modifier is 'custom' then 'checked' else ''}
+            >
             <span class="radio__label">
-              #{_t('Custom')}
+              #{_t('Custom logic')}
 
               <label class="text-box">
                 <input type="text" class="text-box__input js-mandatory-setting-custom-text" value="#{currentValue}">

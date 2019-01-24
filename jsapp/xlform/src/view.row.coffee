@@ -222,9 +222,8 @@ module.exports = do ->
         }).render().insertInDOM(@)
 
       @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
-        rowView: @
-        required: @model.get('required')
-      }).render()
+        model: @model.get('required')
+      }).render().insertInDOM(@)
 
       return @
 

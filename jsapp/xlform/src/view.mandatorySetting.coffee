@@ -12,22 +12,36 @@ module.exports = do ->
       'input .js-mandatory-setting-custom-text': 'onCustomTextChange'
     }
 
-    initialize: ({@rowView, @required}) ->
-      console.log('initialize', @rowView, @required)
+    initialize: ({@model}) ->
+      console.log('initialize', @model)
+      if @model
+        @model.on('change', @render, @)
       return
 
     render: ->
-      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@required.cid}", String(@required.attributes.value)))
-      @$el.html(template)
-      @$el.appendTo(@rowView.defaultRowDetailParent)
+      console.log('render', @)
+      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", String(@model.attributes.value)))
+      @setElement(template)
       return @
 
+    insertInDOM: (rowView)->
+      @$el.appendTo(rowView.defaultRowDetailParent)
+      return
+
     onRadioChange: (evt) ->
-      console.log('onRadioChange', evt.currentTarget.value)
+      val = evt.currentTarget.value
+      console.log('onRadioChange', val)
+      @setNewValue(val)
       return
 
     onCustomTextChange: (evt) ->
-      console.log('onCustomTextChange', evt.currentTarget.value)
+      val = evt.currentTarget.value
+      console.log('onCustomTextChange', val)
+      @setNewValue(val)
+      return
+
+    setNewValue: (val) ->
+      @model.setDetail('required', val)
       return
 
   MandatorySettingView: MandatorySettingView
