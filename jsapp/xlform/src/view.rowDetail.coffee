@@ -188,6 +188,11 @@ module.exports = do ->
     html: -> false
     insertInDOM: (rowView)-> return
 
+  # body::accept is handled in custom view
+  viewRowDetail.DetailViewMixins['body::accept'] =
+    html: -> false
+    insertInDOM: (rowView)-> return
+
   viewRowDetail.DetailViewMixins.relevant =
     html: ->
       @$el.addClass("card__settings__fields--active")
