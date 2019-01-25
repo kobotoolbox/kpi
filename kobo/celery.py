@@ -7,6 +7,7 @@ import celery
 from django.apps import apps
 from django.conf import settings
 
+
 # Attempt to determine the project name from the directory containing this file
 PROJECT_NAME = os.path.basename(os.path.dirname(__file__))
 
@@ -33,14 +34,6 @@ app = Celery(PROJECT_NAME)
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings', namespace='CELERY')
-
-app.conf.broker_transport_options = {
-    "fanout_patterns": True,
-    "fanout_prefix": True,
-    # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
-    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService 
-}
-
 
 # The `app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)` technique
 # described in
