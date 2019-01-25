@@ -73,6 +73,18 @@ module.exports = do ->
       @$header = @$('.card__header')
       context = {warnings: []}
 
+      questionType = @model.get('type').get('typeId')
+      if (
+        $configs.questionParams[questionType] and
+        'getParameters' of @model and
+        questionType is 'range'
+      )
+        @paramsView = new $viewParams.ParamsView({
+          rowView: @,
+          parameters: @model.getParameters(),
+          questionType: questionType
+        }).render().insertInDOMAfter(@$header)
+
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
@@ -213,13 +225,15 @@ module.exports = do ->
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
-
-      paramsConfig = $configs.questionParams[questionType]
-      if paramsConfig and 'getParameters' of @model
+      if (
+        $configs.questionParams[questionType] and
+        'getParameters' of @model and
+        questionType isnt 'range'
+      )
         @paramsView = new $viewParams.ParamsView({
           rowView: @,
           parameters: @model.getParameters(),
-          paramsConfig: paramsConfig
+          questionType: questionType
         }).render().insertInDOM(@)
 
       if questionType is 'file'

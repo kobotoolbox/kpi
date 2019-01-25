@@ -252,6 +252,13 @@ module.exports = do ->
     </div>
     """
 
+  paramsSimple = ->
+    """
+    <div class="params-view__simple-wrapper">
+      <div class="params-view"></div>
+    </div>
+    """
+
   selectQuestionExpansion = ->
     """
     <div class="card--selectquestion__expansion row__multioptions js-cancel-sort">
@@ -278,6 +285,7 @@ module.exports = do ->
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
   paramsSettingsField: paramsSettingsField
+  paramsSimple: paramsSimple
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView
