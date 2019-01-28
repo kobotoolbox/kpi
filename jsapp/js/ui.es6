@@ -181,6 +181,7 @@ class AssetName extends React.Component {
     var row_count;
     if (!name) {
       row_count = summary.row_count;
+      // for unnamed assets, we try to display first question name
       name = summary.labels ? summary.labels[0] : false;
       if (!name) {
         isEmpty = true;
