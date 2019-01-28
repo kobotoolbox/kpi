@@ -181,6 +181,7 @@ class AssetName extends React.Component {
     var row_count;
     if (!name) {
       row_count = summary.row_count;
+      // for unnamed assets, we try to display first question name
       name = summary.labels ? summary.labels[0] : false;
       if (!name) {
         isEmpty = true;
@@ -229,6 +230,18 @@ class PopoverMenu extends React.Component {
 
     if (isBlur && this.props.blurEventDisabled)
       return false;
+
+    if (
+      isBlur &&
+      evt.relatedTarget &&
+      evt.relatedTarget.dataset &&
+      evt.relatedTarget.dataset.popoverMenuStopBlur
+    ) {
+      // bring back focus to trigger to still enable this toggle callback
+      // but don't close the menu
+      evt.target.focus();
+      return false;
+    }
 
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');

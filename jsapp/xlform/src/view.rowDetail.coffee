@@ -96,6 +96,11 @@ module.exports = do ->
         if transformFn
           $elVal = transformFn($elVal)
         changeModelValue($elVal)
+
+      $el.on('keyup', (evt) =>
+        if evt.key is 'Enter' or evt.keyCode is 13
+          $el.blur()
+      )
       return
 
     _insertInDOM: (where, how) ->
@@ -161,11 +166,16 @@ module.exports = do ->
       @
 
   viewRowDetail.DetailViewMixins.hint =
-    html: ->
-      @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Question hint"), 'text'
+    html: -> false
+    insertInDOM: (rowView) ->
+      hintEl = rowView.$hint
+      hintEl.value = @model.get("value")
+      return @
     afterRender: ->
-      @listenForInputChange()
+      @listenForInputChange({
+        el: this.rowView.$hint
+      })
+      return
 
   viewRowDetail.DetailViewMixins.guidance_hint =
     html: ->
@@ -185,6 +195,11 @@ module.exports = do ->
 
   # parameters are handled per case
   viewRowDetail.DetailViewMixins.parameters =
+    html: -> false
+    insertInDOM: (rowView)-> return
+
+  # body::accept is handled in custom view
+  viewRowDetail.DetailViewMixins['body::accept'] =
     html: -> false
     insertInDOM: (rowView)-> return
 
@@ -374,6 +389,13 @@ module.exports = do ->
     html: ->
       @$el.addClass("card__settings__fields--active")
       viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
+    afterRender: ->
+      @listenForCheckboxChange()
+
+  viewRowDetail.DetailViewMixins.read_only =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Read only")
     afterRender: ->
       @listenForCheckboxChange()
 

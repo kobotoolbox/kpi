@@ -132,7 +132,7 @@ class ProjectSettings extends React.Component {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
         return t('Create project');
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
-        return t('Replace project');
+        return t('Replace form');
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
       case PROJECT_SETTINGS_CONTEXTS.BUILDER:
       default:
@@ -222,6 +222,7 @@ class ProjectSettings extends React.Component {
   deleteProject() {
     this.deleteAsset(
       this.state.formAsset.uid,
+      this.state.formAsset.name,
       this.goToProjectsList.bind(this)
     );
   }

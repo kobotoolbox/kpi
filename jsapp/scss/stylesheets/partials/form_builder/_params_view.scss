@@ -1,8 +1,31 @@
-.params-view {
-  .param-option {
-    display: block;
-    &:not(:last-child) {
-      margin-bottom: 10px;
+.params-view__simple-wrapper {
+  @extend %card-content;
+
+  .params-view {
+    padding: 10px;
+
+    .param-option {
+      padding: 5px 10px;
+      display: inline-block;
+    }
+  }
+}
+
+.survey__row--selected {
+  .params-view__simple-wrapper {
+    border-left-color: $linkColor;
+    border-right-color: $linkColor;
+    border-bottom-color: $linkColor;
+  }
+}
+
+.card__settings__fields__field {
+  .params-view {
+    .param-option {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 10px;
+      }
     }
   }
 }
