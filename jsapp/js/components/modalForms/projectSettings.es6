@@ -257,7 +257,7 @@ class ProjectSettings extends React.Component {
   }
 
   // when archiving/unarchiving finishes, take user to a route that makes sense
-  // unless user navigates by itself before that happens
+  // unless user navigates by themselves before that happens
   onSetDeploymentActiveCompleted() {
     if (this.state.isAwaitingArchiveCompleted) {
       this.goToProjectsList();
