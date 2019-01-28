@@ -20,7 +20,7 @@
     }
     .card__header {
         border: $cardBorderStyle;
-        padding: 30px 40px 30px 75px;
+        padding: 20px 40px 20px 75px;
         display: block;
         background: white;
         cursor: move;
@@ -72,6 +72,14 @@
          &::placeholder {
             color: $cool-red;
             background-color: rgba($cool-red, 0.075);
+        }
+    }
+    .card__header-hint {
+        color: inherit;
+        font-weight: 400;
+        &::placeholder {
+            color: $cool-silver;
+            font-style: italic;
         }
     }
     .card__header-subtitle {

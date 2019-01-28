@@ -911,6 +911,15 @@ class Reports extends React.Component {
       showReportGraphSettings: !this.state.showReportGraphSettings,
     });
   }
+  hasAnyProvidedData (reportData) {
+    let hasAny = false;
+    reportData.map((rowContent, i)=>{
+      if (rowContent.data.provided) {
+        hasAny = true;
+      }
+    });
+    return hasAny;
+  }
   setCustomReport (e) {
     var crid = e ? e.target.getAttribute('data-crid') : false;
 
@@ -1099,7 +1108,6 @@ class Reports extends React.Component {
     var reportData = this.state.reportData || [];
 
     if (reportData.length) {
-
       if (currentCustomReport && currentCustomReport.questions.length) {
         const currentQuestions = currentCustomReport.questions;
         const fullReportData = this.state.reportData;
@@ -1109,7 +1117,6 @@ class Reports extends React.Component {
       if (this.state.reportLimit && reportData.length > this.state.reportLimit) {
         reportData = reportData.slice(0, this.state.reportLimit);
       }
-
     }
 
     if (this.state.reportData === undefined) {
@@ -1133,24 +1140,13 @@ class Reports extends React.Component {
       );
     }
 
-    if (this.state.reportData && reportData.length === 0) {
-      return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.ReportView>
-            <bem.Loading>
-              <bem.Loading__inner>
-                {t('This report has no data.')}
-              </bem.Loading__inner>
-            </bem.Loading>
-          </bem.ReportView>
-        </DocumentTitle>
-      );
-    }
-
     const formViewModifiers = [];
     if (this.state.isFullscreen) {
       formViewModifiers.push('fullscreen');
     }
+
+    const hasAnyProvidedData = this.hasAnyProvidedData(reportData);
+    const hasGroupBy = this.state.groupBy.length !== 0;
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -1158,27 +1154,42 @@ class Reports extends React.Component {
           <bem.ReportView>
             {this.renderReportButtons()}
 
-            <bem.ReportView__wrap>
-              <bem.PrintOnly>
-                <h3>{asset.name}</h3>
-              </bem.PrintOnly>
-              {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
-                <bem.FormView__cell m={['centered', 'reportLimit']}>
-                  <div>
-                    {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
-                  </div>
-                  <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
-                    {t('Show all (##)').replace('##', this.state.reportData.length)}
-                  </button>
-                </bem.FormView__cell>
-              }
+            {!hasAnyProvidedData &&
+              <bem.ReportView__wrap>
+                <bem.Loading>
+                  <bem.Loading__inner>
+                    {t('This report has no data.')}
 
-              <bem.ReportView__warning>
-                <h4>{t('Warning')}</h4>
-                <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-              </bem.ReportView__warning>
-              <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
-            </bem.ReportView__wrap>
+                    {hasGroupBy && ' ' + t('Try changing Report Style to "No grouping".')}
+                  </bem.Loading__inner>
+                </bem.Loading>
+              </bem.ReportView__wrap>
+            }
+
+            {hasAnyProvidedData &&
+              <bem.ReportView__wrap>
+                <bem.PrintOnly>
+                  <h3>{asset.name}</h3>
+                </bem.PrintOnly>
+                {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+                  <bem.FormView__cell m={['centered', 'reportLimit']}>
+                    <div>
+                      {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
+                    </div>
+                    <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
+                      {t('Show all (##)').replace('##', this.state.reportData.length)}
+                    </button>
+                  </bem.FormView__cell>
+                }
+
+                <bem.ReportView__warning>
+                  <h4>{t('Warning')}</h4>
+                  <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+                </bem.ReportView__warning>
+
+                <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
+              </bem.ReportView__wrap>
+            }
 
             {this.state.showReportGraphSettings &&
               <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Edit Report Style')}>
@@ -1197,7 +1208,6 @@ class Reports extends React.Component {
                 <QuestionGraphSettings question={this.state.currentQuestionGraph} parentState={this.state} />
               </ui.Modal>
             }
-
           </bem.ReportView>
         </bem.FormView>
       </DocumentTitle>
