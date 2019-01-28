@@ -99,7 +99,7 @@ class AssetRow extends React.Component {
 
     const userCanEdit = this.userCan('change_asset', this.props);
 
-    const assetName = this.props.name || this.props.firstQuestionName;
+    const assetName = this.props.name || this.props.firstQuestionLabel;
 
     if (this.props.has_deployment && this.props.deployment__submission_count &&
         this.userCan('view_submissions', this.props)) {

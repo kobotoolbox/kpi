@@ -79,8 +79,8 @@ class SearchCollectionList extends Reflux.Component {
     var isSelected = stores.selectedAsset.uid === resource.uid;
     var ownedCollections = this.state.ownedCollections;
 
-    // for unnamed assets, we try to display first question name
-    let firstQuestionName;
+    // for unnamed assets, we try to display first question label
+    let firstQuestionLabel;
     if (
       resource.asset_type !== ASSET_TYPES.survey.id &&
       resource.name === '' &&
@@ -88,7 +88,7 @@ class SearchCollectionList extends Reflux.Component {
       resource.summary.labels &&
       resource.summary.labels.length > 0
     ) {
-      firstQuestionName = resource.summary.labels[0]
+      firstQuestionLabel = resource.summary.labels[0]
     }
 
     return (
@@ -98,7 +98,7 @@ class SearchCollectionList extends Reflux.Component {
         isSelected={isSelected}
         ownedCollections={ownedCollections}
         deleting={resource.deleting}
-        firstQuestionName={firstQuestionName}
+        firstQuestionLabel={firstQuestionLabel}
         {...resource}
       />
     );
