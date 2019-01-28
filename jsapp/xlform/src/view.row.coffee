@@ -69,6 +69,7 @@ module.exports = do ->
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
       @$label = @$('.card__header-title')
+      @$hint = @$('.card__header-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
@@ -92,7 +93,7 @@ module.exports = do ->
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
-      for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
+      for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
         if key == 'label' and @model.get('type').get('value') == 'calculate'
           view.model = @model.get('calculation')
@@ -221,7 +222,8 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters']
+      hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters']
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in hiddenFields
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
