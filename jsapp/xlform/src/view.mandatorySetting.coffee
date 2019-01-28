@@ -21,7 +21,7 @@ module.exports = do ->
     render: ->
       console.log('render', @)
       template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", String(@model.attributes.value)))
-      @setElement(template)
+      @$el.html(template)
       return @
 
     insertInDOM: (rowView)->
@@ -41,6 +41,7 @@ module.exports = do ->
       return
 
     setNewValue: (val) ->
+      console.log('setNewValue', val)
       @model.setDetail('required', val)
       return
 
