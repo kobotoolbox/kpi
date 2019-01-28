@@ -11,6 +11,7 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 _t = require('utils').t
+alertify = require 'alertifyjs'
 
 module.exports = do ->
   surveyApp = {}
@@ -681,16 +682,8 @@ module.exports = do ->
           enketoServer: window.koboConfigs?.enketoServer or false
           enketoPreviewUri: window.koboConfigs?.enketoPreviewUri or false
           onSuccess: => @onEscapeKeydown = $viewUtils.enketoIframe.close
-          onError: (message, opts)=> @alert message, opts
+          onError: (message)=> alertify.error(message)
       return
-
-    alert: (message, opts={}) ->
-      title = opts.title or 'Error'
-      $('.alert-modal').html(message).dialog('option', {
-        title: title,
-        width: 500,
-        dialogClass: 'surveyapp__alert'
-      }).dialog 'open'
     downloadButtonClick: (evt)->
       # Download = save a CSV file to the disk
       surveyCsv = @survey.toCSV()
