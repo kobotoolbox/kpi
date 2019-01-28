@@ -62,8 +62,17 @@
     }
 
     .card__header-title {
-        cursor:text;
-        // white-space: pre;
+        color: $cool-gray;
+
+        &:focus {
+            color: $black;
+        }
+
+        // we use placeholder as error message, as empty title is not welcomed
+         &::placeholder {
+            color: $cool-red;
+            background-color: rgba($cool-red, 0.075);
+        }
     }
     .card__header-hint {
         color: inherit;

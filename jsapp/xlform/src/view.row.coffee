@@ -101,8 +101,6 @@ module.exports = do ->
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
-        if key == 'label'
-          @make_label_editable(view)
       if @model.getValue('required')
         @$card.addClass('card--required')
       @
@@ -170,10 +168,6 @@ module.exports = do ->
       @model.rows.each (row)=>
         @getApp().ensureElInView(row, @, @$rows).render()
 
-      if !@already_rendered
-        # only render the row details which are necessary for the initial view (ie 'label')
-        @make_label_editable new $viewRowDetail.DetailView(model: @model.get('label'), rowView: @).render().insertInDOM(@)
-
       @already_rendered = true
       @
 
@@ -201,20 +195,6 @@ module.exports = do ->
         if row.constructor.key == 'group' && !@hasNestedGroups()
           @$('.xlf-dv-appearance').eq(0).show()
       @
-    make_label_editable: (view) ->
-      $viewUtils.makeEditable view, view.model, @$label, options:
-        placement: 'right'
-        rows: 3
-      ,
-      edit_callback: (value) ->
-        value = value.replace(new RegExp(String.fromCharCode(160), 'g'), '')
-        value = value.replace /\t/g, ' '
-        view.model.set 'value', value
-
-        if value == ''
-          return newValue: new Array(10).join('&nbsp;')
-        else
-          return newValue: value;
 
   class RowView extends BaseRowView
     _expandedRender: ->
@@ -262,12 +242,6 @@ module.exports = do ->
         @showMultioptions()
         @is_expanded = true
       return
-    make_label_editable: (view) ->
-      $viewUtils.makeEditable view, view.model, @$label, options:
-        placement: 'right'
-        rows: 3
-      ,
-      transformFunction: (value) -> value
 
   class KoboMatrixView extends RowView
     className: "survey__row survey__row--kobo-matrix"
@@ -292,8 +266,6 @@ module.exports = do ->
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
-        if key == 'label'
-          @make_label_editable(view)
       @
 
   class RankScoreView extends RowView

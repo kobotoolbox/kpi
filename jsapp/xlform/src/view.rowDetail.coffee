@@ -162,8 +162,17 @@ module.exports = do ->
     html: -> false
     insertInDOM: (rowView)->
       cht = rowView.$label
-      cht.html(@model.get("value")|| new Array(10).join('&nbsp;'))
-      @
+      cht.value = @model.get('value')
+      return @
+    afterRender: ->
+      @listenForInputChange({
+        el: this.rowView.$label,
+        transformFn: (value) ->
+          value = value.replace(new RegExp(String.fromCharCode(160), 'g'), '')
+          value = value.replace /\t/g, ' '
+          return value
+      })
+      return
 
   viewRowDetail.DetailViewMixins.hint =
     html: -> false

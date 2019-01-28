@@ -53,7 +53,6 @@ module.exports = do ->
       "click #xlf-download": "downloadButtonClick"
       "click #save": "saveButtonClick"
       "click #publish": "publishButtonClick"
-      "click #settings": "toggleSurveySettings"
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
       "click .js-select-row--force": "forceSelectRow"
@@ -234,28 +233,6 @@ module.exports = do ->
 
     getApp: -> @
 
-    toggleSurveySettings: (evt) ->
-      $et = $(evt.currentTarget)
-      $et.toggleClass('active__settings')
-      if @features.surveySettings
-        $settings = @$(".form__settings")
-        $settings.toggle()
-        close_settings = (e) ->
-          $settings_toggle = $('#settings')
-
-          is_in_settings = (element) ->
-            element == $settings[0] || $settings.find(element).length > 0
-          is_in_settings_toggle = (element) ->
-            element == $settings_toggle[0] || $settings_toggle.find(element).length > 0
-
-          if !(is_in_settings(e.target) || is_in_settings_toggle(e.target))
-            $settings.hide()
-            $et.removeClass('active__settings')
-            $('body').off 'click', close_settings
-
-        $('body').on 'click', close_settings
-
-
     _getViewForTarget: (evt)->
       $et = $(evt.currentTarget)
       modelId = $et.closest('.survey__row').data('row-id')
@@ -331,12 +308,6 @@ module.exports = do ->
         for key, value of validations
             break
 
-      if @features.displayTitle
-        $viewUtils.makeEditable @, @survey.settings, '.form-title', property:'form_title', options: validate: (value) ->
-          if value.length > 255
-            return "Length cannot exceed 255 characters, is " + value.length + " characters."
-          return
-
       $inps = {}
       _settings = @survey.settings
 
@@ -377,12 +348,6 @@ module.exports = do ->
       @null_top_row_view_selector = new $viewRowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), survey: @survey, ngScope: @ngScope, surveyView: @, reversible:true)
 
     _render_hideConditionallyDisplayedContent: ->
-      if not @features.displayTitle
-        @$(".survey-header__inner").hide()
-
-      if not @features.surveySettings
-        @$(".survey-header__options-toggle").hide()
-
       if !@features.multipleQuestions
         @$el.addClass('survey-editor--singlequestion')
         @$el.find(".survey-editor__null-top-row").addClass("survey-editor__null-top-row--hidden")
@@ -743,17 +708,13 @@ module.exports = do ->
     features:
       multipleQuestions: true
       skipLogic: true
-      displayTitle: true
       copyToLibrary: true
-      surveySettings: true
 
   class surveyApp.QuestionApp extends SurveyFragmentApp
     features:
       multipleQuestions: false
       skipLogic: false
-      displayTitle: false
       copyToLibrary: false
-      surveySettings: false
     render: () ->
       super
       @$('.survey-editor.form-editor-wrap.container').append $('.question__tags')
