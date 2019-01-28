@@ -392,6 +392,13 @@ module.exports = do ->
     afterRender: ->
       @listenForCheckboxChange()
 
+  viewRowDetail.DetailViewMixins.read_only =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Read only")
+    afterRender: ->
+      @listenForCheckboxChange()
+
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->
       types =
