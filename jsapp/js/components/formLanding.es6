@@ -127,6 +127,9 @@ export class FormLanding extends React.Component {
   isFormRedeploymentNeeded() {
     return !this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
   }
+  hasLanguagesDefined(translations) {
+    return translations && (translations.length > 1 || translations[0] !== null);
+  }
   showLanguagesModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
@@ -429,10 +432,10 @@ export class FormLanding extends React.Component {
         <bem.FormView__cell m='translation-list'>
           <strong>{t('Languages:')}</strong>
           &nbsp;
-          {!translations || translations.length < 2 &&
+          {!this.hasLanguagesDefined(translations) &&
             t('This project has no languages defined yet')
           }
-          {translations && translations.length >= 2 &&
+          {this.hasLanguagesDefined(translations) &&
             <ul>
               {translations.map((langString, n)=>{
                 return (
