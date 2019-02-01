@@ -62,7 +62,8 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
           </div>
           <div class="card__text">
-            <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
+            <input type="text" placeholder="#{_t("Question title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -105,7 +106,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
           </div>
           <div class="card__text">
-            <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
+            <input type="text" placeholder="#{_t("Question title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -303,6 +304,13 @@ module.exports = do ->
     </div>
     """
 
+  paramsSimple = ->
+    """
+    <div class="params-view__simple-wrapper">
+      <div class="params-view"></div>
+    </div>
+    """
+
   selectQuestionExpansion = ->
     """
     <div class="card--selectquestion__expansion row__multioptions js-cancel-sort">
@@ -330,6 +338,7 @@ module.exports = do ->
   expandChoiceList: expandChoiceList
   mandatorySettingSelector: mandatorySettingSelector
   paramsSettingsField: paramsSettingsField
+  paramsSimple: paramsSimple
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView

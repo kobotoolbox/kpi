@@ -79,7 +79,10 @@ class ProjectSettings extends React.Component {
       applyTemplateButton: t('Next'),
       chosenTemplateUid: null,
       // upload files
-      isUploadFilePending: false
+      isUploadFilePending: false,
+      // archive flow
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
     };
 
     autoBind(this);
@@ -100,7 +103,10 @@ class ProjectSettings extends React.Component {
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
       actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
-      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this))
+      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
+      actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
+      actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
+      hashHistory.listen(this.onRouteChange.bind(this))
     )
   }
 
@@ -213,29 +219,63 @@ class ProjectSettings extends React.Component {
     });
   }
 
+  deleteProject() {
+    this.deleteAsset(
+      this.state.formAsset.uid,
+      this.state.formAsset.name,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
+  // archive flow
+
   isArchived() {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
   }
 
   archiveProject() {
-    this.archiveAsset(
-      this.state.formAsset.uid,
-      this.goToProjectsList.bind(this)
-    );
+    this.archiveAsset(this.state.formAsset.uid, this.onArchiveProjectStarted.bind(this));
+  }
+
+  onArchiveProjectStarted() {
+    this.setState({isAwaitingArchiveCompleted: true});
   }
 
   unarchiveProject() {
-    this.unarchiveAsset(
-      this.state.formAsset.uid,
-      this.goToFormLanding.bind(this)
-    );
+    this.unarchiveAsset(this.state.formAsset.uid, this.onUnarchiveProjectStarted.bind(this));
   }
 
-  deleteProject() {
-    this.deleteAsset(
-      this.state.formAsset.uid,
-      this.goToProjectsList.bind(this)
-    );
+  onUnarchiveProjectStarted() {
+    this.setState({isAwaitingUnarchiveCompleted: true});
+  }
+
+  onSetDeploymentActiveFailed() {
+    this.setState({
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
+    });
+  }
+
+  // when archiving/unarchiving finishes, take user to a route that makes sense
+  // unless user navigates by themselves before that happens
+  onSetDeploymentActiveCompleted() {
+    if (this.state.isAwaitingArchiveCompleted) {
+      this.goToProjectsList();
+    }
+    if (this.state.isAwaitingUnarchiveCompleted) {
+      this.goToFormLanding();
+    }
+    this.setState({
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
+    });
+  }
+
+  onRouteChange() {
+    this.setState({
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
+    });
   }
 
   /*

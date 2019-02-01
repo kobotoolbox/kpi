@@ -1,7 +1,9 @@
 import $ from 'jquery';
-
+import alertify from 'alertifyjs';
 import {
+  t,
   assign,
+  notify
 } from './utils';
 
 var dataInterface;
@@ -24,6 +26,23 @@ var dataInterface;
     }
   })();
   this.rootUrl = rootUrl;
+
+  // hook up to all AJAX requests to check auth problems
+  $(document).ajaxError((event, request, settings) => {
+    if (request.status === 403 || request.status === 401 || request.status === 404) {
+      dataInterface.selfProfile().done((data) => {
+        if (data.message === 'user is not logged in') {
+          let errorMessage = t("Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>")
+          let serverMessage = request.status.toString();
+          if (request.responseJSON && request.responseJSON.detail) {
+            serverMessage += ": " + request.responseJSON.detail;
+          }
+          errorMessage = errorMessage.replace('##server_message##', serverMessage);
+          alertify.alert(t('You are not logged in'), errorMessage);
+        }
+      });
+    }
+  });
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),

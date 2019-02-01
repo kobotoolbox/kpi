@@ -31,7 +31,7 @@ class PasswordStrength extends React.Component {
           <bem.PasswordStrength__messages>
             {report.feedback.warning &&
               <bem.PasswordStrength__message m='warning'>
-                {report.feedback.warning}
+                {t(report.feedback.warning)}
               </bem.PasswordStrength__message>
             }
 
@@ -39,7 +39,7 @@ class PasswordStrength extends React.Component {
               report.feedback.suggestions.map((suggestion, index) => {
                 return (
                   <bem.PasswordStrength__message key={index}>
-                    {suggestion}
+                    {t(suggestion)}
                   </bem.PasswordStrength__message>
                 )
               })
