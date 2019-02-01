@@ -63,5 +63,5 @@ class AssetVersion(models.Model):
 
     def __unicode__(self):
         return '{}@{} T{}{}'.format(self.asset.uid, self.uid,
-                    self.date_modified.strftime('%Y-%m-%d %H:%m'),
+                    self.date_modified.strftime('%Y-%m-%d %H:%M'),
                     ' (deployed)' if self.deployed else '')
