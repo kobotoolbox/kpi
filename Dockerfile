@@ -59,6 +59,7 @@ COPY ./scripts/copy_fonts.py ${KPI_SRC_DIR}/scripts/copy_fonts.py
 COPY ./scripts/generate_icons.js ${KPI_SRC_DIR}/scripts/generate_icons.js
 COPY ./webpack ${KPI_SRC_DIR}/webpack
 COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
+COPY ./.stylelintrc.json ${KPI_SRC_DIR}/.stylelintrc.json
 COPY ./test ${KPI_SRC_DIR}/test
 
 COPY ./jsapp ${KPI_SRC_DIR}/jsapp

@@ -1,8 +1,7 @@
-"""
-Mostly copied from django/contrib/admin/actions.py
-"""
-
+import requests
 from collections import OrderedDict
+from django.conf import settings
+from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.contrib.admin import helpers
@@ -25,6 +24,8 @@ def delete_related_objects(modeladmin, request, queryset):
     childs (foreignkeys), a "permission denied" message.
 
     Next, it deletes all related objects and redirects back to the change list.
+
+    The code is mostly copied from django/contrib/admin/actions.py
     """
     opts = modeladmin.model._meta
     app_label = opts.app_label
@@ -110,4 +111,39 @@ def delete_related_objects(modeladmin, request, queryset):
         context, current_app=modeladmin.admin_site.name)
 
 delete_related_objects.short_description = ugettext_lazy(
-    "Remove related objects for these %(verbose_name_plural)s")
+    "Remove related objects for these %(verbose_name_plural)s "
+    "(deletion step 1)")
+
+
+def remove_from_kobocat(modeladmin, kpi_request, queryset):
+    '''
+    This is a hack to try and make administrators' lives less miserable when
+    they need to delete users. It proxies the initial delete request to KoBoCAT
+    and returns the confirmation response, mangling the HTML form action so
+    that clicking "Yes, I'm sure" POSTs to KoBoCAT instead of KPI.
+    '''
+    if not kpi_request.user.is_superuser:
+        raise PermissionDenied
+    if kpi_request.method != 'POST':
+        raise NotImplementedError
+    post_data = dict(kpi_request.POST)
+    post_data['action'] = 'delete_selected'
+    kc_url = settings.KOBOCAT_URL + kpi_request.path
+    kc_response = requests.post(kc_url, data=post_data,
+                                cookies=kpi_request.COOKIES)
+    our_response = HttpResponse()
+    our_response.status_code = kc_response.status_code
+    # I'm sorry. If something is going to break, it's probably this.
+    find_text = '<form action="" '
+    replace_text = '<form action="{kc_url}" ' \
+                   'onsubmit="return confirm(\'{hint}\');" '
+    hint = 'Confusion ahead! You will now be taken to the KoBoCAT admin ' \
+           'interface. If you want to come back here, to the KPI admin ' \
+           'interface, you must do so manually.'
+    replace_text = replace_text.format(kc_url=kc_url, hint=hint)
+    awful_content = kc_response.content.replace(find_text, replace_text)
+    our_response.write(awful_content)
+    return our_response
+
+remove_from_kobocat.short_description = ugettext_lazy(
+    "Remove these %(verbose_name_plural)s from KoBoCAT (deletion step 2)")

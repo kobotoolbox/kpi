@@ -362,7 +362,7 @@ export class FormLanding extends React.Component {
         {userCanEdit &&
           <bem.FormView__link
             m='upload'
-            data-tip={t('Replace project')}
+            data-tip={t('Replace form')}
             onClick={this.showReplaceProjectModal}
           >
             <i className='k-icon-replace' />
