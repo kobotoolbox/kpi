@@ -122,7 +122,8 @@ do ->
               'select_from_list_name': 'yesno',
               'name': 'yn',
               'label': 'YesNo',
-              'required': 'false'
+              'required': 'false',
+              'read_only': 'false'
             }
           ],
           'choices': {

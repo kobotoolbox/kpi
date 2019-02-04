@@ -15,7 +15,7 @@ import stores from 'js/stores';
 import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
 import {
-  VALIDATION_STATUSES,
+  VALIDATION_STATUSES_LIST,
   MODAL_TYPES
 } from 'js/constants';
 
@@ -263,6 +263,13 @@ class Submission extends React.Component {
       case 'video':
         return this.renderAttachment(submissionValue, q.type);
         break;
+      case 'begin_repeat':
+        const list = submissionValue.map((r) => {
+          const stringified = JSON.stringify(r);
+          return <li key={stringified}>{stringified}</li>
+        });
+        return <ul>{list}</ul>
+        break;
       default:
         return submissionValue;
         break;
@@ -445,7 +452,7 @@ class Submission extends React.Component {
                 isDisabled={!this.userCan('validate_submissions', this.props.asset)}
                 isClearable={false}
                 value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
-                options={VALIDATION_STATUSES}
+                options={VALIDATION_STATUSES_LIST}
                 onChange={this.validationStatusChange}
                 className='kobo-select'
                 classNamePrefix='kobo-select'
