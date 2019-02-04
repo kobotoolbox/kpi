@@ -143,8 +143,6 @@
     position: relative;
     overflow: visible;
 
-    &--visible {}
-
     &--collapsed {
       max-height: 0px;
       overflow: hidden;
