@@ -77,6 +77,26 @@ class BaseTestCase(APITestCase):
 
 class SubmissionApiTests(BaseTestCase):
 
+    def test_create_submission(self):
+        v_uid = self.asset.latest_deployed_version.uid
+        submission = {
+            "q1": "a5",
+            "q2": "a6",
+        }
+        # Owner
+        response = self.client.post(self.submission_url, data=submission)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # Shared
+        self._other_user_login(True)
+        response = self.client.post(self.submission_url, data=submission)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Anonymous
+        self.client.logout()
+        response = self.client.post(self.submission_url, data=submission)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_list_submissions_owner(self):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
