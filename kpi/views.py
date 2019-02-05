@@ -703,34 +703,10 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
         return view(self.request, uid=af.uid)
 
 
-class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
+class HookSignalViewSet(NestedViewSetMixin, viewsets.ViewSet):
     """
-    @TODO API Doc
+
     """
-    parent_model = Asset
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        renderers.JSONRenderer,
-                        SubmissionXMLRenderer
-                        )
-    permission_classes = (SubmissionsPermissions,)
-
-    def _get_asset(self):
-        asset_uid = self.get_parents_query_dict()['asset']
-        asset = get_object_or_404(self.parent_model, uid=asset_uid)
-
-        return asset
-
-    def _get_deployment(self):
-        """
-        Returns the deployment for the asset specified by the request
-        """
-        asset = self._get_asset()
-
-        if not asset.has_deployment:
-            raise serializers.ValidationError(
-                _('The specified asset has not been deployed'))
-        return asset.deployment
-
     def create(self, request, *args, **kwargs):
         """
         It's only used to trigger hook services of the Asset (so far).
@@ -763,6 +739,35 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
             response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
         return Response(response, status=response_status_code)
+
+
+class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
+    """
+    @TODO API Doc
+    """
+    parent_model = Asset
+    renderer_classes = (renderers.BrowsableAPIRenderer,
+                        renderers.JSONRenderer,
+                        SubmissionXMLRenderer
+                        )
+    permission_classes = (SubmissionsPermissions,)
+
+    def _get_asset(self):
+        asset_uid = self.get_parents_query_dict()['asset']
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
+
+        return asset
+
+    def _get_deployment(self):
+        """
+        Returns the deployment for the asset specified by the request
+        """
+        asset = self._get_asset()
+
+        if not asset.has_deployment:
+            raise serializers.ValidationError(
+                _('The specified asset has not been deployed'))
+        return asset.deployment
 
     def destroy(self, request, *args, **kwargs):
         deployment = self._get_deployment()
