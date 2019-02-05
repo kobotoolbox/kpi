@@ -5,11 +5,12 @@
 #    pip-compile --output-file dev_requirements.txt dev_requirements.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@6f39abc642920964b6fbcfae16deb4b935956ad3#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@45a49bbcc794c6ac3756afe04a4f851c3da9219d#egg=formpack
 amqp==2.4.0
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
+backports.os==0.1.1       # via path.py
 backports.shutil-get-terminal-size==1.0.0  # via ipython
 bcrypt==3.1.6             # via paramiko
 begins==0.9
@@ -21,11 +22,13 @@ celery==4.2.1
 certifi==2018.11.29       # via requests
 cffi==1.8.3               # via bcrypt, cryptography, pynacl
 chardet==3.0.4            # via requests
+configparser==3.7.1       # via importlib-metadata
+contextlib2==0.5.5        # via importlib-metadata
 cookies==2.2.1            # via responses
 cryptography==2.2.2       # via fabric, paramiko, pyopenssl
 cssselect==1.0.3          # via pyquery
 cyordereddict==1.0.0
-decorator==4.3.0          # via ipython, traitlets
+decorator==4.3.2          # via ipython, traitlets
 defusedxml==0.5.0         # via djangorestframework-xml
 dj-database-url==0.4.1
 dj-static==0.0.6
@@ -54,15 +57,16 @@ djangorestframework-xml==1.4.0
 djangorestframework==3.6.4
 docutils==0.14            # via botocore, statistics
 drf-extensions==0.3.1
-enum34==1.1.6             # via cryptography
+enum34==1.1.6             # via cryptography, traitlets
 fabric==2.4.0
 formencode==1.3.1         # via pyxform
-funcsigs==1.0.2           # via begins, mock
+funcsigs==1.0.2           # via begins, mock, pytest
 functools32==3.2.3.post2  # via jsonschema
-future==0.17.1            # via django-ses
+future==0.17.1            # via backports.os, django-ses
 futures==3.2.0            # via s3transfer
 gunicorn==19.4.5
 idna==2.8                 # via cryptography, requests
+importlib-metadata==0.8   # via path.py
 invoke==1.2.0             # via fabric
 ipaddress==1.0.17         # via cryptography
 ipython-genutils==0.2.0   # via traitlets
@@ -72,24 +76,23 @@ jsonfield==1.0.3
 jsonschema==2.6.0
 kombu==4.2.2.post1
 linecache2==1.0.0         # via traceback2
-lxml==4.2.1
+lxml==4.3.0
 markdown==3.0.1
 mock==2.0.0
 ndg-httpsclient==0.4.2
 oauthlib==1.0.3
 paramiko==2.4.2           # via fabric
-path.py==11.0.1
-pathlib2==2.3.3           # via ipython, pickleshare
+path.py==11.5.0
+pathlib2==2.3.3           # via importlib-metadata, ipython, pickleshare, pytest, pytest-django
 pbr==4.0.2                # via mock
-<<<<<<< HEAD
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
 prompt-toolkit==1.0.15    # via ipython
+psycopg2==2.7.7           # via django-jsonbfield, django-toolbelt
 ptyprocess==0.6.0         # via pexpect
-psycopg2-binary==2.7.6.1
-py==1.4.32                # via pytest
-pyasn1==0.2.2
-pycparser==2.17           # via cffi
+py==1.4.31                 # via pytest
+pyasn1==0.1.9
+pycparser==2.14           # via cffi
 pygments==2.1.3
 pymongo==3.7.2
 pynacl==1.3.0             # via paramiko
@@ -97,19 +100,19 @@ pyopenssl==18.0.0
 pyquery==1.4.0
 pytest-django==3.1.2
 pytest-env==0.6.2
-pytest==3.0.6             # via pytest-django, pytest-env
+pytest==3.0.3             # via pytest-django, pytest-env
 python-dateutil==2.7.5
 python-digest==1.7
 pytz==2018.9
 pyxform==0.12.0
 requests==2.21.0
 responses==0.9.0
-scandir==1.9.0            # via pathlib2
-simplegeneric==0.8.1      # via ipython
-sqlparse==0.2.2
 s3transfer==0.1.13        # via boto3
+scandir==1.9.0            # via pathlib2
 shortuuid==0.4.3
+simplegeneric==0.8.1      # via ipython
 six==1.12.0
+sqlparse==0.1.19
 static3==0.7.0
 statistics==1.0.3.5
 tabulate==0.8.2
@@ -119,11 +122,12 @@ unicodecsv==0.14.1
 unittest2==1.1.0          # via pyxform
 urllib3==1.24.1           # via botocore, requests
 uwsgi==2.0.17
-wcwidth==0.1.7            # via prompt-toolkit
 vine==1.2.0               # via amqp
+wcwidth==0.1.7            # via prompt-toolkit
 werkzeug==0.14.1
 whitenoise==3.3.1
 whoosh==2.7.4
 xlrd==1.1.0
 xlsxwriter==1.1.2
 xlwt==1.3.0
+zipp==0.3.3               # via importlib-metadata
