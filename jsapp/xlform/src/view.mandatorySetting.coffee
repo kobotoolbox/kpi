@@ -19,8 +19,9 @@ module.exports = do ->
       return
 
     render: ->
-      console.log('render', @)
-      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", String(@model.attributes.value)))
+      reqVal = @getChangedValue()
+      console.log('render', @, reqVal)
+      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", String(reqVal)))
       @$el.html(template)
       return @
 
@@ -39,6 +40,13 @@ module.exports = do ->
       console.log('onCustomTextChange', val)
       @setNewValue(val)
       return
+
+    getChangedValue: ->
+      val = @model.getValue()
+      changedVal = @model.changed?.required?.attributes?.value
+      if typeof changedVal isnt 'undefined'
+        return String(changedVal)
+      return String(val)
 
     setNewValue: (val) ->
       console.log('setNewValue', val)
