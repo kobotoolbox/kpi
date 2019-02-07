@@ -705,8 +705,11 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
 
 class HookSignalViewSet(NestedViewSetMixin, viewsets.ViewSet):
     """
+    @TODO Doc
 
     """
+    parent_model = Asset
+
     def create(self, request, *args, **kwargs):
         """
         It's only used to trigger hook services of the Asset (so far).
@@ -724,7 +727,16 @@ class HookSignalViewSet(NestedViewSetMixin, viewsets.ViewSet):
             asset_uid = self.get_parents_query_dict().get("asset")
             asset = get_object_or_404(self.parent_model, uid=asset_uid)
             instance_id = request.data.get("instance_id")
-            if not HookUtils.call_services(asset, instance_id):
+            instance = asset.deployment.get_submission(instance_id)
+
+            # Check if instance really belongs to Asset.
+            if not (instance and instance.get(asset.deployment.INSTANCE_ID_FIELDNAME) == instance_id):
+                response_status_code = status.HTTP_404_NOT_FOUND
+                response = {
+                    "detail": _("Resource not found")
+                }
+
+            elif not HookUtils.call_services(asset, instance_id):
                 response_status_code = status.HTTP_409_CONFLICT
                 response = {
                     "detail": _(
@@ -732,7 +744,7 @@ class HookSignalViewSet(NestedViewSetMixin, viewsets.ViewSet):
                 }
 
         except Exception as e:
-            logging.error("SubmissionViewSet.create - {}".format(str(e)))
+            logging.error("HookSignalViewSet.create - {}".format(str(e)))
             response = {
                 "detail": _("An error has occurred when calling the external service. Please retry later.")
             }

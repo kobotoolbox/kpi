@@ -35,6 +35,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     "self.asset._deployment_data" JSONField.
     '''
 
+    INSTANCE_ID_FIELDNAME = "_id"
+
     @staticmethod
     def make_identifier(username, id_string):
         ''' Uses `settings.KOBOCAT_URL` to construct an identifier from a

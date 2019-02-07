@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import requests
+import responses
 
 from django.conf import settings
 from django.contrib.auth import get_user
@@ -12,6 +13,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.models import Asset
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from .kpi_test_case import KpiTestCase
 
 
@@ -200,7 +202,7 @@ class SubmissionEditApiTests(BaseTestCase):
             "pk": self.submission.get("id")
         })
 
-    def test_get_edit_link_submission_owner(self):
+    def test_trigger_signal(self):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -250,4 +252,3 @@ class SubmissionValidationStatusApiTests(BaseTestCase):
         self.client.logout()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-

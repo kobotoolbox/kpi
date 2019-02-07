@@ -19,6 +19,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     # TODO. Stop using protected property `_deployment_data`.
     '''
+
+    INSTANCE_ID_FIELDNAME = "id"
+
     def connect(self, active=False):
         self.store_data({
                 'backend': 'mock',
