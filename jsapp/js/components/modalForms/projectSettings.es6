@@ -751,6 +751,10 @@ class ProjectSettings extends React.Component {
     const sectors = session.currentAccount.available_sectors;
     const countries = session.currentAccount.available_countries;
 
+    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl) {
+      $('iframe#kc-settings-iframe').iFrameResize({log: true});
+    }
+
     return (
       <bem.FormModal__form
         onSubmit={this.handleSubmit}
@@ -869,7 +873,12 @@ class ProjectSettings extends React.Component {
 
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
             <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
+              <iframe
+                id='kc-settings-iframe'
+                src={this.props.iframeUrl}
+                scrolling='no'
+                style={{width: '1px', minWidth: '100%'}}
+              />
             </bem.FormView__cell>
           }
 

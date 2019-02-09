@@ -2,6 +2,7 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 require('jquery-ui/ui/widgets/sortable');
+require('iframe-resizer/js/iframeResizer');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
