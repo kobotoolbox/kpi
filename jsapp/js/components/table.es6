@@ -138,17 +138,26 @@ export class DataTable extends React.Component {
   }
   onValidationStatusChange(sid, index, evt) {
     const _this = this;
-    const data = {'validation_status.uid': evt.value};
-    dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-      if (result.uid) {
-        _this.state.tableData[index]._validation_status = result;
+
+    if (evt.value === null) {
+      dataInterface.removeSubmissionValidationStatus(_this.props.asset.uid, sid).done((result) => {
+        _this.state.tableData[index]._validation_status = {};
         _this.setState({tableData: _this.state.tableData});
-      } else {
-        console.error('error updating validation status');
-      }
-    }).fail((error)=>{
-      console.error(error);
-    });
+      }).fail((error)=>{
+        console.error(error);
+      });
+    } else {
+      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {'validation_status.uid': evt.value}).done((result) => {
+        if (result.uid) {
+          _this.state.tableData[index]._validation_status = result;
+          _this.setState({tableData: _this.state.tableData});
+        } else {
+          console.error('error updating validation status');
+        }
+      }).fail((error)=>{
+        console.error(error);
+      });
+    }
   }
 
   _prepColumns(data) {

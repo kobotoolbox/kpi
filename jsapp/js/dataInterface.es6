@@ -460,6 +460,12 @@ var dataInterface;
         data: data
       });
     },
+    removeSubmissionValidationStatus(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        method: 'DELETE'
+      });
+    },
     getSubmissionsQuery(uid, query='') {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/?${query}`,
