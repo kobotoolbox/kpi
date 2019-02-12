@@ -173,7 +173,9 @@ export class DataTable extends React.Component {
 
     const surveyKeys = [];
     this.props.asset.content.survey.forEach((row) => {
-      surveyKeys.push(row.$autoname);
+      if (row.$autoname) {
+        surveyKeys.push(row.$autoname);
+      }
     });
 
     // make sure the survey columns are displayed, even if current data's
