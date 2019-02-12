@@ -182,7 +182,9 @@ export class DataTable extends React.Component {
 
     const surveyKeys = [];
     this.props.asset.content.survey.forEach((row) => {
-      if (row.$autoname) {
+      if (row.name) {
+        surveyKeys.push(row.name);
+      } else if (row.$autoname) {
         surveyKeys.push(row.$autoname);
       }
     });
@@ -773,6 +775,8 @@ export class DataTable extends React.Component {
     const val = evt.target.getAttribute('data-value'),
           selectAll = this.state.selectAll;
     var d = null;
+
+    // TODO bulk change to no status
 
     if (!selectAll) {
       d = {
