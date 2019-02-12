@@ -257,10 +257,10 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         data = kpi_request.data.copy()
 
         if kpi_request.method == "DELETE":
-            data["reset"] = True`
+            data["reset"] = True
 
         requests_params = {
-            "method": "PATCH",  # `PATCH` KC even if kpi receives DELETE`
+            "method": "PATCH",  # `PATCH` KC even if kpi receives `DELETE`
             "url": kc_url,
             "json": data
         }
