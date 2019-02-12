@@ -133,7 +133,7 @@ export class DataTable extends React.Component {
     if (originalRow._validation_status.uid) {
       return VALIDATION_STATUSES[originalRow._validation_status.uid];
     } else {
-      return null;
+      return VALIDATION_STATUSES.no_status;
     }
   }
   onValidationStatusChange(sid, index, evt) {
