@@ -141,7 +141,7 @@ export class DataTable extends React.Component {
     const data = {'validation_status.uid': evt.value};
     dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
       if (result.uid) {
-        _this.state.tableData[index]._validation_status = result.uid;
+        _this.state.tableData[index]._validation_status = result;
         _this.setState({tableData: _this.state.tableData});
       } else {
         console.error('error updating validation status');
