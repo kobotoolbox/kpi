@@ -217,9 +217,12 @@ class Submission extends React.Component {
     });
   }
 
-  validationStatusChange(e) {
-    const data = {'validation_status.uid': e.value};
-    actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
+  validationStatusChange(evt) {
+    if (evt.value === null) {
+      dataInterface.removeSubmissionValidationStatus(this.props.asset.uid, this.state.sid);
+    } else {
+      dataInterface.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, {'validation_status.uid': evt.value});
+    }
   }
 
   languageChange(e) {
