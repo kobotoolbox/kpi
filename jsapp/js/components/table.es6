@@ -628,16 +628,17 @@ export class DataTable extends React.Component {
     this.setState({isFullscreen: !this.state.isFullscreen});
   }
   componentDidMount() {
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
     this.listenTo(stores.pageState, this.onPageStateUpdated);
   }
-  refreshSubmission(result, sid) {
+  refreshSubmissionValidationStatus(result, sid) {
     if (sid) {
       var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
       if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
         var newData = this.state.tableData;
-        newData[subIndex]._validation_status = result;
+        newData[subIndex]._validation_status = result || {};
         this.setState({tableData: newData});
         this._prepColumns(newData);
       }
