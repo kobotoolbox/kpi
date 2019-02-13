@@ -417,7 +417,11 @@ export class DataTable extends React.Component {
                 return formatTimeDate(row.value);
               }
             }
-            return typeof(row.value) == 'object' ? '' : row.value;
+            if (typeof(row.value) == 'object' || row.value === undefined) {
+              return '';
+            } else {
+              return row.value;
+            }
           }
       });
 
