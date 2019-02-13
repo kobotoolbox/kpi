@@ -771,30 +771,73 @@ export class DataTable extends React.Component {
       selectAll: false
     });
   }
-  bulkUpdateStatus(evt) {
-    const val = evt.target.getAttribute('data-value'),
-          selectAll = this.state.selectAll;
-    var d = null;
+  onBulkUpdateStatus(evt) {
+    const val = evt.target.getAttribute('data-value');
+    if (val === null) {
+      this.bulkRemoveValidationStatus();
+    } else {
+      this.bulkSetValidationStatus(val);
+    }
+  }
+  bulkRemoveValidationStatus() {
+    const selectAll = this.state.selectAll;
+    let data = {};
+    let selectedCount;
 
-    // TODO bulk change to no status
+    if (selectAll) {
+      if (this.state.fetchState.filtered.length) {
+        data.query = {};
+        this.state.fetchState.filtered.map((filteredItem) => {
+          data.query[filteredItem.id] = filteredItem.value;
+        });
+      } else {
+        data.confirm = true;
+      }
+      selectedCount = this.state.resultsTotal;
+    } else {
+      data.submissions_ids = Object.keys(this.state.selectedRows);
+      selectedCount = Object.keys(this.state.selectedRows).length;
+    }
+
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Clear status of selected submissions'),
+      message: t('You have selected ## submissions. Are you sure you would like to clear their status? This action is irreversible.').replace('##', selectedCount),
+      labels: {ok: t('Clear Validation Status'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        dataInterface.bulkRemoveSubmissionsValidationStatus(this.props.asset.uid, data).done((res) => {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
+          this.setState({loading: true});
+        }).fail((jqxhr)=> {
+          console.error(jqxhr);
+          alertify.error(t('Failed to clear status.'));
+        });
+      },
+      oncancel: dialog.destroy
+    };
+    dialog.set(opts).show();
+  }
+  bulkSetValidationStatus(val) {
+    const selectAll = this.state.selectAll;
+    let data = null;
 
     if (!selectAll) {
-      d = {
+      data = {
         submissions_ids: Object.keys(this.state.selectedRows),
         'validation_status.uid': val
       };
     } else {
-      const f = this.state.fetchState.filtered;
-      if (f.length) {
-        d = {
+      const filtered = this.state.fetchState.filtered;
+      if (filtered.length) {
+        data = {
           query: {},
           'validation_status.uid': val
         };
-        f.forEach(function(z) {
-          d.query[z.id] = z.value;
+        filtered.forEach(function(filteredItem) {
+          data.query[filteredItem.id] = filteredItem.value;
         });
       } else {
-        d = {
+        data = {
           confirm: true,
           'validation_status.uid': val
         };
@@ -808,7 +851,7 @@ export class DataTable extends React.Component {
       message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
+        dataInterface.patchSubmissions(this.props.asset.uid, data).done((res) => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           this.setState({loading: true});
         }).fail((jqxhr)=> {
@@ -919,7 +962,7 @@ export class DataTable extends React.Component {
                 </bem.PopoverMenu__heading>
                 {VALIDATION_STATUSES_LIST.map((item, n) => {
                   return (
-                    <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
+                    <bem.PopoverMenu__link onClick={this.onBulkUpdateStatus} data-value={item.value} key={n}>
                       {item.label}
                       </bem.PopoverMenu__link>
                   );
