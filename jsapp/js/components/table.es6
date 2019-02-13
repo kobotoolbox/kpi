@@ -774,85 +774,42 @@ export class DataTable extends React.Component {
   }
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
-    if (val === null) {
-      this.bulkRemoveValidationStatus();
-    } else {
-      this.bulkSetValidationStatus(val);
-    }
-  }
-  bulkRemoveValidationStatus() {
     const selectAll = this.state.selectAll;
-    let data = {};
+    const data = {};
     let selectedCount;
+    let apiFn;
+
+    if (val === null) {
+      apiFn = dataInterface.bulkRemoveSubmissionsValidationStatus;
+    } else {
+      apiFn = dataInterface.patchSubmissions;
+    }
 
     if (selectAll) {
       if (this.state.fetchState.filtered.length) {
         data.query = {};
+        data['validation_status.uid'] = val;
         this.state.fetchState.filtered.map((filteredItem) => {
           data.query[filteredItem.id] = filteredItem.value;
         });
       } else {
         data.confirm = true;
+        data['validation_status.uid'] = val;
       }
       selectedCount = this.state.resultsTotal;
     } else {
       data.submissions_ids = Object.keys(this.state.selectedRows);
+      data['validation_status.uid'] = val;
       selectedCount = Object.keys(this.state.selectedRows).length;
     }
 
     const dialog = alertify.dialog('confirm');
     const opts = {
-      title: t('Clear status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to clear their status? This action is irreversible.').replace('##', selectedCount),
-      labels: {ok: t('Clear Validation Status'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        dataInterface.bulkRemoveSubmissionsValidationStatus(this.props.asset.uid, data).done((res) => {
-          this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
-          console.error(jqxhr);
-          alertify.error(t('Failed to clear status.'));
-        });
-      },
-      oncancel: dialog.destroy
-    };
-    dialog.set(opts).show();
-  }
-  bulkSetValidationStatus(val) {
-    const selectAll = this.state.selectAll;
-    let data = null;
-
-    if (!selectAll) {
-      data = {
-        submissions_ids: Object.keys(this.state.selectedRows),
-        'validation_status.uid': val
-      };
-    } else {
-      const filtered = this.state.fetchState.filtered;
-      if (filtered.length) {
-        data = {
-          query: {},
-          'validation_status.uid': val
-        };
-        filtered.forEach(function(filteredItem) {
-          data.query[filteredItem.id] = filteredItem.value;
-        });
-      } else {
-        data = {
-          confirm: true,
-          'validation_status.uid': val
-        };
-      }
-    }
-
-    let dialog = alertify.dialog('confirm');
-    const sel = this.state.selectAll ? this.state.resultsTotal : Object.keys(this.state.selectedRows).length;
-    let opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
+      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        dataInterface.patchSubmissions(this.props.asset.uid, data).done((res) => {
+        apiFn(this.props.asset.uid, data).done((res) => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           this.setState({loading: true});
         }).fail((jqxhr)=> {
@@ -860,9 +817,7 @@ export class DataTable extends React.Component {
           alertify.error(t('Failed to update status.'));
         });
       },
-      oncancel: () => {
-        dialog.destroy();
-      }
+      oncancel: dialog.destroy
     };
     dialog.set(opts).show();
   }
