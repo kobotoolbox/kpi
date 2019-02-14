@@ -158,6 +158,22 @@ class Drawer extends Reflux.Component {
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'
+              data-tip={t('Intercom')}
+            >
+              <i className='k-icon k-icon-intercom' />
+            </a>
+          }
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <a href={stores.serverEnvironment.state.support_url}
+              className='k-drawer__link' target='_blank' data-tip={t('Help')}>
+              <i className='k-icon k-icon-help' />
+            </a>
+          }
+          { stores.session.currentAccount &&
+            <a href={stores.session.currentAccount.projects_url}
+              className='k-drawer__link'
+              target='_blank'
               data-tip={t('Projects (legacy)')}
             >
               <i className='k-icon k-icon-globe' />
@@ -166,15 +182,8 @@ class Drawer extends Reflux.Component {
           { stores.serverEnvironment &&
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
-              className='k-drawer__link' target='_blank' data-tip={t('source')}>
+              className='k-drawer__link' target='_blank' data-tip={t('Source')}>
               <i className='k-icon k-icon-github' />
-            </a>
-          }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
-            <a href={stores.serverEnvironment.state.support_url}
-              className='k-drawer__link' target='_blank' data-tip={t('help')}>
-              <i className='k-icon k-icon-help' />
             </a>
           }
         </div>
