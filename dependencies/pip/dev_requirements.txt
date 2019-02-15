@@ -45,6 +45,7 @@ django-mptt==0.8.7
 django-oauth-toolkit==0.10.0
 django-picklefield==1.0.0  # via django-constance
 django-private-storage==2.1.2
+django-redis-sessions==0.6.1
 django-registration-redux==1.3
 django-reversion==2.0.8
 django-ses==0.8.9
@@ -60,7 +61,7 @@ drf-extensions==0.3.1
 enum34==1.1.6             # via cryptography, traitlets
 fabric==2.4.0
 formencode==1.3.1         # via pyxform
-funcsigs==1.0.2           # via begins, mock, pytest
+funcsigs==1.0.2           # via begins, mock
 functools32==3.2.3.post2  # via jsonschema
 future==0.17.1            # via backports.os, django-ses
 futures==3.2.0            # via s3transfer
@@ -83,14 +84,14 @@ ndg-httpsclient==0.4.2
 oauthlib==1.0.3
 paramiko==2.4.2           # via fabric
 path.py==11.5.0
-pathlib2==2.3.3           # via importlib-metadata, ipython, pickleshare, pytest, pytest-django
+pathlib2==2.3.3           # via importlib-metadata, ipython, pickleshare
 pbr==4.0.2                # via mock
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
 prompt-toolkit==1.0.15    # via ipython
 psycopg2==2.7.7           # via django-jsonbfield, django-toolbelt
 ptyprocess==0.6.0         # via pexpect
-py==1.4.31                 # via pytest
+py==1.4.31                # via pytest
 pyasn1==0.1.9
 pycparser==2.14           # via cffi
 pygments==2.1.3
@@ -105,6 +106,7 @@ python-dateutil==2.7.5
 python-digest==1.7
 pytz==2018.9
 pyxform==0.12.0
+redis==3.1.0              # via django-redis-sessions
 requests==2.21.0
 responses==0.9.0
 s3transfer==0.1.13        # via boto3
@@ -128,6 +130,6 @@ werkzeug==0.14.1
 whitenoise==3.3.1
 whoosh==2.7.4
 xlrd==1.1.0
-xlsxwriter==1.0.4
+xlsxwriter==1.1.2
 xlwt==1.3.0
 zipp==0.3.3               # via importlib-metadata

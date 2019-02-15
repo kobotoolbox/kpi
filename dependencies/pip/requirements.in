@@ -42,6 +42,7 @@ django-storages
 django-private-storage
 djangorestframework
 djangorestframework-xml
+django-redis-sessions
 drf-extensions
 gunicorn
 jsonfield
