@@ -239,7 +239,14 @@ bem.UserRow__cancel = bem.UserRow.__('cancel');
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 
-bem.Drawer = bem('drawer');
+bem.KDrawer = bem('k-drawer');
+bem.KDrawer__primaryIcons = bem.KDrawer.__('primary-icons', 'nav');
+bem.KDrawer__secondaryIcons = bem.KDrawer.__('secondary-icons', 'nav');
+bem.KDrawer__sidebar = bem.KDrawer.__('sidebar', 'aside');
+
+bem.HelpBubble = bem('help-bubble');
+bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
+bem.HelpBubble__bubble = bem.HelpBubble.__('bubble');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');
