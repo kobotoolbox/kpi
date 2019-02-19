@@ -246,7 +246,8 @@ bem.KDrawer__sidebar = bem.KDrawer.__('sidebar', 'aside');
 
 bem.HelpBubble = bem('help-bubble');
 bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
-bem.HelpBubble__bubble = bem.HelpBubble.__('bubble');
+bem.HelpBubble__triggerCounter = bem.HelpBubble.__('trigger-counter', 'span');
+bem.HelpBubble__popup = bem.HelpBubble.__('popup');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');

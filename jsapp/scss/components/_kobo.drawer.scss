@@ -1,5 +1,7 @@
 // drawer (sidebar)
 
+$drawer-icons-width: 58px;
+
 .k-drawer {
   height: calc(100% - 66px);
   top: 65px;
@@ -17,7 +19,7 @@
 .k-drawer__primary-icons {
   display: flex;
   flex-direction: column;
-  width: 58px;
+  width: $drawer-icons-width;
   height: 100%;
   border-right: 1px solid #d9dadd;
 }
@@ -43,7 +45,7 @@
   left: 0;
   bottom: 0;
   position: absolute;
-  width: 58px;
+  width: $drawer-icons-width;
 
   .k-drawer__link {
     padding: 0;
@@ -65,7 +67,7 @@
 }
 
 .k-drawer__sidebar {
-  width: calc(100% - 58px);
+  width: calc(100% - #{$drawer-icons-width});
   height: 100%;
   padding: 20px 14px;
 

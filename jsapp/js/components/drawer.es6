@@ -15,7 +15,10 @@ import ui from '../ui';
 import mixins from '../mixins';
 
 import LibrarySidebar from '../components/librarySidebar';
-import HelpBubble from '../components/helpBubble';
+import {
+  IntercomHelpBubble,
+  SupportHelpBubble
+} from '../components/helpBubbles';
 
 import {MODAL_TYPES} from '../constants';
 
@@ -156,16 +159,10 @@ class Drawer extends Reflux.Component {
 
         <bem.KDrawer__secondaryIcons>
           { stores.session.currentAccount &&
-            <HelpBubble
-              iconName='intercom'
-              iconTip={t('Intercom')}
-            />
+            <IntercomHelpBubble/>
           }
           { stores.session.currentAccount &&
-            <HelpBubble
-              iconName='help'
-              iconTip={t('Help')}
-            />
+            <SupportHelpBubble/>
           }
           { stores.session.currentAccount &&
             <a href={stores.session.currentAccount.projects_url}

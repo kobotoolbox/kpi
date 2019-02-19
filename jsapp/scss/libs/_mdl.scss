@@ -15,6 +15,8 @@ $warm-green: #52ce7b;
 $cool-red: #ff556a;
 $cool-orange: #ffaa56;
 
+$root-background: $cool-whitegray;
+
 $font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $layout-text-color: #414453 !default;
 $layout-nav-color: white !default;
@@ -44,7 +46,7 @@ html {
 }
 
 body {
-  background: $cool-whitegray;
+  background: $root-background;
 }
 
 html, body, input, textarea, select, button {
