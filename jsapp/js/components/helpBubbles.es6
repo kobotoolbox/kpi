@@ -141,6 +141,7 @@ export class SupportHelpBubble extends HelpBubble {
 
         {this.state.isOpen &&
           <bem.HelpBubble__popup>
+            <HelpBubbleCloser parent={this}/>
             hi!
           </bem.HelpBubble__popup>
         }
