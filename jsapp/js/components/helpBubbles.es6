@@ -12,20 +12,20 @@ class HelpBubble extends React.Component {
       isOpen: false
     };
     this.rootElRef = React.createRef();
-    this.cancelOutsideClickListener = Function.prototype;
+    this.cancelOutsideCloseWatch = Function.prototype;
   }
 
   open (evt) {
     console.log('open', evt);
     this.setState({isOpen: true});
-    this.cancelOutsideClickListener();
-    this.listenOutsideClick();
+    this.cancelOutsideCloseWatch();
+    this.watchOutsideClose();
   }
 
   close (evt) {
     console.log('close', evt);
     this.setState({isOpen: false});
-    this.cancelOutsideClickListener();
+    this.cancelOutsideCloseWatch();
   }
 
   toggle (evt) {
@@ -37,19 +37,27 @@ class HelpBubble extends React.Component {
     }
   }
 
-  listenOutsideClick() {
-    const handler = (evt) => {
+  watchOutsideClose() {
+    const outsideClickHandler = (evt) => {
       const rootEl = ReactDOM.findDOMNode(this.rootElRef.current);
       if (!rootEl.contains(evt.target)) {
         this.close();
       }
     }
 
-    this.cancelOutsideClickListener = () => {
-      document.removeEventListener('click', handler);
+    const escHandler = (evt) => {
+      if (evt.keyCode === 27 || evt.key === 'Escape') {
+        this.close();
+      }
     }
 
-    document.addEventListener('click', handler);
+    this.cancelOutsideCloseWatch = () => {
+      document.removeEventListener('click', outsideClickHandler);
+      document.removeEventListener('keydown', escHandler);
+    }
+
+    document.addEventListener('click', outsideClickHandler);
+    document.addEventListener('keydown', escHandler);
   }
 }
 
