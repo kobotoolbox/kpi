@@ -245,6 +245,7 @@ bem.KDrawer__secondaryIcons = bem.KDrawer.__('secondary-icons', 'nav');
 bem.KDrawer__sidebar = bem.KDrawer.__('sidebar', 'aside');
 
 bem.HelpBubble = bem('help-bubble');
+bem.HelpBubble__closer = bem.HelpBubble.__('closer', 'button');
 bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
 bem.HelpBubble__triggerCounter = bem.HelpBubble.__('trigger-counter', 'span');
 bem.HelpBubble__popup = bem.HelpBubble.__('popup');

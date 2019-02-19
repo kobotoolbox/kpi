@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import bem from '../bem';
 import {t} from '../utils';
@@ -8,27 +9,47 @@ class HelpBubble extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
-      isBubbleVisible: false
+      isOpen: false
     };
+    this.rootElRef = React.createRef();
+    this.cancelOutsideClickListener = Function.prototype;
   }
 
-  openBubble (evt) {
-    console.log('openBubble', evt);
-    this.setState({isBubbleVisible: true});
+  open (evt) {
+    console.log('open', evt);
+    this.setState({isOpen: true});
+    this.cancelOutsideClickListener();
+    this.listenOutsideClick();
   }
 
-  closeBubble (evt) {
-    console.log('closeBubble', evt);
-    this.setState({isBubbleVisible: false});
+  close (evt) {
+    console.log('close', evt);
+    this.setState({isOpen: false});
+    this.cancelOutsideClickListener();
   }
 
-  toggleBubble (evt) {
-    console.log('toggleBubble', evt);
-    if (this.state.isBubbleVisible) {
-      this.closeBubble();
+  toggle (evt) {
+    console.log('toggle', evt);
+    if (this.state.isOpen) {
+      this.close();
     } else {
-      this.openBubble();
+      this.open();
     }
+  }
+
+  listenOutsideClick() {
+    const handler = (evt) => {
+      const rootEl = ReactDOM.findDOMNode(this.rootElRef.current);
+      if (!rootEl.contains(evt.target)) {
+        this.close();
+      }
+    }
+
+    this.cancelOutsideClickListener = () => {
+      document.removeEventListener('click', handler);
+    }
+
+    document.addEventListener('click', handler);
   }
 }
 
@@ -43,9 +64,8 @@ class HelpBubbleTrigger extends React.Component {
 
     return (
       <bem.HelpBubble__trigger
-        className='help-bubble__trigger'
-        onClick={this.props.onClick}
-        { ...( this.props.tooltipLabel && { 'data-tip': this.props.tooltipLabel } ) }
+        onClick={this.props.parent.toggle.bind(this.props.parent)}
+        { ...( !this.props.parent.state.isOpen && { 'data-tip': this.props.tooltipLabel } ) }
       >
         <i className={iconClass}/>
 
@@ -59,6 +79,21 @@ class HelpBubbleTrigger extends React.Component {
   }
 }
 
+class HelpBubbleCloser extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
+
+  render () {
+    return (
+      <bem.HelpBubble__closer onClick={this.props.parent.close.bind(this.props.parent)}>
+        <i className='k-icon k-icon-close'/>
+      </bem.HelpBubble__closer>
+    );
+  }
+}
+
 export class IntercomHelpBubble extends HelpBubble {
   constructor(props) {
     super(props);
@@ -67,15 +102,16 @@ export class IntercomHelpBubble extends HelpBubble {
 
   render () {
     return (
-      <bem.HelpBubble>
+      <bem.HelpBubble ref={this.rootElRef}>
         <HelpBubbleTrigger
           icon='intercom'
-          onClick={this.toggleBubble.bind(this)}
-          tooltipLabel={this.state.isBubbleVisible ? null : t('Intercom')}
+          tooltipLabel={t('Intercom')}
+          parent={this}
         />
 
-        {this.state.isBubbleVisible &&
+        {this.state.isOpen &&
           <bem.HelpBubble__popup>
+            <HelpBubbleCloser parent={this}/>
             hi!
           </bem.HelpBubble__popup>
         }
@@ -95,15 +131,15 @@ export class SupportHelpBubble extends HelpBubble {
 
   render () {
     return (
-      <bem.HelpBubble>
+      <bem.HelpBubble ref={this.rootElRef}>
         <HelpBubbleTrigger
           icon='help'
-          onClick={this.toggleBubble.bind(this)}
-          tooltipLabel={this.state.isBubbleVisible ? null : t('Help')}
+          parent={this}
+          tooltipLabel={t('Help')}
           counter={this.state.notificationsCount}
         />
 
-        {this.state.isBubbleVisible &&
+        {this.state.isOpen &&
           <bem.HelpBubble__popup>
             hi!
           </bem.HelpBubble__popup>
