@@ -776,8 +776,12 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # serializer will use
             _queryset = _queryset.only(
                 'uid', 'deployed', 'date_modified', 'asset_id')
-        # `AssetVersionListSerializer.get_url()` asks for the asset UID
-        _queryset = _queryset.select_related('asset__uid')
+        # `AssetVersionListSerializer.get_url()` asks for the asset UID.
+        # Even though we only need 'uid', `select_related('asset__uid')`
+        # actually pulled in the entire `kpi_asset` table under Django 1.8. In
+        # Django 1.9+, "select_related() prohibits non-relational fields for
+        # nested relations."
+        _queryset = _queryset.select_related('asset')
         return _queryset
 
 

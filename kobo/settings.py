@@ -71,8 +71,10 @@ LOGIN_REDIRECT_URL = '/'
 # apps both define templates for the same view, the first app listed receives
 # precedence
 INSTALLED_APPS = (
-    'django.contrib.auth',
+    # Always put `contenttypes` before `auth`; see
+    # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',

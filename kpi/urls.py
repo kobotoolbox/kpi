@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.contrib.auth.views import logout
 from django.views.i18n import javascript_catalog
 from hub.views import ExtraDetailRegistrationView
 from rest_framework.routers import DefaultRouter
@@ -34,6 +35,7 @@ from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
 from kobo.apps.hook.views import HookViewSet, HookLogViewSet
+from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -103,7 +105,7 @@ urlpatterns = [
                                namespace='rest_framework')),
     url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
-    url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
+    url(r'^accounts/logout/', logout,
         {'next_page': '/'}),
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
@@ -124,8 +126,7 @@ urlpatterns = [
         ConfigurationFile.redirect_view, name='configurationfile'),
     url(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    url(r'^superuser_stats/user_report/$',
-        'kobo.apps.superuser_stats.views.user_report'),
+    url(r'^superuser_stats/user_report/$', user_report),
     url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-        'kobo.apps.superuser_stats.views.retrieve_user_report'),
+        retrieve_user_report),
 ]

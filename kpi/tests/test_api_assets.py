@@ -101,7 +101,7 @@ class AssetsListApiTests(APITestCase):
         ]
         versions_ids.sort()
         expected_hash = md5("".join(versions_ids)).hexdigest()
-        hash_url = reverse("asset-hash-list")
+        hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
 

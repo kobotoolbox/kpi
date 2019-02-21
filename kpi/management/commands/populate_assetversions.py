@@ -7,7 +7,6 @@ import time
 from kpi.models import Asset, AssetVersion
 from reversion.models import Version
 
-from optparse import make_option
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models.signals import post_save
@@ -18,14 +17,15 @@ NULL_CHAR_REPR = '\\u0000'
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--users',
-                    action='store',
-                    dest='filter_users_str',
-                    default=False,
-                    help='Only migrate asset versions for a comma-delimited'
-                         ' list of users (quicker)'),
-                    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--users',
+            action='store',
+            dest='filter_users_str',
+            default=False,
+            help='Only migrate asset versions for a comma-delimited list of '
+                 'users (quicker)'
+        )
 
     def handle(self, *args, **options):
         kw = {}

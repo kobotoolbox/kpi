@@ -159,7 +159,11 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         asset_uid = self.get_parents_query_dict().get("asset")
         queryset = self.model.objects.filter(asset__uid=asset_uid)
-        queryset = queryset.select_related("asset__uid")
+        # Even though we only need 'uid', `select_related('asset__uid')`
+        # actually pulled in the entire `kpi_asset` table under Django 1.8. In
+        # Django 1.9, "select_related() prohibits non-relational fields for
+        # nested relations."
+        queryset = queryset.select_related("asset")
         return queryset
 
     def perform_create(self, serializer):

@@ -7,7 +7,6 @@ from celery import shared_task
 import constance
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
-from django.template import Context
 from django.template.loader import get_template
 from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
@@ -70,7 +69,7 @@ def failures_reports():
         .order_by("-last_run_at").first()
 
     if failures_reports_period_task:
-        
+
         last_run_at = failures_reports_period_task.last_run_at
         queryset = HookLog.objects.filter(hook__email_notification=True, status=HOOK_LOG_FAILED)
         if last_run_at:
@@ -136,8 +135,8 @@ def failures_reports():
             }
             # Localize templates
             translation.activate(record.get("language"))
-            text_content = plain_text_template.render(Context(variables))
-            html_content = html_template.render(Context(variables))
+            text_content = plain_text_template.render(variables)
+            html_content = html_template.render(variables)
 
             msg = EmailMultiAlternatives(translation.ugettext("REST Services Failure Report"), text_content,
                                          constance.config.SUPPORT_EMAIL,

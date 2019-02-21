@@ -6,7 +6,6 @@ import json
 from django.conf import settings
 from django.core import mail
 from django_celery_beat.models import PeriodicTask
-from django.template import Context
 from django.template.loader import get_template
 from django.utils import translation, dateparse
 import responses
@@ -19,7 +18,7 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 
 class EmailTestCase(HookTestCase):
 
-    def _create_periodisk_task(self):
+    def _create_periodic_task(self):
         beat_schedule = settings.CELERY_BEAT_SCHEDULE.get("send-hooks-failures-reports")
         periodic_task = PeriodicTask(name="Periodic Task Mock",
                                      enabled=True,
@@ -29,7 +28,7 @@ class EmailTestCase(HookTestCase):
 
     @responses.activate
     def test_notifications(self):
-        self._create_periodisk_task()
+        self._create_periodic_task()
         first_log_response = self._send_and_fail()
         failures_reports.delay()
         self.assertEqual(len(mail.outbox), 1)
@@ -61,6 +60,6 @@ class EmailTestCase(HookTestCase):
         }
         ## Localize templates
         translation.activate(expected_record.get("language"))
-        text_content = plain_text_template.render(Context(variables))
+        text_content = plain_text_template.render(variables)
 
         self.assertEqual(mail.outbox[0].body, text_content)

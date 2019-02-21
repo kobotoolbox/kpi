@@ -1,5 +1,4 @@
 from StringIO import StringIO
-from optparse import make_option
 from pyxform.xls2json_backends import csv_to_dict
 import re
 
@@ -129,41 +128,51 @@ def _import_user_assets(from_user, to_user):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--destroy',
-                    action='store_true',
-                    dest='destroy',
-                    default=False,
-                    help='Delete all collections, assets, and tasks for user'),
-        make_option('--destination',
-                    action='store',
-                    dest='destination',
-                    default=False,
-                    help='A uid of a destination collection that will contain '
-                    'the imported asset(s)'
-                    ),
-        make_option('--allusers',
-                    action='store_true',
-                    dest='all_users',
-                    default=False,
-                    help='migrate all the users at once'),
-        make_option('--username',
-                    action='store',
-                    dest='username',
-                    default=False,
-                    help='specify the user to migrate'),
-        make_option('--to-username',
-                    action='store',
-                    dest='to_username',
-                    default=False,
-                    help='specify the user to migrate the assets TO (default: '
-                    'same as --username)'),
-        make_option('--quiet',
-                    action='store_true',
-                    dest='quiet',
-                    default=False,
-                    help='Do not output status messages'),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--destroy',
+            action='store_true',
+            dest='destroy',
+            default=False,
+            help='Delete all collections, assets, and tasks for user'
+        )
+        parser.add_argument(
+            '--destination',
+            action='store',
+            dest='destination',
+            default=False,
+            help='A uid of a destination collection that will contain '
+                 'the imported asset(s)'
+        )
+        parser.add_argument(
+            '--allusers',
+            action='store_true',
+            dest='all_users',
+            default=False,
+            help='migrate all the users at once'
+        )
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default=False,
+            help='specify the user to migrate'
+        )
+        parser.add_argument(
+            '--to-username',
+            action='store',
+            dest='to_username',
+            default=False,
+            help='specify the user to migrate the assets TO (default: '
+            'same as --username)'
+        )
+        parser.add_argument(
+            '--quiet',
+            action='store_true',
+            dest='quiet',
+            default=False,
+            help='Do not output status messages'
+        )
 
     def handle(self, *args, **options):
         if options.get('quiet'):

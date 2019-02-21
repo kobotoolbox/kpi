@@ -1,7 +1,6 @@
 import json
 from collections import defaultdict
 from hashlib import md5
-from optparse import make_option
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -105,24 +104,29 @@ class Command(BaseCommand):
         '\tAsterisk If Deployed Version Is Duplicate\n'
         'The currently deployed version will never be deleted.'
     )
-    option_list = BaseCommand.option_list + (
-        make_option('--dry-run',
-                    action='store_true',
-                    dest='dry_run',
-                    default=False,
-                    help='Show information about duplicates but do not remove '
-                         'them'),
-        make_option('--username',
-                    action='store',
-                    dest='username',
-                    default=False,
-                    help='Consider only versions owned by a specific user'),
-        make_option('--asset-uid',
-                    action='store',
-                    dest='asset_uid',
-                    default=False,
-                    help='Consider only versions of the specified `Asset`')
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--dry-run',
+            action='store_true',
+            dest='dry_run',
+            default=False,
+            help='Show information about duplicates but do not remove them'
+        )
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default=False,
+            help='Consider only versions owned by a specific user'
+        )
+        parser.add_argument(
+            '--asset-uid',
+            action='store',
+            dest='asset_uid',
+            default=False,
+            help='Consider only versions of the specified `Asset`'
+        )
 
     def handle(self, *args, **options):
         versions = AssetVersion.objects.order_by('pk')

@@ -6,7 +6,6 @@ import re
 import requests
 import xlwt
 from collections import defaultdict
-from optparse import make_option
 from pyxform import xls2json_backends
 
 from django.conf import settings
@@ -396,23 +395,28 @@ def _sync_permissions(asset, xform):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--all-users',
-                    action='store_true',
-                    dest='all_users',
-                    default=False,
-                    help='Import even when the user does not prefer KPI'),
-        make_option('--username',
-                    action='store',
-                    dest='username',
-                    default=False,
-                    help="Import only a specific user's forms"),
-        make_option('--quiet',
-                    action='store_true',
-                    dest='quiet',
-                    default=False,
-                    help='Do not output status messages')
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--all-users',
+            action='store_true',
+            dest='all_users',
+            default=False,
+            help='Import even when the user does not prefer KPI'
+        )
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default=False,
+            help="Import only a specific user's forms"
+        )
+        parser.add_argument(
+            '--quiet',
+            action='store_true',
+            dest='quiet',
+            default=False,
+            help='Do not output status messages'
+        )
 
     def _print_str(self, string):
         if not self._quiet:
