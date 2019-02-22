@@ -76,14 +76,16 @@ $z-help-bubble-popup: 801;
   border-radius: 3px;
   box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 4px 8px 2px rgba(0, 0, 0, 0.12);
   width: 310px;
-  min-height: 60px;
   max-width: calc(100vw - #{$drawer-icons-width + 20px});
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.help-bubble__closer {
+.help-bubble__back,
+.help-bubble__close {
   cursor: pointer;
   position: absolute;
+  z-index: 1;
   top: 0;
   right: 0;
   background: rgba($white, 0.5);
@@ -92,8 +94,94 @@ $z-help-bubble-popup: 801;
   padding: 5px;
   border-radius: 50%;
   line-height: 1;
+  font-size: 1.5rem;
 
   .k-icon {
     display: block;
   }
+
+  &:hover {
+    color: $cool-blue;
+  }
+}
+
+.help-bubble__back {
+  left: 0;
+}
+
+.help-bubble__close {
+  right: 0;
+}
+
+// -----------------------------------------------------------------------------
+// bubble content styles
+// -----------------------------------------------------------------------------
+
+.help-bubble__row {
+  position: relative;
+  display: block;
+  padding: 10px 30px;
+
+  & + & {
+    border-top: 1px solid $divider-color;
+  }
+
+  .k-icon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 40px;
+    color: $cool-silver;
+  }
+
+  header {
+    margin: 0;
+    font-weight: bold;
+  }
+
+  p {
+    margin: 0.5em 0 0;
+    font-size: 0.8em;
+    line-height: 1.33;
+  }
+}
+
+.help-bubble__row.help-bubble__row--header {
+  background-color: $cool-charcoal;
+  color: $white;
+  font-size: 1.25rem;
+}
+
+.help-bubble__row.help-bubble__row--link,
+.help-bubble__row.help-bubble__row--message-clickable {
+  cursor: pointer;
+  color: $cool-darkgray;
+
+  &:hover {
+    color: $cool-blue;
+
+    .k-icon {
+      color: inherit;
+    }
+  }
+
+  &:active {
+    color: $cool-green;
+  }
+}
+
+.help-bubble--support {
+  .help-bubble__row.help-bubble__row--link {
+    padding-left: 60px;
+  }
+}
+
+.help-bubble__avatar {
+  display: inline-block;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: $cool-green;
+  margin-right: 5px;
 }

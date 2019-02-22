@@ -245,10 +245,14 @@ bem.KDrawer__secondaryIcons = bem.KDrawer.__('secondary-icons', 'nav');
 bem.KDrawer__sidebar = bem.KDrawer.__('sidebar', 'aside');
 
 bem.HelpBubble = bem('help-bubble');
-bem.HelpBubble__closer = bem.HelpBubble.__('closer', 'button');
+bem.HelpBubble__close = bem.HelpBubble.__('close', 'button');
+bem.HelpBubble__back = bem.HelpBubble.__('back', 'button');
 bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
 bem.HelpBubble__triggerCounter = bem.HelpBubble.__('trigger-counter', 'span');
 bem.HelpBubble__popup = bem.HelpBubble.__('popup');
+bem.HelpBubble__row = bem.HelpBubble.__('row');
+bem.HelpBubble__rowAnchor = bem.HelpBubble.__('row', 'a');
+bem.HelpBubble__avatar = bem.HelpBubble.__('avatar', 'img');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');

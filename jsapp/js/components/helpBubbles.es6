@@ -11,25 +11,21 @@ class HelpBubble extends React.Component {
     this.state = {
       isOpen: false
     };
-    this.rootElRef = React.createRef();
     this.cancelOutsideCloseWatch = Function.prototype;
   }
 
   open (evt) {
-    console.log('open', evt);
     this.setState({isOpen: true});
     this.cancelOutsideCloseWatch();
     this.watchOutsideClose();
   }
 
   close (evt) {
-    console.log('close', evt);
     this.setState({isOpen: false});
     this.cancelOutsideCloseWatch();
   }
 
   toggle (evt) {
-    console.log('toggle', evt);
     if (this.state.isOpen) {
       this.close();
     } else {
@@ -39,8 +35,11 @@ class HelpBubble extends React.Component {
 
   watchOutsideClose() {
     const outsideClickHandler = (evt) => {
-      const rootEl = ReactDOM.findDOMNode(this.rootElRef.current);
-      if (!rootEl.contains(evt.target)) {
+      const $targetEl = $(evt.target);
+      if (
+        $targetEl.parents('.help-bubble__popup').length === 0 &&
+        $targetEl.parents('.help-bubble__row').length === 0
+      ) {
         this.close();
       }
     }
@@ -87,7 +86,7 @@ class HelpBubbleTrigger extends React.Component {
   }
 }
 
-class HelpBubbleCloser extends React.Component {
+class HelpBubbleClose extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -95,9 +94,9 @@ class HelpBubbleCloser extends React.Component {
 
   render () {
     return (
-      <bem.HelpBubble__closer onClick={this.props.parent.close.bind(this.props.parent)}>
+      <bem.HelpBubble__close onClick={this.props.parent.close.bind(this.props.parent)}>
         <i className='k-icon k-icon-close'/>
-      </bem.HelpBubble__closer>
+      </bem.HelpBubble__close>
     );
   }
 }
@@ -106,11 +105,14 @@ export class IntercomHelpBubble extends HelpBubble {
   constructor(props) {
     super(props);
     autoBind(this);
+    this.state = {
+      hasIntercom: false
+    }
   }
 
   render () {
     return (
-      <bem.HelpBubble ref={this.rootElRef}>
+      <bem.HelpBubble m='intercom'>
         <HelpBubbleTrigger
           icon='intercom'
           tooltipLabel={t('Intercom')}
@@ -119,8 +121,20 @@ export class IntercomHelpBubble extends HelpBubble {
 
         {this.state.isOpen &&
           <bem.HelpBubble__popup>
-            <HelpBubbleCloser parent={this}/>
-            hi!
+            <HelpBubbleClose parent={this}/>
+
+            {this.state.hasIntercom &&
+              <span>intercom!</span>
+            }
+            {!this.state.hasIntercom &&
+              <bem.HelpBubble__rowAnchor m='link'
+                target='_blank'
+                href='https://test.test'
+              >
+                <header>{t('Chat Support Unavailable')}</header>
+                <p>{t('You need to ABC to get XYZ')}</p>
+              </bem.HelpBubble__rowAnchor>
+            }
           </bem.HelpBubble__popup>
         }
       </bem.HelpBubble>
@@ -133,25 +147,109 @@ export class SupportHelpBubble extends HelpBubble {
     super(props);
     autoBind(this);
     this.state = {
-      notificationsCount: 1
+      unreadMessagesCount: 1,
+      selectedMessage: null,
+      messages: [
+        {
+          id: 'xyz',
+          username: 'Leszek',
+          excerpt: 'This is the first message that you…',
+          body: 'This is the first message that you ever will'
+        }
+      ]
     }
+  }
+
+  selectMessage (evt) {
+    this.setState({selectedMessage: evt.currentTarget.dataset.messageId});
+  }
+
+  clearSelectedMessage () {
+    this.setState({selectedMessage: null});
+  }
+
+  renderDefaultPopup () {
+    return (
+      <bem.HelpBubble__popup>
+        <HelpBubbleClose parent={this}/>
+
+        {this.state.messages.map((message) => {
+          return (
+            <bem.HelpBubble__row
+              m={['message', 'message-clickable']}
+              key={message.id}
+              data-message-id={message.id}
+              onClick={this.selectMessage.bind(this)}
+            >
+              <bem.HelpBubble__avatar/>
+              <span>{message.username}</span>
+              <p>{message.excerpt}</p>
+            </bem.HelpBubble__row>
+          )
+        })}
+
+        <bem.HelpBubble__row m='header'>
+          <header>{t('Looking for help?')}</header>
+          <p><em>{t('Try visiting one of our online support resources')}</em></p>
+        </bem.HelpBubble__row>
+
+        <bem.HelpBubble__rowAnchor
+          m='link'
+          target='_blank'
+          href='https://test.test'
+          onClick={this.close.bind(this)}
+        >
+          <i className='k-icon k-icon-help-articles'/>
+          <header>{t('KoBoToolbox Help Center')}</header>
+          <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+        </bem.HelpBubble__rowAnchor>
+
+        <bem.HelpBubble__rowAnchor
+          m='link'
+          target='_blank'
+          href='https://test.test'
+          onClick={this.close.bind(this)}
+        >
+          <i className='k-icon k-icon-forum'/>
+          <header>{t('KoBoToolbox Community Forum')}</header>
+          <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+        </bem.HelpBubble__rowAnchor>
+      </bem.HelpBubble__popup>
+    );
+  }
+
+  renderMessagePopup () {
+    return (
+      <bem.HelpBubble__popup>
+        <HelpBubbleClose parent={this}/>
+        <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
+          <i className='k-icon k-icon-prev'/>
+        </bem.HelpBubble__back>
+
+        <bem.HelpBubble__row m='message'>
+          <bem.HelpBubble__avatar/>
+          <span>username</span>
+          <p>message</p>
+        </bem.HelpBubble__row>
+      </bem.HelpBubble__popup>
+    );
   }
 
   render () {
     return (
-      <bem.HelpBubble ref={this.rootElRef}>
+      <bem.HelpBubble m='support'>
         <HelpBubbleTrigger
           icon='help'
           parent={this}
           tooltipLabel={t('Help')}
-          counter={this.state.notificationsCount}
+          counter={this.state.unreadMessagesCount}
         />
 
-        {this.state.isOpen &&
-          <bem.HelpBubble__popup>
-            <HelpBubbleCloser parent={this}/>
-            hi!
-          </bem.HelpBubble__popup>
+        {this.state.isOpen && this.state.selectedMessage &&
+          this.renderMessagePopup()
+        }
+        {this.state.isOpen && !this.state.selectedMessage &&
+          this.renderDefaultPopup()
         }
       </bem.HelpBubble>
     );
