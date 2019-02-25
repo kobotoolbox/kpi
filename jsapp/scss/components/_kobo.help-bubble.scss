@@ -88,11 +88,10 @@ $z-help-bubble-popup: 801;
   z-index: 1;
   top: 0;
   right: 0;
-  background: rgba($white, 0.5);
+  background: transparent;
   color: $cool-silver;
   border: 0;
   padding: 5px;
-  border-radius: 50%;
   line-height: 1;
   font-size: 1.5rem;
 
@@ -102,6 +101,10 @@ $z-help-bubble-popup: 801;
 
   &:hover {
     color: $cool-blue;
+  }
+
+  &:active {
+    color: $cool-green;
   }
 }
 
@@ -195,6 +198,6 @@ $z-help-bubble-popup: 801;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: $cool-green;
+  background-color: $cool-silver;
   margin-right: 5px;
 }
