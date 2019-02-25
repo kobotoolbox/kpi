@@ -161,6 +161,11 @@ export class SupportHelpBubble extends HelpBubble {
     }
   }
 
+  close () {
+    super.close();
+    this.clearSelectedMessage();
+  }
+
   selectMessage (evt) {
     this.setState({selectedMessageId: evt.currentTarget.dataset.messageId});
   }
