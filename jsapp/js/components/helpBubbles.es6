@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
@@ -148,7 +149,7 @@ export class SupportHelpBubble extends HelpBubble {
     autoBind(this);
     this.state = {
       unreadMessagesCount: 1,
-      selectedMessage: null,
+      selectedMessageId: null,
       messages: [
         {
           id: 'xyz',
@@ -161,11 +162,17 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   selectMessage (evt) {
-    this.setState({selectedMessage: evt.currentTarget.dataset.messageId});
+    this.setState({selectedMessageId: evt.currentTarget.dataset.messageId});
   }
 
   clearSelectedMessage () {
-    this.setState({selectedMessage: null});
+    this.setState({selectedMessageId: null});
+  }
+
+  getSelectedMessage () {
+    return _.find(this.state.messages, (message) => {
+      return message.id === this.state.selectedMessageId;
+    });
   }
 
   renderDefaultPopup () {
@@ -219,6 +226,8 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   renderMessagePopup () {
+    const selectedMessage = this.getSelectedMessage();
+
     return (
       <bem.HelpBubble__popup>
         <HelpBubbleClose parent={this}/>
@@ -228,8 +237,8 @@ export class SupportHelpBubble extends HelpBubble {
 
         <bem.HelpBubble__row m='message'>
           <bem.HelpBubble__avatar/>
-          <span>username</span>
-          <p>message</p>
+          <span>{selectedMessage.username}</span>
+          <p>{selectedMessage.body}</p>
         </bem.HelpBubble__row>
       </bem.HelpBubble__popup>
     );
@@ -245,10 +254,10 @@ export class SupportHelpBubble extends HelpBubble {
           counter={this.state.unreadMessagesCount}
         />
 
-        {this.state.isOpen && this.state.selectedMessage &&
+        {this.state.isOpen && this.state.selectedMessageId &&
           this.renderMessagePopup()
         }
-        {this.state.isOpen && !this.state.selectedMessage &&
+        {this.state.isOpen && !this.state.selectedMessageId &&
           this.renderDefaultPopup()
         }
       </bem.HelpBubble>
