@@ -14,7 +14,11 @@ module.exports = do ->
 
   viewUtils.makeEditable = (that, model, selector, {property, transformFunction, options, edit_callback}) ->
     if !(selector instanceof jQuery)
+      origSelector = selector
       selector =that.$el.find(selector)
+
+    if selector.length is 0
+      console?.error("makeEditable called on nonexistent element:", origSelector)
 
     if selector.data('madeEditable')
       console?.error "makeEditable called 2x on the same element: ", selector
@@ -74,7 +78,6 @@ module.exports = do ->
 
 
     selector.on 'click', enable_edit
-    #selector.editable editableOpts
 
 
   viewUtils.reorderElemsByData = (selector, parent, dataAttribute)->

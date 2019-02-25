@@ -62,7 +62,8 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
           </div>
           <div class="card__text">
-            <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
+            <input type="text" placeholder="#{_t("Question title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -79,16 +80,16 @@ module.exports = do ->
       #{expandingSpacerHtml}
       """
 
-  groupView = (g)->
+  groupView = ()->
     """
     <div class="survey__row__item survey__row__item--group group card js-select-row">
       <header class="group__header">
         <i class="group__caret js-toggle-group-expansion fa fa-fw fa-caret-down"></i>
-        <span class="group__label js-cancel-select-row js-cancel-sort">#{g.getValue('label')}</span>
-          <div class="group__header__buttons">
-            <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
-            <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
-          </div>
+        <input type="text" placeholder="#{_t("Group title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+        <div class="group__header__buttons">
+          <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
+          <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
+        </div>
       </header>
       <ul class="group__rows">
       </ul>
@@ -105,7 +106,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
           </div>
           <div class="card__text">
-            <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
+            <input type="text" placeholder="#{_t("Question title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -252,6 +253,13 @@ module.exports = do ->
     </div>
     """
 
+  paramsSimple = ->
+    """
+    <div class="params-view__simple-wrapper">
+      <div class="params-view"></div>
+    </div>
+    """
+
   selectQuestionExpansion = ->
     """
     <div class="card--selectquestion__expansion row__multioptions js-cancel-sort">
@@ -278,6 +286,7 @@ module.exports = do ->
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
   paramsSettingsField: paramsSettingsField
+  paramsSimple: paramsSimple
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView

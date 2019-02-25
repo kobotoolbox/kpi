@@ -29,8 +29,6 @@
     }
   }
 
-  .kobo-select__value-container {}
-
   .kobo-select__input input {
     // HACK: most of the global styles are removed by react-select itself, but
     // some we need to remove ourself (until our global input[type="text"]
@@ -41,8 +39,6 @@
   .kobo-select__placeholder {
     color: $cool-gray;
   }
-
-  .kobo-select__indicators {}
 
   .kobo-select__indicator-separator {
     display: none;

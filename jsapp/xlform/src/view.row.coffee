@@ -13,6 +13,7 @@ $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
+alertify = require 'alertifyjs'
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -69,9 +70,22 @@ module.exports = do ->
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
       @$label = @$('.card__header-title')
+      @$hint = @$('.card__header-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
+
+      questionType = @model.get('type').get('typeId')
+      if (
+        $configs.questionParams[questionType] and
+        'getParameters' of @model and
+        questionType is 'range'
+      )
+        @paramsView = new $viewParams.ParamsView({
+          rowView: @,
+          parameters: @model.getParameters(),
+          questionType: questionType
+        }).render().insertInDOMAfter(@$header)
 
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
@@ -80,15 +94,13 @@ module.exports = do ->
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
-      for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
+      for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
         if key == 'label' and @model.get('type').get('value') == 'calculate'
           view.model = @model.get('calculation')
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
-        if key == 'label'
-          @make_label_editable(view)
       if @model.getValue('required')
         @$card.addClass('card--required')
       @
@@ -148,7 +160,7 @@ module.exports = do ->
     render: ->
       if !@already_rendered
         @$el.html $viewTemplates.row.groupView(@model)
-        @$label = @$('.group__label').eq(0)
+        @$label = @$('.card__header-title')
         @$rows = @$('.group__rows').eq(0)
         @$card = @$('.card')
         @$header = @$('.card__header,.group__header').eq(0)
@@ -158,7 +170,8 @@ module.exports = do ->
 
       if !@already_rendered
         # only render the row details which are necessary for the initial view (ie 'label')
-        @make_label_editable new $viewRowDetail.DetailView(model: @model.get('label'), rowView: @).render().insertInDOM(@)
+        view = new $viewRowDetail.DetailView(model: @model.get('label'), rowView: @)
+        view.render().insertInDOM(@)
 
       @already_rendered = true
       @
@@ -180,27 +193,13 @@ module.exports = do ->
           $appearanceField.find('input:checkbox').prop('checked', false)
           appearanceModel = @model.get('appearance')
           if appearanceModel.getValue()
-            @surveyView.ngScope.miscUtils.alert(_t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
+            alertify.warning(_t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
           appearanceModel.set('value', '')
 
       @model.on 'remove', (row) =>
         if row.constructor.key == 'group' && !@hasNestedGroups()
           @$('.xlf-dv-appearance').eq(0).show()
       @
-    make_label_editable: (view) ->
-      $viewUtils.makeEditable view, view.model, @$label, options:
-        placement: 'right'
-        rows: 3
-      ,
-      edit_callback: (value) ->
-        value = value.replace(new RegExp(String.fromCharCode(160), 'g'), '')
-        value = value.replace /\t/g, ' '
-        view.model.set 'value', value
-
-        if value == ''
-          return newValue: new Array(10).join('&nbsp;')
-        else
-          return newValue: value;
 
   class RowView extends BaseRowView
     _expandedRender: ->
@@ -209,17 +208,20 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list', 'parameters']
+      hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters']
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in hiddenFields
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
-
-      paramsConfig = $configs.questionParams[questionType]
-      if paramsConfig and 'getParameters' of @model
+      if (
+        $configs.questionParams[questionType] and
+        'getParameters' of @model and
+        questionType isnt 'range'
+      )
         @paramsView = new $viewParams.ParamsView({
           rowView: @,
           parameters: @model.getParameters(),
-          paramsConfig: paramsConfig
+          questionType: questionType
         }).render().insertInDOM(@)
 
       if questionType is 'file'
@@ -245,12 +247,6 @@ module.exports = do ->
         @showMultioptions()
         @is_expanded = true
       return
-    make_label_editable: (view) ->
-      $viewUtils.makeEditable view, view.model, @$label, options:
-        placement: 'right'
-        rows: 3
-      ,
-      transformFunction: (value) -> value
 
   class KoboMatrixView extends RowView
     className: "survey__row survey__row--kobo-matrix"
@@ -275,8 +271,6 @@ module.exports = do ->
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
-        if key == 'label'
-          @make_label_editable(view)
       @
 
   class RankScoreView extends RowView
