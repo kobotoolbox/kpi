@@ -69,6 +69,7 @@ class HelpBubbleTrigger extends React.Component {
 
   render () {
     const iconClass = `k-icon k-icon-${this.props.icon}`;
+    const hasCounter = typeof this.props.counter === 'number' && this.props.counter !== 0;
 
     return (
       <bem.HelpBubble__trigger
@@ -77,7 +78,7 @@ class HelpBubbleTrigger extends React.Component {
       >
         <i className={iconClass}/>
 
-        {this.props.counter &&
+        {hasCounter &&
           <bem.HelpBubble__triggerCounter>
             {this.props.counter}
           </bem.HelpBubble__triggerCounter>
@@ -148,14 +149,14 @@ export class SupportHelpBubble extends HelpBubble {
     super(props);
     autoBind(this);
     this.state = {
-      unreadMessagesCount: 1,
       selectedMessageId: null,
       messages: [
         {
           id: 'xyz',
           username: 'Leszek',
           excerpt: 'This is the first message that you…',
-          body: 'This is the first message that you ever will'
+          body: 'This is the first message that you ever will',
+          isRead: false
         }
       ]
     }
@@ -167,17 +168,41 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   selectMessage (evt) {
-    this.setState({selectedMessageId: evt.currentTarget.dataset.messageId});
+    const messageId = evt.currentTarget.dataset.messageId;
+    this.setState({selectedMessageId: messageId});
+    this.markMessageRead(messageId);
   }
 
   clearSelectedMessage () {
     this.setState({selectedMessageId: null});
   }
 
-  getSelectedMessage () {
+  getMessage (messageId) {
     return _.find(this.state.messages, (message) => {
-      return message.id === this.state.selectedMessageId;
+      return message.id === messageId;
     });
+  }
+
+  markMessageRead (messageId) {
+    console.log('markMessageRead', messageId);
+    const messageIndex = this.state.messages.map((msg) => {
+      return msg.id;
+    }).indexOf(messageId);
+
+    if (messageIndex !== -1) {
+       this.state.messages[messageIndex].isRead = true;
+       this.setState({messages: this.state.messages});
+    }
+  }
+
+  getUnreadMessagesCount () {
+    let count = 0;
+    this.state.messages.map((msg) => {
+      if (!msg.isRead) {
+        count++;
+      }
+    });
+    return count;
   }
 
   renderDefaultPopup () {
@@ -231,7 +256,7 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   renderMessagePopup () {
-    const selectedMessage = this.getSelectedMessage();
+    const msg = this.getMessage(this.state.selectedMessageId);
 
     return (
       <bem.HelpBubble__popup>
@@ -242,8 +267,8 @@ export class SupportHelpBubble extends HelpBubble {
 
         <bem.HelpBubble__row m='message'>
           <bem.HelpBubble__avatar/>
-          <span>{selectedMessage.username}</span>
-          <p>{selectedMessage.body}</p>
+          <span>{msg.username}</span>
+          <p>{msg.body}</p>
         </bem.HelpBubble__row>
       </bem.HelpBubble__popup>
     );
@@ -256,7 +281,7 @@ export class SupportHelpBubble extends HelpBubble {
           icon='help'
           parent={this}
           tooltipLabel={t('Help')}
-          counter={this.state.unreadMessagesCount}
+          counter={this.getUnreadMessagesCount()}
         />
 
         {this.state.isOpen && this.state.selectedMessageId &&
