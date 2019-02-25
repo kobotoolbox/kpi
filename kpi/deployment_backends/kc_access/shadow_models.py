@@ -260,8 +260,6 @@ class KCToken(ShadowModel):
         except KCToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user=auth_token.user)
 
-        print("####")
-        print("ON SAVE LE KCTOKEN")
         kc_auth_token.save()
 
 
