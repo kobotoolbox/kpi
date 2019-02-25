@@ -150,15 +150,48 @@ export class SupportHelpBubble extends HelpBubble {
     autoBind(this);
     this.state = {
       selectedMessageId: null,
-      messages: [
-        {
-          id: 'xyz',
+      messages: {
+        xyz: {
           username: 'Leszek',
-          excerpt: 'This is the first message that you…',
-          body: 'This is the first message that you ever will',
-          isRead: false
+          body: 'Haha, fooled you! This is the first message that you ever will',
+          readTime: null,
+          title: 'Very Important Announcement Title',
+          snippet: 'You had better click this!',
+          validFrom: '2018-12-01T01:23:45',
+          validTo: '2070-12-01T01:23:45',
+          linkClickedTime: null,
+        },
+        abc: {
+          username: 'Gniewosz',
+          body: 'Haha, fooled you! This is the first message that you ever will',
+          readTime: '2019-01-26T01:23:45',
+          title: 'Very Important Announcement Title',
+          snippet: 'You had better click this!',
+          validFrom: '2018-12-01T01:23:45',
+          validTo: '2070-12-01T01:23:45',
+          linkClickedTime: null,
+        },
+        foo: {
+          username: 'Henryk',
+          body: 'Haha, fooled you! This is the first message that you ever will',
+          readTime: null,
+          title: 'Very Important Announcement Title',
+          snippet: 'You had better click this!',
+          validFrom: '1995-12-01T01:23:45',
+          validTo: '1999-12-01T01:23:45',
+          linkClickedTime: 2,
+        },
+        bar: {
+          username: 'Ignacy',
+          body: 'Haha, fooled you! This is the first message that you ever will',
+          readTime: null,
+          title: 'Very Important Announcement Title',
+          snippet: 'You had better click this!',
+          validFrom: '2020-12-01T01:23:45',
+          validTo: '2021-12-01T01:23:45',
+          linkClickedTime: null,
         }
-      ]
+      }
     }
   }
 
@@ -178,31 +211,42 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   getMessage (messageId) {
-    return _.find(this.state.messages, (message) => {
-      return message.id === messageId;
-    });
+    return this.state.messages[messageId];
   }
 
   markMessageRead (messageId) {
     console.log('markMessageRead', messageId);
-    const messageIndex = this.state.messages.map((msg) => {
-      return msg.id;
-    }).indexOf(messageId);
-
-    if (messageIndex !== -1) {
-       this.state.messages[messageIndex].isRead = true;
-       this.setState({messages: this.state.messages});
-    }
+    const currentTime = new Date();
+    this.state.messages[messageId].readTime = currentTime.toISOString();
+    this.setState({messages: this.state.messages});
   }
 
   getUnreadMessagesCount () {
     let count = 0;
-    this.state.messages.map((msg) => {
-      if (!msg.isRead) {
+    this.getValidMessageIds().map((messageId) => {
+      if (this.state.messages[messageId].readTime === null) {
         count++;
       }
     });
     return count;
+  }
+
+  getValidMessageIds () {
+    const validMessageIds = [];
+    Object.keys(this.state.messages).map((messageId) => {
+      const message = this.state.messages[messageId];
+      const dateFrom = new Date(message.validFrom);
+      const dateTo = new Date(message.validTo);
+      const timeNow = Date.now();
+
+      if (
+        dateFrom.getTime() <= timeNow &&
+        timeNow <= dateTo.getTime()
+      ) {
+        validMessageIds.push(messageId);
+      }
+    });
+    return validMessageIds;
   }
 
   renderDefaultPopup () {
@@ -210,17 +254,22 @@ export class SupportHelpBubble extends HelpBubble {
       <bem.HelpBubble__popup>
         <HelpBubbleClose parent={this}/>
 
-        {this.state.messages.map((message) => {
+        {this.getValidMessageIds().map((messageId) => {
+          const message = this.state.messages[messageId];
+          const modifiers = ['message', 'message-clickable'];
+          if (message.readTime === null) {
+            modifiers.push('message-unread');
+          }
           return (
             <bem.HelpBubble__row
-              m={['message', 'message-clickable']}
-              key={message.id}
-              data-message-id={message.id}
+              m={modifiers}
+              key={messageId}
+              data-message-id={messageId}
               onClick={this.selectMessage.bind(this)}
             >
               <bem.HelpBubble__avatar/>
               <span>{message.username}</span>
-              <p>{message.excerpt}</p>
+              <p>{message.snippet}</p>
             </bem.HelpBubble__row>
           )
         })}

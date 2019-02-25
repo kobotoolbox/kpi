@@ -170,6 +170,19 @@ $z-help-bubble-popup: 801;
   }
 }
 
+.help-bubble__row.help-bubble__row--message-clickable.help-bubble__row--message-unread {
+  border-left: 5px solid $cool-red;
+  padding-left: 25px;
+
+  &:hover {
+    border-left-color: $cool-blue;
+  }
+
+  &:active {
+    border-left-color: $cool-green;
+  }
+}
+
 .help-bubble--support {
   .help-bubble__row.help-bubble__row--link {
     padding-left: 60px;
