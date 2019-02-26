@@ -100,9 +100,11 @@ INSTALLED_APPS = (
     'constance.backends.database',
     'kobo.apps.hook',
     'django_celery_beat',
+    'corsheaders',
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
