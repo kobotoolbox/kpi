@@ -429,8 +429,20 @@ CELERY_BEAT_SCHEDULE = {
     "send-hooks-failures-reports": {
         "task": "kobo.apps.hook.tasks.failures_reports",
         "schedule": crontab(hour=0, minute=0),
+        'options': {'queue': 'kpi_queue'}
     },
 }
+
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "fanout_patterns": True,
+    "fanout_prefix": True,
+    # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
+    # TODO figure out how to pass `Constance.HOOK_MAX_RETRIES` or `HookLog.get_remaining_seconds()
+    # Otherwise hardcode `HOOK_MAX_RETRIES` in Settings
+    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService
+}
+
+CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
 
 if 'KOBOCAT_URL' in os.environ:
     SYNC_KOBOCAT_XFORMS = (os.environ.get('SYNC_KOBOCAT_XFORMS', 'True') == 'True')
@@ -444,7 +456,7 @@ if 'KOBOCAT_URL' in os.environ:
             'task': 'kpi.tasks.sync_kobocat_xforms',
             'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
             'options': {'queue': 'sync_kobocat_xforms_queue',
-                        'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES /2. * 60},
+                        'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
         }
 
 '''
@@ -455,12 +467,12 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
+CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
 REGISTRATION_AUTO_LOGIN = True
-REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
+REGISTRATION_EMAIL_HTML = False  # Otherwise we have to write HTML templates
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -472,7 +484,7 @@ WEBPACK_LOADER = {
 
 # Email configuration from dkobo; expects SES
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
-    'django.core.mail.backends.filebased.EmailBackend')
+                               'django.core.mail.backends.filebased.EmailBackend')
 
 if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     EMAIL_FILE_PATH = os.environ.get(
