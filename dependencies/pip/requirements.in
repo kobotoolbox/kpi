@@ -19,6 +19,7 @@ billiard
 boto
 boto3
 celery>=4.0,<5.0
+celery[redis]
 dj-static
 dj-database-url
 django-braces
