@@ -25,6 +25,7 @@ dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
+django-cors-headers
 django-debug-toolbar
 django-extensions
 django-jsonbfield
