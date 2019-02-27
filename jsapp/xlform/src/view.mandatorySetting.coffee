@@ -54,7 +54,7 @@ module.exports = do ->
       return String(val)
 
     setNewValue: (val) ->
-      @model.setDetail('required', val)
+      @model.set('value', val)
       return
 
   MandatorySettingView: MandatorySettingView
