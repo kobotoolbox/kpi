@@ -58,6 +58,10 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
 
+# Instances of this model will be treated as allowed origins; see
+# https://github.com/ottoyiu/django-cors-headers#cors_model
+CORS_MODEL = 'external_integrations.CorsModel'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
@@ -101,6 +105,7 @@ INSTALLED_APPS = (
     'kobo.apps.hook',
     'django_celery_beat',
     'corsheaders',
+    'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
 )
 
 MIDDLEWARE_CLASSES = (
