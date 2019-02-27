@@ -9,19 +9,18 @@ module.exports = do ->
     className: 'mandatory-setting'
     events: {
       'input .js-mandatory-setting-radio': 'onRadioChange'
-      'input .js-mandatory-setting-custom-text': 'onCustomTextChange'
+      'keyup .js-mandatory-setting-custom-text': 'onCustomTextKeyup'
+      'blur .js-mandatory-setting-custom-text': 'onCustomTextBlur'
     }
 
     initialize: ({@model}) ->
-      console.log('initialize', @model)
       if @model
         @model.on('change', @render, @)
       return
 
     render: ->
       reqVal = @getChangedValue()
-      console.log('render', @, reqVal)
-      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", String(reqVal)))
+      template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", reqVal))
       @$el.html(template)
       return @
 
@@ -31,13 +30,19 @@ module.exports = do ->
 
     onRadioChange: (evt) ->
       val = evt.currentTarget.value
-      console.log('onRadioChange', val)
-      @setNewValue(val)
+      if val is 'custom'
+        @setNewValue('')
+      else
+        @setNewValue(val)
       return
 
-    onCustomTextChange: (evt) ->
+    onCustomTextKeyup: (evt) ->
+      if evt.key is 'Enter' or evt.keyCode is 13 or evt.which is 13
+        evt.target.blur()
+      return
+
+    onCustomTextBlur: (evt) ->
       val = evt.currentTarget.value
-      console.log('onCustomTextChange', val)
       @setNewValue(val)
       return
 
@@ -49,7 +54,6 @@ module.exports = do ->
       return String(val)
 
     setNewValue: (val) ->
-      console.log('setNewValue', val)
       @model.setDetail('required', val)
       return
 

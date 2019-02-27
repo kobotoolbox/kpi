@@ -1,0 +1,14 @@
+.mandatory-setting {
+  .mandatory-setting__row {
+    // &.mandatory-setting__row--true {}
+    // &.mandatory-setting__row--false {}
+    &.mandatory-setting__row--custom {
+      .radio__input:not(:checked) + .radio__label .text-box {
+        visibility: hidden;
+        height: 0;
+        overflow: hidden;
+        display: block;
+      }
+    }
+  }
+}
