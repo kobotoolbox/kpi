@@ -173,7 +173,11 @@ export class DataTable extends React.Component {
 
     const surveyKeys = [];
     this.props.asset.content.survey.forEach((row) => {
-      surveyKeys.push(row.$autoname);
+      if (row.name) {
+        surveyKeys.push(row.name);
+      } else if (row.$autoname) {
+        surveyKeys.push(row.$autoname);
+      }
     });
 
     // make sure the survey columns are displayed, even if current data's
@@ -413,7 +417,11 @@ export class DataTable extends React.Component {
                 return formatTimeDate(row.value);
               }
             }
-            return typeof(row.value) == 'object' ? '' : row.value;
+            if (typeof(row.value) == 'object' || row.value === undefined) {
+              return '';
+            } else {
+              return row.value;
+            }
           }
       });
 
@@ -762,6 +770,8 @@ export class DataTable extends React.Component {
     const val = evt.target.getAttribute('data-value'),
           selectAll = this.state.selectAll;
     var d = null;
+
+    // TODO bulk change to no status
 
     if (!selectAll) {
       d = {

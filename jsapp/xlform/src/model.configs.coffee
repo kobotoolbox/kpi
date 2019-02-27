@@ -222,16 +222,15 @@ module.exports = do ->
   }
 
   configs.columns = [
-    'type',
-    'name',
-    'label',
-    'hint',
-    'guidance_hint',
-    'required',
-    'read_only',
-    'relevant',
-    'default',
-    'constraint'
+    "type",
+    "name",
+    "label",
+    "hint",
+    "guidance_hint",
+    "required",
+    "relevant",
+    "default",
+    "constraint"
   ]
 
   configs.lookupRowType = do->
@@ -301,8 +300,6 @@ module.exports = do ->
     required:
       value: false
       _hideUnlessChanged: true
-    read_only:
-      value: false
     relevant:
       value: ""
       _hideUnlessChanged: true
