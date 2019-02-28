@@ -242,17 +242,6 @@ module.exports = do ->
       </ul>
     </div>
     """
-
-  paramsSettingsField = ->
-    """
-    <div class="card__settings__fields__field">
-      <label>#{_t('Parameters')}:</label>
-      <span class="settings__input">
-        <div class="params-view"></div>
-      </span>
-    </div>
-    """
-
   mandatorySettingSelector = (uniqueName, currentValue) ->
     if currentValue is 'true'
       modifier = 'true'
@@ -262,7 +251,7 @@ module.exports = do ->
       modifier = 'custom'
 
     """
-    <div class="card__settings__fields__field mandatory-setting">
+    <div class="card__settings__fields__field">
       <label>#{_t('Mandatory response')}:</label>
       <span class="settings__input">
         <div class="radio">
@@ -302,6 +291,16 @@ module.exports = do ->
             </label>
           </label>
         </div>
+      </span>
+    </div>
+    """
+
+  paramsSettingsField = ->
+    """
+    <div class="card__settings__fields__field params-view__settings-wrapper">
+      <label>#{_t('Parameters')}:</label>
+      <span class="settings__input">
+        <div class="params-view"></div>
       </span>
     </div>
     """
