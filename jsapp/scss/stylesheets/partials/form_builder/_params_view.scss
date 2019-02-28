@@ -11,6 +11,11 @@
   }
 }
 
+.params-view__settings-wrapper.card__settings__fields__field > label {
+  vertical-align: top;
+  margin-top: 2px;
+}
+
 .survey__row--selected {
   .params-view__simple-wrapper {
     border-left-color: $linkColor;
@@ -23,6 +28,7 @@
   .params-view {
     .param-option {
       display: block;
+
       &:not(:last-child) {
         margin-bottom: 10px;
       }

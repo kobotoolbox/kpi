@@ -1,4 +1,9 @@
 .mandatory-setting {
+  .card__settings__fields__field > label {
+    vertical-align: top;
+    margin-top: 6px;
+  }
+
   .mandatory-setting__row {
     // &.mandatory-setting__row--true {}
     // &.mandatory-setting__row--false {}
