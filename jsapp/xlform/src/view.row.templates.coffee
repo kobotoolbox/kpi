@@ -243,10 +243,8 @@ module.exports = do ->
     </div>
     """
   mandatorySettingSelector = (uniqueName, currentValue) ->
-    if currentValue is 'true'
-      modifier = 'true'
-    else if currentValue is 'false'
-      modifier = 'false'
+    if currentValue is 'true' or currentValue is 'false'
+      modifier = currentValue
     else
       modifier = 'custom'
 
