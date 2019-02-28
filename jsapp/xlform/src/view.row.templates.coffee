@@ -293,7 +293,12 @@ module.exports = do ->
             >
             <span class="radio__label">#{_t('Custom logic')}</span>
             <label class="text-box text-box--on-white">
-              <input type="text" class="text-box__input js-mandatory-setting-custom-text" value="#{currentValue}">
+              <input
+                type="text"
+                class="text-box__input js-mandatory-setting-custom-text"
+                value="#{currentValue}"
+                placeholder="#{_t('Mandatory when this formula is true')}"
+              >
             </label>
           </label>
         </div>
