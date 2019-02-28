@@ -32,7 +32,8 @@
 
   .radio__label,
   .checkbox__label {
-    max-width: calc(100% - 28px);
+    // it's 28px plus whitespace between inline-blocks
+    max-width: calc(100% - 32px);
     color: $black;
     font-size: 14px;
   }
@@ -44,6 +45,7 @@
 
   .radio__input {
     border-radius: 50%;
+
     &::after {
       content: "";
       top: 4px;
@@ -57,6 +59,7 @@
 
   .checkbox__input {
     border-radius: 2px;
+
     &::after {
       content: "✓";
       top: 0;
@@ -93,7 +96,7 @@
     &:checked {
       border-color: $cool-blue;
 
-      &::after {opacity: 1;}
+      &::after { opacity: 1; }
     }
 
     &[disabled] {
