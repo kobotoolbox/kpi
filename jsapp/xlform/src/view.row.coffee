@@ -209,9 +209,14 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters', 'required']
+      hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters']
       for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in hiddenFields
-        new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
+        if key is 'required'
+          @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
+            model: @model.get('required')
+          }).render().insertInDOM(@)
+        else
+          new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       questionType = @model.get('type').get('typeId')
       if (
@@ -230,10 +235,6 @@ module.exports = do ->
           rowView: @,
           acceptedFiles: @model.getAcceptedFiles()
         }).render().insertInDOM(@)
-
-      @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
-        model: @model.get('required')
-      }).render().insertInDOM(@)
 
       return @
 
