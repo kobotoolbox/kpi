@@ -32,6 +32,7 @@ module.exports = do ->
       val = evt.currentTarget.value
       if val is 'custom'
         @setNewValue('')
+        $('.js-mandatory-setting-custom-text').focus()
       else
         @setNewValue(val)
       return
