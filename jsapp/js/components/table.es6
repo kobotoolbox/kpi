@@ -143,9 +143,7 @@ export class DataTable extends React.Component {
       dataInterface.removeSubmissionValidationStatus(_this.props.asset.uid, sid).done((result) => {
         _this.state.tableData[index]._validation_status = {};
         _this.setState({tableData: _this.state.tableData});
-      }).fail((error)=>{
-        console.error(error);
-      });
+      }).fail(console.error);
     } else {
       dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {'validation_status.uid': evt.value}).done((result) => {
         if (result.uid) {
@@ -154,9 +152,7 @@ export class DataTable extends React.Component {
         } else {
           console.error('error updating validation status');
         }
-      }).fail((error)=>{
-        console.error(error);
-      });
+      }).fail(console.error);
     }
   }
 
@@ -781,13 +777,8 @@ export class DataTable extends React.Component {
     const selectAll = this.state.selectAll;
     const data = {};
     let selectedCount;
-    let apiFn;
-
-    if (val === null) {
-      apiFn = dataInterface.bulkRemoveSubmissionsValidationStatus;
-    } else {
-      apiFn = dataInterface.patchSubmissions;
-    }
+    // setting empty value requires deleting the statuses with different API call
+    const apiFn = val === null ? dataInterface.bulkRemoveSubmissionsValidationStatus : dataInterface.patchSubmissions;
 
     if (selectAll) {
       if (this.state.fetchState.filtered.length) {
