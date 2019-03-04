@@ -752,7 +752,7 @@ class ProjectSettings extends React.Component {
     const countries = session.currentAccount.available_countries;
 
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl) {
-      $('iframe#kc-settings-iframe').iFrameResize({log: true});
+      $('#kc-settings-iframe').iFrameResize({log: true});
     }
 
     return (
@@ -877,7 +877,6 @@ class ProjectSettings extends React.Component {
                 id='kc-settings-iframe'
                 src={this.props.iframeUrl}
                 scrolling='no'
-                style={{width: '1px', minWidth: '100%'}}
               />
             </bem.FormView__cell>
           }

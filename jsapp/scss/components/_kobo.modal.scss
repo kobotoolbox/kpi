@@ -405,6 +405,14 @@ $z-modal-x: 10;
   cursor: pointer;
 }
 
+#kc-settings-iframe {
+  // Note: Using min-width to set the width of the iFrame, works around an issue
+  // in iOS that can prevent the iFrame from sizing correctly.
+  // https://github.com/davidjbradshaw/iframe-resizer#typical-setup
+  width: 1px;
+  min-width: 100%;
+}
+
 .project-settings {
   // make sure it doesn't get too small (but only inside modal)
   .modal & {
