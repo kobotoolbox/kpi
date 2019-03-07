@@ -95,8 +95,8 @@ class HelpBubbleTrigger extends React.Component {
 
     return (
       <bem.HelpBubble__trigger
-        onClick={this.props.parent.toggle.bind(this.props.parent)}
-        { ...( !this.props.parent.state.isOpen && { 'data-tip': this.props.tooltipLabel } ) }
+        onClick={this.props.onClick}
+        data-tip={this.props.tooltipLabel}
       >
         <i className={iconClass}/>
 
@@ -124,7 +124,7 @@ class HelpBubbleClose extends React.Component {
 
   render() {
     return (
-      <bem.HelpBubble__close onClick={this.props.parent.close.bind(this.props.parent)}>
+      <bem.HelpBubble__close onClick={this.props.onClick}>
         <i className='k-icon k-icon-close'/>
       </bem.HelpBubble__close>
     );
@@ -143,29 +143,34 @@ export class IntercomHelpBubble extends HelpBubble {
 
   render() {
     const attrs = {};
-
     if (this.isNew(this.bubbleName)) {
       attrs.isNew = true;
     }
 
+    const modifiers = ['intercom'];
+    if (this.state.isOpen) {
+      modifiers.push('open');
+    }
+
     return (
-      <bem.HelpBubble m='intercom'>
+      <bem.HelpBubble m={modifiers}>
         <HelpBubbleTrigger
           icon='intercom'
           tooltipLabel={t('Intercom')}
-          parent={this}
+          onClick={this.toggle.bind(this)}
           {...attrs}
         />
 
         {this.state.isOpen &&
           <bem.HelpBubble__popup>
-            <HelpBubbleClose parent={this}/>
+            <HelpBubbleClose onClick={this.close.bind(this)}/>
 
             {this.state.hasIntercom &&
               <span>intercom!</span>
             }
             {!this.state.hasIntercom &&
-              <bem.HelpBubble__rowAnchor m='link'
+              <bem.HelpBubble__rowAnchor
+                m='link'
                 target='_blank'
                 href='https://test.test'
               >
@@ -259,7 +264,6 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   markMessageRead(messageId) {
-    console.log('markMessageRead', messageId);
     const currentTime = new Date();
     this.state.messages[messageId].readTime = currentTime.toISOString();
     this.setState({messages: this.state.messages});
@@ -296,7 +300,7 @@ export class SupportHelpBubble extends HelpBubble {
   renderDefaultPopup() {
     return (
       <bem.HelpBubble__popup>
-        <HelpBubbleClose parent={this}/>
+        <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__row m='header'>
           <header>{t('Looking for help?')}</header>
@@ -353,7 +357,7 @@ export class SupportHelpBubble extends HelpBubble {
 
     return (
       <bem.HelpBubble__popup>
-        <HelpBubbleClose parent={this}/>
+        <HelpBubbleClose onClick={this.close.bind(this)}/>
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
           <i className='k-icon k-icon-prev'/>
         </bem.HelpBubble__back>
@@ -369,17 +373,21 @@ export class SupportHelpBubble extends HelpBubble {
 
   render() {
     const attrs = {};
-
     if (this.isNew(this.bubbleName)) {
       attrs.isNew = true;
     }
 
+    const modifiers = ['support'];
+    if (this.state.isOpen) {
+      modifiers.push('open');
+    }
+
     return (
-      <bem.HelpBubble m='support'>
+      <bem.HelpBubble m={modifiers}>
         <HelpBubbleTrigger
           icon='help'
-          parent={this}
           tooltipLabel={t('Help')}
+          onClick={this.toggle.bind(this)}
           counter={this.getUnreadMessagesCount()}
           {...attrs}
         />
