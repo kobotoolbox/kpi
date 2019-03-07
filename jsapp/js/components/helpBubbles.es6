@@ -83,6 +83,12 @@ class HelpBubbleTrigger extends React.Component {
             {this.props.counter}
           </bem.HelpBubble__triggerCounter>
         }
+
+        {this.props.isNew &&
+          <bem.HelpBubble__triggerBadge>
+            {t('new')}
+          </bem.HelpBubble__triggerBadge>
+        }
       </bem.HelpBubble__trigger>
     );
   }
@@ -118,6 +124,7 @@ export class IntercomHelpBubble extends HelpBubble {
         <HelpBubbleTrigger
           icon='intercom'
           tooltipLabel={t('Intercom')}
+          isNew
           parent={this}
         />
 
@@ -337,6 +344,7 @@ export class SupportHelpBubble extends HelpBubble {
           icon='help'
           parent={this}
           tooltipLabel={t('Help')}
+          isNew
           counter={this.getUnreadMessagesCount()}
         />
 
