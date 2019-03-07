@@ -16,7 +16,7 @@ billiard==3.5.0.5
 boto3==1.9.80
 boto==2.49.0
 botocore==1.12.80         # via boto3, s3transfer
-celery==4.2.1
+celery[redis]==4.2.1
 certifi==2018.11.29       # via requests
 cffi==1.8.3               # via cryptography
 chardet==3.0.4            # via requests
@@ -32,6 +32,7 @@ dj-static==0.0.6
 django-braces==1.13.0
 django-celery-beat==1.1.1
 django-constance[database]==2.2.0
+django-cors-headers==2.4.0
 django-debug-toolbar==1.4
 django-extensions==1.6.7
 django-haystack==2.6.0
@@ -93,6 +94,7 @@ python-digest==1.7
 pytz==2018.9
 pyxform==0.12.0
 raven==5.32.0
+redis==3.0.1              # via celery
 requests==2.21.0
 responses==0.9.0
 s3transfer==0.1.13        # via boto3
