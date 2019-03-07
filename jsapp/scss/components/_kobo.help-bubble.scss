@@ -44,7 +44,7 @@ $s-help-bubble-row-spacing: 30px;
 }
 
 .help-bubble__trigger-badge {
-  bottom: 0%;
+  bottom: 0;
   background: $cool-blue;
   border-radius: 4px;
   font-size: 8px;
@@ -54,7 +54,7 @@ $s-help-bubble-row-spacing: 30px;
 }
 
 .help-bubble__trigger-counter {
-  bottom: 50%;
+  top: 0;
   background: $cool-red;
   border-radius: 50%;
   font-size: 10px;
@@ -70,7 +70,7 @@ $s-help-bubble-row-spacing: 30px;
 // custom styles for first bubble in drawer
 .help-bubble:nth-child(1) {
   .help-bubble__popup {
-    bottom: 43px * 3;
+    bottom: 5px + 43px * 3;
     max-height: calc(100vh - #{43px * 4});
   }
 }
@@ -78,7 +78,7 @@ $s-help-bubble-row-spacing: 30px;
 // custom styles for second bubble in drawer
 .help-bubble:nth-child(2) {
   .help-bubble__popup {
-    bottom: 43px * 2;
+    bottom: 5px + 43px * 2;
     max-height: calc(100vh - #{43px * 3});
   }
 }
