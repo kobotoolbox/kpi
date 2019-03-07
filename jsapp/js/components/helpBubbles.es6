@@ -15,18 +15,22 @@ class HelpBubble extends React.Component {
     this.cancelOutsideCloseWatch = Function.prototype;
   }
 
-  open (evt) {
+  open(evt) {
     this.setState({isOpen: true});
     this.cancelOutsideCloseWatch();
     this.watchOutsideClose();
+
+    if (this.bubbleName) {
+      this.bumpNewCounter(this.bubbleName);
+    }
   }
 
-  close (evt) {
+  close(evt) {
     this.setState({isOpen: false});
     this.cancelOutsideCloseWatch();
   }
 
-  toggle (evt) {
+  toggle(evt) {
     if (this.state.isOpen) {
       this.close();
     } else {
@@ -59,6 +63,24 @@ class HelpBubble extends React.Component {
     document.addEventListener('click', outsideClickHandler);
     document.addEventListener('keydown', escHandler);
   }
+
+  isNew(bubbleName) {
+    const storageItem = window.localStorage.getItem(bubbleName);
+    if (storageItem !== null) {
+      return parseInt(storageItem) <= 5;
+    } else {
+      return true;
+    }
+  }
+
+  bumpNewCounter(bubbleName) {
+    const storageItem = window.localStorage.getItem(bubbleName);
+    if (storageItem === null) {
+      window.localStorage.setItem(bubbleName, 0);
+    } else {
+      window.localStorage.setItem(bubbleName, parseInt(storageItem) + 1);
+    }
+  }
 }
 
 class HelpBubbleTrigger extends React.Component {
@@ -67,7 +89,7 @@ class HelpBubbleTrigger extends React.Component {
     autoBind(this);
   }
 
-  render () {
+  render() {
     const iconClass = `k-icon k-icon-${this.props.icon}`;
     const hasCounter = typeof this.props.counter === 'number' && this.props.counter !== 0;
 
@@ -100,7 +122,7 @@ class HelpBubbleClose extends React.Component {
     autoBind(this);
   }
 
-  render () {
+  render() {
     return (
       <bem.HelpBubble__close onClick={this.props.parent.close.bind(this.props.parent)}>
         <i className='k-icon k-icon-close'/>
@@ -116,16 +138,23 @@ export class IntercomHelpBubble extends HelpBubble {
     this.state = {
       hasIntercom: false
     }
+    this.bubbleName = 'intercom-help-bubble';
   }
 
-  render () {
+  render() {
+    const attrs = {};
+
+    if (this.isNew(this.bubbleName)) {
+      attrs.isNew = true;
+    }
+
     return (
       <bem.HelpBubble m='intercom'>
         <HelpBubbleTrigger
           icon='intercom'
           tooltipLabel={t('Intercom')}
-          isNew
           parent={this}
+          {...attrs}
         />
 
         {this.state.isOpen &&
@@ -159,9 +188,10 @@ export class SupportHelpBubble extends HelpBubble {
       selectedMessageId: null,
       messages: {}
     }
+    this.bubbleName = 'support-help-bubble';
   }
 
-  componentDidMount () {
+  componentDidMount() {
     // mock messages
     this.setState({
       messages: {
@@ -209,33 +239,33 @@ export class SupportHelpBubble extends HelpBubble {
     });
   }
 
-  close () {
+  close() {
     super.close();
     this.clearSelectedMessage();
   }
 
-  selectMessage (evt) {
+  selectMessage(evt) {
     const messageId = evt.currentTarget.dataset.messageId;
     this.setState({selectedMessageId: messageId});
     this.markMessageRead(messageId);
   }
 
-  clearSelectedMessage () {
+  clearSelectedMessage() {
     this.setState({selectedMessageId: null});
   }
 
-  getMessage (messageId) {
+  getMessage(messageId) {
     return this.state.messages[messageId];
   }
 
-  markMessageRead (messageId) {
+  markMessageRead(messageId) {
     console.log('markMessageRead', messageId);
     const currentTime = new Date();
     this.state.messages[messageId].readTime = currentTime.toISOString();
     this.setState({messages: this.state.messages});
   }
 
-  getUnreadMessagesCount () {
+  getUnreadMessagesCount() {
     let count = 0;
     this.getValidMessageIds().map((messageId) => {
       if (this.state.messages[messageId].readTime === null) {
@@ -245,7 +275,7 @@ export class SupportHelpBubble extends HelpBubble {
     return count;
   }
 
-  getValidMessageIds () {
+  getValidMessageIds() {
     const validMessageIds = [];
     Object.keys(this.state.messages).map((messageId) => {
       const message = this.state.messages[messageId];
@@ -263,7 +293,7 @@ export class SupportHelpBubble extends HelpBubble {
     return validMessageIds;
   }
 
-  renderDefaultPopup () {
+  renderDefaultPopup() {
     return (
       <bem.HelpBubble__popup>
         <HelpBubbleClose parent={this}/>
@@ -318,7 +348,7 @@ export class SupportHelpBubble extends HelpBubble {
     );
   }
 
-  renderMessagePopup () {
+  renderMessagePopup() {
     const msg = this.getMessage(this.state.selectedMessageId);
 
     return (
@@ -337,15 +367,21 @@ export class SupportHelpBubble extends HelpBubble {
     );
   }
 
-  render () {
+  render() {
+    const attrs = {};
+
+    if (this.isNew(this.bubbleName)) {
+      attrs.isNew = true;
+    }
+
     return (
       <bem.HelpBubble m='support'>
         <HelpBubbleTrigger
           icon='help'
           parent={this}
           tooltipLabel={t('Help')}
-          isNew
           counter={this.getUnreadMessagesCount()}
+          {...attrs}
         />
 
         {this.state.isOpen && this.state.selectedMessageId &&
