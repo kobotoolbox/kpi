@@ -150,6 +150,13 @@ export class SupportHelpBubble extends HelpBubble {
     autoBind(this);
     this.state = {
       selectedMessageId: null,
+      messages: {}
+    }
+  }
+
+  componentDidMount () {
+    // mock messages
+    this.setState({
       messages: {
         xyz: {
           username: 'Leszek',
@@ -192,7 +199,7 @@ export class SupportHelpBubble extends HelpBubble {
           linkClickedTime: null,
         }
       }
-    }
+    });
   }
 
   close () {
@@ -254,26 +261,6 @@ export class SupportHelpBubble extends HelpBubble {
       <bem.HelpBubble__popup>
         <HelpBubbleClose parent={this}/>
 
-        {this.getValidMessageIds().map((messageId) => {
-          const message = this.state.messages[messageId];
-          const modifiers = ['message', 'message-clickable'];
-          if (message.readTime === null) {
-            modifiers.push('message-unread');
-          }
-          return (
-            <bem.HelpBubble__row
-              m={modifiers}
-              key={messageId}
-              data-message-id={messageId}
-              onClick={this.selectMessage.bind(this)}
-            >
-              <bem.HelpBubble__avatar/>
-              <span>{message.username}</span>
-              <p>{message.snippet}</p>
-            </bem.HelpBubble__row>
-          )
-        })}
-
         <bem.HelpBubble__row m='header'>
           <header>{t('Looking for help?')}</header>
           <p><em>{t('Try visiting one of our online support resources')}</em></p>
@@ -300,6 +287,26 @@ export class SupportHelpBubble extends HelpBubble {
           <header>{t('KoBoToolbox Community Forum')}</header>
           <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
         </bem.HelpBubble__rowAnchor>
+
+        {this.getValidMessageIds().map((messageId) => {
+          const message = this.state.messages[messageId];
+          const modifiers = ['message', 'message-clickable'];
+          if (message.readTime === null) {
+            modifiers.push('message-unread');
+          }
+          return (
+            <bem.HelpBubble__row
+              m={modifiers}
+              key={messageId}
+              data-message-id={messageId}
+              onClick={this.selectMessage.bind(this)}
+            >
+              <bem.HelpBubble__avatar/>
+              <span>{message.username}</span>
+              <p>{message.snippet}</p>
+            </bem.HelpBubble__row>
+          )
+        })}
       </bem.HelpBubble__popup>
     );
   }

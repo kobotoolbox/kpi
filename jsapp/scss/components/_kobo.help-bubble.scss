@@ -1,4 +1,5 @@
 $z-help-bubble-popup: 801;
+$s-help-bubble-row-spacing: 30px;
 
 .help-bubble {
   position: relative;
@@ -127,7 +128,7 @@ $z-help-bubble-popup: 801;
 .help-bubble__row {
   position: relative;
   display: block;
-  padding: 10px 30px;
+  padding: #{$s-help-bubble-row-spacing * 0.5} $s-help-bubble-row-spacing;
 
   & + & {
     border-top: 1px solid $divider-color;
@@ -179,7 +180,7 @@ $z-help-bubble-popup: 801;
 
 .help-bubble__row.help-bubble__row--message-clickable.help-bubble__row--message-unread {
   border-left: 5px solid $cool-red;
-  padding-left: 25px;
+  padding-left: $s-help-bubble-row-spacing - 5px;
 
   &:hover {
     border-left-color: $cool-blue;
