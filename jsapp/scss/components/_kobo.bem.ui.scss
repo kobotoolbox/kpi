@@ -1,3 +1,5 @@
+$mdl-layout-width: 1440px;
+
 .kpiapp,
 .mdl-wrapper,
 .mdl-layout {
@@ -5,7 +7,7 @@
 }
 
 .mdl-layout {
-  max-width: 1440px;
+  max-width: $mdl-layout-width;
   margin: 0 auto;
   overflow: hidden;
 }

@@ -79,6 +79,10 @@ $z-help-bubble-popup: 801;
   max-width: calc(100vw - #{$drawer-icons-width});
   overflow-y: auto;
   overflow-x: hidden;
+
+  @media screen and (min-width: #{$mdl-layout-width}) {
+    left: calc(50% - #{$mdl-layout-width * 0.5} + #{$drawer-icons-width - 1px});
+  }
 }
 
 .help-bubble__back,
