@@ -21,6 +21,10 @@ $s-help-bubble-row-spacing: 30px;
   font-weight: normal;
   color: $cool-silver;
 
+  .help-bubble--open & {
+    color: $cool-green;
+  }
+
   &:hover {
     color: $cool-blue;
 
