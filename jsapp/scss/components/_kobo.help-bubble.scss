@@ -1,5 +1,5 @@
 $z-help-bubble-popup: 801;
-$s-help-bubble-row-spacing: 30px;
+$s-help-bubble-row-spacing: 20px;
 
 .help-bubble {
   position: relative;
@@ -110,17 +110,36 @@ $s-help-bubble-row-spacing: 30px;
   position: absolute;
   z-index: 1;
   top: 0;
-  right: 0;
-  background: transparent;
-  color: $cool-silver;
   border: 0;
-  padding: 5px;
   line-height: 1;
   font-size: 1.5rem;
 
   .k-icon {
     display: block;
   }
+}
+
+.help-bubble__back {
+  left: 0;
+  padding: 0;
+  height: 100%;
+  background: $cool-charcoal;
+  color: $white;
+
+  &:hover {
+    background: $cool-blue;
+  }
+
+  &:active {
+    background: $cool-green;
+  }
+}
+
+.help-bubble__close {
+  right: 0;
+  padding: 5px;
+  background: transparent;
+  color: $cool-silver;
 
   &:hover {
     color: $cool-blue;
@@ -129,14 +148,6 @@ $s-help-bubble-row-spacing: 30px;
   &:active {
     color: $cool-green;
   }
-}
-
-.help-bubble__back {
-  left: 0;
-}
-
-.help-bubble__close {
-  right: 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -194,6 +205,10 @@ $s-help-bubble-row-spacing: 30px;
   &:active {
     color: $cool-green;
   }
+}
+
+.help-bubble__row.help-bubble__row--message-with-back-button {
+  padding-left: $s-help-bubble-row-spacing + 15px;
 }
 
 .help-bubble__row.help-bubble__row--message-clickable.help-bubble__row--message-unread {

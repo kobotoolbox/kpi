@@ -197,7 +197,7 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   componentDidMount() {
-    // mock messages
+    // TODO get real messages
     this.setState({
       messages: {
         xyz: {
@@ -212,10 +212,10 @@ export class SupportHelpBubble extends HelpBubble {
         },
         abc: {
           username: 'Gniewosz',
-          body: 'Haha, fooled you! This is the first message that you ever will',
+          body: 'Welcome to our forums dear user.\nIn forums you can forum as much as you wany. You can forum with other forum users.\nRegister today and get a free puppy!',
           readTime: '2019-01-26T01:23:45',
           title: 'Very Important Announcement Title',
-          snippet: 'You had better click this!',
+          snippet: 'Welcome to our forums…',
           validFrom: '2018-12-01T01:23:45',
           validTo: '2070-12-01T01:23:45',
           linkClickedTime: null,
@@ -264,6 +264,7 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   markMessageRead(messageId) {
+    // TODO call a real endpoint and update data after finishing
     const currentTime = new Date();
     this.state.messages[messageId].readTime = currentTime.toISOString();
     this.setState({messages: this.state.messages});
@@ -362,7 +363,7 @@ export class SupportHelpBubble extends HelpBubble {
           <i className='k-icon k-icon-prev'/>
         </bem.HelpBubble__back>
 
-        <bem.HelpBubble__row m='message'>
+        <bem.HelpBubble__row m={['message', 'message-with-back-button']}>
           <bem.HelpBubble__avatar/>
           <span>{msg.username}</span>
           <p>{msg.body}</p>
