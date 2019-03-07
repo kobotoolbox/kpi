@@ -1,6 +1,3 @@
-/*eslint new-cap: 0*/
-/*eslint no-multi-spaces: 0*/
-
 var BEM = require('./libs/react-create-bem-element');
 var bem = BEM.init();
 
