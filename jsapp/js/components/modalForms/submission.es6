@@ -39,6 +39,8 @@ class Submission extends React.Component {
       loading: true,
       error: false,
       enketoEditLink: false,
+      enketoEditLinkError: null,
+      isGetEnketoEditLinkPending: false,
       previous: -1,
       next: -1,
       sid: props.sid,
@@ -67,9 +69,17 @@ class Submission extends React.Component {
       var prev = -1, next = -1;
 
       if (this.props.asset.deployment__active) {
+        this.setState({
+          isGetEnketoEditLinkPending: true,
+          enketoEditLinkError: null
+        });
         dataInterface.getEnketoEditLink(assetUid, sid).done((editData) => {
-          if (editData.url)
+          this.setState({isGetEnketoEditLinkPending: false});
+          if (editData.url) {
             this.setState({enketoEditLink: editData.url});
+          } else if (editData.detail) {
+            this.setState({enketoEditLinkError: editData.detail});
+          }
         });
       }
 
@@ -500,18 +510,35 @@ class Submission extends React.Component {
           </div>
 
           <div className='submission-actions'>
-            {this.userCan('change_submissions', this.props.asset) && this.state.enketoEditLink &&
-              <a href={this.state.enketoEditLink}
+            {this.state.enketoEditLinkError &&
+              <span
+                className='mdl-button mdl-button--icon mdl-button--danger right-tooltip'
+                data-tip={this.state.enketoEditLinkError}
+              >
+                <i className='k-icon k-icon-alert'/>
+              </span>
+            }
+
+            {this.userCan('change_submissions', this.props.asset) &&
+              <a
                 onClick={this.promptRefresh}
                 target='_blank'
-                className='mdl-button mdl-button--raised mdl-button--colored'>
+                className='mdl-button mdl-button--raised mdl-button--colored'
+                {...({
+                  disabled: this.state.isGetEnketoEditLinkPending || this.state.enketoEditLinkError ? true : null,
+                  href: this.state.enketoEditLink ? this.state.enketoEditLink : null
+                })}
+              >
                 {t('Edit')}
               </a>
             }
+
             {this.userCan('change_submissions', this.props.asset) &&
-              <a onClick={this.deleteSubmission}
-                    className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'
-                    data-tip={t('Delete submission')}>
+              <a
+                onClick={this.deleteSubmission}
+                className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'
+                data-tip={t('Delete submission')}
+              >
                 <i className='k-icon-trash' />
               </a>
             }
