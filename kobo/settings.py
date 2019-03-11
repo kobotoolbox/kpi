@@ -9,19 +9,19 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 from __future__ import absolute_import
 
-from datetime import timedelta
-import multiprocessing
 import os
 import subprocess
+import multiprocessing
+from datetime import timedelta
 
-from celery.schedules import crontab
+import dj_database_url
 import django.conf.locale
+from pymongo import MongoClient
+from celery.schedules import crontab
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
+from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
-import dj_database_url
-
-from pymongo import MongoClient
 
 from .static_lists import EXTRA_LANG_INFO
 
@@ -106,6 +106,8 @@ INSTALLED_APPS = (
     'django_celery_beat',
     'corsheaders',
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
+    'markdownx',
+    'kobo.apps.help',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -239,9 +241,15 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 
 # Private media file configuration
+PRIVATE_STORAGE_S3_REVERSE_PROXY = True # Instead of direct S3 bucket URLs
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
+
+# django-markdownx, for in-app messages
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+# Github-flavored Markdown from `py-gfm`
+MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/

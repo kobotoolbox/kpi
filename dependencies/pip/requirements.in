@@ -36,6 +36,7 @@ django-toolbelt
 django-webpack-loader
 django-haystack
 django-loginas==0.2.3
+django-markdownx
 django-markitup
 django-mptt
 django-reversion
@@ -51,6 +52,7 @@ kombu
 lxml
 mock
 oauthlib
+py-gfm
 pymongo
 pytest-django
 pytest==3.10.0
