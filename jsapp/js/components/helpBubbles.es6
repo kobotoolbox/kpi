@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import bem from '../bem';
+import stores from '../stores';
 import {t} from '../utils';
 
 class HelpBubble extends React.Component {
@@ -64,8 +65,14 @@ class HelpBubble extends React.Component {
     document.addEventListener('keydown', escHandler);
   }
 
+  getStorageName(bubbleName) {
+    const currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
+    return `kobo.${currentUsername}.${bubbleName}`;
+  }
+
   isNew(bubbleName) {
-    const storageItem = window.localStorage.getItem(bubbleName);
+    const storageName = this.getStorageName(bubbleName);
+    const storageItem = window.localStorage.getItem(storageName);
     if (storageItem !== null) {
       return parseInt(storageItem) <= 5;
     } else {
@@ -74,11 +81,12 @@ class HelpBubble extends React.Component {
   }
 
   bumpNewCounter(bubbleName) {
-    const storageItem = window.localStorage.getItem(bubbleName);
+    const storageName = this.getStorageName(bubbleName);
+    const storageItem = window.localStorage.getItem(storageName);
     if (storageItem === null) {
-      window.localStorage.setItem(bubbleName, 0);
+      window.localStorage.setItem(storageName, 0);
     } else {
-      window.localStorage.setItem(bubbleName, parseInt(storageItem) + 1);
+      window.localStorage.setItem(storageName, parseInt(storageItem) + 1);
     }
   }
 }
