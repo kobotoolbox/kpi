@@ -263,8 +263,12 @@ export class DataTable extends React.Component {
           </span>
 
           {userCanSeeEditIcon &&
-            <span onClick={this.launchEditSubmission} data-sid={row.original._id}
-                  className='table-link' data-tip={t('Edit')}>
+            <span
+              onClick={this.launchEditSubmission.bind(this)}
+              data-sid={row.original._id}
+              className='table-link'
+              data-tip={t('Edit')}
+            >
               <i className='k-icon k-icon-edit'/>
             </span>
           }
@@ -690,20 +694,26 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission (evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0),
-        uid = this.props.asset.uid,
-        newWin = window.open('', '_blank');
-    const sid = el.getAttribute('data-sid');
+    const uid = this.props.asset.uid;
+    const sid = evt.currentTarget.dataset.sid;
 
-    dataInterface.getEnketoEditLink(uid, sid).done((editData) => {
-      this.setState({ promptRefresh: true });
-      if (editData.url) {
-        newWin.location = editData.url;
-      } else {
-        newWin.close();
-        notify(t('There was an error loading Enketo.'));
-      }
-    });
+    dataInterface.getEnketoEditLink(uid, sid)
+      .done((editData) => {
+        this.setState({ promptRefresh: true });
+        if (editData.url) {
+          const newWin = window.open('', '_blank');
+          newWin.location = editData.url;
+        } else {
+          let errorMsg = t('There was an error loading Enketo.');
+          if (editData.detail) {
+            errorMsg += ` ${editData.detail}`;
+          }
+          notify(errorMsg, 'error');
+        }
+      })
+      .fail(() => {
+        notify(t('There was an error getting Enketo edit link'), 'error');
+      });
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal)
