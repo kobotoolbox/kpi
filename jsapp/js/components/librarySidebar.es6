@@ -260,7 +260,6 @@ class LibrarySidebar extends Reflux.Component {
     };
   }
   render () {
-    console.log("state", this.state.defaultQueryCount)
     return (
       <bem.CollectionsWrapper>
         <ui.PopoverMenu
