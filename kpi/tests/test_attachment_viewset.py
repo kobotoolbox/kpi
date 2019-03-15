@@ -14,7 +14,7 @@ from django_mock_queries.query import MockModel, MockSet
 from mock import patch, MagicMock
 
 from kpi.models import Asset
-from kpi.utils import image_tools
+#from kpi.utils import image_tools
 from kpi.views import AttachmentViewSet
 from kpi.deployment_backends.kc_access.shadow_models import _models
 
@@ -155,7 +155,6 @@ class AttachmentViewsetTestCase(TestCase):
             'get': 'list'
         })
 
-
     def test_list_view(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
@@ -171,7 +170,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNone(data['previous_page'])
                 self.assertIsNone(data['next_page'])
                 self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
-
 
     def test_list_view_no_results(self):
         empty = MockSet(model=_models.Attachment)
@@ -190,7 +188,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNone(data['next_page'])
                 self.assertEquals(len(data['results']), 0)
 
-
     def test_list_view_asset_not_found(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
             empty = MockSet(model=Asset)
@@ -201,8 +198,7 @@ class AttachmentViewsetTestCase(TestCase):
                 response = self.list_view(request, parent_lookup_asset=self.asset.uid)
                 self.assertEqual(response.status_code, 404)
 
-
-    @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
+    #@patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.secure_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
@@ -224,7 +220,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNotNone(data['question'])
                 self.assertIsNotNone(data['submission'])
 
-
     def test_retrieve_view_attachment_not_found(self):
         empty = MockSet(model=_models.Attachment)
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', empty):
@@ -237,7 +232,6 @@ class AttachmentViewsetTestCase(TestCase):
 
                 self.assertEqual(response.status_code, 404)
 
-
     def test_retrieve_view_asset_not_found(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
             empty = MockSet(model=Asset)
@@ -249,7 +243,6 @@ class AttachmentViewsetTestCase(TestCase):
                 response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
 
                 self.assertEqual(response.status_code, 404)
-
 
     def test_list_view_filter_by_type(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
@@ -268,7 +261,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNone(data['next_page'])
                 self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
 
-
     def test_list_view_filter_by_non_image_type(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
@@ -285,7 +277,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNone(data['previous_page'])
                 self.assertIsNone(data['next_page'])
                 self.assertEquals(len(data['results']), 0)
-
 
     def test_list_view_paging(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
@@ -307,7 +298,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertTrue('page=2' in data['next_page'])
                 self.assertTrue('page_size=2' in data['next_page'])
                 self.assertEquals(len(data['results']), page_size)
-
 
     def test_list_view_group_by_submission(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
@@ -334,7 +324,6 @@ class AttachmentViewsetTestCase(TestCase):
                     attachments = submission['attachments']
                     self.assertEqual(attachments['count'], 2)  # 2 attachments linked to each instance
                     self.assertEqual(len(attachments['results']), 2)
-
 
     def test_list_view_group_by_question(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
@@ -376,7 +365,6 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEqual(response.status_code, 302)
                 self.assertEqual(response.url, expected.media_file.url)
 
-
     @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view_resized_raw_image(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
@@ -392,7 +380,6 @@ class AttachmentViewsetTestCase(TestCase):
 
                 self.assertEqual(response.status_code, 302)
                 self.assertEqual(response.url, expected.media_file.url) # True since we're mocking image_url :)
-
 
     def test_retrieve_view_raw_image_does_not_exist(self):
         with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
