@@ -125,6 +125,7 @@ def set_kc_require_auth(user_id, require_auth):
                 profile.require_auth = require_auth
                 profile.save()
 
+
 def check_obj(f):
     @wraps(f)
     def with_check_obj(*args, **kwargs):
@@ -132,6 +133,7 @@ def check_obj(f):
             return f(*args, **kwargs)
 
     return with_check_obj
+
 
 def _get_content_type_kwargs(obj):
     r"""

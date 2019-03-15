@@ -82,9 +82,10 @@ def resize_local_env(filename, fs=None):
 
 
 def image_url(attachment, suffix, total=0, limit=5):
-    '''Return url of an image given size(@param suffix)
+    """
+    Return url of an image given size(@param suffix)
     e.g large, medium, small, or generate required thumbnail
-    '''
+    """
     url = attachment.media_file.url
     default_storage = get_storage_class()()
     fs = get_storage_class('django.core.files.storage.FileSystemStorage')()

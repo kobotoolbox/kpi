@@ -49,13 +49,14 @@ from .deployment_backends.kc_access.utils import get_kc_profile_data
 from .deployment_backends.kc_access.utils import set_kc_require_auth
 from .deployment_backends.kc_access.shadow_models import _models
 from .deployment_backends.kc_access.utils import check_obj
-from .utils.image_tools import image_url
+
 
 def dict_key_for_value(_dict, value):
     """
     This function is used to get key by value in a dictionary
     """
     return _dict.keys()[_dict.values().index(value)]
+
 
 def get_path(data, question_name, path_list=[]):
     name = data.get('name')
@@ -70,6 +71,7 @@ def get_path(data, question_name, path_list=[]):
             else:
                 del path_list[len(path_list) - 1]
     return None
+
 
 class Paginated(LimitOffsetPagination):
 
@@ -1061,8 +1063,9 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         asset = self.context.get('asset', obj.instance.xform.id_string)
-        return reverse('asset-attachment-detail', args=(asset, obj.id,),
+        url = reverse('asset-attachment-detail', args=(asset, obj.id,),
                        request=self.context.get('request', None))
+        return url
 
     def get_download_url(self, obj):
         return self._get_download_url(obj, 'original')
@@ -1070,20 +1073,17 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def get_small_download_url(self, obj):
         return self._get_download_url(obj, 'small')
 
-
     def get_medium_download_url(self, obj):
         return self._get_download_url(obj, 'medium')
-
 
     def get_large_download_url(self, obj):
         return self._get_download_url(obj, 'large')
 
     def _get_download_url(self, obj, size):
-        if obj.mimetype.startswith('image'):
-            request = self.context.get('request')
-            result = image_url(obj, size)
-            return result if not request or not result else request.build_absolute_uri(result)
+        if obj.media_file:
+            return obj.media_file.instance.secure_url(suffix=size)
         return None
+
 
 class AttachmentListSerializer(AttachmentSerializer):
 
@@ -1094,26 +1094,15 @@ class AttachmentListSerializer(AttachmentSerializer):
 
     @check_obj
     def get_download_url(self, obj):
-        if obj.media_file.url:
-            request = self.context.get('request')
-            return urlquote(obj.media_file.url) if not request else request.build_absolute_uri(obj.media_file.url)
-        return None
-
-    @check_obj
-    def _get_download_url(self, obj, size):
         url = self.get_url(obj)
-        if url and obj.media_file.url:
-            filename = obj.media_file.name
-            return "{url}?filename={filename}&size={size}".format(
-                url=url.rstrip("/"),
-                filename=urlquote(filename),
-                size=size
-            )
+        if url:
+            return super(AttachmentListSerializer, self).get_download_url(obj)
         return None
 
     def to_representation(self, obj):
         rep = super(AttachmentListSerializer, self).to_representation(obj)
         return rep
+
 
 class AttachmentPagination(HybridPagination):
     default_limit = 10
@@ -1167,6 +1156,7 @@ class QuestionSerializer(serializers.Serializer):
             attachments['previous_page'] = replace_query_param(attachments['previous_page'], 'index', qdict['index'])
 
         return attachments
+
 
 class QuestionPagination(HybridPagination):
     # Not really a paginator

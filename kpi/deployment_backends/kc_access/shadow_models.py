@@ -254,8 +254,23 @@ class LazyModelGroup:
                 # TODO: Only attachments synced to s3 should be viewable by other users
                 # Can determine this by looking at media_file upload properties
                 # Alternatively, can move this into User Profile or Asset permissions logic
-
                 return True
+
+            def secure_url(self, suffix="original"):
+                """
+                Returns image URL through kobocat redirector.
+                :param suffix: str. original|large|medium|small
+                :return: str
+                """
+                if suffix != "original" and suffix not in settings.THUMB_CONF.keys():
+                    raise Exception("Invalid image thumbnail")
+
+                return "{kobocat_url}{media_url}{suffix}?media_file={filename}".format(
+                    kobocat_url=settings.KOBOCAT_URL,
+                    media_url=settings.MEDIA_URL,
+                    suffix=suffix,
+                    filename=self.media_file.name
+                )
 
         class _UserProfile(_ShadowModel):
             '''

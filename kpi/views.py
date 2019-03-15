@@ -680,7 +680,6 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=is_many)
         return Response(serializer.data)
 
-
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
         serializer = self.get_serializer(self.object)
