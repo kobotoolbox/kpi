@@ -74,3 +74,6 @@ xlwt
 pyopenssl
 ndg-httpsclient
 pyasn1
+
+# Force new version of redis
+redis==3.2.0
