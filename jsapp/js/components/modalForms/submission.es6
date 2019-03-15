@@ -155,7 +155,7 @@ class Submission extends React.Component {
         } else {
           let errorMsg = t('There was an error loading Enketo.');
           if (editData.detail) {
-            errorMsg += ` ${editData.detail}`;
+            errorMsg += `<br><code>${editData.detail}</code>`;
           }
           notify(errorMsg, 'error');
         }
