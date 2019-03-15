@@ -10,7 +10,7 @@ var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
     CascadePopup__button = bem.create('cascade-popup__button', '<button>');
 
-var choiceListHelpUrl = 'http://support.kobotoolbox.org/customer/en/portal/articles/1682856';
+var choiceListHelpUrl = 'http://support.kobotoolbox.org/creating-forms/general/adding-cascading-select-questions';
 
 import {t} from '../utils';
 

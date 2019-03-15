@@ -20,6 +20,7 @@ import {DebounceInput} from 'react-debounce-input';
 
 import {
   VALIDATION_STATUSES,
+  VALIDATION_STATUSES_LIST,
   MODAL_TYPES
 } from '../constants';
 
@@ -74,6 +75,8 @@ export class DataTable extends React.Component {
       filter.forEach(function(f, i) {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
+        } else if (f.id === '_validation_status.uid') {
+          filterQuery += `"${f.id}":"${f.value}"`;
         } else {
           filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
         }
@@ -126,12 +129,9 @@ export class DataTable extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-  getValidationStatusOption(rowIndex) {
-    if (this.state.tableData[rowIndex]._validation_status) {
-      const optionVal = this.state.tableData[rowIndex]._validation_status.uid;
-      return _.find(VALIDATION_STATUSES, (option) => {
-        return option.value === optionVal;
-      });
+  getValidationStatusOption(originalRow) {
+    if (originalRow._validation_status.uid) {
+      return VALIDATION_STATUSES[originalRow._validation_status.uid];
     } else {
       return null;
     }
@@ -150,15 +150,40 @@ export class DataTable extends React.Component {
       console.error(error);
     });
   }
-  _prepColumns(data) {
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID', 'meta/deprecatedID', '_validation_status'];
 
-    var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
+  _prepColumns(data) {
+    const excludedKeys = [
+      '_xform_id_string',
+      '_attachments',
+      '_notes',
+      '_bamboo_dataset_id',
+      '_status',
+      'formhub/uuid',
+      '_tags',
+      '_geolocation',
+      '_submitted_by',
+      'meta/instanceID',
+      'meta/deprecatedID',
+      '_validation_status'
+    ];
+
+    const dataKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
     }, {}));
 
-    uniqueKeys = uniqueKeys.filter((el, ind, arr) => excludes.includes(el) === false);
+    const surveyKeys = [];
+    this.props.asset.content.survey.forEach((row) => {
+      if (row.name) {
+        surveyKeys.push(row.name);
+      } else if (row.$autoname) {
+        surveyKeys.push(row.$autoname);
+      }
+    });
+
+    // make sure the survey columns are displayed, even if current data's
+    // submissions doesn't have them
+    let uniqueKeys = [...new Set([...dataKeys, ...surveyKeys])];
+    uniqueKeys = uniqueKeys.filter((key) => excludedKeys.includes(key) === false);
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
@@ -257,7 +282,7 @@ export class DataTable extends React.Component {
       },
       accessor: '_validation_status.uid',
       index: '__2',
-      id: '__ValidationStatus',
+      id: '_validation_status.uid',
       minWidth: 130,
       className: 'rt-status',
       Filter: ({ filter, onChange }) =>
@@ -266,7 +291,7 @@ export class DataTable extends React.Component {
           style={{ width: '100%' }}
           value={filter ? filter.value : ''}>
           <option value=''>Show All</option>
-          {VALIDATION_STATUSES.map((item, n) => {
+          {VALIDATION_STATUSES_LIST.map((item, n) => {
             return (
               <option value={item.value} key={n}>{item.label}</option>
             );
@@ -276,8 +301,8 @@ export class DataTable extends React.Component {
         <Select
           isDisabled={!this.userCan('validate_submissions', this.props.asset)}
           isClearable={false}
-          value={this.getValidationStatusOption(row.index)}
-          options={VALIDATION_STATUSES}
+          value={this.getValidationStatusOption(row.original)}
+          options={VALIDATION_STATUSES_LIST}
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           className='kobo-select'
           classNamePrefix='kobo-select'
@@ -392,7 +417,11 @@ export class DataTable extends React.Component {
                 return formatTimeDate(row.value);
               }
             }
-            return typeof(row.value) == 'object' ? '' : row.value;
+            if (typeof(row.value) == 'object' || row.value === undefined) {
+              return '';
+            } else {
+              return row.value;
+            }
           }
       });
 
@@ -490,7 +519,7 @@ export class DataTable extends React.Component {
 
         // include multi-select checkboxes if validation status is visible
         // TODO: update this when enabling bulk deleting submissions
-        if (el.id == '__SubmissionCheckbox' && selCos.includes('__ValidationStatus'))
+        if (el.id == '__SubmissionCheckbox' && selCos.includes('_validation_status.uid'))
           return true;
 
         return selCos.includes(el.id) !== false}
@@ -538,7 +567,7 @@ export class DataTable extends React.Component {
             {t('Multi-select checkboxes column')}
           </span>
         );
-      case '__ValidationStatus':
+      case '_validation_status.uid':
         return (
           <span className='column-header-title'>
             {t('Validation status')}
@@ -742,6 +771,8 @@ export class DataTable extends React.Component {
           selectAll = this.state.selectAll;
     var d = null;
 
+    // TODO bulk change to no status
+
     if (!selectAll) {
       d = {
         submissions_ids: Object.keys(this.state.selectedRows),
@@ -881,7 +912,7 @@ export class DataTable extends React.Component {
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>
-                {VALIDATION_STATUSES.map((item, n) => {
+                {VALIDATION_STATUSES_LIST.map((item, n) => {
                   return (
                     <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
                       {item.label}

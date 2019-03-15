@@ -104,6 +104,9 @@ module.exports = do ->
   ###
   Default values for rows of each question type
   ###
+  configs.defaultsGeneral =
+    label:
+      value: 'New Question'
   configs.defaultsForType =
     geotrace:
       label:
@@ -181,20 +184,40 @@ module.exports = do ->
 
   configs.questionParams = {
     range: {
-      start: configs.paramTypes.number
-      end: configs.paramTypes.number
-      step: configs.paramTypes.number
+      start: {
+        type: configs.paramTypes.number
+        defaultValue: 0
+      }
+      end: {
+        type: configs.paramTypes.number
+        defaultValue: 10
+      }
+      step: {
+        type: configs.paramTypes.number
+        defaultValue: 1
+      }
     }
     image: {
-      'max-pixels': configs.paramTypes.number
+      'max-pixels': {
+        type: configs.paramTypes.number
+        defaultValue: 1024
+      }
     }
     select_one: {
-      randomize: configs.paramTypes.boolean
-      seed: configs.paramTypes.number
+      randomize: {
+        type: configs.paramTypes.boolean
+      }
+      seed: {
+        type: configs.paramTypes.number
+      }
     }
     select_multiple: {
-      randomize: configs.paramTypes.boolean
-      seed: configs.paramTypes.number
+      randomize: {
+        type: configs.paramTypes.boolean
+      }
+      seed: {
+        type: configs.paramTypes.number
+      }
     }
   }
 
@@ -267,8 +290,6 @@ module.exports = do ->
   configs.newRowDetails =
     name:
       value: ""
-    label:
-      value: "new question"
     type:
       value: "text"
     hint:
@@ -304,7 +325,6 @@ module.exports = do ->
         "group_#{$utils.txtid()}"
     label:
       value: "Group"
-
     type:
       value: "group"
     _isRepeat:
