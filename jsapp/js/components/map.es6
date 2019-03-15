@@ -91,6 +91,12 @@ export class FormMap extends React.Component {
     autoBind(this);
   }
 
+  componentWillUnmount () {
+    if (this.state.map) {
+      this.state.map.remove();
+    }
+  }
+
   componentDidMount () {
     if (!this.state.hasGeoPoint)
       return false;
