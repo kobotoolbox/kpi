@@ -795,7 +795,7 @@ export class DataTable extends React.Component {
     } else {
       data.submissions_ids = Object.keys(this.state.selectedRows);
       data['validation_status.uid'] = val;
-      selectedCount = Object.keys(this.state.selectedRows).length;
+      selectedCount = data.submissions_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
