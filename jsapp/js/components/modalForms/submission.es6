@@ -52,14 +52,17 @@ class Submission extends React.Component {
   }
   componentDidMount() {
     this.getSubmission(this.props.asset.uid, this.state.sid);
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
   }
 
-  refreshSubmission(result, sid) {
-    if (result.uid) {
+  refreshSubmissionValidationStatus(result, sid) {
+    if (result && result.uid) {
       this.state.submission._validation_status = result;
-      this.setState({submission: this.state.submission});
+    } else {
+      this.state.submission._validation_status = {};
     }
+    this.setState({submission: this.state.submission});
   }
 
   getSubmission(assetUid, sid) {
@@ -217,9 +220,12 @@ class Submission extends React.Component {
     });
   }
 
-  validationStatusChange(e) {
-    const data = {'validation_status.uid': e.value};
-    actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
+  validationStatusChange(evt) {
+    if (evt.value === null) {
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, this.state.sid);
+    } else {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, {'validation_status.uid': evt.value});
+    }
   }
 
   languageChange(e) {

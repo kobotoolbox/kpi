@@ -224,8 +224,9 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
         return self._requests_response_to_django_response(kc_response)
 
-    @detail_route(methods=["GET", "PATCH"])
+    @detail_route(methods=["GET", "PATCH", "DELETE"])
     def validation_status(self, kpi_request, pk, *args, **kwargs):
+
         deployment = self._get_deployment(kpi_request)
         kc_url = deployment.get_submission_validation_status_url(pk)
 
@@ -239,25 +240,29 @@ class KobocatDataProxyViewSetMixin(MockDataProxyViewSetMixin):
         http_method_params = {}
         if kpi_request.method == "PATCH":
             http_method_params = {"json": kpi_request.data}
-        else:
+        elif kpi_request.method == "GET":
             http_method_params = {"params": kpi_request.GET}
 
         requests_params.update(http_method_params)
+
         kc_request = requests.Request(**requests_params)
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
 
         return self._requests_response_to_django_response(kc_response)
 
-
-    @list_route(methods=["PATCH"])
+    @list_route(methods=["PATCH", "DELETE"])
     def validation_statuses(self, kpi_request, *args, **kwargs):
         deployment = self._get_deployment(kpi_request)
         kc_url = deployment.submission_list_url
+        data = kpi_request.data.copy()
+
+        if kpi_request.method == "DELETE":
+            data["reset"] = True
 
         requests_params = {
-            "method": kpi_request.method,
+            "method": "PATCH",  # `PATCH` KC even if kpi receives `DELETE`
             "url": kc_url,
-            "json": kpi_request.data
+            "json": data
         }
 
         kc_request = requests.Request(**requests_params)

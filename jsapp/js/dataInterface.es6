@@ -453,11 +453,24 @@ var dataInterface;
         data: {'payload': JSON.stringify(data)}
       });
     },
+    bulkRemoveSubmissionsValidationStatus(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        method: 'DELETE',
+        data: {'payload': JSON.stringify(data)}
+      });
+    },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
         method: 'PATCH',
         data: data
+      });
+    },
+    removeSubmissionValidationStatus(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        method: 'DELETE'
       });
     },
     getSubmissionsQuery(uid, query='') {
