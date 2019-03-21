@@ -238,7 +238,6 @@ class Submission extends React.Component {
   responseDisplayHelper(q, s, overrideValue = false, name) {
     if (!q) return false;
     const choices = this.props.asset.content.choices;
-    let list;
     let translationIndex = this.state.translationIndex;
 
     var submissionValue = s[name];
@@ -247,16 +246,17 @@ class Submission extends React.Component {
       submissionValue = overrideValue;
 
     switch(q.type) {
-      case 'select_one':
+      case 'select_one': {
         const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === submissionValue);
         if (choice && choice.label && choice.label[translationIndex])
           return choice.label[translationIndex];
         else
           return submissionValue;
         break;
-      case 'select_multiple':
+      }
+      case 'select_multiple': {
         var responses = submissionValue.split(' ');
-        list = responses.map((r)=> {
+        var list = responses.map((r)=> {
           const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
           if (choice && choice.label && choice.label[translationIndex])
             return <li key={r}>{choice.label[translationIndex]}</li>;
@@ -265,21 +265,25 @@ class Submission extends React.Component {
         })
         return <ul>{list}</ul>;
         break;
+      }
       case 'image':
       case 'audio':
-      case 'video':
+      case 'video': {
         return this.renderAttachment(submissionValue, q.type);
         break;
-      case 'begin_repeat':
-        list = submissionValue.map((r) => {
+      }
+      case 'begin_repeat': {
+        const list = submissionValue.map((r) => {
           const stringified = JSON.stringify(r);
           return <li key={stringified}>{stringified}</li>
         });
         return <ul>{list}</ul>
         break;
-      default:
+      }
+      default: {
         return submissionValue;
         break;
+      }
     }
   }
   renderRows() {
