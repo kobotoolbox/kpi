@@ -16,7 +16,8 @@ $t-form-builder-aside-open: 200ms;
 
 .formBuilder__contents {
   height: calc(100% - #{$s-form-builder-header});
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: scroll;
   padding-top: 10px;
   margin-right: 0px;
   transition: margin $t-form-builder-aside-open;
