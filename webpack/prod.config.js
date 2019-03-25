@@ -15,5 +15,10 @@ module.exports = WebpackCommon({
     filename: '[name]-[hash].js'
   },
   // mainly for hiding stylelint output
-  stats: 'none'
+  stats: {
+    all: false,
+    maxModules: 0,
+    errors: true,
+    errorDetails: true
+  }
 });
