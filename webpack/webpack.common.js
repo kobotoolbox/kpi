@@ -1,7 +1,24 @@
 const path = require('path');
 const webpack = require('webpack');
 const BundleTracker = require('webpack-bundle-tracker');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 var merge = require('lodash.merge');
+
+// HACK: we needed to define this postcss-loader because of a problem with
+// including CSS files from node_modules directory, i.e. this build error:
+// `Error: No PostCSS Config found in: /srv/node_modules/…`
+const postCssLoader = {
+  loader: 'postcss-loader',
+  options: {
+    sourceMap: true,
+    config: {
+       path: path.resolve(__dirname, '../postcss.config.js')
+    },
+    plugins: [
+      require('autoprefixer')
+    ]
+  }
+};
 
 var defaultOptions = {
   module: {
@@ -25,11 +42,11 @@ var defaultOptions = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: ['style-loader', 'css-loader', postCssLoader]
       },
       {
         test: /\.scss$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+        use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader']
       },
       {
         test: /\.coffee$/,
@@ -58,6 +75,12 @@ var defaultOptions = {
     }
   },
   plugins: [
+    new StyleLintPlugin({
+      failOnError: false,
+      emitErrors: true,
+      syntax: 'scss',
+      files: './jsapp/**/*.scss'
+    }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
   ]
 }

@@ -33,24 +33,28 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 }
 
 .service-row__column {
-  &.service-row__column--name {
-    flex: 6;
-    padding: 0 $s-service-row-column-spacing;
+  a {
+    color: inherit;
+    display: block;
+    cursor: pointer;
+    &:hover {color: $cool-charcoal;}
+  }
+
+  &.service-row__column--name,
+  &.service-row__column--count {
+    padding: 0;
 
     .service-row--header & {padding: $s-service-row-column-spacing;}
 
-    a {
-      color: inherit;
-      display: block;
-      padding: $s-service-row-column-spacing 0;
+    a {padding: $s-service-row-column-spacing;}
+  }
 
-      &:hover {color: $cool-charcoal;}
-    }
+  &.service-row__column--name {
+    flex: 6;
   }
 
   &.service-row__column--count {
     flex: 1;
-    padding: $s-service-row-column-spacing;
     line-height: 18px;
 
     .count-information-wrapper {
@@ -85,11 +89,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
     white-space: nowrap;
   }
 
-  &.service-row__column--submission {
-    flex: 3;
-    padding: $s-service-row-column-spacing;
-  }
-
+  &.service-row__column--submission,
   &.service-row__column--status {
     flex: 1;
     padding: 0 $s-service-row-column-spacing;
@@ -139,5 +139,32 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
   &:hover {
     color: $cool-blue;
+  }
+}
+
+.service-row-button {
+  @include box-shadow;
+  margin-top: $s-service-row-column-spacing;
+  width: 100%;
+  min-height: $s-service-row-action-button;
+  box-sizing: content-box;
+  line-height: $s-service-row-leading;
+  border: 0;
+  padding: 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: $cool-charcoal;
+
+  &:hover {
+    color: $cool-darkgray;
+  }
+
+  &:active {
+    color: $cool-gray;
+  }
+
+  &.service-row-button--loading {
+    pointer-events: none;
+    color: $cool-silver;
   }
 }

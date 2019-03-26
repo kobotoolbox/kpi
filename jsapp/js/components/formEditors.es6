@@ -7,6 +7,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import editableFormMixin from '../editorMixins/editableForm';
 import moment from 'moment';
+import Checkbox from './checkbox';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
 import mixins from '../mixins';
@@ -83,11 +84,16 @@ export class ProjectDownloads extends React.Component {
         let postData = {
           source: this.props.asset.url,
           type: this.state.type,
-          lang: this.state.lang,
-          hierarchy_in_labels: this.state.hierInLabels,
-          group_sep: this.state.groupSep,
           fields_from_all_versions: this.state.fieldsFromAllVersions
         };
+        if (['xls', 'csv'].includes(this.state.type)) {
+          // Only send extra parameters when necessary
+          Object.assign(postData, {
+            lang: this.state.lang,
+            hierarchy_in_labels: this.state.hierInLabels,
+            group_sep: this.state.groupSep
+          });
+        }
         $.ajax({
           method: 'POST',
           url: url,
@@ -160,6 +166,12 @@ export class ProjectDownloads extends React.Component {
       if (data.count > 0) {
         data.results.reverse();
         data.results.map(result => {
+          if (result.data.type === 'spss_labels') {
+            // Some old SPSS exports may have a meaningless `lang` attribute --
+            // disregard it
+            result.data.langDescription = '';
+            return;
+          }
           switch(result.data.lang) {
             case '_default':
             case null: // The value of `formpack.constants.UNTRANSLATED`,
@@ -265,33 +277,28 @@ export class ProjectDownloads extends React.Component {
                           </select>
                         </bem.FormModal__item>,
                         <bem.FormModal__item key={'h'} m='export-group-headers'>
-                          <input type='checkbox' id='hierarchy_in_labels'
-                            value={this.state.hierInLabels}
+                          <Checkbox
+                            checked={this.state.hierInLabels}
                             onChange={this.hierInLabelsChange}
+                            label={t('Include groups in headers')}
                           />
-                          <label htmlFor='hierarchy_in_labels'>
-                            {t('Include groups in headers')}
-                          </label>
                         </bem.FormModal__item>,
-                        this.state.hierInLabels ?
-                          <bem.FormModal__item key={'g'}>
-                            <label htmlFor='group_sep'>{t('Group separator')}</label>
-                            <input type='text' name='group_sep'
-                              value={this.state.groupSep}
-                              onChange={this.groupSepChange}
-                            />
-                          </bem.FormModal__item>
-                        : null,
+
+                        <bem.FormModal__item key={'g'}>
+                          <label htmlFor='group_sep'>{t('Group separator')}</label>
+                          <input type='text' name='group_sep'
+                            value={this.state.groupSep}
+                            onChange={this.groupSepChange}
+                          />
+                        </bem.FormModal__item>
                       ] : null,
                       dvcount > 1 ?
                         <bem.FormModal__item key={'v'} m='export-fields-from-all-versions'>
-                          <input type='checkbox' id='fields_from_all_versions'
+                          <Checkbox
                             checked={this.state.fieldsFromAllVersions}
                             onChange={this.fieldFromAllVersionsChange}
+                            label={t('Include fields from all ___ deployed versions').replace('___', dvcount)}
                           />
-                          <label htmlFor='fields_from_all_versions'>
-                            {t('Include fields from all ___ deployed versions').replace('___', dvcount)}
-                          </label>
                         </bem.FormModal__item>
                       : null
                     ] : null
@@ -342,7 +349,10 @@ export class ProjectDownloads extends React.Component {
                           {item.data.langDescription}
                         </bem.FormView__label>
                         <bem.FormView__label m='include-groups'>
-                          {item.data.hierarchy_in_labels === 'false' ? t('No') : t('Yes')}
+                          {
+                            // When not present, assume the default of "No"
+                            item.data.hierarchy_in_labels === 'true' ? t('Yes') : t('No')
+                          }
                         </bem.FormView__label>
                         <bem.FormView__label m='multi-versioned'>
                           {

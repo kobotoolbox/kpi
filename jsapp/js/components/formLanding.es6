@@ -40,6 +40,9 @@ export class FormLanding extends React.Component {
       assetid: this.state.uid
     });
   }
+  callUnarchiveAsset(evt) {
+    this.unarchiveAsset();
+  }
   renderFormInfo (userCanEdit) {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion = undefined;
@@ -86,7 +89,7 @@ export class FormLanding extends React.Component {
             {userCanEdit && this.state.has_deployment && !this.state.deployment__active &&
               <a
                 className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.unarchiveAsset}>
+                onClick={this.callUnarchiveAsset}>
                   {t('unarchive')}
               </a>
             }
@@ -123,6 +126,9 @@ export class FormLanding extends React.Component {
   }
   isFormRedeploymentNeeded() {
     return !this.isCurrentVersionDeployed() && this.userCan('change_asset', this.state);
+  }
+  hasLanguagesDefined(translations) {
+    return translations && (translations.length > 1 || translations[0] !== null);
   }
   showLanguagesModal (evt) {
     evt.preventDefault();
@@ -359,7 +365,7 @@ export class FormLanding extends React.Component {
         {userCanEdit &&
           <bem.FormView__link
             m='upload'
-            data-tip={t('Replace project')}
+            data-tip={t('Replace form')}
             onClick={this.showReplaceProjectModal}
           >
             <i className='k-icon-replace' />
@@ -420,23 +426,26 @@ export class FormLanding extends React.Component {
   }
   renderLanguages (canEdit) {
     let translations = this.state.content.translations;
-    if (!translations || translations.length < 2)
-      return false;
 
     return (
       <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
         <bem.FormView__cell m='translation-list'>
           <strong>{t('Languages:')}</strong>
           &nbsp;
-          <ul>
-            {translations.map((langString, n)=>{
-              return (
-                <li key={n}>
-                  {langString || t('Unnamed language')}
-                </li>
-              );
-            })}
-          </ul>
+          {!this.hasLanguagesDefined(translations) &&
+            t('This project has no languages defined yet')
+          }
+          {this.hasLanguagesDefined(translations) &&
+            <ul>
+              {translations.map((langString, n)=>{
+                return (
+                  <li key={n}>
+                    {langString || t('Unnamed language')}
+                  </li>
+                );
+              })}
+            </ul>
+          }
         </bem.FormView__cell>
 
         {canEdit &&

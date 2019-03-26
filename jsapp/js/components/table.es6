@@ -6,7 +6,7 @@ import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import $ from 'jquery';
 import {dataInterface} from '../dataInterface';
-
+import Checkbox from './checkbox';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
@@ -20,6 +20,7 @@ import {DebounceInput} from 'react-debounce-input';
 
 import {
   VALIDATION_STATUSES,
+  VALIDATION_STATUSES_LIST,
   MODAL_TYPES
 } from '../constants';
 
@@ -74,6 +75,8 @@ export class DataTable extends React.Component {
       filter.forEach(function(f, i) {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
+        } else if (f.id === '_validation_status.uid') {
+          filterQuery += `"${f.id}":"${f.value}"`;
         } else {
           filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
         }
@@ -126,39 +129,66 @@ export class DataTable extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-  getValidationStatusOption(rowIndex) {
-    if (this.state.tableData[rowIndex]._validation_status) {
-      const optionVal = this.state.tableData[rowIndex]._validation_status.uid;
-      return _.find(VALIDATION_STATUSES, (option) => {
-        return option.value === optionVal;
-      });
+  getValidationStatusOption(originalRow) {
+    if (originalRow._validation_status.uid) {
+      return VALIDATION_STATUSES[originalRow._validation_status.uid];
     } else {
-      return null;
+      return VALIDATION_STATUSES.no_status;
     }
   }
   onValidationStatusChange(sid, index, evt) {
     const _this = this;
-    const data = {'validation_status.uid': evt.value};
-    dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-      if (result.uid) {
-        _this.state.tableData[index]._validation_status = result.uid;
-        _this.setState({tableData: _this.state.tableData});
-      } else {
-        console.error('error updating validation status');
-      }
-    }).fail((error)=>{
-      console.error(error);
-    });
-  }
-  _prepColumns(data) {
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID', 'meta/deprecatedID', '_validation_status'];
 
-    var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
+    if (evt.value === null) {
+      dataInterface.removeSubmissionValidationStatus(_this.props.asset.uid, sid).done((result) => {
+        _this.state.tableData[index]._validation_status = {};
+        _this.setState({tableData: _this.state.tableData});
+      }).fail(console.error);
+    } else {
+      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {'validation_status.uid': evt.value}).done((result) => {
+        if (result.uid) {
+          _this.state.tableData[index]._validation_status = result;
+          _this.setState({tableData: _this.state.tableData});
+        } else {
+          console.error('error updating validation status');
+        }
+      }).fail(console.error);
+    }
+  }
+
+  _prepColumns(data) {
+    const excludedKeys = [
+      '_xform_id_string',
+      '_attachments',
+      '_notes',
+      '_bamboo_dataset_id',
+      '_status',
+      'formhub/uuid',
+      '_tags',
+      '_geolocation',
+      '_submitted_by',
+      'meta/instanceID',
+      'meta/deprecatedID',
+      '_validation_status'
+    ];
+
+    const dataKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
     }, {}));
 
-    uniqueKeys = uniqueKeys.filter((el, ind, arr) => excludes.includes(el) === false);
+    const surveyKeys = [];
+    this.props.asset.content.survey.forEach((row) => {
+      if (row.name) {
+        surveyKeys.push(row.name);
+      } else if (row.$autoname) {
+        surveyKeys.push(row.$autoname);
+      }
+    });
+
+    // make sure the survey columns are displayed, even if current data's
+    // submissions doesn't have them
+    let uniqueKeys = [...new Set([...dataKeys, ...surveyKeys])];
+    uniqueKeys = uniqueKeys.filter((key) => excludedKeys.includes(key) === false);
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
@@ -194,11 +224,10 @@ export class DataTable extends React.Component {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
-              <input type='checkbox'
-                id={'ch-head'}
+              <Checkbox
                 checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-                onChange={this.bulkSelectAllRows} />
-              <label htmlFor={'ch-head'} />
+                onChange={this.bulkSelectAllRows}
+              />
             </div>
           ),
         accessor: 'sub-checkbox',
@@ -210,12 +239,11 @@ export class DataTable extends React.Component {
         resizable: false,
         className: 'rt-checkbox',
         Cell: row => (
-          <div>
-            <input type='checkbox'
-                id={`ch-${row.original._id}`}
-                checked={this.state.selectedRows[row.original._id] ? true : false}
-                onChange={this.bulkUpdateChange} data-sid={row.original._id} />
-            <label htmlFor={`ch-${row.original._id}`} />
+          <div className='table-header-checkbox'>
+            <Checkbox
+              checked={this.state.selectedRows[row.original._id] ? true : false}
+              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+            />
           </div>
         )
       });
@@ -259,7 +287,7 @@ export class DataTable extends React.Component {
       },
       accessor: '_validation_status.uid',
       index: '__2',
-      id: '__ValidationStatus',
+      id: '_validation_status.uid',
       minWidth: 130,
       className: 'rt-status',
       Filter: ({ filter, onChange }) =>
@@ -268,7 +296,7 @@ export class DataTable extends React.Component {
           style={{ width: '100%' }}
           value={filter ? filter.value : ''}>
           <option value=''>Show All</option>
-          {VALIDATION_STATUSES.map((item, n) => {
+          {VALIDATION_STATUSES_LIST.map((item, n) => {
             return (
               <option value={item.value} key={n}>{item.label}</option>
             );
@@ -278,8 +306,8 @@ export class DataTable extends React.Component {
         <Select
           isDisabled={!this.userCan('validate_submissions', this.props.asset)}
           isClearable={false}
-          value={this.getValidationStatusOption(row.index)}
-          options={VALIDATION_STATUSES}
+          value={this.getValidationStatusOption(row.original)}
+          options={VALIDATION_STATUSES_LIST}
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           className='kobo-select'
           classNamePrefix='kobo-select'
@@ -394,7 +422,11 @@ export class DataTable extends React.Component {
                 return formatTimeDate(row.value);
               }
             }
-            return typeof(row.value) == 'object' ? '' : row.value;
+            if (typeof(row.value) == 'object' || row.value === undefined) {
+              return '';
+            } else {
+              return row.value;
+            }
           }
       });
 
@@ -444,8 +476,16 @@ export class DataTable extends React.Component {
                   value={filter ? filter.value : ''}>
             <option value=''>Show All</option>
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
+              let displayLabel = t('Unlabelled');
+              if (item.label) {
+                displayLabel = item.label[0];
+              } else if (item.name) {
+                displayLabel = item.name;
+              } else if (item.$autoname) {
+                displayLabel = item.$autoname;
+              }
               return (
-                <option value={item.name} key={n}>{item.label[0]}</option>
+                <option value={item.name} key={n}>{displayLabel}</option>
               );
             })}
           </select>;
@@ -484,7 +524,7 @@ export class DataTable extends React.Component {
 
         // include multi-select checkboxes if validation status is visible
         // TODO: update this when enabling bulk deleting submissions
-        if (el.id == '__SubmissionCheckbox' && selCos.includes('__ValidationStatus'))
+        if (el.id == '__SubmissionCheckbox' && selCos.includes('_validation_status.uid'))
           return true;
 
         return selCos.includes(el.id) !== false}
@@ -532,7 +572,7 @@ export class DataTable extends React.Component {
             {t('Multi-select checkboxes column')}
           </span>
         );
-      case '__ValidationStatus':
+      case '_validation_status.uid':
         return (
           <span className='column-header-title'>
             {t('Validation status')}
@@ -588,16 +628,17 @@ export class DataTable extends React.Component {
     this.setState({isFullscreen: !this.state.isFullscreen});
   }
   componentDidMount() {
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
     this.listenTo(stores.pageState, this.onPageStateUpdated);
   }
-  refreshSubmission(result, sid) {
+  refreshSubmissionValidationStatus(result, sid) {
     if (sid) {
       var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
       if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
         var newData = this.state.tableData;
-        newData[subIndex]._validation_status = result;
+        newData[subIndex]._validation_status = result || {};
         this.setState({tableData: newData});
         this._prepColumns(newData);
       }
@@ -701,11 +742,10 @@ export class DataTable extends React.Component {
   clearPromptRefresh() {
     this.setState({ promptRefresh: false });
   }
-  bulkUpdateChange(evt) {
-    const sid = evt.target.getAttribute('data-sid');
+  bulkUpdateChange(sid, isChecked) {
     var selectedRows = this.state.selectedRows;
 
-    if (evt.target.checked) {
+    if (isChecked) {
       selectedRows[sid] = true;
     } else {
       delete selectedRows[sid];
@@ -716,12 +756,11 @@ export class DataTable extends React.Component {
       selectAll: false
     });
   }
-  bulkSelectAllRows(evt) {
-    var s = this.state.selectedRows,
-        selectAll = this.state.selectAll;
+  bulkSelectAllRows(isChecked) {
+    var s = this.state.selectedRows;
 
     this.state.tableData.forEach(function(r) {
-      if (evt.target.checked) {
+      if (isChecked) {
         s[r._id] = true;
       } else {
         delete s[r._id];
@@ -733,42 +772,39 @@ export class DataTable extends React.Component {
       selectAll: false
     });
   }
-  bulkUpdateStatus(evt) {
-    const val = evt.target.getAttribute('data-value'),
-          selectAll = this.state.selectAll;
-    var d = null;
+  onBulkUpdateStatus(evt) {
+    const val = evt.target.getAttribute('data-value');
+    const selectAll = this.state.selectAll;
+    const data = {};
+    let selectedCount;
+    // setting empty value requires deleting the statuses with different API call
+    const apiFn = val === null ? dataInterface.bulkRemoveSubmissionsValidationStatus : dataInterface.patchSubmissions;
 
-    if (!selectAll) {
-      d = {
-        submissions_ids: Object.keys(this.state.selectedRows),
-        'validation_status.uid': val
-      };
-    } else {
-      const f = this.state.fetchState.filtered;
-      if (f.length) {
-        d = {
-          query: {},
-          'validation_status.uid': val
-        };
-        f.forEach(function(z) {
-          d.query[z.id] = z.value;
+    if (selectAll) {
+      if (this.state.fetchState.filtered.length) {
+        data.query = {};
+        data['validation_status.uid'] = val;
+        this.state.fetchState.filtered.map((filteredItem) => {
+          data.query[filteredItem.id] = filteredItem.value;
         });
       } else {
-        d = {
-          confirm: true,
-          'validation_status.uid': val
-        };
+        data.confirm = true;
+        data['validation_status.uid'] = val;
       }
+      selectedCount = this.state.resultsTotal;
+    } else {
+      data.submissions_ids = Object.keys(this.state.selectedRows);
+      data['validation_status.uid'] = val;
+      selectedCount = data.submissions_ids.length;
     }
 
-    let dialog = alertify.dialog('confirm');
-    const sel = this.state.selectAll ? this.state.resultsTotal : Object.keys(this.state.selectedRows).length;
-    let opts = {
+    const dialog = alertify.dialog('confirm');
+    const opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
+      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
+        apiFn(this.props.asset.uid, data).done((res) => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           this.setState({loading: true});
         }).fail((jqxhr)=> {
@@ -776,9 +812,7 @@ export class DataTable extends React.Component {
           alertify.error(t('Failed to update status.'));
         });
       },
-      oncancel: () => {
-        dialog.destroy();
-      }
+      oncancel: dialog.destroy
     };
     dialog.set(opts).show();
   }
@@ -877,9 +911,9 @@ export class DataTable extends React.Component {
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>
-                {VALIDATION_STATUSES.map((item, n) => {
+                {VALIDATION_STATUSES_LIST.map((item, n) => {
                   return (
-                    <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
+                    <bem.PopoverMenu__link onClick={this.onBulkUpdateStatus} data-value={item.value} key={n}>
                       {item.label}
                       </bem.PopoverMenu__link>
                   );

@@ -38,6 +38,7 @@ class LibrarySidebar extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
+
     autoBind(this);
   }
   queryCollections () {
@@ -54,11 +55,15 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
   componentDidMount () {
+    this.listenTo(this.searchStore, this.searchChanged);
     this.searchDefault();
     this.queryCollections();
   }
   componentWillMount() {
     this.setStates();
+  }
+  searchChanged (state) {
+    this.setState(state);
   }
   setStates() {
     this.setState({
@@ -210,6 +215,9 @@ class LibrarySidebar extends Reflux.Component {
       assetid: collectionUid
     });
   }
+  isCollectionPublic(collection) {
+    return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
+  }
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
@@ -295,14 +303,14 @@ class LibrarySidebar extends Reflux.Component {
                   <i className='k-icon-library' />
                   {t('My Library')}
               <bem.FormSidebar__labelCount>
-                {this.state.sidebarCollections.length}
+                {this.state.defaultQueryCount}
               </bem.FormSidebar__labelCount>
 
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping>
               {this.state.sidebarCollections.map((collection)=>{
                 var iconClass = 'k-icon-folder';
-                if (collection.discoverable_when_public)
+                if (collection.discoverable_when_public || this.isCollectionPublic(collection))
                   iconClass = 'k-icon-folder-public';
                 if (collection.access_type == 'shared')
                   iconClass = 'k-icon-folder-shared';
@@ -465,6 +473,7 @@ class LibrarySidebar extends Reflux.Component {
 };
 
 reactMixin(LibrarySidebar.prototype, searches.common);
+reactMixin(LibrarySidebar.prototype, Reflux.ListenerMixin);
 reactMixin(LibrarySidebar.prototype, mixins.droppable);
 
 LibrarySidebar.contextTypes = {

@@ -46,7 +46,7 @@
     "react": "^16.5.2",
     "react-autobind": "^1.0.6",
     "react-autosize-textarea": "^4.0.0",
-    "react-cookie": "^0.2.3",
+    "react-cookie": "^3.0.4",
     "react-copy-to-clipboard": "^5.0.0",
     "react-debounce-input": "^3.1.0",
     "react-document-title": "^2.0.2",
@@ -67,18 +67,22 @@
     "select2": "3.5.2-browserify",
     "spark-md5": "^3.0.0",
     "style-loader": "^0.23.0",
+    "stylelint": "^9.9.0",
+    "stylelint-webpack-plugin": "^0.10.5",
     "underscore": "^1.8.3",
     "webfonts-generator": "^0.4.0",
     "webpack": "^4.20.2",
     "webpack-bundle-tracker": "0.4.0-beta",
     "webpack-cli": "^3.1.1",
-    "webpack-dev-server": "^3.1.8"
+    "webpack-dev-server": "^3.1.8",
+    "zxcvbn": "^4.4.2"
   },
   "scripts": {
     "build": "webpack --config webpack/prod.config.js --progress --colors",
     "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
     "watch": "webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-chrome test/tests.html",
+    "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"

@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const WebpackCommon = require('./webpack.common');
 const BundleTracker = require('webpack-bundle-tracker');
+const StyleLintPlugin = require('stylelint-webpack-plugin');
 var isPublicDomainDefined = process.env.KOBOFORM_PUBLIC_SUBDOMAIN &&
   process.env.PUBLIC_DOMAIN_NAME;
 var publicDomain = isPublicDomainDefined ? process.env.KOBOFORM_PUBLIC_SUBDOMAIN
@@ -30,6 +31,12 @@ module.exports = WebpackCommon({
     host: '0.0.0.0'
   },
   plugins: [
+    new StyleLintPlugin({
+      failOnError: false,
+      emitErrors: true,
+      syntax: 'scss',
+      files: './jsapp/**/*.scss'
+    }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
     new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin()

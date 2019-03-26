@@ -20,7 +20,7 @@
     }
     .card__header {
         border: $cardBorderStyle;
-        padding: 30px 40px 30px 75px;
+        padding: 20px 40px 20px 75px;
         display: block;
         background: white;
         cursor: move;
@@ -62,8 +62,25 @@
     }
 
     .card__header-title {
-        cursor:text;
-        // white-space: pre;
+        color: $cool-gray;
+
+        &:focus {
+            color: $black;
+        }
+
+        // we use placeholder as error message, as empty title is not welcomed
+         &::placeholder {
+            color: $cool-red;
+            background-color: rgba($cool-red, 0.075);
+        }
+    }
+    .card__header-hint {
+        color: inherit;
+        font-weight: 400;
+        &::placeholder {
+            color: $cool-silver;
+            font-style: italic;
+        }
     }
     .card__header-subtitle {
         margin: 10px 0 0 0;
@@ -184,8 +201,11 @@ $cardIndicatorIconWidth: 21px;
         font-size: 0.95em;
         background-color: #8595A5;
     }
-    .fa-lato-calculate, .fa-lato-decimal,
-    .fa-lato-integer, .fa-lato-text {
+    .fa-lato-range,
+    .fa-lato-calculate,
+    .fa-lato-decimal,
+    .fa-lato-integer,
+    .fa-lato-text {
         font-size: 15px;
         width: $cardIndicatorIconWidth;
     }

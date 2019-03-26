@@ -104,6 +104,9 @@ module.exports = do ->
   ###
   Default values for rows of each question type
   ###
+  configs.defaultsGeneral =
+    label:
+      value: 'New Question'
   configs.defaultsForType =
     geotrace:
       label:
@@ -132,6 +135,9 @@ module.exports = do ->
     audio:
       label:
         value: "Use the camera's microphone to record a sound"
+    file:
+      label:
+        value: "Upload a file"
     note:
       label:
         value: "This note can be read out loud"
@@ -150,6 +156,9 @@ module.exports = do ->
     date:
       label:
         value: "Enter a date"
+    range:
+      label:
+        value: "Enter a number within a specified range"
     calculate:
       calculation:
         value: ""
@@ -168,7 +177,61 @@ module.exports = do ->
       label:
         value: "Acknowledge"
 
-  configs.columns = ["type", "name", "label", "hint", "required", "relevant", "default", "constraint"]
+  configs.paramTypes = {
+    number: 'number',
+    boolean: 'boolean'
+  }
+
+  configs.questionParams = {
+    range: {
+      start: {
+        type: configs.paramTypes.number
+        defaultValue: 0
+      }
+      end: {
+        type: configs.paramTypes.number
+        defaultValue: 10
+      }
+      step: {
+        type: configs.paramTypes.number
+        defaultValue: 1
+      }
+    }
+    image: {
+      'max-pixels': {
+        type: configs.paramTypes.number
+        defaultValue: 1024
+      }
+    }
+    select_one: {
+      randomize: {
+        type: configs.paramTypes.boolean
+      }
+      seed: {
+        type: configs.paramTypes.number
+      }
+    }
+    select_multiple: {
+      randomize: {
+        type: configs.paramTypes.boolean
+      }
+      seed: {
+        type: configs.paramTypes.number
+      }
+    }
+  }
+
+  configs.columns = [
+    "type",
+    "name",
+    "label",
+    "hint",
+    "guidance_hint",
+    "required",
+    "relevant",
+    "default",
+    "constraint"
+  ]
 
   configs.lookupRowType = do->
     typeLabels = [
@@ -177,16 +240,18 @@ module.exports = do ->
       ["text", "Text"], # expects text
       ["integer", "Integer"], #e.g. 42
       ["decimal", "Decimal"], #e.g. 3.14
+      ["range", "Range"], #e.g. 1-5
       ["geopoint", "Geopoint (GPS)"], # Can use satelite GPS coordinates
       ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
       ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
       ["image", "Image", isMedia: true], # Can use phone camera, for example
-      ["barcode", "Barcode"], # Can scan a barcode using the phone camera
+      ["barcode", "Barcode / QR code"], # Can scan a barcode using the phone camera
       ["date", "Date"], #e.g. (4 July, 1776)
       ["time", "Time"], #e.g. (4 July, 1776)
       ["datetime", "Date and Time"], #e.g. (2012-Jan-4 3:04PM)
       ["audio", "Audio", isMedia: true], # Can use phone microphone to record audio
       ["video", "Video", isMedia: true], # Can use phone camera to record video
+      ["file", "File"],
       ["calculate", "Calculate"],
       ["select_one", "Select", orOtherOption: true, specifyChoice: true],
       ["score", "Score"],
@@ -225,13 +290,13 @@ module.exports = do ->
   configs.newRowDetails =
     name:
       value: ""
-    label:
-      value: "new question"
     type:
       value: "text"
     hint:
       value: ""
       _hideUnlessChanged: true
+    guidance_hint:
+      value: ""
     required:
       value: false
       _hideUnlessChanged: true
@@ -260,7 +325,6 @@ module.exports = do ->
         "group_#{$utils.txtid()}"
     label:
       value: "Group"
-
     type:
       value: "group"
     _isRepeat:
