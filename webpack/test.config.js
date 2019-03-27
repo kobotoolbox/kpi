@@ -9,5 +9,12 @@ module.exports = WebpackCommon({
     library: 'tests',
     path: path.resolve(__dirname, '../test/compiled/'),
     filename: 'app.js'
+  },
+  // mainly for hiding stylelint output
+  stats: {
+    all: false,
+    maxModules: 0,
+    errors: true,
+    errorDetails: true
   }
 });
