@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
 from collections import defaultdict
+import copy
+import re
+
 from django.apps import apps
 from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
@@ -7,8 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
 from django.shortcuts import _get_queryset
-import copy
-import re
 
 from ..fields import KpiUidField
 from ..deployment_backends.kc_access.utils import (
@@ -32,6 +34,7 @@ def perm_parse(perm, obj=None):
         codename = perm
     return app_label, codename
 
+
 def get_all_objects_for_user(user, klass):
     ''' Return all objects of type klass to which user has been assigned any
     permission. '''
@@ -39,6 +42,7 @@ def get_all_objects_for_user(user, klass):
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
+
 
 def get_objects_for_user(user, perms, klass=None):
     """
@@ -303,12 +307,23 @@ class ObjectPermissionMixin(object):
                     filtered_set.remove((user_id, permission_id))
         return filtered_set
 
+    def __get_perms(self, all_perms, is_denied):
+        perms = set([(user_id, permission_id)
+                     for user_id, permission_id, deny in all_perms
+                     if deny is is_denied])
+        return perms
+
+    def __get_all_perms(self, **kwargs):
+        return ObjectPermission.objects.filter_for_object(
+            self, **kwargs).values_list('user_id', 'permission_id', 'deny')
+
     def get_effective_perms(
         self, user=None, codename=None, include_calculated=True
     ):
         ''' Reconcile all grant and deny permissions, and return an
         authoritative set of grant permissions (i.e. deny=False) for the
         current object. '''
+
         # Including calculated permissions means we can't just pass kwargs
         # through to filter(), but we'll map the ones we understand.
         kwargs = {}
@@ -321,10 +336,11 @@ class ObjectPermissionMixin(object):
                     '^share_', 'change_', codename, 1)
             else:
                 kwargs['permission__codename'] = codename
-        grant_perms = set(ObjectPermission.objects.filter_for_object(self,
-            deny=False, **kwargs).values_list('user_id', 'permission_id'))
-        deny_perms = set(ObjectPermission.objects.filter_for_object(self,
-            deny=True, **kwargs).values_list('user_id', 'permission_id'))
+
+        all_perms = self.__get_all_perms(**kwargs)
+        grant_perms = self.__get_perms(all_perms, False)
+        deny_perms = self.__get_perms(all_perms, True)
+
         effective_perms = grant_perms.difference(deny_perms)
         # Sometimes only the explicitly assigned permissions are wanted,
         # e.g. when calculating inherited permissions

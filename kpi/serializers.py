@@ -545,6 +545,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # Concatenate all `OR` and `object_id`
         object_permissions = ObjectPermission.objects.filter(object_id=obj.id)
         object_permissions = object_permissions.filter(query)
+        # Join User and Permissions to avoid Django duplicating queries to DB
+        object_permissions = object_permissions.select_related("user")
+        object_permissions = object_permissions.select_related("permission")
 
         serializer = ObjectPermissionNestedSerializer(instance=object_permissions,
                                                       context=self.context,
