@@ -57,3 +57,4 @@ install:
   - pip install pip-tools
   - pip-sync dependencies/pip/requirements.txt
   - pip install coverage codacy-coverage python-coveralls pytest-cov
+  - pip install pytest==3.10  # Force install this version, has to be at the end

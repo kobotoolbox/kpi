@@ -53,6 +53,7 @@ mock
 oauthlib
 pymongo
 pytest-django
+pytest==3.10.0
 python-dateutil
 pytz
 pyxform
