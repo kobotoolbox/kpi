@@ -107,6 +107,9 @@ module.exports = do ->
               {includeGroups: true}
             )
 
+          # TODO: adding same block multiple times places it in wrong place
+          # after first time
+
           @_insertRowInPlace(
             row,
             {
