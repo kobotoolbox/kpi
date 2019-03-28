@@ -85,8 +85,8 @@ module.exports = do ->
       if !row.rows && rowlist = row.getList()
         @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
 
-    insertSurvey: (survey, index=-1)->
-      index = @rows.length  if index is -1
+    insertSurvey: (survey, index=-1, targetGroupId)->
+      index = @rows.length if index is -1
       for row, row_i in survey.rows.models
         index_incr = index + row_i
         if row.rows
@@ -94,14 +94,33 @@ module.exports = do ->
           group = row
           if group.forEachRow
             group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
-          @_insertRowInPlace group, {'index': index_incr, 'noDetach': true}
+          @_insertRowInPlace(
+            group,
+            {
+              index: index_incr,
+              noDetach: true,
+              groupId: targetGroupId
+            }
+          )
         else
+          # if target is a group, not root list of rows, we need to switch
+          targetRows = @rows
+          if targetGroupId
+            foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
+            if foundGroup
+              targetRows = foundGroup.rows
+            else
+              throw new Error("Couldn't find group #{targetGroupId}!")
+
           @_ensure_row_list_is_copied(row)
           # its a group
           name_detail = row.get('name')
           name_detail.set 'value', name_detail.deduplicate(@)
-          @rows.add(row.toJSON(), at: index_incr)
-      ``
+          targetRows.add(
+            row.toJSON(),
+            at: index_incr
+          )
+      return
 
     toFlatJSON: (stringify=false, spaces=4)->
       obj = @toJSON()
@@ -172,7 +191,8 @@ module.exports = do ->
         else
           logFn tabs.join(''), r.get('label').get('value')
       @forEachRow(logr, flat: true, includeGroups: true)
-      ``
+      return
+
     summarize: ->
       rowCount = 0
       hasGps = false
