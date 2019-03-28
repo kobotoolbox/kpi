@@ -5,7 +5,7 @@
 #    make pip_compile
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@02a46c6d12e9b36713d8b04e0c12528ed00f9a72#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@eb7d723eb2b54dbfd56a1c32d72e0008bbb29149#egg=formpack
 amqp==2.4.0
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
