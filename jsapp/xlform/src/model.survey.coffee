@@ -88,6 +88,7 @@ module.exports = do ->
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
       for row, row_i in survey.rows.models
+        # TODO: insert group into group
         index_incr = index + row_i
         if row.rows
           # item is a group
