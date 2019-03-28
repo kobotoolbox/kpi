@@ -88,36 +88,39 @@ module.exports = do ->
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
       for row, row_i in survey.rows.models
-        # TODO: insert group into group
+        # if target is a group, not root list of rows, we need to switch
+        target = @
+        if targetGroupId
+          foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
+          if foundGroup
+            target = foundGroup
+          else
+            throw new Error("Couldn't find group #{targetGroupId}!")
+
         index_incr = index + row_i
+
+        # inserting a group
         if row.rows
-          # item is a group
-          group = row
-          if group.forEachRow
-            group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
+          if row.forEachRow
+            row.forEachRow(
+              (r) => @_ensure_row_list_is_copied(r),
+              {includeGroups: true}
+            )
+
           @_insertRowInPlace(
-            group,
+            row,
             {
               index: index_incr,
-              noDetach: true,
-              groupId: targetGroupId
+              parent: target,
+              noDetach: true
             }
           )
+        # inserting a question
         else
-          # if target is a group, not root list of rows, we need to switch
-          targetRows = @rows
-          if targetGroupId
-            foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
-            if foundGroup
-              targetRows = foundGroup.rows
-            else
-              throw new Error("Couldn't find group #{targetGroupId}!")
-
           @_ensure_row_list_is_copied(row)
-          # its a group
           name_detail = row.get('name')
           name_detail.set 'value', name_detail.deduplicate(@)
-          targetRows.add(
+          target.rows.add(
             row.toJSON(),
             at: index_incr
           )
@@ -219,8 +222,10 @@ module.exports = do ->
         index = parent.rows.indexOf(previous) + 1
       if !parent
         parent = @
-      parent.rows.add(row, at: index, silent: true)
-      row._parent = parent.rows
+      parent.rows.add(row, {at: index})
+      # WTF: commented this line out because it looks like BAD CODE™
+      # it would be nice to know the reason for it
+      # row._parent = parent.rows
       if opts.event
         parent.rows.trigger(opts.event)
       return
