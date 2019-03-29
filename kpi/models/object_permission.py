@@ -308,16 +308,42 @@ class ObjectPermissionMixin(object):
                     filtered_set.remove((user_id, permission_id))
         return filtered_set
 
-    @staticmethod
-    def __get_object_permissions(all_object_permissions, is_denied):
+    def __get_object_permissions(self, is_denied, **kwargs):
+        all_object_permissions = self.__get_all_object_permissions(**kwargs)
+        object_permissions = all_object_permissions.get(self.pk)
+
         perms = set([(user_id, permission_id)
-                     for user_id, permission_id, deny in all_object_permissions
+                     for user_id, permission_id, deny in object_permissions
                      if deny is is_denied])
         return perms
 
-    def __get_all_object_permissions(self, **kwargs):
-        return ObjectPermission.objects.filter_for_object(
-            self, **kwargs).values_list('user_id', 'permission_id', 'deny')
+    @staticmethod
+    @cache_for_request
+    def __get_all_object_permissions(**kwargs):
+        """
+        Retrieves all object permissions and build an dict with objects id as keys.
+
+        Useful to retrieve permissions (thanks to `@cache_for_request`)
+        for several objects in a row without fetching data from data again & again
+
+        :param kwargs:
+        :return: dict
+        """
+        records = ObjectPermission.objects.\
+            filter(**kwargs).values_list('object_id',
+                                         'user_id',
+                                         'permission_id',
+                                         'deny')
+        object_permissions_per_object = {}
+        for record in records:
+            if record[0] not in object_permissions_per_object:
+                object_permissions_per_object[record[0]] = []
+            object_permissions_per_object[record[0]].append((
+                record[1],  # user_id
+                record[2],  # permission_id
+                record[3],  # deny
+            ))
+        return object_permissions_per_object
 
     @staticmethod
     @cache_for_request
@@ -368,9 +394,8 @@ class ObjectPermissionMixin(object):
             else:
                 kwargs['permission__codename'] = codename
 
-        all_object_permissions = self.__get_all_object_permissions(**kwargs)
-        grant_perms = self.__get_object_permissions(all_object_permissions, False)
-        deny_perms = self.__get_object_permissions(all_object_permissions, True)
+        grant_perms = self.__get_object_permissions(False, **kwargs)
+        deny_perms = self.__get_object_permissions(True, **kwargs)
 
         effective_perms = grant_perms.difference(deny_perms)
         # Sometimes only the explicitly assigned permissions are wanted,
