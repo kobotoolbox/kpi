@@ -42,6 +42,7 @@ django-reversion
 django-taggit
 django-storages
 django-private-storage
+django-request-cache==1.0.0  # 1.1 # Django 1.10+
 djangorestframework
 djangorestframework-xml
 drf-extensions

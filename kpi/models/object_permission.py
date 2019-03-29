@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
 from django.shortcuts import _get_queryset
+from django_request_cache import cache_for_request
 
 from ..fields import KpiUidField
 from ..deployment_backends.kc_access.utils import (
@@ -307,15 +308,45 @@ class ObjectPermissionMixin(object):
                     filtered_set.remove((user_id, permission_id))
         return filtered_set
 
-    def __get_perms(self, all_perms, is_denied):
+    @staticmethod
+    def __get_object_permissions(all_object_permissions, is_denied):
         perms = set([(user_id, permission_id)
-                     for user_id, permission_id, deny in all_perms
+                     for user_id, permission_id, deny in all_object_permissions
                      if deny is is_denied])
         return perms
 
-    def __get_all_perms(self, **kwargs):
+    def __get_all_object_permissions(self, **kwargs):
         return ObjectPermission.objects.filter_for_object(
             self, **kwargs).values_list('user_id', 'permission_id', 'deny')
+
+    @staticmethod
+    @cache_for_request
+    def __get_permissions_for_content_type(content_type, permission_codename,
+                                           startswith=True, first=False):
+        """
+        Gets permissions for specific content_type and permission's codename
+
+        This method is cached per request because it can be called several times
+        in a row in the same request.
+
+        :param content_type: ContentType
+        :param permission_codename: str
+        :param startswith: bool. Optional. Default is True
+        :param first: bool. Optional. Default is False
+        :return: list<tuple> | <tuple>
+        """
+        # Everyone with change_ should also get share_
+        filters = {"content_type": content_type}
+        if startswith:
+            filters.update({"codename__startswith": permission_codename})
+        else:
+            filters.update({"codename": permission_codename})
+
+        permissions = Permission.objects.filter(**filters).values_list("pk", "codename")
+        if first:
+            return permissions[0]
+        else:
+            return permissions
 
     def get_effective_perms(
         self, user=None, codename=None, include_calculated=True
@@ -337,9 +368,9 @@ class ObjectPermissionMixin(object):
             else:
                 kwargs['permission__codename'] = codename
 
-        all_perms = self.__get_all_perms(**kwargs)
-        grant_perms = self.__get_perms(all_perms, False)
-        deny_perms = self.__get_perms(all_perms, True)
+        all_object_permissions = self.__get_all_object_permissions(**kwargs)
+        grant_perms = self.__get_object_permissions(all_object_permissions, False)
+        deny_perms = self.__get_object_permissions(all_object_permissions, True)
 
         effective_perms = grant_perms.difference(deny_perms)
         # Sometimes only the explicitly assigned permissions are wanted,
@@ -367,14 +398,12 @@ class ObjectPermissionMixin(object):
         if self.editors_can_change_permissions and (
                 codename is None or codename.startswith('share_')
         ):
-            # Everyone with change_ should also get share_
-            change_permissions = Permission.objects.filter(
-                content_type=content_type,
-                codename__startswith='change_'
-            )
-            for change_permission in change_permissions:
+            change_permissions = self.__get_permissions_for_content_type(
+                content_type, 'change_')
+
+            for cp_pk, cp_codename in change_permissions:
                 share_permission_codename = re.sub(
-                    '^change_', 'share_', change_permission.codename, 1)
+                    '^change_', 'share_', cp_codename, 1)
                 if (codename is not None and
                         share_permission_codename != codename
                 ):
@@ -382,31 +411,29 @@ class ObjectPermissionMixin(object):
                     # doesn't match exactly. Necessary because `Asset` has
                     # `*_submissions` in addition to `*_asset`
                     continue
-                share_permission = Permission.objects.get(
-                    content_type=content_type,
-                    codename=share_permission_codename
-                )
+                sp_pk, sp_codename = self.__get_permissions_for_content_type(
+                    content_type, share_permission_codename, False, True)
+
                 for user_id, permission_id in effective_perms_copy:
-                    if permission_id == change_permission.pk:
-                        effective_perms.add((user_id, share_permission.pk))
+                    if permission_id == cp_pk:
+                        effective_perms.add((user_id, sp_pk))
         # The owner has the delete_ permission
         if self.owner is not None and (
                 user is None or user.pk == self.owner.pk) and (
                 codename is None or codename.startswith('delete_')
         ):
-            delete_permissions = Permission.objects.filter(
-                content_type=content_type,
-                codename__startswith='delete_'
-            )
-            for delete_permission in delete_permissions:
+            delete_permissions = self.__get_permissions_for_content_type(
+                content_type, 'delete_')
+
+            for dp_pk, dp_codename in delete_permissions:
                 if (codename is not None and
-                        delete_permission.codename != codename
+                        dp_codename != codename
                 ):
                     # If the caller specified `codename`, skip anything that
                     # doesn't match exactly. Necessary because `Asset` has
                     # `delete_submissions` in addition to `delete_asset`
                     continue
-                effective_perms.add((self.owner.pk, delete_permission.pk))
+                effective_perms.add((self.owner.pk, dp_pk))
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
         if user is None or user.pk == settings.ANONYMOUS_USER_ID:

@@ -121,6 +121,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
+    'django_userforeignkey.middleware.UserForeignKeyMiddleware',
+    'django_request_cache.middleware.RequestCacheMiddleware',
 )
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
