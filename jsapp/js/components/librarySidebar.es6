@@ -38,6 +38,7 @@ class LibrarySidebar extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
+
     autoBind(this);
   }
   queryCollections () {
@@ -54,11 +55,15 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
   componentDidMount () {
+    this.listenTo(this.searchStore, this.searchChanged);
     this.searchDefault();
     this.queryCollections();
   }
   componentWillMount() {
     this.setStates();
+  }
+  searchChanged (state) {
+    this.setState(state);
   }
   setStates() {
     this.setState({
@@ -298,7 +303,7 @@ class LibrarySidebar extends Reflux.Component {
                   <i className='k-icon-library' />
                   {t('My Library')}
               <bem.FormSidebar__labelCount>
-                {this.state.sidebarCollections.length}
+                {this.state.defaultQueryCount}
               </bem.FormSidebar__labelCount>
 
             </bem.FormSidebar__label>
@@ -468,6 +473,7 @@ class LibrarySidebar extends Reflux.Component {
 };
 
 reactMixin(LibrarySidebar.prototype, searches.common);
+reactMixin(LibrarySidebar.prototype, Reflux.ListenerMixin);
 reactMixin(LibrarySidebar.prototype, mixins.droppable);
 
 LibrarySidebar.contextTypes = {

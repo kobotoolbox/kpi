@@ -43,6 +43,10 @@ const AVAILABLE_FORM_STYLES = [
 ];
 
 const VALIDATION_STATUSES = {
+  no_status: {
+    value: null,
+    label: '—'
+  },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
     label: t('Not Approved')
@@ -58,6 +62,7 @@ const VALIDATION_STATUSES = {
 };
 
 const VALIDATION_STATUSES_LIST = [
+  VALIDATION_STATUSES.no_status,
   VALIDATION_STATUSES.validation_status_not_approved,
   VALIDATION_STATUSES.validation_status_approved,
   VALIDATION_STATUSES.validation_status_on_hold
