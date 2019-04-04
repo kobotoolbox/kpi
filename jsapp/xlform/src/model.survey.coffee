@@ -107,11 +107,6 @@ module.exports = do ->
               {includeGroups: true}
             )
 
-          # TODO: adding same block multiple times places it in wrong place
-          # after first time
-
-          console.log('_insertRowInPlace index_incr', index_incr)
-
           @_insertRowInPlace(
             row,
             {
