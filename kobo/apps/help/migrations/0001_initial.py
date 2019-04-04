@@ -5,7 +5,7 @@ from django.db import migrations, models
 import datetime
 import markdownx.models
 import private_storage.fields
-import private_storage.storage.s3boto3
+import private_storage.storage.files
 import jsonbfield.fields
 from django.conf import settings
 import kpi.fields
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
             name='InAppMessageFile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('content', private_storage.fields.PrivateFileField(storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(), upload_to=b'__in_app_message/%Y/%m/%d/')),
+                ('content', private_storage.fields.PrivateFileField(storage=private_storage.storage.files.PrivateFileSystemStorage(), upload_to=b'__in_app_message/%Y/%m/%d/')),
             ],
         ),
         migrations.CreateModel(
