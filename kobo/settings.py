@@ -241,7 +241,6 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 
 # Private media file configuration
-PRIVATE_STORAGE_S3_REVERSE_PROXY = True # Instead of direct S3 bucket URLs
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
@@ -532,6 +531,9 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
+        # Proxy S3 through our application instead of redirecting to bucket
+        # URLs with query parameter authentication
+        PRIVATE_STORAGE_S3_REVERSE_PROXY = True
 
 
 # Need a default logger when sentry is not activated
