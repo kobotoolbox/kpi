@@ -223,9 +223,10 @@ module.exports = do ->
       if !parent
         parent = @
       parent.rows.add(row, {at: index})
-      # WTF: commented this line out because it looks like BAD CODE™
-      # it would be nice to know the reason for it
-      # row._parent = parent.rows
+
+      # line below looks like BAD CODE™ but in fact it enables row reordering
+      row._parent = parent.rows
+
       if opts.event
         parent.rows.trigger(opts.event)
       return
