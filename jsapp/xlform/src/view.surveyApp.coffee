@@ -436,14 +436,15 @@ module.exports = do ->
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
               return
-            item = ui.item.prev()
+            prevItem = ui.item.prev()
+            prevItemPosition = @getItemPosition(prevItem)
             if @ngScope.handleItem
               @ngScope.handleItem({
-                  position: @getItemPosition(item) - 1,
+                  position: prevItemPosition - 1
                   itemData: ui.item.data()
                 })
             else
-              @ngScope.add_item @getItemPosition(item) - 1
+              @ngScope.add_item @getItemPosition(prevItem) - 1
             ui.sender.sortable('cancel')
         })
       group_rows = @formEditorEl.find('.group__rows')
