@@ -518,6 +518,13 @@ var dataInterface;
       });
     },
 
+    getHelpInAppMessages() {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/`,
+        method: 'GET'
+      });
+    },
+
     setLanguage(data) {
       return $ajax({
         url: `${rootUrl}/i18n/setlang/`,

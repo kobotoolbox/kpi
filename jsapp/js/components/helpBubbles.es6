@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import bem from '../bem';
+import actions from '../actions';
 import stores from '../stores';
 import {t} from '../utils';
 
@@ -202,9 +203,21 @@ export class SupportHelpBubble extends HelpBubble {
       messages: {}
     }
     this.bubbleName = 'support-help-bubble';
+    this.unlisteners = [];
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   componentDidMount() {
+    this.unlisteners.push(
+      actions.help.getInAppMessages.completed.listen(this.onHelpGetInAppMessagesCompleted.bind(this)),
+      actions.help.getInAppMessages.failed.listen(this.onHelpGetInAppMessagesFailed.bind(this))
+    );
+
+    actions.help.getInAppMessages();
+
     // TODO get real messages
     this.setState({
       messages: {
@@ -250,6 +263,14 @@ export class SupportHelpBubble extends HelpBubble {
         }
       }
     });
+  }
+
+  onHelpGetInAppMessagesCompleted(response) {
+    console.log('onHelpGetInAppMessagesCompleted', response);
+  }
+
+  onHelpGetInAppMessagesFailed(response) {
+    console.log('onHelpGetInAppMessagesFailed', response);
   }
 
   close() {
