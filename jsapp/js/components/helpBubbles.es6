@@ -199,8 +199,8 @@ export class SupportHelpBubble extends HelpBubble {
     super(props);
     autoBind(this);
     this.state = {
-      selectedMessageId: null,
-      messages: {}
+      selectedMessageUid: null,
+      messages: []
     }
     this.bubbleName = 'support-help-bubble';
     this.unlisteners = [];
@@ -213,64 +213,33 @@ export class SupportHelpBubble extends HelpBubble {
   componentDidMount() {
     this.unlisteners.push(
       actions.help.getInAppMessages.completed.listen(this.onHelpGetInAppMessagesCompleted.bind(this)),
-      actions.help.getInAppMessages.failed.listen(this.onHelpGetInAppMessagesFailed.bind(this))
+      actions.help.getInAppMessages.failed.listen(this.onHelpGetInAppMessagesFailed.bind(this)),
+      actions.help.setMessageReadTime.completed.listen(this.onHelpPatchMessage.bind(this)),
+      actions.help.setMessageAcknowledged.completed.listen(this.onHelpPatchMessage.bind(this))
     );
 
     actions.help.getInAppMessages();
-
-    // TODO get real messages
-    this.setState({
-      messages: {
-        xyz: {
-          username: 'Leszek',
-          body: 'Haha, fooled you! This is the first message that you ever will',
-          readTime: null,
-          title: 'Very Important Announcement Title',
-          snippet: 'You had better click this!',
-          validFrom: '2018-12-01T01:23:45',
-          validTo: '2070-12-01T01:23:45',
-          linkClickedTime: null,
-        },
-        abc: {
-          username: 'Gniewosz',
-          body: 'Welcome to our forums dear user.\nIn forums you can forum as much as you wany. You can forum with other forum users.\nRegister today and get a free puppy!',
-          readTime: '2019-01-26T01:23:45',
-          title: 'Very Important Announcement Title',
-          snippet: 'Welcome to our forums…',
-          validFrom: '2018-12-01T01:23:45',
-          validTo: '2070-12-01T01:23:45',
-          linkClickedTime: null,
-        },
-        foo: {
-          username: 'Henryk',
-          body: 'Haha, fooled you! This is the first message that you ever will',
-          readTime: null,
-          title: 'Very Important Announcement Title',
-          snippet: 'You had better click this!',
-          validFrom: '1995-12-01T01:23:45',
-          validTo: '1999-12-01T01:23:45',
-          linkClickedTime: 2,
-        },
-        bar: {
-          username: 'Ignacy',
-          body: 'Haha, fooled you! This is the first message that you ever will',
-          readTime: null,
-          title: 'Very Important Announcement Title',
-          snippet: 'You had better click this!',
-          validFrom: '2020-12-01T01:23:45',
-          validTo: '2021-12-01T01:23:45',
-          linkClickedTime: null,
-        }
-      }
-    });
   }
 
   onHelpGetInAppMessagesCompleted(response) {
     console.log('onHelpGetInAppMessagesCompleted', response);
+    this.setState({messages: response.results});
   }
 
   onHelpGetInAppMessagesFailed(response) {
     console.log('onHelpGetInAppMessagesFailed', response);
+    this.setState({messages: []});
+  }
+
+  onHelpPatchMessage(message) {
+    console.log('onHelpPatchMessage', message);
+    const messages = this.state.messages;
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].uid === message.uid) {
+        messages[i] = message;
+      }
+    }
+    this.setState({messages: messages});
   }
 
   close() {
@@ -279,52 +248,43 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   selectMessage(evt) {
-    const messageId = evt.currentTarget.dataset.messageId;
-    this.setState({selectedMessageId: messageId});
-    this.markMessageRead(messageId);
+    const messageUid = evt.currentTarget.dataset.messageUid;
+    this.setState({selectedMessageUid: messageUid});
+    if (!this.isMessageRead(messageUid)) {
+      this.markMessageRead(messageUid);
+    }
   }
 
   clearSelectedMessage() {
-    this.setState({selectedMessageId: null});
+    this.setState({selectedMessageUid: null});
   }
 
-  getMessage(messageId) {
-    return this.state.messages[messageId];
+  findMessage(messageUid) {
+    return _.find(this.state.messages, {uid: messageUid});
   }
 
-  markMessageRead(messageId) {
-    // TODO call a real endpoint and update data after finishing
+  isMessageRead(messageUid) {
+    const msg = this.findMessage(messageUid);
+    return !!msg.interactions.readTime;
+  }
+
+  markMessageRead(messageUid) {
     const currentTime = new Date();
-    this.state.messages[messageId].readTime = currentTime.toISOString();
-    this.setState({messages: this.state.messages});
+    actions.help.setMessageReadTime(messageUid, currentTime.toISOString())
+  }
+
+  markMessageAcknowledged(messageUid) {
+    actions.help.setMessageAcknowledged(messageUid, true)
   }
 
   getUnreadMessagesCount() {
     let count = 0;
-    this.getValidMessageIds().map((messageId) => {
-      if (this.state.messages[messageId].readTime === null) {
+    this.state.messages.map((msg) => {
+      if (!msg.interactions.readTime) {
         count++;
       }
     });
     return count;
-  }
-
-  getValidMessageIds() {
-    const validMessageIds = [];
-    Object.keys(this.state.messages).map((messageId) => {
-      const message = this.state.messages[messageId];
-      const dateFrom = new Date(message.validFrom);
-      const dateTo = new Date(message.validTo);
-      const timeNow = Date.now();
-
-      if (
-        dateFrom.getTime() <= timeNow &&
-        timeNow <= dateTo.getTime()
-      ) {
-        validMessageIds.push(messageId);
-      }
-    });
-    return validMessageIds;
   }
 
   renderDefaultPopup() {
@@ -359,22 +319,20 @@ export class SupportHelpBubble extends HelpBubble {
           <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
         </bem.HelpBubble__rowAnchor>
 
-        {this.getValidMessageIds().map((messageId) => {
-          const message = this.state.messages[messageId];
+        {this.state.messages.map((msg) => {
           const modifiers = ['message', 'message-clickable'];
-          if (message.readTime === null) {
+          if (!msg.interactions.readTime) {
             modifiers.push('message-unread');
           }
           return (
             <bem.HelpBubble__row
               m={modifiers}
-              key={messageId}
-              data-message-id={messageId}
+              key={msg.uid}
+              data-message-uid={msg.uid}
               onClick={this.selectMessage.bind(this)}
             >
-              <bem.HelpBubble__avatar/>
-              <span>{message.username}</span>
-              <p>{message.snippet}</p>
+              <span>{msg.title}</span>
+              <p dangerouslySetInnerHTML={{__html: msg.html.snippet}}/>
             </bem.HelpBubble__row>
           )
         })}
@@ -383,7 +341,7 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   renderMessagePopup() {
-    const msg = this.getMessage(this.state.selectedMessageId);
+    const msg = this.findMessage(this.state.selectedMessageUid);
 
     return (
       <bem.HelpBubble__popup>
@@ -393,9 +351,8 @@ export class SupportHelpBubble extends HelpBubble {
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__row m={['message', 'message-with-back-button']}>
-          <bem.HelpBubble__avatar/>
-          <span>{msg.username}</span>
-          <p>{msg.body}</p>
+          <span>{msg.title}</span>
+          <p dangerouslySetInnerHTML={{__html: msg.html.body}}/>
         </bem.HelpBubble__row>
       </bem.HelpBubble__popup>
     );
@@ -422,10 +379,10 @@ export class SupportHelpBubble extends HelpBubble {
           {...attrs}
         />
 
-        {this.state.isOpen && this.state.selectedMessageId &&
+        {this.state.isOpen && this.state.selectedMessageUid &&
           this.renderMessagePopup()
         }
-        {this.state.isOpen && !this.state.selectedMessageId &&
+        {this.state.isOpen && !this.state.selectedMessageUid &&
           this.renderDefaultPopup()
         }
       </bem.HelpBubble>

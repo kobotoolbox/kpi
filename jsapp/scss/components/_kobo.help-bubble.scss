@@ -181,6 +181,10 @@ $s-help-bubble-row-spacing: 20px;
     font-size: 0.8em;
     line-height: 1.33;
   }
+
+  img {
+    max-width: 100%;
+  }
 }
 
 .help-bubble__row.help-bubble__row--header {
@@ -225,17 +229,11 @@ $s-help-bubble-row-spacing: 20px;
 }
 
 .help-bubble--support {
+  .help-bubble__popup {
+    min-height: 230px;
+  }
+
   .help-bubble__row.help-bubble__row--link {
     padding-left: 60px;
   }
-}
-
-.help-bubble__avatar {
-  display: inline-block;
-  vertical-align: middle;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: $cool-silver;
-  margin-right: 5px;
 }

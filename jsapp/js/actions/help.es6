@@ -15,6 +15,18 @@ const helpActions = Reflux.createActions({
       'completed',
       'failed'
     ]
+  },
+  setMessageAcknowledged: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+  setMessageReadTime: {
+    children: [
+      'completed',
+      'failed'
+    ]
   }
 });
 
@@ -25,6 +37,24 @@ helpActions.getInAppMessages.listen(() => {
 });
 helpActions.getInAppMessages.failed.listen(() => {
   notify(t('Failed to get in app messages.'), 'error');
+});
+
+helpActions.setMessageReadTime.listen((uid, readTime) => {
+  dataInterface.patchHelpInAppMessage(uid, {interactions: {readTime: readTime}})
+    .done(helpActions.setMessageReadTime.completed)
+    .fail(helpActions.setMessageReadTime.failed);
+});
+helpActions.setMessageReadTime.failed.listen(() => {
+  notify(t('Failed to set message readTime.'), 'error');
+});
+
+helpActions.setMessageAcknowledged.listen((uid, isAcknowledged) => {
+  dataInterface.patchHelpInAppMessage(uid, {interactions: {acknowledged: isAcknowledged}})
+    .done(helpActions.setMessageAcknowledged.completed)
+    .fail(helpActions.setMessageAcknowledged.failed);
+});
+helpActions.setMessageAcknowledged.failed.listen(() => {
+  notify(t('Failed to set message acknowledged.'), 'error');
 });
 
 export default helpActions;

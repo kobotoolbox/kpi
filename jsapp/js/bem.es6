@@ -250,7 +250,6 @@ bem.HelpBubble__triggerBadge = bem.HelpBubble.__('trigger-badge', 'span');
 bem.HelpBubble__popup = bem.HelpBubble.__('popup');
 bem.HelpBubble__row = bem.HelpBubble.__('row');
 bem.HelpBubble__rowAnchor = bem.HelpBubble.__('row', 'a');
-bem.HelpBubble__avatar = bem.HelpBubble.__('avatar', 'img');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');
