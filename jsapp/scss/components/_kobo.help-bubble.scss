@@ -144,7 +144,7 @@ $s-help-bubble-row-spacing: 20px;
   cursor: pointer;
   position: absolute;
   z-index: 1;
-  top: 4px;
+  top: 5px;
   border: 0;
   border-radius: 50%;
   padding: 5px;
@@ -169,11 +169,11 @@ $s-help-bubble-row-spacing: 20px;
 }
 
 .help-bubble__back {
-  left: 3px;
+  left: 5px;
 }
 
 .help-bubble__close {
-  right: 3px;
+  right: 5px;
 }
 
 // -----------------------------------------------------------------------------
