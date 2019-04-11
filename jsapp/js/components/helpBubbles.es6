@@ -174,19 +174,21 @@ export class IntercomHelpBubble extends HelpBubble {
           <bem.HelpBubble__popup>
             <HelpBubbleClose onClick={this.close.bind(this)}/>
 
-            {this.state.hasIntercom &&
-              <span>intercom!</span>
-            }
-            {!this.state.hasIntercom &&
-              <bem.HelpBubble__rowAnchor
-                m='link'
-                target='_blank'
-                href='https://test.test'
-              >
-                <header>{t('Chat Support Unavailable')}</header>
-                <p>{t('You need to ABC to get XYZ')}</p>
-              </bem.HelpBubble__rowAnchor>
-            }
+            <bem.HelpBubble__popupContent>
+              {this.state.hasIntercom &&
+                <span>intercom!</span>
+              }
+              {!this.state.hasIntercom &&
+                <bem.HelpBubble__rowAnchor
+                  m='link'
+                  target='_blank'
+                  href='https://test.test'
+                >
+                  <header>{t('Chat Support Unavailable')}</header>
+                  <p>{t('You need to ABC to get XYZ')}</p>
+                </bem.HelpBubble__rowAnchor>
+              }
+            </bem.HelpBubble__popupContent>
           </bem.HelpBubble__popup>
         }
       </bem.HelpBubble>
@@ -292,50 +294,52 @@ export class SupportHelpBubble extends HelpBubble {
       <bem.HelpBubble__popup>
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
-        <bem.HelpBubble__row m='header'>
-          <header>{t('Looking for help?')}</header>
-          <p><em>{t('Try visiting one of our online support resources')}</em></p>
-        </bem.HelpBubble__row>
+        <bem.HelpBubble__popupContent>
+          <bem.HelpBubble__row m='header'>
+            <header>{t('Looking for help?')}</header>
+            <p><em>{t('Try visiting one of our online support resources')}</em></p>
+          </bem.HelpBubble__row>
 
-        <bem.HelpBubble__rowAnchor
-          m='link'
-          target='_blank'
-          href='https://test.test'
-          onClick={this.close.bind(this)}
-        >
-          <i className='k-icon k-icon-help-articles'/>
-          <header>{t('KoBoToolbox Help Center')}</header>
-          <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
-        </bem.HelpBubble__rowAnchor>
+          <bem.HelpBubble__rowAnchor
+            m='link'
+            target='_blank'
+            href='https://test.test'
+            onClick={this.close.bind(this)}
+          >
+            <i className='k-icon k-icon-help-articles'/>
+            <header>{t('KoBoToolbox Help Center')}</header>
+            <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+          </bem.HelpBubble__rowAnchor>
 
-        <bem.HelpBubble__rowAnchor
-          m='link'
-          target='_blank'
-          href='https://test.test'
-          onClick={this.close.bind(this)}
-        >
-          <i className='k-icon k-icon-forum'/>
-          <header>{t('KoBoToolbox Community Forum')}</header>
-          <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
-        </bem.HelpBubble__rowAnchor>
+          <bem.HelpBubble__rowAnchor
+            m='link'
+            target='_blank'
+            href='https://test.test'
+            onClick={this.close.bind(this)}
+          >
+            <i className='k-icon k-icon-forum'/>
+            <header>{t('KoBoToolbox Community Forum')}</header>
+            <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+          </bem.HelpBubble__rowAnchor>
 
-        {this.state.messages.map((msg) => {
-          const modifiers = ['message', 'message-clickable'];
-          if (!msg.interactions.readTime) {
-            modifiers.push('message-unread');
-          }
-          return (
-            <bem.HelpBubble__row
-              m={modifiers}
-              key={msg.uid}
-              data-message-uid={msg.uid}
-              onClick={this.selectMessage.bind(this)}
-            >
-              <span>{msg.title}</span>
-              <p dangerouslySetInnerHTML={{__html: msg.html.snippet}}/>
-            </bem.HelpBubble__row>
-          )
-        })}
+          {this.state.messages.map((msg) => {
+            const modifiers = ['message', 'message-clickable'];
+            if (!msg.interactions.readTime) {
+              modifiers.push('message-unread');
+            }
+            return (
+              <bem.HelpBubble__row
+                m={modifiers}
+                key={msg.uid}
+                data-message-uid={msg.uid}
+                onClick={this.selectMessage.bind(this)}
+              >
+                <span>{msg.title}</span>
+                <div dangerouslySetInnerHTML={{__html: msg.html.snippet}}/>
+              </bem.HelpBubble__row>
+            )
+          })}
+        </bem.HelpBubble__popupContent>
       </bem.HelpBubble__popup>
     );
   }
@@ -346,14 +350,17 @@ export class SupportHelpBubble extends HelpBubble {
     return (
       <bem.HelpBubble__popup>
         <HelpBubbleClose onClick={this.close.bind(this)}/>
+
         <bem.HelpBubble__back onClick={this.clearSelectedMessage.bind(this)}>
           <i className='k-icon k-icon-prev'/>
         </bem.HelpBubble__back>
 
-        <bem.HelpBubble__row m={['message', 'message-with-back-button']}>
-          <span>{msg.title}</span>
-          <p dangerouslySetInnerHTML={{__html: msg.html.body}}/>
-        </bem.HelpBubble__row>
+        <bem.HelpBubble__popupContent>
+          <bem.HelpBubble__row m='message'>
+            <span className='help-bubble__popup-title'>{msg.title}</span>
+            <div dangerouslySetInnerHTML={{__html: msg.html.body}}/>
+          </bem.HelpBubble__row>
+        </bem.HelpBubble__popupContent>
       </bem.HelpBubble__popup>
     );
   }
@@ -367,6 +374,11 @@ export class SupportHelpBubble extends HelpBubble {
     const modifiers = ['support'];
     if (this.state.isOpen) {
       modifiers.push('open');
+    }
+    if (this.state.selectedMessageUid) {
+      modifiers.push('single-message');
+    } else {
+      modifiers.push('with-header');
     }
 
     return (

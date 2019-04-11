@@ -6,6 +6,36 @@ $s-help-bubble-row-spacing: 20px;
 }
 
 // -----------------------------------------------------------------------------
+// custom bubbles
+// -----------------------------------------------------------------------------
+
+.help-bubble--support {
+  .help-bubble__popup {
+    min-height: 230px;
+  }
+
+  .help-bubble__row.help-bubble__row--link {
+    padding-left: 60px;
+  }
+}
+
+.help-bubble--with-header {
+  .help-bubble__back,
+  .help-bubble__close {
+    background-color: $cool-charcoal;
+    color: $white;
+  }
+}
+
+.help-bubble--single-message {
+  .help-bubble__popup-title {
+    display: block;
+    padding-left: $s-help-bubble-row-spacing;
+    padding-right: $s-help-bubble-row-spacing;
+  }
+}
+
+// -----------------------------------------------------------------------------
 // trigger styles
 // -----------------------------------------------------------------------------
 
@@ -75,7 +105,7 @@ $s-help-bubble-row-spacing: 20px;
 .help-bubble:nth-child(1) {
   .help-bubble__popup {
     bottom: 5px + 43px * 3;
-    max-height: calc(100vh - #{43px * 4});
+    max-height: calc(75vh - #{43px * 4});
   }
 }
 
@@ -83,11 +113,13 @@ $s-help-bubble-row-spacing: 20px;
 .help-bubble:nth-child(2) {
   .help-bubble__popup {
     bottom: 5px + 43px * 2;
-    max-height: calc(100vh - #{43px * 3});
+    max-height: calc(75vh - #{43px * 3});
   }
 }
 
 .help-bubble__popup {
+  display: flex;
+  flex-direction: row;
   position: fixed;
   z-index: $z-help-bubble-popup;
   left: $drawer-icons-width - 1px;
@@ -96,12 +128,15 @@ $s-help-bubble-row-spacing: 20px;
   box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 4px 8px 2px rgba(0, 0, 0, 0.12);
   width: 310px;
   max-width: calc(100vw - #{$drawer-icons-width});
-  overflow-y: auto;
-  overflow-x: hidden;
 
   @media screen and (min-width: #{$mdl-layout-width}) {
     left: calc(50% - #{$mdl-layout-width * 0.5} + #{$drawer-icons-width - 1px});
   }
+}
+
+.help-bubble__popup-content {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .help-bubble__back,
@@ -109,45 +144,36 @@ $s-help-bubble-row-spacing: 20px;
   cursor: pointer;
   position: absolute;
   z-index: 1;
-  top: 0;
+  top: 4px;
   border: 0;
+  border-radius: 50%;
+  padding: 5px;
+  background-color: rgba($white, 0.5);
+  color: $cool-charcoal;
   line-height: 1;
   font-size: 1.5rem;
 
   .k-icon {
     display: block;
   }
-}
-
-.help-bubble__back {
-  left: 0;
-  padding: 0;
-  height: 100%;
-  background: $cool-charcoal;
-  color: $white;
 
   &:hover {
     background: $cool-blue;
+    color: $white;
   }
 
   &:active {
     background: $cool-green;
+    color: $white;
   }
 }
 
+.help-bubble__back {
+  left: 3px;
+}
+
 .help-bubble__close {
-  right: 0;
-  padding: 5px;
-  background: transparent;
-  color: $cool-silver;
-
-  &:hover {
-    color: $cool-blue;
-  }
-
-  &:active {
-    color: $cool-green;
-  }
+  right: 3px;
 }
 
 // -----------------------------------------------------------------------------
@@ -211,10 +237,6 @@ $s-help-bubble-row-spacing: 20px;
   }
 }
 
-.help-bubble__row.help-bubble__row--message-with-back-button {
-  padding-left: $s-help-bubble-row-spacing + 15px;
-}
-
 .help-bubble__row.help-bubble__row--message-clickable.help-bubble__row--message-unread {
   border-left: 5px solid $cool-red;
   padding-left: $s-help-bubble-row-spacing - 5px;
@@ -225,15 +247,5 @@ $s-help-bubble-row-spacing: 20px;
 
   &:active {
     border-left-color: $cool-green;
-  }
-}
-
-.help-bubble--support {
-  .help-bubble__popup {
-    min-height: 230px;
-  }
-
-  .help-bubble__row.help-bubble__row--link {
-    padding-left: 60px;
   }
 }

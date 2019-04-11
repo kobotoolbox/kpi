@@ -40,7 +40,11 @@ helpActions.getInAppMessages.failed.listen(() => {
 });
 
 helpActions.setMessageReadTime.listen((uid, readTime) => {
-  dataInterface.patchHelpInAppMessage(uid, {interactions: {readTime: readTime}})
+  dataInterface.patchHelpInAppMessage(uid, {interactions: {
+    readTime: readTime,
+    // we assume that reading messages is a conscious action
+    acknowledged: true
+  }})
     .done(helpActions.setMessageReadTime.completed)
     .fail(helpActions.setMessageReadTime.failed);
 });
