@@ -251,6 +251,7 @@ bem.HelpBubble__popup = bem.HelpBubble.__('popup');
 bem.HelpBubble__popupContent = bem.HelpBubble.__('popup-content');
 bem.HelpBubble__row = bem.HelpBubble.__('row');
 bem.HelpBubble__rowAnchor = bem.HelpBubble.__('row', 'a');
+bem.HelpBubble__rowWrapper = bem.HelpBubble.__('row-wrapper');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');

@@ -9,17 +9,26 @@ $s-help-bubble-row-spacing: 20px;
 // custom bubbles
 // -----------------------------------------------------------------------------
 
-.help-bubble--support {
+.help-bubble--list-with-header,
+.help-bubble--single-message {
   .help-bubble__popup {
     min-height: 230px;
   }
-
-  .help-bubble__row.help-bubble__row--link {
-    padding-left: 60px;
-  }
 }
 
-.help-bubble--with-header {
+.help-bubble--list-with-header {
+  .help-bubble__row.help-bubble__row--link {
+    padding-left: 60px;
+
+    .k-icon {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 40px;
+      color: $cool-silver;
+    }
+  }
+
   .help-bubble__back,
   .help-bubble__close {
     background-color: $cool-charcoal;
@@ -135,6 +144,7 @@ $s-help-bubble-row-spacing: 20px;
 }
 
 .help-bubble__popup-content {
+  width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -180,22 +190,18 @@ $s-help-bubble-row-spacing: 20px;
 // bubble content styles
 // -----------------------------------------------------------------------------
 
-.help-bubble__row {
+.help-bubble__row,
+.help-bubble__row-wrapper {
   position: relative;
   display: block;
-  padding: #{$s-help-bubble-row-spacing * 0.5} $s-help-bubble-row-spacing;
 
   & + & {
     border-top: 1px solid $divider-color;
   }
+}
 
-  .k-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 40px;
-    color: $cool-silver;
-  }
+.help-bubble__row {
+  padding: #{$s-help-bubble-row-spacing * 0.5} $s-help-bubble-row-spacing;
 
   header {
     margin: 0;

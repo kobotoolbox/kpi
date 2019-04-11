@@ -7,32 +7,50 @@ import actions from '../actions';
 import stores from '../stores';
 import {t} from '../utils';
 
+const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
+
 class HelpBubble extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
     this.state = {
-      isOpen: false
+      isOpen: false,
+      isOutsideCloseEnabled: true
     };
     this.cancelOutsideCloseWatch = Function.prototype;
+    this.cancelHelpBubbleEventCloseWatch = Function.prototype;
   }
 
-  open(evt) {
+  open() {
     this.setState({isOpen: true});
-    this.cancelOutsideCloseWatch();
-    this.watchOutsideClose();
 
+    // tell all HelpBubbles that this one have just opened
+    const bubbleOpenedEvt = new CustomEvent(BUBBLE_OPENED_EVT_NAME, {detail: this.bubbleName});
+    document.dispatchEvent(bubbleOpenedEvt);
+
+    // if enabled we want to close this HelpBubble
+    // whenever user clicks outside it or hits ESC key
+    this.cancelOutsideCloseWatch();
+    if (this.state.isOutsideCloseEnabled) {
+      this.watchOutsideClose();
+    }
+
+    // we want to close all the other HelpBubbles whenever one opens
+    this.cancelHelpBubbleEventCloseWatch();
+    this.watchHelpBubbleEventClose();
+
+    // counts how many times have this bubble been opened
     if (this.bubbleName) {
       this.bumpNewCounter(this.bubbleName);
     }
   }
 
-  close(evt) {
+  close() {
     this.setState({isOpen: false});
     this.cancelOutsideCloseWatch();
   }
 
-  toggle(evt) {
+  toggle() {
     if (this.state.isOpen) {
       this.close();
     } else {
@@ -40,12 +58,27 @@ class HelpBubble extends React.Component {
     }
   }
 
+  watchHelpBubbleEventClose() {
+    const helpBubbleEventHandler = (evt) => {
+      if (evt.detail !== this.bubbleName) {this.close();}
+    }
+
+    document.addEventListener(BUBBLE_OPENED_EVT_NAME, helpBubbleEventHandler);
+
+    this.cancelHelpBubbleEventCloseWatch = () => {
+      document.removeEventListener(BUBBLE_OPENED_EVT_NAME, helpBubbleEventHandler);
+    }
+  }
+
   watchOutsideClose() {
     const outsideClickHandler = (evt) => {
       const $targetEl = $(evt.target);
       if (
+        $targetEl.parents('.help-bubble__back').length === 0 &&
         $targetEl.parents('.help-bubble__popup').length === 0 &&
-        $targetEl.parents('.help-bubble__row').length === 0
+        $targetEl.parents('.help-bubble__popup-content').length === 0 &&
+        $targetEl.parents('.help-bubble__row').length === 0 &&
+        $targetEl.parents('.help-bubble__row-wrapper').length === 0
       ) {
         this.close();
       }
@@ -71,6 +104,7 @@ class HelpBubble extends React.Component {
     return `kobo.${currentUsername}.${bubbleName}`;
   }
 
+  // we display "NEW" badge for first 5 times user interacts with bubble
   isNew(bubbleName) {
     const storageName = this.getStorageName(bubbleName);
     const storageItem = window.localStorage.getItem(storageName);
@@ -132,8 +166,14 @@ class HelpBubbleClose extends React.Component {
   }
 
   render() {
+    const attrs = {}
+
+    if (this.props.messageUid) {
+      attrs['data-message-uid'] = this.props.messageUid;
+    }
+
     return (
-      <bem.HelpBubble__close onClick={this.props.onClick}>
+      <bem.HelpBubble__close onClick={this.props.onClick} {...attrs}>
         <i className='k-icon k-icon-close'/>
       </bem.HelpBubble__close>
     );
@@ -202,18 +242,19 @@ export class SupportHelpBubble extends HelpBubble {
     autoBind(this);
     this.state = {
       selectedMessageUid: null,
+      hasUnacknowledgedMessages: false,
       messages: []
     }
     this.bubbleName = 'support-help-bubble';
-    this.unlisteners = [];
+    this.dataUnlisteners = [];
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.dataUnlisteners.forEach((clb) => {clb();});
   }
 
   componentDidMount() {
-    this.unlisteners.push(
+    this.dataUnlisteners.push(
       actions.help.getInAppMessages.completed.listen(this.onHelpGetInAppMessagesCompleted.bind(this)),
       actions.help.getInAppMessages.failed.listen(this.onHelpGetInAppMessagesFailed.bind(this)),
       actions.help.setMessageReadTime.completed.listen(this.onHelpPatchMessage.bind(this)),
@@ -224,24 +265,25 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   onHelpGetInAppMessagesCompleted(response) {
-    console.log('onHelpGetInAppMessagesCompleted', response);
     this.setState({messages: response.results});
+    this.checkForUnacknowledgedMessages(response.results);
   }
 
   onHelpGetInAppMessagesFailed(response) {
-    console.log('onHelpGetInAppMessagesFailed', response);
     this.setState({messages: []});
+    this.checkForUnacknowledgedMessages([]);
   }
 
   onHelpPatchMessage(message) {
-    console.log('onHelpPatchMessage', message);
-    const messages = this.state.messages;
-    for (let i = 0; i < messages.length; i++) {
-      if (messages[i].uid === message.uid) {
-        messages[i] = message;
+    const newMessages = this.state.messages;
+    for (let i = 0; i < newMessages.length; i++) {
+      if (newMessages[i].uid === message.uid) {
+        // update patched messages in the list of messages
+        newMessages[i] = message;
       }
     }
-    this.setState({messages: messages});
+    this.setState({messages: newMessages});
+    this.checkForUnacknowledgedMessages(newMessages);
   }
 
   close() {
@@ -255,6 +297,11 @@ export class SupportHelpBubble extends HelpBubble {
     if (!this.isMessageRead(messageUid)) {
       this.markMessageRead(messageUid);
     }
+  }
+
+  selectUnacknowledgedListMessage(evt) {
+    this.selectMessage(evt);
+    this.open();
   }
 
   clearSelectedMessage() {
@@ -275,18 +322,50 @@ export class SupportHelpBubble extends HelpBubble {
     actions.help.setMessageReadTime(messageUid, currentTime.toISOString())
   }
 
-  markMessageAcknowledged(messageUid) {
+  markMessageAcknowledged(evt) {
+    const messageUid = evt.currentTarget.dataset.messageUid;
     actions.help.setMessageAcknowledged(messageUid, true)
+  }
+
+  checkForUnacknowledgedMessages(newMessages) {
+    let hasUnacknowledgedMessages = false;
+    newMessages.forEach((msg) => {
+      if (!msg.interactions.acknowledged) {
+        hasUnacknowledgedMessages = true;
+      }
+    });
+    this.setState({
+      hasUnacknowledgedMessages: hasUnacknowledgedMessages,
+      isOutsideCloseEnabled: !hasUnacknowledgedMessages
+    });
   }
 
   getUnreadMessagesCount() {
     let count = 0;
-    this.state.messages.map((msg) => {
+    this.state.messages.forEach((msg) => {
       if (!msg.interactions.readTime) {
         count++;
       }
     });
     return count;
+  }
+
+  renderSnippetRow(msg, clickCallback) {
+    const modifiers = ['message', 'message-clickable'];
+    if (!msg.interactions.readTime) {
+      modifiers.push('message-unread');
+    }
+    return (
+      <bem.HelpBubble__row
+        m={modifiers}
+        key={msg.uid}
+        data-message-uid={msg.uid}
+        onClick={clickCallback}
+      >
+        <span>{msg.title}</span>
+        <div dangerouslySetInnerHTML={{__html: msg.html.snippet}}/>
+      </bem.HelpBubble__row>
+    );
   }
 
   renderDefaultPopup() {
@@ -327,16 +406,31 @@ export class SupportHelpBubble extends HelpBubble {
             if (!msg.interactions.readTime) {
               modifiers.push('message-unread');
             }
+            return this.renderSnippetRow(msg, this.selectMessage.bind(this));
+          })}
+        </bem.HelpBubble__popupContent>
+      </bem.HelpBubble__popup>
+    );
+  }
+
+  renderUnacknowledgedListPopup() {
+    return (
+      <bem.HelpBubble__popup>
+        <bem.HelpBubble__popupContent>
+          {this.state.messages.map((msg) => {
+            if (msg.interactions.acknowledged) {
+              return;
+            }
+
             return (
-              <bem.HelpBubble__row
-                m={modifiers}
-                key={msg.uid}
-                data-message-uid={msg.uid}
-                onClick={this.selectMessage.bind(this)}
-              >
-                <span>{msg.title}</span>
-                <div dangerouslySetInnerHTML={{__html: msg.html.snippet}}/>
-              </bem.HelpBubble__row>
+              <bem.HelpBubble__rowWrapper key={msg.uid}>
+                <HelpBubbleClose
+                  messageUid={msg.uid}
+                  onClick={this.markMessageAcknowledged.bind(this)}
+                />
+
+                {this.renderSnippetRow(msg, this.selectUnacknowledgedListMessage.bind(this))}
+              </bem.HelpBubble__rowWrapper>
             )
           })}
         </bem.HelpBubble__popupContent>
@@ -371,14 +465,20 @@ export class SupportHelpBubble extends HelpBubble {
       attrs.isNew = true;
     }
 
-    const modifiers = ['support'];
+    let popupRenderFn;
+    const modifiers = [];
     if (this.state.isOpen) {
       modifiers.push('open');
-    }
-    if (this.state.selectedMessageUid) {
-      modifiers.push('single-message');
-    } else {
-      modifiers.push('with-header');
+      if (this.state.selectedMessageUid) {
+        popupRenderFn = this.renderMessagePopup;
+        modifiers.push('single-message');
+      } else {
+        popupRenderFn = this.renderDefaultPopup;
+        modifiers.push('list-with-header');
+      }
+    }  else if (this.state.hasUnacknowledgedMessages) {
+      popupRenderFn = this.renderUnacknowledgedListPopup;
+      modifiers.push('list')
     }
 
     return (
@@ -391,11 +491,8 @@ export class SupportHelpBubble extends HelpBubble {
           {...attrs}
         />
 
-        {this.state.isOpen && this.state.selectedMessageUid &&
-          this.renderMessagePopup()
-        }
-        {this.state.isOpen && !this.state.selectedMessageUid &&
-          this.renderDefaultPopup()
+        {popupRenderFn &&
+          popupRenderFn()
         }
       </bem.HelpBubble>
     );
