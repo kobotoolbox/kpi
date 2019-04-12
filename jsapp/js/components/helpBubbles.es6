@@ -184,9 +184,7 @@ export class IntercomHelpBubble extends HelpBubble {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.state = {
-      hasIntercom: false
-    }
+    this.state.hasIntercom = false;
     this.bubbleName = 'intercom-help-bubble';
   }
 
@@ -240,21 +238,19 @@ export class SupportHelpBubble extends HelpBubble {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.state = {
-      selectedMessageUid: null,
-      hasUnacknowledgedMessages: false,
-      messages: []
-    }
+    this.state.selectedMessageUid = null;
+    this.state.hasUnacknowledgedMessages = false;
+    this.state.messages = [];
     this.bubbleName = 'support-help-bubble';
-    this.dataUnlisteners = [];
+    this.actionsUnlisteners = [];
   }
 
   componentWillUnmount() {
-    this.dataUnlisteners.forEach((clb) => {clb();});
+    this.actionsUnlisteners.forEach((clb) => {clb();});
   }
 
   componentDidMount() {
-    this.dataUnlisteners.push(
+    this.actionsUnlisteners.push(
       actions.help.getInAppMessages.completed.listen(this.onHelpGetInAppMessagesCompleted.bind(this)),
       actions.help.getInAppMessages.failed.listen(this.onHelpGetInAppMessagesFailed.bind(this)),
       actions.help.setMessageReadTime.completed.listen(this.onHelpPatchMessage.bind(this)),
@@ -291,17 +287,31 @@ export class SupportHelpBubble extends HelpBubble {
     this.clearSelectedMessage();
   }
 
-  selectMessage(evt) {
-    const messageUid = evt.currentTarget.dataset.messageUid;
+  open() {
+    super.open();
+
+    const unacknowledgedMessages = this.state.messages.filter((msg) => {
+      return msg.interactions.acknowledged !== true;
+    });
+    if (unacknowledgedMessages.length === 1) {
+      this.selectMessage(unacknowledgedMessages[0].uid);
+    }
+  }
+
+  onSelectMessage(evt) {
+    this.selectMessage(evt.currentTarget.dataset.messageUid)
+  }
+
+  onSelectUnacknowledgedListMessage(evt) {
+    this.onSelectMessage(evt);
+    this.open();
+  }
+
+  selectMessage(messageUid) {
     this.setState({selectedMessageUid: messageUid});
     if (!this.isMessageRead(messageUid)) {
       this.markMessageRead(messageUid);
     }
-  }
-
-  selectUnacknowledgedListMessage(evt) {
-    this.selectMessage(evt);
-    this.open();
   }
 
   clearSelectedMessage() {
@@ -328,15 +338,12 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   checkForUnacknowledgedMessages(newMessages) {
-    let hasUnacknowledgedMessages = false;
-    newMessages.forEach((msg) => {
-      if (!msg.interactions.acknowledged) {
-        hasUnacknowledgedMessages = true;
-      }
+    const unacknowledgedMessages = newMessages.filter((msg) => {
+      return msg.interactions.acknowledged !== true;
     });
     this.setState({
-      hasUnacknowledgedMessages: hasUnacknowledgedMessages,
-      isOutsideCloseEnabled: !hasUnacknowledgedMessages
+      hasUnacknowledgedMessages: unacknowledgedMessages.length >= 1,
+      isOutsideCloseEnabled: unacknowledgedMessages.length === 0
     });
   }
 
@@ -406,7 +413,7 @@ export class SupportHelpBubble extends HelpBubble {
             if (!msg.interactions.readTime) {
               modifiers.push('message-unread');
             }
-            return this.renderSnippetRow(msg, this.selectMessage.bind(this));
+            return this.renderSnippetRow(msg, this.onSelectMessage.bind(this));
           })}
         </bem.HelpBubble__popupContent>
       </bem.HelpBubble__popup>
@@ -429,7 +436,7 @@ export class SupportHelpBubble extends HelpBubble {
                   onClick={this.markMessageAcknowledged.bind(this)}
                 />
 
-                {this.renderSnippetRow(msg, this.selectUnacknowledgedListMessage.bind(this))}
+                {this.renderSnippetRow(msg, this.onSelectUnacknowledgedListMessage.bind(this))}
               </bem.HelpBubble__rowWrapper>
             )
           })}
