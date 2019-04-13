@@ -217,6 +217,11 @@ export class IntercomHelpBubble extends HelpBubble {
   }
 
   render() {
+    // hide intercome button completely if Intercom not found
+    if (!window.Intercom) {
+      return null;
+    }
+
     const attrs = {};
     if (this.isNew(this.bubbleName)) {
       attrs.isNew = true;
