@@ -52,6 +52,18 @@
     {% if intercom_app_id %}
     <script>
       window.IntercomAppId = '{{intercom_app_id}}';
+      window.IntercomLauncherHtmlId = `custom_intercom_launcher`;
+
+      window.intercomSettings = {
+        app_id: window.IntercomAppId,
+        custom_launcher_selector: '#' + window.IntercomLauncherHtmlId,
+        hide_default_launcher: true,
+        alignment: 'left',
+        action_color: '#2095f3',
+        background_color: '#575b70',
+        horizontal_padding: 57
+      };
+
       (function() {
         var w = window;
         var ic = w.Intercom;

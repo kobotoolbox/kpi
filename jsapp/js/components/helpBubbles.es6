@@ -135,11 +135,17 @@ class HelpBubbleTrigger extends React.Component {
   render() {
     const iconClass = `k-icon k-icon-${this.props.icon}`;
     const hasCounter = typeof this.props.counter === 'number' && this.props.counter !== 0;
+    const attrs = {}
+
+    if (this.props.htmlId) {
+      attrs['id'] = this.props.htmlId;
+    }
 
     return (
       <bem.HelpBubble__trigger
         onClick={this.props.onClick}
         data-tip={this.props.tooltipLabel}
+        {...attrs}
       >
         <i className={iconClass}/>
 
@@ -184,8 +190,30 @@ export class IntercomHelpBubble extends HelpBubble {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.state.hasIntercom = false;
+    this.state.isOutsideCloseEnabled = false;
+    this.state.intercomUnreadCount = 0;
     this.bubbleName = 'intercom-help-bubble';
+  }
+
+  componentDidMount() {
+    if (window.Intercom) {
+      Intercom('onUnreadCountChange', this.onIntercomUnreadCountChange.bind(this));
+      Intercom('onHide', this.onIntercomHide.bind(this));
+    }
+  }
+
+  onIntercomUnreadCountChange(unreadCount) {
+    this.setState({intercomUnreadCount: unreadCount});
+  }
+
+  onIntercomHide() {
+    super.close();
+  }
+
+  close() {
+    if (window.Intercom) {
+      window.Intercom('hide');
+    }
   }
 
   render() {
@@ -205,30 +233,10 @@ export class IntercomHelpBubble extends HelpBubble {
           icon='intercom'
           tooltipLabel={t('Intercom')}
           onClick={this.toggle.bind(this)}
+          htmlId={window.IntercomLauncherHtmlId}
+          counter={this.state.intercomUnreadCount}
           {...attrs}
         />
-
-        {this.state.isOpen &&
-          <bem.HelpBubble__popup>
-            <HelpBubbleClose onClick={this.close.bind(this)}/>
-
-            <bem.HelpBubble__popupContent>
-              {this.state.hasIntercom &&
-                <span>intercom!</span>
-              }
-              {!this.state.hasIntercom &&
-                <bem.HelpBubble__rowAnchor
-                  m='link'
-                  target='_blank'
-                  href='https://test.test'
-                >
-                  <header>{t('Chat Support Unavailable')}</header>
-                  <p>{t('You need to ABC to get XYZ')}</p>
-                </bem.HelpBubble__rowAnchor>
-              }
-            </bem.HelpBubble__popupContent>
-          </bem.HelpBubble__popup>
-        }
       </bem.HelpBubble>
     );
   }
