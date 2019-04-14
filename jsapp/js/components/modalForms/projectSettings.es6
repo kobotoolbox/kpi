@@ -542,6 +542,13 @@ class ProjectSettings extends React.Component {
           this.applyFileToAsset(files[0], asset).then(
             (data) => {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
+                // TODO: Getting asset outside of actions.resources.loadAsset
+                // is not going to notify all the listeners, causing some hard
+                // to identify bugs.
+                // Until we switch this code to use actions we HACK it so other
+                // places are notified.
+                actions.resources.loadAsset.completed(finalAsset);
+
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
