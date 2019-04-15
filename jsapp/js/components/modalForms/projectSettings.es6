@@ -874,12 +874,6 @@ class ProjectSettings extends React.Component {
             </bem.Modal__footer>
           }
 
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
-          }
-
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
@@ -920,6 +914,12 @@ class ProjectSettings extends React.Component {
                 {t('Delete Project and Data')}
               </button>
             </bem.FormModal__item>
+          }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
+            <bem.FormView__cell m='iframe'>
+              <iframe src={this.props.iframeUrl} />
+            </bem.FormView__cell>
           }
         </bem.FormModal__item>
       </bem.FormModal__form>
