@@ -52,14 +52,17 @@ class Submission extends React.Component {
   }
   componentDidMount() {
     this.getSubmission(this.props.asset.uid, this.state.sid);
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
   }
 
-  refreshSubmission(result, sid) {
-    if (result.uid) {
+  refreshSubmissionValidationStatus(result, sid) {
+    if (result && result.uid) {
       this.state.submission._validation_status = result;
-      this.setState({submission: this.state.submission});
+    } else {
+      this.state.submission._validation_status = {};
     }
+    this.setState({submission: this.state.submission});
   }
 
   getSubmission(assetUid, sid) {
@@ -217,9 +220,12 @@ class Submission extends React.Component {
     });
   }
 
-  validationStatusChange(e) {
-    const data = {'validation_status.uid': e.value};
-    actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
+  validationStatusChange(evt) {
+    if (evt.value === null) {
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, this.state.sid);
+    } else {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, {'validation_status.uid': evt.value});
+    }
   }
 
   languageChange(e) {
@@ -240,14 +246,15 @@ class Submission extends React.Component {
       submissionValue = overrideValue;
 
     switch(q.type) {
-      case 'select_one':
+      case 'select_one': {
         const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === submissionValue);
         if (choice && choice.label && choice.label[translationIndex])
           return choice.label[translationIndex];
         else
           return submissionValue;
         break;
-      case 'select_multiple':
+      }
+      case 'select_multiple': {
         var responses = submissionValue.split(' ');
         var list = responses.map((r)=> {
           const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
@@ -258,21 +265,25 @@ class Submission extends React.Component {
         })
         return <ul>{list}</ul>;
         break;
+      }
       case 'image':
       case 'audio':
-      case 'video':
+      case 'video': {
         return this.renderAttachment(submissionValue, q.type);
         break;
-      case 'begin_repeat':
+      }
+      case 'begin_repeat': {
         const list = submissionValue.map((r) => {
           const stringified = JSON.stringify(r);
           return <li key={stringified}>{stringified}</li>
         });
         return <ul>{list}</ul>
         break;
-      default:
+      }
+      default: {
         return submissionValue;
         break;
+      }
     }
   }
   renderRows() {
