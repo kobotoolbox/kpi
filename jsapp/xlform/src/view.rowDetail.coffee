@@ -23,8 +23,11 @@ module.exports = do ->
     initialize: ({@rowView})->
       unless @model.key
         throw new Error "RowDetail does not have key"
-      @extraClass = "xlf-dv-#{@model.key}"
-      _.extend(@, viewRowDetail.DetailViewMixins[@model.key] || viewRowDetail.DetailViewMixins.default)
+      modelKey = @model.key
+      if modelKey == 'bind::oc:itemgroup'
+        modelKey = 'oc_item_group'
+      @extraClass = "xlf-dv-#{modelKey}"
+      _.extend(@, viewRowDetail.DetailViewMixins[modelKey] || viewRowDetail.DetailViewMixins.default)
       @$el.addClass(@extraClass)
 
     render: ()->
@@ -74,6 +77,8 @@ module.exports = do ->
           @model.set('value', $elVal)
           reflectValueInEl(true)
           inTransition = false
+          console.log('model', @model);
+          console.log('value', $elVal);
 
       reflectValueInEl = (force=false)=>
         # This should never change the model value
@@ -466,4 +471,13 @@ module.exports = do ->
             else
               @model.set 'value', ''
 
+  viewRowDetail.DetailViewMixins.oc_item_group =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("OC Item Group"), 'text'
+    insertInDOM: (rowView)->
+      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--oc-item-group').eq(0)
+    afterRender: ->
+      @listenForInputChange()
+  
   viewRowDetail
