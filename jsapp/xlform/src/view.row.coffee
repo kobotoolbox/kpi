@@ -87,6 +87,9 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
+      if questionType is 'calculate'
+        @$hint.hide()
+
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true

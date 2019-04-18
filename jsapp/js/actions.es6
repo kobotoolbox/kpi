@@ -179,6 +179,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ],
   },
+  removeSubmissionValidationStatus: {
+    children: [
+      'completed',
+      'failed'
+    ],
+  },
   getAssetFiles: {
     children: [
       'completed',
@@ -711,6 +717,15 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
   }).fail((error)=>{
     console.error(error);
     actions.resources.updateSubmissionValidationStatus.failed(error);
+  });
+});
+
+actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
+  dataInterface.removeSubmissionValidationStatus(uid, sid).done((result) => {
+    actions.resources.removeSubmissionValidationStatus.completed(result, sid);
+  }).fail((error)=>{
+    console.error(error);
+    actions.resources.removeSubmissionValidationStatus.failed(error);
   });
 });
 

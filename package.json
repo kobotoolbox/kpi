@@ -82,6 +82,7 @@
     "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
     "watch": "webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-chrome test/tests.html",
+    "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"
