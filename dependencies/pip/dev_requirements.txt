@@ -5,11 +5,13 @@
 #    make pip_compile
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@45a49bbcc794c6ac3756afe04a4f851c3da9219d#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@eb7d723eb2b54dbfd56a1c32d72e0008bbb29149#egg=formpack
 amqp==2.4.0
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
+atomicwrites==1.3.0       # via pytest
+attrs==19.1.0             # via pytest
 backports.os==0.1.1       # via path.py
 backports.shutil-get-terminal-size==1.0.0  # via ipython
 bcrypt==3.1.6             # via paramiko
@@ -62,7 +64,7 @@ enum34==1.1.6             # via cryptography, traitlets
 fabric==2.4.0
 formencode==1.3.1         # via pyxform
 funcsigs==1.0.2           # via begins, mock, pytest
-functools32==3.2.3.post2  # via jsonschema
+functools32==3.2.3.post2  # via jsonschema, pyxform
 future==0.17.1            # via backports.os, django-ses
 futures==3.2.0            # via s3transfer
 gunicorn==19.4.5
@@ -80,18 +82,20 @@ linecache2==1.0.0         # via traceback2
 lxml==4.3.0
 markdown==3.0.1
 mock==2.0.0
+more-itertools==5.0.0     # via pytest
 ndg-httpsclient==0.4.2
 oauthlib==1.0.3
 paramiko==2.4.2           # via fabric
 path.py==11.5.0
-pathlib2==2.3.3           # via importlib-metadata, ipython, pickleshare, pytest, pytest-django
+pathlib2==2.3.3           # via importlib-metadata, ipython, pickleshare, pytest
 pbr==4.0.2                # via mock
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
+pluggy==0.9.0             # via pytest
 prompt-toolkit==1.0.15    # via ipython
 psycopg2==2.7.7           # via django-jsonbfield, django-toolbelt
 ptyprocess==0.6.0         # via pexpect
-py==1.4.31                 # via pytest
+py==1.8.0                 # via pytest
 pyasn1==0.1.9
 pycparser==2.14           # via cffi
 pygments==2.1.3
@@ -101,12 +105,12 @@ pyopenssl==18.0.0
 pyquery==1.4.0
 pytest-django==3.1.2
 pytest-env==0.6.2
-pytest==3.0.3             # via pytest-django, pytest-env
+pytest==3.10.0
 python-dateutil==2.7.5
 python-digest==1.7
 pytz==2018.9
-pyxform==0.12.0
-redis==3.0.1              # via celery
+pyxform==0.13.1
+redis==3.2.0
 requests==2.21.0
 responses==0.9.0
 s3transfer==0.1.13        # via boto3
