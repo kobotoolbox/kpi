@@ -32,7 +32,7 @@ import {
 
 import icons from '../xlform/src/view.icons';
 
-const IMPORT_CHECK_INTERVAL = 500;
+const IMPORT_CHECK_INTERVAL = 1000;
 
 var mixins = {};
 
