@@ -231,7 +231,8 @@ module.exports = do ->
     "relevant",
     "default",
     "constraint"
-    "bind::oc:itemgroup"
+    "bind::oc:itemgroup",
+    "bind::oc:external"
   ]
 
   configs.lookupRowType = do->
@@ -320,6 +321,8 @@ module.exports = do ->
       value: ''
       _hideUnlessChanged: true
     "bind::oc:itemgroup":
+      value: ''
+    "bind::oc:external":
       value: ''
 
   configs.newGroupDetails =

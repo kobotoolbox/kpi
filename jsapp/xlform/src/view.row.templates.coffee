@@ -36,6 +36,7 @@ module.exports = do ->
           <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
           <li data-card-settings-tab-id="oc-item-group" class="">#{_t("OC Item Group")}</li>
+          <li data-card-settings-tab-id="oc-external" class="">#{_t("OC External")}</li>
           <li data-card-settings-tab-id="response-type" class="card__settings__tab--response-type">#{_t("Response Type")}</li>
         </ul>
         <div class="card__settings__content">
@@ -49,6 +50,9 @@ module.exports = do ->
           </ul>
 
           <ul class="card__settings__fields card__settings__fields--oc-item-group">
+          </ul>
+
+          <ul class="card__settings__fields card__settings__fields--oc-external">
           </ul>
 
           <ul class="card__settings__fields card__settings__fields--response-type">
