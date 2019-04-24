@@ -34,13 +34,17 @@ class IntercomHandler extends React.Component {
   }
 
   onCurrentAccountChange(account) {
-    window.Intercom('boot', Object.assign({
-      app_id: window.IntercomAppId,
-      email: account.email,
-      created_at: account.date_joined,
-      name: `${account.first_name} ${account.last_name}`,
-      user_id: account.username
-    }, DEFAULT_SETTINGS));
+    if (this.isEmailValid(account.email)) {
+      window.Intercom('boot', Object.assign({
+        app_id: window.IntercomAppId,
+        email: account.email,
+        created_at: account.date_joined,
+        name: `${account.first_name} ${account.last_name}`,
+        user_id: account.username
+      }, DEFAULT_SETTINGS));
+    } else {
+      window.Intercom('shutdown');
+    }
   }
 
   watchWindowSize() {
