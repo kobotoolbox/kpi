@@ -217,7 +217,6 @@ export class IntercomHelpBubble extends HelpBubble {
   }
 
   render() {
-    // hide intercome button completely if Intercom not found
     if (!window.Intercom) {
       return null;
     }
@@ -238,7 +237,7 @@ export class IntercomHelpBubble extends HelpBubble {
           icon='intercom'
           tooltipLabel={t('Intercom')}
           onClick={this.toggle.bind(this)}
-          htmlId={window.IntercomLauncherHtmlId}
+          htmlId='custom_intercom_launcher'
           counter={this.state.intercomUnreadCount}
           {...attrs}
         />
@@ -402,7 +401,7 @@ export class SupportHelpBubble extends HelpBubble {
           <bem.HelpBubble__rowAnchor
             m='link'
             target='_blank'
-            href='https://test.test'
+            href='http://support.kobotoolbox.org/'
             onClick={this.close.bind(this)}
           >
             <i className='k-icon k-icon-help-articles'/>
@@ -413,7 +412,7 @@ export class SupportHelpBubble extends HelpBubble {
           <bem.HelpBubble__rowAnchor
             m='link'
             target='_blank'
-            href='https://test.test'
+            href='https://community.kobotoolbox.org/'
             onClick={this.close.bind(this)}
           >
             <i className='k-icon k-icon-forum'/>
