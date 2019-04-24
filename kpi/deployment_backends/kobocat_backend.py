@@ -370,7 +370,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         kc_url = self.get_submission_detail_url(pk)
-        kc_request = requests.delete(kc_url)
+        kc_request = requests.Request(method="DELETE", url=kc_url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
