@@ -480,6 +480,8 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             ('add_submissions', _('Can submit data to asset')),
             ('view_submissions', _('Can view submitted data for asset')),
+            ('supervisor_view_submissions', _('Can view submitted data for asset '
+                                              'for specific users')),
             ('change_submissions', _('Can modify submitted data for asset')),
             ('delete_submissions', _('Can delete submitted data for asset')),
             ('share_submissions', _("Can change sharing settings for "
@@ -497,6 +499,7 @@ class Asset(ObjectPermissionMixin,
         'change_asset',
         'add_submissions',
         'view_submissions',
+        'supervisor_view_submissions',
         'change_submissions',
         'validate_submissions',
     )
@@ -519,14 +522,15 @@ class Asset(ObjectPermissionMixin,
         'change_asset': ('view_asset',),
         'add_submissions': ('view_asset',),
         'view_submissions': ('view_asset',),
+        'supervisor_view_submissions': ('view_asset',),
         'change_submissions': ('view_submissions',),
         'validate_submissions': ('view_submissions',)
     }
     # Some permissions must be copied to KC
-    KC_PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
-        'change_submissions': 'change_xform', # "Can Edit" in KC UI
-        'view_submissions': 'view_xform', # "Can View" in KC UI
-        'add_submissions': 'report_xform', # "Can submit to" in KC UI
+    KC_PERMISSIONS_MAP = {  # keys are KC's codenames, values are KPI's
+        'change_submissions': 'change_xform',  # "Can Edit" in KC UI
+        'view_submissions': 'view_xform',  # "Can View" in KC UI
+        'add_submissions': 'report_xform',  # "Can submit to" in KC UI
         'validate_submissions': 'validate_xform',  # "Can Validate" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
@@ -821,8 +825,8 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     asset = models.ForeignKey(Asset, null=True)
     _reversion_version_id = models.IntegerField(null=True)
     asset_version = models.OneToOneField('AssetVersion',
-                                             on_delete=models.CASCADE,
-                                             null=True)
+                                         on_delete=models.CASCADE,
+                                         null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
@@ -889,9 +893,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         details = {}
         try:
             xml = FormPack({'content': source_copy},
-                                root_node_name=root_node_name,
-                                id_string=id_string,
-                                title=form_title)[0].to_xml(warnings=warnings)
+                           root_node_name=root_node_name,
+                           id_string=id_string,
+                           title=form_title)[0].to_xml(warnings=warnings)
             details.update({
                 u'status': u'success',
                 u'warnings': warnings,
@@ -913,7 +917,6 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 u'warnings': warnings,
             })
         return (xml, details)
-
 
 
 @receiver(models.signals.post_delete, sender=Asset)
