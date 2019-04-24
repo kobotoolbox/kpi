@@ -6,6 +6,7 @@ from jsonbfield.fields import JSONField as JSONBField
 
 from ..fields import KpiUidField
 
+
 def upload_to(self, filename):
     '''
     Please note that due to Python 2 limitations, you cannot serialize unbound
@@ -18,6 +19,7 @@ def upload_to(self, filename):
         self.asset.owner.username, 'asset_files', self.asset.uid,
         self.file_type, filename
     )
+
 
 class AssetFile(models.Model):
     # More to come!
