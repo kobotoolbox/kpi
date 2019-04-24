@@ -910,10 +910,13 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     permission_classes = (SubmissionsPermissions,)
 
     def _get_asset(self):
-        asset_uid = self.get_parents_query_dict()['asset']
-        asset = get_object_or_404(self.parent_model, uid=asset_uid)
 
-        return asset
+        if not hasattr(self, "_asset"):
+            asset_uid = self.get_parents_query_dict()['asset']
+            asset = get_object_or_404(self.parent_model, uid=asset_uid)
+            self._asset = asset
+
+        return self._asset
 
     def _get_deployment(self):
         """

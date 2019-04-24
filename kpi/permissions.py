@@ -124,7 +124,8 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
     MODEL_NAME = "submissions"  # Hardcode model_name to match permissions
     
     perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'GET': ['%(app_label)s.view_%(model_name)s',
+                '%(app_label)s.supervisor_view_%(model_name)s'],
         'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
         'HEAD': ['%(app_label)s.view_%(model_name)s'],
         'POST': ['%(app_label)s.add_%(model_name)s'],
@@ -151,23 +152,30 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
 
         asset_uid = self._get_parents_query_dict(request).get("asset")
         asset = get_object_or_404(Asset, uid=asset_uid)
-        permission = self.get_required_permission(request.method, view.action)
+        required_permissions = self.get_required_permissions(request.method, view.action)
+
+        has_perm = False
+        for permission in required_permissions:
+            if asset.has_perm(request.user, permission):
+                has_perm = True
+                break
 
         # We don't want to make a difference between non-existing assets vs non permitted assets
         # to avoid users to be able guess asset existence
-        if not asset.has_perm(request.user, permission):
-            # Except if users can read submissions, we want to show them Access Denied
+        if not has_perm:
+            # Except if users are allowed to view submissions, we want to show them Access Denied
+            # @ TODO handle supervisor permissions
             if request.method not in permissions.SAFE_METHODS:
-                read_permission = self.get_required_permission("GET")
-                can_read = asset.has_perm(request.user, read_permission)
-                if can_read:
+                view_permissions = self.get_required_permissions("GET")
+                can_view = asset.has_perm(request.user, view_permissions[0])
+                if can_view:
                     return False
 
             raise Http404
 
         return True
 
-    def get_required_permission(self, method, action=None):
+    def get_required_permissions(self, method, action=None):
         """
         Given a model and an HTTP method, return the list of permission
         codes that the user is required to have.
@@ -185,11 +193,11 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
 
         # Handle
         if action in self.action_map and self.action_map.get(action).get(method):
-            perm = self.action_map.get(action).get(method)[0] % kwargs
+            perms = [perm % kwargs for perm in self.action_map.get(action).get(method)]
         else:
             if method not in self.perms_map:
                 raise exceptions.MethodNotAllowed(method)
 
-            perm = self.perms_map[method][0] % kwargs
+            perms = [perm % kwargs for perm in self.perms_map[method]]
 
-        return perm.replace("{}.".format(app_label), "")
+        return [perm.replace("{}.".format(app_label), "") for perm in perms]
