@@ -105,7 +105,9 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background, export_in_background
 from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
-    ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
+    ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES, \
+    PERM_VIEW_ASSET, PERM_SHARE_ASSET, PERM_CHANGE_ASSET, \
+    PERM_VIEW_COLLECTION, PERM_SHARE_SUBMISSIONS
 from .deployment_backends.backends import DEPLOYMENT_BACKENDS
 
 from kobo.apps.hook.utils import HookUtils
@@ -156,7 +158,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
         """
         model_name = affected_object._meta.model_name
         if model_name == 'asset' and codename.endswith('_submissions'):
-            share_permission = 'share_submissions'
+            share_permission = PERM_SHARE_SUBMISSIONS
         else:
             share_permission = 'share_{}'.format(model_name)
         return affected_object.has_perm(self.request.user, share_permission)
@@ -309,9 +311,9 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
                 values_list('id', flat=True)
 
         accessible_collections = get_objects_for_user(
-            user, 'view_collection', Collection).only('pk')
+            user, PERM_VIEW_COLLECTION, Collection).only('pk')
         accessible_assets = get_objects_for_user(
-            user, 'view_asset', Asset).only('pk')
+            user, PERM_VIEW_ASSET, Asset).only('pk')
         all_tag_ids = list(chain(
             _get_tags_on_items('collection', accessible_collections),
             _get_tags_on_items('asset', accessible_assets),
@@ -668,7 +670,7 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
 
     def perform_create(self, serializer):
         asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
-        if not self.request.user.has_perm('change_asset', asset):
+        if not self.request.user.has_perm(PERM_CHANGE_ASSET, asset):
             raise exceptions.PermissionDenied()
         serializer.save(
             asset=asset,
@@ -677,7 +679,7 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
 
     def perform_destroy(self, *args, **kwargs):
         asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
-        if not self.request.user.has_perm('change_asset', asset):
+        if not self.request.user.has_perm(PERM_CHANGE_ASSET, asset):
             raise exceptions.PermissionDenied()
         return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
 
@@ -686,7 +688,7 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
         model_file_field = 'content'
         def can_access_file(self, private_file):
             return private_file.request.user.has_perm(
-                'view_asset', private_file.parent_object.asset)
+                PERM_VIEW_ASSET, private_file.parent_object.asset)
 
     @detail_route(methods=['get'])
     def content(self, *args, **kwargs):
@@ -944,14 +946,14 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get("format", request.GET.get("format", "json"))
         deployment = self._get_deployment()
-        filters = request.GET.dict()
+        filters = self._filter_mongo_query(request)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
         format_type = kwargs.get("format", request.GET.get("format", "json"))
         deployment = self._get_deployment()
-        filters = request.GET.dict()
+        filters = self._filter_mongo_query(request)
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
         return Response(submission)
 
@@ -971,6 +973,25 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         json_response = deployment.set_validate_statuses(request.data, request.user)
 
         return Response(**json_response)
+
+    def _filter_mongo_query(self, request):
+        """
+        Build filters to pass to Mongo query.
+        Acts like Django `filter_backend`
+
+        :param request:
+        :return: dict
+        """
+        filters = {}
+        asset = self._get_asset()
+
+        if request.method == "GET":
+            filters = request.GET.dict()
+
+        if asset.has_perm(request.user, "supervisor_view_submissions"):
+            pass
+
+        return filters
 
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -1454,8 +1475,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         response = {}
         http_status = status.HTTP_204_NO_CONTENT
 
-        if user.has_perm('share_asset', target_asset) and \
-            user.has_perm('view_asset', source_asset):
+        if user.has_perm(PERM_SHARE_ASSET, target_asset) and \
+            user.has_perm(PERM_VIEW_ASSET, source_asset):
             if not target_asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
                 response = {"detail": "Source and destination objects don't seem to have the same type"}

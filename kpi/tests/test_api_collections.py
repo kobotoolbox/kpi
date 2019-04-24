@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 
 from ..models.collection import Collection
 
+
 class CollectionsTests(APITestCase):
     fixtures = ['test_data']
 

@@ -11,6 +11,8 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_SHARE_ASSET, \
+    PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
@@ -537,10 +539,10 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertEqual(user.has_perm(perm, self.asset), False)
 
     def test_user_view_permission(self):
-        self.grant_and_revoke_standalone(self.anotheruser, 'view_asset')
+        self.grant_and_revoke_standalone(self.anotheruser, PERM_VIEW_ASSET)
 
     def test_user_change_permission(self):
-        self.grant_and_revoke_standalone(self.anotheruser, 'change_asset')
+        self.grant_and_revoke_standalone(self.anotheruser, PERM_CHANGE_ASSET)
 
     def grant_and_revoke_parent(self, user, perm):
         # Collection permissions have different suffixes
@@ -554,10 +556,10 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertEqual(user.has_perm(perm, self.asset_in_coll), False)
 
     def test_user_inherited_view_permission(self):
-        self.grant_and_revoke_parent(self.anotheruser, 'view_asset')
+        self.grant_and_revoke_parent(self.anotheruser, PERM_VIEW_ASSET)
 
     def test_user_inherited_change_permission(self):
-        self.grant_and_revoke_parent(self.anotheruser, 'change_asset')
+        self.grant_and_revoke_parent(self.anotheruser, PERM_CHANGE_ASSET)
 
     def assign_collection_asset_perms(self, user, collection_perm, asset_perm,
                                       collection_deny=False, asset_deny=False,
@@ -579,8 +581,8 @@ class ShareAssetsTest(AssetsTestCase):
         user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
-            'view_collection',
-            'change_asset',
+            PERM_VIEW_COLLECTION,
+            PERM_CHANGE_ASSET,
             asset_first=asset_first
         )
 
@@ -588,27 +590,27 @@ class ShareAssetsTest(AssetsTestCase):
         user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
-            'change_collection',
-            'change_asset',
+            PERM_CHANGE_COLLECTION,
+            PERM_CHANGE_ASSET,
             asset_deny=True,
             asset_first=asset_first
         )
         # assign_collection_asset_perms verifies the assignments, but make sure
         # that the user can still view the asset
-        self.assertEqual(user.has_perm('view_asset', self.asset_in_coll),
+        self.assertEqual(user.has_perm(PERM_VIEW_ASSET, self.asset_in_coll),
                          True)
 
     def test_user_change_collection_deny_asset(self, asset_first=False):
         user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
-            'change_collection',
-            'view_asset',
+            PERM_CHANGE_COLLECTION,
+            PERM_VIEW_ASSET,
             asset_deny=True,
             asset_first=asset_first
         )
         # Verify that denying view_asset denies change_asset as well
-        self.assertEqual(user.has_perm('change_asset',
+        self.assertEqual(user.has_perm(PERM_CHANGE_ASSET,
                                        self.asset_in_coll),
                          False)
 
@@ -636,7 +638,7 @@ class ShareAssetsTest(AssetsTestCase):
             0
         )
         # Grant access and verify the result
-        self.asset.assign_perm(self.anotheruser, 'view_asset')
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
         self.assertEqual(
             # Without coercion, django.db.models.query.ValuesListQuerySet isn't
             # a real list and will fail the comparison.
@@ -651,7 +653,7 @@ class ShareAssetsTest(AssetsTestCase):
 
     def test_owner_can_edit_permissions(self):
         self.assertTrue(self.asset.owner.has_perm(
-            'share_asset',
+            PERM_SHARE_ASSET,
             self.asset
         ))
 
@@ -664,36 +666,36 @@ class ShareAssetsTest(AssetsTestCase):
         self.asset_in_coll.save()
         # Ensure the parent's owner can't change permissions on the child
         self.assertFalse(self.coll.owner.has_perm(
-            'share_asset',
+            PERM_SHARE_ASSET,
             self.asset_in_coll
         ))
 
     def test_change_permission_provides_share_permission(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertFalse(anotheruser.has_perm(
-            'change_asset', self.asset))
+            PERM_CHANGE_ASSET, self.asset))
         # Grant the change permission and make sure it provides
         # share_asset
-        self.asset.assign_perm(anotheruser, 'change_asset')
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         self.assertTrue(anotheruser.has_perm(
-            'share_asset', self.asset))
+            PERM_SHARE_ASSET, self.asset))
         # Restrict share_asset to the owner and make sure anotheruser loses
         # the permission
         self.asset.editors_can_change_permissions = False
         self.assertFalse(anotheruser.has_perm(
-            'share_asset', self.asset))
+            PERM_SHARE_ASSET, self.asset))
 
     def test_anonymous_view_permission_on_standalone_asset(self):
         # Grant
         self.assertFalse(AnonymousUser().has_perm(
-            'view_asset', self.asset))
-        self.asset.assign_perm(AnonymousUser(), 'view_asset')
+            PERM_VIEW_ASSET, self.asset))
+        self.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         self.assertTrue(AnonymousUser().has_perm(
-            'view_asset', self.asset))
+            PERM_VIEW_ASSET, self.asset))
         # Revoke
-        self.asset.remove_perm(AnonymousUser(), 'view_asset')
+        self.asset.remove_perm(AnonymousUser(), PERM_VIEW_ASSET)
         self.assertFalse(AnonymousUser().has_perm(
-            'view_asset', self.asset))
+            PERM_VIEW_ASSET, self.asset))
 
     def test_anoymous_change_permission_on_standalone_asset(self):
         # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
@@ -702,12 +704,12 @@ class ShareAssetsTest(AssetsTestCase):
             # This is expected to fail since only real users can have any
             # permissions beyond view
             self.asset.assign_perm(
-                AnonymousUser(), 'change_asset')
+                AnonymousUser(), PERM_CHANGE_ASSET)
         except ValidationError:
             pass
         # Make sure the assignment failed
         self.assertFalse(AnonymousUser().has_perm(
-            'change_asset', self.asset))
+            PERM_CHANGE_ASSET, self.asset))
 
     def test_anonymous_as_baseline_for_authenticated(self):
         ''' If the public can view an object, then all users should be able
@@ -715,10 +717,10 @@ class ShareAssetsTest(AssetsTestCase):
         # Neither anonymous nor `anotheruser` should have any permission yet
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertFalse(user_obj.has_perm(
-                'view_asset', self.asset))
+                PERM_VIEW_ASSET, self.asset))
         # Grant to anonymous
-        self.asset.assign_perm(AnonymousUser(), 'view_asset')
+        self.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         # Check that both anonymous and `anotheruser` can view
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertTrue(user_obj.has_perm(
-                'view_asset', self.asset))
+                PERM_VIEW_ASSET, self.asset))

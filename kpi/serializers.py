@@ -19,6 +19,7 @@ from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
+from kpi.constants import PERM_VIEW_ASSET, PERM_VIEW_COLLECTION, PERM_FROM_KC_ONLY
 from hub.models import SitewideMessage, ExtraUserDetail
 from .fields import PaginatedApiField, SerializerMethodFileField
 from .models import Asset
@@ -271,7 +272,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             # permission; clear the `from_kc_only` flag
             ObjectPermission.objects.filter(
                 user=user,
-                permission__codename='from_kc_only',
+                permission__codename=PERM_FROM_KC_ONLY,
                 object_id=content_object.id,
                 content_type=ContentType.objects.get_for_model(content_object)
             ).delete()
@@ -362,14 +363,14 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
 
         # TODO: Move to a validator?
         if asset and source:
-            if not self.context['request'].user.has_perm('view_asset', asset):
+            if not self.context['request'].user.has_perm(PERM_VIEW_ASSET, asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             validated_data['source'] = source
             snapshot = AssetSnapshot.objects.create(**validated_data)
         elif asset:
             # The client provided an existing asset; read source from it
-            if not self.context['request'].user.has_perm('view_asset', asset):
+            if not self.context['request'].user.has_perm(PERM_VIEW_ASSET, asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             # asset.snapshot pulls , by default, a snapshot for the latest
@@ -1252,7 +1253,7 @@ class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
             *args, **kwargs)
         self.fields['collection'].queryset = get_objects_for_user(
             get_anonymous_user(),
-            'view_collection',
+            PERM_VIEW_COLLECTION,
             Collection.objects.filter(discoverable_when_public=True)
         )
 

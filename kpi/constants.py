@@ -45,3 +45,27 @@ SHADOW_MODEL_APP_LABEL = "shadow_model"
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
     "_validation_status",
 ]
+
+# ASSIGNABLE_PERMISSIONS
+PERM_VIEW_ASSET = 'view_asset'
+PERM_CHANGE_ASSET = 'change_asset'
+PERM_ADD_SUBMISSIONS = 'add_submissions'
+PERM_VIEW_SUBMISSIONS = 'view_submissions'
+PERM_SUPERVISOR_VIEW_SUBMISSION = 'supervisor_view_submissions'
+PERM_CHANGE_SUBMISSIONS = 'change_submissions'
+PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
+
+
+# CALCULATED_PERMISSIONS
+PERM_SHARE_ASSET = 'share_asset'
+PERM_DELETE_ASSET = 'delete_asset'
+PERM_SHARE_SUBMISSIONS = 'share_submissions'
+PERM_DELETE_SUBMISSIONS = 'delete_submissions'
+
+# MAPPED_PARENT_PERMISSIONS
+PERM_VIEW_COLLECTION = 'view_collection'
+PERM_CHANGE_COLLECTION = 'change_collection'
+
+# KC INTERNAL
+PERM_FROM_KC_ONLY = 'from_kc_only'
+

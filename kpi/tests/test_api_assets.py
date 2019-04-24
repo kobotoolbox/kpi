@@ -15,6 +15,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from private_storage.storage.files import PrivateFileSystemStorage
 
+from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.models import AssetFile
 from kpi.models import AssetVersion
@@ -683,16 +684,16 @@ class AssetFileTest(APITestCase):
     def test_editor_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, 'change_asset')
-        self.assertTrue(self.asset.has_perm(anotheruser, 'change_asset'))
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         self.verify_asset_file(self.create_asset_file())
 
     def test_editor_can_delete_file(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, 'change_asset')
-        self.assertTrue(self.asset.has_perm(anotheruser, 'change_asset'))
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         af_uid = self.verify_asset_file(self.create_asset_file())
         detail_url = reverse('asset-file-detail',
@@ -706,8 +707,8 @@ class AssetFileTest(APITestCase):
                              args=(self.asset.uid, af_uid))
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, 'view_asset')
-        self.assertTrue(self.asset.has_perm(anotheruser, 'view_asset'))
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
@@ -720,8 +721,8 @@ class AssetFileTest(APITestCase):
         self.switch_user(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, 'view_asset')
-        self.assertTrue(self.asset.has_perm(anotheruser, 'view_asset'))
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         response = self.client.post(self.list_url, self.asset_file_payload)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -741,8 +742,8 @@ class AssetFileTest(APITestCase):
         self.switch_user(username='anotheruser', password='anotheruser')
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, 'view_asset')
-        self.assertTrue(self.asset.has_perm(anotheruser, 'view_asset'))
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         response = self.client.delete(detail_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 

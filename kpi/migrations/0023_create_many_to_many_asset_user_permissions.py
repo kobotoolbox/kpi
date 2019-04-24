@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AssetUserSupervisorPermissions',
+            name='AssetUserSupervisorPermission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('permissions', jsonbfield.fields.JSONField(default=dict)),
@@ -30,12 +30,12 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
-            model_name='assetusersupervisorpermissions',
+            model_name='assetusersupervisorpermission',
             name='asset',
             field=models.ForeignKey(related_name='asset_supervisor_permissions', to='kpi.Asset'),
         ),
         migrations.AddField(
-            model_name='assetusersupervisorpermissions',
+            model_name='assetusersupervisorpermission',
             name='user',
             field=models.ForeignKey(related_name='user_supervisor_permissions', to=settings.AUTH_USER_MODEL),
         ),

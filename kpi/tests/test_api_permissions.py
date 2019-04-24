@@ -4,6 +4,8 @@ from django.contrib.auth.models import (
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
+from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, \
+    PERM_SHARE_ASSET
 from ..models.object_permission import get_anonymous_user
 from .kpi_test_case import KpiTestCase
 
@@ -213,7 +215,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Give "someuser" edit permissions on an asset owned by "admin"
         self.add_perm(self.admin_asset, self.someuser, 'change_')
         # Confirm that "someuser" has received the implied permissions
-        expected_perms = ['change_asset', 'share_asset', 'view_asset']
+        expected_perms = [PERM_CHANGE_ASSET, PERM_SHARE_ASSET, PERM_VIEW_ASSET]
         self.assertListEqual(
             sorted(self.admin_asset.get_perms(self.someuser)),
             expected_perms
@@ -226,7 +228,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Add some extraneous permissions to the destination asset; these
         # should be removed by the copy operation
         self.add_perm(new_asset, self.anotheruser, 'view_')
-        self.assertTrue(self.anotheruser.has_perm('view_asset', new_asset))
+        self.assertTrue(self.anotheruser.has_perm(PERM_VIEW_ASSET, new_asset))
         # Perform the permissions copy via the API endpoint
         self.client.login(
             username=self.admin.username, password=self.admin_password
@@ -249,7 +251,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     def test_copy_permissions_between_non_owned_assets(self):
         # Give "someuser" view permissions on an asset owned by "admin"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
-        self.assertTrue(self.someuser.has_perm('view_asset', self.admin_asset))
+        self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset))
         # Create another asset to receive the copied permissions
         new_asset = self.create_asset(
             name='destination asset', owner=self.admin,
@@ -257,7 +259,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         )
         # Give "someuser" edit permissions on the new asset owned by "admin"
         self.add_perm(new_asset, self.someuser, 'change_')
-        self.assertTrue(self.someuser.has_perm('change_asset', new_asset))
+        self.assertTrue(self.someuser.has_perm(PERM_CHANGE_ASSET, new_asset))
         # Perform the permissions copy via the API endpoint
         self.client.login(
             username=self.someuser.username, password=self.someuser_password
@@ -275,12 +277,12 @@ class ApiPermissionsTestCase(KpiTestCase):
             new_asset.get_users_with_perms(attach_perms=True)
         )
         # Fun fact: the copying user has obliterated their own privileges
-        self.assertFalse(self.someuser.has_perm('change_asset', new_asset))
+        self.assertFalse(self.someuser.has_perm(PERM_CHANGE_ASSET, new_asset))
 
     def test_user_cannot_copy_permissions_from_non_viewable_asset(self):
         # Make sure "someuser" cannot view the asset owned by "admin"
         self.assertFalse(
-            self.someuser.has_perm('view_asset', self.admin_asset)
+            self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset)
         )
         # Create another asset to receive the copied permissions
         new_asset = self.create_asset(
@@ -312,7 +314,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     def test_user_cannot_copy_permissions_to_non_editable_asset(self):
         # Give "someuser" view permissions on an asset owned by "admin"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
-        self.assertTrue(self.someuser.has_perm('view_asset', self.admin_asset))
+        self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset))
         # Create another asset to receive the copied permissions
         new_asset = self.create_asset(
             name='destination asset', owner=self.admin,
@@ -320,7 +322,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         )
         # Give "someuser" view permissions on the new asset owned by "admin"
         self.add_perm(new_asset, self.someuser, 'view_')
-        self.assertTrue(self.someuser.has_perm('view_asset', new_asset))
+        self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, new_asset))
         # Take note of the destination asset's permissions to make sure they
         # are *not* changed later
         dest_asset_original_perms = new_asset.get_users_with_perms(

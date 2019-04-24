@@ -35,7 +35,12 @@ from kpi.utils.standardize_content import (standardize_content,
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
 from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
-    ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE
+    ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE, \
+    PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
+    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSION, \
+    PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
+    PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
+    PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, PERM_FROM_KC_ONLY
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -475,68 +480,68 @@ class Asset(ObjectPermissionMixin,
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
-            ('view_asset', _('Can view asset')),
-            ('share_asset', _("Can change asset's sharing settings")),
+            (PERM_VIEW_ASSET, _('Can view asset')),
+            (PERM_SHARE_ASSET, _("Can change asset's sharing settings")),
             # Permissions for collected data, i.e. submissions
-            ('add_submissions', _('Can submit data to asset')),
-            ('view_submissions', _('Can view submitted data for asset')),
-            ('supervisor_view_submissions', _('Can view submitted data for asset '
-                                              'for specific users')),
-            ('change_submissions', _('Can modify submitted data for asset')),
-            ('delete_submissions', _('Can delete submitted data for asset')),
-            ('share_submissions', _("Can change sharing settings for "
-                                    "asset's submitted data")),
-            ('validate_submissions', _("Can validate submitted data asset")),
+            (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
+            (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
+            (PERM_SUPERVISOR_VIEW_SUBMISSION, _('Can view submitted data for asset '
+                                                'for specific users')),
+            (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
+            (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
+            (PERM_SHARE_SUBMISSIONS, _("Can change sharing settings for "
+                                       "asset's submitted data")),
+            (PERM_VALIDATE_SUBMISSIONS, _("Can validate submitted data asset")),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
-            ('from_kc_only', 'INTERNAL USE ONLY; DO NOT ASSIGN')
+            (PERM_FROM_KC_ONLY, 'INTERNAL USE ONLY; DO NOT ASSIGN')
         )
 
     # Assignable permissions that are stored in the database
     ASSIGNABLE_PERMISSIONS = (
-        'view_asset',
-        'change_asset',
-        'add_submissions',
-        'view_submissions',
-        'supervisor_view_submissions',
-        'change_submissions',
-        'validate_submissions',
+        PERM_VIEW_ASSET,
+        PERM_CHANGE_ASSET,
+        PERM_ADD_SUBMISSIONS,
+        PERM_VIEW_SUBMISSIONS,
+        PERM_SUPERVISOR_VIEW_SUBMISSION,
+        PERM_CHANGE_SUBMISSIONS,
+        PERM_VALIDATE_SUBMISSIONS,
     )
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = (
-        'share_asset',
-        'delete_asset',
-        'share_submissions',
-        'delete_submissions'
+        PERM_SHARE_ASSET,
+        PERM_DELETE_ASSET,
+        PERM_SHARE_SUBMISSIONS,
+        PERM_DELETE_SUBMISSIONS
     )
     # Certain Collection permissions carry over to Asset
     MAPPED_PARENT_PERMISSIONS = {
-        'view_collection': 'view_asset',
-        'change_collection': 'change_asset'
+        PERM_VIEW_COLLECTION: PERM_VIEW_ASSET,
+        PERM_CHANGE_COLLECTION: PERM_CHANGE_ASSET
     }
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
-        'change_asset': ('view_asset',),
-        'add_submissions': ('view_asset',),
-        'view_submissions': ('view_asset',),
-        'supervisor_view_submissions': ('view_asset',),
-        'change_submissions': ('view_submissions',),
-        'validate_submissions': ('view_submissions',)
+        PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
+        PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
+        PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
+        PERM_SUPERVISOR_VIEW_SUBMISSION: (PERM_VIEW_ASSET,),
+        PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
+        PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KC's codenames, values are KPI's
-        'change_submissions': 'change_xform',  # "Can Edit" in KC UI
-        'view_submissions': 'view_xform',  # "Can View" in KC UI
-        'add_submissions': 'report_xform',  # "Can submit to" in KC UI
-        'validate_submissions': 'validate_xform',  # "Can Validate" in KC UI
+        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
+        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
-        'view_submissions': {'shared': True, 'shared_data': True}
+        PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
     # todo: test and implement this method

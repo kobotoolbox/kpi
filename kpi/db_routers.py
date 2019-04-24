@@ -35,3 +35,12 @@ class DefaultDatabaseRouter(object):
         if app_label == SHADOW_MODEL_APP_LABEL:
             return False
         return True
+
+
+class TestingDatabaseRouter(DefaultDatabaseRouter):
+
+    def db_for_read(self, model, **hints):
+        return "default"
+
+    def db_for_write(self, model, **hints):
+        return "default"

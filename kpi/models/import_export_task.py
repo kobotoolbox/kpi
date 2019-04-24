@@ -24,6 +24,7 @@ from pyxform import xls2json_backends
 from formpack.utils.string import ellipsize
 from formpack.schema.fields import ValidationStatusCopyField
 
+from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.utils.log import logging
 from kobo.apps.reports.report_data import build_formpack
 
@@ -543,7 +544,7 @@ class ExportTask(ImportExportTask):
             raise NotImplementedError(
                 'only an `Asset` may be exported at this time')
 
-        if not source.has_perm(self.user, 'view_submissions'):
+        if not source.has_perm(self.user, PERM_VIEW_SUBMISSIONS):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
             raise exceptions.PermissionDenied(

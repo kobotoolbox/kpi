@@ -25,6 +25,7 @@ from ...deployment_backends.kc_access.shadow_models import ShadowModel, \
     ReadOnlyXForm, UserObjectPermission
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
+from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 
 
@@ -36,7 +37,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.iteritems()}
 # Optimization
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
-    content_type=ASSET_CT, codename='from_kc_only')
+    content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
 XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyXForm)
 # Replace codenames with Permission PKs, remembering the codenames
 KPI_CODENAMES = {}
@@ -382,8 +383,8 @@ def _sync_permissions(asset, xform):
             # This user's KPI access came only from this script, and now all KC
             # permissions have been removed. Purge all KPI grant permissions,
             # even the non-mapped ones, in order to clean up prerequisite
-            # permissions (e.g. 'view_asset' is a prerequisite of
-            # 'view_submissions')
+            # permissions (e.g. `PERM_VIEW_ASSET` is a prerequisite of
+            # `PERM_VIEW_SUBMISSIONS`)
             ObjectPermission.objects.filter(
                 user_id=user,
                 deny=False,

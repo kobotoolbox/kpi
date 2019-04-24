@@ -162,8 +162,8 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 #         response= self.client.get(perm_url)
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         permissions= response.data['results']
-#         self.assertNotIn('view_asset', permissions[self.someuser['username']])
-#         permissions[self.someuser['username']].append('view_asset')
+#         self.assertNotIn(PERM_VIEW_ASSET, permissions[self.someuser['username']])
+#         permissions[self.someuser['username']].append(PERM_VIEW_ASSET)
 #         response= self.client.patch(data=permissions)
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.client.logout()

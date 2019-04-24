@@ -19,6 +19,7 @@ from asset import (
 from object_permission import ObjectPermission, ObjectPermissionMixin
 from ..haystack_utils import update_object_in_search_index
 from ..fields import KpiUidField
+from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
 
 
 class CollectionManager(TreeManager, TaggableModelManager):
@@ -69,20 +70,20 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         permissions = (
             # change_, add_, and delete_collection are provided automatically
             # by Django
-            ('view_collection', 'Can view collection'),
+            (PERM_VIEW_COLLECTION, 'Can view collection'),
             ('share_collection',
              "Can change this collection's sharing settings"),
         )
 
     # Assignable permissions that are stored in the database
-    ASSIGNABLE_PERMISSIONS = ('view_collection', 'change_collection')
+    ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
-        'change_collection': ('view_collection',),
+        PERM_CHANGE_COLLECTION: (PERM_VIEW_COLLECTION,),
     }
 
     def delete_with_deferred_indexing(self):
