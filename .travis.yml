@@ -58,5 +58,5 @@ install:
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
   - pip-sync dependencies/pip/requirements.txt
-  - pip install coverage codacy-coverage python-coveralls pytest-cov
+  - pip install coverage codacy-coverage python-coveralls pytest-cov pytest-env
   - pip install pytest==3.10  # Force install this version, has to be at the end
