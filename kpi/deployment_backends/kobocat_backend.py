@@ -76,47 +76,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def backend_response(self):
         return self.asset._deployment_data['backend_response']
 
-    def to_csv_io(self, asset_xls_io, id_string):
-        ''' Convert the output of `Asset.to_xls_io()` or
-        `Asset.to_versioned_xls_io()` into a CSV appropriate for KC's
-        `text_xls_form` '''
-        xls_dict = xls_to_dict(asset_xls_io)
-        csv_io = cStringIO.StringIO()
-        writer = unicodecsv.writer(
-            csv_io, delimiter=',', quotechar='"',
-            quoting=unicodecsv.QUOTE_MINIMAL
-        )
-        settings_arr = xls_dict.get('settings', [])
-        if len(settings_arr) == 0:
-            settings_dict = {}
-        else:
-            settings_dict = settings_arr[0]
-        if 'form_id' in settings_dict:
-            del settings_dict['form_id']
-        settings_dict['id_string'] = id_string
-        settings_dict['form_title'] = self.asset.name
-        xls_dict['settings'] = [settings_dict]
-
-        for sheet_name, rows in xls_dict.items():
-            if re.search(r'_header$', sheet_name):
-                continue
-
-            writer.writerow([sheet_name])
-            out_keys = []
-            out_rows = []
-            for row in rows:
-                out_row = []
-                for key in row.keys():
-                    if key not in out_keys:
-                        out_keys.append(key)
-                for out_key in out_keys:
-                    out_row.append(row.get(out_key, None))
-                out_rows.append(out_row)
-            writer.writerow([None] + out_keys)
-            for out_row in out_rows:
-                writer.writerow([None] + out_row)
-        return csv_io
-
     def _kobocat_request(self, method, url, **kwargs):
         '''
         Make a POST or PATCH request and return parsed JSON. Keyword arguments,
