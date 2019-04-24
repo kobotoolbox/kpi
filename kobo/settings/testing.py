@@ -7,3 +7,7 @@ from .base import *
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
+
+DATABASE_ROUTERS = ["kpi.db_routers.TestingDatabaseRouter"]
+
+TESTING = True

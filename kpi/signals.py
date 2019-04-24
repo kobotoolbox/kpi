@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -34,7 +35,8 @@ def save_kobocat_user(sender, instance, **kwargs):
     """
     Sync Auth User table between KPI and KC
     """
-    KCUser.sync(instance)
+    if not settings.TESTING:
+        KCUser.sync(instance)
 
 
 @receiver(post_save, sender=Token)
@@ -42,7 +44,8 @@ def save_kobocat_token(sender, instance, **kwargs):
     """
     Sync AuthToken table between KPI and KC
     """
-    KCToken.sync(instance)
+    if not settings.TESTING:
+        KCToken.sync(instance)
 
 
 @receiver(post_delete, sender=Token)
@@ -50,7 +53,8 @@ def delete_kobocat_token(sender, instance, **kwargs):
     """
     Delete corresponding record from KC AuthToken table
     """
-    KCToken.objects.filter(pk=instance.pk).delete()
+    if not settings.TESTING:
+        KCToken.objects.filter(pk=instance.pk).delete()
 
 
 @receiver(post_save, sender=Tag)
