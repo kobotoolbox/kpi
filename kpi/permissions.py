@@ -59,7 +59,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
-class AssetNestedObjectsPermissions(permissions.BasePermission):
+class AssetNestedObjectPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         # This method should be overridden in subclasses
@@ -91,7 +91,7 @@ class AssetNestedObjectsPermissions(permissions.BasePermission):
         return result
 
 
-class AssetOwnerNestedObjectsPermissions(AssetNestedObjectsPermissions):
+class AssetOwnerNestedObjectPermission(AssetNestedObjectPermission):
     """
     Permissions for objects that are nested under Asset which only owner should access.
     Others should receive a 404 response (instead of 403) to avoid revealing existence
@@ -116,7 +116,7 @@ class AssetOwnerNestedObjectsPermissions(AssetNestedObjectsPermissions):
         return True
 
 
-class SubmissionsPermissions(AssetNestedObjectsPermissions):
+class SubmissionPermission(AssetNestedObjectPermission):
     """
     Permissions for submissions
     """
