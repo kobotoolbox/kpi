@@ -172,6 +172,14 @@ class FormpackXLSFormUtils(object):
 
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
         opts = copy.deepcopy(FLATTEN_OPTS)
+        
+        # Show form_id and remove id_string in downloaded xls
+        if 'settings' in content:
+            settings = content['settings']
+            if 'id_string' in settings:
+                settings['form_id'] = settings['id_string']
+                del settings['id_string']
+        
         if not kobo_specific:
             opts['remove_columns']['survey'].append('$kuid')
             opts['remove_columns']['survey'].append('$autoname')
@@ -394,7 +402,13 @@ class XlsExportable(object):
                  'calculation': '\'{}\''.format(self.version_id),
                  'type': 'calculate'}
             )
-            append_settings.update({'version': self.version_id})
+            append_settings.update(
+                {
+                    'form_title': self.name,
+                    'namespaces': 'oc="http://openclinica.org/xforms" , OpenClinica="http://openclinica.com/odm"',
+                    'Read Me - Form template created by OpenClinica Form Designer': ''
+                }
+            )
         try:
             def _add_contents_to_sheet(sheet, contents):
                 cols = []
@@ -559,7 +573,6 @@ class Asset(ObjectPermissionMixin,
         asset.save(adjust_content=False)
         '''
         self._standardize(self.content)
-
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)

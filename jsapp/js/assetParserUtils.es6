@@ -44,9 +44,10 @@ function parseSettings (asset) {
     }
     return {
       unparsed__settings: settings,
-      settings__style: settings.style,
-      settings__form_id: settings.form_id,
+      settings__style: settings.style !== undefined ? settings.style : '',
       settings__title: settings.title,
+      settings__version: settings.version !== undefined ? settings.version : '',
+      settings__form_id: settings.form_id !== undefined ? settings.form_id : (settings.id_string !== undefined ? settings.id_string : '')
     };
   } else {
     return {};
