@@ -17,20 +17,17 @@ class IntercomHandler extends React.Component {
   constructor(props){
     super(props);
     autoBind(this);
-
+    this.currentSettings = {};
     this.updateHorizontalPaddingDebounced = _.debounce(this.updateHorizontalPadding, 500);
   }
 
   componentDidMount() {
     if (window.IntercomAppId) {
-      console.info('Intercom enabled and starting…');
-      this.injectIntercomScripts();
       this.listenTo(stores.session, ({currentAccount}) => {
         if (currentAccount) {
           this.onCurrentAccountChange(currentAccount);
         }
       });
-      window.addEventListener('resize', this.updateHorizontalPaddingDebounced);
     } else {
       console.info('Intercom not enabled');
     }
@@ -42,13 +39,17 @@ class IntercomHandler extends React.Component {
 
   onCurrentAccountChange(account) {
     if (this.isEmailValid(account.email)) {
-      window.Intercom('boot', Object.assign({
+      console.info('Intercom enabled and starting…');
+      this.injectIntercomScripts();
+      this.currentSettings = Object.assign({
         app_id: window.IntercomAppId,
         email: account.email,
         created_at: account.date_joined,
         name: `${account.first_name} ${account.last_name}`,
         user_id: account.username
-      }, DEFAULT_SETTINGS));
+      }, DEFAULT_SETTINGS);
+      window.Intercom('boot', this.currentSettings);
+      window.addEventListener('resize', this.updateHorizontalPaddingDebounced);
       this.updateHorizontalPadding();
     } else {
       window.Intercom('shutdown');
@@ -70,12 +71,12 @@ class IntercomHandler extends React.Component {
       1
     );
 
-    // NOTE updating horizontal_padding doesn't work very well while Intercom
+    // NOTE: updating horizontal_padding doesn't work very well while Intercom
     // bubble is being opened
-    window.Intercom('update', {
-      alignment: 'left',
-      horizontal_padding: leftPos
-    });
+    // NOTE: update object overwrites all properties, so we need to pass
+    // everything every time
+    this.currentSettings.horizontal_padding = leftPos;
+    window.Intercom('update', this.currentSettings);
   }
 
   injectIntercomScripts() {
