@@ -708,7 +708,7 @@ class ObjectPermissionMixin(object):
         return Permission.objects.filter(pk__in=perm_ids).values_list(
             'codename', flat=True)
 
-    def c(self, attach_perms=False):
+    def get_users_with_perms(self, attach_perms=False):
         ''' Return a QuerySet of all users with any effective grant permission
         on this object. If attach_perms=True, then return a dict with
         users as the keys and lists of their permissions as the values. '''
@@ -751,7 +751,7 @@ class ObjectPermissionMixin(object):
         if result and is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
-            if not fq_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                 return False
         return result
 

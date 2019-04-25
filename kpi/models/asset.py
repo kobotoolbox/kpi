@@ -33,7 +33,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
 from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
     ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE, \
     PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
-    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSIONS, \
+    PERM_VIEW_SUBMISSIONS, PERM_RESTRICTED_VIEW_SUBMISSIONS, \
     PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
     PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
     PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, PERM_FROM_KC_ONLY
@@ -45,7 +45,7 @@ from kpi.utils.standardize_content import (standardize_content,
                                            standardize_content_in_place)
 
 from kpi.utils.log import logging
-from .asset_user_supervisor_permission import AssetUserSupervisorPermission
+from .asset_user_restricted_permission import AssetUserRestrictedPermission
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -488,7 +488,7 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_SUPERVISOR_VIEW_SUBMISSIONS, _('Can view submitted data for asset '
+            (PERM_RESTRICTED_VIEW_SUBMISSIONS, _('Can view submitted data for asset '
                                                 'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
@@ -507,7 +507,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET,
         PERM_ADD_SUBMISSIONS,
         PERM_VIEW_SUBMISSIONS,
-        PERM_SUPERVISOR_VIEW_SUBMISSIONS,
+        PERM_RESTRICTED_VIEW_SUBMISSIONS,
         PERM_CHANGE_SUBMISSIONS,
         PERM_VALIDATE_SUBMISSIONS,
     )
@@ -530,7 +530,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
-        PERM_SUPERVISOR_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
+        PERM_RESTRICTED_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
@@ -616,27 +616,27 @@ class Asset(ObjectPermissionMixin,
         else:
             return None
 
-    def get_supervised_users(self, user, perm=PERM_SUPERVISOR_VIEW_SUBMISSIONS,
-                             with_permissions=False):
+    def get_users_for_restricted_perm(self, user, with_permissions=False,
+                                      perm=PERM_RESTRICTED_VIEW_SUBMISSIONS):
         """
-        Returns the list of usernames the user supervises
-        for this asset and specific permission.
-        If `with_permissions` is True, it returns a dict where
-        keys are the usernames and values the list of the allowed permissions.
+        Returns the list of usernames the user is restricted to,
+        for this specific asset (and permission)
+        If `with_permissions` is `True`, it returns a dict where
+        keys are the usernames, and values are the list of the
+        allowed permissions for corresponding username.
 
-        Obviously if user's a supervisor, otherwise returns `None`
+        If user doesn't have a restricted permission, it returns `None`.
 
         N.B: Only `PERM_VIEW_SUBMISSIONS` is supported by the code so far.
 
-
         :param user: auth.User
-        :param perm: str. see `constant.PERM_SUPERVISOR_*`
-        :param with_permissions: boolean
+        :param with_permissions: boolean. Optional
+        :param perm: str. see `constant.PERM_SUPERVISOR_*`. Optional
         :return: list|dict|None
         """
 
         expected_permissions = {
-            PERM_SUPERVISOR_VIEW_SUBMISSIONS: PERM_VIEW_SUBMISSIONS,
+            PERM_RESTRICTED_VIEW_SUBMISSIONS: PERM_VIEW_SUBMISSIONS,
         }
 
         if perm not in expected_permissions.keys():
@@ -645,15 +645,19 @@ class Asset(ObjectPermissionMixin,
             )))
 
         if self.has_perm(user, perm):
-            records = AssetUserSupervisorPermission.objects.\
+            records = AssetUserRestrictedPermission.objects.\
                 filter(asset_id=self.pk, user_id=user.id)\
                 .values_list("permissions", flat=True).first()
 
             mapped_perm = expected_permissions.get(perm)
-            supervised_usernames = {k: records[k] for k in records if mapped_perm in records[k]}
+            users_for_restricted_perm = {k: records[k] for k in records if mapped_perm in records[k]}
+
+            # TODO, no need to call the method with `with_permissions=True`,
+            # it's a future-proof idea. Remove if it's useless.
             if with_permissions is False:
-                return supervised_usernames.keys()
-            return supervised_usernames
+                return users_for_restricted_perm.keys()
+
+            return users_for_restricted_perm
 
         return None
 

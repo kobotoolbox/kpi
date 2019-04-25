@@ -5,10 +5,10 @@ from django.db import models
 from jsonbfield.fields import JSONField as JSONBField
 
 
-class AssetUserSupervisorPermission(models.Model):
+class AssetUserRestrictedPermission(models.Model):
     """
     Many-to-Many table which provides users' permissions
-    on other users's submissions
+    on other users' submissions
 
     For example,
         - Asset:
@@ -41,4 +41,4 @@ class AssetUserSupervisorPermission(models.Model):
         if self.pk is not None:
             self.date_modified = timezone.now()
 
-        super(AssetUserSupervisorPermission, self).save(*args, **kwargs)
+        super(AssetUserRestrictedPermission, self).save(*args, **kwargs)

@@ -7,7 +7,7 @@ from ..models.asset import Asset
 from ..models.collection import Collection
 from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
-    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSIONS, \
+    PERM_VIEW_SUBMISSIONS, PERM_RESTRICTED_VIEW_SUBMISSIONS, \
     PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
     PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
     PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
@@ -338,8 +338,8 @@ class PermissionsTestCase(BasePermissionsTestCase):
             ), [
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
-                PERM_SUPERVISOR_VIEW_SUBMISSIONS,
                 PERM_CHANGE_SUBMISSIONS,
+                PERM_RESTRICTED_VIEW_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
                 PERM_VIEW_SUBMISSIONS,
@@ -365,6 +365,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
+                PERM_RESTRICTED_VIEW_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
                 PERM_VIEW_SUBMISSIONS
@@ -384,6 +385,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             (PERM_ADD_SUBMISSIONS, True),
             (PERM_CHANGE_ASSET, True),
             (PERM_CHANGE_SUBMISSIONS, False),
+            (PERM_RESTRICTED_VIEW_SUBMISSIONS, False),
             (PERM_VALIDATE_SUBMISSIONS, True),
             (PERM_VIEW_ASSET, False),
             (PERM_VIEW_SUBMISSIONS, False)

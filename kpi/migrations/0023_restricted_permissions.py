@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AssetUserSupervisorPermission',
+            name='AssetUserRestrictedPermission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('permissions', jsonbfield.fields.JSONField(default=dict)),
@@ -31,20 +31,20 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='asset',
-            options={'ordering': ('-date_modified',), 'permissions': (('view_asset', 'Can view asset'), ('share_asset', "Can change asset's sharing settings"), ('add_submissions', 'Can submit data to asset'), ('view_submissions', 'Can view submitted data for asset'), ('supervisor_view_submissions', 'Can view submitted data for asset for specific users'), ('change_submissions', 'Can modify submitted data for asset'), ('delete_submissions', 'Can delete submitted data for asset'), ('share_submissions', "Can change sharing settings for asset's submitted data"), ('validate_submissions', 'Can validate submitted data asset'), ('from_kc_only', 'INTERNAL USE ONLY; DO NOT ASSIGN'))},
+            options={'ordering': ('-date_modified',), 'permissions': (('view_asset', 'Can view asset'), ('share_asset', "Can change asset's sharing settings"), ('add_submissions', 'Can submit data to asset'), ('view_submissions', 'Can view submitted data for asset'), ('restricted_view_submissions', 'Can view submitted data for asset for specific users'), ('change_submissions', 'Can modify submitted data for asset'), ('delete_submissions', 'Can delete submitted data for asset'), ('share_submissions', "Can change sharing settings for asset's submitted data"), ('validate_submissions', 'Can validate submitted data asset'), ('from_kc_only', 'INTERNAL USE ONLY; DO NOT ASSIGN'))},
         ),
         migrations.AddField(
-            model_name='assetusersupervisorpermission',
+            model_name='assetuserrestrictedpermission',
             name='asset',
             field=models.ForeignKey(related_name='asset_supervisor_permissions', to='kpi.Asset'),
         ),
         migrations.AddField(
-            model_name='assetusersupervisorpermission',
+            model_name='assetuserrestrictedpermission',
             name='user',
             field=models.ForeignKey(related_name='user_supervisor_permissions', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterUniqueTogether(
-            name='assetusersupervisorpermission',
+            name='assetuserrestrictedpermission',
             unique_together=set([('asset', 'user')]),
         ),
     ]
