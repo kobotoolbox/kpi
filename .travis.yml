@@ -9,6 +9,7 @@ python:
   - "2.7"
 services:
   - postgresql
+  - redis-server
 addons:
   postgresql: "9.5"
   chrome: stable
@@ -43,6 +44,7 @@ env:
        DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM
        DJANGO_SETTINGS_MODULE=kobo.settings.testing
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
+       REDIS_SESSION_URL="redis://localhost:6389"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
 install:
