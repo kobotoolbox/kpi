@@ -339,7 +339,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
-                PERM_RESTRICTED_VIEW_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
                 PERM_VIEW_SUBMISSIONS,
@@ -365,7 +364,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
-                PERM_RESTRICTED_VIEW_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
                 PERM_VIEW_SUBMISSIONS
@@ -385,7 +383,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
             (PERM_ADD_SUBMISSIONS, True),
             (PERM_CHANGE_ASSET, True),
             (PERM_CHANGE_SUBMISSIONS, False),
-            (PERM_RESTRICTED_VIEW_SUBMISSIONS, False),
             (PERM_VALIDATE_SUBMISSIONS, True),
             (PERM_VIEW_ASSET, False),
             (PERM_VIEW_SUBMISSIONS, False)

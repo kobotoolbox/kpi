@@ -534,6 +534,15 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
+
+    CONTRADICTORY_PERMISSIONS = {
+        PERM_RESTRICTED_VIEW_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS,
+                                           PERM_VALIDATE_SUBMISSIONS),
+        PERM_VIEW_SUBMISSIONS: (PERM_RESTRICTED_VIEW_SUBMISSIONS,),
+        PERM_CHANGE_SUBMISSIONS: (PERM_RESTRICTED_VIEW_SUBMISSIONS,),
+        PERM_VALIDATE_SUBMISSIONS: (PERM_RESTRICTED_VIEW_SUBMISSIONS,)
+    }
+
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = {  # keys are KC's codenames, values are KPI's
         PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
@@ -549,6 +558,12 @@ class Asset(ObjectPermissionMixin,
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
+
+    def assign_perm(
+            self, user_obj, perm, deny=False, defer_recalc=False,
+            skip_kc=False
+    ):
+        return super(Asset, self).assign_perm(user_obj, perm, deny, defer_recalc, skip_kc)
 
     def adjust_content_on_save(self):
         '''

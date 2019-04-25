@@ -1,4 +1,7 @@
 from collections import defaultdict
+import copy
+import re
+
 from django.apps import apps
 from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
@@ -7,14 +10,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
 from django.shortcuts import _get_queryset
-import copy
-import re
 
 from ..fields import KpiUidField
 from ..deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
 )
+from kpi.constants import PREFIX_RESTRICTED_PERMS
 
 
 def perm_parse(perm, obj=None):
@@ -226,7 +228,8 @@ class ObjectPermission(models.Model):
 
 
 class ObjectPermissionMixin(object):
-    ''' A mixin class that adds the methods necessary for object-level
+    """
+    A mixin class that adds the methods necessary for object-level
     permissions to a model (either models.Model or MPTTModel). The model must
     define parent, ASSIGNABLE_PERMISSIONS, CALCULATED_PERMISSIONS, and, if
     parent references a different model, MAPPED_PARENT_PERMISSIONS. A
@@ -235,11 +238,15 @@ class ObjectPermissionMixin(object):
     sure to include this mixin before the base class in your model definition,
     e.g.
         class MyAwesomeModel(ObjectPermissionMixin, models.Model)
-    '''
+    """
+
+    CONTRADICTORY_PERMISSIONS = {}
+
     def get_assignable_permissions(self):
-        ''' The "versioned app registry" used during migrations apparently does
+        """
+        The "versioned app registry" used during migrations apparently does
         not store non-database attributes, so this awful workaround is needed
-        '''
+        """
         try:
             return self.ASSIGNABLE_PERMISSIONS
         except AttributeError:
@@ -482,11 +489,13 @@ class ObjectPermissionMixin(object):
             parent_effective_perms=None,
             stale_already_deleted=False,
             return_instead_of_creating=False,
-            translate_perm={} # mutable default parameter serves as cache
+            translate_perm={}  # mutable default parameter serves as cache
     ):
-        ''' Copy all of our parent's effective permissions to ourself,
+        """
+        Copy all of our parent's effective permissions to ourself,
         marking the copies as inherited permissions. The owner's rights are
-        also made explicit as "inherited" permissions. '''
+        also made explicit as "inherited" permissions.
+        """
         # Start with a clean slate
         if not stale_already_deleted:
             ObjectPermission.objects.filter_for_object(
@@ -502,7 +511,8 @@ class ObjectPermissionMixin(object):
         if self.owner is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
-                codename__in=self.get_assignable_permissions()
+                codename__in=self.get_assignable_permissions()).exclude(
+                codename__startswith=PREFIX_RESTRICTED_PERMS
             ):
                 new_permission = ObjectPermission()
                 new_permission.content_object = self
@@ -617,11 +627,11 @@ class ObjectPermissionMixin(object):
             descendant objects' permissions and apply any applicable KC
             permissions.
             :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm str: The `codename` of the `Permission`
-            :param deny bool: When `True`, break inheritance from parent object
-            :param defer_recalc bool: When `True`, skip recalculating
+            :param perm: str. The `codename` of the `Permission`
+            :param deny: bool. When `True`, break inheritance from parent object
+            :param defer_recalc: bool. When `True`, skip recalculating
                 descendants
-            :param skip_kc bool: When `True`, skip assignment of applicable KC
+            :param skip_kc: bool. When `True`, skip assignment of applicable KC
                 permissions
         """
         app_label, codename = perm_parse(perm, self)
@@ -636,7 +646,7 @@ class ObjectPermissionMixin(object):
         ):
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
-            if not fq_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                 raise ValidationError(
                     'Anonymous users cannot have the permission {}.'.format(
                         codename)
@@ -660,14 +670,21 @@ class ObjectPermissionMixin(object):
             # The user already has this permission directly applied
             return identical_existing_perm.first()
         # Remove any explicitly-defined contradictory grants or denials
-        contradictory_perms = existing_perms.filter(
+        contradictory_filters = models.Q(
             user=user_obj,
             permission_id=perm_model.pk,
             deny=not deny,
             inherited=False
         )
+        if not deny and perm in self.CONTRADICTORY_PERMISSIONS.keys():
+            contradictory_filters |= models.Q(
+                user=user_obj,
+                permission__codename__in=self.CONTRADICTORY_PERMISSIONS.get(perm),
+            )
+        contradictory_perms = existing_perms.filter(contradictory_filters)
         contradictory_codenames = list(contradictory_perms.values_list(
             'permission__codename', flat=True))
+
         contradictory_perms.delete()
         # Check if any KC permissions should be removed as well
         if deny and not skip_kc:

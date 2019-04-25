@@ -30,8 +30,8 @@ class AssetUserRestrictedPermission(models.Model):
     class Meta:
         unique_together = [['asset', 'user']]
 
-    asset = models.ForeignKey('Asset', related_name='asset_supervisor_permissions', on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', related_name='user_supervisor_permissions', on_delete=models.CASCADE)
+    asset = models.ForeignKey('Asset', related_name='asset_restricted_permissions', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', related_name='user_restricted_permissions', on_delete=models.CASCADE)
     permissions = JSONBField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
