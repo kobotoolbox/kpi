@@ -2,6 +2,10 @@
 from rest_framework import exceptions
 
 
+class BadPermissionsException(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 

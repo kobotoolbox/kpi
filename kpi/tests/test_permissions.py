@@ -7,7 +7,7 @@ from ..models.asset import Asset
 from ..models.collection import Collection
 from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
-    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSION, \
+    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSIONS, \
     PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
     PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
     PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
@@ -144,7 +144,7 @@ class BasePermissionsTestCase(TestCase):
 
 
 class PermissionsTestCase(BasePermissionsTestCase):
-    fixtures= ['test_data']
+    fixtures = ['test_data']
 
     def setUp(self):
         self.admin = User.objects.get(username='admin')
@@ -324,7 +324,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         # `view_asset` on the child asset
         collection.assign_perm(grantee, PERM_CHANGE_COLLECTION)
         self.assertListEqual(
-            sorted(asset.get_perms(grantee)), [PERM_CHANGE_ASSET,PERM_VIEW_ASSET])
+            sorted(asset.get_perms(grantee)), [PERM_CHANGE_ASSET, PERM_VIEW_ASSET])
 
         # Removing `view_asset` should deny all child permissions
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
@@ -338,6 +338,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             ), [
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
+                PERM_SUPERVISOR_VIEW_SUBMISSIONS,
                 PERM_CHANGE_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,

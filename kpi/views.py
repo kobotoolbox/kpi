@@ -107,7 +107,7 @@ from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
     COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES, \
     PERM_VIEW_ASSET, PERM_SHARE_ASSET, PERM_CHANGE_ASSET, \
-    PERM_VIEW_COLLECTION, PERM_SHARE_SUBMISSIONS
+    PERM_VIEW_COLLECTION, PERM_SHARE_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSIONS
 from .deployment_backends.backends import DEPLOYMENT_BACKENDS
 
 from kobo.apps.hook.utils import HookUtils
@@ -977,7 +977,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     def _filter_mongo_query(self, request):
         """
         Build filters to pass to Mongo query.
-        Acts like Django `filter_backend`
+        Acts like Django `filter_backends`
 
         :param request:
         :return: dict
@@ -988,9 +988,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         if request.method == "GET":
             filters = request.GET.dict()
 
-        if asset.has_perm(request.user, "supervisor_view_submissions"):
-            pass
-
+        filters.update({"submitted_by": asset.get_supervised_users(request.user)})
         return filters
 
 

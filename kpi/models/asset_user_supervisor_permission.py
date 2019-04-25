@@ -26,6 +26,10 @@ class AssetUserSupervisorPermission(models.Model):
     Using a list per user for permissions, gives the opportunity to add other permissions
     such as `change_submissions`, `delete_submissions` for later purpose
     """
+
+    class Meta:
+        unique_together = [['asset', 'user']]
+
     asset = models.ForeignKey('Asset', related_name='asset_supervisor_permissions', on_delete=models.CASCADE)
     user = models.ForeignKey('auth.User', related_name='user_supervisor_permissions', on_delete=models.CASCADE)
     permissions = JSONBField(default=dict)
@@ -37,4 +41,4 @@ class AssetUserSupervisorPermission(models.Model):
         if self.pk is not None:
             self.date_modified = timezone.now()
 
-        super(AssetUserSupervisorPermissions, self).save(*args, **kwargs)
+        super(AssetUserSupervisorPermission, self).save(*args, **kwargs)

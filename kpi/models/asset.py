@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # 😬
-
 import re
 import sys
 import copy
@@ -9,8 +8,6 @@ import json
 import StringIO
 from collections import OrderedDict
 
-import xlwt
-import six
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
@@ -23,32 +20,35 @@ from jsonfield import JSONField
 from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
+import six
+import xlwt
 
+from asset_version import AssetVersion
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
-from asset_version import AssetVersion
-from kpi.utils.standardize_content import (standardize_content,
-                                           needs_standardization,
-                                           standardize_content_in_place)
-from kpi.utils.autoname import (autoname_fields_in_place,
-                                autovalue_choices_in_place)
+from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
+                                         DEFAULT_REPORTS_KEY)
 from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
     ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE, \
     PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
-    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSION, \
+    PERM_VIEW_SUBMISSIONS, PERM_SUPERVISOR_VIEW_SUBMISSIONS, \
     PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
     PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
     PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, PERM_FROM_KC_ONLY
+from kpi.exceptions import BadPermissionsException
+from kpi.utils.autoname import (autoname_fields_in_place,
+                                autovalue_choices_in_place)
+from kpi.utils.standardize_content import (standardize_content,
+                                           needs_standardization,
+                                           standardize_content_in_place)
+
+from kpi.utils.log import logging
+from .asset_user_supervisor_permission import AssetUserSupervisorPermission
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
-from ..utils.sluggify import sluggify_label
-from ..utils.kobo_to_xlsform import (to_xlsform_structure,
-                                     expand_rank_and_score_in_place,
-                                     replace_with_autofields,
-                                     remove_empty_expressions_in_place)
 from ..utils.asset_translation_utils import (
         compare_translations,
         # TRANSLATIONS_EQUAL,
@@ -59,11 +59,13 @@ from ..utils.asset_translation_utils import (
         TRANSLATION_CHANGE_UNSUPPORTED,
         TRANSLATIONS_MULTIPLE_CHANGES,
     )
+from ..utils.kobo_to_xlsform import (to_xlsform_structure,
+                                     expand_rank_and_score_in_place,
+                                     replace_with_autofields,
+                                     remove_empty_expressions_in_place)
+from ..utils.sluggify import sluggify_label
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
-from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
-                                         DEFAULT_REPORTS_KEY)
-from kpi.utils.log import logging
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -486,7 +488,7 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_SUPERVISOR_VIEW_SUBMISSION, _('Can view submitted data for asset '
+            (PERM_SUPERVISOR_VIEW_SUBMISSIONS, _('Can view submitted data for asset '
                                                 'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
@@ -505,7 +507,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET,
         PERM_ADD_SUBMISSIONS,
         PERM_VIEW_SUBMISSIONS,
-        PERM_SUPERVISOR_VIEW_SUBMISSION,
+        PERM_SUPERVISOR_VIEW_SUBMISSIONS,
         PERM_CHANGE_SUBMISSIONS,
         PERM_VALIDATE_SUBMISSIONS,
     )
@@ -528,7 +530,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
-        PERM_SUPERVISOR_VIEW_SUBMISSION: (PERM_VIEW_ASSET,),
+        PERM_SUPERVISOR_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
@@ -607,15 +609,53 @@ class Asset(ObjectPermissionMixin,
         except IndexError:
             return None
 
-    def get_supervised_users(self):
-        pass
-
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
         if self.parent is not None:
             return self.parent.get_ancestors(include_self=True)
         else:
             return None
+
+    def get_supervised_users(self, user, perm=PERM_SUPERVISOR_VIEW_SUBMISSIONS,
+                             with_permissions=False):
+        """
+        Returns the list of usernames the user supervises
+        for this asset and specific permission.
+        If `with_permissions` is True, it returns a dict where
+        keys are the usernames and values the list of the allowed permissions.
+
+        Obviously if user's a supervisor, otherwise returns `None`
+
+        N.B: Only `PERM_VIEW_SUBMISSIONS` is supported by the code so far.
+
+
+        :param user: auth.User
+        :param perm: str. see `constant.PERM_SUPERVISOR_*`
+        :param with_permissions: boolean
+        :return: list|dict|None
+        """
+
+        expected_permissions = {
+            PERM_SUPERVISOR_VIEW_SUBMISSIONS: PERM_VIEW_SUBMISSIONS,
+        }
+
+        if perm not in expected_permissions.keys():
+            raise BadPermissionsException(_("Expected permissions are: {}".format(
+                ", ".join(expected_permissions)
+            )))
+
+        if self.has_perm(user, perm):
+            records = AssetUserSupervisorPermission.objects.\
+                filter(asset_id=self.pk, user_id=user.id)\
+                .values_list("permissions", flat=True).first()
+
+            mapped_perm = expected_permissions.get(perm)
+            supervised_usernames = {k: records[k] for k in records if mapped_perm in records[k]}
+            if with_permissions is False:
+                return supervised_usernames.keys()
+            return supervised_usernames
+
+        return None
 
     @property
     def has_active_hooks(self):

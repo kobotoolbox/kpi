@@ -51,7 +51,7 @@ PERM_VIEW_ASSET = 'view_asset'
 PERM_CHANGE_ASSET = 'change_asset'
 PERM_ADD_SUBMISSIONS = 'add_submissions'
 PERM_VIEW_SUBMISSIONS = 'view_submissions'
-PERM_SUPERVISOR_VIEW_SUBMISSION = 'supervisor_view_submissions'
+PERM_SUPERVISOR_VIEW_SUBMISSIONS = 'supervisor_view_submissions'
 PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 

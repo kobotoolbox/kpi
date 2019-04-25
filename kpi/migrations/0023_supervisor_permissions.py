@@ -29,6 +29,10 @@ class Migration(migrations.Migration):
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
             ],
         ),
+        migrations.AlterModelOptions(
+            name='asset',
+            options={'ordering': ('-date_modified',), 'permissions': (('view_asset', 'Can view asset'), ('share_asset', "Can change asset's sharing settings"), ('add_submissions', 'Can submit data to asset'), ('view_submissions', 'Can view submitted data for asset'), ('supervisor_view_submissions', 'Can view submitted data for asset for specific users'), ('change_submissions', 'Can modify submitted data for asset'), ('delete_submissions', 'Can delete submitted data for asset'), ('share_submissions', "Can change sharing settings for asset's submitted data"), ('validate_submissions', 'Can validate submitted data asset'), ('from_kc_only', 'INTERNAL USE ONLY; DO NOT ASSIGN'))},
+        ),
         migrations.AddField(
             model_name='assetusersupervisorpermission',
             name='asset',
@@ -38,5 +42,9 @@ class Migration(migrations.Migration):
             model_name='assetusersupervisorpermission',
             name='user',
             field=models.ForeignKey(related_name='user_supervisor_permissions', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterUniqueTogether(
+            name='assetusersupervisorpermission',
+            unique_together=set([('asset', 'user')]),
         ),
     ]
