@@ -2,6 +2,7 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import autoBind from 'react-autobind';
+import _ from 'underscore';
 import stores from '../stores';
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -9,28 +10,34 @@ const DEFAULT_SETTINGS = Object.freeze({
   hide_default_launcher: true,
   alignment: 'left',
   action_color: '#2095f3',
-  background_color: '#575b70',
-  horizontal_padding: 57
+  background_color: '#575b70'
 });
 
 class IntercomHandler extends React.Component {
   constructor(props){
     super(props);
     autoBind(this);
+
+    this.updateHorizontalPaddingDebounced = _.debounce(this.updateHorizontalPadding, 500);
   }
 
   componentDidMount() {
     if (window.IntercomAppId) {
-      console.info('Intercom starting…');
+      console.info('Intercom enabled and starting…');
       this.injectIntercomScripts();
       this.listenTo(stores.session, ({currentAccount}) => {
         if (currentAccount) {
           this.onCurrentAccountChange(currentAccount);
         }
       });
+      window.addEventListener('resize', this.updateHorizontalPaddingDebounced);
     } else {
       console.info('Intercom not enabled');
     }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateHorizontalPaddingDebounced);
   }
 
   onCurrentAccountChange(account) {
@@ -42,15 +49,33 @@ class IntercomHandler extends React.Component {
         name: `${account.first_name} ${account.last_name}`,
         user_id: account.username
       }, DEFAULT_SETTINGS));
+      this.updateHorizontalPadding();
     } else {
       window.Intercom('shutdown');
     }
   }
 
-  watchWindowSize() {
-    // TODO
-    // this function should update horizontal_padding on window resize event
-    // to match the position of custom launcher
+  updateHorizontalPadding() {
+    const $launcherEl = $(DEFAULT_SETTINGS.custom_launcher_selector);
+
+    if (!window.Intercom || !$launcherEl.length) {
+      return;
+    }
+
+    const leftPos = (
+      $launcherEl[0].getBoundingClientRect().left +
+      $launcherEl.width() +
+      $(window)['scrollLeft']() -
+      // move it over border line
+      1
+    );
+
+    // NOTE updating horizontal_padding doesn't work very well while Intercom
+    // bubble is being opened
+    window.Intercom('update', {
+      alignment: 'left',
+      horizontal_padding: leftPos
+    });
   }
 
   injectIntercomScripts() {
@@ -86,6 +111,7 @@ class IntercomHandler extends React.Component {
     }
   }
 
+  // TODO get these rules from API endpoint?
   isEmailValid(email) {
     if (email.endsWith('example.com')) {
       return true;
