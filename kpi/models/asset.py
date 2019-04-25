@@ -545,22 +545,8 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
-    # todo: test and implement this method
-    # def restore_version(self, uid):
-    #     _version_to_restore = self.asset_versions.get(uid=uid)
-    #     self.content = _version_to_restore.version_content
-    #     self.name = _version_to_restore.name
-
-    def to_ss_structure(self):
-        return flatten_content(self.content, in_place=False)
-
-    def _populate_summary(self):
-        if self.content is None:
-            self.content = {}
-            self.summary = {}
-            return
-        analyzer = AssetContentAnalyzer(**self.content)
-        self.summary = analyzer.summary
+    def __unicode__(self):
+        return u'{} ({})'.format(self.name, self.uid)
 
     def adjust_content_on_save(self):
         '''
@@ -596,102 +582,18 @@ class Asset(ObjectPermissionMixin,
         if _title is not None:
             self.name = _title
 
-    def save(self, *args, **kwargs):
-        if self.content is None:
-            self.content = {}
-
-        # in certain circumstances, we don't want content to
-        # be altered on save. (e.g. on asset.deploy())
-        if kwargs.pop('adjust_content', True):
-            self.adjust_content_on_save()
-
-        # populate summary
-        self._populate_summary()
-
-        # infer asset_type only between question and block
-        if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
-            row_count = self.summary.get('row_count')
-            if row_count == 1:
-                self.asset_type = ASSET_TYPE_QUESTION
-            elif row_count > 1:
-                self.asset_type = ASSET_TYPE_BLOCK
-
-        self._populate_report_styles()
-
-        _create_version = kwargs.pop('create_version', True)
-        super(Asset, self).save(*args, **kwargs)
-
-        if _create_version:
-            self.asset_versions.create(name=self.name,
-                                       version_content=self.content,
-                                       _deployment_data=self._deployment_data,
-                                       # asset_version.deployed is set in the
-                                       # DeploymentSerializer
-                                       deployed=False,
-                                       )
-
-    def rename_translation(self, _from, _to):
-        if not self._has_translations(self.content, 2):
-            raise ValueError('no translations available')
-        self._rename_translation(self.content, _from, _to)
-
-    def to_clone_dict(self, version_uid=None, version=None):
-        """
-        Returns a dictionary of the asset based on version_uid or version.
-        If `version` is specified, there are no needs to provide `version_uid` and make another request to DB.
-        :param version_uid: string
-        :param version: AssetVersion
-        :return: dict
-        """
-
-        if not isinstance(version, AssetVersion):
-            if version_uid:
-                version = self.asset_versions.get(uid=version_uid)
-            else:
-                version = self.asset_versions.first()
-
-        return {
-            'name': version.name,
-            'content': version.version_content,
-            'asset_type': self.asset_type,
-            'tag_string': self.tag_string,
-        }
-
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
         return Asset.objects.create(**self.to_clone_dict(version_uid))
 
-    def revert_to_version(self, version_uid):
-        av = self.asset_versions.get(uid=version_uid)
-        self.content = av.version_content
-        self.save()
+    @property
+    def deployed_versions(self):
+        return self.asset_versions.filter(deployed=True).order_by(
+            '-date_modified')
 
-    def _populate_report_styles(self):
-        default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
-        specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
-        kuids_to_variable_names = self.report_styles.get('kuid_names', {})
-        for (index, row) in enumerate(self.content.get('survey', [])):
-            if '$kuid' not in row:
-                if 'name' in row:
-                    row['$kuid'] = json_hash([self.uid, row['name']])
-                else:
-                    row['$kuid'] = json_hash([self.uid, index, row])
-            _identifier = row.get('name', row['$kuid'])
-            kuids_to_variable_names[_identifier] = row['$kuid']
-            if _identifier not in specifieds:
-                specifieds[_identifier] = {}
-        self.report_styles = {
-            DEFAULT_REPORTS_KEY: default,
-            SPECIFIC_REPORTS_KEY: specifieds,
-            'kuid_names': kuids_to_variable_names,
-        }
-
-    def get_ancestors_or_none(self):
-        # ancestors are ordered from farthest to nearest
-        if self.parent is not None:
-            return self.parent.get_ancestors(include_self=True)
-        else:
-            return None
+    @property
+    def latest_deployed_version(self):
+        return self.deployed_versions.first()
 
     @property
     def latest_version(self):
@@ -705,71 +607,15 @@ class Asset(ObjectPermissionMixin,
         except IndexError:
             return None
 
-    @property
-    def deployed_versions(self):
-        return self.asset_versions.filter(deployed=True).order_by(
-                                          '-date_modified')
+    def get_supervised_users(self):
+        pass
 
-    @property
-    def latest_deployed_version(self):
-        return self.deployed_versions.first()
-
-    @property
-    def version_id(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
-        # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
-            return latest_version.uid
-
-    @property
-    def version__content_hash(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
-        # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
-            return latest_version.content_hash
-
-    @property
-    def snapshot(self):
-        return self._snapshot(regenerate=False)
-
-    @transaction.atomic
-    def _snapshot(self, regenerate=True):
-        asset_version = self.latest_version
-
-        try:
-            snapshot = AssetSnapshot.objects.get(asset=self,
-                                                 asset_version=asset_version)
-            if regenerate:
-                snapshot.delete()
-                snapshot = False
-        except AssetSnapshot.MultipleObjectsReturned:
-            # how did multiple snapshots get here?
-            snaps = AssetSnapshot.objects.filter(asset=self,
-                                                 asset_version=asset_version)
-            snaps.delete()
-            snapshot = False
-        except AssetSnapshot.DoesNotExist:
-            snapshot = False
-
-        if not snapshot:
-            if self.name != '':
-                form_title = self.name
-            else:
-                _settings = self.content.get('settings', {})
-                form_title = _settings.get('id_string', 'Untitled')
-
-            self._append(self.content, settings={
-                'form_title': form_title,
-            })
-            snapshot = AssetSnapshot.objects.create(asset=self,
-                                                    asset_version=asset_version,
-                                                    source=self.content)
-        return snapshot
-
-    def __unicode__(self):
-        return u'{} ({})'.format(self.name, self.uid)
+    def get_ancestors_or_none(self):
+        # ancestors are ordered from farthest to nearest
+        if self.parent is not None:
+            return self.parent.get_ancestors(include_self=True)
+        else:
+            return None
 
     @property
     def has_active_hooks(self):
@@ -814,6 +660,164 @@ class Asset(ObjectPermissionMixin,
             ),
         )
         return queryset
+
+    def rename_translation(self, _from, _to):
+        if not self._has_translations(self.content, 2):
+            raise ValueError('no translations available')
+        self._rename_translation(self.content, _from, _to)
+
+    # todo: test and implement this method
+    # todo 2019-04-25: Still needed, `revert_to_version` does the same?
+    # def restore_version(self, uid):
+    #     _version_to_restore = self.asset_versions.get(uid=uid)
+    #     self.content = _version_to_restore.version_content
+    #     self.name = _version_to_restore.name
+
+    def revert_to_version(self, version_uid):
+        av = self.asset_versions.get(uid=version_uid)
+        self.content = av.version_content
+        self.save()
+
+    def save(self, *args, **kwargs):
+        if self.content is None:
+            self.content = {}
+
+        # in certain circumstances, we don't want content to
+        # be altered on save. (e.g. on asset.deploy())
+        if kwargs.pop('adjust_content', True):
+            self.adjust_content_on_save()
+
+        # populate summary
+        self._populate_summary()
+
+        # infer asset_type only between question and block
+        if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
+            row_count = self.summary.get('row_count')
+            if row_count == 1:
+                self.asset_type = ASSET_TYPE_QUESTION
+            elif row_count > 1:
+                self.asset_type = ASSET_TYPE_BLOCK
+
+        self._populate_report_styles()
+
+        _create_version = kwargs.pop('create_version', True)
+        super(Asset, self).save(*args, **kwargs)
+
+        if _create_version:
+            self.asset_versions.create(name=self.name,
+                                       version_content=self.content,
+                                       _deployment_data=self._deployment_data,
+                                       # asset_version.deployed is set in the
+                                       # DeploymentSerializer
+                                       deployed=False,
+                                       )
+
+    @property
+    def snapshot(self):
+        return self._snapshot(regenerate=False)
+
+    def to_clone_dict(self, version_uid=None, version=None):
+        """
+        Returns a dictionary of the asset based on version_uid or version.
+        If `version` is specified, there are no needs to provide `version_uid` and make another request to DB.
+        :param version_uid: string
+        :param version: AssetVersion
+        :return: dict
+        """
+
+        if not isinstance(version, AssetVersion):
+            if version_uid:
+                version = self.asset_versions.get(uid=version_uid)
+            else:
+                version = self.asset_versions.first()
+
+        return {
+            'name': version.name,
+            'content': version.version_content,
+            'asset_type': self.asset_type,
+            'tag_string': self.tag_string,
+        }
+
+    def to_ss_structure(self):
+        return flatten_content(self.content, in_place=False)
+
+    @property
+    def version_id(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.uid
+
+    @property
+    def version__content_hash(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.content_hash
+
+    def _populate_report_styles(self):
+        default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
+        specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
+        kuids_to_variable_names = self.report_styles.get('kuid_names', {})
+        for (index, row) in enumerate(self.content.get('survey', [])):
+            if '$kuid' not in row:
+                if 'name' in row:
+                    row['$kuid'] = json_hash([self.uid, row['name']])
+                else:
+                    row['$kuid'] = json_hash([self.uid, index, row])
+            _identifier = row.get('name', row['$kuid'])
+            kuids_to_variable_names[_identifier] = row['$kuid']
+            if _identifier not in specifieds:
+                specifieds[_identifier] = {}
+        self.report_styles = {
+            DEFAULT_REPORTS_KEY: default,
+            SPECIFIC_REPORTS_KEY: specifieds,
+            'kuid_names': kuids_to_variable_names,
+        }
+
+    def _populate_summary(self):
+        if self.content is None:
+            self.content = {}
+            self.summary = {}
+            return
+        analyzer = AssetContentAnalyzer(**self.content)
+        self.summary = analyzer.summary
+
+    @transaction.atomic
+    def _snapshot(self, regenerate=True):
+        asset_version = self.latest_version
+
+        try:
+            snapshot = AssetSnapshot.objects.get(asset=self,
+                                                 asset_version=asset_version)
+            if regenerate:
+                snapshot.delete()
+                snapshot = False
+        except AssetSnapshot.MultipleObjectsReturned:
+            # how did multiple snapshots get here?
+            snaps = AssetSnapshot.objects.filter(asset=self,
+                                                 asset_version=asset_version)
+            snaps.delete()
+            snapshot = False
+        except AssetSnapshot.DoesNotExist:
+            snapshot = False
+
+        if not snapshot:
+            if self.name != '':
+                form_title = self.name
+            else:
+                _settings = self.content.get('settings', {})
+                form_title = _settings.get('id_string', 'Untitled')
+
+            self._append(self.content, settings={
+                'form_title': form_title,
+            })
+            snapshot = AssetSnapshot.objects.create(asset=self,
+                                                    asset_version=asset_version,
+                                                    source=self.content)
+        return snapshot
 
 
 class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
