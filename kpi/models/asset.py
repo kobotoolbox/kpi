@@ -70,8 +70,8 @@ from kpi.utils.log import logging
 class TaggableModelManager(models.Manager):
 
     def create(self, *args, **kwargs):
-        tag_string= kwargs.pop('tag_string', None)
-        created= super(TaggableModelManager, self).create(*args, **kwargs)
+        tag_string = kwargs.pop('tag_string', None)
+        created = super(TaggableModelManager, self).create(*args, **kwargs)
         if tag_string:
             created.tag_string= tag_string
         return created
@@ -119,6 +119,7 @@ class TagStringMixin:
     def tag_string(self, value):
         intended_tags = value.split(',')
         self.tags.set(*intended_tags)
+
 
 FLATTEN_OPTS = {
     'remove_columns': {

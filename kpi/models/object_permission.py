@@ -660,7 +660,8 @@ class ObjectPermissionMixin(object):
             # The user already has this permission directly applied
             return identical_existing_perm.first()
         # Remove any explicitly-defined contradictory grants or denials
-        contradictory_perms = existing_perms.filter(user=user_obj,
+        contradictory_perms = existing_perms.filter(
+            user=user_obj,
             permission_id=perm_model.pk,
             deny=not deny,
             inherited=False
