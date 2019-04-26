@@ -18,6 +18,7 @@ from ..deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
 )
+from kpi.utils.cache import void_cache_for_request
 
 
 def perm_parse(perm, obj=None):
@@ -130,6 +131,7 @@ def get_objects_for_user(user, perms, klass=None):
 
     return objects
 
+
 def get_anonymous_user():
     ''' Return a real User in the database to represent AnonymousUser. '''
     try:
@@ -209,11 +211,16 @@ class ObjectPermission(models.Model):
         unique_together = ('user', 'permission', 'deny', 'inherited',
             'object_id', 'content_type')
 
+    @void_cache_for_request(keys=('__get_all_object_permissions',))
     def save(self, *args, **kwargs):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                 'not match that of the object.')
         super(ObjectPermission, self).save(*args, **kwargs)
+
+    @void_cache_for_request(keys=('__get_all_object_permissions',))
+    def delete(self, *args, **kwargs):
+        super(self, ObjectPermission).delete(*args, **kwargs)
 
     def __unicode__(self):
         for required_field in ('user', 'permission'):
@@ -311,11 +318,12 @@ class ObjectPermissionMixin(object):
     def __get_object_permissions(self, is_denied, **kwargs):
         all_object_permissions = self.__get_all_object_permissions(**kwargs)
         object_permissions = all_object_permissions.get(self.pk)
-
-        perms = set([(user_id, permission_id)
+        perms = []
+        if object_permissions:
+            perms = [(user_id, permission_id)
                      for user_id, permission_id, deny in object_permissions
-                     if deny is is_denied])
-        return perms
+                     if deny is is_denied]
+        return set(perms)
 
     @staticmethod
     @cache_for_request

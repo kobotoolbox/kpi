@@ -195,7 +195,6 @@ class TestCloning(KpiTestCase):
 
         self.assertRaises(BadAssetTypeException, _bad_clone)
 
-
     def _create_sample_survey_and_template(self):
         survey_settings = {
             "sector": {

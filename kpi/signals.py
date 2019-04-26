@@ -8,6 +8,7 @@ from taggit.models import Tag
 from .models import TagUid
 from .model_utils import grant_default_model_level_perms
 
+
 @receiver(post_save, sender=User)
 def default_permissions_post_save(sender, instance, created, raw, **kwargs):
     '''
@@ -24,6 +25,7 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
         # created
         return
     grant_default_model_level_perms(instance)
+
 
 @receiver(post_save, sender=Tag)
 def tag_uid_post_save(sender, instance, created, raw, **kwargs):
