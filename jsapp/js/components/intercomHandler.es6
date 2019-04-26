@@ -5,10 +5,11 @@ import autoBind from 'react-autobind';
 import _ from 'underscore';
 import stores from '../stores';
 
+// NOTE: change this boolean to switch to custom button (just make sure to
+// check the TODO comment below)
+export const USE_CUSTOM_INTERCOM_LAUNCHER = false;
+
 const DEFAULT_SETTINGS = Object.freeze({
-  custom_launcher_selector: '#custom_intercom_launcher',
-  hide_default_launcher: true,
-  alignment: 'left',
   action_color: '#2095f3',
   background_color: '#575b70'
 });
@@ -34,7 +35,9 @@ class IntercomHandler extends React.Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.updateHorizontalPaddingDebounced);
+    if (USE_CUSTOM_INTERCOM_LAUNCHER) {
+      window.removeEventListener('resize', this.updateHorizontalPaddingDebounced);
+    }
   }
 
   onCurrentAccountChange(account) {
@@ -49,8 +52,15 @@ class IntercomHandler extends React.Component {
         user_id: account.username
       }, DEFAULT_SETTINGS);
       window.Intercom('boot', this.currentSettings);
-      window.addEventListener('resize', this.updateHorizontalPaddingDebounced);
-      this.updateHorizontalPadding();
+
+      if (USE_CUSTOM_INTERCOM_LAUNCHER) {
+        this.currentSettings.custom_launcher_selector = '#custom_intercom_launcher';
+        this.currentSettings.hide_default_launcher = true;
+        this.currentSettings.alignment = 'left';
+        window.Intercom('update', this.currentSettings);
+        window.addEventListener('resize', this.updateHorizontalPaddingDebounced);
+        this.updateHorizontalPadding();
+      }
     } else {
       window.Intercom('shutdown');
     }
@@ -112,12 +122,12 @@ class IntercomHandler extends React.Component {
     }
   }
 
-  // TODO get these rules from API endpoint?
   isEmailValid(email) {
-    if (email.endsWith('example.com')) {
-      return true;
+    if (USE_CUSTOM_INTERCOM_LAUNCHER) {
+      // TODO get these rules from API endpoint?
+      return email.endsWith('example.com');
     } else {
-      return false;
+      return true;
     }
   }
 
