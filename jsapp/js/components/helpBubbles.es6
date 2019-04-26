@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import bem from '../bem';
 import actions from '../actions';
 import stores from '../stores';
+import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {t} from '../utils';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
@@ -217,7 +218,7 @@ export class IntercomHelpBubble extends HelpBubble {
   }
 
   render() {
-    if (!window.Intercom) {
+    if (!USE_CUSTOM_INTERCOM_LAUNCHER || !window.Intercom) {
       return null;
     }
 
