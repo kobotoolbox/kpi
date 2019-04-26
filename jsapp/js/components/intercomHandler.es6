@@ -67,7 +67,7 @@ class IntercomHandler extends React.Component {
       $launcherEl[0].getBoundingClientRect().left +
       $launcherEl.width() +
       $(window)['scrollLeft']() -
-      // move it over border line
+      // move it by 1px to place it atop the border line
       1
     );
 
