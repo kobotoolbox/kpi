@@ -49,14 +49,11 @@
       </style>
     {% endif %}
 
-    {# DEV set test app #}
-    {% with intercom_app_id="y4654sai" %}
     {% if intercom_app_id %}
     <script>
       window.IntercomAppId = '{{intercom_app_id}}';
     </script>
     {% endif %}
-    {% endwith %}
   </head>
   <body>
     <!--[if lt IE 8]>
