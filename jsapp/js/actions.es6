@@ -666,6 +666,7 @@ actions.auth.changePassword.listen((currentPassword, newPassword) => {
 });
 actions.auth.changePassword.completed.listen(() => {
   notify(t('changed password successfully'));
+  actions.auth.logout();
 });
 actions.auth.changePassword.failed.listen(() => {
   notify(t('failed to change password'), 'error');

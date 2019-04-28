@@ -558,6 +558,12 @@ export class ChangePassword extends React.Component {
             </bem.ChangePassword__item>
 
             <bem.ChangePassword__item  m='actions'>
+              <p>
+                {t('For security reason changing password will log you out from current session.')}
+              </p>
+            </bem.ChangePassword__item>
+
+            <bem.ChangePassword__item  m='actions'>
               <button
                 onClick={this.changePassword}
                 className='mdl-button mdl-button--raised mdl-button--colored'
