@@ -559,7 +559,9 @@ export class ChangePassword extends React.Component {
 
             <bem.ChangePassword__item  m='actions'>
               <p>
-                {t('For security reason changing password will log you out from current session.')}
+                <strong>{t('Note:')}</strong>
+                &nbsp;
+                {t('For security reasons changing password will log you out from current session.')}
               </p>
             </bem.ChangePassword__item>
 
