@@ -764,8 +764,6 @@ class Reports extends React.Component {
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
-      if (!this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined)
-        groupBy = reportStyles.default.groupDataBy;
       if (this.state.currentCustomReport && this.state.currentCustomReport.reportStyle) {
         groupBy = this.state.currentCustomReport.reportStyle.groupDataBy;
       } else if (reportStyles.default.groupDataBy !== undefined) {
@@ -773,12 +771,15 @@ class Reports extends React.Component {
       }
 
       // TODO: improve the defaults below
-      if (reportStyles.default.report_type === undefined)
+      if (reportStyles.default.report_type === undefined) {
         reportStyles.default.report_type = 'vertical';
-      if (reportStyles.default.translationIndex === undefined)
+      }
+      if (reportStyles.default.translationIndex === undefined) {
         reportStyles.default.translationIndex = 0;
-      if (reportStyles.default.groupDataBy === undefined)
+      }
+      if (reportStyles.default.groupDataBy === undefined) {
         reportStyles.default.groupDataBy = '';
+      }
 
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
