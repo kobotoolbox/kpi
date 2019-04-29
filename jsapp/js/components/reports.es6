@@ -759,8 +759,7 @@ class Reports extends React.Component {
     stores.allAssets.whenLoaded(uid, (asset)=>{
       let rowsByKuid = {};
       let rowsByIdentifier = {};
-      let names = [],
-          groupBy = [],
+      let groupBy = [],
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
@@ -791,7 +790,7 @@ class Reports extends React.Component {
           rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, identifiers: names, group_by: groupBy}).done((data)=> {
+        dataInterface.getReportData({uid: uid, identifiers: [], group_by: groupBy}).done((data)=> {
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
