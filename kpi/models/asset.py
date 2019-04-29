@@ -170,15 +170,34 @@ class FormpackXLSFormUtils(object):
             if sht in content:
                 content[sht] += rows
 
-    def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
-        opts = copy.deepcopy(FLATTEN_OPTS)
-        
+    def _settings_ensure_form_id(self, content):
         # Show form_id and remove id_string in downloaded xls
         if 'settings' in content:
             settings = content['settings']
+            
+            # Remove id_string from settings sheet
             if 'id_string' in settings:
                 settings['form_id'] = settings['id_string']
                 del settings['id_string']
+    
+    def _settings_maintain_key_order(self, content):
+        if 'settings' in content:
+            settings = content['settings']
+            
+            # Maintains key order of settings sheet
+            settingsKeyOrder = [
+                'form_title', 
+                'form_id', 
+                'version', 
+                'style', 
+                'namespaces', 
+                'Read Me - Form template created by OpenClinica Form Designer'
+            ]
+            content['settings'] = OrderedDict(sorted(settings.items(), key=lambda i:settingsKeyOrder.index(i[0])))
+
+    
+    def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
+        opts = copy.deepcopy(FLATTEN_OPTS)
         
         if not kobo_specific:
             opts['remove_columns']['survey'].append('$kuid')
@@ -383,6 +402,8 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
+        self._settings_ensure_form_id(content)
+        self._settings_maintain_key_order(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
