@@ -766,9 +766,11 @@ class Reports extends React.Component {
 
       if (!this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined)
         groupBy = reportStyles.default.groupDataBy;
-
-      if (this.state.currentCustomReport && this.state.currentCustomReport.reportStyle.groupDataBy)
+      if (this.state.currentCustomReport && this.state.currentCustomReport.reportStyle) {
         groupBy = this.state.currentCustomReport.reportStyle.groupDataBy;
+      } else if (reportStyles.default.groupDataBy !== undefined) {
+        groupBy = reportStyles.default.groupDataBy;
+      }
 
       // TODO: improve the defaults below
       if (reportStyles.default.report_type === undefined)
