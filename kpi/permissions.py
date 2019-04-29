@@ -6,6 +6,7 @@ from rest_framework import permissions
 from rest_framework_extensions.settings import extensions_api_settings
 
 from kpi.models.asset import Asset
+from kpi.constants import PERM_RESTRICTED_SUBMISSIONS
 
 
 # FIXME: Move to `object_permissions` module.
@@ -124,8 +125,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
     MODEL_NAME = "submissions"  # Hardcode model_name to match permissions
     
     perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s',
-                '%(app_label)s.supervisor_view_%(model_name)s'],
+        'GET': ['%(app_label)s.view_%(model_name)s'],
         'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
         'HEAD': ['%(app_label)s.view_%(model_name)s'],
         'POST': ['%(app_label)s.add_%(model_name)s'],
@@ -140,7 +140,6 @@ class SubmissionPermission(AssetNestedObjectPermission):
         "validation_status": {
             "PATCH": ["%(app_label)s.validate_%(model_name)s"],
         }
-
     }
 
     def has_permission(self, request, view):
@@ -153,10 +152,21 @@ class SubmissionPermission(AssetNestedObjectPermission):
         asset_uid = self._get_parents_query_dict(request).get("asset")
         asset = get_object_or_404(Asset, uid=asset_uid)
         required_permissions = self.get_required_permissions(request.method, view.action)
+        user_permissions = list(asset.get_perms(request.user))
+
+        if PERM_RESTRICTED_SUBMISSIONS in user_permissions:
+            # Merge restricted permissions with permissions to find out if there
+            # is a match within required permissions.
+            # Restricted users will be narrowed down in MongoDB query.
+            restricted_perms = asset.get_restricted_perms(request.user)
+            if restricted_perms:
+                user_permissions = list(set(
+                    user_permissions + required_permissions
+                ))
 
         has_perm = False
         for permission in required_permissions:
-            if asset.has_perm(request.user, permission):
+            if permission in user_permissions:
                 has_perm = True
                 break
 
@@ -164,10 +174,9 @@ class SubmissionPermission(AssetNestedObjectPermission):
         # to avoid users to be able guess asset existence
         if not has_perm:
             # Except if users are allowed to view submissions, we want to show them Access Denied
-            # @ TODO handle supervisor permissions
             if request.method not in permissions.SAFE_METHODS:
                 view_permissions = self.get_required_permissions("GET")
-                can_view = asset.has_perm(request.user, view_permissions[0])
+                can_view = view_permissions[0] in user_permissions
                 if can_view:
                     return False
 

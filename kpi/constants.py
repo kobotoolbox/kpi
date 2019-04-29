@@ -47,16 +47,14 @@ NESTED_MONGO_RESERVED_ATTRIBUTES = [
 ]
 
 PREFIX_RESTRICTED_PERMS = 'restricted_'
+SUFFIX_SUBMISSIONS_PERMS = '_submissions'
 
 # ASSIGNABLE_PERMISSIONS
 PERM_VIEW_ASSET = 'view_asset'
 PERM_CHANGE_ASSET = 'change_asset'
 PERM_ADD_SUBMISSIONS = 'add_submissions'
 PERM_VIEW_SUBMISSIONS = 'view_submissions'
-PERM_RESTRICTED_VIEW_SUBMISSIONS = '{prefix}{permission}'.format(
-    prefix=PREFIX_RESTRICTED_PERMS,
-    permission=PERM_VIEW_SUBMISSIONS
-)
+PERM_RESTRICTED_SUBMISSIONS = 'restricted_submissions'
 PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 

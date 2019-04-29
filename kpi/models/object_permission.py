@@ -617,10 +617,8 @@ class ObjectPermissionMixin(object):
         return result
 
     @transaction.atomic
-    def assign_perm(
-            self, user_obj, perm, deny=False, defer_recalc=False,
-            skip_kc=False
-    ):
+    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
+                    skip_kc=False, **kwargs):
         r"""
             Assign `user_obj` the given `perm` on this object, or break
             inheritance from a parent object. By default, recalculate
@@ -711,6 +709,9 @@ class ObjectPermissionMixin(object):
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return new_permission
+
+        self._update_restricted_permissions(user_obj.pk, perm, **kwargs)
+
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
@@ -725,6 +726,24 @@ class ObjectPermissionMixin(object):
         return Permission.objects.filter(pk__in=perm_ids).values_list(
             'codename', flat=True)
 
+    def get_restricted_perms(self, user_obj, with_usernames=False):
+        """
+        Returns the list of permissions the user is restricted to,
+        for this specific object.
+
+        Should implemented on classes that inherit from this mixin
+        """
+        return []
+
+    def get_usernames_for_restricted_perm(self, perm=None):
+        """
+        Returns the list of usernames for a specfic permission `perm`
+        and this specific object.
+
+        Should implemented on classes that inherit from this mixin
+        """
+        return None
+
     def get_users_with_perms(self, attach_perms=False):
         ''' Return a QuerySet of all users with any effective grant permission
         on this object. If attach_perms=True, then return a dict with
@@ -738,7 +757,7 @@ class ObjectPermissionMixin(object):
                 user_perm_dict[user_id] = perm_list
             # Resolve user ids into actual user objects
             user_perm_dict = {User.objects.get(pk=key): value for (key, value)
-                in user_perm_dict.iteritems()}
+                              in user_perm_dict.iteritems()}
             return user_perm_dict
         else:
             # Use a set to avoid duplicate users
@@ -825,6 +844,9 @@ class ObjectPermissionMixin(object):
         # Remove any applicable KC permissions
         if not skip_kc:
             remove_applicable_kc_permissions(self, user_obj, codename)
+
+        self._update_restricted_permissions(user_obj.pk, perm, remove=True)
+
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
@@ -833,3 +855,8 @@ class ObjectPermissionMixin(object):
         # against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
         fresh_self.recalculate_descendants_perms()
+
+    def _update_restricted_permissions(self, user_id, perm, remove=False, **kwargs):
+        # Class is not an abstract class. Just pass.
+        # Let the dev implement within the classes that inherit from this mixin
+        pass
