@@ -416,13 +416,7 @@ class XlsExportable(object):
             `{'settings': {'setting name': 'setting value'}}` '''
         if versioned:
             append = kwargs['append'] = kwargs.get('append', {})
-            append_survey = append['survey'] = append.get('survey', [])
             append_settings = append['settings'] = append.get('settings', {})
-            append_survey.append(
-                {'name': '__version__',
-                 'calculation': '\'{}\''.format(self.version_id),
-                 'type': 'calculate'}
-            )
             append_settings.update(
                 {
                     'form_title': self.name,
