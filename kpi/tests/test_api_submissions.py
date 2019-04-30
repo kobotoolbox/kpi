@@ -252,3 +252,7 @@ class SubmissionValidationStatusApiTests(BaseTestCase):
         self.client.logout()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class SubmissionRestrictedApiTests(BaseTestCase):
+    pass

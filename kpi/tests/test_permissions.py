@@ -604,5 +604,22 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertTrue(asset.asset_restricted_permissions.count() == 0)
 
     def test_implied_restricted_submission_permission(self):
-        pass
+        """
+        This test is present even we can only restrict users to view subset data
+        of other users, so far.
+        """
+        asset = self.admin_asset
+        grantee = self.someuser
+        restricted_perms = {
+            PERM_CHANGE_SUBMISSIONS: [self.anotheruser.username]
+        }
+        expected_restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username],
+            PERM_CHANGE_SUBMISSIONS: [self.anotheruser.username]
+        }
+        asset.assign_perm(grantee, PERM_RESTRICTED_SUBMISSIONS,
+                          restricted_perms=restricted_perms)
+
+        restricted_perms = asset.get_restricted_perms(grantee)
+        self.assertTrue(expected_restricted_perms, restricted_perms)
 
