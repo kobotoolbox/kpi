@@ -56,8 +56,9 @@ class UserPermissionEditor extends React.Component {
   }
 
   componentDidMount() {
-    // TODO set permissions if given (i.e. editing existing permissions,
-    // not giving new)
+    // TODO set permissions from props if given (i.e. editing existing permissions vs giving new)
+
+    this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
   togglePerm(permId) {
@@ -70,16 +71,27 @@ class UserPermissionEditor extends React.Component {
     this.setState({username: username});
   }
 
-  restrictedUsersChange(users) {
-    this.setState({restricted_view_users: users});
+  restrictedUsersChange(allUsers, changedUsers) {
+    this.setState({restricted_view_users: allUsers});
+    changedUsers.forEach((username) => {
+      this.callCheckUsername(username);
+    })
+    console.log('restrictedUsersChange', users);
   }
 
-  validateUsername(username) {
-    return username !== 'leszek';
+  callCheckUsername(username) {
+    const storesResult = stores.userExists.checkUsername(username);
+    if (storesResult === undefined) {
+      actions.misc.checkUsername(username);
+    } else {
+      onUserExistsStoreChange(result);
+    }
   }
 
-  onValidateUsernameReject(arr) {
-    console.log(arr);
+  onUserExistsStoreChange(result) {
+    // TODO: check if username exists in `restricted_view_users`
+    // if yes, if result false, remove it and display error message to user
+    console.log('onUserExistsStoreChange', result);
   }
 
   render() {
@@ -116,9 +128,8 @@ class UserPermissionEditor extends React.Component {
               <TagsInput
                 value={this.state.restricted_view_users}
                 onChange={this.restrictedUsersChange}
-                validate={this.validateUsername}
-                onValidationReject={this.onValidateUsernameReject}
                 inputProps={restrictedViewUsersInputProps}
+                onlyUnique
               />
             }
           </div>
@@ -157,6 +168,7 @@ class UserPermissionEditor extends React.Component {
     );
   }
 }
+reactMixin(UserPermissionEditor.prototype, Reflux.ListenerMixin);
 
 class UserPermDiv extends React.Component {
   constructor(props) {
