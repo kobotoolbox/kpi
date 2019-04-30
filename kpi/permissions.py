@@ -6,6 +6,7 @@ from rest_framework import permissions
 from rest_framework_extensions.settings import extensions_api_settings
 
 from kpi.models.asset import Asset
+from kpi.models.object_permission import get_anonymous_user
 from kpi.constants import PERM_RESTRICTED_SUBMISSIONS
 
 
@@ -152,13 +153,17 @@ class SubmissionPermission(AssetNestedObjectPermission):
         asset_uid = self._get_parents_query_dict(request).get("asset")
         asset = get_object_or_404(Asset, uid=asset_uid)
         required_permissions = self.get_required_permissions(request.method, view.action)
-        user_permissions = list(asset.get_perms(request.user))
+        user = request.user
+        if user.is_anonymous():
+            user = get_anonymous_user()
+
+        user_permissions = list(asset.get_perms(user))
 
         if PERM_RESTRICTED_SUBMISSIONS in user_permissions:
             # Merge restricted permissions with permissions to find out if there
             # is a match within required permissions.
             # Restricted users will be narrowed down in MongoDB query.
-            restricted_perms = asset.get_restricted_perms(request.user)
+            restricted_perms = asset.get_restricted_perms(user)
             if restricted_perms:
                 user_permissions = list(set(
                     user_permissions + required_permissions

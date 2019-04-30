@@ -9,7 +9,9 @@ from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
     PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, \
     PERM_SHARE_ASSET, PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, \
-    PERM_DELETE_SUBMISSIONS, PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
+    PERM_DELETE_SUBMISSIONS, PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
+    PERM_RESTRICTED_SUBMISSIONS
+from kpi.exceptions import BadPermissionsException
 
 
 class BasePermissionsTestCase(TestCase):
@@ -110,7 +112,7 @@ class BasePermissionsTestCase(TestCase):
         :type user: :py:class:`User`
         '''
         self._test_add_perm(obj, perm_name_prefix, user)
-        remove_perm_name= self._get_perm_name(perm_name_prefix, obj)
+        remove_perm_name = self._get_perm_name(perm_name_prefix, obj)
         obj.remove_perm(user, remove_perm_name)
         self.assertFalse(user.has_perm(remove_perm_name, obj))
 
@@ -148,6 +150,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def setUp(self):
         self.admin = User.objects.get(username='admin')
         self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
 
         self.admin_collection = Collection.objects.create(owner=self.admin)
         self.admin_asset = Asset.objects.create(content={'survey': [
@@ -194,7 +197,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_ADD_SUBMISSIONS,
             PERM_VIEW_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
-            PERM_CHANGE_SUBMISSIONS # Must be last since it implies `view_submissions`
+            PERM_CHANGE_SUBMISSIONS  # Must be last since it implies `view_submissions`
         )
         asset = self.admin_asset
         grantee = self.someuser
@@ -208,7 +211,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_ADD_SUBMISSIONS,
             PERM_VIEW_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
-            PERM_CHANGE_SUBMISSIONS # Must be last since it implies `view_submissions`
+            PERM_CHANGE_SUBMISSIONS  # Must be last since it implies `view_submissions`
         )
         asset = self.admin_asset
         grantee = self.someuser
@@ -338,6 +341,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
+                PERM_RESTRICTED_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
                 PERM_VIEW_SUBMISSIONS,
@@ -363,6 +367,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
+                PERM_RESTRICTED_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
                 PERM_VIEW_SUBMISSIONS
@@ -500,7 +505,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         # Assign permissions to 1st asset.
         for expected_permission in expected_permissions:
-            if expected_permission in Asset.ASSIGNABLE_PERMISSIONS:
+            if expected_permission in Asset.get_assignable_permissions(False):
                 new_admin_asset_1.assign_perm(self.someuser, expected_permission)
 
         # Assign permissions to 2nd asset.
@@ -513,3 +518,91 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         self.assertListEqual(
             sorted(new_admin_asset_2.get_perms(self.someuser)), expected_permissions)
+
+    def test_add_restricted_submission_permission_to_owner(self):
+        """
+        Owner can't receive `PERM_RESTRICTED_SUBMISSIONS permission.
+        """
+        asset = self.admin_asset
+        grantee = self.someuser
+        codename = PERM_RESTRICTED_SUBMISSIONS
+        self.assertRaises(BadPermissionsException, asset.assign_perm, grantee,
+                          codename)
+
+    def test_mandatory_restricted_perms_with_restricted_submissions_permission(self):
+        """
+        If restricted permissions are omitted when assigning
+        `PERM_RESTRICTED_SUBMISSIONS` permission, it should raise an error
+        """
+        asset = self.admin_asset
+        grantee = asset.owner
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.someuser.username,
+                                    self.anotheruser.username]
+        }
+        codename = PERM_RESTRICTED_SUBMISSIONS
+        self.assertRaises(BadPermissionsException, asset.assign_perm, grantee,
+                          codename, restricted_perms=restricted_perms)
+
+    def test_add_restricted_submission_permission(self):
+        asset = self.admin_asset
+        grantee = self.someuser
+        codename = PERM_RESTRICTED_SUBMISSIONS
+        self.assertFalse(grantee.has_perm(codename, asset))
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username]
+        }
+        # Asset doesn't any relations with the Many-To-Many table
+        self.assertTrue(asset.asset_restricted_permissions.count() == 0)
+        asset.assign_perm(grantee, codename, restricted_perms=restricted_perms)
+        self.assertTrue(grantee.has_perm(codename, asset))
+        self.assertTrue(asset.get_restricted_perms(grantee, True),
+                        restricted_perms)
+        # Asset should have 1 relation with the Many-To-Many table
+        self.assertTrue(asset.asset_restricted_permissions.count() == 1)
+
+    def test_add_contradict_restricted_submission_permission(self):
+        """
+        When `PERM_RESTRICTED_SUBMISSIONS` permission is assigned to a user,
+        this user should loose all other submissions permissions and vice-versa.
+        """
+        asset = self.admin_asset
+        grantee = self.someuser
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username]
+        }
+        # User should not have any permissions on the asset.
+        self.assertFalse(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertFalse(grantee.has_perm(PERM_RESTRICTED_SUBMISSIONS, asset))
+
+        # User should have only `PERM_VIEW_SUBMISSIONS` permission on the asset.
+        asset.assign_perm(grantee, PERM_VIEW_SUBMISSIONS)
+        self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertFalse(grantee.has_perm(PERM_RESTRICTED_SUBMISSIONS, asset))
+
+        # User should have only `PERM_RESTRICTED_SUBMISSIONS` permission on the asset.
+        asset.assign_perm(grantee, PERM_RESTRICTED_SUBMISSIONS,
+                          restricted_perms=restricted_perms)
+        self.assertFalse(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertTrue(grantee.has_perm(PERM_RESTRICTED_SUBMISSIONS, asset))
+
+    def test_remove_restricted_submission_permission(self):
+        asset = self.admin_asset
+        grantee = self.someuser
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username]
+        }
+        # Assign `PERM_RESTRICTED_SUBMISSIONS` permission.
+        asset.assign_perm(grantee, PERM_RESTRICTED_SUBMISSIONS,
+                          restricted_perms=restricted_perms)
+        self.assertTrue(grantee.has_perm(PERM_RESTRICTED_SUBMISSIONS, asset))
+        self.assertTrue(asset.asset_restricted_permissions.count() == 1)
+
+        # Then remove it
+        asset.remove_perm(grantee, PERM_RESTRICTED_SUBMISSIONS)
+        self.assertFalse(grantee.has_perm(PERM_RESTRICTED_SUBMISSIONS, asset))
+        self.assertTrue(asset.asset_restricted_permissions.count() == 0)
+
+    def test_implied_restricted_submission_permission(self):
+        pass
+

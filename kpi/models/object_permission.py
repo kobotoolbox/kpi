@@ -242,17 +242,32 @@ class ObjectPermissionMixin(object):
 
     CONTRADICTORY_PERMISSIONS = {}
 
-    def get_assignable_permissions(self):
+    @classmethod
+    def get_assignable_permissions(cls, with_restricted=True):
         """
-        The "versioned app registry" used during migrations apparently does
-        not store non-database attributes, so this awful workaround is needed
+        Returns assignable permissions including permissions prefixed by
+        `PREFIX_RESTRICTED_PERMS` if `with_restricted` is True.
+
+        It can be useful to remove the restricted permissions when assigning
+        permissions to owner of the object.
+
+        :param with_restricted: bool.
+        :return: tuple
         """
         try:
-            return self.ASSIGNABLE_PERMISSIONS
+            assignable_permissions = cls.ASSIGNABLE_PERMISSIONS
         except AttributeError:
-            return apps.get_model(
-                self._meta.app_label, self._meta.model_name
+            assignable_permissions = apps.get_model(
+                cls._meta.app_label, cls._meta.model_name
             ).ASSIGNABLE_PERMISSIONS
+
+        if with_restricted is False:
+            assignable_permissions = tuple(ap for ap in assignable_permissions
+                                           if not ap.startswith(
+                                               PREFIX_RESTRICTED_PERMS)
+                                           )
+
+        return assignable_permissions
 
     @transaction.atomic
     def copy_permissions_from(self, source_object):
@@ -511,8 +526,7 @@ class ObjectPermissionMixin(object):
         if self.owner is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
-                codename__in=self.get_assignable_permissions()).exclude(
-                codename__startswith=PREFIX_RESTRICTED_PERMS
+                codename__in=self.get_assignable_permissions(False)
             ):
                 new_permission = ObjectPermission()
                 new_permission.content_object = self
@@ -845,12 +859,12 @@ class ObjectPermissionMixin(object):
         if not skip_kc:
             remove_applicable_kc_permissions(self, user_obj, codename)
 
-        self._update_restricted_permissions(user_obj.pk, perm, remove=True)
-
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return
+
+        self._update_restricted_permissions(user_obj.pk, perm, remove=True)
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)

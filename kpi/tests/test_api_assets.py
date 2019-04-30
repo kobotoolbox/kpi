@@ -593,7 +593,7 @@ class AssetFileTest(APITestCase):
         self.asset.save()
         self.assertListEqual(
             sorted(list(self.asset.get_perms(self.asset.owner))),
-            sorted(list(Asset.ASSIGNABLE_PERMISSIONS +
+            sorted(list(Asset.get_assignable_permissions(False) +
                         Asset.CALCULATED_PERMISSIONS))
         )
 
