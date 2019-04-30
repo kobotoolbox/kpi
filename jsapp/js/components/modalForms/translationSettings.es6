@@ -365,7 +365,7 @@ export class TranslationSettings extends React.Component {
           {!this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language'>
               <button
-                className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+                className='mdl-button mdl-button--raised mdl-button--colored'
                 onClick={this.showAddLanguageForm}
                 disabled={!this.canAddLanguages()}
               >
@@ -543,7 +543,7 @@ class LanguageForm extends React.Component {
 
         <bem.FormView__cell m='submit-button'>
           <button
-            className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+            className='mdl-button mdl-button--raised mdl-button--colored'
             onClick={this.onSubmit} type='submit'
             disabled={isAnyFieldEmpty}
           >

@@ -275,7 +275,7 @@ class SharingForm extends React.Component {
       }
     });
 
-    var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
+    var btnKls = classNames('mdl-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
     let uid = this.state.asset.uid,
         kind = this.state.asset.kind,

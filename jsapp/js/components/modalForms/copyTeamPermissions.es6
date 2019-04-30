@@ -98,7 +98,6 @@ class CopyTeamPermissions extends React.Component {
 
     const importButtonClasses = classNames(
       'mdl-button',
-      'mdl-js-button',
       'mdl-button--raised',
       isImportButtonEnabled ? 'mdl-button--colored' : 'mdl-button--disabled'
     );
