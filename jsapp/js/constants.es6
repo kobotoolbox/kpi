@@ -1,10 +1,19 @@
 import {t} from './utils';
 
+const AVAILABLE_PERMISSIONS = new Map([
+  ['view', t('View Form')],
+  ['change', t('Edit Form')],
+  ['view_submissions', t('View Submissions')],
+  ['add_submissions', t('Add Submissions')],
+  ['change_submissions', t('Edit Submissions')],
+  ['validate_submissions', t('Validate Submissions')]
+]);
+
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0
-}
+};
 
 const MODAL_TYPES = {
   SHARING: 'sharing',
@@ -17,7 +26,7 @@ const MODAL_TYPES = {
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table'
-}
+};
 
 const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
@@ -85,9 +94,10 @@ const ASSET_TYPES = {
     id: 'survey',
     label: t('project')
   }
-}
+};
 
 export default {
+  AVAILABLE_PERMISSIONS: AVAILABLE_PERMISSIONS,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,

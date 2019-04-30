@@ -9,6 +9,7 @@ import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import Select from 'react-select';
 import Checkbox from 'js/components/checkbox';
+import TextBox from 'js/components/textbox';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
@@ -18,7 +19,10 @@ import {
   parsePermissions,
   stringToColor,
   anonUsername
-} from 'utils';
+} from 'js/utils';
+import {
+  AVAILABLE_PERMISSIONS
+} from 'js/constants';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
@@ -31,6 +35,128 @@ var availablePermissions = [
   {value: 'change_submissions', label: t('Edit Submissions')},
   {value: 'validate_submissions', label: t('Validate Submissions')}
 ];
+
+class UserPermissionEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+
+    this.state = {
+      username: '',
+      usernameError: '',
+      view: false,
+      change: false,
+      view_submissions: false,
+      add_submissions: false,
+      change_submissions: false,
+      validate_submissions: false,
+      restricted_view: false,
+      restricted_view_users: []
+    };
+  }
+
+  componentDidMount() {
+    // TODO set permissions if given (i.e. editing existing permissions,
+    // not giving new)
+  }
+
+  togglePerm(permId) {
+    let newPerms = {};
+    newPerms[permId] = !this.state[permId];
+    this.setState(newPerms);
+  }
+
+  usernameChange(username) {
+    this.setState({username: username});
+  }
+
+  restrictedUsersChange(users) {
+    this.setState({restricted_view_users: users});
+  }
+
+  validateUsername(username) {
+    return username !== 'leszek';
+  }
+
+  onValidateUsernameReject(arr) {
+    console.log(arr);
+  }
+
+  render() {
+    const restrictedViewUsersInputProps = {
+      placeholder: t('Add username(s)')
+    };
+
+    return (
+      <bem.FormModal__item>
+        {t('Grant permissions to')}
+
+        <TextBox
+          placeholder={t('username')}
+          errors={this.state.usernameError}
+          value={this.state.username}
+          onChange={this.usernameChange}
+        />
+
+        <Checkbox
+          checked={this.state.view}
+          onChange={this.togglePerm.bind(this, 'view')}
+          label={AVAILABLE_PERMISSIONS.get('view')}
+        />
+
+        {this.state.view === true &&
+          <div>
+            <Checkbox
+              checked={this.state.restricted_view}
+              onChange={this.togglePerm.bind(this, 'restricted_view')}
+              label={t('Restrict to submissions made by certain users')}
+            />
+
+            {this.state.restricted_view === true &&
+              <TagsInput
+                value={this.state.restricted_view_users}
+                onChange={this.restrictedUsersChange}
+                validate={this.validateUsername}
+                onValidationReject={this.onValidateUsernameReject}
+                inputProps={restrictedViewUsersInputProps}
+              />
+            }
+          </div>
+        }
+
+        <Checkbox
+          checked={this.state.change}
+          onChange={this.togglePerm.bind(this, 'change')}
+          label={AVAILABLE_PERMISSIONS.get('change')}
+        />
+
+        <Checkbox
+          checked={this.state.view_submissions}
+          onChange={this.togglePerm.bind(this, 'view_submissions')}
+          label={AVAILABLE_PERMISSIONS.get('view_submissions')}
+        />
+
+        <Checkbox
+          checked={this.state.add_submissions}
+          onChange={this.togglePerm.bind(this, 'add_submissions')}
+          label={AVAILABLE_PERMISSIONS.get('add_submissions')}
+        />
+
+        <Checkbox
+          checked={this.state.change_submissions}
+          onChange={this.togglePerm.bind(this, 'change_submissions')}
+          label={AVAILABLE_PERMISSIONS.get('change_submissions')}
+        />
+
+        <Checkbox
+          checked={this.state.validate_submissions}
+          onChange={this.togglePerm.bind(this, 'validate_submissions')}
+          label={AVAILABLE_PERMISSIONS.get('validate_submissions')}
+        />
+      </bem.FormModal__item>
+    );
+  }
+}
 
 class UserPermDiv extends React.Component {
   constructor(props) {
@@ -92,7 +218,7 @@ class UserPermDiv extends React.Component {
       </bem.UserRow>
       );
   }
-};
+}
 
 reactMixin(UserPermDiv.prototype, mixins.permissions);
 
@@ -248,6 +374,11 @@ class SharingForm extends React.Component {
       permInput: perm
     });
   }
+
+  toggleAddUser() {
+    this.setState({isAddUserEditorVisible: !this.state.isAddUserEditorVisible});
+  }
+
   render () {
     var inpStatus = this.state.userInputStatus;
     if (!this.state.pperms) {
@@ -327,32 +458,53 @@ class SharingForm extends React.Component {
 
         </bem.FormModal__item>
 
-        <bem.FormModal__form onSubmit={this.addInitialUserPermission} className='sharing-form__user'>
-            <bem.FormView__cell m='label'>
-              {t('Invite collaborators')}
-            </bem.FormView__cell>
-            <bem.FormModal__item m={['gray-row', 'invite-collaborators']}>
-              <input type='text'
-                  id='permsUser'
-                  ref='usernameInput'
-                  placeholder={t('Enter a username')}
-                  onKeyUp={this.usernameCheck}
-                  onChange={this.usernameCheck}
-              />
-              <Select
-                  id='permGiven'
-                  ref='permInput'
-                  value={this.state.permInput}
-                  isClearable={false}
-                  options={availablePermissions}
-                  onChange={this.updatePermInput}
-                  className='kobo-select'
-                  classNamePrefix='kobo-select'
-                  menuPlacement='auto'
-              />
-              <button className={btnKls}>
-                  {t('invite')}
-              </button>
+        <bem.FormModal__form
+          onSubmit={this.addInitialUserPermission}
+          className='sharing-form__user'
+        >
+          {!this.state.isAddUserEditorVisible &&
+            <bem.Button
+              m={['raised', 'colored']}
+              onClick={this.toggleAddUser}
+            >
+              {t('Add user')}
+            </bem.Button>
+          }
+          {this.state.isAddUserEditorVisible &&
+            <bem.FormModal__item m='gray-row'>
+              <bem.Button
+                m='icon'
+                onClick={this.toggleAddUser}
+              >
+                <i className='k-icon k-icon-close'/>
+              </bem.Button>
+
+              <UserPermissionEditor />
+            </bem.FormModal__item>
+          }
+
+          <bem.FormModal__item m={['gray-row', 'flexed-row', 'invite-collaborators']}>
+            <input type='text'
+              id='permsUser'
+              ref='usernameInput'
+              placeholder={t('Enter a username')}
+              onKeyUp={this.usernameCheck}
+              onChange={this.usernameCheck}
+            />
+            <Select
+              id='permGiven'
+              ref='permInput'
+              value={this.state.permInput}
+              isClearable={false}
+              options={availablePermissions}
+              onChange={this.updatePermInput}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
+            />
+            <button className={btnKls}>
+              {t('invite')}
+            </button>
           </bem.FormModal__item>
         </bem.FormModal__form>
 

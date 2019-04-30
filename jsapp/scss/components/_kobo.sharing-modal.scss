@@ -65,12 +65,15 @@ $s-gray-row-spacing: 10px;
 // -----------------------------------------------------------------------------
 
 .form-modal__item--gray-row {
+  background: #F8F8F8;
+  padding: 15px;
+}
+
+.form-modal__item--flexed-row {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   position: relative;
-  background: #F8F8F8;
-  padding: 15px;
 
   > *:not(:first-child) {
     margin-left: $s-gray-row-spacing;
@@ -95,7 +98,7 @@ $s-gray-row-spacing: 10px;
 }
 
 @media screen and (min-width: 768px) {
-  .form-modal__item--gray-row {
+  .form-modal__item--flexed-row {
     min-width: $s-gray-row-width;
   }
 }
