@@ -139,6 +139,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         :return: list
         """
         submissions = self.asset._deployment_data.get("submissions", [])
+        submitted_by = kwargs.get('submitted_by')
 
         if len(instances_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
@@ -149,6 +150,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             else:
                 submissions = [submission for submission in submissions if submission.get("id") in
                                list(map(int, instances_ids))]
+
+        if submitted_by:
+            if format_type == INSTANCE_FORMAT_TYPE_XML:
+                # TODO handle `submitted_by` too.
+                pass
+            else:
+                submissions = [submission for submission in submissions
+                               if submission.get('submitted_by') in submitted_by]
 
         return submissions
 

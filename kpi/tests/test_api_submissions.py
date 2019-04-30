@@ -13,7 +13,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.models import Asset
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, PERM_VIEW_SUBMISSIONS,\
+    PERM_RESTRICTED_SUBMISSIONS
 from .kpi_test_case import KpiTestCase
 
 
@@ -28,11 +29,11 @@ class BaseTestCase(APITestCase):
 
     def setUp(self):
         self.client.login(username="someuser", password="someuser")
-        user = User.objects.get(username="someuser")
+        self.someuser = User.objects.get(username="someuser")
         self.anotheruser = User.objects.get(username="anotheruser")
         asset_template = Asset.objects.get(id=1)
         self.asset = Asset.objects.create(content=asset_template.content,
-                                          owner=user,
+                                          owner=self.someuser,
                                           asset_type='survey')
 
         self.asset.deploy(backend='mock', active=True)
@@ -51,7 +52,8 @@ class BaseTestCase(APITestCase):
                     "uid": "validation_status_on_hold",
                     "color": "#0000ff",
                     "label": "On Hold"
-                }
+                },
+                "submitted_by": ""
             },
             {
                 "__version__": v_uid,
@@ -64,7 +66,8 @@ class BaseTestCase(APITestCase):
                     "uid": "validation_status_approved",
                     "color": "#0000ff",
                     "label": "On Hold"
-                }
+                },
+                "submitted_by": "someuser"
             }
         ]
         self.asset.deployment.mock_submissions(self.submissions)
@@ -74,7 +77,7 @@ class BaseTestCase(APITestCase):
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
         if shared_asset:
-            self.asset.assign_perm(self.anotheruser, "view_submissions")
+            self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
 
 class SubmissionApiTests(BaseTestCase):
@@ -114,6 +117,23 @@ class SubmissionApiTests(BaseTestCase):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
+
+    def test_list_submissions_restricted_permissions(self):
+        self._other_user_login()
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.someuser.username]
+        }
+        response = self.client.get(self.submission_url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        self.asset.assign_perm(self.anotheruser, PERM_RESTRICTED_SUBMISSIONS,
+                               restricted_perms=restricted_perms)
+        response = self.client.get(self.submission_url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(self.asset.deployment.submission_count == 2)
+        # User `anotheruser` should only see submissions where `submitted_by`
+        # is filled up and equals to `someuser`
+        self.assertTrue(len(response.data) == 1)
 
     def test_list_submissions_anonymous(self):
         self.client.logout()
