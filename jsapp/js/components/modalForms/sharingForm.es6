@@ -76,7 +76,7 @@ class UserPermissionEditor extends React.Component {
     changedUsers.forEach((username) => {
       this.callCheckUsername(username);
     })
-    console.log('restrictedUsersChange', users);
+    console.log('restrictedUsersChange', allUsers, changedUsers);
   }
 
   callCheckUsername(username) {
