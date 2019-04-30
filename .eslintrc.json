@@ -46,6 +46,7 @@
     "no-undef-init": 1,
     "no-unused-expressions": 1,
     "no-unused-vars": 1,
+    "no-useless-escape": 1,
     "no-useless-rename": 1,
     "no-whitespace-before-property": 1,
     "quotes": ["warn", "single", {"avoidEscape": true}],
