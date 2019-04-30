@@ -10,11 +10,10 @@ import moment from 'moment';
 import Checkbox from './checkbox';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
-import mixins from '../mixins';
-import actions from '../actions';
 import {dataInterface} from '../dataInterface';
 import {
   t,
+  log,
   redirectTo,
   formatTime,
 } from '../utils';
@@ -47,15 +46,16 @@ export class ProjectDownloads extends React.Component {
     autoBind(this);
   }
   handleChange (e, attr) {
+    let val;
     if (e.target) {
-      if (e.target.type == 'checkbox') {
-        var val = e.target.checked;
+      if (e.target.type === 'checkbox') {
+        val = e.target.checked;
       } else {
-        var val = e.target.value;
+        val = e.target.value;
       }
     } else {
       // react-select just passes a string
-      var val = e;
+      val = e;
     }
     this.setState({[attr]: val});
   }
@@ -165,7 +165,7 @@ export class ProjectDownloads extends React.Component {
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
       if (data.count > 0) {
         data.results.reverse();
-        data.results.map(result => {
+        data.results.map((result) => {
           if (result.data.type === 'spss_labels') {
             // Some old SPSS exports may have a meaningless `lang` attribute --
             // disregard it
@@ -223,7 +223,7 @@ export class ProjectDownloads extends React.Component {
           alertify.error(t('Failed to delete export.'));
         });
       },
-      oncancel: () => {dialog.destroy()}
+      oncancel: () => {dialog.destroy();}
     };
     dialog.set(opts).show();
 
@@ -392,7 +392,7 @@ export class ProjectDownloads extends React.Component {
       </DocumentTitle>
     );
   }
-};
+}
 
 export class AddToLibrary extends React.Component {
   constructor(props) {
