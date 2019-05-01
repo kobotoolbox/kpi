@@ -195,15 +195,11 @@ class FormpackXLSFormUtils(object):
             ]
             content['settings'] = OrderedDict(sorted(settings.items(), key=lambda i:settingsKeyOrder.index(i[0])))
 
-    def _remove_tags(self, content):
-        if 'survey' in content:
-            for row in content['survey']:
-                if 'tags' in row:
-                    del row['tags']
-
-    
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
         opts = copy.deepcopy(FLATTEN_OPTS)
+
+        # Remove hxl column and value from XLS export
+        opts['remove_columns']['survey'].append('hxl')
         
         if not kobo_specific:
             opts['remove_columns']['survey'].append('$kuid')
@@ -410,7 +406,6 @@ class XlsExportable(object):
         content = OrderedDict(content)
         self._settings_ensure_form_id(content)
         self._settings_maintain_key_order(content)
-        self._remove_tags(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
