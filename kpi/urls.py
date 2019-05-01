@@ -5,6 +5,12 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 import private_storage.urls
 
+from hub.models import ConfigurationFile
+from hub.views import switch_builder
+from kobo.apps.hook.views import HookViewSet, HookLogViewSet
+from kobo.apps.reports.views import ReportsViewSet
+from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
+from kpi.forms import RegistrationForm
 from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
@@ -27,14 +33,9 @@ from kpi.views import (
     EnvironmentView,
 )
 
-from kpi.views import home, one_time_login, browser_tests
-from kobo.apps.reports.views import ReportsViewSet
-from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.views import authorized_application_authenticate_user
-from kpi.forms import RegistrationForm
-from hub.views import switch_builder
-from hub.models import ConfigurationFile
-from kobo.apps.hook.views import HookViewSet, HookLogViewSet
+from kpi.views import home, one_time_login, browser_tests
+
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -67,7 +68,7 @@ hook_routes = asset_routes.register(r'hooks',
                                     HookViewSet,
                                     base_name='hook',
                                     parents_query_lookups=['asset'],
-                      )
+                                    )
 
 hook_routes.register(r'logs',
                      HookLogViewSet,
