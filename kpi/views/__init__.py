@@ -412,6 +412,7 @@ class OneTimeAuthenticationKeyViewSet(
     authentication_classes = [ApplicationTokenAuthentication]
     queryset = OneTimeAuthenticationKey.objects.none()
     serializer_class = OneTimeAuthenticationKeySerializer
+
     def create(self, request, *args, **kwargs):
         if type(request.auth) is not AuthorizedApplication:
             # Only specially-authorized applications are allowed to create
