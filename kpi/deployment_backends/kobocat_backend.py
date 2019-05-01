@@ -538,7 +538,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         sort = {"id": 1}
         kwargs["instances_ids"] = instances_ids
-        use_mongo = False
 
         if "fields" in kwargs:
             raise ValueError(_("`Fields` param is not supported with XML format"))
@@ -547,20 +546,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # We still use MongoHelper to validate params.
         params = MongoHelper.validate_params(**kwargs)
 
-        if "query" in kwargs:
+        mongo_filters = ['query', 'submitted_by']
+        use_mongo = any(mongo_filter in mongo_filters for mongo_filter in kwargs
+                        if kwargs.get(mongo_filter) is not None)
+
+        if use_mongo:
             # We use Mongo to retrieve matching instances.
             # Get only their ids and pass them to PostgreSQL.
             params["fields"] = ["_id"]
             instances_ids = [instance.get("_id") for instance in
                              MongoHelper.get_instances(self.mongo_userform_id, **params)]
-            use_mongo = True
 
         queryset = ReadOnlyInstance.objects.filter(
             xform_id=self.xform_id,
             deleted_at=None
         )
 
-        if len(instances_ids) > 0:
+        if len(instances_ids) > 0 or use_mongo:
             queryset = queryset.filter(id__in=instances_ids)
 
         # Sort

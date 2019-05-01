@@ -679,8 +679,12 @@ class ObjectPermissionMixin(object):
             deny=deny,
         )
         if identical_existing_perm.exists():
+            # We need to always update restricted permissions because
+            # they may have change even `perm` is the same.
+            self._update_restricted_permissions(user_obj.pk, perm, **kwargs)
             # The user already has this permission directly applied
             return identical_existing_perm.first()
+
         # Remove any explicitly-defined contradictory grants or denials
         contradictory_filters = models.Q(
             user=user_obj,

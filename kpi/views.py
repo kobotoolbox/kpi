@@ -955,6 +955,8 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
+        if not submission:
+            raise Http404
         return Response(submission)
 
     @detail_route(methods=["GET", "PATCH"], renderer_classes=[renderers.JSONRenderer])

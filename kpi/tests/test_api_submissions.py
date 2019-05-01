@@ -118,7 +118,7 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
 
-    def test_list_submissions_restricted_permissions(self):
+    def test_list_submissions_with_restricted_permissions(self):
         self._other_user_login()
         restricted_perms = {
             PERM_VIEW_SUBMISSIONS: [self.someuser.username]
@@ -162,6 +162,26 @@ class SubmissionApiTests(BaseTestCase):
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
+
+    def test_retrieve_submission_with_restricted_permissions(self):
+        self._other_user_login()
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.someuser.username]
+        }
+        self.asset.assign_perm(self.anotheruser, PERM_RESTRICTED_SUBMISSIONS,
+                               restricted_perms=restricted_perms)
+
+        # Try first submission submitted by unknown
+        submission = self.submissions[0]
+        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        response = self.client.get(url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Try second submission submitted by someuser
+        submission = self.submissions[1]
+        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        response = self.client.get(url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_submission_owner(self):
         submission = self.submissions[0]

@@ -561,6 +561,19 @@ class PermissionsTestCase(BasePermissionsTestCase):
         # Asset should have 1 relation with the Many-To-Many table
         self.assertTrue(asset.asset_restricted_permissions.count() == 1)
 
+    def test_update_restricted_submission_permission(self):
+        asset = self.admin_asset
+        grantee = self.someuser
+        self.test_add_restricted_submission_permission()
+        restricted_perms = {
+            PERM_VIEW_SUBMISSIONS: [self.someuser.username,
+                                    self.anotheruser.username]
+        }
+        asset.assign_perm(grantee, PERM_RESTRICTED_SUBMISSIONS,
+                          restricted_perms=restricted_perms)
+        self.assertTrue(asset.get_restricted_perms(grantee, True),
+                        restricted_perms)
+
     def test_add_contradict_restricted_submission_permission(self):
         """
         When `PERM_RESTRICTED_SUBMISSIONS` permission is assigned to a user,
