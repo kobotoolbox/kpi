@@ -20,6 +20,7 @@ boto
 boto3
 celery>=4.0,<5.0
 celery[redis]
+dicttoxml
 dj-static
 dj-database-url
 django-braces
