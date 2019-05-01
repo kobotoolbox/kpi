@@ -87,6 +87,9 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
+      if questionType is 'calculate'
+        @$hint.hide()
+
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
@@ -208,7 +211,7 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters']
+      hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters', 'tags']
       for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in hiddenFields
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 

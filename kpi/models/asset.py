@@ -170,8 +170,37 @@ class FormpackXLSFormUtils(object):
             if sht in content:
                 content[sht] += rows
 
+    def _settings_ensure_form_id(self, content):
+        # Show form_id and remove id_string in downloaded xls
+        if 'settings' in content:
+            settings = content['settings']
+            
+            # Remove id_string from settings sheet
+            if 'id_string' in settings:
+                settings['form_id'] = settings['id_string']
+                del settings['id_string']
+    
+    def _settings_maintain_key_order(self, content):
+        if 'settings' in content:
+            settings = content['settings']
+            
+            # Maintains key order of settings sheet
+            settingsKeyOrder = [
+                'form_title', 
+                'form_id', 
+                'version', 
+                'style', 
+                'namespaces', 
+                'Read Me - Form template created by OpenClinica Form Designer'
+            ]
+            content['settings'] = OrderedDict(sorted(settings.items(), key=lambda i:settingsKeyOrder.index(i[0])))
+
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
         opts = copy.deepcopy(FLATTEN_OPTS)
+
+        # Remove hxl column and value from XLS export
+        opts['remove_columns']['survey'].append('hxl')
+        
         if not kobo_specific:
             opts['remove_columns']['survey'].append('$kuid')
             opts['remove_columns']['survey'].append('$autoname')
@@ -375,6 +404,8 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
+        self._settings_ensure_form_id(content)
+        self._settings_maintain_key_order(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
@@ -387,14 +418,14 @@ class XlsExportable(object):
             `{'settings': {'setting name': 'setting value'}}` '''
         if versioned:
             append = kwargs['append'] = kwargs.get('append', {})
-            append_survey = append['survey'] = append.get('survey', [])
             append_settings = append['settings'] = append.get('settings', {})
-            append_survey.append(
-                {'name': '__version__',
-                 'calculation': '\'{}\''.format(self.version_id),
-                 'type': 'calculate'}
+            append_settings.update(
+                {
+                    'form_title': self.name,
+                    'namespaces': 'oc="http://openclinica.org/xforms" , OpenClinica="http://openclinica.com/odm"',
+                    'Read Me - Form template created by OpenClinica Form Designer': ''
+                }
             )
-            append_settings.update({'version': self.version_id})
         try:
             def _add_contents_to_sheet(sheet, contents):
                 cols = []
@@ -559,7 +590,6 @@ class Asset(ObjectPermissionMixin,
         asset.save(adjust_content=False)
         '''
         self._standardize(self.content)
-
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)

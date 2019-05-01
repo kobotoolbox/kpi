@@ -163,7 +163,8 @@ module.exports = do ->
       # when attributes change, register changes with parent survey
       if @key in ["name", "label", "hint", "guidance_hint", "required",
                   "calculation", "default", "appearance",
-                  "constraint_message", "tags", "bind::oc:itemgroup"] or @key.match(/^.+::.+/)
+                  "constraint_message", "tags",
+                  "bind::oc:itemgroup", "bind::oc:external"] or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
 

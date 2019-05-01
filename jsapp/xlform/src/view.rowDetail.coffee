@@ -26,6 +26,8 @@ module.exports = do ->
       modelKey = @model.key
       if modelKey == 'bind::oc:itemgroup'
         modelKey = 'oc_item_group'
+      else if modelKey == 'bind::oc:external'
+        modelKey = 'oc_external'
       @extraClass = "xlf-dv-#{modelKey}"
       _.extend(@, viewRowDetail.DetailViewMixins[modelKey] || viewRowDetail.DetailViewMixins.default)
       @$el.addClass(@extraClass)
@@ -479,5 +481,27 @@ module.exports = do ->
       @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--oc-item-group').eq(0)
     afterRender: ->
       @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.oc_external =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      options = ['null', 'clinicaldata']
+      return viewRowDetail.Templates.dropdown @cid, @model.key, options, _t("OC External")
+    insertInDOM: (rowView)->
+      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--oc-external').eq(0)
+    afterRender: ->
+      $select = @$('select')
+      modelValue = @model.get 'value'
+      if $select.length > 0
+        if modelValue == ''
+          $select.val('null')
+        else
+          $select.val(modelValue)
+        
+        $select.change () =>
+          if $select.val() == 'null'
+            @model.set 'value', ''
+          else
+            @model.set 'value', $select.val()
   
   viewRowDetail

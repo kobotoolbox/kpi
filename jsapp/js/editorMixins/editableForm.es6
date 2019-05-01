@@ -7,6 +7,7 @@ import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import Checkbox from '../components/checkbox';
+import TextBox from '../components/textBox';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
@@ -173,6 +174,8 @@ export default assign({
         this.launchAppForSurveyContent(asset.content, {
           name: asset.name,
           settings__style: asset.settings__style,
+          settings__version: asset.settings__version,
+          settings__form_id: asset.settings__form_id,
           asset_uid: asset.uid,
           asset_type: asset.asset_type,
         });
@@ -229,6 +232,28 @@ export default assign({
 
     this.setState({
       settings__style: settingsStyle
+    });
+    this.onSurveyChange();
+  },
+
+  onVersionChange(val) {
+    let settingsVersion = null;
+    if (val !== null) {
+      settingsVersion = val;
+    }
+    this.setState({
+      settings__version: settingsVersion
+    });
+    this.onSurveyChange();
+  },
+
+  onFormIdChange(val) {
+    let settingsFormId = null;
+    if (val !== null) {
+      settingsFormId = val;
+    }
+    this.setState({
+      settings__form_id: settingsFormId
     });
     this.onSurveyChange();
   },
@@ -334,6 +359,14 @@ export default assign({
 
     if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
+    }
+
+    if (this.state.settings__version !== undefined) {
+      this.app.survey.settings.set('version', this.state.settings__version);
+    }
+
+    if (this.state.settings__form_id !== undefined) {
+      this.app.survey.settings.set('form_id', this.state.settings__form_id);
     }
 
     let surveyJSON = surveyToValidJson(this.app.survey)
@@ -456,6 +489,8 @@ export default assign({
       ooo.name = this.state.name;
       ooo.hasSettings = this.state.backRoute === '/forms';
       ooo.styleValue = this.state.settings__style;
+      ooo.versionValue = this.state.settings__version;
+      ooo.formIdValue = this.state.settings__form_id;
     }
     if (this.state.editorState === 'new') {
       ooo.saveButtonText = t('create');
@@ -788,6 +823,8 @@ export default assign({
   renderAside() {
     let {
       styleValue,
+      versionValue,
+      formIdValue,
       hasSettings
     } = this.buttonStates();
 
@@ -835,6 +872,30 @@ export default assign({
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='auto'
               />
+            </bem.FormBuilderAside__row>
+
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>
+                {t('Form information')}
+              </bem.FormBuilderAside__header>
+
+              <bem.FormModal__item>
+                <TextBox
+                  type='text'
+                  label={t('Form ID')}
+                  value={formIdValue}
+                  onChange={this.onFormIdChange}
+                />
+              </bem.FormModal__item>
+
+              <bem.FormModal__item>
+                <TextBox
+                  type='text'
+                  label={t('Version number')}
+                  value={versionValue}
+                  onChange={this.onVersionChange}
+                />
+              </bem.FormModal__item>
             </bem.FormBuilderAside__row>
 
             {this.hasMetadataAndDetails() &&

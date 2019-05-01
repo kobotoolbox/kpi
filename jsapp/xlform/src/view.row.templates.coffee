@@ -36,6 +36,7 @@ module.exports = do ->
           <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
           <li data-card-settings-tab-id="oc-item-group" class="">#{_t("OC Item Group")}</li>
+          <li data-card-settings-tab-id="oc-external" class="">#{_t("OC External")}</li>
           <li data-card-settings-tab-id="response-type" class="card__settings__tab--response-type">#{_t("Response Type")}</li>
         </ul>
         <div class="card__settings__content">
@@ -49,6 +50,9 @@ module.exports = do ->
           </ul>
 
           <ul class="card__settings__fields card__settings__fields--oc-item-group">
+          </ul>
+
+          <ul class="card__settings__fields card__settings__fields--oc-external">
           </ul>
 
           <ul class="card__settings__fields card__settings__fields--response-type">
@@ -66,7 +70,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{_t("Question title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
             <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
@@ -110,7 +114,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{_t("Question title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
