@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import datetime
 from django.db import models
 from django.utils.crypto import get_random_string

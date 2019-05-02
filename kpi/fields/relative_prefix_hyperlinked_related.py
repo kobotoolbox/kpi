@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from django.core.urlresolvers import get_script_prefix
 from django.utils.six.moves.urllib import parse as urlparse
 from rest_framework import serializers

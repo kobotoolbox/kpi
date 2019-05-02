@@ -7,12 +7,12 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
-from ..models.hook_log import HookLog
-from ..serializers.hook_log import HookLogSerializer
-from kpi.permissions import AssetOwnerNestedObjectPermission
-from kpi.serializers import TinyPaginated
+from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.models.hook_log import HookLog
+from kobo.apps.hook.serializers.hook_log import HookLogSerializer
 from kpi.filters import AssetOwnerFilterBackend
+from kpi.paginators import TinyPaginated
+from kpi.permissions import AssetOwnerNestedObjectPermission
 
 
 class HookLogViewSet(NestedViewSetMixin,

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import Resolver404
@@ -7,7 +9,7 @@ from django.core.urlresolvers import resolve
 from django.utils.six.moves.urllib import parse as urlparse
 from rest_framework import serializers
 
-from kpi.models import ObjectPermission
+from kpi.models.object_permission import ObjectPermission
 
 
 class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):

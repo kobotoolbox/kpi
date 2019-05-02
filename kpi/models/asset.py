@@ -1,36 +1,33 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # 😬
-import re
-import sys
-import copy
-import json
+from __future__ import absolute_import
+
 import StringIO
+import copy
+import sys
 from collections import OrderedDict
 
+import jsonbfield.fields
+import six
+import xlwt
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
-import jsonbfield.fields
-from jsonfield import JSONField
-from jsonbfield.fields import JSONField as JSONBField
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
-import six
-import xlwt
-
-from asset_version import AssetVersion
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
+from jsonbfield.fields import JSONField as JSONBField
+from jsonfield import JSONField
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
+
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
-from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
+from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK, \
     ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE, \
     PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
     PERM_VIEW_SUBMISSIONS, PERM_RESTRICTED_SUBMISSIONS, \
@@ -38,35 +35,33 @@ from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK,\
     PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
     PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, PERM_FROM_KC_ONLY, \
     SUFFIX_SUBMISSIONS_PERMS
+from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import BadPermissionsException
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
+from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.asset_translation_utils import (
+    compare_translations,
+    # TRANSLATIONS_EQUAL,
+    TRANSLATIONS_OUT_OF_ORDER,
+    TRANSLATION_RENAMED,
+    TRANSLATION_DELETED,
+    TRANSLATION_ADDED,
+    TRANSLATION_CHANGE_UNSUPPORTED,
+    TRANSLATIONS_MULTIPLE_CHANGES,
+)
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from kpi.utils.standardize_content import (standardize_content,
-                                           needs_standardization,
-                                           standardize_content_in_place)
-
+from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
+                                       replace_with_autofields,
+                                       remove_empty_expressions_in_place)
 from kpi.utils.log import logging
+from kpi.utils.random_id import random_id
+from kpi.utils.sluggify import sluggify_label
+from kpi.utils.standardize_content import (needs_standardization,
+                                           standardize_content_in_place)
 from .asset_user_restricted_permission import AssetUserRestrictedPermission
+from .asset_version import AssetVersion
 from .object_permission import ObjectPermission, ObjectPermissionMixin
-from ..fields import KpiUidField, LazyDefaultJSONBField
-from ..utils.asset_content_analyzer import AssetContentAnalyzer
-from ..utils.asset_translation_utils import (
-        compare_translations,
-        # TRANSLATIONS_EQUAL,
-        TRANSLATIONS_OUT_OF_ORDER,
-        TRANSLATION_RENAMED,
-        TRANSLATION_DELETED,
-        TRANSLATION_ADDED,
-        TRANSLATION_CHANGE_UNSUPPORTED,
-        TRANSLATIONS_MULTIPLE_CHANGES,
-    )
-from ..utils.kobo_to_xlsform import (to_xlsform_structure,
-                                     expand_rank_and_score_in_place,
-                                     replace_with_autofields,
-                                     remove_empty_expressions_in_place)
-from ..utils.sluggify import sluggify_label
-from ..utils.random_id import random_id
-from ..deployment_backends.mixin import DeployableMixin
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.

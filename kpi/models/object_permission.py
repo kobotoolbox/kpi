@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from collections import defaultdict
 import copy
 import re
@@ -11,8 +14,8 @@ from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
 from django.shortcuts import _get_queryset
 
-from ..fields import KpiUidField
-from ..deployment_backends.kc_access.utils import (
+from kpi.fields.kpi_uid import KpiUidField
+from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
 )

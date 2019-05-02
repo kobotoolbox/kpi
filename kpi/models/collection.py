@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from itertools import chain
 
 import haystack
@@ -5,21 +8,21 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.dispatch import receiver
-from mptt.models import MPTTModel, TreeForeignKey
 from mptt.managers import TreeManager
+from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
-from asset import (
+from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
+from kpi.fields import KpiUidField
+from kpi.haystack_utils import update_object_in_search_index
+from .asset import (
     Asset,
     TaggableModelManager,
     KpiTaggableManager,
     TagStringMixin,
 )
-from object_permission import ObjectPermission, ObjectPermissionMixin
-from ..haystack_utils import update_object_in_search_index
-from ..fields import KpiUidField
-from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
+from .object_permission import ObjectPermission, ObjectPermissionMixin
 
 
 class CollectionManager(TreeManager, TaggableModelManager):
@@ -261,5 +264,6 @@ class UserCollectionSubscription(models.Model):
     collection = models.ForeignKey(Collection)
     user = models.ForeignKey('auth.User')
     uid = KpiUidField(uid_prefix='b')
+
     class Meta:
         unique_together = ('collection', 'user')
