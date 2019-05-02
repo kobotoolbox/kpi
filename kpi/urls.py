@@ -1,7 +1,6 @@
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
 from hub.views import ExtraDetailRegistrationView
-from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 import private_storage.urls
 
@@ -9,7 +8,6 @@ from hub.models import ConfigurationFile
 from hub.views import switch_builder
 from kobo.apps.hook.views import HookViewSet, HookLogViewSet
 from kobo.apps.reports.views import ReportsViewSet
-from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.forms import RegistrationForm
 from kpi.views import (
     AssetViewSet,

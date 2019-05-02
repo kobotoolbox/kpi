@@ -11,9 +11,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from ..views import (
-    COLLECTION_CLONE_FIELDS,
-)
+from kpi.constants import COLLECTION_CLONE_FIELDS
 from .kpi_test_case import KpiTestCase
 from .test_assets import AssetsTestCase
 from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY,\

@@ -772,7 +772,7 @@ class ObjectPermissionMixin(object):
             for user_id, perm_id in user_perm_ids:
                 perm_list = user_perm_dict.get(user_id, [])
                 perm_list.append(Permission.objects.get(pk=perm_id).codename)
-                user_perm_dict[user_id] = perm_list
+                user_perm_dict[user_id] = sorted(perm_list)
             # Resolve user ids into actual user objects
             user_perm_dict = {User.objects.get(pk=key): value for (key, value)
                               in user_perm_dict.iteritems()}

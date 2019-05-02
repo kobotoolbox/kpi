@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-import json
 
-from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import detail_route
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from ..models.hook_log import HookLog
 from ..serializers.hook_log import HookLogSerializer
-from kpi.models import Asset
 from kpi.permissions import AssetOwnerNestedObjectPermission
 from kpi.serializers import TinyPaginated
-from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
+from kpi.filters import AssetOwnerFilterBackend
 
 
 class HookLogViewSet(NestedViewSetMixin,

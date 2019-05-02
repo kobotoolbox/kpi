@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from datetime import datetime, timedelta
-import json
+from datetime import timedelta
 
 import constance
 from django.utils import timezone
@@ -17,11 +16,9 @@ from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from ..tasks import retry_all_task
 from ..models import Hook, HookLog
 from ..serializers.hook import HookSerializer
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.permissions import AssetOwnerNestedObjectPermission
-from kpi.views import AssetOwnerFilterBackend, SubmissionViewSet
-from kpi.utils.log import logging
+from kpi.filters import AssetOwnerFilterBackend
 
 
 class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
