@@ -4,94 +4,22 @@ from __future__ import absolute_import
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
 import private_storage.urls
-from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from hub.views import switch_builder
-from kobo.apps.hook.views import HookViewSet, HookLogViewSet
-from kobo.apps.reports.views import ReportsViewSet
 from kpi.forms import RegistrationForm
-from kpi.views import (
-    AssetViewSet,
-    AssetVersionViewSet,
-    AssetSnapshotViewSet,
-    AssetFileViewSet,
-    HookSignalViewSet,
-    SubmissionViewSet,
-    UserViewSet,
-    CurrentUserViewSet,
-    CollectionViewSet,
-    TagViewSet,
-    ImportTaskViewSet,
-    ExportTaskViewSet,
-    ObjectPermissionViewSet,
-    SitewideMessageViewSet,
-    AuthorizedApplicationUserViewSet,
-    OneTimeAuthenticationKeyViewSet,
-    UserCollectionSubscriptionViewSet,
-    TokenView,
-    EnvironmentView,
-)
+from kpi.views import CurrentUserViewSet, TokenView, EnvironmentView
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests
+
+from .router_api_v1 import router_api_v1
+from .router_api_v2 import router_api_v2
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
 # https://docs.djangoproject.com/en/1.8/intro/tutorial03/#namespacing-url-names
 
-router = ExtendedDefaultRouter()
-asset_routes = router.register(r'assets', AssetViewSet, base_name='asset')
-asset_routes.register(r'versions',
-                      AssetVersionViewSet,
-                      base_name='asset-version',
-                      parents_query_lookups=['asset'],
-                      )
-asset_routes.register(r'hook-signal',
-                      HookSignalViewSet,
-                      base_name='hook-signal',
-                      parents_query_lookups=['asset'],
-                      )
-asset_routes.register(r'submissions',
-                      SubmissionViewSet,
-                      base_name='submission',
-                      parents_query_lookups=['asset'],
-                      )
-asset_routes.register(r'files',
-                      AssetFileViewSet,
-                      base_name='asset-file',
-                      parents_query_lookups=['asset'],
-                      )
-
-hook_routes = asset_routes.register(r'hooks',
-                                    HookViewSet,
-                                    base_name='hook',
-                                    parents_query_lookups=['asset'],
-                                    )
-
-hook_routes.register(r'logs',
-                     HookLogViewSet,
-                     base_name='hook-log',
-                     parents_query_lookups=['asset', 'hook'],
-                     )
-
-router.register(r'asset_snapshots', AssetSnapshotViewSet)
-router.register(
-    r'collection_subscriptions', UserCollectionSubscriptionViewSet)
-router.register(r'collections', CollectionViewSet)
-router.register(r'users', UserViewSet)
-router.register(r'tags', TagViewSet)
-router.register(r'permissions', ObjectPermissionViewSet)
-router.register(r'reports', ReportsViewSet, base_name='reports')
-router.register(r'imports', ImportTaskViewSet)
-router.register(r'exports', ExportTaskViewSet)
-router.register(r'sitewide_messages', SitewideMessageViewSet)
-
-router.register(r'authorized_application/users',
-                AuthorizedApplicationUserViewSet,
-                base_name='authorized_applications')
-router.register(r'authorized_application/one_time_authentication_keys',
-                OneTimeAuthenticationKeyViewSet)
 
 # Apps whose translations should be available in the client code.
 js_info_dict = {
@@ -104,7 +32,8 @@ urlpatterns = [
         'get': 'retrieve',
         'patch': 'partial_update',
     }), name='currentuser-detail'),
-    url(r'^', include(router.urls)),
+    url(r'^', include(router_api_v1.urls)),
+    url(r'^api/v2/', include(router_api_v2.urls, namespace='api_v2')),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
