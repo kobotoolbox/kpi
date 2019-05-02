@@ -200,6 +200,9 @@ class FormpackXLSFormUtils(object):
 
         # Remove hxl column and value from XLS export
         opts['remove_columns']['survey'].append('hxl')
+
+        # Remove 'default' column and value from XLS export
+        opts['remove_columns']['survey'].append('default')
         
         if not kobo_specific:
             opts['remove_columns']['survey'].append('$kuid')
