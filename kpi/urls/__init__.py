@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
-from hub.views import ExtraDetailRegistrationView
-from rest_framework_extensions.routers import ExtendedDefaultRouter
 import private_storage.urls
+from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from hub.models import ConfigurationFile
+from hub.views import ExtraDetailRegistrationView
 from hub.views import switch_builder
 from kobo.apps.hook.views import HookViewSet, HookLogViewSet
 from kobo.apps.reports.views import ReportsViewSet
@@ -30,10 +33,8 @@ from kpi.views import (
     TokenView,
     EnvironmentView,
 )
-
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests
-
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
