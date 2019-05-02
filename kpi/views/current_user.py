@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 
 from django.contrib.auth.models import User
 from rest_framework import viewsets
+
 from kpi.serializers import CurrentUserSerializer
 
 
