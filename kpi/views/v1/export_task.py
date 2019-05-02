@@ -10,7 +10,7 @@ from kpi.models.import_export_task import _resolve_url_to_asset_or_collection
 from kpi.model_utils import remove_string_prefix
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
-from .no_update_model import NoUpdateModelViewSet
+from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
 class ExportTaskViewSet(NoUpdateModelViewSet):

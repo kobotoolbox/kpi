@@ -9,9 +9,11 @@ from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from hub.views import switch_builder
 from kpi.forms import RegistrationForm
-from kpi.views import CurrentUserViewSet, TokenView, EnvironmentView
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests
+from kpi.views.environment import EnvironmentView
+from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2
@@ -52,7 +54,7 @@ urlpatterns = [
     url(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
-    # url(r'^.*', home),
+
     url(r'^token/$', TokenView.as_view(), name='token'),
     url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
     url(r'^configurationfile/(?P<slug>[^/]+)/?',

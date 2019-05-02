@@ -15,8 +15,7 @@ from kpi.highlighters import highlight_xform
 from kpi.models import AssetSnapshot
 from kpi.renderers import XMLRenderer
 from kpi.serializers import AssetSnapshotSerializer
-
-from .no_update_model import NoUpdateModelViewSet
+from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):

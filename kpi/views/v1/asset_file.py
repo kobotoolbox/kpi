@@ -10,8 +10,7 @@ from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import Asset, AssetFile
 from kpi.serializers import AssetFileSerializer
-
-from .no_update_model import NoUpdateModelViewSet
+from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
 class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
