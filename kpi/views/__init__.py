@@ -24,25 +24,25 @@ from kpi.models import AuthorizedApplication, OneTimeAuthenticationKey
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
 
-from .asset import AssetViewSet
-from .asset_file import AssetFileViewSet
-from .asset_snapshot import AssetSnapshotViewSet
-from .asset_version import AssetVersionViewSet
-from .authorized_application_user import AuthorizedApplicationUserViewSet
-from .collection import CollectionViewSet
-from .current_user import CurrentUserViewSet
-from .environment import EnvironmentView
-from .export_task import ExportTaskViewSet
-from .hook_signal import HookSignalViewSet
-from .import_task import ImportTaskViewSet
-from .object_permission import ObjectPermissionViewSet
-from .one_time_authentication_key import OneTimeAuthenticationKeyViewSet
-from .sitewide_message import SitewideMessageViewSet
-from .submission import SubmissionViewSet
-from .tag import TagViewSet
-from .token import TokenView
-from .user import UserViewSet
-from .user_collection_subscription import UserCollectionSubscriptionViewSet
+from .v1.asset import AssetViewSet
+from .v1.asset_file import AssetFileViewSet
+from .v1.asset_snapshot import AssetSnapshotViewSet
+from .v1.asset_version import AssetVersionViewSet
+from .v1.authorized_application_user import AuthorizedApplicationUserViewSet
+from .v1.collection import CollectionViewSet
+from .v1.current_user import CurrentUserViewSet
+from .v1.environment import EnvironmentView
+from .v1.export_task import ExportTaskViewSet
+from .v1.hook_signal import HookSignalViewSet
+from .v1.import_task import ImportTaskViewSet
+from .v1.object_permission import ObjectPermissionViewSet
+from .v1.one_time_authentication_key import OneTimeAuthenticationKeyViewSet
+from .v1.sitewide_message import SitewideMessageViewSet
+from .v1.submission import SubmissionViewSet
+from .v1.tag import TagViewSet
+from .v1.token import TokenView
+from .v1.user import UserViewSet
+from .v1.user_collection_subscription import UserCollectionSubscriptionViewSet
 
 
 @login_required
