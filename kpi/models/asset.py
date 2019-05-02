@@ -14,7 +14,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
-from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
@@ -78,9 +77,9 @@ class TaggableModelManager(models.Manager):
 class KpiTaggableManager(_TaggableManager):
     @require_instance_manager
     def add(self, *tags, **kwargs):
-        ''' A wrapper that replaces spaces in tag names with dashes and also
+        """ A wrapper that replaces spaces in tag names with dashes and also
         strips leading and trailng whitespace. Behavior should match the
-        TagsInput transform function in app.es6. '''
+        TagsInput transform function in app.es6. """
         tags_out = []
         for t in tags:
             # Modify strings only; the superclass' add() method will then
@@ -383,12 +382,12 @@ class XlsExportable(object):
         return content
 
     def to_xls_io(self, versioned=False, **kwargs):
-        ''' To append rows to one or more sheets, pass `append` as a
+        """ To append rows to one or more sheets, pass `append` as a
         dictionary of lists of dictionaries in the following format:
             `{'sheet name': [{'column name': 'cell value'}]}`
         Extra settings may be included as a dictionary in the same
         parameter.
-            `{'settings': {'setting name': 'setting value'}}` '''
+            `{'settings': {'setting name': 'setting value'}}` """
         if versioned:
             append = kwargs['append'] = kwargs.get('append', {})
             append_survey = append['survey'] = append.get('survey', [])
@@ -557,11 +556,11 @@ class Asset(ObjectPermissionMixin,
         return u'{} ({})'.format(self.name, self.uid)
 
     def adjust_content_on_save(self):
-        '''
+        """
         This is called on save by default if content exists.
         Can be disabled / skipped by calling with parameter:
         asset.save(adjust_content=False)
-        '''
+        """
         self._standardize(self.content)
 
         self._make_default_translation_first(self.content)
@@ -678,7 +677,7 @@ class Asset(ObjectPermissionMixin,
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
-        ''' Used by serializers to improve performance when listing assets '''
+        """ Used by serializers to improve performance when listing assets """
         queryset = queryset.defer(
             # Avoid pulling these `JSONField`s from the database because:
             #   * they are stored as plain text, and just deserializing them
@@ -946,117 +945,4 @@ class Asset(ObjectPermissionMixin,
             clean_up_table()
 
 
-class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
-    '''
-    This model serves as a cache of the XML that was exported by the installed
-    version of pyxform.
 
-    TODO: come up with a policy to clear this cache out.
-    DO NOT: depend on these snapshots existing for more than a day until a policy is set.
-    '''
-    xml = models.TextField()
-    source = JSONField(null=True)
-    details = JSONField(default=dict)
-    owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
-    asset = models.ForeignKey(Asset, null=True)
-    _reversion_version_id = models.IntegerField(null=True)
-    asset_version = models.OneToOneField('AssetVersion',
-                                         on_delete=models.CASCADE,
-                                         null=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    uid = KpiUidField(uid_prefix='s')
-
-    @property
-    def content(self):
-        return self.source
-
-    def save(self, *args, **kwargs):
-        if self.asset is not None:
-            if self.source is None:
-                if self.asset_version is None:
-                    self.asset_version = self.asset.latest_version
-                self.source = self.asset_version.version_content
-            if self.owner is None:
-                self.owner = self.asset.owner
-        _note = self.details.pop('note', None)
-        _source = copy.deepcopy(self.source)
-        if _source is None:
-            _source = {}
-        self._standardize(_source)
-        self._make_default_translation_first(_source)
-        self._strip_empty_rows(_source)
-        self._autoname(_source)
-        self._remove_empty_expressions(_source)
-        _settings = _source.get('settings', {})
-        form_title = _settings.get('form_title')
-        id_string = _settings.get('id_string')
-
-        (self.xml, self.details) = \
-            self.generate_xml_from_source(_source,
-                                          include_note=_note,
-                                          root_node_name='data',
-                                          form_title=form_title,
-                                          id_string=id_string)
-        self.source = _source
-        return super(AssetSnapshot, self).save(*args, **kwargs)
-
-    def generate_xml_from_source(self,
-                                 source,
-                                 include_note=False,
-                                 root_node_name='snapshot_xml',
-                                 form_title=None,
-                                 id_string=None):
-        if form_title is None:
-            form_title = 'Snapshot XML'
-        if id_string is None:
-            id_string = 'snapshot_xml'
-
-        if include_note and 'survey' in source:
-            _translations = source.get('translations', [])
-            _label = include_note
-            if len(_translations) > 0:
-                _label = [_label for t in _translations]
-            source['survey'].append({u'type': u'note',
-                                     u'name': u'prepended_note',
-                                     u'label': _label})
-
-        source_copy = copy.deepcopy(source)
-        self._expand_kobo_qs(source_copy)
-        self._populate_fields_with_autofields(source_copy)
-        self._strip_kuids(source_copy)
-
-        warnings = []
-        details = {}
-        try:
-            xml = FormPack({'content': source_copy},
-                           root_node_name=root_node_name,
-                           id_string=id_string,
-                           title=form_title)[0].to_xml(warnings=warnings)
-            details.update({
-                u'status': u'success',
-                u'warnings': warnings,
-            })
-        except Exception as err:
-            err_message = unicode(err)
-            logging.error('Failed to generate xform for asset', extra={
-                'src': source,
-                'id_string': id_string,
-                'uid': self.uid,
-                '_msg': err_message,
-                'warnings': warnings,
-            })
-            xml = ''
-            details.update({
-                u'status': u'failure',
-                u'error_type': type(err).__name__,
-                u'error': err_message,
-                u'warnings': warnings,
-            })
-        return (xml, details)
-
-
-@receiver(models.signals.post_delete, sender=Asset)
-def post_delete_asset(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted

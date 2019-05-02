@@ -45,8 +45,8 @@ class ApplicationTokenAuthentication(TokenAuthentication):
     model = AuthorizedApplication
 
     def authenticate_credentials(self, key):
-        ''' Mostly duplicated from TokenAuthentication, except that we return
-        an AnonymousUser '''
+        """ Mostly duplicated from TokenAuthentication, except that we return
+        an AnonymousUser """
         try:
             token = self.model.objects.get(key=key)
         except self.model.DoesNotExist:

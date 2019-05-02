@@ -39,8 +39,8 @@ def perm_parse(perm, obj=None):
 
 
 def get_all_objects_for_user(user, klass):
-    ''' Return all objects of type klass to which user has been assigned any
-    permission. '''
+    """ Return all objects of type klass to which user has been assigned any
+    permission. """
     return klass.objects.filter(pk__in=ObjectPermission.objects.filter(
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
@@ -134,7 +134,7 @@ def get_objects_for_user(user, perms, klass=None):
 
 
 def get_anonymous_user():
-    ''' Return a real User in the database to represent AnonymousUser. '''
+    """ Return a real User in the database to represent AnonymousUser. """
     try:
         user = User.objects.get(pk=settings.ANONYMOUS_USER_ID)
     except User.DoesNotExist:
@@ -152,15 +152,15 @@ def get_anonymous_user():
 
 class ObjectPermissionManager(models.Manager):
     def _rewrite_query_args(self, method, content_object, **kwargs):
-        ''' Rewrite content_object into object_id and content_type, then pass
-        those together with **kwargs to the given method. '''
+        """ Rewrite content_object into object_id and content_type, then pass
+        those together with **kwargs to the given method. """
         content_type = ContentType.objects.get_for_model(content_object)
         kwargs['object_id'] = content_object.pk
         kwargs['content_type'] = content_type
         return method(**kwargs)
 
     def get_for_object(self, content_object, **kwargs):
-        ''' Wrapper to allow get() queries using a generic foreign key. '''
+        """ Wrapper to allow get() queries using a generic foreign key. """
         return self._rewrite_query_args(
             super(ObjectPermissionManager, self).get,
             content_object, **kwargs
@@ -170,15 +170,15 @@ class ObjectPermissionManager(models.Manager):
         return super(ObjectPermissionManager, self).filter(*args, **kwargs)
 
     def filter_for_object(self, content_object, **kwargs):
-        ''' Wrapper to allow filter() queries using a generic foreign key. '''
+        """ Wrapper to allow filter() queries using a generic foreign key. """
         return self._rewrite_query_args(
             super(ObjectPermissionManager, self).filter,
             content_object, **kwargs
         )
 
     def get_or_create_for_object(self, content_object, **kwargs):
-        ''' Wrapper to allow get_or_create() calls using a generic foreign
-        key. '''
+        """ Wrapper to allow get_or_create() calls using a generic foreign
+        key. """
         return self._rewrite_query_args(
             super(ObjectPermissionManager, self).get_or_create,
             content_object, **kwargs
@@ -186,9 +186,9 @@ class ObjectPermissionManager(models.Manager):
 
 
 class ObjectPermission(models.Model):
-    ''' An application of an auth.Permission instance to a specific
+    """ An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
-    filter_for_object() to run queries using the content_object field. '''
+    filter_for_object() to run queries using the content_object field. """
     user = models.ForeignKey('auth.User')
     permission = models.ForeignKey('auth.Permission')
     deny = models.BooleanField(
@@ -311,9 +311,9 @@ class ObjectPermissionMixin(object):
         fresh_self.recalculate_descendants_perms()
 
     def _filter_anonymous_perms(self, unfiltered_set):
-        ''' Restrict a set of tuples in the format (user_id, permission_id) to
+        """ Restrict a set of tuples in the format (user_id, permission_id) to
         only those permissions that apply to the content_type of this object
-        and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS. '''
+        and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS. """
         content_type = ContentType.objects.get_for_model(self)
         # Translate settings.ALLOWED_ANONYMOUS_PERMISSIONS to primary keys
         codenames = set()
@@ -334,9 +334,9 @@ class ObjectPermissionMixin(object):
     def _get_effective_perms(
         self, user=None, codename=None, include_calculated=True
     ):
-        ''' Reconcile all grant and deny permissions, and return an
+        """ Reconcile all grant and deny permissions, and return an
         authoritative set of grant permissions (i.e. deny=False) for the
-        current object. '''
+        current object. """
         # Including calculated permissions means we can't just pass kwargs
         # through to filter(), but we'll map the ones we understand.
         kwargs = {}
@@ -428,9 +428,9 @@ class ObjectPermissionMixin(object):
             return effective_perms
 
     def recalculate_descendants_perms(self):
-        ''' Recalculate the inherited permissions of all descendants. Expects
+        """ Recalculate the inherited permissions of all descendants. Expects
         either self.get_mixed_children() or self.get_children() to exist. The
-        former will be used preferentially if it exists. '''
+        former will be used preferentially if it exists. """
 
         GET_CHILDREN_METHODS = ('get_mixed_children', 'get_children')
         can_have_children = False
@@ -740,8 +740,8 @@ class ObjectPermissionMixin(object):
         return new_permission
 
     def get_perms(self, user_obj):
-        ''' Return a list of codenames of all effective grant permissions that
-        user_obj has on this object. '''
+        """ Return a list of codenames of all effective grant permissions that
+        user_obj has on this object. """
         user_perm_ids = self._get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
         return Permission.objects.filter(pk__in=perm_ids).values_list(
@@ -766,9 +766,9 @@ class ObjectPermissionMixin(object):
         return None
 
     def get_users_with_perms(self, attach_perms=False):
-        ''' Return a QuerySet of all users with any effective grant permission
+        """ Return a QuerySet of all users with any effective grant permission
         on this object. If attach_perms=True, then return a dict with
-        users as the keys and lists of their permissions as the values. '''
+        users as the keys and lists of their permissions as the values. """
         user_perm_ids = self._get_effective_perms()
         if attach_perms:
             user_perm_dict = {}
@@ -786,7 +786,7 @@ class ObjectPermissionMixin(object):
             return User.objects.filter(pk__in=user_ids)
 
     def has_perm(self, user_obj, perm):
-        ''' Does user_obj have perm on this object? (True/False) '''
+        """ Does user_obj have perm on this object? (True/False) """
         app_label, codename = perm_parse(perm, self)
         is_anonymous = False
         if isinstance(user_obj, AnonymousUser):

@@ -64,10 +64,10 @@ S3Boto3StorageFile._flush_write_buffer = _flush_write_buffer
 
 
 def utcnow(*args, **kwargs):
-    '''
+    """
     Stupid, and exists only to facilitate mocking during unit testing.
     If you know of a better way, please remove this.
-    '''
+    """
     return datetime.datetime.utcnow()
 
 
@@ -89,10 +89,10 @@ def _resolve_url_to_asset_or_collection(item_path):
 
 
 class ImportExportTask(models.Model):
-    '''
+    """
     A common base model for asynchronous import and exports. Must be
     subclassed to be useful. Subclasses must implement the `_run_task()` method
-    '''
+    """
 
     class Meta:
         abstract = True
@@ -118,11 +118,11 @@ class ImportExportTask(models.Model):
     # date_expired = models.DateTimeField(null=True)
 
     def run(self):
-        '''
+        """
         Starts the import/export job by calling the subclass' `_run_task()`
         method. Catches all exceptions!  Suitable to be called by an
         asynchronous task runner (Celery)
-        '''
+        """
         with transaction.atomic():
             _refetched_self = self._meta.model.objects.get(pk=self.pk)
             self.status = _refetched_self.status
@@ -169,10 +169,10 @@ class ImportExportTask(models.Model):
 
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')
-    '''
+    """
     someting that would be done after the file has uploaded
     ...although we probably would need to store the file in a blob
-    '''
+    """
 
     def _run_task(self, messages):
         self.status = self.PROCESSING
@@ -356,18 +356,18 @@ class ImportTask(ImportExportTask):
 
 
 def export_upload_to(self, filename):
-    '''
+    """
     Please note that due to Python 2 limitations, you cannot serialize unbound
     method functions (e.g. a method declared and used in the same class body).
     Please move the function into the main module body to use migrations. For
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
-    '''
+    """
     return posixpath.join(self.user.username, 'exports', filename)
 
 
 class ExportTask(ImportExportTask):
-    '''
+    """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
     * `type`: required; `xls` or `csv`
@@ -400,7 +400,7 @@ class ExportTask(ImportExportTask):
              | 123                             |
 
         The default is `['hxl']`
-    '''
+    """
 
     uid = KpiUidField(uid_prefix='e')
     last_submission_time = models.DateTimeField(null=True)
@@ -432,13 +432,13 @@ class ExportTask(ImportExportTask):
         ).lower() == 'true'
 
     def _build_export_filename(self, export, export_type):
-        '''
+        """
         Internal method to build the export filename based on the export title
         (which should be set when calling the `FormPack()` constructor),
         whether the latest or all versions are included, the label language,
         the current date and time, and the appropriate extension for the given
         `export_type`
-        '''
+        """
 
         if export_type == 'xls':
             extension = 'xlsx'
@@ -480,10 +480,10 @@ class ExportTask(ImportExportTask):
         return filename
 
     def _build_export_options(self, pack):
-        '''
+        """
         Internal method to build formpack `Export` constructor arguments based
         on the options set in `self.data`
-        '''
+        """
         hierarchy_in_labels = self.data.get(
             'hierarchy_in_labels', ''
         ).lower() == 'true'
@@ -509,11 +509,11 @@ class ExportTask(ImportExportTask):
         }
 
     def _record_last_submission_time(self, submission_stream):
-        '''
+        """
         Internal generator that yields each submission in the given
         `submission_stream` while recording the most recent submission
         timestamp in `self.last_submission_time`
-        '''
+        """
         # FIXME: Mongo has only per-second resolution. Brutal.
         for submission in submission_stream:
             try:
@@ -533,11 +533,11 @@ class ExportTask(ImportExportTask):
             yield submission
 
     def _run_task(self, messages):
-        '''
+        """
         Generate the export and store the result in the `self.result`
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
-        '''
+        """
         source_url = self.data.get('source', False)
         if not source_url:
             raise Exception('no source specified for the export')
@@ -606,14 +606,14 @@ class ExportTask(ImportExportTask):
                     # is fixed
                     # TODO: Check if monkey-patch (line 57) can restore writing
                     # by chunk
-                    '''
+                    """
                     while True:
                         chunk = xlsx_output_file.read(5 * 1024 * 1024)
                         if chunk:
                             output_file.write(chunk)
                         else:
                             break
-                    '''
+                    """
                     output_file.write(xlsx_output_file.read())
             elif export_type == 'spss_labels':
                 export.to_spss_labels(output_file)
@@ -628,21 +628,21 @@ class ExportTask(ImportExportTask):
 
     @staticmethod
     def _filter_by_source_kludge(queryset, source):
-        '''
+        """
         A disposable way to filter a queryset by source URL.
         TODO: make `data` a `JSONBField` and use proper filtering
-        '''
+        """
         return queryset.filter(data__contains=source)
 
     @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
-        '''
+        """
         Set the status to ERROR and log a warning for any export that's been in
         an incomplete state for too long.
 
         `source` is the source URL as included in the `data` attribute.
-        '''
+        """
         # How long can an export possibly run, not including time spent waiting
         # in the Celery queue?
         max_export_run_time = getattr(
@@ -674,13 +674,13 @@ class ExportTask(ImportExportTask):
     @classmethod
     @transaction.atomic
     def remove_excess(cls, user, source):
-        '''
+        """
         Remove a user's oldest exports if they have more than
         settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM exports for a particular
         form. Returns the number of exports removed.
 
         `source` is the source URL as included in the `data` attribute.
-        '''
+        """
         user_source_exports = cls._filter_by_source_kludge(
             cls.objects.filter(user=user), source
         ).order_by('-date_created')
