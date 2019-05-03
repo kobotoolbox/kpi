@@ -308,6 +308,14 @@ export default assign({
     );
   },
 
+  hideMetadata() {
+    return true;
+  },
+
+  hideDetails() {
+    return true;
+  },
+
   needsSave() {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
@@ -898,7 +906,7 @@ export default assign({
               </bem.FormModal__item>
             </bem.FormBuilderAside__row>
 
-            {this.hasMetadataAndDetails() &&
+            {this.hasMetadataAndDetails() && !this.hideMetadata() &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Metadata')}
@@ -912,7 +920,7 @@ export default assign({
               </bem.FormBuilderAside__row>
             }
 
-            {this.hasMetadataAndDetails() &&
+            {this.hasMetadataAndDetails() && !this.hideDetails() &&
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>
                   {t('Details')}
