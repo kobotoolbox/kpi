@@ -16,6 +16,7 @@ import actions from 'js/actions';
 import bem from 'js/bem';
 import {
   t,
+  notify,
   parsePermissions,
   stringToColor,
   anonUsername
@@ -51,7 +52,8 @@ class UserPermissionEditor extends React.Component {
       change_submissions: false,
       validate_submissions: false,
       restricted_view: false,
-      restricted_view_users: []
+      restricted_view_users: [],
+      isAwaitingAsyncResponse: false
     };
   }
 
@@ -59,6 +61,7 @@ class UserPermissionEditor extends React.Component {
     // TODO set permissions from props if given (i.e. editing existing permissions vs giving new)
 
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
+    this.listenTo(actions.misc.checkUsername.completed, this.onCheckUsernameActionCompleted);
   }
 
   togglePerm(permId) {
@@ -72,26 +75,59 @@ class UserPermissionEditor extends React.Component {
   }
 
   restrictedUsersChange(allUsers, changedUsers) {
-    this.setState({restricted_view_users: allUsers});
-    changedUsers.forEach((username) => {
-      this.callCheckUsername(username);
+    const restrictedUsers = [];
+
+    allUsers.forEach((username) => {
+      const userCheck = this.checkUsernameSync(username);
+      if (userCheck === true) {
+        restrictedUsers.push(username);
+      } else if (userCheck === undefined) {
+        // we add unknown usernames for now and will check with checkUsernameAsync
+        restrictedUsers.push(username);
+        this.checkUsernameAsync(username);
+      } else {
+        this.notifyUnknownUser(username);
+      }
     })
-    console.log('restrictedUsersChange', allUsers, changedUsers);
+
+    this.setState({restricted_view_users: restrictedUsers});
   }
 
-  callCheckUsername(username) {
-    const storesResult = stores.userExists.checkUsername(username);
-    if (storesResult === undefined) {
-      actions.misc.checkUsername(username);
-    } else {
-      onUserExistsStoreChange(result);
-    }
+  /**
+   * This function returns either boolean (for known username) or undefined
+   */
+  checkUsernameSync(username) {
+    return stores.userExists.checkUsername(username);
   }
 
+  /**
+   * This function calls API and relies on onUserExistsStoreChange callback
+   */
+  checkUsernameAsync(username) {
+    actions.misc.checkUsername(username);
+    this.setState({isAwaitingAsyncResponse: true});
+  }
+
+  onCheckUsernameActionCompleted() {
+    this.setState({isAwaitingAsyncResponse: false});
+  }
+
+  notifyUnknownUser(username) {
+    notify(`${t('User not found:')} ${username}`, 'warning');
+  }
+
+  /**
+   * Remove nonexistent usernames from tagsinput array
+   */
   onUserExistsStoreChange(result) {
-    // TODO: check if username exists in `restricted_view_users`
-    // if yes, if result false, remove it and display error message to user
-    console.log('onUserExistsStoreChange', result);
+    const restrictedUsers = this.state.restricted_view_users;
+    restrictedUsers.forEach((username) => {
+      if (result[username] === false) {
+        restrictedUsers.pop(restrictedUsers.indexOf(username));
+        this.notifyUnknownUser(username);
+      }
+    });
+    this.setState({restricted_view_users: restrictedUsers});
   }
 
   render() {
@@ -164,6 +200,12 @@ class UserPermissionEditor extends React.Component {
           onChange={this.togglePerm.bind(this, 'validate_submissions')}
           label={AVAILABLE_PERMISSIONS.get('validate_submissions')}
         />
+
+        <bem.Button
+          disabled={!this.state.isAwaitingAsyncResponse}
+        >
+          {t('Submit')}
+        </bem.Button>
       </bem.FormModal__item>
     );
   }
@@ -353,9 +395,9 @@ class SharingForm extends React.Component {
   _usernameCheckCall (evt) {
     var username = evt.target.value;
     if (username && username.length > 1) {
-      var result = stores.userExists.checkUsername(username);
+      var result = stores.userExists.checkUsernameSync(username);
       if (result === undefined) {
-        actions.misc.checkUsername(username);
+        actions.misc.checkUsernameSync(username);
       } else {
         this.setState({
           userInputStatus: result ? 'success' : 'error'
@@ -370,7 +412,7 @@ class SharingForm extends React.Component {
   addInitialUserPermission (evt) {
     evt.preventDefault();
     var username = this.usernameFieldValue();
-    if (stores.userExists.checkUsername(username)) {
+    if (stores.userExists.checkUsernameSync(username)) {
       actions.permissions.assignPerm({
         username: username,
         uid: this.state.asset.uid,
