@@ -418,7 +418,7 @@ var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
     this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
-    this.listenTo(actions.misc.checkUsername.failed_, this.usernameDoesntExist);
+    this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
   },
   checkUsername (username) {
     if (username in this.checked) {

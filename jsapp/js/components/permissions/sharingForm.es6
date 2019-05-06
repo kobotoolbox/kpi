@@ -27,6 +27,7 @@ import {
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
+import UserPermissionsEditor from './userPermissionsEditor';
 
 var availablePermissions = [
   {value: 'view', label: t('View Form')},
@@ -37,186 +38,16 @@ var availablePermissions = [
   {value: 'validate_submissions', label: t('Validate Submissions')}
 ];
 
-class UserPermissionEditor extends React.Component {
+class UserPermissionRow extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
 
     this.state = {
-      username: '',
-      usernameError: '',
-      view: false,
-      change: false,
-      view_submissions: false,
-      add_submissions: false,
-      change_submissions: false,
-      validate_submissions: false,
-      restricted_view: false,
-      restricted_view_users: [],
-      isAwaitingAsyncResponse: false
-    };
+      isEditFormVisible: false
+    }
   }
 
-  componentDidMount() {
-    // TODO set permissions from props if given (i.e. editing existing permissions vs giving new)
-
-    this.listenTo(stores.userExists, this.onUserExistsStoreChange);
-    this.listenTo(actions.misc.checkUsername.completed, this.onCheckUsernameActionCompleted);
-  }
-
-  togglePerm(permId) {
-    let newPerms = {};
-    newPerms[permId] = !this.state[permId];
-    this.setState(newPerms);
-  }
-
-  usernameChange(username) {
-    this.setState({username: username});
-  }
-
-  restrictedUsersChange(allUsers, changedUsers) {
-    const restrictedUsers = [];
-
-    allUsers.forEach((username) => {
-      const userCheck = this.checkUsernameSync(username);
-      if (userCheck === true) {
-        restrictedUsers.push(username);
-      } else if (userCheck === undefined) {
-        // we add unknown usernames for now and will check with checkUsernameAsync
-        restrictedUsers.push(username);
-        this.checkUsernameAsync(username);
-      } else {
-        this.notifyUnknownUser(username);
-      }
-    })
-
-    this.setState({restricted_view_users: restrictedUsers});
-  }
-
-  /**
-   * This function returns either boolean (for known username) or undefined
-   */
-  checkUsernameSync(username) {
-    return stores.userExists.checkUsername(username);
-  }
-
-  /**
-   * This function calls API and relies on onUserExistsStoreChange callback
-   */
-  checkUsernameAsync(username) {
-    actions.misc.checkUsername(username);
-    this.setState({isAwaitingAsyncResponse: true});
-  }
-
-  onCheckUsernameActionCompleted() {
-    this.setState({isAwaitingAsyncResponse: false});
-  }
-
-  notifyUnknownUser(username) {
-    notify(`${t('User not found:')} ${username}`, 'warning');
-  }
-
-  /**
-   * Remove nonexistent usernames from tagsinput array
-   */
-  onUserExistsStoreChange(result) {
-    const restrictedUsers = this.state.restricted_view_users;
-    restrictedUsers.forEach((username) => {
-      if (result[username] === false) {
-        restrictedUsers.pop(restrictedUsers.indexOf(username));
-        this.notifyUnknownUser(username);
-      }
-    });
-    this.setState({restricted_view_users: restrictedUsers});
-  }
-
-  render() {
-    const restrictedViewUsersInputProps = {
-      placeholder: t('Add username(s)')
-    };
-
-    return (
-      <bem.FormModal__item>
-        {t('Grant permissions to')}
-
-        <TextBox
-          placeholder={t('username')}
-          errors={this.state.usernameError}
-          value={this.state.username}
-          onChange={this.usernameChange}
-        />
-
-        <Checkbox
-          checked={this.state.view}
-          onChange={this.togglePerm.bind(this, 'view')}
-          label={AVAILABLE_PERMISSIONS.get('view')}
-        />
-
-        {this.state.view === true &&
-          <div>
-            <Checkbox
-              checked={this.state.restricted_view}
-              onChange={this.togglePerm.bind(this, 'restricted_view')}
-              label={t('Restrict to submissions made by certain users')}
-            />
-
-            {this.state.restricted_view === true &&
-              <TagsInput
-                value={this.state.restricted_view_users}
-                onChange={this.restrictedUsersChange}
-                inputProps={restrictedViewUsersInputProps}
-                onlyUnique
-              />
-            }
-          </div>
-        }
-
-        <Checkbox
-          checked={this.state.change}
-          onChange={this.togglePerm.bind(this, 'change')}
-          label={AVAILABLE_PERMISSIONS.get('change')}
-        />
-
-        <Checkbox
-          checked={this.state.view_submissions}
-          onChange={this.togglePerm.bind(this, 'view_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('view_submissions')}
-        />
-
-        <Checkbox
-          checked={this.state.add_submissions}
-          onChange={this.togglePerm.bind(this, 'add_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('add_submissions')}
-        />
-
-        <Checkbox
-          checked={this.state.change_submissions}
-          onChange={this.togglePerm.bind(this, 'change_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('change_submissions')}
-        />
-
-        <Checkbox
-          checked={this.state.validate_submissions}
-          onChange={this.togglePerm.bind(this, 'validate_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('validate_submissions')}
-        />
-
-        <bem.Button
-          disabled={!this.state.isAwaitingAsyncResponse}
-        >
-          {t('Submit')}
-        </bem.Button>
-      </bem.FormModal__item>
-    );
-  }
-}
-reactMixin(UserPermissionEditor.prototype, Reflux.ListenerMixin);
-
-class UserPermDiv extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
   removePermissions() {
     // removing view permission will include all other permissions
     actions.permissions.removePerm({
@@ -224,6 +55,7 @@ class UserPermDiv extends React.Component {
       content_object_uid: this.props.uid
     });
   }
+
   PermOnChange(perm) {
     var cans = this.props.can;
     if (perm) {
@@ -237,8 +69,12 @@ class UserPermDiv extends React.Component {
       if (cans.change)
         this.removePerm('change', cans.change, this.props.uid);
     }
-
   }
+
+  toggleEditForm() {
+    this.setState({isEditFormVisible: !this.state.isEditFormVisible});
+  }
+
   render () {
     var initialsStyle = {
       background: `#${stringToColor(this.props.username)}`
@@ -260,12 +96,41 @@ class UserPermDiv extends React.Component {
             {this.props.username.charAt(0)}
           </bem.AccountBox__initials>
         </bem.UserRow__avatar>
+
         <bem.UserRow__name>
           {this.props.username}
         </bem.UserRow__name>
+
         <bem.UserRow__role title={cansString}>
           {cansString}
         </bem.UserRow__role>
+
+        <div>
+          {!this.state.isEditFormVisible &&
+            <bem.Button
+              m={['raised', 'colored']}
+              onClick={this.toggleEditForm}
+            >
+              {t('Edit')}
+            </bem.Button>
+          }
+          {this.state.isEditFormVisible &&
+            <bem.FormModal__item m='gray-row'>
+              <bem.Button
+                m='icon'
+                onClick={this.toggleEditForm}
+              >
+                <i className='k-icon k-icon-close'/>
+              </bem.Button>
+
+              <UserPermissionsEditor
+                username={this.props.username}
+                cans={this.props.cans}
+              />
+            </bem.FormModal__item>
+          }
+        </div>
+
         <bem.UserRow__cancel onClick={this.removePermissions}>
           <i className='k-icon k-icon-trash' />
         </bem.UserRow__cancel>
@@ -274,7 +139,7 @@ class UserPermDiv extends React.Component {
   }
 }
 
-reactMixin(UserPermDiv.prototype, mixins.permissions);
+reactMixin(UserPermissionRow.prototype, mixins.permissions);
 
 class PublicPermDiv extends React.Component {
   constructor(props) {
@@ -395,7 +260,7 @@ class SharingForm extends React.Component {
   _usernameCheckCall (evt) {
     var username = evt.target.value;
     if (username && username.length > 1) {
-      var result = stores.userExists.checkUsernameSync(username);
+      var result = stores.userExists.checkUsername(username);
       if (result === undefined) {
         actions.misc.checkUsernameSync(username);
       } else {
@@ -412,7 +277,7 @@ class SharingForm extends React.Component {
   addInitialUserPermission (evt) {
     evt.preventDefault();
     var username = this.usernameFieldValue();
-    if (stores.userExists.checkUsernameSync(username)) {
+    if (stores.userExists.checkUsername(username)) {
       actions.permissions.assignPerm({
         username: username,
         uid: this.state.asset.uid,
@@ -507,12 +372,19 @@ class SharingForm extends React.Component {
           </bem.UserRow>
 
           {perms.map((perm)=> {
-            return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+            return <UserPermissionRow
+              key={`perm.${uid}.${perm.username}`}
+              ref={perm.username}
+              uid={uid}
+              kind={kind}
+              objectUrl={objectUrl}
+              {...perm}
+            />;
           })}
 
         </bem.FormModal__item>
 
-        <bem.FormModal__form
+        <bem.FormModal__item
           onSubmit={this.addInitialUserPermission}
           className='sharing-form__user'
         >
@@ -533,7 +405,7 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              <UserPermissionEditor />
+              <UserPermissionsEditor />
             </bem.FormModal__item>
           }
 
@@ -560,7 +432,7 @@ class SharingForm extends React.Component {
               {t('invite')}
             </button>
           </bem.FormModal__item>
-        </bem.FormModal__form>
+        </bem.FormModal__item>
 
         { kind != 'collection' && asset_type == 'survey' &&
           <bem.FormView__cell>

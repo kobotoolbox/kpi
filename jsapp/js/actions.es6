@@ -242,7 +242,7 @@ actions.misc = Reflux.createActions({
     asyncResult: true,
     children: [
       'completed',
-      'failed_'
+      'failed'
     ]
   },
   updateProfile: {
@@ -263,7 +263,7 @@ actions.misc = Reflux.createActions({
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)
     .done(actions.misc.checkUsername.completed)
-    .fail(actions.misc.checkUsername.failed_);
+    .fail(actions.misc.checkUsername.failed);
 });
 
 actions.misc.updateProfile.listen(function(data, callbacks={}){
