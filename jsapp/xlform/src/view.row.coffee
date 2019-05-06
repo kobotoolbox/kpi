@@ -221,11 +221,12 @@ module.exports = do ->
         'getParameters' of @model and
         questionType isnt 'range'
       )
-        @paramsView = new $viewParams.ParamsView({
-          rowView: @,
-          parameters: @model.getParameters(),
-          questionType: questionType
-        }).render().insertInDOM(@)
+        if questionType not in ['select_one', 'select_multiple']
+          @paramsView = new $viewParams.ParamsView({
+            rowView: @,
+            parameters: @model.getParameters(),
+            questionType: questionType
+          }).render().insertInDOM(@)
 
       if questionType is 'file'
         @acceptedFilesView = new $acceptedFilesView.AcceptedFilesView({
