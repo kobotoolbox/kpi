@@ -177,7 +177,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
 
-    serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
@@ -476,6 +475,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
+
+    # DEPRECATED IN V2. We are going to use a nested View
 
     # @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     # def permissions(self, request, uid):

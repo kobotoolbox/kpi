@@ -29,7 +29,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
     )
     content_object = GenericHyperlinkedRelatedField(
         lookup_field='uid',
-        style={'base_template': 'input.html'} # Render as a simple text box
+        style={'base_template': 'input.html'}  # Render as a simple text box
     )
     inherited = serializers.ReadOnlyField()
 

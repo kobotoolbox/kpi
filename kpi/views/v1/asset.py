@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from kpi.constants import CLONE_ARG_NAME, PERM_SHARE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
+from kpi.serializers import AssetSerializer, AssetListSerializer
 from kpi.views.v2.asset import AssetViewSet as AssetViewSetV2
 
 
@@ -158,6 +159,12 @@ class AssetViewSet(AssetViewSetV2):
     """
 
     URL_NAMESPACE = None
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AssetListSerializer
+        else:
+            return AssetSerializer
 
     @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def permissions(self, request, uid):

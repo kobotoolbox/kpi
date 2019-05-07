@@ -4,7 +4,6 @@ from __future__ import absolute_import
 import json
 
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
     PaginatedApiField

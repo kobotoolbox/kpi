@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
+from kpi.serializers import UserSerializer
 from kpi.views.v2.user import UserViewSet as UserViewSetV2
 
 
@@ -14,3 +15,5 @@ class UserViewSet(UserViewSetV2):
     avoid disclosing every username in the database
     """
     URL_NAMESPACE = None
+
+    serializer_class = UserSerializer

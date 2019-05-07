@@ -28,7 +28,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
         'permissions__content_object',
         'usercollectionsubscription_set',
     ).all().order_by('-date_modified')
-    serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
     lookup_field = 'uid'
@@ -42,8 +41,8 @@ class CollectionViewSet(viewsets.ModelViewSet):
             raise Http404
         else:
             # Copy the essential data from the original collection.
-            original_data= model_to_dict(original_collection)
-            cloned_data= {keep_field: original_data[keep_field]
+            original_data = model_to_dict(original_collection)
+            cloned_data = {keep_field: original_data[keep_field]
                           for keep_field in COLLECTION_CLONE_FIELDS}
             if original_collection.tag_string:
                 cloned_data['tag_string']= original_collection.tag_string

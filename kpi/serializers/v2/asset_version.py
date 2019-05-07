@@ -2,9 +2,9 @@
 from __future__ import absolute_import
 
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 
 from kpi.models import AssetVersion
+from kpi.utils.url_helper import UrlHelper
 
 
 class AssetVersionListSerializer(serializers.Serializer):
@@ -20,8 +20,10 @@ class AssetVersionListSerializer(serializers.Serializer):
         return obj.deployed and obj.date_modified
 
     def get_url(self, obj):
-        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
-                       request=self.context.get('request', None))
+        return UrlHelper.reverse('asset-version-detail',
+                                 args=(obj.asset.uid, obj.uid),
+                                 request=self.context.get('request', None),
+                                 context=self.context)
 
 
 class AssetVersionSerializer(AssetVersionListSerializer):
