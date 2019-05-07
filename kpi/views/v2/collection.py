@@ -16,7 +16,7 @@ from kpi.constants import CLONE_ARG_NAME, COLLECTION_CLONE_FIELDS
 
 class CollectionViewSet(viewsets.ModelViewSet):
 
-    URL_NAMESPACE = None
+    URL_NAMESPACE = 'api_v2'
 
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.select_related(

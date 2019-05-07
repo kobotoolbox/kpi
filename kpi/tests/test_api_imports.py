@@ -12,6 +12,7 @@ from django.db import transaction
 
 from ..models import Asset
 
+
 class AssetImportTaskTest(APITestCase):
     fixtures = ['test_data']
 

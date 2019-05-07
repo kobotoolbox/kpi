@@ -23,7 +23,7 @@ from .v1.one_time_authentication_key import OneTimeAuthenticationKeySerializer
 from .v1.sitewide_message import SitewideMessageSerializer
 from .v1.tag import TagListSerializer
 from .v1.tag import TagSerializer
-from .v1.user import CreateUserSerializer
-from .v1.user import CurrentUserSerializer
+from .create_user import CreateUserSerializer
+from .current_user import CurrentUserSerializer
 from .v1.user import UserSerializer
 from .v1.user_collection_subscription import UserCollectionSubscriptionSerializer

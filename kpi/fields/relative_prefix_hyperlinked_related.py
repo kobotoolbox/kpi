@@ -3,10 +3,12 @@ from __future__ import absolute_import
 
 from django.core.urlresolvers import get_script_prefix
 from django.utils.six.moves.urllib import parse as urlparse
-from rest_framework import serializers
+
+from .versioned_hyperlinked_related import VersionedHyperlinkedRelatedField
 
 
-class RelativePrefixHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
+class RelativePrefixHyperlinkedRelatedField(VersionedHyperlinkedRelatedField):
+
     def to_internal_value(self, data):
         try:
             http_prefix = data.startswith(('http:', 'https:'))
