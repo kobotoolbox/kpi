@@ -9,7 +9,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import Asset, AssetFile
-from kpi.serializers import AssetFileSerializer
+from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
 

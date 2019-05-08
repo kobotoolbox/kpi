@@ -6,11 +6,8 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 
-from kpi.views.v1 import (
-    AssetFileViewSet,
-)
-
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.collection import CollectionViewSet
