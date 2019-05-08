@@ -120,16 +120,17 @@ $s-help-bubble-row-spacing: 20px;
 }
 
 .help-bubble__popup {
+  @include box-shadow-mid;
+
   display: flex;
   flex-direction: row;
   position: fixed;
   z-index: $z-help-bubble-popup;
   left: $drawer-icons-width - 1px;
   background: $white;
-  border-radius: 3px;
-  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 4px 8px 2px rgba(0, 0, 0, 0.12);
   width: 360px;
   max-width: calc(100vw - #{$drawer-icons-width});
+  overflow: hidden;
 
   @media screen and (min-width: #{$mdl-layout-width}) {
     left: calc(50% - #{$mdl-layout-width * 0.5} + #{$drawer-icons-width - 1px});
