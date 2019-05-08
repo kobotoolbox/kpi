@@ -8,21 +8,30 @@ from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
+from kpi.views.v2.asset_permission import AssetPermissionViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.collection import CollectionViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.hook_signal import HookSignalViewSet
+
 from kpi.views.v2.user import UserViewSet
 
 
 router_api_v2 = ExtendedDefaultRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, base_name='asset')
+asset_routes.register(r'permissions',
+                      AssetPermissionViewSet,
+                      base_name='asset-permission',
+                      parents_query_lookups=['asset'],
+                      )
+
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
+
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
                       base_name='hook-signal',

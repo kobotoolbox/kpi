@@ -61,6 +61,11 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
+class AssetEditorPermission(permissions.BasePermission):
+    # todo
+    pass
+
+
 class AssetNestedObjectPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):

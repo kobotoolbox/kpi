@@ -15,7 +15,8 @@ from kpi.utils.url_helper import UrlHelper
 
 from .ancestor_collections import AncestorCollectionsSerializer
 from .asset_version import AssetVersionListSerializer
-from .object_permission import ObjectPermissionNestedSerializer
+from .asset_permission import AssetPermissionSerializer
+#from .object_permission import ObjectPermissionNestedSerializer
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
@@ -47,7 +48,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
+    permissions = AssetPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
