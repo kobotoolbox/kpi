@@ -256,6 +256,8 @@ export class SupportHelpBubble extends HelpBubble {
     this.state.messages = [];
     this.bubbleName = 'support-help-bubble';
     this.actionsUnlisteners = [];
+
+    this.refreshMessagesThrottled = _.throttle(actions.help.getInAppMessages, 60000);
   }
 
   componentWillUnmount() {
@@ -309,6 +311,9 @@ export class SupportHelpBubble extends HelpBubble {
     if (unacknowledgedMessages.length === 1) {
       this.selectMessage(unacknowledgedMessages[0].uid);
     }
+
+    // try getting fresh messages during the lifetime of an app
+    this.refreshMessagesThrottled();
   }
 
   onSelectMessage(evt) {
