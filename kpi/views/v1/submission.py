@@ -12,10 +12,15 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import SubmissionXMLRenderer
+from kpi.views.v2.data import DataViewSet
 
 
-class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
+class SubmissionViewSet(DataViewSet):
     """
+    ## This document is for a deprecated version of kpi's API.
+
+    **Please upgrade to latest release `/api/v2/assets/{uid}/data/`**
+
     ## List of submissions for a specific asset
 
     <pre class="prettyprint">
@@ -145,95 +150,4 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
 
     ### CURRENT ENDPOINT
     """
-    parent_model = Asset
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        renderers.JSONRenderer,
-                        SubmissionXMLRenderer
-                        )
-    permission_classes = (SubmissionPermission,)
-
-    def _get_asset(self):
-
-        if not hasattr(self, "_asset"):
-            asset_uid = self.get_parents_query_dict()['asset']
-            asset = get_object_or_404(self.parent_model, uid=asset_uid)
-            self._asset = asset
-
-        return self._asset
-
-    def _get_deployment(self):
-        """
-        Returns the deployment for the asset specified by the request
-        """
-        asset = self._get_asset()
-
-        if not asset.has_deployment:
-            raise serializers.ValidationError(
-                _('The specified asset has not been deployed'))
-        return asset.deployment
-
-    def destroy(self, request, *args, **kwargs):
-        deployment = self._get_deployment()
-        pk = kwargs.get("pk")
-        json_response = deployment.delete_submission(pk, user=request.user)
-        return Response(**json_response)
-
-    @detail_route(methods=['GET'], renderer_classes=[renderers.JSONRenderer])
-    def edit(self, request, pk, *args, **kwargs):
-        deployment = self._get_deployment()
-        json_response = deployment.get_submission_edit_url(pk, user=request.user, params=request.GET)
-        return Response(**json_response)
-
-    def list(self, request, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
-        deployment = self._get_deployment()
-        filters = self._filter_mongo_query(request)
-        submissions = deployment.get_submissions(format_type=format_type, **filters)
-        return Response(list(submissions))
-
-    def retrieve(self, request, pk, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
-        deployment = self._get_deployment()
-        filters = self._filter_mongo_query(request)
-        submission = deployment.get_submission(pk, format_type=format_type, **filters)
-        if not submission:
-            raise Http404
-        return Response(submission)
-
-    @detail_route(methods=["GET", "PATCH"], renderer_classes=[renderers.JSONRenderer])
-    def validation_status(self, request, pk, *args, **kwargs):
-        deployment = self._get_deployment()
-        if request.method == "PATCH":
-            json_response = deployment.set_validate_status(pk, request.data, request.user)
-        else:
-            json_response = deployment.get_validate_status(pk, request.GET, request.user)
-
-        return Response(**json_response)
-
-    @list_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
-    def validation_statuses(self, request, *args, **kwargs):
-        deployment = self._get_deployment()
-        json_response = deployment.set_validate_statuses(request.data, request.user)
-
-        return Response(**json_response)
-
-    def _filter_mongo_query(self, request):
-        """
-        Build filters to pass to Mongo query.
-        Acts like Django `filter_backends`
-
-        :param request:
-        :return: dict
-        """
-        filters = {}
-        asset = self._get_asset()
-
-        if request.method == "GET":
-            filters = request.GET.dict()
-
-        submitted_by = asset.get_usernames_for_restricted_perm(request.user)
-
-        filters.update({
-            "submitted_by": submitted_by
-        })
-        return filters
+    URL_NAMESPACE = None
