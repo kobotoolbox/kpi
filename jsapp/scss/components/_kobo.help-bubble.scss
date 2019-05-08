@@ -38,18 +38,8 @@ $s-help-bubble-row-spacing: 20px;
 
   .help-bubble__back,
   .help-bubble__close {
-    background-color: $cool-charcoal;
+    background-color: rgba($cool-charcoal, 0.5);
     color: $white;
-
-    &:hover {
-      background-color: $cool-blue;
-      color: $white;
-    }
-
-    &:active {
-      background-color: $cool-green;
-      color: $white;
-    }
   }
 }
 
@@ -171,11 +161,11 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   &:hover {
-    color: $cool-blue;
+    opacity: 0.8;
   }
 
   &:active {
-    color: $cool-green;
+    opacity: 0.6;
   }
 }
 
