@@ -40,14 +40,16 @@ $s-help-bubble-row-spacing: 20px;
   .help-bubble__close {
     background-color: $cool-charcoal;
     color: $white;
-  }
-}
 
-.help-bubble--single-message {
-  .help-bubble__popup-title {
-    display: block;
-    padding-left: $s-help-bubble-row-spacing;
-    padding-right: $s-help-bubble-row-spacing;
+    &:hover {
+      background-color: $cool-blue;
+      color: $white;
+    }
+
+    &:active {
+      background-color: $cool-green;
+      color: $white;
+    }
   }
 }
 
@@ -136,7 +138,7 @@ $s-help-bubble-row-spacing: 20px;
   background: $white;
   border-radius: 3px;
   box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 4px 8px 2px rgba(0, 0, 0, 0.12);
-  width: 310px;
+  width: 360px;
   max-width: calc(100vw - #{$drawer-icons-width});
 
   @media screen and (min-width: #{$mdl-layout-width}) {
@@ -169,13 +171,11 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   &:hover {
-    background: $cool-blue;
-    color: $white;
+    color: $cool-blue;
   }
 
   &:active {
-    background: $cool-green;
-    color: $white;
+    color: $cool-green;
   }
 }
 
@@ -210,14 +210,18 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   p {
-    margin: 0.75em 0 0.25em;
-    font-size: 0.8em;
+    margin: 0.5em 0 0.25em;
     line-height: 1.33;
   }
 
   img {
     max-width: 100%;
   }
+}
+
+.help-bubble__row.help-bubble__row--message-title {
+  margin-top: 40px;
+  border-top: 1px solid $divider-color;
 }
 
 .help-bubble__row.help-bubble__row--header {

@@ -387,7 +387,7 @@ export class SupportHelpBubble extends HelpBubble {
         data-message-uid={msg.uid}
         onClick={clickCallback}
       >
-        <span>{msg.title}</span>
+        <header>{msg.title}</header>
         <div dangerouslySetInnerHTML={{__html: msg.html.snippet}}/>
       </bem.HelpBubble__row>
     );
@@ -485,10 +485,14 @@ export class SupportHelpBubble extends HelpBubble {
         </bem.HelpBubble__back>
 
         <bem.HelpBubble__popupContent>
-          <bem.HelpBubble__row m='message'>
-            <span className='help-bubble__popup-title'>{msg.title}</span>
-            <div dangerouslySetInnerHTML={{__html: msg.html.body}}/>
+          <bem.HelpBubble__row m='message-title'>
+            <header>{msg.title}</header>
           </bem.HelpBubble__row>
+
+          <bem.HelpBubble__row
+            m='message'
+            dangerouslySetInnerHTML={{__html: msg.html.body}}
+          />
         </bem.HelpBubble__popupContent>
       </bem.HelpBubble__popup>
     );
