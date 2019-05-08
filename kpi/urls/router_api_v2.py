@@ -3,7 +3,9 @@ from __future__ import absolute_import
 
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
-from kobo.apps.hook.views import HookViewSet, HookLogViewSet
+from kobo.apps.hook.views.v2.hook import HookViewSet
+from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
+
 from kpi.views.v1 import (
     AssetFileViewSet,
 )
