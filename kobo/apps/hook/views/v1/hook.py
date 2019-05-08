@@ -1,28 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from datetime import timedelta
 
-import constance
-from django.utils import timezone
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as _
-from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route
-from rest_framework.response import Response
-from rest_framework_extensions.mixins import NestedViewSetMixin
-
-from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
-from ..tasks import retry_all_task
-from ..models import Hook, HookLog
-from ..serializers.hook import HookSerializer
-from kpi.models import Asset
-from kpi.permissions import AssetOwnerNestedObjectPermission
-from kpi.filters import AssetOwnerFilterBackend
+from kobo.apps.hook.views.v2.hook import HookViewSet as HookViewSetV2
+from kobo.apps.hook.serializers.v1.hook import HookSerializer
 
 
-class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class HookViewSet(HookViewSetV2):
     """
+    ## This document is for a deprecated version of kpi's API.
+
+    **Please upgrade to latest release `/api/v2/assets/{uid}/hooks/`**
 
     ## External services
 
@@ -145,57 +132,6 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     ### CURRENT ENDPOINT
     """
-    model = Hook
-    lookup_field = "uid"
-    filter_backends = (
-        AssetOwnerFilterBackend,
-    )
+    URL_NAMESPACE = None
+
     serializer_class = HookSerializer
-    permission_classes = (AssetOwnerNestedObjectPermission,)
-
-    def get_queryset(self):
-        asset_uid = self.get_parents_query_dict().get("asset")
-        queryset = self.model.objects.filter(asset__uid=asset_uid)
-        queryset = queryset.select_related("asset__uid")
-        return queryset
-
-    def perform_create(self, serializer):
-        asset_uid = self.get_parents_query_dict().get("asset")
-        asset = get_object_or_404(Asset, uid=asset_uid)
-        serializer.save(asset=asset)
-
-    @detail_route(methods=["PATCH"])
-    def retry(self, request, uid=None, *args, **kwargs):
-        hook = self.get_object()
-        response = {"detail": _("Task successfully scheduled")}
-        status_code = status.HTTP_200_OK
-        if hook.active:
-            seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
-            threshold = timezone.now() - timedelta(seconds=seconds)
-
-            records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
-                                    Q(status=HOOK_LOG_FAILED)).values_list("id", "uid").distinct()
-            # Prepare lists of ids
-            hooklogs_ids = []
-            hooklogs_uids = []
-            for record in records:
-                hooklogs_ids.append(record[0])
-                hooklogs_uids.append(record[1])
-
-            if len(records) > 0:
-                # Mark all logs as PENDING
-                HookLog.objects.filter(id__in=hooklogs_ids).update(status=HOOK_LOG_PENDING)
-                # Delegate to Celery
-                retry_all_task.delay(hooklogs_ids)
-                response.update({
-                    "pending_uids": hooklogs_uids
-                })
-
-            else:
-                response["detail"] = _("No data to retry")
-                status_code = status.HTTP_304_NOT_MODIFIED
-        else:
-            response["detail"] = _("Can not retry on disabled hooks")
-            status_code = status.HTTP_400_BAD_REQUEST
-
-        return Response(response, status=status_code)
