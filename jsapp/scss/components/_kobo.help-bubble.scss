@@ -9,10 +9,17 @@ $s-help-bubble-row-spacing: 20px;
 // custom bubbles
 // -----------------------------------------------------------------------------
 
+// allows popups to take more space on bigger screens
 .help-bubble--list-with-header,
 .help-bubble--single-message {
-  .help-bubble__popup {
-    min-height: 230px;
+  @media screen and (max-height: 499px) {
+    .help-bubble__popup { height: 200px; }
+    .help-bubble__popup.help-bubble__popup--has-more-content { height: 300px; }
+  }
+
+  @media screen and (min-height: 500px) {
+    .help-bubble__popup { min-height: 200px; }
+    .help-bubble__popup.help-bubble__popup--has-more-content { min-height: 300px; }
   }
 }
 
@@ -110,20 +117,14 @@ $s-help-bubble-row-spacing: 20px;
 // bubble styles
 // -----------------------------------------------------------------------------
 
-// custom styles for first bubble in drawer
-.help-bubble:nth-child(1) {
-  .help-bubble__popup {
-    bottom: 5px + 43px * 3;
-    max-height: calc(75vh - #{43px * 4});
-  }
+.help-bubble--intercom .help-bubble__popup {
+  bottom: 5px + 43px * 3;
+  max-height: calc(90vh - #{43px * 4});
 }
 
-// custom styles for second bubble in drawer
-.help-bubble:nth-child(2) {
-  .help-bubble__popup {
-    bottom: 5px + 43px * 2;
-    max-height: calc(75vh - #{43px * 3});
-  }
+.help-bubble--support .help-bubble__popup {
+  bottom: 5px + 43px * 2;
+  max-height: calc(90vh - #{43px * 3});
 }
 
 .help-bubble__popup {
@@ -154,7 +155,7 @@ $s-help-bubble-row-spacing: 20px;
   cursor: pointer;
   position: absolute;
   z-index: 1;
-  top: 5px;
+  top: 4px;
   border: 0;
   border-radius: 50%;
   padding: 5px;
@@ -209,7 +210,7 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   p {
-    margin: 0.5em 0 0;
+    margin: 0.75em 0 0.25em;
     font-size: 0.8em;
     line-height: 1.33;
   }

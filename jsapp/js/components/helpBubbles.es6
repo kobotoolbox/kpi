@@ -394,14 +394,18 @@ export class SupportHelpBubble extends HelpBubble {
   }
 
   renderDefaultPopup() {
+    const popupModifiers = [];
+    if (this.state.messages.length > 0) {
+      popupModifiers.push('has-more-content');
+    }
+
     return (
-      <bem.HelpBubble__popup>
+      <bem.HelpBubble__popup m={popupModifiers}>
         <HelpBubbleClose onClick={this.close.bind(this)}/>
 
         <bem.HelpBubble__popupContent>
           <bem.HelpBubble__row m='header'>
-            <header>{t('Looking for help?')}</header>
-            <p><em>{t('Try visiting one of our online support resources')}</em></p>
+            {t('Help Resources')}
           </bem.HelpBubble__row>
 
           <bem.HelpBubble__rowAnchor
@@ -425,6 +429,12 @@ export class SupportHelpBubble extends HelpBubble {
             <header>{t('KoBoToolbox Community Forum')}</header>
             <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
           </bem.HelpBubble__rowAnchor>
+
+          {this.state.messages.length > 0 &&
+            <bem.HelpBubble__row m='header'>
+              {t('Notifications')}
+            </bem.HelpBubble__row>
+          }
 
           {this.state.messages.map((msg) => {
             const modifiers = ['message', 'message-clickable'];
@@ -491,7 +501,7 @@ export class SupportHelpBubble extends HelpBubble {
     }
 
     let popupRenderFn;
-    const modifiers = [];
+    const modifiers = ['support'];
     if (this.state.isOpen) {
       modifiers.push('open');
       if (this.state.selectedMessageUid) {
