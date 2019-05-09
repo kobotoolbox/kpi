@@ -44,12 +44,15 @@ class UserPermissionRow extends React.Component {
     autoBind(this);
 
     this.state = {
-      isEditFormVisible: false
+      isEditFormVisible: false,
+      isBeingDeleted: false
     }
   }
 
   removePermissions() {
-    // removing view permission will include all other permissions
+    this.setState({isBeingDeleted: true});
+    // we remove "view" permission, as it is the most basic one, so removing it
+    // will in fact remove all permissions
     actions.permissions.removePerm({
       permission_url: this.props.can.view.url,
       content_object_uid: this.props.uid
@@ -89,51 +92,53 @@ class UserPermissionRow extends React.Component {
 
     const cansString = cans.sort().join(', ');
 
+    const modifiers = [];
+    if (cans.length === 0) {
+      modifiers.push('deleted');
+    }
+    if (this.state.isBeingDeleted) {
+      modifiers.push('pending');
+    }
+
     return (
-      <bem.UserRow m={cans.length > 0 ? 'regular' : 'deleted'}>
-        <bem.UserRow__avatar>
-          <bem.AccountBox__initials style={initialsStyle}>
-            {this.props.username.charAt(0)}
-          </bem.AccountBox__initials>
-        </bem.UserRow__avatar>
+      <bem.UserRow m={modifiers}>
+        <bem.UserRow__info>
+          <bem.UserRow__avatar>
+            <bem.AccountBox__initials style={initialsStyle}>
+              {this.props.username.charAt(0)}
+            </bem.AccountBox__initials>
+          </bem.UserRow__avatar>
 
-        <bem.UserRow__name>
-          {this.props.username}
-        </bem.UserRow__name>
+          <bem.UserRow__name>
+            {this.props.username}
+          </bem.UserRow__name>
 
-        <bem.UserRow__role title={cansString}>
-          {cansString}
-        </bem.UserRow__role>
+          <bem.UserRow__role title={cansString}>
+            {cansString}
+          </bem.UserRow__role>
 
-        <div>
-          {!this.state.isEditFormVisible &&
-            <bem.Button
-              m={['raised', 'colored']}
-              onClick={this.toggleEditForm}
-            >
-              {t('Edit')}
-            </bem.Button>
-          }
-          {this.state.isEditFormVisible &&
-            <bem.FormModal__item m='gray-row'>
-              <bem.Button
-                m='icon'
-                onClick={this.toggleEditForm}
-              >
-                <i className='k-icon k-icon-close'/>
-              </bem.Button>
+          <bem.Button m='icon' onClick={this.toggleEditForm}>
+            {this.state.isEditFormVisible &&
+              <i className='k-icon k-icon-close'/>
+            }
+            {!this.state.isEditFormVisible &&
+              <i className='k-icon k-icon-edit'/>
+            }
+          </bem.Button>
 
-              <UserPermissionsEditor
-                username={this.props.username}
-                cans={this.props.cans}
-              />
-            </bem.FormModal__item>
-          }
-        </div>
+          <bem.Button m='icon' onClick={this.removePermissions}>
+            <i className='k-icon k-icon-trash' />
+          </bem.Button>
+        </bem.UserRow__info>
 
-        <bem.UserRow__cancel onClick={this.removePermissions}>
-          <i className='k-icon k-icon-trash' />
-        </bem.UserRow__cancel>
+        {this.state.isEditFormVisible &&
+          <bem.UserRow__editor>
+            <UserPermissionsEditor
+              username={this.props.username}
+              cans={this.props.cans}
+            />
+          </bem.UserRow__editor>
+        }
       </bem.UserRow>
       );
   }
@@ -242,6 +247,12 @@ class SharingForm extends React.Component {
     this.setState({isAddUserEditorVisible: !this.state.isAddUserEditorVisible});
   }
 
+  onPermissionsEditorSubmitEnd(isSuccess) {
+    if (isSuccess) {
+      this.setState({isAddUserEditorVisible: false});
+    }
+  }
+
   renderLoadingMessage() {
     return (
       <bem.Loading>
@@ -300,19 +311,25 @@ class SharingForm extends React.Component {
           <bem.Modal__subheader>
             {name}
           </bem.Modal__subheader>
+
           <bem.FormView__cell m='label'>
             {t('Who has access')}
           </bem.FormView__cell>
+
           <bem.UserRow>
-            <bem.UserRow__avatar>
-              <bem.AccountBox__initials style={initialsStyle}>
-                {this.state.asset.owner__username.charAt(0)}
-              </bem.AccountBox__initials>
-            </bem.UserRow__avatar>
-            <bem.UserRow__name>
-              <div>{this.state.asset.owner__username}</div>
-            </bem.UserRow__name>
-            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+            <bem.UserRow__info>
+              <bem.UserRow__avatar>
+                <bem.AccountBox__initials style={initialsStyle}>
+                  {this.state.asset.owner__username.charAt(0)}
+                </bem.AccountBox__initials>
+              </bem.UserRow__avatar>
+
+              <bem.UserRow__name>
+                <div>{this.state.asset.owner__username}</div>
+              </bem.UserRow__name>
+
+              <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+            </bem.UserRow__info>
           </bem.UserRow>
 
           {perms.map((perm)=> {
@@ -345,7 +362,12 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              <UserPermissionsEditor />
+              <UserPermissionsEditor
+                uid={uid}
+                kind={kind}
+                objectUrl={objectUrl}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              />
             </bem.FormModal__item>
           }
         </bem.FormModal__item>

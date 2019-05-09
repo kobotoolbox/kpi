@@ -26,6 +26,7 @@ class UserPermissionsEditor extends React.Component {
     autoBind(this);
 
     this.state = {
+      isSubmitPending: false,
       username: '',
       isEditingUsername: false,
       view: false,
@@ -44,7 +45,23 @@ class UserPermissionsEditor extends React.Component {
     // TODO 1: set permissions from props if given
     // TODO 2: set mode based on props (i.e. editing existing permissions vs giving new)
 
+    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
+    this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
+  }
+
+  onAssignPermCompleted() {
+    this.setState({isSubmitPending: false});
+    if (typeof this.props.onSubmitEnd === 'function') {
+      this.props.onSubmitEnd(true);
+    }
+  }
+
+  onAssignPermFailed() {
+    this.setState({isSubmitPending: false});
+    if (typeof this.props.onSubmitEnd === 'function') {
+      this.props.onSubmitEnd(false);
+    }
   }
 
   /**
@@ -160,6 +177,7 @@ class UserPermissionsEditor extends React.Component {
 
   isSubmitEnabled() {
     return (
+      !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       this.state.username.length > 0 &&
       this.state.usernamesBeingChecked.size === 0
@@ -173,6 +191,18 @@ class UserPermissionsEditor extends React.Component {
 
     // TODO: add or patch permission
     console.log('submit', this.state);
+
+    // make sure user exists
+    if (this.checkUsernameSync(this.state.username)) {
+      this.setState({isSubmitPending: true});
+      actions.permissions.assignPerm({
+        username: this.state.username,
+        uid: this.props.uid,
+        kind: this.props.kind,
+        objectUrl: this.props.objectUrl,
+        role: 'view'
+      });
+    }
   }
 
   render() {
@@ -180,8 +210,14 @@ class UserPermissionsEditor extends React.Component {
       placeholder: t('Add username(s)')
     };
 
+    const modifiers = []
+    if (this.state.isSubmitPending) {
+      modifiers.push('pending');
+    }
+
     return (
       <bem.FormModal__form
+        m={modifiers}
         onSubmit={this.submit}
       >
         {t('Grant permissions to')}
@@ -254,7 +290,7 @@ class UserPermissionsEditor extends React.Component {
           type='submit'
           disabled={!this.isSubmitEnabled()}
         >
-          {t('Submit')}
+          {this.props.username ? t('Update') : t('Submit')}
         </bem.Button>
       </bem.FormModal__form>
     );

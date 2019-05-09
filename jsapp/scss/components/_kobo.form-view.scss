@@ -475,9 +475,21 @@ $z-form-view-fullscreen: 101;
   padding: 40px;
 }
 
+.form-modal__form {
+  &.form-modal__form--pending {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+}
+
 .form-view.form-view--form-settings {
   .form-modal__form {
     height: 100%;
+
+    &.form-modal__form--pending {
+      pointer-events: none;
+      opacity: 0.8;
+    }
 
     .form-modal__item--wrapper {
       height: calc(100% - 70px);
