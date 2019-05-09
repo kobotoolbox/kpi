@@ -22,6 +22,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         view_name='user-detail',
         lookup_field='username',
         queryset=User.objects.all(),
+        style={'base_template': 'input.html'}  # Render as a simple text box
     )
     permission = serializers.SlugRelatedField(
         slug_field='codename',
