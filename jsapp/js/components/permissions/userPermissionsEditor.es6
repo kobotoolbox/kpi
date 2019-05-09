@@ -121,7 +121,7 @@ class UserPermissionsEditor extends React.Component {
       } else {
         this.notifyUnknownUser(username);
       }
-    })
+    });
 
     this.setState({restricted_view_users: restrictedUsers});
   }
@@ -181,7 +181,7 @@ class UserPermissionsEditor extends React.Component {
       !this.state.isEditingUsername &&
       this.state.username.length > 0 &&
       this.state.usernamesBeingChecked.size === 0
-    )
+    );
   }
 
   submit() {
@@ -210,7 +210,7 @@ class UserPermissionsEditor extends React.Component {
       placeholder: t('Add username(s)')
     };
 
-    const modifiers = []
+    const modifiers = [];
     if (this.state.isSubmitPending) {
       modifiers.push('pending');
     }
