@@ -13,7 +13,6 @@ from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
 from rest_framework.authtoken.models import Token
@@ -347,7 +346,7 @@ def _sync_permissions(asset, xform):
         # resolving them
         implied_perms = set()
         for p in expected_perms:
-            implied_perms.update(asset._get_implied_perms(KPI_CODENAMES[p]))
+            implied_perms.update(Asset.get_implied_perms(KPI_CODENAMES[p]))
         # Only consider relevant implied permissions
         implied_perms.intersection_update(KPI_CODENAMES.values())
         # Convert from permission codenames back to PKs

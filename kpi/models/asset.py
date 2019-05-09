@@ -925,7 +925,7 @@ class Asset(ObjectPermissionMixin,
                 for restricted_perm, usernames in restricted_perms.items():
                     implied_perms = [implied_perm
                                      for implied_perm in
-                                     list(self._get_implied_perms(restricted_perm))
+                                     list(self.get_implied_perms(restricted_perm))
                                      if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
                                      ]
                     implied_perms.append(restricted_perm)

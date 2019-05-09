@@ -69,10 +69,10 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
 
 
 class ObjectPermissionNestedSerializer(ObjectPermissionSerializer):
-    '''
+    """
     When serializing a list of permissions inside the object to which they are
     assigned, omit `content_object` to improve performance significantly
-    '''
+    """
     class Meta(ObjectPermissionSerializer.Meta):
         fields = (
             'uid',

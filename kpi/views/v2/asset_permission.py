@@ -1,22 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from datetime import timedelta
-
-import constance
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from django.utils.translation import ugettext as _
 from rest_framework import viewsets, status
-from rest_framework.decorators import detail_route
-from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-
-from kobo.apps.hook.models import Hook, HookLog
-
-from kpi.filters import AssetOwnerFilterBackend
 from kpi.models import Asset, ObjectPermission
 from kpi.permissions import AssetEditorPermission
 from kpi.serializers.v2.asset_permission import AssetPermissionSerializer
@@ -60,12 +48,10 @@ class AssetPermissionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         }
 
     def get_queryset(self):
-        print("QUERYSET")
         queryset = self.model.objects.filter(object_id=self.asset.pk)
         return queryset
 
     def list(self, request, *args, **kwargs):
-        print("LIST")
         return super(AssetPermissionViewSet, self).list(request, *args, **kwargs)
 
     def perform_create(self, serializer):

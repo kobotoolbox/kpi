@@ -6,7 +6,6 @@ from rest_framework import serializers
 
 from kpi.fields.relative_prefix_hyperlinked_related import \
     RelativePrefixHyperlinkedRelatedField
-from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.url_helper import UrlHelper
 
@@ -20,6 +19,7 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         style={'base_template': 'input.html'}  # Render as a simple text box
     )
+    permission = serializers.SerializerMethodField()
 
     class Meta:
         model = ObjectPermission
@@ -31,9 +31,17 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
 
         read_only_fields = ('uid', )
 
-    def get_url(self, assignment):
-        asset_uid = self.context.get('asset_uid')
-        return UrlHelper.reverse('asset-permission-detail',
-                                 args=(asset_uid, assignment.uid),
+    def get_permission(self, object_permission):
+        codename = object_permission.permission.codename
+        return UrlHelper.reverse('permission-detail',
+                                 args=(codename,),
                                  request=self.context.get('request', None),
                                  context=self.context)
+
+    def get_url(self, object_permission):
+        asset_uid = self.context.get('asset_uid')
+        return UrlHelper.reverse('asset-permission-detail',
+                                 args=(asset_uid, object_permission.uid),
+                                 request=self.context.get('request', None),
+                                 context=self.context)
+

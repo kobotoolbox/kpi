@@ -600,17 +600,19 @@ class ObjectPermissionMixin(object):
         if return_instead_of_creating:
             return objects_to_return
 
-    def _get_implied_perms(self, explicit_perm, reverse=False):
-        """ Determine which permissions are implied by `explicit_perm` based on
+    @classmethod
+    def get_implied_perms(cls, explicit_perm, reverse=False):
+        """
+        Determine which permissions are implied by `explicit_perm` based on
         the `IMPLIED_PERMISSIONS` attribute.
-        :param explicit_perm str: The `codename` of the explicitly-assigned
+        :param explicit_perm: str. The `codename` of the explicitly-assigned
             permission.
-        :param reverse bool: When `True`, exchange the keys and values of
+        :param reverse: bool When `True`, exchange the keys and values of
             `IMPLIED_PERMISSIONS`. Useful for working with `deny=True`
             permissions. Defaults to `False`.
         :rtype: set of `codename`s
         """
-        implied_perms_dict = getattr(self, 'IMPLIED_PERMISSIONS', {})
+        implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
             for src_perm, dest_perms in implied_perms_dict.iteritems():
@@ -628,7 +630,7 @@ class ObjectPermissionMixin(object):
                 continue
             if result.intersection(implied_perms):
                 raise ImproperlyConfigured(
-                    'Loop in IMPLIED_PERMISSIONS for {}'.format(type(self)))
+                    'Loop in IMPLIED_PERMISSIONS for {}'.format(type(cls)))
             perms_to_process.extend(implied_perms)
             result.update(implied_perms)
         return result
@@ -722,7 +724,7 @@ class ObjectPermissionMixin(object):
             assign_applicable_kc_permissions(self, user_obj, codename)
         # Resolve implied permissions, e.g. granting change implies granting
         # view
-        implied_perms = self._get_implied_perms(codename, reverse=deny)
+        implied_perms = self.get_implied_perms(codename, reverse=deny)
         for implied_perm in implied_perms:
             self.assign_perm(
                 user_obj, implied_perm, deny=deny, defer_recalc=True)
@@ -851,7 +853,7 @@ class ObjectPermissionMixin(object):
         inherited_permissions = all_permissions.filter(inherited=True)
         # Resolve implied permissions, e.g. revoking view implies revoking
         # change
-        implied_perms = self._get_implied_perms(codename, reverse=True)
+        implied_perms = self.get_implied_perms(codename, reverse=True)
         for implied_perm in implied_perms:
             self.remove_perm(
                 user_obj, implied_perm, defer_recalc=True)
