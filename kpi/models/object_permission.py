@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from collections import defaultdict
 import copy
 import re
+from collections import defaultdict
 
 from django.apps import apps
-from django.db import models, transaction
-from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.conf import settings
+from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User, AnonymousUser, Permission
-from django.conf import settings
+from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.db import models, transaction
 from django.shortcuts import _get_queryset
 
-from kpi.fields.kpi_uid import KpiUidField
+from kpi.constants import PREFIX_RESTRICTED_PERMS
 from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
 )
-from kpi.constants import PREFIX_RESTRICTED_PERMS
+from kpi.fields.kpi_uid import KpiUidField
 
 
 def perm_parse(perm, obj=None):
@@ -36,6 +36,17 @@ def perm_parse(perm, obj=None):
         app_label = obj_app_label
         codename = perm
     return app_label, codename
+
+
+def get_models_with_object_permissions():
+    """
+    Return a list of all models that inherit from `ObjectPermissionMixin`
+    """
+    models = []
+    for model in apps.get_models():
+      if issubclass(model, ObjectPermissionMixin):
+        models.append(model)
+    return models
 
 
 def get_all_objects_for_user(user, klass):

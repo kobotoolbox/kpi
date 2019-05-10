@@ -1,19 +1,24 @@
 import re
 import haystack
-from distutils.util import strtobool
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
+from rest_framework import filters
+from whoosh.query import Term, And
+from distutils.util import strtobool
+from whoosh.qparser import QueryParser
+from haystack.utils import get_model_ct
+from haystack.query import SearchQuerySet
 from django.core.exceptions import FieldError
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from haystack.backends.whoosh_backend import WhooshSearchBackend
 from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
-from haystack.query import SearchQuerySet
-from haystack.utils import get_model_ct
-from rest_framework import filters
-from whoosh.qparser import QueryParser
-from whoosh.query import Term, And
 
-from .models import Asset
-from .models.object_permission import get_objects_for_user, get_anonymous_user
+from .models import Asset, ObjectPermission
+from .models.object_permission import (
+    get_objects_for_user,
+    get_anonymous_user,
+    get_models_with_object_permissions,
+)
 
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
@@ -241,18 +246,30 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
             # Superuser sees all
             return queryset
         if user.pk == settings.ANONYMOUS_USER_ID:
-            # Hide permissions for real users from anonymous users
-            return queryset.filter(user=user)
-        # A regular user sees permissions for objects to which they have access
-        content_type_ids = queryset.values_list(
-            'content_type', flat=True).distinct()
-        object_permission_ids = []
-        for content_type_id in content_type_ids:
-            object_permission_ids.extend(
-                queryset.filter(
-                    object_id__in=queryset.filter(
-                        content_type_id=content_type_id, user=user
-                    ).values_list('object_id', flat=True)
-                ).values_list('pk', flat=True)
+            # Hide permissions from anonymous users
+            return queryset.none()
+        """
+        A regular user sees permissions for objects to which they have access.
+        For example, if Alana has view access to an object owned by Richard,
+        she should see all permissions for that object, including those
+        assigned to other users.
+        """
+        possible_content_types = ContentType.objects.get_for_models(
+            *get_models_with_object_permissions()
+        ).values()
+        result = queryset.none()
+        for content_type in possible_content_types:
+            # Find all the permissions assigned to the user
+            permissions_assigned_to_user = ObjectPermission.objects.filter(
+                content_type=content_type,
+                user=user,
             )
-        return queryset.filter(pk__in=object_permission_ids)
+            # Find all the objects associated with those permissions, and then
+            # find all the permissions applied to all of those objects
+            result |= ObjectPermission.objects.filter(
+                content_type=content_type,
+                object_id__in=permissions_assigned_to_user.values(
+                    'object_id'
+                ).distinct()
+            )
+        return result
