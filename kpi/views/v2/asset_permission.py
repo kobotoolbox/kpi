@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.models import Asset, ObjectPermission
-from kpi.permissions import AssetEditorPermission
+from kpi.models import ObjectPermission
+from kpi.permissions import AssetNestedObjectPermission
 from kpi.serializers.v2.asset_permission import AssetPermissionSerializer
+from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 
 
-class AssetPermissionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
+                             viewsets.ModelViewSet):
     """
 
     ### CURRENT ENDPOINT
@@ -24,15 +25,7 @@ class AssetPermissionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     #    AssetOwnerFilterBackend,
     #)
     serializer_class = AssetPermissionSerializer
-    permission_classes = (AssetEditorPermission,)
-
-    @property
-    def asset(self):
-        if not hasattr(self, '_asset'):
-            asset_uid = self.get_parents_query_dict().get("asset")
-            asset = get_object_or_404(Asset, uid=asset_uid)
-            setattr(self, '_asset', asset)
-        return self._asset
+    permission_classes = (AssetNestedObjectPermission,)
 
     def get_serializer_context(self):
         """

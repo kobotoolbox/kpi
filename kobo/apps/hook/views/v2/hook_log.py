@@ -13,9 +13,11 @@ from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
 from kpi.filters import AssetOwnerFilterBackend
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetOwnerNestedObjectPermission
+from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 
 
-class HookLogViewSet(NestedViewSetMixin,
+class HookLogViewSet(AssetNestedObjectViewsetMixin,
+                     NestedViewSetMixin,
                      mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
                      viewsets.GenericViewSet):

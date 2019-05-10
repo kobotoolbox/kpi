@@ -20,9 +20,11 @@ from kobo.apps.hook.tasks import retry_all_task
 from kpi.filters import AssetOwnerFilterBackend
 from kpi.models import Asset
 from kpi.permissions import AssetOwnerNestedObjectPermission
+from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 
 
-class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
+                  viewsets.ModelViewSet):
     """
 
     ## External services
@@ -158,15 +160,12 @@ class HookViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (AssetOwnerNestedObjectPermission,)
 
     def get_queryset(self):
-        asset_uid = self.get_parents_query_dict().get("asset")
-        queryset = self.model.objects.filter(asset__uid=asset_uid)
+        queryset = self.model.objects.filter(asset__uid=self.asset.uid)
         queryset = queryset.select_related("asset__uid")
         return queryset
 
     def perform_create(self, serializer):
-        asset_uid = self.get_parents_query_dict().get("asset")
-        asset = get_object_or_404(Asset, uid=asset_uid)
-        serializer.save(asset=asset)
+        serializer.save(asset=self.asset)
 
     @detail_route(methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):

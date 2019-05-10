@@ -2,7 +2,6 @@
 from __future__ import unicode_literals, absolute_import
 
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import renderers, viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -12,9 +11,11 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import SubmissionXMLRenderer
+from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 
 
-class DataViewSet(NestedViewSetMixin, viewsets.ViewSet):
+class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
+                  viewsets.ViewSet):
     """
     ## List of submissions for a specific asset
 
@@ -155,25 +156,14 @@ class DataViewSet(NestedViewSetMixin, viewsets.ViewSet):
                         )
     permission_classes = (SubmissionPermission,)
 
-    def _get_asset(self):
-
-        if not hasattr(self, "_asset"):
-            asset_uid = self.get_parents_query_dict()['asset']
-            asset = get_object_or_404(self.parent_model, uid=asset_uid)
-            self._asset = asset
-
-        return self._asset
-
     def _get_deployment(self):
         """
         Returns the deployment for the asset specified by the request
         """
-        asset = self._get_asset()
-
-        if not asset.has_deployment:
+        if not self.asset.has_deployment:
             raise serializers.ValidationError(
                 _('The specified asset has not been deployed'))
-        return asset.deployment
+        return self.asset.deployment
 
     def destroy(self, request, *args, **kwargs):
         deployment = self._get_deployment()
@@ -229,12 +219,11 @@ class DataViewSet(NestedViewSetMixin, viewsets.ViewSet):
         :return: dict
         """
         filters = {}
-        asset = self._get_asset()
 
         if request.method == "GET":
             filters = request.GET.dict()
 
-        submitted_by = asset.get_usernames_for_restricted_perm(request.user)
+        submitted_by = self.asset.get_usernames_for_restricted_perm(request.user)
 
         filters.update({
             "submitted_by": submitted_by
