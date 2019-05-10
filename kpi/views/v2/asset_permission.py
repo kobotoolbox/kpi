@@ -4,10 +4,11 @@ from __future__ import absolute_import
 from rest_framework import viewsets, status
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.models import ObjectPermission
+from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetNestedObjectPermission
 from kpi.serializers.v2.asset_permission import AssetPermissionSerializer
 from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
+from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 
 class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
@@ -21,9 +22,6 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     model = ObjectPermission
     lookup_field = "uid"
-    #filter_backends = (
-    #    AssetOwnerFilterBackend,
-    #)
     serializer_class = AssetPermissionSerializer
     permission_classes = (AssetNestedObjectPermission,)
 
@@ -41,8 +39,8 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         }
 
     def get_queryset(self):
-        queryset = self.model.objects.filter(object_id=self.asset.pk)
-        return queryset
+        return ObjectPermissionHelper.get_assignments_queryset(self.asset,
+                                                               self.request.user)
 
     def list(self, request, *args, **kwargs):
         return super(AssetPermissionViewSet, self).list(request, *args, **kwargs)

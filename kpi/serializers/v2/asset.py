@@ -10,8 +10,9 @@ from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField,
 from kpi.fields.versioned_hyperlinked_identity import VersionedHyperlinkedIdentityField
 from kpi.models import Asset, AssetVersion, Collection
 from kpi.models.asset import ASSET_TYPES
-from kpi.models.object_permission import get_anonymous_user, ObjectPermission
+from kpi.models.object_permission import get_anonymous_user
 from kpi.utils.url_helper import UrlHelper
+from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 from .ancestor_collections import AncestorCollectionsSerializer
 from .asset_version import AssetVersionListSerializer
@@ -19,6 +20,7 @@ from .asset_permission import AssetPermissionSerializer
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
+
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
@@ -262,13 +264,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return obj.deployment.submission_count
 
     def get_permissions(self, obj):
-        object_permissions_queryset = ObjectPermission.objects.filter(
-            object_id=obj.id).all()
-
         context = self.context
+        request = self.context.get('request')
+        queryset = ObjectPermissionHelper.get_assignments_queryset(obj,
+                                                                   request.user)
         context.update({'asset_uid': obj.uid})
 
-        return AssetPermissionSerializer(object_permissions_queryset,
+        return AssetPermissionSerializer(queryset.all(),
                                          many=True, read_only=True,
                                          context=context).data
 
