@@ -107,7 +107,7 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
-  restrictedUsersChange(allUsers, changedUsers) {
+  onRestrictedUsersChange(allUsers) {
     const restrictedUsers = [];
 
     allUsers.forEach((username) => {
@@ -115,7 +115,8 @@ class UserPermissionsEditor extends React.Component {
       if (userCheck === true) {
         restrictedUsers.push(username);
       } else if (userCheck === undefined) {
-        // we add unknown usernames for now and will check with checkUsernameAsync
+        // we add unknown usernames for now and will check and possibly remove
+        // with checkUsernameAsync
         restrictedUsers.push(username);
         this.checkUsernameAsync(username);
       } else {
@@ -128,6 +129,7 @@ class UserPermissionsEditor extends React.Component {
 
   /**
    * This function returns either boolean (for known username) or undefined
+   * for usernames that weren't checked before
    */
   checkUsernameSync(username) {
     return stores.userExists.checkUsername(username);
@@ -247,7 +249,7 @@ class UserPermissionsEditor extends React.Component {
             {this.state.restricted_view === true &&
               <TagsInput
                 value={this.state.restricted_view_users}
-                onChange={this.restrictedUsersChange}
+                onChange={this.onRestrictedUsersChange}
                 inputProps={restrictedViewUsersInputProps}
                 onlyUnique
               />

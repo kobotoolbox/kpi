@@ -298,7 +298,7 @@ class SharingForm extends React.Component {
       background: `#${stringToColor(this.state.asset.owner__username)}`
     };
 
-    if (asset_type != 'survey') {
+    if (asset_type !== 'survey') {
       availablePermissions = [
         {value: 'view', label: t('View')},
         {value: 'change', label: t('Edit')},
@@ -306,15 +306,14 @@ class SharingForm extends React.Component {
     }
 
     return (
-      <bem.FormModal>
-        <bem.FormModal__item>
-          <bem.Modal__subheader>
-            {name}
-          </bem.Modal__subheader>
+      <bem.FormModal m='sharing-form'>
+        <bem.Modal__subheader>
+          {name}
+        </bem.Modal__subheader>
 
-          <bem.FormView__cell m='label'>
-            {t('Who has access')}
-          </bem.FormView__cell>
+        {/* list of users and their permissions */}
+        <bem.FormModal__item m='users-permissions'>
+          <h2>{t('Who has access')}</h2>
 
           <bem.UserRow>
             <bem.UserRow__info>
@@ -332,7 +331,7 @@ class SharingForm extends React.Component {
             </bem.UserRow__info>
           </bem.UserRow>
 
-          {perms.map((perm)=> {
+          {perms.map((perm) => {
             return <UserPermissionRow
               key={`perm.${uid}.${perm.username}`}
               ref={perm.username}
@@ -342,9 +341,7 @@ class SharingForm extends React.Component {
               {...perm}
             />;
           })}
-        </bem.FormModal__item>
 
-        <bem.FormModal__item>
           {!this.state.isAddUserEditorVisible &&
             <bem.Button
               m={['raised', 'colored']}
@@ -353,12 +350,10 @@ class SharingForm extends React.Component {
               {t('Add user')}
             </bem.Button>
           }
+
           {this.state.isAddUserEditorVisible &&
             <bem.FormModal__item m='gray-row'>
-              <bem.Button
-                m='icon'
-                onClick={this.toggleAddUserEditor}
-              >
+              <bem.Button m='icon' onClick={this.toggleAddUserEditor}>
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
@@ -372,11 +367,11 @@ class SharingForm extends React.Component {
           }
         </bem.FormModal__item>
 
-        { kind != 'collection' && asset_type == 'survey' &&
-          <bem.FormView__cell>
-            <bem.FormView__cell m='label'>
-              {t('Select share settings')}
-            </bem.FormView__cell>
+        {/* public sharing settings */}
+        { kind !== 'collection' && asset_type === 'survey' &&
+          <bem.FormModal__item m='share-settings'>
+            <h2>{t('Select share settings')}</h2>
+
             <PublicPermDiv
               uid={uid}
               publicPerms={this.state.public_permissions}
@@ -384,18 +379,19 @@ class SharingForm extends React.Component {
               objectUrl={objectUrl}
               deploymentActive={this.state.asset.deployment__active}
             />
-          </bem.FormView__cell>
+          </bem.FormModal__item>
         }
 
-        { kind != 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
-          <bem.FormView__cell m='copy-team-permissions'>
+        {/* copying permissions from other assets */}
+        { kind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
+          <bem.FormModal__item m='copy-team-permissions'>
             <CopyTeamPermissions uid={uid}/>
-          </bem.FormView__cell>
+          </bem.FormModal__item>
         }
       </bem.FormModal>
     );
   }
-};
+}
 
 SharingForm.contextTypes = {
   router: PropTypes.object

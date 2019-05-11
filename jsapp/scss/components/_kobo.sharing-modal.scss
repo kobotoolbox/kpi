@@ -3,6 +3,44 @@ $s-flexed-row-select-width: 200px;
 $s-flexed-row-width: 560px;
 $s-gray-row-spacing: 10px;
 
+.form-modal--sharing-form {
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    color: $black;
+    font-weight: 500;
+  }
+
+  .user-row + .mdl-button {
+    margin-top: 15px;
+  }
+
+  .form-modal__item--users-permissions,
+  .form-modal__item--share-settings,
+  .form-modal__item--copy-team-permissions {
+    &:not(:last-child) {
+      margin-bottom: 30px;
+    }
+  }
+
+  .form-modal__item--share-settings {
+    h2 {
+      margin-bottom: 12px;
+    }
+  }
+
+  .form-modal__item--copy-team-permissions .kobo-select {
+    flex: 1;
+  }
+
+  .mdl-button--copy-team-permissions-opener {
+    color: $cool-blue;
+    padding-left: 0;
+    padding-right: 0;
+    font-weight: 500;
+  }
+}
+
 .user-row {
   border-bottom: 1px solid $cool-lightgray;
   padding-bottom: 5px;
@@ -47,10 +85,6 @@ $s-gray-row-spacing: 10px;
   .user-row__editor {
     margin-top: 5px;
   }
-}
-
-.sharing-form__user {
-  margin: 30px 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -99,31 +133,4 @@ $s-gray-row-spacing: 10px;
 
 .form-modal__item--shareable-link {
   margin-top: 10px;
-}
-
-// -----------------------------------------------------------------------------
-// copy team permissions parts
-// -----------------------------------------------------------------------------
-
-.form-view__cell--copy-team-permissions {
-  margin-top: 30px;
-  border-top: 1px solid $divider-color;
-  padding-top: 20px;
-
-  .form-modal__item--gray-row .kobo-select {
-    flex: 1;
-  }
-}
-
-.form-modal__item--copy-team-permissions-opener {
-  color: $cool-blue;
-  cursor: pointer;
-
-  &:hover {
-    color: lighten($cool-blue, 10%);
-  }
-
-  &:active {
-    color: lighten($cool-blue, 20%);
-  }
 }

@@ -8,7 +8,6 @@ import Select from 'react-select';
 import alertify from 'alertifyjs';
 import stores from '../../stores';
 import actions from '../../actions';
-import mixins from '../../mixins';
 import { t, notify } from '../../utils';
 
 class CopyTeamPermissions extends React.Component {
@@ -52,7 +51,7 @@ class CopyTeamPermissions extends React.Component {
       return {
         value: this.state.sourceUid,
         label: this.state.sourceName
-      }
+      };
     } else {
       return false;
     }
@@ -116,13 +115,13 @@ class CopyTeamPermissions extends React.Component {
     }
 
     return (
-      <bem.FormView__cell>
-        <bem.FormModal__item
+      <bem.FormModal__item>
+        <bem.Button
           m='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
           {t('Copy team from another project')}
-        </bem.FormModal__item>
+        </bem.Button>
 
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>
@@ -131,6 +130,7 @@ class CopyTeamPermissions extends React.Component {
                 'This will overwrite any existing sharing settings defined in this project.'
               )}
             </bem.FormModal__item>
+
             <bem.FormModal__item m={['gray-row', 'flexed-row', 'copy-team-permissions']}>
               <Select
                 id='teamPermissions'
@@ -155,7 +155,7 @@ class CopyTeamPermissions extends React.Component {
             </bem.FormModal__item>
           </bem.FormView__cell>
         )}
-      </bem.FormView__cell>
+      </bem.FormModal__item>
     );
   }
 }
