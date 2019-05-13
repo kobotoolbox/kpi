@@ -1,29 +1,19 @@
-import _ from 'underscore';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import TagsInput from 'react-tagsinput';
-import classNames from 'classnames';
-import Select from 'react-select';
 import Checkbox from 'js/components/checkbox';
-import TextBox from 'js/components/textbox';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import {
   t,
-  notify,
   parsePermissions,
   stringToColor,
   anonUsername
 } from 'js/utils';
-import {
-  AVAILABLE_PERMISSIONS
-} from 'js/constants';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
@@ -46,7 +36,7 @@ class UserPermissionRow extends React.Component {
     this.state = {
       isEditFormVisible: false,
       isBeingDeleted: false
-    }
+    };
   }
 
   removePermissions() {
@@ -64,13 +54,16 @@ class UserPermissionRow extends React.Component {
     if (perm) {
       var permName = perm.value;
       this.setPerm(permName, this.props);
-      if (permName == 'view' && cans.change)
+      if (permName === 'view' && cans.change) {
         this.removePerm('change', cans.change, this.props.uid);
+      }
     } else {
-      if (cans.view)
+      if (cans.view) {
         this.removePerm('view', cans.view, this.props.uid);
-      if (cans.change)
+      }
+      if (cans.change) {
         this.removePerm('change', cans.change, this.props.uid);
+      }
     }
   }
 
@@ -85,9 +78,10 @@ class UserPermissionRow extends React.Component {
 
     var cans = [];
     for (var key in this.props.can) {
-      let perm = availablePermissions.find(function (d) {return d.value === key});
-      if (perm && perm.label)
+      let perm = availablePermissions.find(function (d) {return d.value === key;});
+      if (perm && perm.label) {
         cans.push(perm.label);
+      }
     }
 
     const cansString = cans.sort().join(', ');
@@ -152,7 +146,7 @@ class PublicPermDiv extends React.Component {
     autoBind(this);
   }
   togglePerms(permRole) {
-    var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
+    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permRole;})[0];
 
     if (permission) {
       actions.permissions.removePerm({
@@ -175,8 +169,8 @@ class PublicPermDiv extends React.Component {
     var href = `#/forms/${uid}`;
     var url = `${window.location.protocol}//${window.location.host}/${href}`;
 
-    var anonCanView = this.props.publicPerms.filter(function(perm){ return perm.permission === 'view_asset' })[0];
-    var anonCanViewData = this.props.publicPerms.filter(function(perm){ return perm.permission === 'view_submissions' })[0];
+    var anonCanView = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_asset';})[0];
+    var anonCanViewData = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_submissions';})[0];
 
     return (
       <bem.FormModal__item m='permissions'>
@@ -207,7 +201,7 @@ class PublicPermDiv extends React.Component {
       </bem.FormModal__item>
     );
   }
-};
+}
 
 reactMixin(PublicPermDiv.prototype, mixins.permissions);
 
@@ -237,7 +231,7 @@ class SharingForm extends React.Component {
         permissions: asset.permissions,
         owner: asset.owner__username,
         parsedPerms: parsePermissions(asset.owner__username, asset.permissions),
-        public_permissions: asset.permissions.filter(function(perm){ return perm.user__username === anonUsername }),
+        public_permissions: asset.permissions.filter(function(perm){return perm.user__username === anonUsername;}),
         related_users: stores.asset.relatedUsers[uid]
       });
     }
