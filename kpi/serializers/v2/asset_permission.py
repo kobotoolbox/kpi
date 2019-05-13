@@ -38,7 +38,9 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         codename = object_permission.permission.codename
         if codename.startswith(PREFIX_PARTIAL_PERMS):
             view = self.context.get('view')
-            asset = view.asset
+            # if view doesn't have an `asset` property,
+            # fallback to context.
+            asset = getattr(view, 'asset', self.context.get('asset'))
             partial_perms = asset.get_partial_perms(
                 object_permission.user_id, True)
 

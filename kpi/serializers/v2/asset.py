@@ -268,6 +268,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context.get('request')
         queryset = ObjectPermissionHelper.get_assignments_queryset(obj,
                                                                    request.user)
+        # Need to pass `asset` and `asset_uid` to context of
+        # AssetPermissionSerializer serializer to avoid extra queries to DB
+        # within the serializer to retrieve the asset object.
+        context.update({'asset': obj})
         context.update({'asset_uid': obj.uid})
 
         return AssetPermissionSerializer(queryset.all(),

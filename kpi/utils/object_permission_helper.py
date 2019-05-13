@@ -22,7 +22,9 @@ class ObjectPermissionHelper:
         :type codename: str
         :rtype bool
         """
-        model_name = affected_object._meta.model_name
+        # affected_object can be deferred which doesn't return the expected
+        # model_name. Using `concrete_model` does.
+        model_name = affected_object._meta.concrete_model._meta.model_name
         if model_name == 'asset' and codename.endswith('_submissions'):
             share_permission = PERM_SHARE_SUBMISSIONS
         else:
