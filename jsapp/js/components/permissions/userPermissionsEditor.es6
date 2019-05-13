@@ -35,8 +35,8 @@ class UserPermissionsEditor extends React.Component {
       add_submissions: false,
       change_submissions: false,
       validate_submissions: false,
-      restricted_view: false,
-      restricted_view_users: [],
+      partial_view: false,
+      partial_view_users: [],
       usernamesBeingChecked: new Set()
     };
   }
@@ -107,24 +107,24 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
-  onRestrictedUsersChange(allUsers) {
-    const restrictedUsers = [];
+  onPartialViewUsersChange(allUsers) {
+    const partialViewUsers = [];
 
     allUsers.forEach((username) => {
       const userCheck = this.checkUsernameSync(username);
       if (userCheck === true) {
-        restrictedUsers.push(username);
+        partialViewUsers.push(username);
       } else if (userCheck === undefined) {
         // we add unknown usernames for now and will check and possibly remove
         // with checkUsernameAsync
-        restrictedUsers.push(username);
+        partialViewUsers.push(username);
         this.checkUsernameAsync(username);
       } else {
         this.notifyUnknownUser(username);
       }
     });
 
-    this.setState({restricted_view_users: restrictedUsers});
+    this.setState({partial_view_users: partialViewUsers});
   }
 
   /**
@@ -153,15 +153,15 @@ class UserPermissionsEditor extends React.Component {
    * Remove nonexistent usernames from tagsinput array
    */
   onUserExistsStoreChange(result) {
-    // check restricted users
-    const restrictedUsers = this.state.restricted_view_users;
-    restrictedUsers.forEach((username) => {
+    // check partial view users
+    const partialViewUsers = this.state.partial_view_users;
+    partialViewUsers.forEach((username) => {
       if (result[username] === false) {
-        restrictedUsers.pop(restrictedUsers.indexOf(username));
+        partialViewUsers.pop(partialViewUsers.indexOf(username));
         this.notifyUnknownUser(username);
       }
     });
-    this.setState({restricted_view_users: restrictedUsers});
+    this.setState({partial_view_users: partialViewUsers});
 
     // check username
     if (result[this.state.username] === false) {
@@ -208,7 +208,7 @@ class UserPermissionsEditor extends React.Component {
   }
 
   render() {
-    const restrictedViewUsersInputProps = {
+    const partialViewUsersInputProps = {
       placeholder: t('Add username(s)')
     };
 
@@ -241,16 +241,16 @@ class UserPermissionsEditor extends React.Component {
         {this.state.view === true &&
           <div>
             <Checkbox
-              checked={this.state.restricted_view}
-              onChange={this.togglePerm.bind(this, 'restricted_view')}
+              checked={this.state.partial_view}
+              onChange={this.togglePerm.bind(this, 'partial_view')}
               label={t('Restrict to submissions made by certain users')}
             />
 
-            {this.state.restricted_view === true &&
+            {this.state.partial_view === true &&
               <TagsInput
-                value={this.state.restricted_view_users}
-                onChange={this.onRestrictedUsersChange}
-                inputProps={restrictedViewUsersInputProps}
+                value={this.state.partial_view_users}
+                onChange={this.onPartialViewUsersChange}
+                inputProps={partialViewUsersInputProps}
                 onlyUnique
               />
             }
