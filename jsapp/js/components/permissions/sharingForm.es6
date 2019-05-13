@@ -39,6 +39,15 @@ class UserPermissionRow extends React.Component {
     };
   }
 
+  componentDidMount() {
+    this.listenTo(stores.asset, this.onAssetChange);
+  }
+
+  onAssetChange() {
+    // fixes bug that caused a readding deleted user disabled
+    this.setState({isBeingDeleted: false});
+  }
+
   removePermissions() {
     this.setState({isBeingDeleted: true});
     // we remove "view" permission, as it is the most basic one, so removing it
@@ -139,6 +148,7 @@ class UserPermissionRow extends React.Component {
 }
 
 reactMixin(UserPermissionRow.prototype, mixins.permissions);
+reactMixin(UserPermissionRow.prototype, Reflux.ListenerMixin);
 
 class PublicPermDiv extends React.Component {
   constructor(props) {
