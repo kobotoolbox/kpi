@@ -200,6 +200,12 @@ var dataInterface;
         }
       });
     },
+    permissionsConfig() {
+      return $ajax({
+        url: `${rootUrl}/permissions/`,
+        method: 'GET'
+      });
+    },
     removePerm (permUrl) {
       return $ajax({
         method: 'DELETE',

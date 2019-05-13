@@ -195,6 +195,12 @@ actions.resources = Reflux.createActions({
 });
 
 actions.permissions = Reflux.createActions({
+  getConfig: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   assignPerm: {
     children: [
       'completed',
@@ -581,6 +587,12 @@ actions.search.assets.listen(function(searchData, params={}){
         params.onFailed(searchData, response);
       }
     });
+});
+
+actions.permissions.getConfig.listen(() => {
+  dataInterface.permissionsConfig()
+    .done(actions.permissions.getConfig.completed)
+    .fail(actions.permissions.getConfig.failed);
 });
 
 actions.permissions.assignPerm.listen(function(creds){
