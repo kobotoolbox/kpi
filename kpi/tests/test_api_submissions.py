@@ -14,7 +14,7 @@ from rest_framework.test import APITestCase
 
 from kpi.models import Asset
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, PERM_VIEW_SUBMISSIONS,\
-    PERM_RESTRICTED_SUBMISSIONS
+    PERM_PARTIAL_SUBMISSIONS
 from .kpi_test_case import KpiTestCase
 
 
@@ -118,16 +118,16 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
 
-    def test_list_submissions_with_restricted_permissions(self):
+    def test_list_submissions_with_partial_permissions(self):
         self._other_user_login()
-        restricted_perms = {
+        partial_perms = {
             PERM_VIEW_SUBMISSIONS: [self.someuser.username]
         }
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        self.asset.assign_perm(self.anotheruser, PERM_RESTRICTED_SUBMISSIONS,
-                               restricted_perms=restricted_perms)
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(self.asset.deployment.submission_count == 2)
@@ -163,13 +163,13 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
 
-    def test_retrieve_submission_with_restricted_permissions(self):
+    def test_retrieve_submission_with_partial_permissions(self):
         self._other_user_login()
-        restricted_perms = {
+        partial_perms = {
             PERM_VIEW_SUBMISSIONS: [self.someuser.username]
         }
-        self.asset.assign_perm(self.anotheruser, PERM_RESTRICTED_SUBMISSIONS,
-                               restricted_perms=restricted_perms)
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
 
         # Try first submission submitted by unknown
         submission = self.submissions[0]

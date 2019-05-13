@@ -34,7 +34,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     >                       "http://kpi/api/v2/permissions/view_asset/"
     >                   ],
     >                   "contradictory": [
-    >                       "http://kpi/api/v2/permissions/restricted_submissions/"
+    >                       "http://kpi/api/v2/permissions/partial_submissions/"
     >                   ],
     >                   "name": "Change data",
     >                   "description": "Can modify submitted data for asset"
@@ -70,7 +70,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     >                       "http://kpi/api/v2/permissions/view_asset/"
     >                   ],
     >                   "contradictory": [
-    >                       "http://kpi/api/v2/permissions/restricted_submissions/"
+    >                       "http://kpi/api/v2/permissions/partial_submissions/"
     >                   ],
     >                   "name": "Change data",
     >                   "description": "Can modify submitted data for asset"

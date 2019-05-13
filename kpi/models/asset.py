@@ -29,7 +29,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
 from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK, \
     ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE, \
     PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
-    PERM_VIEW_SUBMISSIONS, PERM_RESTRICTED_SUBMISSIONS, \
+    PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS, \
     PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
     PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
     PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, PERM_FROM_KC_ONLY, \
@@ -58,7 +58,7 @@ from kpi.utils.random_id import random_id
 from kpi.utils.sluggify import sluggify_label
 from kpi.utils.standardize_content import (needs_standardization,
                                            standardize_content_in_place)
-from .asset_user_restricted_permission import AssetUserRestrictedPermission
+from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 
@@ -483,9 +483,9 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_RESTRICTED_SUBMISSIONS, _('Can make restricted actions on'
-                                            'submitted data for asset '
-                                            'for specific users')),
+            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on'
+                                         'submitted data for asset '
+                                         'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
             (PERM_SHARE_SUBMISSIONS, _("Can change sharing settings for "
@@ -503,7 +503,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET,
         PERM_ADD_SUBMISSIONS,
         PERM_VIEW_SUBMISSIONS,
-        PERM_RESTRICTED_SUBMISSIONS,
+        PERM_PARTIAL_SUBMISSIONS,
         PERM_CHANGE_SUBMISSIONS,
         PERM_VALIDATE_SUBMISSIONS,
     )
@@ -526,17 +526,17 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
-        PERM_RESTRICTED_SUBMISSIONS: (PERM_VIEW_ASSET,),
+        PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
 
     CONTRADICTORY_PERMISSIONS = {
-        PERM_RESTRICTED_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS,
+        PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS,
                                       PERM_VALIDATE_SUBMISSIONS),
-        PERM_VIEW_SUBMISSIONS: (PERM_RESTRICTED_SUBMISSIONS,),
-        PERM_CHANGE_SUBMISSIONS: (PERM_RESTRICTED_SUBMISSIONS,),
-        PERM_VALIDATE_SUBMISSIONS: (PERM_RESTRICTED_SUBMISSIONS,)
+        PERM_VIEW_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
+        PERM_CHANGE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
+        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,)
     }
 
     # Some permissions must be copied to KC
@@ -621,23 +621,22 @@ class Asset(ObjectPermissionMixin,
         else:
             return None
 
-    def get_restricted_perms(self, user_id, with_usernames=False):
+    def get_partial_perms(self, user_id, with_usernames=False):
         """
         Returns the list of permissions the user is restricted to,
         for this specific asset.
         If `with_permissions` is `True`, it returns a dict of permissions and
         the usernames related to these.
 
-        If user doesn't have any restricted permissions, it returns `None`.
+        If user doesn't have any partial permissions, it returns `None`.
 
         :param user_obj: auth.User
         :param with_usernames: boolean. Optional
-        :param validate_restriction: boolean. Optional
 
         :return: list|dict|None
         """
 
-        perms = self.asset_restricted_permissions.filter(user_id=user_id)\
+        perms = self.asset_partial_permissions.filter(user_id=user_id)\
             .values_list("permissions", flat=True).first()
 
         if perms:
@@ -648,7 +647,7 @@ class Asset(ObjectPermissionMixin,
 
         return None
 
-    def get_usernames_for_restricted_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
+    def get_usernames_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
         Returns the list of usernames for a specfic permission `perm`
         and this specific asset.
@@ -657,11 +656,11 @@ class Asset(ObjectPermissionMixin,
         :return:
         """
         if not (perm.endswith(SUFFIX_SUBMISSIONS_PERMS) and
-                not perm == PERM_RESTRICTED_SUBMISSIONS):
+                not perm == PERM_PARTIAL_SUBMISSIONS):
             raise BadPermissionsException("Only global permissions for "
                                           "submissions are supported.")
 
-        perms = self.get_restricted_perms(user_id, True)
+        perms = self.get_partial_perms(user_id, True)
         if perms:
             return perms.get(perm)
         return None
@@ -868,12 +867,12 @@ class Asset(ObjectPermissionMixin,
                                                     source=self.content)
         return snapshot
 
-    def _update_restricted_permissions(self, user_id, perm, remove=False, **kwargs):
+    def _update_partial_permissions(self, user_id, perm, remove=False, **kwargs):
         """
-        Updates restricted permissions relation table according to `perm`.
+        Updates partial permissions relation table according to `perm`.
 
-        If `perm` == `PERM_RESTRICTED_SUBMISSIONS`, then
-        kwargs should contain a dict `restricted_perms` with usernames mapped to
+        If `perm` == `PERM_PARTIAL_SUBMISSIONS`, then
+        kwargs should contain a dict `partial_perms` with usernames mapped to
         their corresponding permission. e.g.:
         ```
             {
@@ -885,7 +884,7 @@ class Asset(ObjectPermissionMixin,
         this code wants to be future-proof and supports other permissions such as:
             - PERM_CHANGE_SUBMISSIONS
             - PERM_VALIDATE_SUBMISSIONS
-        `restricted_perms` could be passed as:
+        `partial_perms` could be passed as:
         ```
             {
                 PERM_CHANGE_SUBMISSIONS': ['someuser'],
@@ -904,9 +903,9 @@ class Asset(ObjectPermissionMixin,
             # Because of the unique constraint, there should be only
             # one record that matches this query.
             # We don't look for record existence to avoid extra query.
-            self.asset_restricted_permissions.filter(user_id=user_id).delete()
+            self.asset_partial_permissions.filter(user_id=user_id).delete()
 
-        if perm == PERM_RESTRICTED_SUBMISSIONS:
+        if perm == PERM_PARTIAL_SUBMISSIONS:
 
             if remove:
                 clean_up_table()
@@ -915,32 +914,32 @@ class Asset(ObjectPermissionMixin,
                     raise BadPermissionsException(
                         _("Can not assign '{}' permission to owner".format(perm)))
 
-                restricted_perms = kwargs.get("restricted_perms")
-                if not restricted_perms:
+                partial_perms = kwargs.get("partial_perms")
+                if not partial_perms:
                     raise BadPermissionsException(
                         _("Can not assign '{}' permission. "
                           "Restricted permissions are missing.".format(perm)))
 
-                new_restricted_perms = {}
-                for restricted_perm, usernames in restricted_perms.items():
+                new_partial_perms = {}
+                for partial_perm, usernames in partial_perms.items():
                     implied_perms = [implied_perm
                                      for implied_perm in
-                                     list(self.get_implied_perms(restricted_perm))
+                                     list(self.get_implied_perms(partial_perm))
                                      if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
                                      ]
-                    implied_perms.append(restricted_perm)
+                    implied_perms.append(partial_perm)
                     for implied_perm in implied_perms:
-                        if implied_perm not in new_restricted_perms:
-                            new_restricted_perms[implied_perm] = []
-                        new_restricted_perms[implied_perm] += usernames
-                        new_restricted_perms[implied_perm] = list(set(
-                            new_restricted_perms[implied_perm]))
+                        if implied_perm not in new_partial_perms:
+                            new_partial_perms[implied_perm] = []
+                        new_partial_perms[implied_perm] += usernames
+                        new_partial_perms[implied_perm] = list(set(
+                            new_partial_perms[implied_perm]))
 
-                aurp, created = AssetUserRestrictedPermission.objects.get_or_create(
+                aupp, created = AssetUserPartialPermission.objects.get_or_create(
                     asset_id=self.pk,
                     user_id=user_id)
-                aurp.permissions = new_restricted_perms
-                aurp.save(update_fields=["permissions"])
+                aupp.permissions = new_partial_perms
+                aupp.save(update_fields=["permissions"])
         else:
             clean_up_table()
 

@@ -140,7 +140,7 @@ class AssetVersionApiTests(APITestCase):
         self.assertEqual(resp2.data['content_hash'],
                          asset.latest_version.content_hash)
 
-    def test_restricted_access_to_version(self):
+    def test_partial_access_to_version(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         resp = self.client.get(self.version_list_url, format='json')

@@ -46,7 +46,7 @@ NESTED_MONGO_RESERVED_ATTRIBUTES = [
     "_validation_status",
 ]
 
-PREFIX_RESTRICTED_PERMS = 'restricted_'
+PREFIX_PARTIAL_PERMS = 'partial_'
 SUFFIX_SUBMISSIONS_PERMS = '_submissions'
 
 # ASSIGNABLE_PERMISSIONS
@@ -54,7 +54,7 @@ PERM_VIEW_ASSET = 'view_asset'
 PERM_CHANGE_ASSET = 'change_asset'
 PERM_ADD_SUBMISSIONS = 'add_submissions'
 PERM_VIEW_SUBMISSIONS = 'view_submissions'
-PERM_RESTRICTED_SUBMISSIONS = 'restricted_submissions'
+PERM_PARTIAL_SUBMISSIONS = 'partial_submissions'
 PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
 

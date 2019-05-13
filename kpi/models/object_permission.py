@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 
-from kpi.constants import PREFIX_RESTRICTED_PERMS
+from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
@@ -257,15 +257,15 @@ class ObjectPermissionMixin(object):
     CONTRADICTORY_PERMISSIONS = {}
 
     @classmethod
-    def get_assignable_permissions(cls, with_restricted=True):
+    def get_assignable_permissions(cls, with_partial=True):
         """
         Returns assignable permissions including permissions prefixed by
-        `PREFIX_RESTRICTED_PERMS` if `with_restricted` is True.
+        `PREFIX_PARTIAL_PERMS` if `with_partial` is True.
 
-        It can be useful to remove the restricted permissions when assigning
+        It can be useful to remove the partial permissions when assigning
         permissions to owner of the object.
 
-        :param with_restricted: bool.
+        :param with_partial: bool.
         :return: tuple
         """
         try:
@@ -275,10 +275,10 @@ class ObjectPermissionMixin(object):
                 cls._meta.app_label, cls._meta.model_name
             ).ASSIGNABLE_PERMISSIONS
 
-        if with_restricted is False:
+        if with_partial is False:
             assignable_permissions = tuple(ap for ap in assignable_permissions
                                            if not ap.startswith(
-                                               PREFIX_RESTRICTED_PERMS)
+                                               PREFIX_PARTIAL_PERMS)
                                            )
 
         return assignable_permissions
@@ -695,9 +695,9 @@ class ObjectPermissionMixin(object):
             deny=deny,
         )
         if identical_existing_perm.exists():
-            # We need to always update restricted permissions because
-            # they may have change even `perm` is the same.
-            self._update_restricted_permissions(user_obj.pk, perm, **kwargs)
+            # We need to always update partial permissions because
+            # they may have changed even if `perm` is the same.
+            self._update_partial_permissions(user_obj.pk, perm, **kwargs)
             # The user already has this permission directly applied
             return identical_existing_perm.first()
 
@@ -744,7 +744,7 @@ class ObjectPermissionMixin(object):
         if defer_recalc:
             return new_permission
 
-        self._update_restricted_permissions(user_obj.pk, perm, **kwargs)
+        self._update_partial_permissions(user_obj.pk, perm, **kwargs)
 
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
@@ -760,16 +760,16 @@ class ObjectPermissionMixin(object):
         return Permission.objects.filter(pk__in=perm_ids).values_list(
             'codename', flat=True)
 
-    def get_restricted_perms(self, user_id, with_usernames=False):
+    def get_partial_perms(self, user_id, with_usernames=False):
         """
-        Returns the list of permissions the user is restricted to,
+        Returns the list of permissions the user is partial to,
         for this specific object.
 
         Should implemented on classes that inherit from this mixin
         """
         return []
 
-    def get_usernames_for_restricted_perm(self, user_id, perm=None):
+    def get_usernames_for_partial_perm(self, user_id, perm=None):
         """
         Returns the list of usernames for a specfic permission `perm`
         and this specific object.
@@ -884,13 +884,13 @@ class ObjectPermissionMixin(object):
         if defer_recalc:
             return
 
-        self._update_restricted_permissions(user_obj.pk, perm, remove=True)
+        self._update_partial_permissions(user_obj.pk, perm, remove=True)
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
         fresh_self.recalculate_descendants_perms()
 
-    def _update_restricted_permissions(self, user_id, perm, remove=False, **kwargs):
+    def _update_partial_permissions(self, user_id, perm, remove=False, **kwargs):
         # Class is not an abstract class. Just pass.
         # Let the dev implement within the classes that inherit from this mixin
         pass

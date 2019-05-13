@@ -223,7 +223,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         if request.method == "GET":
             filters = request.GET.dict()
 
-        submitted_by = self.asset.get_usernames_for_restricted_perm(request.user.id)
+        submitted_by = self.asset.get_usernames_for_partial_perm(request.user.id)
 
         filters.update({
             "submitted_by": submitted_by

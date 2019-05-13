@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kpi.constants import PREFIX_RESTRICTED_PERMS
+from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.fields.relative_prefix_hyperlinked_related import \
     RelativePrefixHyperlinkedRelatedField
 from kpi.models.object_permission import ObjectPermission
@@ -36,20 +36,20 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
 
     def get_partial_permissions(self, object_permission):
         codename = object_permission.permission.codename
-        if codename.startswith(PREFIX_RESTRICTED_PERMS):
+        if codename.startswith(PREFIX_PARTIAL_PERMS):
             view = self.context.get('view')
             asset = view.asset
-            restricted_perms = asset.get_restricted_perms(
+            partial_perms = asset.get_partial_perms(
                 object_permission.user_id, True)
 
-            hyperlinked_restricted_perms = {}
-            for perm_codename, users in restricted_perms.items():
+            hyperlinked_partial_perms = {}
+            for perm_codename, users in partial_perms.items():
                 url = self.__get_permission_hyperlink(perm_codename)
-                hyperlinked_restricted_perms[perm_codename] = {
+                hyperlinked_partial_perms[perm_codename] = {
                     'url': url,
                     'users': [self.__get_user_hyperlink(user) for user in users]
                 }
-            return hyperlinked_restricted_perms
+            return hyperlinked_partial_perms
         return None
 
     def get_permission(self, object_permission):

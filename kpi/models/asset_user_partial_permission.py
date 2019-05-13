@@ -6,7 +6,7 @@ from django.db import models
 from jsonbfield.fields import JSONField as JSONBField
 
 
-class AssetUserRestrictedPermission(models.Model):
+class AssetUserPartialPermission(models.Model):
     """
     Many-to-Many table which provides users' permissions
     on other users' submissions
@@ -31,8 +31,8 @@ class AssetUserRestrictedPermission(models.Model):
     class Meta:
         unique_together = [['asset', 'user']]
 
-    asset = models.ForeignKey('Asset', related_name='asset_restricted_permissions', on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', related_name='user_restricted_permissions', on_delete=models.CASCADE)
+    asset = models.ForeignKey('Asset', related_name='asset_partial_permissions', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', related_name='user_partial_permissions', on_delete=models.CASCADE)
     permissions = JSONBField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
@@ -42,4 +42,4 @@ class AssetUserRestrictedPermission(models.Model):
         if self.pk is not None:
             self.date_modified = timezone.now()
 
-        super(AssetUserRestrictedPermission, self).save(*args, **kwargs)
+        super(AssetUserPartialPermission, self).save(*args, **kwargs)

@@ -6,7 +6,7 @@ from rest_framework_extensions.settings import extensions_api_settings
 
 from kpi.models.asset import Asset
 from kpi.models.object_permission import get_anonymous_user
-from kpi.constants import PERM_RESTRICTED_SUBMISSIONS
+from kpi.constants import PERM_PARTIAL_SUBMISSIONS
 
 
 # FIXME: Move to `object_permissions` module.
@@ -259,7 +259,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
 
     def _get_user_permissions(self, asset, user):
         """
-        Overrides parent method to include restricted permissions (which are
+        Overrides parent method to include partial permissions (which are
         specific to submissions)
 
         :param asset: Asset
@@ -269,14 +269,14 @@ class SubmissionPermission(AssetNestedObjectPermission):
         user_permissions = super(SubmissionPermission, self)._get_user_permissions(
             asset, user)
 
-        if PERM_RESTRICTED_SUBMISSIONS in user_permissions:
-            # Merge restricted permissions with permissions to find out if there
+        if PERM_PARTIAL_SUBMISSIONS in user_permissions:
+            # Merge partial permissions with permissions to find out if there
             # is a match within required permissions.
             # Restricted users will be narrowed down in MongoDB query.
-            restricted_perms = asset.get_restricted_perms(user.id)
-            if restricted_perms:
+            partial_perms = asset.get_partial_perms(user.id)
+            if partial_perms:
                 user_permissions = list(set(
-                    user_permissions + restricted_perms
+                    user_permissions + partial_perms
                 ))
 
         return user_permissions
