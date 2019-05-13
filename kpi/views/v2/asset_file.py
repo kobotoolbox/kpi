@@ -8,12 +8,14 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
-from kpi.models import Asset, AssetFile
+from kpi.models import AssetFile
 from kpi.serializers.v2.asset_file import AssetFileSerializer
+from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
-class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
+class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
+                       NoUpdateModelViewSet):
 
     URL_NAMESPACE = 'api_v2'
 
@@ -23,22 +25,19 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
     serializer_class = AssetFileSerializer
 
     def get_queryset(self):
-        _asset_uid = self.get_parents_query_dict()['asset']
-        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
+        _queryset = self.model.objects.filter(asset__uid=self.asset_uid)
         return _queryset
 
     def perform_create(self, serializer):
-        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
-        if not self.request.user.has_perm(PERM_CHANGE_ASSET, asset):
+        if not self.request.user.has_perm(PERM_CHANGE_ASSET, self.asset):
             raise exceptions.PermissionDenied()
         serializer.save(
-            asset=asset,
+            asset=self.asset,
             user=self.request.user
         )
 
     def perform_destroy(self, *args, **kwargs):
-        asset = Asset.objects.get(uid=self.get_parents_query_dict()['asset'])
-        if not self.request.user.has_perm(PERM_CHANGE_ASSET, asset):
+        if not self.request.user.has_perm(PERM_CHANGE_ASSET, self.asset):
             raise exceptions.PermissionDenied()
         return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
 

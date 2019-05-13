@@ -189,6 +189,9 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         )
 
     def get_serializer_class(self):
+        # need to initialise `self.asset` for the serializer.
+        # Serializer needs `self.context.get('view').asset
+        self.asset = self.get_object()
         if self.action == 'list':
             return AssetListSerializer
         else:

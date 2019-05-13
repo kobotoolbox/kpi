@@ -5,7 +5,6 @@ from datetime import timedelta
 
 import constance
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from rest_framework import viewsets, status
@@ -18,7 +17,6 @@ from kobo.apps.hook.models import Hook, HookLog
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.filters import AssetOwnerFilterBackend
-from kpi.models import Asset
 from kpi.permissions import AssetOwnerNestedObjectPermission
 from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 

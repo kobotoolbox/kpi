@@ -78,9 +78,9 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     pagination_class = TinyPaginated
 
     def get_queryset(self):
-        asset_uid = self.get_parents_query_dict().get("asset")
         hook_uid = self.get_parents_query_dict().get("hook")
-        queryset = self.model.objects.filter(hook__uid=hook_uid, hook__asset__uid=asset_uid)
+        queryset = self.model.objects.filter(hook__uid=hook_uid,
+                                             hook__asset__uid=self.asset_uid)
         queryset = queryset.select_related("hook__asset__uid")
 
         return queryset

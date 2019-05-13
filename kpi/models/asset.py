@@ -621,7 +621,7 @@ class Asset(ObjectPermissionMixin,
         else:
             return None
 
-    def get_restricted_perms(self, user_obj, with_usernames=False):
+    def get_restricted_perms(self, user_id, with_usernames=False):
         """
         Returns the list of permissions the user is restricted to,
         for this specific asset.
@@ -637,7 +637,7 @@ class Asset(ObjectPermissionMixin,
         :return: list|dict|None
         """
 
-        perms = self.asset_restricted_permissions.filter(user_id=user_obj.id)\
+        perms = self.asset_restricted_permissions.filter(user_id=user_id)\
             .values_list("permissions", flat=True).first()
 
         if perms:
@@ -648,7 +648,7 @@ class Asset(ObjectPermissionMixin,
 
         return None
 
-    def get_usernames_for_restricted_perm(self, user_obj, perm=PERM_VIEW_SUBMISSIONS):
+    def get_usernames_for_restricted_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
         Returns the list of usernames for a specfic permission `perm`
         and this specific asset.
@@ -661,7 +661,7 @@ class Asset(ObjectPermissionMixin,
             raise BadPermissionsException("Only global permissions for "
                                           "submissions are supported.")
 
-        perms = self.get_restricted_perms(user_obj, True)
+        perms = self.get_restricted_perms(user_id, True)
         if perms:
             return perms.get(perm)
         return None

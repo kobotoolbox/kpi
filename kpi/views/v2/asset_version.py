@@ -6,9 +6,11 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.filters import AssetOwnerFilterBackend
 from kpi.models import AssetVersion
 from kpi.serializers.v2.asset_version import AssetVersionListSerializer, AssetVersionSerializer
+from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 
 
-class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
+                          NestedViewSetMixin, viewsets.ModelViewSet):
 
     URL_NAMESPACE = 'api_v2'
 
@@ -25,9 +27,8 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return AssetVersionSerializer
 
     def get_queryset(self):
-        _asset_uid = self.get_parents_query_dict()['asset']
         _deployed = self.request.query_params.get('deployed', None)
-        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
+        _queryset = self.model.objects.filter(asset__uid=self.asset_uid)
         if _deployed is not None:
             _queryset = _queryset.filter(deployed=_deployed)
         if self.action == 'list':

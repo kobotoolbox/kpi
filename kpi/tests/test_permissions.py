@@ -556,7 +556,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertTrue(asset.asset_restricted_permissions.count() == 0)
         asset.assign_perm(grantee, codename, restricted_perms=restricted_perms)
         self.assertTrue(grantee.has_perm(codename, asset))
-        self.assertTrue(asset.get_restricted_perms(grantee, True),
+        self.assertTrue(asset.get_restricted_perms(grantee.id, True),
                         restricted_perms)
         # Asset should have 1 relation with the Many-To-Many table
         self.assertTrue(asset.asset_restricted_permissions.count() == 1)
@@ -571,7 +571,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         }
         asset.assign_perm(grantee, PERM_RESTRICTED_SUBMISSIONS,
                           restricted_perms=restricted_perms)
-        self.assertTrue(asset.get_restricted_perms(grantee, True),
+        self.assertTrue(asset.get_restricted_perms(grantee.id, True),
                         restricted_perms)
 
     def test_add_contradict_restricted_submission_permission(self):
@@ -633,6 +633,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         asset.assign_perm(grantee, PERM_RESTRICTED_SUBMISSIONS,
                           restricted_perms=restricted_perms)
 
-        restricted_perms = asset.get_restricted_perms(grantee)
+        restricted_perms = asset.get_restricted_perms(grantee.id)
         self.assertTrue(expected_restricted_perms, restricted_perms)
 

@@ -273,7 +273,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
             # Merge restricted permissions with permissions to find out if there
             # is a match within required permissions.
             # Restricted users will be narrowed down in MongoDB query.
-            restricted_perms = asset.get_restricted_perms(user)
+            restricted_perms = asset.get_restricted_perms(user.id)
             if restricted_perms:
                 user_permissions = list(set(
                     user_permissions + restricted_perms
