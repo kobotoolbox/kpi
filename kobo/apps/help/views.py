@@ -33,7 +33,7 @@ class InAppMessageFileContentView(PrivateStorageView):
 
 class InAppMessageViewSet(viewsets.ModelViewSet):
     """
-    Retrive a list of in-app messages or an individual message. Markdown fields
+    Retrieve a list of in-app messages or an individual message. Markdown fields
     are returned without modification, but converted HTML for each Markdown
     field is provided in the `html` object of each message. The most recently
     created messages appear first in the list.
