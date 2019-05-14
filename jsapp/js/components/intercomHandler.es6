@@ -1,9 +1,10 @@
+import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
-import stores from '../stores';
+import actions from '../actions';
 
 // NOTE: change this boolean to switch to custom button (just make sure to
 // check the TODO comment below)
@@ -70,14 +71,14 @@ class IntercomHandler extends React.Component {
 
   bootIntercom(account) {
     const name = account.extra_details.name;
-    const legacyName = [account.first_name, account.last_name].filter(val => val).join(' ');
+    const legacyName = [account.first_name, account.last_name].filter((val) => {return val;}).join(' ');
 
     this.currentSettings.app_id = window.IntercomAppId;
     this.currentSettings.user_id = [account.username, window.location.host].join('@');
     this.currentSettings.username = account.username;
     this.currentSettings.email = account.email;
     this.currentSettings.name = name ? name : legacyName ? legacyName : account.username;
-    this.currentSettings.created_at = Math.floor((new Date(account.date_joined)).getTime() / 1000),
+    this.currentSettings.created_at = Math.floor((new Date(account.date_joined)).getTime() / 1000);
 
     window.Intercom('boot', this.currentSettings);
   }
@@ -119,11 +120,11 @@ class IntercomHandler extends React.Component {
     } else {
       var d = document;
       var i = function() {
-        i.c(arguments)
+        i.c(arguments);
       };
       i.q = [];
       i.c = function(args) {
-        i.q.push(args)
+        i.q.push(args);
       };
       w.Intercom = i;
 
