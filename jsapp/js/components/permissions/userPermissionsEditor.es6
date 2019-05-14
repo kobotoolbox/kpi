@@ -224,7 +224,9 @@ class UserPermissionsEditor extends React.Component {
         className='user-permissions-editor'
         onSubmit={this.submit}
       >
-        {t('Grant permissions to')}
+        <div className='user-permissions-editor__row'>
+          {t('Grant permissions to')}
+        </div>
 
         <div className='user-permissions-editor__row'>
           <TextBox
