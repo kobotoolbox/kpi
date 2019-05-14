@@ -45,7 +45,7 @@ import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
-import IntercomHandler from './components/intercomHandler'
+import IntercomHandler from './components/intercomHandler';
 import Modal from './components/modal';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 
