@@ -10,49 +10,27 @@ import {
 const Reflux = require('reflux');
 
 const permissionsActions = Reflux.createActions({
-  getConfig: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  assignPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  removePerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  copyPermissionsFrom: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  assignPublicPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  setCollectionDiscoverability: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
+  getConfig: {children: ['completed', 'failed']},
+  assignPerm: {children: ['completed', 'failed']},
+  removePerm: {children: ['completed', 'failed']},
+  copyPermissionsFrom: {children: ['completed', 'failed']},
+  assignPublicPerm: {children: ['completed', 'failed']},
+  setCollectionDiscoverability: {children: ['completed', 'failed']}
 });
+
+/*
+ * New actions
+ */
 
 permissionsActions.getConfig.listen(() => {
   dataInterface.permissionsConfig()
     .done(permissionsActions.getConfig.completed)
     .fail(permissionsActions.getConfig.failed);
 });
+
+/*
+Old actions
+ */
 
 permissionsActions.assignPerm.listen(function(creds){
   dataInterface.assignPerm(creds)
