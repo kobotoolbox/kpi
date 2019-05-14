@@ -8,6 +8,7 @@ import TextBox from 'js/components/textBox';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
+import classNames from 'classnames';
 import {
   t,
   notify
@@ -220,80 +221,91 @@ class UserPermissionsEditor extends React.Component {
     return (
       <bem.FormModal__form
         m={modifiers}
+        className='user-permissions-editor'
         onSubmit={this.submit}
       >
         {t('Grant permissions to')}
 
-        <TextBox
-          placeholder={t('username')}
-          value={this.state.username}
-          onChange={this.onUsernameChange}
-          onBlur={this.onUsernameChangeEnd}
-          onKeyPress={this.onUsernameKeyPress}
-        />
+        <div className='user-permissions-editor__row'>
+          <TextBox
+            placeholder={t('username')}
+            value={this.state.username}
+            onChange={this.onUsernameChange}
+            onBlur={this.onUsernameChangeEnd}
+            onKeyPress={this.onUsernameKeyPress}
+          />
+        </div>
 
-        <Checkbox
-          checked={this.state.view}
-          onChange={this.togglePerm.bind(this, 'view')}
-          label={AVAILABLE_PERMISSIONS.get('view')}
-        />
+        <div className={classNames(
+          this.state.view === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
+        )}>
+          <Checkbox
+            checked={this.state.view}
+            onChange={this.togglePerm.bind(this, 'view')}
+            label={AVAILABLE_PERMISSIONS.get('view')}
+          />
 
-        {this.state.view === true &&
-          <div>
-            <Checkbox
-              checked={this.state.partial_view}
-              onChange={this.togglePerm.bind(this, 'partial_view')}
-              label={t('Restrict to submissions made by certain users')}
-            />
-
-            {this.state.partial_view === true &&
-              <TagsInput
-                value={this.state.partial_view_users}
-                onChange={this.onPartialViewUsersChange}
-                inputProps={partialViewUsersInputProps}
-                onlyUnique
+          {this.state.view === true &&
+            <div>
+              <Checkbox
+                checked={this.state.partial_view}
+                onChange={this.togglePerm.bind(this, 'partial_view')}
+                label={t('Restrict to submissions made by certain users')}
               />
-            }
-          </div>
-        }
 
-        <Checkbox
-          checked={this.state.change}
-          onChange={this.togglePerm.bind(this, 'change')}
-          label={AVAILABLE_PERMISSIONS.get('change')}
-        />
+              {this.state.partial_view === true &&
+                <TagsInput
+                  value={this.state.partial_view_users}
+                  onChange={this.onPartialViewUsersChange}
+                  inputProps={partialViewUsersInputProps}
+                  onlyUnique
+                />
+              }
+            </div>
+          }
+        </div>
 
-        <Checkbox
-          checked={this.state.view_submissions}
-          onChange={this.togglePerm.bind(this, 'view_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('view_submissions')}
-        />
+        <div className='user-permissions-editor__row'>
+          <Checkbox
+            checked={this.state.change}
+            onChange={this.togglePerm.bind(this, 'change')}
+            label={AVAILABLE_PERMISSIONS.get('change')}
+          />
 
-        <Checkbox
-          checked={this.state.add_submissions}
-          onChange={this.togglePerm.bind(this, 'add_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('add_submissions')}
-        />
+          <Checkbox
+            checked={this.state.view_submissions}
+            onChange={this.togglePerm.bind(this, 'view_submissions')}
+            label={AVAILABLE_PERMISSIONS.get('view_submissions')}
+          />
 
-        <Checkbox
-          checked={this.state.change_submissions}
-          onChange={this.togglePerm.bind(this, 'change_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('change_submissions')}
-        />
+          <Checkbox
+            checked={this.state.add_submissions}
+            onChange={this.togglePerm.bind(this, 'add_submissions')}
+            label={AVAILABLE_PERMISSIONS.get('add_submissions')}
+          />
 
-        <Checkbox
-          checked={this.state.validate_submissions}
-          onChange={this.togglePerm.bind(this, 'validate_submissions')}
-          label={AVAILABLE_PERMISSIONS.get('validate_submissions')}
-        />
+          <Checkbox
+            checked={this.state.change_submissions}
+            onChange={this.togglePerm.bind(this, 'change_submissions')}
+            label={AVAILABLE_PERMISSIONS.get('change_submissions')}
+          />
 
-        <bem.Button
-          m={['raised', 'colored']}
-          type='submit'
-          disabled={!this.isSubmitEnabled()}
-        >
-          {this.props.username ? t('Update') : t('Submit')}
-        </bem.Button>
+          <Checkbox
+            checked={this.state.validate_submissions}
+            onChange={this.togglePerm.bind(this, 'validate_submissions')}
+            label={AVAILABLE_PERMISSIONS.get('validate_submissions')}
+          />
+        </div>
+
+        <div className='user-permissions-editor__row'>
+          <bem.Button
+            m={['raised', 'colored']}
+            type='submit'
+            disabled={!this.isSubmitEnabled()}
+            >
+              {this.props.username ? t('Update') : t('Submit')}
+            </bem.Button>
+        </div>
       </bem.FormModal__form>
     );
   }

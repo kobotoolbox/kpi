@@ -19,15 +19,15 @@ $s-gray-row-spacing: 10px;
       margin-bottom: 12px;
     }
   }
-
-  .form-modal__item--copy-team-permissions .kobo-select {
-    flex: 1;
-  }
 }
 
 .copy-team-permissions {
   &.copy-team-permissions--opened .mdl-button--copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
+  }
+
+  .kobo-select {
+    flex: 1;
   }
 
   .mdl-button--copy-team-permissions-opener {
@@ -94,6 +94,33 @@ $s-gray-row-spacing: 10px;
 
   .user-row__editor {
     margin-top: 5px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// UserPermissionsEditor
+// -----------------------------------------------------------------------------
+
+.form-modal__item--copy-team-permissions {
+  position: relative;
+
+  .user-permissions-editor-closer {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
+
+.user-permissions-editor {
+  .user-permissions-editor__row {
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
+
+    &.user-permissions-editor__row--group {
+      border: 1px solid $divider-color;
+      padding: 10px;
+    }
   }
 }
 

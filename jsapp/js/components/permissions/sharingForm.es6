@@ -367,8 +367,12 @@ class SharingForm extends React.Component {
           }
 
           {this.state.isAddUserEditorVisible &&
-            <bem.FormModal__item m='gray-row'>
-              <bem.Button m='icon' onClick={this.toggleAddUserEditor}>
+            <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
+              <bem.Button
+                m='icon'
+                className='user-permissions-editor-closer'
+                onClick={this.toggleAddUserEditor}
+              >
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
