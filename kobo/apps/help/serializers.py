@@ -1,7 +1,9 @@
-from django.db import transaction
-from rest_framework import serializers
+# coding: utf-8
+
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import serializers
 
 from .models import InAppMessage, InAppMessageUserInteractions
 

@@ -1,28 +1,19 @@
-"""
-Django settings for kobo project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.7/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.7/ref/settings/
-"""
+# coding: utf-8
 from __future__ import absolute_import
 
+from datetime import timedelta
+import multiprocessing
 import os
 import subprocess
-import multiprocessing
-from datetime import timedelta
 
-import dj_database_url
-import django.conf.locale
-from pymongo import MongoClient
 from celery.schedules import crontab
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
-
+from pymongo import MongoClient
+import dj_database_url
+import django.conf.locale
 from .static_lists import EXTRA_LANG_INFO
 
 

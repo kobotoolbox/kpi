@@ -1,13 +1,15 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
-from django.db import migrations, models
 import datetime
+
+from django.conf import settings
+from django.db import migrations, models
+import jsonbfield.fields
 import markdownx.models
 import private_storage.fields
 import private_storage.storage.files
-import jsonbfield.fields
-from django.conf import settings
+
 import kpi.fields
 
 

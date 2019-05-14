@@ -1,14 +1,16 @@
+# coding: utf-8
+
 import datetime
 
 from django.db.models import Q
-from rest_framework import viewsets
 from markdownx.views import ImageUploadView
 from private_storage.views import PrivateStorageView
+from rest_framework import viewsets
 
 from .forms import InAppMessageImageForm
-from .serializers import InAppMessageSerializer
-from .permissions import InAppMessagePermissions
 from .models import InAppMessage, InAppMessageFile
+from .permissions import InAppMessagePermissions
+from .serializers import InAppMessageSerializer
 
 
 class InAppMessageImageUploadView(ImageUploadView):
