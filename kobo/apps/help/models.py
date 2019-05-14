@@ -6,10 +6,10 @@ import datetime
 
 from django.db import models
 from django.conf import settings
+from jsonbfield.fields import JSONField
 from markdownx.models import MarkdownxField
 from private_storage.fields import PrivateFileField
 from django.utils.module_loading import import_string
-from jsonbfield.fields import JSONField
 from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
 
 from kpi.fields import KpiUidField
