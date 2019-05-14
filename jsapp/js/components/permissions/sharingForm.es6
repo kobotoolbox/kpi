@@ -18,6 +18,7 @@ import {
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserPermissionsEditor from './userPermissionsEditor';
+import permParser from './permParser';
 
 var availablePermissions = [
   {value: 'view', label: t('View Form')},
@@ -229,6 +230,16 @@ class SharingForm extends React.Component {
       actions.resources.loadAsset({id: this.props.uid});
     }
     this.listenTo(stores.asset, this.assetChange);
+    this.listenTo(
+      actions.permissions.getAllAssetPermissions.completed,
+      this.onGetAllAssetPermissionsCompleted
+    );
+
+    actions.permissions.getAllAssetPermissions(this.props.uid);
+  }
+
+  onGetAllAssetPermissionsCompleted(response) {
+    console.log('onGetAllAssetPermissionsCompleted', response, permParser.parse(response));
   }
 
   assetChange (data) {

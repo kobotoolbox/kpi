@@ -11,6 +11,7 @@ const Reflux = require('reflux');
 
 const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
+  getAllAssetPermissions: {children: ['completed', 'failed']},
   assignPerm: {children: ['completed', 'failed']},
   removePerm: {children: ['completed', 'failed']},
   copyPermissionsFrom: {children: ['completed', 'failed']},
@@ -26,6 +27,12 @@ permissionsActions.getConfig.listen(() => {
   dataInterface.permissionsConfig()
     .done(permissionsActions.getConfig.completed)
     .fail(permissionsActions.getConfig.failed);
+});
+
+permissionsActions.getAllAssetPermissions.listen((uid) => {
+  dataInterface.assetPermissions(uid)
+    .done(permissionsActions.getAllAssetPermissions)
+    .fail(permissionsActions.getAllAssetPermissions.failed);
 });
 
 /*

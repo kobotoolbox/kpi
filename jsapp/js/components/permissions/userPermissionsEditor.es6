@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import Checkbox from 'js/components/checkbox';
-import TextBox from 'js/components/textbox';
+import TextBox from 'js/components/textBox';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
