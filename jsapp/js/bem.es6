@@ -200,6 +200,7 @@ bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
 bem.Modal__footer = bem.Modal.__('footer', '<footer>');
 bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
 bem.Modal__tabs = bem.Modal.__('tabs');
+bem.Modal__hr = bem.Modal.__('hr', '<hr>');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__content = bem.PopoverMenu.__('content');

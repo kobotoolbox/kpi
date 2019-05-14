@@ -1,6 +1,5 @@
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
-$s-flexed-row-width: 560px;
 $s-gray-row-spacing: 10px;
 
 .form-modal--sharing-form {
@@ -15,14 +14,6 @@ $s-gray-row-spacing: 10px;
     margin-top: 15px;
   }
 
-  .form-modal__item--users-permissions,
-  .form-modal__item--share-settings,
-  .form-modal__item--copy-team-permissions {
-    &:not(:last-child) {
-      margin-bottom: 30px;
-    }
-  }
-
   .form-modal__item--share-settings {
     h2 {
       margin-bottom: 12px;
@@ -32,12 +23,31 @@ $s-gray-row-spacing: 10px;
   .form-modal__item--copy-team-permissions .kobo-select {
     flex: 1;
   }
+}
+
+.copy-team-permissions {
+  &.copy-team-permissions--opened .mdl-button--copy-team-permissions-opener .k-icon::before {
+    transform: rotate(-90deg);
+  }
 
   .mdl-button--copy-team-permissions-opener {
     color: $cool-blue;
     padding-left: 0;
     padding-right: 0;
     font-weight: 500;
+    height: 20px;
+    line-height: 20px;
+    min-height: 20px;
+    margin-bottom: 10px;
+
+    .k-icon {
+      font-size: 20px;
+      vertical-align: middle;
+
+      &::before {
+        transform: rotate(90deg);
+      }
+    }
   }
 }
 
@@ -109,6 +119,7 @@ $s-gray-row-spacing: 10px;
 
   .kobo-select {
     min-width: $s-flexed-row-select-width;
+
     .kobo-select__control {
       height: 40px;
     }
@@ -122,12 +133,6 @@ $s-gray-row-spacing: 10px;
 
   button {
     min-width: $s-flexed-row-button-width;
-  }
-}
-
-@media screen and (min-width: 768px) {
-  .form-modal__item--flexed-row {
-    min-width: $s-flexed-row-width;
   }
 }
 

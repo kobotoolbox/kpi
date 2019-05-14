@@ -316,7 +316,7 @@ class SharingForm extends React.Component {
         </bem.Modal__subheader>
 
         {/* list of users and their permissions */}
-        <bem.FormModal__item m='users-permissions'>
+        <bem.FormModal__item>
           <h2>{t('Who has access')}</h2>
 
           <bem.UserRow>
@@ -373,24 +373,30 @@ class SharingForm extends React.Component {
 
         {/* public sharing settings */}
         { kind !== 'collection' && asset_type === 'survey' &&
-          <bem.FormModal__item m='share-settings'>
-            <h2>{t('Select share settings')}</h2>
+          <React.Fragment>
+            <bem.Modal__hr/>
 
-            <PublicPermDiv
-              uid={uid}
-              publicPerms={this.state.public_permissions}
-              kind={kind}
-              objectUrl={objectUrl}
-              deploymentActive={this.state.asset.deployment__active}
-            />
-          </bem.FormModal__item>
+            <bem.FormModal__item m='share-settings'>
+              <h2>{t('Select share settings')}</h2>
+
+              <PublicPermDiv
+                uid={uid}
+                publicPerms={this.state.public_permissions}
+                kind={kind}
+                objectUrl={objectUrl}
+                deploymentActive={this.state.asset.deployment__active}
+              />
+            </bem.FormModal__item>
+          </React.Fragment>
         }
 
         {/* copying permissions from other assets */}
         { kind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
-          <bem.FormModal__item m='copy-team-permissions'>
+          <React.Fragment>
+            <bem.Modal__hr/>
+
             <CopyTeamPermissions uid={uid}/>
-          </bem.FormModal__item>
+          </React.Fragment>
         }
       </bem.FormModal>
     );
