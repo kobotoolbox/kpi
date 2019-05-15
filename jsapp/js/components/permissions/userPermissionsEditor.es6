@@ -27,9 +27,12 @@ class UserPermissionsEditor extends React.Component {
     autoBind(this);
 
     this.state = {
+      // inner workings
+      usernamesBeingChecked: new Set(),
       isSubmitPending: false,
-      username: '',
       isEditingUsername: false,
+      // permissions related data
+      username: '',
       view: false,
       change: false,
       view_submissions: false,
@@ -37,15 +40,27 @@ class UserPermissionsEditor extends React.Component {
       change_submissions: false,
       validate_submissions: false,
       partial_view: false,
-      partial_view_users: [],
-      usernamesBeingChecked: new Set()
+      partial_view_users: []
     };
+
+    this.applyPropsData();
   }
 
-  componentDidMount() {
+  /*
+   * Fills up form with provided user name and permissions (if applicable)
+   */
+  applyPropsData() {
     // TODO 1: set permissions from props if given
     // TODO 2: set mode based on props (i.e. editing existing permissions vs giving new)
 
+    console.log('applyPropsData', this.props);
+
+    if (this.props.username) {
+      this.state.username = this.props.username;
+    }
+  }
+
+  componentDidMount() {
     this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
     this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
