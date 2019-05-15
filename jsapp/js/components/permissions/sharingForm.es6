@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import alertify from 'alertifyjs';
-import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
@@ -19,194 +17,9 @@ import {
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserPermissionsEditor from './userPermissionsEditor';
+import PublicShareSettings from './publicShareSettings';
+import UserPermissionRow from './userPermissionRow';
 import permParser from './permParser';
-
-var availablePermissions = [
-  {value: 'view', label: t('View Form')},
-  {value: 'change', label: t('Edit Form')},
-  {value: 'view_submissions', label: t('View Submissions')},
-  {value: 'add_submissions', label: t('Add Submissions')},
-  {value: 'change_submissions', label: t('Edit Submissions')},
-  {value: 'validate_submissions', label: t('Validate Submissions')}
-];
-
-class UserPermissionRow extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-
-    this.state = {
-      isEditFormVisible: false,
-      isBeingDeleted: false
-    };
-  }
-
-  componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
-  }
-
-  onAssetChange() {
-    // fixes bug that disables a user who was re-added after being deleted
-    this.setState({isBeingDeleted: false});
-  }
-
-  removePermissions() {
-    const dialog = alertify.dialog('confirm');
-    const opts = {
-      title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.username}</strong>`),
-      labels: {ok: t('Remove'), cancel: t('Cancel')},
-      onok: () => {
-        this.setState({isBeingDeleted: true});
-        // we remove "view" permission, as it is the most basic one, so removing it
-        // will in fact remove all permissions
-        actions.permissions.removePerm({
-          permission_url: this.props.can.view.url,
-          content_object_uid: this.props.uid
-        });
-      },
-      oncancel: dialog.destroy
-    };
-    dialog.set(opts).show();
-  }
-
-  toggleEditForm() {
-    this.setState({isEditFormVisible: !this.state.isEditFormVisible});
-  }
-
-  render () {
-    const initialsStyle = {
-      background: `#${stringToColor(this.props.username)}`
-    };
-
-    const cans = [];
-    for (let key in this.props.can) {
-      let perm = availablePermissions.find(function (d) {return d.value === key;});
-      if (perm && perm.label) {
-        cans.push(perm.label);
-      }
-    }
-    const cansString = cans.sort().join(', ');
-
-    const modifiers = [];
-    if (cans.length === 0) {
-      modifiers.push('deleted');
-    }
-    if (this.state.isBeingDeleted) {
-      modifiers.push('pending');
-    }
-
-    return (
-      <bem.UserRow m={modifiers}>
-        <bem.UserRow__info>
-          <bem.UserRow__avatar>
-            <bem.AccountBox__initials style={initialsStyle}>
-              {this.props.username.charAt(0)}
-            </bem.AccountBox__initials>
-          </bem.UserRow__avatar>
-
-          <bem.UserRow__name>
-            {this.props.username}
-          </bem.UserRow__name>
-
-          <bem.UserRow__role title={cansString}>
-            {cansString}
-          </bem.UserRow__role>
-
-          <bem.Button m='icon' onClick={this.toggleEditForm}>
-            {this.state.isEditFormVisible &&
-              <i className='k-icon k-icon-close'/>
-            }
-            {!this.state.isEditFormVisible &&
-              <i className='k-icon k-icon-edit'/>
-            }
-          </bem.Button>
-
-          <bem.Button m='icon' onClick={this.removePermissions}>
-            <i className='k-icon k-icon-trash' />
-          </bem.Button>
-        </bem.UserRow__info>
-
-        {this.state.isEditFormVisible &&
-          <bem.UserRow__editor>
-            <UserPermissionsEditor
-              username={this.props.username}
-              cans={this.props.cans}
-            />
-          </bem.UserRow__editor>
-        }
-      </bem.UserRow>
-      );
-  }
-}
-
-reactMixin(UserPermissionRow.prototype, mixins.permissions);
-reactMixin(UserPermissionRow.prototype, Reflux.ListenerMixin);
-
-class PublicPermDiv extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-  togglePerms(permRole) {
-    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permRole;})[0];
-
-    if (permission) {
-      actions.permissions.removePerm({
-        permission_url: permission.url,
-        content_object_uid: this.props.uid
-      });
-    } else {
-      actions.permissions.assignPerm({
-        username: anonUsername,
-        uid: this.props.uid,
-        kind: this.props.kind,
-        objectUrl: this.props.objectUrl,
-        role: permRole === 'view_asset' ? 'view' : permRole
-      });
-    }
-  }
-  render () {
-    var uid = this.props.uid;
-
-    var href = `#/forms/${uid}`;
-    var url = `${window.location.protocol}//${window.location.host}/${href}`;
-
-    var anonCanView = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_asset';})[0];
-    var anonCanViewData = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_submissions';})[0];
-
-    return (
-      <bem.FormModal__item m='permissions'>
-        <bem.FormModal__item m='perms-link'>
-          <Checkbox
-            checked={anonCanView ? true : false}
-            onChange={this.togglePerms.bind(this, 'view_asset')}
-            label={t('Share by link')}
-          />
-          { anonCanView &&
-            <bem.FormModal__item m='shareable-link'>
-              <label>
-                {t('Shareable link')}
-              </label>
-              <input type='text' value={url} readOnly />
-            </bem.FormModal__item>
-          }
-        </bem.FormModal__item>
-        { this.props.deploymentActive &&
-          <bem.FormModal__item m='perms-public-data'>
-            <Checkbox
-              checked={anonCanViewData ? true : false}
-              onChange={this.togglePerms.bind(this, 'view_submissions')}
-              label={t('Share data publicly')}
-            />
-          </bem.FormModal__item>
-        }
-      </bem.FormModal__item>
-    );
-  }
-}
-
-reactMixin(PublicPermDiv.prototype, mixins.permissions);
 
 class SharingForm extends React.Component {
   constructor(props) {
@@ -231,7 +44,7 @@ class SharingForm extends React.Component {
   }
 
   onGetAllAssetPermissionsCompleted(response) {
-    console.log('onGetAllAssetPermissionsCompleted', response, permParser.parse(response));
+    console.debug('onGetAllAssetPermissionsCompleted', response, permParser.parse(response));
   }
 
   assetChange (data) {
@@ -305,13 +118,6 @@ class SharingForm extends React.Component {
       background: `#${stringToColor(this.state.asset.owner__username)}`
     };
 
-    if (asset_type !== 'survey') {
-      availablePermissions = [
-        {value: 'view', label: t('View')},
-        {value: 'change', label: t('Edit')},
-      ];
-    }
-
     return (
       <bem.FormModal m='sharing-form'>
         <bem.Modal__subheader>
@@ -344,7 +150,6 @@ class SharingForm extends React.Component {
               ref={perm.username}
               uid={uid}
               kind={kind}
-              objectUrl={objectUrl}
               {...perm}
             />;
           })}
@@ -386,7 +191,7 @@ class SharingForm extends React.Component {
             <bem.FormModal__item m='share-settings'>
               <h2>{t('Select share settings')}</h2>
 
-              <PublicPermDiv
+              <PublicShareSettings
                 uid={uid}
                 publicPerms={this.state.public_permissions}
                 kind={kind}
