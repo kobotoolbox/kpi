@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import alertify from 'alertifyjs';
 import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
@@ -45,36 +46,28 @@ class UserPermissionRow extends React.Component {
   }
 
   onAssetChange() {
-    // fixes bug that caused a readding deleted user disabled
+    // fixes bug that disables a user who was re-added after being deleted
     this.setState({isBeingDeleted: false});
   }
 
   removePermissions() {
-    this.setState({isBeingDeleted: true});
-    // we remove "view" permission, as it is the most basic one, so removing it
-    // will in fact remove all permissions
-    actions.permissions.removePerm({
-      permission_url: this.props.can.view.url,
-      content_object_uid: this.props.uid
-    });
-  }
-
-  PermOnChange(perm) {
-    var cans = this.props.can;
-    if (perm) {
-      var permName = perm.value;
-      this.setPerm(permName, this.props);
-      if (permName === 'view' && cans.change) {
-        this.removePerm('change', cans.change, this.props.uid);
-      }
-    } else {
-      if (cans.view) {
-        this.removePerm('view', cans.view, this.props.uid);
-      }
-      if (cans.change) {
-        this.removePerm('change', cans.change, this.props.uid);
-      }
-    }
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Remove permissions?'),
+      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.username}</strong>`),
+      labels: {ok: t('Remove'), cancel: t('Cancel')},
+      onok: () => {
+        this.setState({isBeingDeleted: true});
+        // we remove "view" permission, as it is the most basic one, so removing it
+        // will in fact remove all permissions
+        actions.permissions.removePerm({
+          permission_url: this.props.can.view.url,
+          content_object_uid: this.props.uid
+        });
+      },
+      oncancel: dialog.destroy
+    };
+    dialog.set(opts).show();
   }
 
   toggleEditForm() {
@@ -82,18 +75,17 @@ class UserPermissionRow extends React.Component {
   }
 
   render () {
-    var initialsStyle = {
+    const initialsStyle = {
       background: `#${stringToColor(this.props.username)}`
     };
 
-    var cans = [];
-    for (var key in this.props.can) {
+    const cans = [];
+    for (let key in this.props.can) {
       let perm = availablePermissions.find(function (d) {return d.value === key;});
       if (perm && perm.label) {
         cans.push(perm.label);
       }
     }
-
     const cansString = cans.sort().join(', ');
 
     const modifiers = [];
