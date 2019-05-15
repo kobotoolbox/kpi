@@ -17,6 +17,8 @@ $z-modal-x: 10;
 }
 
 .modal {
+  @include box-shadow-top;
+
   align-items: stretch;
   display: flex;
   position: absolute;
@@ -27,8 +29,6 @@ $z-modal-x: 10;
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
-  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
-  border-radius: 2px;
   visibility: hidden;
 
   &.modal--open {

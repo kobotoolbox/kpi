@@ -41,6 +41,7 @@ django-extensions==1.6.7
 django-haystack==2.6.0
 django-jsonbfield==0.1.0
 django-loginas==0.2.3
+django-markdownx==2.0.28
 django-markitup==3.0.0
 django-mptt==0.8.7
 django-oauth-toolkit==0.10.0
@@ -76,7 +77,7 @@ jsonschema==2.6.0
 kombu==4.2.2.post1
 linecache2==1.0.0         # via traceback2
 lxml==4.3.0
-markdown==3.0.1
+markdown==2.6.11
 mock==2.0.0
 more-itertools==5.0.0     # via pytest
 ndg-httpsclient==0.4.2
@@ -85,8 +86,10 @@ paramiko==2.4.2           # via fabric
 path.py==11.5.0
 pathlib2==2.3.3           # via importlib-metadata, pytest
 pbr==4.0.2                # via mock
+pillow==5.4.1             # via django-markdownx
 pluggy==0.9.0             # via pytest
 psycopg2==2.7.7           # via django-jsonbfield, django-toolbelt
+py-gfm==0.1.4
 py==1.8.0                 # via pytest
 pyasn1==0.1.9
 pycparser==2.14           # via cffi

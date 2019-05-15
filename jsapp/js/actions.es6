@@ -1,6 +1,7 @@
 import alertify from 'alertifyjs';
 import {dataInterface} from './dataInterface';
 import permissionsActions from './actions/permissions';
+import helpActions from './actions/help';
 import {
   log,
   t,
@@ -12,9 +13,10 @@ var Reflux = require('reflux');
 import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
-var actions = {};
+const actions = {};
 
 actions.permissions = permissionsActions;
+actions.help = helpActions;
 
 actions.navigation = Reflux.createActions([
     'transitionStart',
