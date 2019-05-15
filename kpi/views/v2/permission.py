@@ -80,8 +80,6 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     ### CURRENT ENDPOINT
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     queryset = Permission.objects.all()
     model = Permission
     lookup_field = 'codename'

@@ -12,13 +12,13 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
-    '''
-    only used for unit testing and interface testing.
+    """
+    Only used for unit testing and interface testing.
 
     defines the interface for a deployment backend.
 
     # TODO. Stop using protected property `_deployment_data`.
-    '''
+    """
 
     INSTANCE_ID_FIELDNAME = "id"
 
@@ -30,10 +30,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             })
 
     def redeploy(self, active=None):
-        '''
+        """
         Replace (overwrite) the deployment, keeping the same identifier, and
         optionally changing whether the deployment is active
-        '''
+        """
         if active is None:
             active = self.active
         self.set_active(active)
@@ -42,6 +42,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
                 'active': bool(active),
             })
+
+    def set_namespace(self, namespace):
+        self.store_data({
+            'namespace': namespace,
+        })
 
     def get_enketo_survey_links(self):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
@@ -58,7 +63,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def submission_list_url(self):
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
-        return reverse("submission-list", kwargs={"parent_lookup_asset": self.asset.uid})
+        view_name = 'submission-list'
+        namespace = self.asset._deployment_data.get('namespace', None)
+        if namespace is not None:
+            view_name = '{}:{}'.format(namespace, view_name)
+        return reverse(view_name, kwargs={"parent_lookup_asset": self.asset.uid})
 
     def get_submission_detail_url(self, submission_pk):
         # Same comment as in `submission_list_url()`

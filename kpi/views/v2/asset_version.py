@@ -12,8 +12,6 @@ from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
 
-    URL_NAMESPACE = 'api_v2'
-
     model = AssetVersion
     lookup_field = 'uid'
     filter_backends = (

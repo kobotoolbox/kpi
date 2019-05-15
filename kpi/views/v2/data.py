@@ -147,8 +147,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     ### CURRENT ENDPOINT
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,

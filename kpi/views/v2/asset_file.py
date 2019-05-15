@@ -17,8 +17,6 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                        NoUpdateModelViewSet):
 
-    URL_NAMESPACE = 'api_v2'
-
     model = AssetFile
     lookup_field = 'uid'
     filter_backends = (RelatedAssetPermissionsFilter,)

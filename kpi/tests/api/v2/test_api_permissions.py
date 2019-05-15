@@ -3,12 +3,10 @@ from __future__ import absolute_import
 
 from django.contrib.auth.models import User, Permission
 from django.core.urlresolvers import reverse
-from django.utils import timezone
 from rest_framework import status
 
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, \
     PERM_SHARE_ASSET
-from kpi.models import Asset, Collection, ObjectPermission
 from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.api.v2 import VersioningTestMixin
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -460,6 +458,7 @@ class ApiPermissionsTestCase(VersioningTestMixin, KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+# TODO Fix permissions tests
 # class ApiAssignedPermissionsTestCase(VersioningTestMixin, KpiTestCase):
 #     """
 #     An obnoxiously large amount of code to test that the endpoint for listing

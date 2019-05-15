@@ -12,8 +12,6 @@ class CollectionViewSet(CollectionViewSetV2):
     **Please upgrade to latest release `/api/v2/collections/`**
     """
 
-    URL_NAMESPACE = None
-
     def get_serializer_class(self):
         if self.action == 'list':
             return CollectionListSerializer

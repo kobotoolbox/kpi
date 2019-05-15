@@ -158,8 +158,6 @@ class AssetViewSet(AssetViewSetV2):
     ### CURRENT ENDPOINT
     """
 
-    URL_NAMESPACE = None
-
     def get_serializer_class(self):
         if self.action == 'list':
             return AssetListSerializer

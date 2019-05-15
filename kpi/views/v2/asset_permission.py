@@ -18,8 +18,6 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     ### CURRENT ENDPOINT
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     model = ObjectPermission
     lookup_field = "uid"
     serializer_class = AssetPermissionSerializer

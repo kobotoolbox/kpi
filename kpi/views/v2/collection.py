@@ -10,13 +10,11 @@ from kpi.filters import KpiObjectPermissionsFilter, SearchFilter
 from kpi.models import Collection
 from kpi.model_utils import disable_auto_field_update
 from kpi.permissions import IsOwnerOrReadOnly, get_perm_name
-from kpi.serializers import CollectionSerializer, CollectionListSerializer
+from kpi.serializers.v2.collection import CollectionSerializer, CollectionListSerializer
 from kpi.constants import CLONE_ARG_NAME, COLLECTION_CLONE_FIELDS
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
-
-    URL_NAMESPACE = 'api_v2'
 
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.select_related(

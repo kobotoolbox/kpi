@@ -32,4 +32,4 @@ class HookSignalViewSet(HookSignalViewSetV2):
 
     """
 
-    URL_NAMESPACE = None
+    pass

@@ -150,4 +150,4 @@ class SubmissionViewSet(DataViewSet):
 
     ### CURRENT ENDPOINT
     """
-    URL_NAMESPACE = None
+    pass

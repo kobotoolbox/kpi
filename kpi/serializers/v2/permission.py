@@ -6,6 +6,7 @@ from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
+from rest_framework.reverse import reverse
 
 from kpi.models.asset import Asset
 from kpi.models.collection import Collection

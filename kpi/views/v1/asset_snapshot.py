@@ -11,6 +11,5 @@ class AssetSnapshotViewSet(AssetSnapshotViewSetV2):
 
     **Please upgrade to latest release `/api/v2/asset_snapshots/`**
     """
-    URL_NAMESPACE = None
 
     serializer_class = AssetSnapshotSerializer

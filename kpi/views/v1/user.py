@@ -14,6 +14,5 @@ class UserViewSet(UserViewSetV2):
     This viewset provides only the `detail` action; `list` is *not* provided to
     avoid disclosing every username in the database
     """
-    URL_NAMESPACE = None
 
     serializer_class = UserSerializer

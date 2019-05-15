@@ -1,31 +1,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-import json
-import requests
-import responses
-
-from django.conf import settings
-from django.contrib.auth import get_user
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from kpi.models import Asset
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, PERM_VIEW_SUBMISSIONS,\
+from kpi.constants import PERM_VIEW_SUBMISSIONS, \
     PERM_PARTIAL_SUBMISSIONS
-from .kpi_test_case import KpiTestCase
+from kpi.models import Asset
+from kpi.tests.api.v2 import VersioningTestMixin
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class BaseTestCase(APITestCase):
-    fixtures = ["test_data"]
-
+class BaseTestCase(VersioningTestMixin, APITestCase):
     """
-    SubmissionViewset uses `BrowsableAPIRenderer` as the first renderer.
+    DataViewset uses `BrowsableAPIRenderer` as the first renderer.
     Force JSON to test the API by specifying `format`, `HTTP_ACCEPT` or 
     `content_type`
     """
+
+    fixtures = ["test_data"]
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username="someuser", password="someuser")
@@ -71,6 +68,7 @@ class BaseTestCase(APITestCase):
             }
         ]
         self.asset.deployment.mock_submissions(self.submissions)
+        self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_url = self.asset.deployment.submission_list_url
 
     def _other_user_login(self, shared_asset=False):
@@ -237,7 +235,7 @@ class SubmissionEditApiTests(BaseTestCase):
     def setUp(self):
         super(SubmissionEditApiTests, self).setUp()
         self.submission = self.submissions[0]
-        self.submission_url = reverse("submission-edit", kwargs={
+        self.submission_url = reverse(self._get_endpoint('submission-edit'), kwargs={
             "parent_lookup_asset": self.asset.uid,
             "pk": self.submission.get("id")
         })
@@ -292,7 +290,3 @@ class SubmissionValidationStatusApiTests(BaseTestCase):
         self.client.logout()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-
-class SubmissionRestrictedApiTests(BaseTestCase):
-    pass

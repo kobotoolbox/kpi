@@ -13,8 +13,6 @@ class AssetVersionViewSet(AssetVersionViewSetV2):
     **Please upgrade to latest release `/api/v2/assets/{uid}/versions`**
     """
 
-    URL_NAMESPACE = None
-
     def get_serializer_class(self):
         if self.action == 'list':
             return AssetVersionListSerializer

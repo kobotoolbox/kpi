@@ -37,8 +37,6 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     parent_model = Asset
 
     def create(self, request, *args, **kwargs):

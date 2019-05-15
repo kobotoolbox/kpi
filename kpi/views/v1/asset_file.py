@@ -12,6 +12,4 @@ class AssetFileViewSet(AssetFileViewSetV2):
     **Please upgrade to latest release `/api/v2/assets/{uid}/files/`**
     """
 
-    URL_NAMESPACE = None
-
     serializer_class = AssetFileSerializer

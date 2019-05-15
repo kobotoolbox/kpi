@@ -172,8 +172,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     ### CURRENT ENDPOINT
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
 

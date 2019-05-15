@@ -14,8 +14,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     avoid disclosing every username in the database
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
