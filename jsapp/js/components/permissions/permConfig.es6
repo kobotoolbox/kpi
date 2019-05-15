@@ -2,6 +2,7 @@ import Reflux from 'reflux';
 import actions from 'js/actions';
 import {
   t,
+  notify,
   assign
 } from 'js/utils';
 
@@ -38,17 +39,34 @@ const permConfig = Reflux.createStore({
     }
   },
   onGetConfigCompleted(response) {
-    console.log('permConfig getConfig cmpleted', response);
+    console.debug('permConfig getConfig cmpleted', response);
     this.setState(response);
   },
-  onGetConfigFailed(response) {
-    console.error('Failed to get permissions config!', response);
+  onGetConfigFailed() {
+    notify('Failed to get permissions config!', 'error');
   },
   getConfig() {
     if (Object.keys(this.state).length === 0) {
       throw new Error(t('No permissions config to get!'));
     } else {
       return this.state;
+    }
+  },
+  getAvailablePermissions(assetType) {
+    if (assetType === 'survey') {
+      return [
+        {value: 'view', label: t('View Form')},
+        {value: 'change', label: t('Edit Form')},
+        {value: 'view_submissions', label: t('View Submissions')},
+        {value: 'add_submissions', label: t('Add Submissions')},
+        {value: 'change_submissions', label: t('Edit Submissions')},
+        {value: 'validate_submissions', label: t('Validate Submissions')}
+      ];
+    } else {
+      return [
+        {value: 'view', label: t('View')},
+        {value: 'change', label: t('Edit')},
+      ];
     }
   }
 });
