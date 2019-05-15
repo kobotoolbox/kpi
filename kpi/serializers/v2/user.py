@@ -3,15 +3,15 @@ from __future__ import absolute_import
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.relations import HyperlinkedIdentityField
 
 from kpi.fields import PaginatedApiField
-from kpi.fields.versioned_hyperlinked_identity import VersionedHyperlinkedIdentityField
 from .asset import AssetUrlListSerializer
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
-    url = VersionedHyperlinkedIdentityField(
+    url = HyperlinkedIdentityField(
         lookup_field='username', view_name='user-detail')
     assets = PaginatedApiField(
         serializer_class=AssetUrlListSerializer

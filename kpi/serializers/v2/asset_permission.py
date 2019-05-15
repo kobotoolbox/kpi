@@ -3,12 +3,12 @@ from __future__ import absolute_import
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.fields.relative_prefix_hyperlinked_related import \
     RelativePrefixHyperlinkedRelatedField
 from kpi.models.object_permission import ObjectPermission
-from kpi.utils.url_helper import UrlHelper
 
 
 class AssetPermissionSerializer(serializers.ModelSerializer):
@@ -60,10 +60,9 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
 
     def get_url(self, object_permission):
         asset_uid = self.context.get('asset_uid')
-        return UrlHelper.reverse('asset-permission-detail',
-                                 args=(asset_uid, object_permission.uid),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('asset-permission-detail',
+                       args=(asset_uid, object_permission.uid),
+                       request=self.context.get('request', None))
 
     def to_representation(self, instance):
         """
@@ -77,14 +76,12 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         return repr_
 
     def __get_permission_hyperlink(self, codename):
-        return UrlHelper.reverse('permission-detail',
-                                 args=(codename,),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('permission-detail',
+                       args=(codename,),
+                       request=self.context.get('request', None))
 
     def __get_user_hyperlink(self, username):
-        return UrlHelper.reverse('user-detail',
-                                 args=(username,),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('user-detail',
+                       args=(username,),
+                       request=self.context.get('request', None))
 

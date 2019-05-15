@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+from django.contrib.auth.models import Permission
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.fields import empty
-
-from kpi.fields.versioned_hyperlinked_identity import \
-    VersionedHyperlinkedIdentityField
-from django.contrib.auth.models import Permission
+from rest_framework.relations import HyperlinkedIdentityField
 
 from kpi.models.asset import Asset
 from kpi.models.collection import Collection
-from kpi.utils.url_helper import UrlHelper
 
 
 class PermissionSerializer(serializers.ModelSerializer):
 
-    url = VersionedHyperlinkedIdentityField(
+    url = HyperlinkedIdentityField(
         lookup_field='codename', view_name='permission-detail')
     implied = serializers.SerializerMethodField()
     contradictory = serializers.SerializerMethodField()
@@ -77,6 +74,7 @@ class PermissionSerializer(serializers.ModelSerializer):
         return []
 
     def get_name(self, permission):
+        # @TODO add name
         return ""
 
     @staticmethod
@@ -122,11 +120,10 @@ class PermissionSerializer(serializers.ModelSerializer):
 
         for codename, codenames in mapped_perms_dict.items():
             hyperlinked_permissions[codename] = [
-                UrlHelper.reverse(viewname='permission-detail',
-                                  kwargs={'codename': codename_},
-                                  request=self.context.get('request', None),
-                                  context=self.context
-                                  ) for codename_ in codenames
+                reverse(viewname='permission-detail',
+                        kwargs={'codename': codename_},
+                        request=self.context.get('request', None))
+                for codename_ in codenames
             ]
 
         return hyperlinked_permissions

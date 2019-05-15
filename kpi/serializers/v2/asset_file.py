@@ -2,11 +2,11 @@
 from __future__ import absolute_import
 
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, \
     SerializerMethodFileField, WritableJSONField
 from kpi.models import AssetFile
-from kpi.utils.url_helper import UrlHelper
 
 
 class AssetFileSerializer(serializers.ModelSerializer):
@@ -24,16 +24,14 @@ class AssetFileSerializer(serializers.ModelSerializer):
     metadata = WritableJSONField(required=False)
 
     def get_url(self, obj):
-        return UrlHelper.reverse('asset-file-detail',
-                                 args=(obj.asset.uid, obj.uid),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('asset-file-detail',
+                       args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
 
     def get_content(self, obj, *args, **kwargs):
-        return UrlHelper.reverse('asset-file-content',
-                                 args=(obj.asset.uid, obj.uid),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('asset-file-content',
+                       args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
 
     class Meta:
         model = AssetFile

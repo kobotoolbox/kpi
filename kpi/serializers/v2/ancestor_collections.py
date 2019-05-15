@@ -2,13 +2,13 @@
 from __future__ import absolute_import
 
 from rest_framework import serializers
+from rest_framework.relations import HyperlinkedIdentityField
 
 from kpi.models import Collection
-from kpi.fields.versioned_hyperlinked_identity import VersionedHyperlinkedIdentityField
 
 
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
-    url = VersionedHyperlinkedIdentityField(
+    url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='collection-detail')
 
     class Meta:

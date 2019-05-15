@@ -18,6 +18,8 @@ from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
 
 
+URL_NAMESPACE = 'api_v2'
+
 router_api_v2 = ExtendedDefaultRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, base_name='asset')
 

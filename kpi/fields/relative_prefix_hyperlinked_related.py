@@ -3,11 +3,10 @@ from __future__ import absolute_import
 
 from django.core.urlresolvers import get_script_prefix
 from django.utils.six.moves.urllib import parse as urlparse
+from rest_framework.serializers import HyperlinkedRelatedField
 
-from .versioned_hyperlinked_related import VersionedHyperlinkedRelatedField
 
-
-class RelativePrefixHyperlinkedRelatedField(VersionedHyperlinkedRelatedField):
+class RelativePrefixHyperlinkedRelatedField(HyperlinkedRelatedField):
 
     def to_internal_value(self, data):
         try:

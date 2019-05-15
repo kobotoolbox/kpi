@@ -18,9 +18,9 @@ from .test_permissions import BasePermissionsTestCase
 
 class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
-    '''
+    """
     A base `APITestCase` with helper functions for KPI testing.
-    '''
+    """
 
     fixtures = ['test_data']
 
@@ -30,23 +30,23 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         :py:class:`BasePermissionsTestCase` over the rest of the calls in this class.
         '''
 
-        kwargs= dict()
+        kwargs = dict()
         if username and password:
-            kwargs= {'username': username, 'password': password}
+            kwargs = {'username': username, 'password': password}
         self.assertEqual(self.client.login(**kwargs), expect_success)
 
     def _url_to_uid(self, url):
         return re.match(r'.+/(.+)/.*$', url).groups()[0]
 
     def url_to_obj(self, url):
-        uid= re.match(r'.+/(.+)/.*$', url).groups()[0]
+        uid = re.match(r'.+/(.+)/.*$', url).groups()[0]
         if uid.startswith('c'):
-            klass= Collection
+            klass = Collection
         elif uid.startswith('a'):
-            klass= Asset
+            klass = Asset
         else:
             raise NotImplementedError()
-        obj= klass.objects.get(uid=uid)
+        obj = klass.objects.get(uid=uid)
         return obj
 
     def create_collection(self, name, owner=None, owner_password=None,
@@ -55,13 +55,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         kwargs.update({'name': name})
-        response= self.client.post(reverse('collection-list'), kwargs)
+        response = self.client.post(reverse(self._get_endpoint('collection-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
             self.client.logout()
 
-        collection= self.url_to_obj(response.data['url'])
+        collection = self.url_to_obj(response.data['url'])
         return collection
 
     def create_asset(self, name, content=None, owner=None,
@@ -80,7 +80,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             "asset_type": kwargs.get("asset_type", "survey")
         })
 
-        response = self.client.post(reverse('asset-list'), kwargs)
+        response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
@@ -94,27 +94,27 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url= reverse('collection-detail',
-                            kwargs={'uid': parent_collection.uid})
+        parent_url = reverse('collection-detail',
+                             kwargs={'uid': parent_collection.uid})
         parent_detail_response= self.client.get(parent_url)
         self.assertEqual(
             parent_detail_response.status_code, status.HTTP_200_OK)
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
-                           kwargs={'uid': child.uid})
+        child_view_name = child._meta.model_name + '-detail'
+        child_url = reverse(child_view_name,
+                            kwargs={'uid': child.uid})
         child_detail_response= self.client.get(child_url)
         self.assertEqual(child_detail_response.status_code, status.HTTP_200_OK)
 
         if owner and owner_password:
             self.client.logout()
 
-        parent_data= parent_detail_response.data
-        child_data= child_detail_response.data
+        parent_data = parent_detail_response.data
+        child_data = child_detail_response.data
         self.assertIn(parent_url, child_data['parent'])
 
-        child_field= 'children'
-        child_found= False
+        child_field = 'children'
+        child_found = False
         # TODO: Request next page of children if child was not found on first
         # page
         for child in parent_data[child_field]['results']:
@@ -206,7 +206,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.client.logout()
 
         if response.status_code == status.HTTP_403_FORBIDDEN:
-            uid_found= False
+            uid_found = False
         else:
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             uid_found= False
@@ -218,7 +218,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
         if msg is None:
             in_list_string= in_list and 'not ' or ''
-            msg= 'Object "{}" {}found in list.'.format(obj, in_list_string)
+            msg = 'Object "{}" {}found in list.'.format(obj, in_list_string)
         self.assertEqual(uid_found, in_list, msg=msg)
 
     def assert_detail_viewable(self, obj, user=None, password=None,

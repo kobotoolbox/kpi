@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from rest_framework import exceptions
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
+from rest_framework.relations import HyperlinkedIdentityField
+from rest_framework.reverse import reverse
 
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField
-from kpi.fields.versioned_hyperlinked_identity import VersionedHyperlinkedIdentityField
-from kpi.models import Asset
-from kpi.models import AssetSnapshot
-from kpi.utils.url_helper import UrlHelper
+from kpi.models import Asset, AssetSnapshot
 
 
 class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
-    url = VersionedHyperlinkedIdentityField(
-        lookup_field='uid', view_name='assetsnapshot-detail')
+    url = HyperlinkedIdentityField(
+         lookup_field='uid',
+         view_name='assetsnapshot-detail')
     uid = serializers.ReadOnlyField()
     xml = serializers.SerializerMethodField()
     enketopreviewlink = serializers.SerializerMethodField()
@@ -45,20 +44,18 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         :param obj: AssetSnapshot
         :return: str
         """
-        return UrlHelper.reverse(
+        return reverse(
             viewname='assetsnapshot-detail',
             format='xml',
             kwargs={'uid': obj.uid},
-            request=self.context.get('request', None),
-            context=self.context
+            request=self.context.get('request', None)
         )
 
     def get_enketopreviewlink(self, obj):
-        return UrlHelper.reverse(
+        return reverse(
             viewname='assetsnapshot-preview',
             kwargs={'uid': obj.uid},
-            request=self.context.get('request', None),
-            context=self.context
+            request=self.context.get('request', None)
         )
 
     def create(self, validated_data):

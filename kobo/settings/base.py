@@ -305,7 +305,8 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.JSONRenderer',
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
-    ]
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
 }
 
 TEMPLATES = [

@@ -8,6 +8,7 @@ from django.conf import settings
 from rest_framework import renderers
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -15,12 +16,9 @@ from kpi.models import AssetSnapshot
 from kpi.renderers import XMLRenderer
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.views.no_update_model import NoUpdateModelViewSet
-from kpi.utils.url_helper import UrlHelper
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
-
-    URL_NAMESPACE = 'api_v2'
 
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
@@ -70,12 +68,11 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             preview_url = "{}{}?form={}".format(
                               settings.ENKETO_SERVER,
                               settings.ENKETO_PREVIEW_URI,
-                              UrlHelper.reverse(viewname='assetsnapshot-detail',
-                                                format='xml',
-                                                kwargs={'uid': snapshot.uid},
-                                                request=request,
-                                                context=self.context
-                                                ),
+                              reverse(viewname='assetsnapshot-detail',
+                                      format='xml',
+                                      kwargs={'uid': snapshot.uid},
+                                      request=request
+                                      ),
                             )
             return HttpResponseRedirect(preview_url)
         else:

@@ -4,14 +4,14 @@ from __future__ import absolute_import
 import json
 
 from rest_framework import serializers
+from rest_framework.relations import HyperlinkedIdentityField
+from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
     PaginatedApiField
-from kpi.fields.versioned_hyperlinked_identity import VersionedHyperlinkedIdentityField
 from kpi.models import Asset, AssetVersion, Collection
 from kpi.models.asset import ASSET_TYPES
 from kpi.models.object_permission import get_anonymous_user
-from kpi.utils.url_helper import UrlHelper
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 from .ancestor_collections import AncestorCollectionsSerializer
@@ -24,7 +24,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
-    url = VersionedHyperlinkedIdentityField(
+    url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WritableJSONField(required=False, allow_blank=True)
@@ -160,28 +160,25 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return obj.asset_versions.count()
 
     def get_xls_link(self, obj):
-        return UrlHelper.reverse('asset-xls',
-                                 args=(obj.uid,),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('asset-xls',
+                       args=(obj.uid,),
+                       request=self.context.get('request', None))
 
     def get_xform_link(self, obj):
-        return UrlHelper.reverse('asset-xform',
-                                 args=(obj.uid,),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('asset-xform',
+                       args=(obj.uid,),
+                       request=self.context.get('request', None))
 
     def get_hooks_link(self, obj):
-        return UrlHelper.reverse('hook-list',
-                                 args=(obj.uid,),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('hook-list',
+                       args=(obj.uid,),
+                       request=self.context.get('request', None))
 
     def get_embeds(self, obj):
         request = self.context.get('request', None)
 
         def _reverse_lookup_format(fmt):
-            url = UrlHelper.reverse('asset-%s' % fmt,
+            url = reverse('asset-%s' % fmt,
                                     args=(obj.uid,),
                                     request=request)
             return {'format': fmt,
@@ -195,10 +192,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_downloads(self, obj):
         def _reverse_lookup_format(fmt):
             request = self.context.get('request', None)
-            obj_url = UrlHelper.reverse('asset-detail',
-                                        args=(obj.uid,),
-                                        request=request,
-                                        context=self.context)
+            obj_url = reverse('asset-detail',
+                              args=(obj.uid,),
+                              request=request)
             # The trailing slash must be removed prior to appending the format
             # extension
             url = '%s.%s' % (obj_url.rstrip('/'), fmt)
@@ -211,10 +207,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
     def get_koboform_link(self, obj):
-        return UrlHelper.reverse('asset-koboform',
-                                 args=(obj.uid,),
-                                 request=self.context.get('request', None),
-                                 context=self.context)
+        return reverse('asset-koboform',
+                       args=(obj.uid,),
+                       request=self.context.get('request', None))
 
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
@@ -283,10 +278,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return UrlHelper.reverse('asset-table-view',
-                                 args=(obj.uid,),
-                                 request=request,
-                                 context=self.context)
+        return reverse('asset-table-view',
+                       args=(obj.uid,),
+                       request=request)
 
 
 class AssetListSerializer(AssetSerializer):

@@ -1,17 +1,23 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import re
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from ..models import AssetSnapshot
-from .kpi_test_case import KpiTestCase
+from kpi.models.asset import AssetSnapshot
+from kpi.tests.kpi_test_case import KpiTestCase
+from . import VersioningTestMixin
 
 
-class TestAssetSnapshotList(KpiTestCase):
+class TestAssetSnapshotList(VersioningTestMixin, KpiTestCase):
     fixtures = ['test_data']
 
-    form_source = '''
+    URL_NAMESPACE = 'api_v2'
+
+    form_source = """
                     {
                         "survey": [
                             {"type":"text","label":"Text+Question.","required":"true"},
@@ -21,11 +27,11 @@ class TestAssetSnapshotList(KpiTestCase):
                             {"form_title":"New+form",
                             "form_id":"new_form"}]
                     }
-                 '''
+                 """
 
     def _create_asset_snapshot_from_source(self):
         self.client.login(username='someuser', password='someuser')
-        url = reverse('assetsnapshot-list')
+        url = reverse(self._get_endpoint('assetsnapshot-list'))
 
         data = {'source': self.form_source}
         response = self.client.post(url, data, format='json')
@@ -42,7 +48,7 @@ class TestAssetSnapshotList(KpiTestCase):
     def test_owner_can_access_snapshot_from_source(self):
         creation_response = self._create_asset_snapshot_from_source()
         snapshot_uid = creation_response.data['uid']
-        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_url = reverse(self._get_endpoint('assetsnapshot-detail'), args=(snapshot_uid,))
         self.client.login(username='someuser', password='someuser')
         detail_response = self.client.get(snapshot_url)
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
@@ -51,10 +57,10 @@ class TestAssetSnapshotList(KpiTestCase):
 
     def _create_asset_snapshot_from_asset(self):
         self.client.login(username='someuser', password='someuser')
-        snapshot_list_url = reverse('assetsnapshot-list')
+        snapshot_list_url = reverse(self._get_endpoint('assetsnapshot-list'))
         asset = self.create_asset(
             'Take my snapshot!', self.form_source, format='json')
-        asset_url = reverse('asset-detail', args=(asset.uid,))
+        asset_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
         data = {'asset': asset_url}
         response = self.client.post(snapshot_list_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
@@ -68,15 +74,15 @@ class TestAssetSnapshotList(KpiTestCase):
         self._create_asset_snapshot_from_asset()
 
     def test_create_two_asset_snapshots_from_source_and_asset(self):
-        '''
+        """
         Make sure it's possible to preview unsaved changes to an asset multiple
         times; see https://github.com/kobotoolbox/kpi/issues/2058
-        '''
+        """
         self.client.login(username='someuser', password='someuser')
-        snapshot_list_url = reverse('assetsnapshot-list')
+        snapshot_list_url = reverse(self._get_endpoint('assetsnapshot-list'))
         asset = self.create_asset(
             'Take my snapshot!', self.form_source, format='json')
-        asset_url = reverse('asset-detail', args=(asset.uid,))
+        asset_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
         data = {'source': self.form_source, 'asset': asset_url}
         for _ in range(2):
             response = self.client.post(snapshot_list_url, data, format='json')
@@ -89,7 +95,7 @@ class TestAssetSnapshotList(KpiTestCase):
     def test_asset_owner_can_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
-        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_url = reverse(self._get_endpoint('assetsnapshot-detail'), args=(snapshot_uid,))
         self.client.login(username='someuser', password='someuser')
         detail_response = self.client.get(snapshot_url)
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
@@ -99,7 +105,7 @@ class TestAssetSnapshotList(KpiTestCase):
     def test_other_user_cannot_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
-        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_url = reverse(self._get_endpoint('assetsnapshot-detail'), args=(snapshot_uid,))
         self.client.login(username='anotheruser', password='anotheruser')
         detail_response = self.client.get(snapshot_url)
         self.assertTrue(detail_response.status_code in (
@@ -109,7 +115,7 @@ class TestAssetSnapshotList(KpiTestCase):
     def test_shared_user_can_access_snapshot(self):
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
-        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_url = reverse(self._get_endpoint('assetsnapshot-detail'), args=(snapshot_uid,))
         asset = AssetSnapshot.objects.get(uid=snapshot_uid).asset
         another_user = User.objects.get(username='anotheruser')
         # Log in as the owner and share the asset
@@ -128,7 +134,7 @@ class TestAssetSnapshotList(KpiTestCase):
         # AssetSnapshotViewSet.get_queryset()
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
-        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_url = reverse(self._get_endpoint('assetsnapshot-detail'), args=(snapshot_uid,))
         # Non-XML endpoints should not be public
         detail_response = self.client.get(snapshot_url)
         self.assertIn(detail_response.status_code, (
@@ -144,9 +150,9 @@ class TestAssetSnapshotList(KpiTestCase):
             self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
     def test_xml_renderer(self):
-        '''
+        """
         Make sure the API endpoint returns the same XML as the ORM
-        '''
+        """
         def kludgy_is_xml_equal(*args):
             '''
             Compare strings after removing newlines and whitespace between
@@ -162,7 +168,7 @@ class TestAssetSnapshotList(KpiTestCase):
 
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
-        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        snapshot_url = reverse(self._get_endpoint('assetsnapshot-detail'), args=(snapshot_uid,))
         snapshot_orm_xml = AssetSnapshot.objects.get(uid=snapshot_uid).xml
         # Test both DRF conventions of specifying the format
         snapshot_xml_urls = (
