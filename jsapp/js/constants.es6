@@ -1,14 +1,5 @@
 import {t} from './utils';
 
-const AVAILABLE_PERMISSIONS = new Map([
-  ['view', t('View Form')],
-  ['change', t('Edit Form')],
-  ['view_submissions', t('View Submissions')],
-  ['add_submissions', t('Add Submissions')],
-  ['change_submissions', t('Edit Submissions')],
-  ['validate_submissions', t('Validate Submissions')]
-]);
-
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
@@ -97,7 +88,6 @@ const ASSET_TYPES = {
 };
 
 export default {
-  AVAILABLE_PERMISSIONS: AVAILABLE_PERMISSIONS,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,

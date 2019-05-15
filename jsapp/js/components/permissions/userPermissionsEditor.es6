@@ -9,13 +9,11 @@ import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import classNames from 'classnames';
+import permConfig from './permConfig';
 import {
   t,
   notify
 } from 'js/utils';
-import {
-  AVAILABLE_PERMISSIONS
-} from 'js/constants';
 
 /**
  * Displays a form for either giving a new user some permissions,
@@ -33,14 +31,14 @@ class UserPermissionsEditor extends React.Component {
       isEditingUsername: false,
       // permissions related data
       username: '',
-      view: false,
-      change: false,
+      view_asset: false,
+      change_asset: false,
       view_submissions: false,
       add_submissions: false,
       change_submissions: false,
       validate_submissions: false,
-      partial_view: false,
-      partial_view_users: []
+      partial_view_submissions: false,
+      partial_view_submissions_users: []
     };
 
     this.applyPropsData();
@@ -123,24 +121,24 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
-  onPartialViewUsersChange(allUsers) {
-    const partialViewUsers = [];
+  onPartialViewSubmissionsUsersChange(allUsers) {
+    const partialViewPermissionsUsers = [];
 
     allUsers.forEach((username) => {
       const userCheck = this.checkUsernameSync(username);
       if (userCheck === true) {
-        partialViewUsers.push(username);
+        partialViewPermissionsUsers.push(username);
       } else if (userCheck === undefined) {
         // we add unknown usernames for now and will check and possibly remove
         // with checkUsernameAsync
-        partialViewUsers.push(username);
+        partialViewPermissionsUsers.push(username);
         this.checkUsernameAsync(username);
       } else {
         this.notifyUnknownUser(username);
       }
     });
 
-    this.setState({partial_view_users: partialViewUsers});
+    this.setState({partial_view_submissions_users: partialViewPermissionsUsers});
   }
 
   /**
@@ -170,14 +168,14 @@ class UserPermissionsEditor extends React.Component {
    */
   onUserExistsStoreChange(result) {
     // check partial view users
-    const partialViewUsers = this.state.partial_view_users;
-    partialViewUsers.forEach((username) => {
+    const partialViewPermissionsUsers = this.state.partial_view_submissions_users;
+    partialViewPermissionsUsers.forEach((username) => {
       if (result[username] === false) {
-        partialViewUsers.pop(partialViewUsers.indexOf(username));
+        partialViewPermissionsUsers.pop(partialViewPermissionsUsers.indexOf(username));
         this.notifyUnknownUser(username);
       }
     });
-    this.setState({partial_view_users: partialViewUsers});
+    this.setState({partial_view_submissions_users: partialViewPermissionsUsers});
 
     // check username
     if (result[this.state.username] === false) {
@@ -224,7 +222,7 @@ class UserPermissionsEditor extends React.Component {
   }
 
   render() {
-    const partialViewUsersInputProps = {
+    const partialViewPermissionsUsersInputProps = {
       placeholder: t('Add username(s)')
     };
 
@@ -253,64 +251,64 @@ class UserPermissionsEditor extends React.Component {
           />
         </div>
 
-        <div className={classNames(
-          this.state.view === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
-        )}>
-          <Checkbox
-            checked={this.state.view}
-            onChange={this.togglePerm.bind(this, 'view')}
-            label={AVAILABLE_PERMISSIONS.get('view')}
-          />
-
-          {this.state.view === true &&
-            <div>
-              <Checkbox
-                checked={this.state.partial_view}
-                onChange={this.togglePerm.bind(this, 'partial_view')}
-                label={t('Restrict to submissions made by certain users')}
-              />
-
-              {this.state.partial_view === true &&
-                <TagsInput
-                  value={this.state.partial_view_users}
-                  onChange={this.onPartialViewUsersChange}
-                  inputProps={partialViewUsersInputProps}
-                  onlyUnique
-                />
-              }
-            </div>
-          }
-        </div>
-
         <div className='user-permissions-editor__row'>
           <Checkbox
-            checked={this.state.change}
-            onChange={this.togglePerm.bind(this, 'change')}
-            label={AVAILABLE_PERMISSIONS.get('change')}
+            checked={this.state.view_asset}
+            onChange={this.togglePerm.bind(this, 'view_asset')}
+            label={permConfig.getPermission('view_asset').label}
           />
 
           <Checkbox
-            checked={this.state.view_submissions}
-            onChange={this.togglePerm.bind(this, 'view_submissions')}
-            label={AVAILABLE_PERMISSIONS.get('view_submissions')}
+            checked={this.state.change_asset}
+            onChange={this.togglePerm.bind(this, 'change_asset')}
+            label={permConfig.getPermission('change_asset').label}
           />
+
+          <div className={classNames(
+            this.state.view_submissions === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
+          )}>
+            <Checkbox
+              checked={this.state.view_submissions}
+              onChange={this.togglePerm.bind(this, 'view_submissions')}
+              label={permConfig.getPermission('view_submissions').label}
+            />
+
+            {this.state.view_submissions === true &&
+              <div>
+                <Checkbox
+                  checked={this.state.partial_view_submissions}
+                  onChange={this.togglePerm.bind(this, 'partial_view_submissions')}
+                  label={permConfig.getPermission('partial_view_submissions').label}
+                />
+
+                {this.state.partial_view_submissions === true &&
+                  <TagsInput
+                    value={this.state.partial_view_submissions_users}
+                    onChange={this.onPartialViewSubmissionsUsersChange}
+                    inputProps={partialViewPermissionsUsersInputProps}
+                    onlyUnique
+                  />
+                }
+              </div>
+            }
+          </div>
 
           <Checkbox
             checked={this.state.add_submissions}
             onChange={this.togglePerm.bind(this, 'add_submissions')}
-            label={AVAILABLE_PERMISSIONS.get('add_submissions')}
+            label={permConfig.getPermission('add_submissions').label}
           />
 
           <Checkbox
             checked={this.state.change_submissions}
             onChange={this.togglePerm.bind(this, 'change_submissions')}
-            label={AVAILABLE_PERMISSIONS.get('change_submissions')}
+            label={permConfig.getPermission('change_submissions').label}
           />
 
           <Checkbox
             checked={this.state.validate_submissions}
             onChange={this.togglePerm.bind(this, 'validate_submissions')}
-            label={AVAILABLE_PERMISSIONS.get('validate_submissions')}
+            label={permConfig.getPermission('validate_submissions').label}
           />
         </div>
 

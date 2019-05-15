@@ -23,12 +23,33 @@ function stateChanges(orig_obj, new_obj) {
   return out;
 }
 
+// TODO: this data should come from backend
+const MOCK_ASSIGNABLE_PERMISSIONS = {
+  view_asset: {id: 'view_asset', label: 'View Form'},
+  change_asset: {id: 'change_asset', label: 'Edit Form'},
+  add_submissions: {id: 'add_submissions', label: 'Add Submissions'},
+  view_submissions: {id: 'view_submissions', label: 'View Submissions'},
+  partial_view_submissions: {id: 'partial_view_submissions', label: 'Restrict to submissions made by certain users'},
+  change_submissions: {id: 'change_submissions', label: 'Edit Submissions'},
+  validate_submissions: {id: 'validate_submissions', label: 'Validate Submissions'}
+};
+const MOCK_IMPLIED_PERMISSIONS = {
+  change_asset: ['view_asset'],
+  add_submissions: ['view_asset'],
+  view_submissions: ['view_asset'],
+  change_submissions: ['view_submissions'],
+  validate_submissions: ['view_submissions']
+};
+
 const permConfig = Reflux.createStore({
   init() {
-    this.state = {};
+    this.isReady = false;
+    this.state = {
+      implied: MOCK_IMPLIED_PERMISSIONS,
+      assignable: MOCK_ASSIGNABLE_PERMISSIONS
+    };
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
-
     actions.permissions.getConfig();
   },
   setState (change) {
@@ -40,16 +61,27 @@ const permConfig = Reflux.createStore({
   },
   onGetConfigCompleted(response) {
     console.debug('permConfig getConfig cmpleted', response);
-    this.setState(response);
+    // this.setState(response);
+    this.isReady = true;
   },
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
   },
-  getConfig() {
-    if (Object.keys(this.state).length === 0) {
-      throw new Error(t('No permissions config to get!'));
-    } else {
-      return this.state;
+  getPermission(permissionId) {
+    this.verifyReady();
+    return this.state.assignable[permissionId];
+  },
+  getImpliedPermissions(permissionId) {
+    this.verifyReady();
+    return this.state.implied[permissionId];
+  },
+  getAssignablePermissions() {
+    this.verifyReady();
+    return this.state.assignable;
+  },
+  verifyReady() {
+    if (!this.isReady) {
+      throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
   },
   getAvailablePermissions(assetType) {
