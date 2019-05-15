@@ -2,12 +2,12 @@
  * permissions related actions
  */
 
+import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {
   t,
   notify
 } from 'js/utils';
-const Reflux = require('reflux');
 
 const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},

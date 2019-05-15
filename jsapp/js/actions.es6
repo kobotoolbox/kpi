@@ -1,4 +1,5 @@
 import alertify from 'alertifyjs';
+import Reflux from 'reflux';
 import {dataInterface} from './dataInterface';
 import permissionsActions from './actions/permissions';
 import helpActions from './actions/help';
@@ -9,21 +10,17 @@ import {
   replaceSupportEmail,
 } from './utils';
 
-var Reflux = require('reflux');
-import RefluxPromise from './libs/reflux-promise';
-Reflux.use(RefluxPromise(window.Promise));
-
-const actions = {};
-
-actions.permissions = permissionsActions;
-actions.help = helpActions;
+const actions = {
+  permissions: permissionsActions,
+  help: helpActions
+};
 
 actions.navigation = Reflux.createActions([
-    'transitionStart',
-    'transitionEnd',
-    'routeUpdate',
-    'documentTitleUpdate'
-  ]);
+  'transitionStart',
+  'transitionEnd',
+  'routeUpdate',
+  'documentTitleUpdate'
+]);
 
 actions.auth = Reflux.createActions({
   verifyLogin: {
