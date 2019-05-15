@@ -518,6 +518,22 @@ var dataInterface;
       });
     },
 
+    getHelpInAppMessages() {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/`,
+        method: 'GET'
+      });
+    },
+    patchHelpInAppMessage(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/${uid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+    },
+
     setLanguage(data) {
       return $ajax({
         url: `${rootUrl}/i18n/setlang/`,

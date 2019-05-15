@@ -490,37 +490,6 @@ var serverEnvironmentStore = Reflux.createStore({
   },
 });
 
-if (window.Intercom) {
-  var IntercomStore = Reflux.createStore({
-    init () {
-      this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-      this.listenTo(actions.auth.verifyLogin.loggedin, this.loggedIn);
-      this.listenTo(actions.auth.logout.completed, this.loggedOut);
-    },
-    routeUpdate (routes) {
-      window.Intercom('update');
-    },
-    loggedIn (acct) {
-      let name = acct.extra_details.name;
-      let legacyName = [
-        acct.first_name, acct.last_name].filter(val => val).join(' ');
-      let userData = {
-        'user_id': [acct.username, window.location.host].join('@'),
-        'username': acct.username,
-        'email': acct.email,
-        'name': name ? name : legacyName ? legacyName : acct.username,
-        'created_at': Math.floor(
-          (new Date(acct.date_joined)).getTime() / 1000),
-        'app_id': window.IntercomAppId
-      }
-      window.Intercom('boot', userData);
-    },
-    loggedOut () {
-      window.Intercom('shutdown');
-    }
-  });
-}
-
 assign(stores, {
   tags: tagsStore,
   pageState: pageStateStore,
