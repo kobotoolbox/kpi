@@ -1,16 +1,15 @@
 import base64
 import unittest
-import requests
-import responses
 
-from rest_framework import status
-from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
+import responses
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
+from rest_framework import status
+from rest_framework.reverse import reverse
+from rest_framework.test import APITestCase
 
-from ..models import Asset
+from kpi.models import Asset
 
 
 class AssetImportTaskTest(APITestCase):

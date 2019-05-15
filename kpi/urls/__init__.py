@@ -16,7 +16,7 @@ from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
-from .router_api_v2 import router_api_v2
+from .router_api_v2 import router_api_v2, URL_NAMESPACE
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -35,7 +35,7 @@ urlpatterns = [
         'patch': 'partial_update',
     }), name='currentuser-detail'),
     url(r'^', include(router_api_v1.urls)),
-    url(r'^api/v2/', include(router_api_v2.urls, namespace='api_v2')),
+    url(r'^api/v2/', include(router_api_v2.urls, namespace=URL_NAMESPACE)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(

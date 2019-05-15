@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import constance
 from django.http import HttpRequest
 from django.core.urlresolvers import reverse
@@ -31,8 +34,8 @@ class EnvironmentTests(APITestCase):
         self.assertDictEqual(response.data, self.expected_dict)
 
     def test_template_context_processor(self):
-        ''' Not an API test, but hey: nevermind the hobgoblins '''
-        context = RequestContext(HttpRequest()) # NB: empty request
+        """ Not an API test, but hey: nevermind the hobgoblins """
+        context = RequestContext(HttpRequest())  # NB: empty request
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
         self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)

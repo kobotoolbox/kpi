@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import re
 
 from django.contrib.auth.models import User
@@ -5,11 +8,16 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..models.collection import Collection
+
+from kpi.models.collection import Collection
+from kpi.tests.api.v2 import VersioningTestMixin
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class CollectionsTests(APITestCase):
+class CollectionsTests(VersioningTestMixin, APITestCase):
     fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
@@ -20,26 +28,26 @@ class CollectionsTests(APITestCase):
         """
         Ensure we can create a new collection object.
         """
-        url = reverse('collection-list')
+        url = reverse(self._get_endpoint('collection-list'))
         data = {'name': 'my collection', 'collections': [], 'assets': []}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name'], 'my collection')
 
     def test_collection_detail(self):
-        url = reverse('collection-detail', kwargs={'uid': self.coll.uid})
+        url = reverse(self._get_endpoint('collection-detail'), kwargs={'uid': self.coll.uid})
         response = self.client.get(url, format='json')
         self.assertEqual(response.data['name'], 'test collection')
 
     def test_collection_delete(self):
-        url = reverse('collection-detail', kwargs={'uid': self.coll.uid})
+        url = reverse(self._get_endpoint('collection-detail'), kwargs={'uid': self.coll.uid})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_collection_rename(self):
-        url = reverse('collection-detail', kwargs={'uid': self.coll.uid})
+        url = reverse(self._get_endpoint('collection-detail'), kwargs={'uid': self.coll.uid})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'test collection')
@@ -52,12 +60,12 @@ class CollectionsTests(APITestCase):
         self.assertEqual(response.data['name'], "what's in a name")
 
     def test_collection_list(self):
-        url= reverse('collection-list')
-        response= self.client.get(url)
-        uid_found= False
+        url = reverse(self._get_endpoint('collection-list'))
+        response = self.client.get(url)
+        uid_found = False
         for rslt in response.data['results']:
-            uid= re.match(r'.+/(.+)/.*$', rslt['url']).groups()[0]
+            uid = re.match(r'.+/(.+)/.*$', rslt['url']).groups()[0]
             if uid == self.coll.uid:
-                uid_found= True
+                uid_found = True
                 break
         self.assertTrue(uid_found)
