@@ -3,7 +3,7 @@ import json
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .test_api_asset_snapshots import TestAssetSnapshotList
+from .api.v1.test_api_asset_snapshots import TestAssetSnapshotList
 from ..models import Asset
 from ..models import AssetSnapshot
 
