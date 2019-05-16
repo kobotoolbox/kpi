@@ -9,7 +9,6 @@ import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import classNames from 'classnames';
-import permConfig from './permConfig';
 import {
   t,
   notify
@@ -29,16 +28,16 @@ class UserPermissionsEditor extends React.Component {
       usernamesBeingChecked: new Set(),
       isSubmitPending: false,
       isEditingUsername: false,
-      // permissions related data
+      // form user inputs
       username: '',
-      view_asset: false,
-      change_asset: false,
-      view_submissions: false,
-      add_submissions: false,
-      change_submissions: false,
-      validate_submissions: false,
-      partial_view_submissions: false,
-      partial_view_submissions_users: []
+      formView: false,
+      formEdit: false,
+      submissionsView: false,
+      submissionsViewPartial: false,
+      submissionsViewPartialUsers: [],
+      submissionsAdd: false,
+      submissionsEdit: false,
+      submissionsValidate: false,
     };
 
     this.applyPropsData();
@@ -78,13 +77,54 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
-  /**
-   * handles changes to permission checkboxes
-   */
-  togglePerm(permId) {
-    let newPerms = {};
-    newPerms[permId] = !this.state[permId];
-    this.setState(newPerms);
+  onFormViewChange(isChecked) {
+    this.setState({
+      formView: isChecked
+    });
+  }
+
+  onFormEditChange(isChecked) {
+    this.setState({
+      formEdit: isChecked
+    });
+  }
+
+  onSubmissionsViewChange(isChecked) {
+    const newState = {
+      submissionsView: isChecked
+    };
+
+    if (!isChecked) {
+      // reset partial inputs
+      newState.submissionsViewPartial = false;
+      newState.submissionsViewPartialUsers = [];
+    }
+
+    this.setState(newState);
+  }
+
+  onSubmissionsViewPartialChange(isChecked) {
+    this.setState({
+      submissionsViewPartial: isChecked
+    });
+  }
+
+  onSubmissionsAddChange(isChecked) {
+    this.setState({
+      submissionsAdd: isChecked
+    });
+  }
+
+  onSubmissionsEditChange(isChecked) {
+    this.setState({
+      submissionsEdit: isChecked
+    });
+  }
+
+  onSubmissionsValidateChange(isChecked) {
+    this.setState({
+      submissionsValidate: isChecked
+    });
   }
 
   /**
@@ -121,24 +161,24 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
-  onPartialViewSubmissionsUsersChange(allUsers) {
-    const partialViewPermissionsUsers = [];
+  onSubmissionsViewPartialUsersChange(allUsers) {
+    const submissionsViewPartialUsers = [];
 
     allUsers.forEach((username) => {
       const userCheck = this.checkUsernameSync(username);
       if (userCheck === true) {
-        partialViewPermissionsUsers.push(username);
+        submissionsViewPartialUsers.push(username);
       } else if (userCheck === undefined) {
         // we add unknown usernames for now and will check and possibly remove
         // with checkUsernameAsync
-        partialViewPermissionsUsers.push(username);
+        submissionsViewPartialUsers.push(username);
         this.checkUsernameAsync(username);
       } else {
         this.notifyUnknownUser(username);
       }
     });
 
-    this.setState({partial_view_submissions_users: partialViewPermissionsUsers});
+    this.setState({submissionsViewPartialUsers: submissionsViewPartialUsers});
   }
 
   /**
@@ -168,14 +208,14 @@ class UserPermissionsEditor extends React.Component {
    */
   onUserExistsStoreChange(result) {
     // check partial view users
-    const partialViewPermissionsUsers = this.state.partial_view_submissions_users;
-    partialViewPermissionsUsers.forEach((username) => {
+    const submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
+    submissionsViewPartialUsers.forEach((username) => {
       if (result[username] === false) {
-        partialViewPermissionsUsers.pop(partialViewPermissionsUsers.indexOf(username));
+        submissionsViewPartialUsers.pop(submissionsViewPartialUsers.indexOf(username));
         this.notifyUnknownUser(username);
       }
     });
-    this.setState({partial_view_submissions_users: partialViewPermissionsUsers});
+    this.setState({submissionsViewPartialUsers: submissionsViewPartialUsers});
 
     // check username
     if (result[this.state.username] === false) {
@@ -222,70 +262,76 @@ class UserPermissionsEditor extends React.Component {
   }
 
   render() {
-    const partialViewPermissionsUsersInputProps = {
+    const isNew = this.state.username.length === 0;
+
+    const submissionsViewPartialUsersInputProps = {
       placeholder: t('Add username(s)')
     };
 
-    const modifiers = [];
+    const formModifiers = [];
     if (this.state.isSubmitPending) {
-      modifiers.push('pending');
+      formModifiers.push('pending');
     }
+
+    const formClassNames = classNames(
+      'user-permissions-editor',
+      isNew ? 'user-permissions-editor--new' : ''
+    );
 
     return (
       <bem.FormModal__form
-        m={modifiers}
-        className='user-permissions-editor'
+        m={formModifiers}
+        className={formClassNames}
         onSubmit={this.submit}
       >
-        <div className='user-permissions-editor__row'>
-          {t('Grant permissions to')}
-        </div>
-
-        <div className='user-permissions-editor__row'>
-          <TextBox
-            placeholder={t('username')}
-            value={this.state.username}
-            onChange={this.onUsernameChange}
-            onBlur={this.onUsernameChangeEnd}
-            onKeyPress={this.onUsernameKeyPress}
-          />
-        </div>
+        {isNew &&
+          // don't display username editor for editing existing user
+          <div className='user-permissions-editor__row user-permissions-editor__row--username'>
+            <TextBox
+              placeholder={t('username')}
+              value={this.state.username}
+              onChange={this.onUsernameChange}
+              onBlur={this.onUsernameChangeEnd}
+              onKeyPress={this.onUsernameKeyPress}
+            />
+          </div>
+        }
 
         <div className='user-permissions-editor__row'>
           <Checkbox
-            checked={this.state.view_asset}
-            onChange={this.togglePerm.bind(this, 'view_asset')}
-            label={permConfig.getPermission('view_asset').label}
+            checked={this.state.formView}
+            onChange={this.onFormViewChange}
+            label={t('View Form')}
           />
 
           <Checkbox
-            checked={this.state.change_asset}
-            onChange={this.togglePerm.bind(this, 'change_asset')}
-            label={permConfig.getPermission('change_asset').label}
+            checked={this.state.formEdit}
+            onChange={this.onFormEditChange}
+            label={t('Edit Form')}
           />
 
           <div className={classNames(
-            this.state.view_submissions === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
+            this.state.submissionsView === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
           )}>
             <Checkbox
-              checked={this.state.view_submissions}
-              onChange={this.togglePerm.bind(this, 'view_submissions')}
-              label={permConfig.getPermission('view_submissions').label}
+              checked={this.state.submissionsView}
+              onChange={this.onSubmissionsViewChange}
+              label={t('View Submissions')}
             />
 
-            {this.state.view_submissions === true &&
+            {this.state.submissionsView === true &&
               <div>
                 <Checkbox
-                  checked={this.state.partial_view_submissions}
-                  onChange={this.togglePerm.bind(this, 'partial_view_submissions')}
-                  label={permConfig.getPermission('partial_view_submissions').label}
+                  checked={this.state.submissionsViewPartial}
+                  onChange={this.onSubmissionsViewPartialChange}
+                  label={t('Restrict to submissions made by certain users')}
                 />
 
-                {this.state.partial_view_submissions === true &&
+                {this.state.submissionsViewPartial === true &&
                   <TagsInput
-                    value={this.state.partial_view_submissions_users}
-                    onChange={this.onPartialViewSubmissionsUsersChange}
-                    inputProps={partialViewPermissionsUsersInputProps}
+                    value={this.state.submissionsViewPartialUsers}
+                    onChange={this.onSubmissionsViewPartialUsersChange}
+                    inputProps={submissionsViewPartialUsersInputProps}
                     onlyUnique
                   />
                 }
@@ -294,21 +340,21 @@ class UserPermissionsEditor extends React.Component {
           </div>
 
           <Checkbox
-            checked={this.state.add_submissions}
-            onChange={this.togglePerm.bind(this, 'add_submissions')}
-            label={permConfig.getPermission('add_submissions').label}
+            checked={this.state.submissionsAdd}
+            onChange={this.onSubmissionsAddChange}
+            label={t('Add Submissions')}
           />
 
           <Checkbox
-            checked={this.state.change_submissions}
-            onChange={this.togglePerm.bind(this, 'change_submissions')}
-            label={permConfig.getPermission('change_submissions').label}
+            checked={this.state.submissionsEdit}
+            onChange={this.onSubmissionsEditChange}
+            label={t('Edit Submissions')}
           />
 
           <Checkbox
-            checked={this.state.validate_submissions}
-            onChange={this.togglePerm.bind(this, 'validate_submissions')}
-            label={permConfig.getPermission('validate_submissions').label}
+            checked={this.state.submissionsValidate}
+            onChange={this.onSubmissionsValidateChange}
+            label={t('Validate Submissions')}
           />
         </div>
 
@@ -318,7 +364,7 @@ class UserPermissionsEditor extends React.Component {
             type='submit'
             disabled={!this.isSubmitEnabled()}
             >
-              {this.props.username ? t('Update') : t('Submit')}
+              {isNew ? t('Grant permissions') : t('Update permissions')}
             </bem.Button>
         </div>
       </bem.FormModal__form>
