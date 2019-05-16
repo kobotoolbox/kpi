@@ -29,14 +29,16 @@ const MOCK_ASSIGNABLE_PERMISSIONS = {
   change_asset: {id: 'change_asset', label: 'Edit Form'},
   add_submissions: {id: 'add_submissions', label: 'Add Submissions'},
   view_submissions: {id: 'view_submissions', label: 'View Submissions'},
-  partial_view_submissions: {id: 'partial_view_submissions', label: 'Restrict to submissions made by certain users'},
+  partial_submissions: {id: 'partial_submissions', label: 'Restrict to submissions made by certain users'},
   change_submissions: {id: 'change_submissions', label: 'Edit Submissions'},
   validate_submissions: {id: 'validate_submissions', label: 'Validate Submissions'}
 };
 const MOCK_IMPLIED_PERMISSIONS = {
+  view_asset: [],
   change_asset: ['view_asset'],
   add_submissions: ['view_asset'],
   view_submissions: ['view_asset'],
+  partial_submissions: ['view_asset'],
   change_submissions: ['view_submissions'],
   validate_submissions: ['view_submissions']
 };
