@@ -8,12 +8,11 @@ from rest_framework import status
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, \
     PERM_SHARE_ASSET
 from kpi.models.object_permission import get_anonymous_user
-from kpi.tests.api.v2 import VersioningTestMixin
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class ApiAnonymousPermissionsTestCase(VersioningTestMixin, KpiTestCase):
+class ApiAnonymousPermissionsTestCase(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
@@ -58,7 +57,7 @@ class ApiAnonymousPermissionsTestCase(VersioningTestMixin, KpiTestCase):
                          msg="anonymous user cannot create a collection")
 
 
-class ApiPermissionsPublicAssetTestCase(VersioningTestMixin, KpiTestCase):
+class ApiPermissionsPublicAssetTestCase(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
@@ -90,7 +89,7 @@ class ApiPermissionsPublicAssetTestCase(VersioningTestMixin, KpiTestCase):
                                           in_list=False)
 
 
-class ApiPermissionsTestCase(VersioningTestMixin, KpiTestCase):
+class ApiPermissionsTestCase(KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -459,7 +458,7 @@ class ApiPermissionsTestCase(VersioningTestMixin, KpiTestCase):
 
 
 # TODO Fix permissions tests
-# class ApiAssignedPermissionsTestCase(VersioningTestMixin, KpiTestCase):
+# class ApiAssignedPermissionsTestCase(KpiTestCase):
 #     """
 #     An obnoxiously large amount of code to test that the endpoint for listing
 #     assigned permissions complies with the following rules:

@@ -2,14 +2,15 @@
 from __future__ import absolute_import
 
 import constance
-from django.http import HttpRequest
 from django.core.urlresolvers import reverse
+from django.http import HttpRequest
 from django.template import Template, RequestContext
 from rest_framework import status
-from rest_framework.test import APITestCase
+
+from kpi.tests.base_test_case import BaseTestCase
 
 
-class EnvironmentTests(APITestCase):
+class EnvironmentTests(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):

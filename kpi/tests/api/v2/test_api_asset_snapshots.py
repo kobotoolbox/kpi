@@ -10,10 +10,9 @@ from rest_framework import status
 from kpi.models.asset import AssetSnapshot
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from . import VersioningTestMixin
 
 
-class TestAssetSnapshotList(VersioningTestMixin, KpiTestCase):
+class TestAssetSnapshotList(KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE

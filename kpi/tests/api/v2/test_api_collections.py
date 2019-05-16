@@ -6,15 +6,13 @@ import re
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
-
 
 from kpi.models.collection import Collection
-from kpi.tests.api.v2 import VersioningTestMixin
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class CollectionsTests(VersioningTestMixin, APITestCase):
+class CollectionsTests(BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE

@@ -10,15 +10,15 @@ import re
 
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 # FIXME: Remove the following line when the permissions API is in place.
+from .base_test_case import BaseTestCase
 from .test_permissions import BasePermissionsTestCase
 from ..models.asset import Asset
 from ..models.collection import Collection
 
 
-class KpiTestCase(APITestCase, BasePermissionsTestCase):
+class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
     """
     A base `APITestCase` with helper functions for KPI testing.
     """

@@ -11,14 +11,14 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
-from rest_framework.test import APITestCase
+from kpi.tests.base_test_case import BaseTestCase
 
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.models import AssetFile
 from kpi.models import AssetVersion
 from kpi.serializers.v2.asset import AssetListSerializer
-from kpi.tests.api.v2 import VersioningTestMixin
+
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -26,7 +26,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
 
-class AssetsListApiTests(VersioningTestMixin, APITestCase):
+class AssetsListApiTests(BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -107,7 +107,7 @@ class AssetsListApiTests(VersioningTestMixin, APITestCase):
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
 
 
-class AssetVersionApiTests(VersioningTestMixin, APITestCase):
+class AssetVersionApiTests(BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -154,7 +154,7 @@ class AssetVersionApiTests(VersioningTestMixin, APITestCase):
         self.assertEqual(resp2.data['detail'], 'Not found.')
 
 
-class AssetsDetailApiTests(VersioningTestMixin, APITestCase):
+class AssetsDetailApiTests(BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -313,19 +313,19 @@ class AssetsDetailApiTests(VersioningTestMixin, APITestCase):
                          self.asset.latest_version.content_hash)
 
 
-class AssetsXmlExportApiTests(VersioningTestMixin, KpiTestCase):
+class AssetsXmlExportApiTests(KpiTestCase):
 
     # @TODO Migrate to v2
     pass
 
 
-class ObjectRelationshipsTests(VersioningTestMixin, APITestCase):
+class ObjectRelationshipsTests(BaseTestCase):
 
     # @TODO Migrate to v2
     pass
 
 
-class AssetsSettingsFieldTest(VersioningTestMixin, KpiTestCase):
+class AssetsSettingsFieldTest(KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -341,13 +341,13 @@ class AssetsSettingsFieldTest(VersioningTestMixin, KpiTestCase):
         self.assertFalse(Asset.objects.filter(settings__id_string='titled_asset'))
 
 
-class AssetExportTaskTest(VersioningTestMixin, APITestCase):
+class AssetExportTaskTest(BaseTestCase):
 
     # @TODO Migrate to v2
     pass
 
 
-class AssetFileTest(VersioningTestMixin, APITestCase):
+class AssetFileTest(BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE

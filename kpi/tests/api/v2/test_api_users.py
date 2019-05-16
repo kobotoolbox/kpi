@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from rest_framework.test import APITestCase
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from kpi.tests.api.v2 import VersioningTestMixin
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class UserListTests(VersioningTestMixin, APITestCase):
+class UserListTests(BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE

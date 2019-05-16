@@ -4,16 +4,15 @@ from __future__ import absolute_import, unicode_literals
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 from kpi.constants import PERM_VIEW_SUBMISSIONS, \
     PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset
-from kpi.tests.api.v2 import VersioningTestMixin
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class BaseTestCase(VersioningTestMixin, APITestCase):
+class BaseSubmissionTestCase(BaseTestCase):
     """
     DataViewset uses `BrowsableAPIRenderer` as the first renderer.
     Force JSON to test the API by specifying `format`, `HTTP_ACCEPT` or 
@@ -78,7 +77,7 @@ class BaseTestCase(VersioningTestMixin, APITestCase):
             self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
 
-class SubmissionApiTests(BaseTestCase):
+class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_create_submission(self):
         v_uid = self.asset.latest_deployed_version.uid
@@ -230,7 +229,7 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
-class SubmissionEditApiTests(BaseTestCase):
+class SubmissionEditApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super(SubmissionEditApiTests, self).setUp()
@@ -260,7 +259,7 @@ class SubmissionEditApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class SubmissionValidationStatusApiTests(BaseTestCase):
+class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
 
     # @TODO Test PATCH
 

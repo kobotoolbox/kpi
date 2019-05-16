@@ -7,12 +7,12 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import status
 from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
 
 from kpi.models import Asset
+from kpi.tests.base_test_case import BaseTestCase
 
 
-class AssetImportTaskTest(APITestCase):
+class AssetImportTaskTest(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):

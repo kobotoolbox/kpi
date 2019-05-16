@@ -3,15 +3,14 @@ from __future__ import absolute_import
 
 import json
 
+import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
 from private_storage.storage.files import PrivateFileSystemStorage
-import requests
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 from kpi.models import Asset
 from kpi.models import Collection
@@ -19,8 +18,7 @@ from kpi.models import ExportTask
 from kpi.serializers.v1.asset import AssetListSerializer
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_assets
-# TODO Remove import below when all tests are migrated to v2
-from kpi.tests.api.v2 import VersioningTestMixin
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -55,7 +53,7 @@ class AssetsDetailApiTests(test_api_assets.AssetsDetailApiTests):
     URL_NAMESPACE = None
 
 
-class AssetsXmlExportApiTests(VersioningTestMixin, KpiTestCase):
+class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
 
     def test_xml_export_title_retained(self):
@@ -123,7 +121,7 @@ class AssetsXmlExportApiTests(VersioningTestMixin, KpiTestCase):
         self.assertNotIn('relevant', group_elts[0].attrib)
 
 
-class ObjectRelationshipsTests(VersioningTestMixin, APITestCase):
+class ObjectRelationshipsTests(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -232,7 +230,7 @@ class AssetsSettingsFieldTest(test_api_assets.AssetsSettingsFieldTest):
     URL_NAMESPACE = None
 
 
-class AssetExportTaskTest(VersioningTestMixin, APITestCase):
+class AssetExportTaskTest(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
