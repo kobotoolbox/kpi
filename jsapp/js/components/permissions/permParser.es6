@@ -1,10 +1,12 @@
 import permConfig from './permConfig';
+import {PERMISSIONS} from '../../constants';
 
 /*
  * Builds an API call compatible object from form data
  */
 function parseFormData (data) {
   const config = permConfig.getAvailablePermissions();
+  console.log('parseFormData', PERMISSIONS.get('view_asset'));
   return data;
 }
 
