@@ -1,11 +1,22 @@
 import permConfig from './permConfig';
 
-function parse (permissions) {
+/*
+ * Builds an API call compatible object from form data
+ */
+function parseFormData (data) {
   const config = permConfig.getConfig();
-  console.log('parse', config, permissions);
-  return permissions;
+  return data;
+}
+
+/*
+ * Builds a form data object from API data
+ */
+function parseBackendData (data) {
+  const config = permConfig.getConfig();
+  return data;
 }
 
 module.exports = {
-  parse: parse
+  parseFormData: parseFormData,
+  parseBackendData: parseBackendData
 };
