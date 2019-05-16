@@ -58,6 +58,8 @@ $s-help-bubble-row-spacing: 20px;
   display: block;
   font-weight: normal;
   color: $cool-silver;
+  // mimic .k-drawer__link
+  border-left: 3px solid transparent;
 
   .help-bubble--open & {
     color: $cool-green;
