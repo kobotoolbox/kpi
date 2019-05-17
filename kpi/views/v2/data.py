@@ -223,6 +223,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
+        # This should overwrite existing `permission_filters` param.
+        # We don't want users to bypass their partial permissions filters.
         filters.update({
             'permission_filters': permission_filters
         })
