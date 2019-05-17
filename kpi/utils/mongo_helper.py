@@ -68,37 +68,40 @@ class MongoHelper(object):
     def get_instances(cls, mongo_userform_id, hide_deleted=True, **kwargs):
 
         params = cls.validate_params(**kwargs)
-        start = params.get("start")
-        limit = params.get("limit")
-        sort = params.get("sort")
-        fields = params.get("fields")
-        query = params.get("query")
-        instances_ids = params.get("instances_ids")
-        submitted_by = params.get("submitted_by")
+        start = params.get('start')
+        limit = params.get('limit')
+        sort = params.get('sort')
+        fields = params.get('fields')
+        query = params.get('query')
+        instances_ids = params.get('instances_ids')
+        permission_filters = params.get('permission_filters')
 
         # check if query contains and _id and if its a valid ObjectID
-        if "_uuid" in query and ObjectId.is_valid(query.get("_uuid")):
-            query["_uuid"] = ObjectId(query.get("_uuid"))
+        if '_uuid' in query and ObjectId.is_valid(query.get('_uuid')):
+            query['_uuid'] = ObjectId(query.get('_uuid'))
 
         if len(instances_ids) > 0:
             query.update({
-                "_id": {"$in": instances_ids}
+                '_id': {'$in': instances_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
 
-        if submitted_by is not None:
-            query.update({
-                "_submitted_by": {"$in": submitted_by}
-            })
+        # Narrow down query
+        if permission_filters is not None:
+            permission_filters_query = {'$or': []}
+            for permission_filter in permission_filters:
+                permission_filters_query['$or'].append(permission_filter)
+
+            query = {'$and': [query, permission_filters_query]}
 
         if hide_deleted:
             # display only active elements
             deleted_at_query = {
-                "$or": [{"_deleted_at": {"$exists": False}},
-                        {"_deleted_at": None}]}
+                '$or': [{'_deleted_at': {'$exists': False}},
+                        {'_deleted_at': None}]}
             # join existing query with deleted_at_query on an $and
-            query = {"$and": [query, deleted_at_query]}
+            query = {'$and': [query, deleted_at_query]}
 
         query = cls.to_safe_dict(query, reading=True)
 
@@ -147,25 +150,25 @@ class MongoHelper(object):
         :return: dict
         """
 
-        start = kwargs.get("start", 0)
-        limit = kwargs.get("limit", cls.DEFAULT_LIMIT)
-        sort = kwargs.get("sort", {})
-        fields = kwargs.get("fields", [])
-        query = kwargs.get("query", {})
-        instances_ids = kwargs.get("instances_ids", [])
-        submitted_by = kwargs.get("submitted_by")
+        start = kwargs.get('start', 0)
+        limit = kwargs.get('limit', cls.DEFAULT_LIMIT)
+        sort = kwargs.get('sort', {})
+        fields = kwargs.get('fields', [])
+        query = kwargs.get('query', {})
+        instances_ids = kwargs.get('instances_ids', [])
+        permission_filters = kwargs.get('permission_filters')
 
         if isinstance(query, basestring):
             try:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
-                raise ValueError(_("Invalid `query` param"))
+                raise ValueError(_('Invalid `query` param'))
 
         if isinstance(sort, basestring):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except Exception as e:
-                raise ValueError(_("Invalid `sort` param"))
+                raise ValueError(_('Invalid `sort` param'))
 
         try:
             start = int(start)
@@ -175,28 +178,28 @@ class MongoHelper(object):
             if start < 0 or limit < 0:
                 raise Exception()  # Try/Except will catch this exception and proper message
         except ValueError:
-            raise ValueError(_("Invalid `start/limit` params"))
+            raise ValueError(_('Invalid `start/limit` params'))
 
         if isinstance(fields, basestring):
             try:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:
-                raise ValueError(_("Invalid `fields` params"))
+                raise ValueError(_('Invalid `fields` params'))
 
         if not isinstance(instances_ids, list):
-            raise ValueError(_("Invalid `instances_ids` param"))
+            raise ValueError(_('Invalid `instances_ids` param'))
 
-        if not (isinstance(submitted_by, list) or submitted_by is None):
-            raise ValueError(_("Invalid `submitted_by` param"))
+        if not (isinstance(permission_filters, list) or permission_filters is None):
+            raise ValueError(_('Invalid `submitted_by` param'))
 
         return {
-            "query": query,
-            "start": start,
-            "limit": limit,
-            "fields": fields,
-            "sort": sort,
-            "instances_ids": instances_ids,
-            "submitted_by": submitted_by
+            'query': query,
+            'start': start,
+            'limit': limit,
+            'fields': fields,
+            'sort': sort,
+            'instances_ids': instances_ids,
+            'permission_filters': permission_filters
         }
 
     @classmethod

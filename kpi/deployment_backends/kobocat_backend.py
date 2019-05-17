@@ -519,7 +519,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: generator<JSON>
         """
 
-        kwargs["instances_ids"] = instances_ids
+        kwargs['instances_ids'] = instances_ids
         instances = MongoHelper.get_instances(self.mongo_userform_id, **kwargs)
 
         return (
@@ -536,25 +536,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: list<XML>
         """
 
-        sort = {"id": 1}
-        kwargs["instances_ids"] = instances_ids
+        sort = {'id': 1}
+        kwargs['instances_ids'] = instances_ids
 
-        if "fields" in kwargs:
-            raise ValueError(_("`Fields` param is not supported with XML format"))
+        if 'fields' in kwargs:
+            raise ValueError(_('`Fields` param is not supported with XML format'))
 
         # Because `kwargs`' values are for `Mongo`'s query engine
         # We still use MongoHelper to validate params.
         params = MongoHelper.validate_params(**kwargs)
 
-        mongo_filters = ['query', 'submitted_by']
+        mongo_filters = ['query', 'permission_filters']
         use_mongo = any(mongo_filter in mongo_filters for mongo_filter in kwargs
                         if kwargs.get(mongo_filter) is not None)
 
         if use_mongo:
             # We use Mongo to retrieve matching instances.
             # Get only their ids and pass them to PostgreSQL.
-            params["fields"] = ["_id"]
-            instances_ids = [instance.get("_id") for instance in
+            params['fields'] = ['_id']
+            instances_ids = [instance.get('_id') for instance in
                              MongoHelper.get_instances(self.mongo_userform_id, **params)]
 
         queryset = ReadOnlyInstance.objects.filter(
@@ -566,18 +566,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             queryset = queryset.filter(id__in=instances_ids)
 
         # Sort
-        sort = params.get("sort") or sort
+        sort = params.get('sort') or sort
         sort_key = sort.keys()[0]
         sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
-        queryset = queryset.order_by("{direction}{field}".format(
-            direction="-" if sort_dir < 0 else "",
+        queryset = queryset.order_by('{direction}{field}'.format(
+            direction='-' if sort_dir < 0 else '',
             field=sort_key
         ))
 
         # When using Mongo, data is already paginated, no need to do it with PostgreSQL too.
         if not use_mongo:
-            offset = params.get("start")
-            limit = offset + params.get("limit")
+            offset = params.get('start')
+            limit = offset + params.get('limit')
             queryset = queryset[offset:limit]
 
         return (lazy_instance.xml for lazy_instance in queryset)

@@ -118,7 +118,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_list_submissions_with_partial_permissions(self):
         self._other_user_login()
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.someuser.username]
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -163,7 +163,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_retrieve_submission_with_partial_permissions(self):
         self._other_user_login()
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.someuser.username]
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
         self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)

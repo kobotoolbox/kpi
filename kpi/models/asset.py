@@ -621,17 +621,33 @@ class Asset(ObjectPermissionMixin,
         else:
             return None
 
-    def get_partial_perms(self, user_id, with_usernames=False):
+    def get_partial_perms(self, user_id, with_filters=False):
         """
         Returns the list of permissions the user is restricted to,
         for this specific asset.
-        If `with_permissions` is `True`, it returns a dict of permissions and
-        the usernames related to these.
+        If `with_filters` is `True`, it returns a dict of permissions (as keys) and
+        the filters (as values) to apply on query to narrow down the results.
+
+        For example:
+        `get_partial_perms(user1_obj.id)`  would return returns
+        ```
+        ['view_submissions',]
+        ```
+
+        `get_partial_perms(user1_obj.id, with_filters=True)`  would return returns
+        ```
+        {
+            'view_submissions: [
+                {'_submitted_by': {'$in': ['user1', 'user2']}},
+                {'_submitted_by': 'user3'}
+            ],
+        }
+        ```
 
         If user doesn't have any partial permissions, it returns `None`.
 
         :param user_obj: auth.User
-        :param with_usernames: boolean. Optional
+        :param with_filters: boolean. Optional
 
         :return: list|dict|None
         """
@@ -640,17 +656,17 @@ class Asset(ObjectPermissionMixin,
             .values_list("permissions", flat=True).first()
 
         if perms:
-            if with_usernames:
+            if with_filters:
                 return perms
             else:
                 return perms.keys()
 
         return None
 
-    def get_usernames_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
+    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
-        Returns the list of usernames for a specfic permission `perm`
-        and this specific asset.
+        Returns the list of filters for a specfic permission `perm`
+        and this specific asset. This
         :param user_obj: auth.User
         :param perm: see `constants.*_SUBMISSIONS`
         :return:
@@ -660,7 +676,7 @@ class Asset(ObjectPermissionMixin,
             raise BadPermissionsException("Only global permissions for "
                                           "submissions are supported.")
 
-        perms = self.get_partial_perms(user_id, True)
+        perms = self.get_partial_perms(user_id, with_filters=True)
         if perms:
             return perms.get(perm)
         return None
@@ -918,10 +934,10 @@ class Asset(ObjectPermissionMixin,
                 if not partial_perms:
                     raise BadPermissionsException(
                         _("Can not assign '{}' permission. "
-                          "Restricted permissions are missing.".format(perm)))
+                          "Partial permissions are missing.".format(perm)))
 
                 new_partial_perms = {}
-                for partial_perm, usernames in partial_perms.items():
+                for partial_perm, filters in partial_perms.items():
                     implied_perms = [implied_perm
                                      for implied_perm in
                                      list(self.get_implied_perms(partial_perm))
@@ -931,9 +947,7 @@ class Asset(ObjectPermissionMixin,
                     for implied_perm in implied_perms:
                         if implied_perm not in new_partial_perms:
                             new_partial_perms[implied_perm] = []
-                        new_partial_perms[implied_perm] += usernames
-                        new_partial_perms[implied_perm] = list(set(
-                            new_partial_perms[implied_perm]))
+                        new_partial_perms[implied_perm] += filters
 
                 aupp, created = AssetUserPartialPermission.objects.get_or_create(
                     asset_id=self.pk,

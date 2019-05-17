@@ -760,7 +760,7 @@ class ObjectPermissionMixin(object):
         return Permission.objects.filter(pk__in=perm_ids).values_list(
             'codename', flat=True)
 
-    def get_partial_perms(self, user_id, with_usernames=False):
+    def get_partial_perms(self, user_id, with_filters=False):
         """
         Returns the list of permissions the user is partial to,
         for this specific object.
@@ -769,7 +769,7 @@ class ObjectPermissionMixin(object):
         """
         return []
 
-    def get_usernames_for_partial_perm(self, user_id, perm=None):
+    def get_filters_for_partial_perm(self, user_id, perm=None):
         """
         Returns the list of usernames for a specfic permission `perm`
         and this specific object.
