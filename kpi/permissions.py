@@ -63,6 +63,13 @@ class AbstractAssetNestedObjectPermission(permissions.BasePermission):
 
     @staticmethod
     def _get_asset(view):
+        """
+        Returns Asset from the view.
+        The view must have a property `asset`.
+        It's easily done with `AssetNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
+        :param view: ViewSet
+        :return: Asset
+        """
         return view.asset
 
     def _get_user_permissions(self, asset, user):
