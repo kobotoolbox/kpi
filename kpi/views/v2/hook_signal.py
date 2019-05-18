@@ -9,7 +9,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.hook.utils import HookUtils
 from kpi.models import Asset
 from kpi.utils.log import logging
-from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,

@@ -18,7 +18,7 @@ from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.filters import AssetOwnerFilterBackend
 from kpi.permissions import AssetOwnerNestedObjectPermission
-from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,

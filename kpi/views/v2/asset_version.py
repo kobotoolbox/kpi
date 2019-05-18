@@ -6,7 +6,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.filters import AssetOwnerFilterBackend
 from kpi.models import AssetVersion
 from kpi.serializers.v2.asset_version import AssetVersionListSerializer, AssetVersionSerializer
-from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,

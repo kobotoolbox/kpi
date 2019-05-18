@@ -11,7 +11,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import SubmissionXMLRenderer
-from kpi.utils.viewset_mixin import AssetNestedObjectViewsetMixin
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
