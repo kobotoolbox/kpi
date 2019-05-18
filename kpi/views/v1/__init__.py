@@ -8,7 +8,6 @@ from .asset_version import AssetVersionViewSet
 from .authorized_application_user import AuthorizedApplicationUserViewSet
 from .collection import CollectionViewSet
 from .export_task import ExportTaskViewSet
-from .hook_signal import HookSignalViewSet
 from .import_task import ImportTaskViewSet
 from .object_permission import ObjectPermissionViewSet
 from .one_time_authentication_key import OneTimeAuthenticationKeyViewSet

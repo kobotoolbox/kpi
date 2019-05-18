@@ -3,7 +3,10 @@ from __future__ import absolute_import
 
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
-from kobo.apps.hook.views import HookViewSet, HookLogViewSet
+from kobo.apps.hook.views.v1.hook import HookViewSet
+from kobo.apps.hook.views.v1.hook_log import HookLogViewSet
+from kobo.apps.hook.views.v1.hook_signal import HookSignalViewSet
+
 from kobo.apps.reports.views import ReportsViewSet
 from kpi.views.v1 import (
     AssetViewSet,
@@ -13,7 +16,6 @@ from kpi.views.v1 import (
     AuthorizedApplicationUserViewSet,
     CollectionViewSet,
     ExportTaskViewSet,
-    HookSignalViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
     OneTimeAuthenticationKeyViewSet,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
-from kpi.views.v2.hook_signal import HookSignalViewSet as HookSignalViewSetV2
+from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet as HookSignalViewSetV2
 
 
 class HookSignalViewSet(HookSignalViewSetV2):
