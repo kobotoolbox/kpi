@@ -1,14 +1,15 @@
-from xlrd import open_workbook, XLRDError
-import zipfile
+# -*- coding: utf-8 -*-
 from io import BytesIO
-import requests
 import json
-import re
 import os
+import re
+import zipfile
 
+import requests
+from xlrd import open_workbook, XLRDError
 
-class ImportAssetException(Exception):
-    pass
+from kpi.exceptions import ImportAssetException
+
 
 class ImportFile(object):
     '''

@@ -26,7 +26,7 @@ django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
-django-debug-toolbar
+django-debug-toolbar==1.4 # DO NOT UPGRADE TO 1.6 WITHOUT TESTING!
 django-extensions
 django-jsonbfield
 django-oauth-toolkit
@@ -54,8 +54,6 @@ mock
 oauthlib
 py-gfm
 pymongo
-pytest-django
-pytest==3.10.0
 python-dateutil
 pytz
 pyxform

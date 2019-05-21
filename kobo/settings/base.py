@@ -7,18 +7,21 @@ import os
 import subprocess
 
 from celery.schedules import crontab
+import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
-from pymongo import MongoClient
 import dj_database_url
-import django.conf.locale
-from .static_lists import EXTRA_LANG_INFO
+from pymongo import MongoClient
+
+from ..static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+settings_dirname = os.path.dirname(os.path.abspath(__file__))
+parent_dirname = os.path.dirname(settings_dirname)
+BASE_DIR = os.path.abspath(os.path.dirname(parent_dirname))
 
 
 # Quick-start development settings - unsuitable for production
@@ -154,10 +157,13 @@ CONSTANCE_CONFIG = {
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
+
 # Warn developers to use `pytest` instead of `./manage.py test`
 class DoNotUseRunner(object):
     def __init__(self, *args, **kwargs):
         raise NotImplementedError('Please run tests with `pytest` instead')
+
+
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
 # used in kpi.models.sitewide_messages
@@ -195,12 +201,10 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
-# This project does not use GIS (yet). Change the database engine accordingly
-# to avoid unnecessary dependencies.
-for db in DATABASES.values():
-    if db['ENGINE'] == 'django.contrib.gis.db.backends.postgis':
-        db['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
+
+DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
 
 
 # Internationalization
@@ -218,7 +222,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-LOCALE_PATHS= (os.path.join(BASE_DIR, 'locale'),)
+LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 USE_I18N = True
 
