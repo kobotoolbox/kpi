@@ -44,23 +44,23 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     a list of public data endpoints is returned.
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/
+    <b>GET</b> /api/v2/assets/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/
+    >       curl -X GET https://[kpi]/api/v2/assets/
 
     Get an hash of all `version_id`s of assets.
     Useful to detect any changes in assets with only one call to `API`
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/hash/
+    <b>GET</b> /api/v2/assets/hash/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/hash/
+    >       curl -X GET https://[kpi]/api/v2/assets/hash/
 
     ## CRUD
 
@@ -68,23 +68,23 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     Retrieves current asset
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{uid}</code>/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/
     </pre>
 
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/
 
     Creates or clones an asset.
     <pre class="prettyprint">
-    <b>POST</b> /assets/
+    <b>POST</b> /api/v2/assets/
     </pre>
 
 
     > Example
     >
-    >       curl -X POST https://[kpi-url]/assets/
+    >       curl -X POST https://[kpi]/api/v2/assets/
 
 
     > **Payload to create a new asset**
@@ -124,50 +124,40 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     Retrieves the existing deployment, if any.
     <pre class="prettyprint">
-    <b>GET</b> /assets/{uid}/deployment
+    <b>GET</b> /api/v2/assets/{uid}/deployment
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
 
     Creates a new deployment, but only if a deployment does not exist already.
     <pre class="prettyprint">
-    <b>POST</b> /assets/{uid}/deployment
+    <b>POST</b> /api/v2/assets/{uid}/deployment
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
 
     Updates the `active` field of the existing deployment.
     <pre class="prettyprint">
-    <b>PATCH</b> /assets/{uid}/deployment
+    <b>PATCH</b> /api/v2/assets/{uid}/deployment
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
 
     Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
     <pre class="prettyprint">
-    <b>PUT</b> /assets/{uid}/deployment
+    <b>PUT</b> /api/v2/assets/{uid}/deployment
     </pre>
 
     > Example
     >
-    >       curl -X PUT https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+    >       curl -X PUT https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
 
-
-    ### Permissions
-    Updates permissions of the specific asset
-    <pre class="prettyprint">
-    <b>PATCH</b> /assets/{uid}/permissions
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/permissions
 
     ### CURRENT ENDPOINT
     """

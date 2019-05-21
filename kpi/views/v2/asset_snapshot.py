@@ -20,6 +20,12 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
 
+    """
+    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+
+    ### CURRENT ENDPOINT
+    """
+
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.all()

@@ -19,7 +19,86 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                              DestroyModelMixin, ListModelMixin,
                              viewsets.GenericViewSet):
     """
-    TODO documentation
+    ## Permissions of an asset
+
+    This endpoint shows assignments on an asset. An assignment implies:
+
+    - a `Permission` object
+    - a `User` object
+
+    **Roles' permissions:**
+
+    - Owner sees all permissions
+    - Editors see all permissions
+    - Viewers see owner's permissions and their permissions
+    - Anonymous users see only owner's permissions
+
+
+    `uid` - is the unique identifier of a specific asset
+
+    **Retrieve assignments**
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permissions/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/
+
+
+    **Assign a permission**
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/ \\
+    >            -H 'Content-Type: application/json' \\
+    >            -d '<payload>'  # Payload is sent as the string
+
+
+    > _Payload to assign a permission_
+    >
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
+    >        }
+
+    > _Payload to assign partial permissions_
+    >
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "permission": "https://[kpi]/api/v2/permissions/{partial_permission_codename}/",
+    >           "partial_permissions": [
+    >               {
+    >                   "url": "https://[kpi]/api/v2/permissions/{codename}/",
+    >                   "filters": [
+    >                       {"_submitted_by": {"$in": ["{username}", "{username}"]}}
+    >                   ]
+    >              },
+    >           ]
+    >        }
+
+    N.B.:
+
+    - Only submissions support partial (`view`) permissions so far.
+    - Filters use Mongo Query Engine to narrow down results.
+    - Implied permissions will be also assigned. (e.g. `change_asset` will add `view_asset` too)
+
+
+
+    **Remove a permission**
+    <span class='label label-danger'>TODO - Block owner deletion</span>
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/pG6AeSjCwNtpWazQAX76Ap/
+
+
     ### CURRENT ENDPOINT
     """
 

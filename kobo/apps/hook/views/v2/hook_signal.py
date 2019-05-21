@@ -20,13 +20,13 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     Tells the hooks to post an instance to external servers.
     <pre class="prettyprint">
-    <b>POST</b> /assets/<code>{uid}</code>/hook-signal/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/hook-signal/
     </pre>
 
 
     > Example
     >
-    >       curl -X POST https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/hook-signal/
+    >       curl -X POST https://[kpi-url]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/hook-signal/
 
 
     > **Expected payload**

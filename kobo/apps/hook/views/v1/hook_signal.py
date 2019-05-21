@@ -8,14 +8,14 @@ class HookSignalViewSet(HookSignalViewSetV2):
     """
     ## This document is for a deprecated version of kpi's API.
 
-    **Please upgrade to latest release `/api/v2/collections/`**
+    **Please upgrade to latest release `/api/v2/assets/hook-signal/`**
 
 
     This endpoint is only used to trigger asset's hooks if any.
 
     Tells the hooks to post an instance to external servers.
     <pre class="prettyprint">
-    <b>POST</b> /assets/<code>{uid}</code>/hook-signal/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/hook-signal/
     </pre>
 
 

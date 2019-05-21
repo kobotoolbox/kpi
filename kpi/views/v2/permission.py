@@ -11,14 +11,14 @@ from kpi.serializers.v2.permission import PermissionSerializer
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-
+    <span class='label label-danger'>TODO - Add name</span>
     <pre class="prettyprint">
     <b>GET</b> /api/v2/permissions/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/api/v2/permissions/
+    >       curl -X GET https://[kpi]/api/v2/permissions/
 
     > Response
     >
@@ -58,7 +58,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/api/v2/permissions/change_submissions
+    >       curl -X GET https://[kpi]/api/v2/permissions/change_submissions
 
 
     > Response

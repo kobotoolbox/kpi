@@ -12,6 +12,12 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
 
+    """
+    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+
+    ### CURRENT ENDPOINT
+    """
+
     model = AssetVersion
     lookup_field = 'uid'
     filter_backends = (

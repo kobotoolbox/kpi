@@ -16,6 +16,11 @@ from kpi.constants import CLONE_ARG_NAME, COLLECTION_CLONE_FIELDS
 
 class CollectionViewSet(viewsets.ModelViewSet):
 
+    """
+    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+
+    ### CURRENT ENDPOINT
+    """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.select_related(
         'owner', 'parent'

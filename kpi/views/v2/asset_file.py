@@ -17,6 +17,12 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                        NoUpdateModelViewSet):
 
+    """
+    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+
+    ### CURRENT ENDPOINT
+    """
+
     model = AssetFile
     lookup_field = 'uid'
     filter_backends = (RelatedAssetPermissionsFilter,)

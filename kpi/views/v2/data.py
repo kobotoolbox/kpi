@@ -20,25 +20,25 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     ## List of submissions for a specific asset
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data/
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/
     </pre>
 
     By default, JSON format is used but XML format can be used too.
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data.xml
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data.json
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.json
     </pre>
 
     or
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data/?format=xml
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data/?format=json
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=json
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
     ## CRUD
 
@@ -49,36 +49,36 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     Retrieves current submission
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{uid}</code>/data/<code>{id}</code>/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/
     </pre>
 
     It's also possible to specify the format.
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{uid}</code>/data/<code>{id}</code>.xml
-    <b>GET</b> /assets/<code>{uid}</code>/data/<code>{id}</code>.json
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.xml
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.json
     </pre>
 
     or
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data/<code>{id}</code>/?format=xml
-    <b>GET</b> /assets/<code>{asset_uid}</code>/data/<code>{id}</code>/?format=json
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{id}</code>/?format=xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{id}</code>/?format=json
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/
 
     Deletes current submission
     <pre class="prettyprint">
-    <b>DELETE</b> /assets/<code>{uid}</code>/data/<code>{id}</code>/
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/
     </pre>
 
 
     > Example
     >
-    >       curl -X DELETE https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/
 
 
     Update current submission
@@ -87,33 +87,33 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     Instead, it returns the link where the instance can be opened for edition._
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{uid}</code>/data/<code>{id}</code>/edit/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/edit/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/
 
 
     ### Validation statuses
 
     Retrieves the validation status of a submission.
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/validation_status/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/validation_status/
 
     Update the validation of a submission
     <pre class="prettyprint">
-    <b>PATCH</b> /assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/validation_status/
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/validation_status/
 
     > **Payload**
     >
@@ -129,12 +129,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     Bulk update
     <pre class="prettyprint">
-    <b>PATCH</b> /assets/<code>{uid}</code>/data/validation_statuses/
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/data/validation_statuses/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/data/validation_statuses/
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/validation_statuses/
 
     > **Payload**
     >

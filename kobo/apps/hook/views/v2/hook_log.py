@@ -28,12 +28,12 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
     #### Lists logs of an external services endpoints accessible to requesting user
     <pre class="prettyprint">
-    <b>GET</b> /assets/{asset_uid}/hooks/{hook_uid}/logs/
+    <b>GET</b> /api/v2/assets/{asset_uid}/hooks/{hook_uid}/logs/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hSBxsiVNa5UxkVAjwu6dFB/logs/
+    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hSBxsiVNa5UxkVAjwu6dFB/logs/
 
 
 
@@ -43,23 +43,23 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
     #### Retrieves a log
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/
     </pre>
 
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/
+    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/
 
 
     #### Retries a failed attempt
     <pre class="prettyprint">
-    <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/retry/
+    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/retry/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/retry/
+    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/retry/
 
 
     ### CURRENT ENDPOINT

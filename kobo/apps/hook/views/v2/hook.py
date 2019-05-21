@@ -30,12 +30,12 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     Lists the external services endpoints accessible to requesting user
 
     <pre class="prettyprint">
-    <b>GET</b> /assets/{asset_uid}/hooks/
+    <b>GET</b> /api/v2/assets/{asset_uid}/hooks/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
+    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
 
     ## CRUD
 
@@ -44,23 +44,23 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     #### Retrieves an external service
     <pre class="prettyprint">
-    <b>GET</b> /assets/<code>{asset_uid}</code>/hooks/<code>{uid}</code>
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{uid}</code>
     </pre>
 
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
+    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
 
     #### Add an external service to asset.
     <pre class="prettyprint">
-    <b>POST</b> /assets/<code>{asset_uid}</code>/hooks/
+    <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/
     </pre>
 
 
     > Example
     >
-    >       curl -X POST https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
+    >       curl -X POST https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
 
 
     > **Payload to create a new external service**
@@ -110,37 +110,37 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     #### Update an external service.
     <pre class="prettyprint">
-    <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/{uid}
+    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/{uid}
     </pre>
 
 
     > Example
     >
-    >       curl -X PATCH https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
+    >       curl -X PATCH https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
 
 
     Only specify properties to update in the payload. See above for payload structure
 
     #### Delete an external service.
     <pre class="prettyprint">
-    <b>DELETE</b> /assets/<code>{asset_uid}</code>/hooks/{uid}
+    <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/{uid}
     </pre>
 
 
     > Example
     >
-    >       curl -X DELETE https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
+    >       curl -X DELETE https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
 
     #### Retries all failed attempts
     <pre class="prettyprint">
-    <b>PATCH</b> /assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/retry/
+    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/retry/
     </pre>
 
     **This call is asynchronous. Job is sent to Celery to be run in background**
 
     > Example
     >
-    >       curl -X PATCH https://[kpi-url]/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/retry/
+    >       curl -X PATCH https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/retry/
 
     It returns all logs `uid`s that are being retried.
 
