@@ -12,6 +12,16 @@ from kpi.serializers.v2.permission import PermissionSerializer
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     <span class='label label-danger'>TODO - Add name</span>
+
+    **Display all assignable permissions for `Asset` and `Collection`**
+
+    `implied` property shows which permission is assigned at the time as
+    the corresponding permission.
+
+    `contradictory` property shows which permissions are removed when assigning
+    the corresponding permission.
+
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/permissions/
     </pre>
