@@ -1,13 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Django settings for kobo project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.7/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.7/ref/settings/
-"""
+# coding: utf-8
 from __future__ import absolute_import
 
 from datetime import timedelta
@@ -19,9 +10,9 @@ from celery.schedules import crontab
 import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
+from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
 import dj_database_url
-
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO
@@ -109,6 +100,8 @@ INSTALLED_APPS = (
     'django_celery_beat',
     'corsheaders',
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
+    'markdownx',
+    'kobo.apps.help',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -246,6 +239,11 @@ MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
+
+# django-markdownx, for in-app messages
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+# Github-flavored Markdown from `py-gfm`
+MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
@@ -528,6 +526,9 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
+        # Proxy S3 through our application instead of redirecting to bucket
+        # URLs with query parameter authentication
+        PRIVATE_STORAGE_S3_REVERSE_PROXY = True
 
 
 # Need a default logger when sentry is not activated
