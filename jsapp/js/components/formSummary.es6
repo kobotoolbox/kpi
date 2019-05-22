@@ -213,7 +213,7 @@ class FormSummary extends React.Component {
         {this.userCan('change_asset', this.state) &&
           <bem.PopoverMenu__link onClick={this.sharingModal}>
             <i className='k-icon-share'/>
-            {t('Share project')}
+            {t('Share form')}
             <i className='fa fa-angle-right' />
           </bem.PopoverMenu__link>
         }
@@ -355,7 +355,7 @@ class FormSummary extends React.Component {
                     <bem.FormView__group m={['items', 'description-cols']}>
                       {this.state.settings.country &&
                         <bem.FormView__cell>
-                          <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
+                          <bem.FormView__label m='country'>{t('Form country')}</bem.FormView__label>
                           {this.state.settings.country.label}
                         </bem.FormView__cell>
                       }

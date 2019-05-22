@@ -81,7 +81,7 @@ const ASSET_TYPES = {
   },
   survey: {
     id: 'survey',
-    label: t('project')
+    label: t('form')
   }
 }
 

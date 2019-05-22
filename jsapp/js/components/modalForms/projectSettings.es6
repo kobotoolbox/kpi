@@ -786,7 +786,7 @@ class ProjectSettings extends React.Component {
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
             <bem.FormModal__item>
               <label htmlFor='name'>
-                {t('Project Name')}
+                {t('Form Name')}
               </label>
               <input type='text'
                 id='name'
@@ -849,7 +849,7 @@ class ProjectSettings extends React.Component {
             <Checkbox
               checked={this.state['share-metadata']}
               onChange={this.onShareMetadataChange}
-              label={t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              label={t('Help KoboToolbox improve this product by sharing the sector and country where this form will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the form name or description listed above.')}
             />
           </bem.FormModal__item>
 
@@ -883,7 +883,7 @@ class ProjectSettings extends React.Component {
                     className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
                     onClick={this.unarchiveProject}
                   >
-                    {t('Unarchive Project')}
+                    {t('Unarchive Form')}
                   </button>
                 }
 
@@ -893,13 +893,13 @@ class ProjectSettings extends React.Component {
                     className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
                     onClick={this.archiveProject}
                   >
-                    {t('Archive Project')}
+                    {t('Archive Form')}
                   </button>
                 }
               </bem.FormModal__item>
 
               <bem.FormModal__item m='inline'>
-                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
+                {this.isArchived() ? t('Unarchive form to resume accepting submissions.') : t('Archive form to stop accepting submissions.')}
               </bem.FormModal__item>
             </bem.FormModal__item>
           }
@@ -911,7 +911,7 @@ class ProjectSettings extends React.Component {
                 className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
                 onClick={this.deleteProject}
               >
-                {t('Delete Project and Data')}
+                {t('Delete Form and Data')}
               </button>
             </bem.FormModal__item>
           }

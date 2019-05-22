@@ -588,8 +588,8 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
         let dialog = alertify.dialog('confirm');
         let opts = {
-          title: t('Archive Project'),
-          message: `${t('Are you sure you want to archive this project?')} <br/><br/>
+          title: t('Archive Form'),
+          message: `${t('Are you sure you want to archive this form?')} <br/><br/>
             <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
@@ -616,8 +616,8 @@ mixins.clickAssets = {
         }
         let dialog = alertify.dialog('confirm');
         let opts = {
-          title: t('Unarchive Project'),
-          message: `${t('Are you sure you want to unarchive this project?')}`,
+          title: t('Unarchive Form'),
+          message: `${t('Are you sure you want to unarchive this form?')}`,
           labels: {ok: t('Unarchive'), cancel: t('Cancel')},
           onok: (evt, val) => {
             actions.resources.setDeploymentActive({
