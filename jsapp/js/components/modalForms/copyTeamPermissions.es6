@@ -122,7 +122,7 @@ class CopyTeamPermissions extends React.Component {
           m='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
-          {t('Copy team from another project')}
+          {t('Copy team from another form')}
         </bem.FormModal__item>
 
         {this.state.isCopyFormVisible && (

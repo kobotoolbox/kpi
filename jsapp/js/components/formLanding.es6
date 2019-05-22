@@ -433,7 +433,7 @@ export class FormLanding extends React.Component {
           <strong>{t('Languages:')}</strong>
           &nbsp;
           {!this.hasLanguagesDefined(translations) &&
-            t('This project has no languages defined yet')
+            t('This form has no languages defined yet')
           }
           {this.hasLanguagesDefined(translations) &&
             <ul>
