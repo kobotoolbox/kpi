@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -50,7 +49,7 @@ class ProjectSettings extends React.Component {
       UPLOAD_FILE: 'upload-file',
       IMPORT_URL: 'import-url',
       PROJECT_DETAILS: 'project-details'
-    }
+    };
 
     this.unlisteners = [];
 
@@ -94,7 +93,7 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    this.listenTo(session, (session) => {
+    this.listenTo(session, () => {
       this.setState({
         isSessionLoaded: true,
       });
@@ -107,7 +106,7 @@ class ProjectSettings extends React.Component {
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
       hashHistory.listen(this.onRouteChange.bind(this))
-    )
+    );
   }
 
   componentWillUnmount() {
@@ -292,7 +291,7 @@ class ProjectSettings extends React.Component {
 
     let targetUid;
     if (this.state.formAsset) {
-      targetUid = this.state.formAsset.uid
+      targetUid = this.state.formAsset.uid;
     } else if (this.context.router && this.context.router.params.assetid) {
       targetUid = this.context.router.params.assetid;
     }
@@ -357,7 +356,7 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onUpdateAssetFailed(response) {
+  onUpdateAssetFailed() {
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
@@ -533,7 +532,7 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onFileDrop(files, rejectedFiles, evt) {
+  onFileDrop(files) {
     if (files.length >= 1) {
       this.setState({isUploadFilePending: true});
 
@@ -586,7 +585,7 @@ class ProjectSettings extends React.Component {
         },
         () => {
           this.setState({isUploadFilePending: false});
-          alertify.error(t('Could not import XLSForm!'))
+          alertify.error(t('Could not import XLSForm!'));
         }
       );
     }
@@ -598,7 +597,7 @@ class ProjectSettings extends React.Component {
     // simple non-empty name validation
     if (!this.state.name.trim()) {
       alertify.error(t('Please enter a title for your project!'));
-      return
+      return;
     }
 
     this.setState({isSubmitPending: true});
@@ -620,7 +619,7 @@ class ProjectSettings extends React.Component {
         <i className='k-icon-template' />
         {t('Use a template')}
       </button>
-    )
+    );
   }
 
   renderStepFormSource() {
@@ -828,7 +827,7 @@ class ProjectSettings extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item  m='country'>
+          <bem.FormModal__item m='country'>
             <label htmlFor='country'>
               {t('Country')}
             </label>
@@ -931,7 +930,7 @@ class ProjectSettings extends React.Component {
         this.state.isApplyTemplatePending ||
         this.state.isImportFromURLPending ||
         this.state.isUploadFilePending
-      )
+      );
       return (
         <bem.Modal__footerButton
           m='back'
@@ -941,7 +940,7 @@ class ProjectSettings extends React.Component {
         >
           {t('Back')}
         </bem.Modal__footerButton>
-      )
+      );
     } else {
       return false;
     }
@@ -973,7 +972,7 @@ class ProjectSettings extends React.Component {
         throw new Error(`Unknown step: ${this.state.currentStep}!`);
     }
   }
-};
+}
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
