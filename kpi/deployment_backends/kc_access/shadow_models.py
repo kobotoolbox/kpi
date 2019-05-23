@@ -255,8 +255,9 @@ class KCToken(ShadowModel):
     @classmethod
     def sync(cls, auth_token):
         try:
-            kc_auth_token = cls.objects.get(pk=auth_token.pk)
-            assert kc_auth_user.user_id == auth_token.user_id
+            # Token use a One-to-One relationship on User.
+            # Thus, we can retrieve tokens from users' id. 
+            kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KCToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user=auth_token.user)
 
