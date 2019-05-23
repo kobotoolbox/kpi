@@ -99,13 +99,12 @@ class AssetOwnerNestedObjectsPermissions(AssetNestedObjectsPermissions):
     """
     def has_permission(self, request, view):
 
-        if getattr(view, '_ignore_model_permissions', False):
-            return True
-
         if not request.user or (request.user and
                                 (request.user.is_anonymous() or
                                  not request.user.is_authenticated())):
             return False
+        elif request.user.is_superuser:
+            return True
 
         asset_uid = self._get_parents_query_dict(request).get("asset")
         asset = get_object_or_404(Asset, uid=asset_uid)
@@ -129,7 +128,7 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
         'HEAD': ['%(app_label)s.view_%(model_name)s'],
         'POST': ['%(app_label)s.add_%(model_name)s'],
         'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.change_%(model_name)s'],
+        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
     action_map = {
@@ -143,11 +142,11 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
     }
 
     def has_permission(self, request, view):
-        if getattr(view, '_ignore_model_permissions', False):
-            return True
 
         if not request.user:
             return False
+        elif request.user.is_superuser:
+            return True 
 
         asset_uid = self._get_parents_query_dict(request).get("asset")
         asset = get_object_or_404(Asset, uid=asset_uid)
