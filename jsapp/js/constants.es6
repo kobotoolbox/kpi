@@ -1,10 +1,25 @@
 import {t} from './utils';
 
+/*
+ * a hardcoded list of permissions, all of them are really defined on backend,
+ * but we need it to be able to build UI for handling them
+ */
+const PERMISSIONS = new Map();
+new Set([
+  'view_asset',
+  'change_asset',
+  'partial_submissions',
+  'add_submissions',
+  'view_submissions',
+  'change_submissions',
+  'validate_submissions'
+]).forEach((id) => {PERMISSIONS.set(id, id);});
+
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0
-}
+};
 
 const MODAL_TYPES = {
   SHARING: 'sharing',
@@ -17,7 +32,7 @@ const MODAL_TYPES = {
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table'
-}
+};
 
 const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
@@ -85,9 +100,10 @@ const ASSET_TYPES = {
     id: 'survey',
     label: t('project')
   }
-}
+};
 
 export default {
+  PERMISSIONS: PERMISSIONS,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,

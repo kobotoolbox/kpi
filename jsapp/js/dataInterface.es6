@@ -3,7 +3,6 @@ import alertify from 'alertifyjs';
 import {
   t,
   assign,
-  notify
 } from './utils';
 
 var dataInterface;
@@ -32,7 +31,7 @@ var dataInterface;
     if (request.status === 403 || request.status === 401 || request.status === 404) {
       dataInterface.selfProfile().done((data) => {
         if (data.message === 'user is not logged in') {
-          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>')
+          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>');
           let serverMessage = request.status.toString();
           if (request.responseJSON && request.responseJSON.detail) {
             serverMessage += ': ' + request.responseJSON.detail;
@@ -136,25 +135,25 @@ var dataInterface;
       return $ajax({
         url: `/assets/${uid}/hooks/${hookUid}/logs/`,
         method: 'GET'
-      })
+      });
     },
     getHookLog(uid, hookUid, lid) {
       return $ajax({
         url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
         method: 'GET'
-      })
+      });
     },
     retryExternalServiceLogs(uid, hookUid) {
       return $ajax({
         url: `/assets/${uid}/hooks/${hookUid}/retry/`,
         method: 'PATCH'
-      })
+      });
     },
     retryExternalServiceLog(uid, hookUid, lid) {
       return $ajax({
         url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
         method: 'PATCH'
-      })
+      });
     },
 
     getReportData (data) {
@@ -163,7 +162,7 @@ var dataInterface;
         identifierString = `?names=${data.identifiers.join(',')}`
       }
       if (data.group_by != '')
-        identifierString += `&split_by=${data.group_by}`
+        identifierString += `&split_by=${data.group_by}`;
 
       return $ajax({
         url: `${rootUrl}/reports/${data.uid}/${identifierString}`,
@@ -200,6 +199,18 @@ var dataInterface;
         }
       });
     },
+    permissionsConfig() {
+      return $ajax({
+        url: `${rootUrl}/permissions/`,
+        method: 'GET'
+      });
+    },
+    assetPermissions(uid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/permissions/`,
+        method: 'GET'
+      });
+    },
     removePerm (permUrl) {
       return $ajax({
         method: 'DELETE',
@@ -213,7 +224,7 @@ var dataInterface;
         data: {
           clone_from: sourceUid
         }
-      })
+      });
     },
     assignPerm (creds) {
       // Do we already have these URLs stored somewhere?

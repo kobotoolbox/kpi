@@ -8,16 +8,16 @@ import bem from '../bem';
 import stores from '../stores';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
-import SharingForm from '../components/modalForms/sharingForm';
-import ProjectSettings from '../components/modalForms/projectSettings';
-import DataTable from '../components/table';
+import SharingForm from './permissions/sharingForm';
+import ProjectSettings from './modalForms/projectSettings';
+import DataTable from './table';
 
-import {ProjectDownloads} from '../components/formEditors';
+import {ProjectDownloads} from './formEditors';
 
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 
-import FormMap from '../components/map';
-import RESTServices from '../components/RESTServices';
+import FormMap from './map';
+import RESTServices from './RESTServices';
 
 import {
   t

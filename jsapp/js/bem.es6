@@ -1,6 +1,8 @@
 var BEM = require('./libs/react-create-bem-element');
 var bem = BEM.init();
 
+bem.Button = BEM('mdl-button', '<button>');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -195,6 +197,7 @@ bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
 bem.Modal__footer = bem.Modal.__('footer', '<footer>');
 bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
 bem.Modal__tabs = bem.Modal.__('tabs');
+bem.Modal__hr = bem.Modal.__('hr', '<hr>');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__content = bem.PopoverMenu.__('content');
@@ -227,11 +230,12 @@ bem.ChangePassword = BEM('change-password');
 bem.ChangePassword__item = bem.FormModal.__('item');
 
 bem.UserRow = BEM('user-row');
+bem.UserRow__info = bem.UserRow.__('info');
 bem.UserRow__avatar = bem.UserRow.__('avatar');
 bem.UserRow__name = bem.UserRow.__('name');
 bem.UserRow__email = bem.UserRow.__('email');
 bem.UserRow__role = bem.UserRow.__('role');
-bem.UserRow__cancel = bem.UserRow.__('cancel');
+bem.UserRow__editor = bem.UserRow.__('editor');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
