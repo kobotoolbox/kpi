@@ -840,7 +840,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     Update current submission
 
     _It's not possible to update a submission directly with `kpi`'s API.
-    Instead, it returns the link where the instance can be opened for edition._
+    Instead, it returns the link where the instance can be opened for editing._
 
     <pre class="prettyprint">
     <b>GET</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>/edit/
@@ -939,16 +939,20 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         return Response(**json_response)
 
     def list(self, request, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = request.GET.dict()
+        # remove `format` from filters, it's redondant.
+        del filters['format']
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = request.GET.dict()
+        # remove `format` from filters, it's redondant.
+        del filters['format']
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
         return Response(submission)
 

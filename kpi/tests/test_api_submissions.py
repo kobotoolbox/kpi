@@ -2,18 +2,19 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
-import requests
-import responses
 
 from django.conf import settings
 from django.contrib.auth import get_user
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+import requests
+import responses
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from kpi.models import Asset
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.models import Asset
+from kpi.models.object_permission import get_anonymous_user
 from .kpi_test_case import KpiTestCase
 
 
@@ -30,8 +31,8 @@ class BaseTestCase(APITestCase):
         self.client.login(username="someuser", password="someuser")
         user = User.objects.get(username="someuser")
         self.anotheruser = User.objects.get(username="anotheruser")
-        asset_template = Asset.objects.get(id=1)
-        self.asset = Asset.objects.create(content=asset_template.content,
+        content_source_asset = Asset.objects.get(id=1)
+        self.asset = Asset.objects.create(content=content_source_asset.content,
                                           owner=user,
                                           asset_type='survey')
 
@@ -70,16 +71,28 @@ class BaseTestCase(APITestCase):
         self.asset.deployment.mock_submissions(self.submissions)
         self.submission_url = self.asset.deployment.submission_list_url
 
-    def _other_user_login(self, shared_asset=False):
+    def _other_user_login(self, shared_asset=False, view_only=True):
+        """
+        Helper to switch user from `someuser` to `anotheruser`.
+        `anotheruser` can be given permissions on submissions 
+        when `shared_asset` is True.
+
+        `view_only` controls what kind of permissions to give.
+
+        :param shared_asset: bool
+        :param view_only: bool
+        
+        """
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
         if shared_asset:
-            self.asset.assign_perm(self.anotheruser, "view_submissions")
+            perm = 'view_submissions' if view_only else 'change_submissions'
+            self.asset.assign_perm(self.anotheruser, perm)
 
 
 class SubmissionApiTests(BaseTestCase):
 
-    def test_create_submission(self):
+    def test_cannot_create_submission(self):
         v_uid = self.asset.latest_deployed_version.uid
         submission = {
             "q1": "a5",
@@ -119,6 +132,14 @@ class SubmissionApiTests(BaseTestCase):
         self.client.logout()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+    def test_list_submissions_anonymous_asset_publicly_shared(self):
+        self.client.logout()
+        anonymous_user = get_anonymous_user()
+        self.asset.assign_perm(anonymous_user, 'view_submissions')
+        response = self.client.get(self.submission_url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.asset.remove_perm(anonymous_user, 'view_submissions')
 
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
@@ -172,7 +193,7 @@ class SubmissionApiTests(BaseTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_delete_submission_shared_other_no_write(self):
+    def test_delete_submission_shared_other(self):
         self._other_user_login(True)
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
@@ -181,15 +202,15 @@ class SubmissionApiTests(BaseTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_delete_submission_shared_other_write(self):
-        self._other_user_login(True)
-        self.asset.assign_perm(self.anotheruser, "change_submissions")
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        # Give user `change_submissions` should not give permission to delete.
+        # Only owner can delete submissions on `kpi`. `delete_submissions` is
+        # a calculated permission and thus, can not be assigned.
+        # TODO Review this test when kpi#2282 is released.
+        self.asset.assign_perm(self.anotheruser, 'change_submissions')
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class SubmissionEditApiTests(BaseTestCase):
@@ -202,7 +223,7 @@ class SubmissionEditApiTests(BaseTestCase):
             "pk": self.submission.get("id")
         })
 
-    def test_trigger_signal(self):
+    def test_get_edit_link_submission_owner(self):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -216,10 +237,20 @@ class SubmissionEditApiTests(BaseTestCase):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_get_edit_link_submission_shared_other(self):
+    def test_get_edit_link_submission_not_shared_other(self):
         self._other_user_login()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_get_edit_link_submission_shared_other_view_only(self):
+        self._other_user_login(shared_asset=True, view_only=True)
+        response = self.client.get(self.submission_url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_edit_link_submission_shared_other_can_edit(self):
+        self._other_user_login(shared_asset=True, view_only=False)
+        response = self.client.get(self.submission_url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class SubmissionValidationStatusApiTests(BaseTestCase):
