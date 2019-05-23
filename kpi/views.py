@@ -942,8 +942,8 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = request.GET.dict()
-        # remove `format` from filters, it's redondant.
-        filters.pop('format', None)
+        # remove `format` from filters, it's redundant.
+        del filters['format', None)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
 
@@ -951,7 +951,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = request.GET.dict()
-        # remove `format` from filters, it's redondant.
+        # remove `format` from filters, it's redundant.
         filters.pop('format', None)
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
         return Response(submission)
