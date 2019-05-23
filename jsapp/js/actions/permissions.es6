@@ -11,7 +11,9 @@ import {
 
 const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
-  getAllAssetPermissions: {children: ['completed', 'failed']},
+  getAssetPermissions: {children: ['completed', 'failed']},
+  setAssetPermissions: {children: ['completed', 'failed']},
+  removeAssetPermissions: {children: ['completed', 'failed']},
   assignPerm: {children: ['completed', 'failed']},
   removePerm: {children: ['completed', 'failed']},
   copyPermissionsFrom: {children: ['completed', 'failed']},
@@ -24,15 +26,27 @@ const permissionsActions = Reflux.createActions({
  */
 
 permissionsActions.getConfig.listen(() => {
-  dataInterface.permissionsConfig()
+  dataInterface.getPermissionsConfig()
     .done(permissionsActions.getConfig.completed)
     .fail(permissionsActions.getConfig.failed);
 });
 
-permissionsActions.getAllAssetPermissions.listen((uid) => {
-  dataInterface.assetPermissions(uid)
-    .done(permissionsActions.getAllAssetPermissions)
-    .fail(permissionsActions.getAllAssetPermissions.failed);
+permissionsActions.getAssetPermissions.listen((assetUid) => {
+  dataInterface.getAssetPermissions(assetUid)
+    .done(permissionsActions.getAssetPermissions.completed)
+    .fail(permissionsActions.getAssetPermissions.failed);
+});
+
+permissionsActions.setAssetPermissions.listen((assetUid, permData) => {
+  dataInterface.assignAssetPermissions(assetUid, permData)
+    .done(permissionsActions.setAssetPermissions.completed)
+    .fail(permissionsActions.setAssetPermissions.failed);
+});
+
+permissionsActions.removeAssetPermissions.listen((assetUid, permData) => {
+  dataInterface.removeAssetPermissions(assetUid, permData)
+    .done(permissionsActions.removeAssetPermissions.completed)
+    .fail(permissionsActions.removeAssetPermissions.failed);
 });
 
 /*

@@ -199,18 +199,46 @@ var dataInterface;
         }
       });
     },
-    permissionsConfig() {
+
+    /*
+     * permissions
+     */
+
+    getPermissionsConfig() {
       return $ajax({
-        url: `${rootUrl}/permissions/`,
+        url: `${rootUrl}/api/v2/permissions/`,
         method: 'GET'
       });
     },
-    assetPermissions(uid) {
+
+    getAssetPermissions(assetUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/permissions/`,
+        url: `${rootUrl}/api/v2/assets/${assetUid}/permissions/`,
         method: 'GET'
       });
     },
+
+    assignAssetPermissions(assetUid, permData) {
+      return $ajax({
+        url: `${rootUrl}/api/v2/assets/${assetUid}/permissions/`,
+        method: 'POST',
+        data: JSON.stringify(permData),
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+    },
+
+    removeAssetPermissions(assetUid, permUid) {
+      return $ajax({
+        url: `${rootUrl}/api/v2/assets/${assetUid}/permissions/${permUid}/`,
+        method: 'DELETE'
+      });
+    },
+
+    /*
+     * permissions (old endpoints)
+     */
+
     removePerm (permUrl) {
       return $ajax({
         method: 'DELETE',

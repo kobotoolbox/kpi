@@ -36,15 +36,15 @@ class SharingForm extends React.Component {
     }
     this.listenTo(stores.asset, this.assetChange);
     this.listenTo(
-      actions.permissions.getAllAssetPermissions.completed,
-      this.onGetAllAssetPermissionsCompleted
+      actions.permissions.getAssetPermissions.completed,
+      this.ongetAssetPermissionsCompleted
     );
 
-    actions.permissions.getAllAssetPermissions(this.props.uid);
+    actions.permissions.getAssetPermissions(this.props.uid);
   }
 
-  onGetAllAssetPermissionsCompleted(response) {
-    console.debug('onGetAllAssetPermissionsCompleted', response, permParser.parse(response));
+  ongetAssetPermissionsCompleted(response) {
+    console.debug('ongetAssetPermissionsCompleted', response, permParser.parseBackendData(response));
   }
 
   assetChange (data) {
