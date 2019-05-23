@@ -30,7 +30,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.anotheruser = User.objects.get(username="anotheruser")
         content_source_asset = Asset.objects.get(id=1)
         self.asset = Asset.objects.create(content=content_source_asset.content,
-                                          owner=user,
+                                          owner=self.someuser,
                                           asset_type='survey')
 
         self.asset.deploy(backend='mock', active=True)

@@ -180,18 +180,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
-        filters = request.GET.dict()
-        # remove `format` from filters, it's redundant.
-        filters.pop('format', None)
+        filters = self._filter_mongo_query(request)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
-        filters = request.GET.dict()
-        # remove `format` from filters, it's redundant.
-        filters.pop('format', None)
+        filters = self._filter_mongo_query(request)
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
         if not submission:
             raise Http404
@@ -226,6 +222,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         if request.method == "GET":
             filters = request.GET.dict()
+
+        # Remove `format` from filters. No need to use it
+        filters.pop('format', None)
 
         permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
