@@ -30,10 +30,10 @@ from kpi.utils.log import logging
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
-    '''
+    """
     Used to deploy a project into KC. Stores the project identifiers in the
     "self.asset._deployment_data" JSONField.
-    '''
+    """
 
     INSTANCE_ID_FIELDNAME = "_id"
 
@@ -610,20 +610,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         prepared_drf_response = {}
 
         try:
-            prepared_drf_response["content_type"] = requests_response.headers.get("Content-Type")
-            prepared_drf_response["headers"] = {
-                "Content-Language": requests_response.headers.get("Content-Language")
-            }
-        except (KeyError, AttributeError):
+            # `requests_response` may not have `headers` attribute
+            content_type = requests_response.headers.get('Content-Type')
+            content_language = requests_response.headers.get('Content-Language')
+            if content_type:
+                prepared_drf_response['content_type'] = content_type
+            if content_language:
+                prepared_drf_response['headers'] = {
+                    'Content-Language': content_language
+                }
+        except AttributeError:
             pass
 
-        prepared_drf_response["status"] = requests_response.status_code
+        prepared_drf_response['status'] = requests_response.status_code
 
         try:
-            prepared_drf_response["data"] = json.loads(requests_response.content)
+            prepared_drf_response['data'] = json.loads(requests_response.content)
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
-                raise Exception(str(e))
+                prepared_drf_response['data'] = {
+                    'detail': _('KoBoCat returned an unexpected response: {}'.format(str(e)))
+                }
 
         return prepared_drf_response
 

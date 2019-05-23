@@ -172,20 +172,26 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     @detail_route(methods=['GET'], renderer_classes=[renderers.JSONRenderer])
     def edit(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.get_submission_edit_url(pk, user=request.user, params=request.GET)
+        json_response = deployment.get_submission_edit_url(pk,
+                                                           user=request.user,
+                                                           params=request.GET)
         return Response(**json_response)
 
     def list(self, request, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
-        filters = self._filter_mongo_query(request)
+        filters = request.GET.dict()
+        # remove `format` from filters, it's redundant.
+        filters.pop('format', None)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
-        format_type = kwargs.get("format", request.GET.get("format", "json"))
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
-        filters = self._filter_mongo_query(request)
+        filters = request.GET.dict()
+        # remove `format` from filters, it's redundant.
+        filters.pop('format', None)
         submission = deployment.get_submission(pk, format_type=format_type, **filters)
         if not submission:
             raise Http404
