@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import $ from 'jquery';
 import Select from 'react-select';
@@ -10,13 +9,12 @@ import Checkbox from '../components/checkbox';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-import {Link, hashHistory} from 'react-router';
+import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import {
   surveyToValidJson,
   unnullifyTranslations,
-  notify,
   assign,
   t,
   koboMatrixParser
@@ -87,7 +85,7 @@ class FormSettingsEditor extends React.Component {
   focusSelect () {
     this.refs.webformStyle.focus();
   }
-};
+}
 
 class FormSettingsBox extends React.Component {
   constructor(props) {
@@ -155,7 +153,7 @@ class FormSettingsBox extends React.Component {
       <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange.bind(this)} />
     );
   }
-};
+}
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
@@ -336,7 +334,7 @@ export default assign({
       this.app.survey.settings.set('style', this.state.settings__style);
     }
 
-    let surveyJSON = surveyToValidJson(this.app.survey)
+    let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
       surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
     }
@@ -380,7 +378,7 @@ export default assign({
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
           hashHistory.push('/library');
-        })
+        });
     } else {
       // update existing asset
       var assetId = this.props.params.assetid;
@@ -601,12 +599,10 @@ export default assign({
 
   renderFormBuilderHeader () {
     let {
-      allButtonsDisabled,
       previewDisabled,
       groupable,
       showAllOpen,
       showAllAvailable,
-      name,
       saveButtonText,
     } = this.buttonStates();
 
@@ -880,7 +876,7 @@ export default assign({
           </bem.FormBuilderAside__content>
         }
       </bem.FormBuilderAside>
-    )
+    );
   },
 
   renderNotLoadedMessage() {

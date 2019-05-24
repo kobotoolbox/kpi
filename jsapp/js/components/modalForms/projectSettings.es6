@@ -11,7 +11,6 @@ import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
-import {session} from 'js/stores';
 import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
@@ -56,7 +55,7 @@ class ProjectSettings extends React.Component {
     const formAsset = this.props.formAsset;
 
     this.state = {
-      isSessionLoaded: !!session.currentAccount,
+      isSessionLoaded: !!stores.session.currentAccount,
       isSubmitPending: false,
       formAsset: formAsset,
       // project details
@@ -93,7 +92,7 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    this.listenTo(session, () => {
+    this.listenTo(stores.session, () => {
       this.setState({
         isSessionLoaded: true,
       });
@@ -752,8 +751,8 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = session.currentAccount.available_sectors;
-    const countries = session.currentAccount.available_countries;
+    const sectors = stores.session.currentAccount.available_sectors;
+    const countries = stores.session.currentAccount.available_countries;
 
     return (
       <bem.FormModal__form

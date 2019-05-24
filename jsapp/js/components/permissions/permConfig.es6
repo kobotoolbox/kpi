@@ -45,10 +45,8 @@ const MOCK_IMPLIED_PERMISSIONS = {
 
 const permConfig = Reflux.createStore({
   init() {
-    this.isReady = false;
     this.state = {
-      implied: MOCK_IMPLIED_PERMISSIONS,
-      assignable: MOCK_ASSIGNABLE_PERMISSIONS
+      permissions: []
     };
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
@@ -63,8 +61,9 @@ const permConfig = Reflux.createStore({
   },
   onGetConfigCompleted(response) {
     console.debug('permConfig getConfig cmpleted', response);
-    // this.setState(response);
-    this.isReady = true;
+    this.setState({
+      permissions: response.results
+    });
   },
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
@@ -82,7 +81,7 @@ const permConfig = Reflux.createStore({
     return this.state.assignable;
   },
   verifyReady() {
-    if (!this.isReady) {
+    if (this.state.permissions.length === 0) {
       throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
   },
