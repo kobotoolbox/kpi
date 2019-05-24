@@ -1,6 +1,9 @@
 import permConfig from './permConfig';
 import {PERMISSIONS} from '../../constants';
-import {getUsernameFromUrl} from '../../utils';
+import {
+  anonUsername,
+  getUsernameFromUrl
+} from '../../utils';
 
 /*
  * Builds an API call compatible object from form data
@@ -14,11 +17,16 @@ function parseFormData (data) {
 /*
  * Builds a form data object from API data
  */
-function parseBackendData (data) {
+function parseBackendData (data, ownerUrl) {
+  // TODO: here or other place: hide permissions that are not for given asset kind
   const parsedPerms = [];
 
   const groupedData = {};
   data.forEach((item) => {
+    // anonymous user permissions are for public sharing and we don't want to display them
+    if (getUsernameFromUrl(item.user) === anonUsername) {
+      return;
+    }
     if (!groupedData[item.user]) {
       groupedData[item.user] = [];
     }
@@ -34,7 +42,12 @@ function parseBackendData (data) {
       user: {
         url: userUrl,
         name: getUsernameFromUrl(userUrl),
-        isOwner: false
+        // not all endpoints return user url in the v2 format, so as a fallback
+        // we also check plain old usernames
+        isOwner: (
+          userUrl === ownerUrl ||
+          getUsernameFromUrl(userUrl) === getUsernameFromUrl(ownerUrl)
+        )
       },
       permissions: groupedData[userUrl]
     });

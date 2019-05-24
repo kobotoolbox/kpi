@@ -172,6 +172,7 @@ export function redirectTo(href) {
   window.location.href = href;
 }
 
+// works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl) {
   return userUrl.match(/\/users\/(.*)\//)[1];
 }

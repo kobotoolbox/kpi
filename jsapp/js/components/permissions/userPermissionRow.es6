@@ -68,20 +68,17 @@ class UserPermissionRow extends React.Component {
 
   render () {
     const initialsStyle = {
-      background: `#${stringToColor(this.props.username)}`
+      background: `#${stringToColor(this.props.user.name)}`
     };
 
-    const cans = [];
-    for (let key in this.props.can) {
-      let perm = this.availablePermissions.find(function (d) {return d.value === key;});
-      if (perm && perm.label) {
-        cans.push(perm.label);
-      }
-    }
-    const cansString = cans.sort().join(', ');
+    const permNames = [];
+    this.props.permissions.forEach((perm) => {
+      permNames.push(perm.name);
+    });
+    const permNamesString = permNames.sort().join(', ');
 
     const modifiers = [];
-    if (cans.length === 0) {
+    if (this.props.permissions.length === 0) {
       modifiers.push('deleted');
     }
     if (this.state.isBeingDeleted) {
@@ -93,38 +90,46 @@ class UserPermissionRow extends React.Component {
         <bem.UserRow__info>
           <bem.UserRow__avatar>
             <bem.AccountBox__initials style={initialsStyle}>
-              {this.props.username.charAt(0)}
+              {this.props.user.name.charAt(0)}
             </bem.AccountBox__initials>
           </bem.UserRow__avatar>
 
           <bem.UserRow__name>
-            {this.props.username}
+            {this.props.user.name}
           </bem.UserRow__name>
 
-          <bem.UserRow__role title={cansString}>
-            {cansString}
-          </bem.UserRow__role>
+          {this.props.user.isOwner &&
+            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+          }
+          {!this.props.user.isOwner &&
+            <React.Fragment>
+              <bem.UserRow__role title={permNamesString}>
+                {permNamesString}
+              </bem.UserRow__role>
 
-          <bem.Button m='icon' onClick={this.toggleEditForm}>
-            {this.state.isEditFormVisible &&
-              <i className='k-icon k-icon-close'/>
-            }
-            {!this.state.isEditFormVisible &&
-              <i className='k-icon k-icon-edit'/>
-            }
-          </bem.Button>
+              <bem.Button m='icon' onClick={this.toggleEditForm}>
+                {this.state.isEditFormVisible &&
+                  <i className='k-icon k-icon-close'/>
+                }
+                {!this.state.isEditFormVisible &&
+                  <i className='k-icon k-icon-edit'/>
+                }
+              </bem.Button>
 
-          <bem.Button m='icon' onClick={this.removePermissions}>
-            <i className='k-icon k-icon-trash' />
-          </bem.Button>
+              <bem.Button m='icon' onClick={this.removePermissions}>
+                <i className='k-icon k-icon-trash' />
+              </bem.Button>
+            </React.Fragment>
+          }
         </bem.UserRow__info>
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
             <UserPermissionsEditor
-              username={this.props.username}
-              uid={this.props.uid}
-              cans={cans}
+              username={this.props.user.name}
+              permissions={this.props.permissions}
+              assetUid={this.props.assetUid}
+              assetKind={this.props.assetKind}
               onSubmitEnd={this.onPermissionsEditorSubmitEnd}
             />
           </bem.UserRow__editor>

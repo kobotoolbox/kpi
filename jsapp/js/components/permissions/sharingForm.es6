@@ -36,12 +36,15 @@ class SharingForm extends React.Component {
 
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
-      actions.permissions.getAssetPermissions(this.props.uid);
     }
   }
 
   onGetAssetPermissionsCompleted(response) {
-    console.debug('onGetAssetPermissionsCompleted', permParser.parseBackendData(response.results));
+    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+    console.log('onGetAssetPermissionsCompleted', parsedPerms);
+    this.setState({
+      permissions: parsedPerms
+    });
   }
 
   onAssetChange (data) {
@@ -53,13 +56,12 @@ class SharingForm extends React.Component {
 
       this.setState({
         asset: asset,
-        permissions: asset.permissions,
-        owner: asset.owner__username,
-        parsedPerms: parsePermissions(asset.owner__username, asset.permissions),
         public_permissions: asset.permissions.filter(function(perm){return perm.user__username === anonUsername;}),
         related_users: stores.asset.relatedUsers[uid]
       });
     }
+
+    actions.permissions.getAssetPermissions(uid);
   }
 
   toggleAddUserEditor() {
@@ -84,71 +86,30 @@ class SharingForm extends React.Component {
   }
 
   render () {
-    if (!this.state.parsedPerms) {
+    if (!this.state.permissions) {
       return this.renderLoadingMessage();
     }
-
-    var _perms = this.state.parsedPerms;
-    var perms = this.state.related_users.map(function(username) {
-      var currentPerm = _perms.filter(function(p){
-        return p.username === username;
-      })[0];
-      if (currentPerm) {
-        return currentPerm;
-      } else {
-        return {
-          username: username,
-          can: {}
-        };
-      }
-    });
 
     let uid = this.state.asset.uid,
-        kind = this.state.asset.kind,
+        assetKind = this.state.asset.kind,
         asset_type = this.state.asset.asset_type,
-        objectUrl = this.state.asset.url,
-        name = this.state.asset.name;
-
-    if (!perms) {
-      return this.renderLoadingMessage();
-    }
-
-    var initialsStyle = {
-      background: `#${stringToColor(this.state.asset.owner__username)}`
-    };
+        objectUrl = this.state.asset.url;
 
     return (
       <bem.FormModal m='sharing-form'>
         <bem.Modal__subheader>
-          {name}
+          {this.state.asset.name}
         </bem.Modal__subheader>
 
         {/* list of users and their permissions */}
         <bem.FormModal__item>
           <h2>{t('Who has access')}</h2>
 
-          <bem.UserRow>
-            <bem.UserRow__info>
-              <bem.UserRow__avatar>
-                <bem.AccountBox__initials style={initialsStyle}>
-                  {this.state.asset.owner__username.charAt(0)}
-                </bem.AccountBox__initials>
-              </bem.UserRow__avatar>
-
-              <bem.UserRow__name>
-                <div>{this.state.asset.owner__username}</div>
-              </bem.UserRow__name>
-
-              <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
-            </bem.UserRow__info>
-          </bem.UserRow>
-
-          {perms.map((perm) => {
+          {this.state.permissions.map((perm) => {
             return <UserPermissionRow
-              key={`perm.${uid}.${perm.username}`}
-              ref={perm.username}
-              uid={uid}
-              kind={kind}
+              key={`perm.${uid}.${perm.user.name}`}
+              assetUid={uid}
+              assetKind={assetKind}
               {...perm}
             />;
           })}
@@ -174,7 +135,7 @@ class SharingForm extends React.Component {
 
               <UserPermissionsEditor
                 uid={uid}
-                kind={kind}
+                assetKind={assetKind}
                 objectUrl={objectUrl}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
@@ -183,7 +144,7 @@ class SharingForm extends React.Component {
         </bem.FormModal__item>
 
         {/* public sharing settings */}
-        { kind !== 'collection' && asset_type === 'survey' &&
+        { assetKind !== 'collection' && asset_type === 'survey' &&
           <React.Fragment>
             <bem.Modal__hr/>
 
@@ -191,9 +152,9 @@ class SharingForm extends React.Component {
               <h2>{t('Select share settings')}</h2>
 
               <PublicShareSettings
-                uid={uid}
                 publicPerms={this.state.public_permissions}
-                kind={kind}
+                assetUid={uid}
+                assetKind={assetKind}
                 objectUrl={objectUrl}
                 deploymentActive={this.state.asset.deployment__active}
               />
@@ -202,7 +163,7 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { kind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
+        { assetKind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
           <React.Fragment>
             <bem.Modal__hr/>
 

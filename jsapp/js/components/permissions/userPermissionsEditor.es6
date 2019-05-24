@@ -279,8 +279,8 @@ class UserPermissionsEditor extends React.Component {
       this.setState({isSubmitPending: true});
       actions.permissions.assignPerm({
         username: this.state.username,
-        uid: this.props.uid,
-        kind: this.props.kind,
+        uid: this.props.assetUid,
+        kind: this.props.assetKind,
         objectUrl: this.props.objectUrl,
         role: 'view_submissions'
       });

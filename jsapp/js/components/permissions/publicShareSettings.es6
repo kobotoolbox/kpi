@@ -21,20 +21,20 @@ class PublicShareSettings extends React.Component {
     if (permission) {
       actions.permissions.removePerm({
         permission_url: permission.url,
-        content_object_uid: this.props.uid
+        content_object_uid: this.props.assetUid
       });
     } else {
       actions.permissions.assignPerm({
         username: anonUsername,
-        uid: this.props.uid,
-        kind: this.props.kind,
+        uid: this.props.assetUid,
+        kind: this.props.assetKind,
         objectUrl: this.props.objectUrl,
         role: permRole === 'view_asset' ? 'view' : permRole
       });
     }
   }
   render () {
-    var uid = this.props.uid;
+    var uid = this.props.assetUid;
 
     var href = `#/forms/${uid}`;
     var url = `${window.location.protocol}//${window.location.host}/${href}`;
