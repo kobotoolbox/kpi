@@ -60,21 +60,22 @@ const permConfig = Reflux.createStore({
     }
   },
   onGetConfigCompleted(response) {
-    console.debug('permConfig getConfig cmpleted', response);
-    this.setState({
-      permissions: response.results
-    });
+    this.setState({permissions: response.results});
   },
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
   },
-  getPermission(permissionId) {
+  getPermissionName(permUrl) {
     this.verifyReady();
-    return this.state.assignable[permissionId];
+    const foundPerm = this.state.permissions.find((permission) => {
+      return permission.url === permUrl;
+    });
+    // fallback to codename
+    return foundPerm.name || foundPerm.codename;
   },
-  getImpliedPermissions(permissionId) {
+  getImpliedPermissions(permCodename) {
     this.verifyReady();
-    return this.state.implied[permissionId];
+    return this.state.implied[permCodename];
   },
   getAssignablePermissions() {
     this.verifyReady();

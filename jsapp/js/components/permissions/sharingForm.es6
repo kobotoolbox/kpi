@@ -31,27 +31,26 @@ class SharingForm extends React.Component {
   }
 
   componentDidMount () {
+    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(actions.permissions.getAssetPermissions.completed, this.onGetAssetPermissionsCompleted);
+
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
+      actions.permissions.getAssetPermissions(this.props.uid);
     }
-    this.listenTo(stores.asset, this.assetChange);
-    this.listenTo(
-      actions.permissions.getAssetPermissions.completed,
-      this.onGetAssetPermissionsCompleted
-    );
-
-    actions.permissions.getAssetPermissions(this.props.uid);
   }
 
   onGetAssetPermissionsCompleted(response) {
-    console.debug('onGetAssetPermissionsCompleted', response, permParser.parseBackendData(response));
+    console.debug('onGetAssetPermissionsCompleted', permParser.parseBackendData(response.results));
   }
 
-  assetChange (data) {
-    var uid = this.props.uid || this.currentAssetID(),
-      asset = data[uid];
+  onAssetChange (data) {
+    const uid = this.props.uid || this.currentAssetID;
+    const asset = data[uid];
 
     if (asset) {
+      console.debug('onAssetChange', asset);
+
       this.setState({
         asset: asset,
         permissions: asset.permissions,

@@ -13,7 +13,7 @@ new Set([
   'view_submissions',
   'change_submissions',
   'validate_submissions'
-]).forEach((id) => {PERMISSIONS.set(id, id);});
+]).forEach((codename) => {PERMISSIONS.set(codename, codename);});
 
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,

@@ -242,6 +242,9 @@ class UserPermissionsEditor extends React.Component {
     });
   }
 
+  /**
+   * Disallows submitting non-ready form
+   */
   isSubmitEnabled() {
     return (
       !this.state.isSubmitPending &&
@@ -279,7 +282,7 @@ class UserPermissionsEditor extends React.Component {
         uid: this.props.uid,
         kind: this.props.kind,
         objectUrl: this.props.objectUrl,
-        role: 'view'
+        role: 'view_submissions'
       });
     }
   }
