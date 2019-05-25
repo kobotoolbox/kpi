@@ -228,16 +228,12 @@ var __strings = [];
 
 
 /*a global gettext function*/
-let _gettext;
-if (window.gettext) {
-  _gettext = window.gettext;
-} else {
-  _gettext = function(s){
-    return s;
-  };
-}
 export function t(str) {
-  return _gettext(str);
+  if (window.gettext) {
+    return window.gettext(str);
+  } else {
+    return str;
+  }
 }
 
 
