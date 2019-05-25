@@ -2,6 +2,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
+import {ANON_USERNAME} from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -32,13 +33,12 @@ export function formatDate(timeStr) {
   return _m.format('ll');
 }
 
-export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
   return permissions.filter(function(perm){
     if (perm.user__username === undefined) {
       perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
     }
-    return perm.user__username === anonUsername;
+    return perm.user__username === ANON_USERNAME;
   })[0];
 }
 
@@ -187,7 +187,7 @@ export function parsePermissions(owner, permissions) {
     perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
     return perm;
   }).filter((perm)=> {
-    return ( perm.user__username !== owner && perm.user__username !== anonUsername);
+    return ( perm.user__username !== owner && perm.user__username !== ANON_USERNAME);
   }).forEach((perm)=> {
     if(users.indexOf(perm.user__username) === -1) {
       users.push(perm.user__username);

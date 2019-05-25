@@ -7,10 +7,8 @@ import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import {
-  t,
-  anonUsername
-} from 'js/utils';
+import {t} from 'js/utils';
+import {ANON_USERNAME} from 'js/constants';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
@@ -54,7 +52,7 @@ class SharingForm extends React.Component {
 
       this.setState({
         asset: asset,
-        public_permissions: asset.permissions.filter(function(perm){return perm.user__username === anonUsername;}),
+        public_permissions: asset.permissions.filter(function(perm){return perm.user__username === ANON_USERNAME;}),
         related_users: stores.asset.relatedUsers[uid]
       });
     }

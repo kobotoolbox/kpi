@@ -79,6 +79,7 @@ permissionsActions.assignPerm.failed.listen(function(){
 permissionsActions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
   dataInterface.copyPermissionsFrom(sourceUid, targetUid)
     .done(() => {
+      permissionsActions.getAssetPermissions(targetUid);
       permissionsActions.copyPermissionsFrom.completed(sourceUid, targetUid);
     })
     .fail(permissionsActions.copyPermissionsFrom.failed);

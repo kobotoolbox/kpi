@@ -1,5 +1,7 @@
 import {t} from './utils';
 
+const ANON_USERNAME = 'AnonymousUser';
+
 /*
  * A hardcoded list of permissions codenames.
  * All of them are really defined on backend, but we need it here to be able to
@@ -104,6 +106,7 @@ const ASSET_TYPES = {
 };
 
 export default {
+  ANON_USERNAME: ANON_USERNAME,
   PERMISSIONS_CODENAMES: PERMISSIONS_CODENAMES,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,

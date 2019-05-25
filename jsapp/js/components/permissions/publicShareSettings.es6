@@ -5,10 +5,8 @@ import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import {
-  t,
-  anonUsername
-} from 'js/utils';
+import {t} from 'js/utils';
+import {ANON_USERNAME} from 'js/constants';
 
 class PublicShareSettings extends React.Component {
   constructor(props) {
@@ -25,7 +23,7 @@ class PublicShareSettings extends React.Component {
       });
     } else {
       actions.permissions.assignPerm({
-        username: anonUsername,
+        username: ANON_USERNAME,
         uid: this.props.assetUid,
         kind: this.props.assetKind,
         objectUrl: this.props.objectUrl,
