@@ -18,12 +18,14 @@ function parseFormData (data) {
  * Builds a form data object from API data
  */
 function parseBackendData (data, ownerUrl) {
-  // TODO: here or other place: hide permissions that are not for given asset kind
-  const parsedPerms = [];
+  console.debug('TODO: here or some other place: hide permissions that are not for given asset kind');
+
+  const output = [];
 
   const groupedData = {};
   data.forEach((item) => {
-    // anonymous user permissions are for public sharing and we don't want to display them
+    // anonymous user permissions are our inner way of handling public sharing
+    // so we don't want to display them
     if (getUsernameFromUrl(item.user) === anonUsername) {
       return;
     }
@@ -33,12 +35,13 @@ function parseBackendData (data, ownerUrl) {
     groupedData[item.user].push({
       url: item.url,
       name: permConfig.getPermissionName(item.permission),
+      description: permConfig.getPermissionDescription(item.permission),
       permission: item.permission
     });
   });
 
   Object.keys(groupedData).forEach((userUrl) => {
-    parsedPerms.push({
+    output.push({
       user: {
         url: userUrl,
         name: getUsernameFromUrl(userUrl),
@@ -53,7 +56,7 @@ function parseBackendData (data, ownerUrl) {
     });
   });
 
-  return parsedPerms;
+  return output;
 }
 
 module.exports = {

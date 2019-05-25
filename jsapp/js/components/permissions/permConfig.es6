@@ -73,6 +73,13 @@ const permConfig = Reflux.createStore({
     // fallback to codename
     return foundPerm.name || foundPerm.codename;
   },
+  getPermissionDescription(permUrl) {
+    this.verifyReady();
+    const foundPerm = this.state.permissions.find((permission) => {
+      return permission.url === permUrl;
+    });
+    return foundPerm.description;
+  },
   getImpliedPermissions(permCodename) {
     this.verifyReady();
     return this.state.implied[permCodename];
