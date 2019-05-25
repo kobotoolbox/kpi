@@ -23,26 +23,6 @@ function stateChanges(orig_obj, new_obj) {
   return out;
 }
 
-// TODO: this data should come from backend
-const MOCK_ASSIGNABLE_PERMISSIONS = {
-  view_asset: {id: 'view_asset', label: 'View Form'},
-  change_asset: {id: 'change_asset', label: 'Edit Form'},
-  add_submissions: {id: 'add_submissions', label: 'Add Submissions'},
-  view_submissions: {id: 'view_submissions', label: 'View Submissions'},
-  partial_submissions: {id: 'partial_submissions', label: 'Restrict to submissions made by certain users'},
-  change_submissions: {id: 'change_submissions', label: 'Edit Submissions'},
-  validate_submissions: {id: 'validate_submissions', label: 'Validate Submissions'}
-};
-const MOCK_IMPLIED_PERMISSIONS = {
-  view_asset: [],
-  change_asset: ['view_asset'],
-  add_submissions: ['view_asset'],
-  view_submissions: ['view_asset'],
-  partial_submissions: ['view_asset'],
-  change_submissions: ['view_submissions'],
-  validate_submissions: ['view_submissions']
-};
-
 const permConfig = Reflux.createStore({
   init() {
     this.state = {
@@ -52,6 +32,7 @@ const permConfig = Reflux.createStore({
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.permissions.getConfig();
   },
+
   setState (change) {
     const changed = stateChanges(this.state, change);
     if (changed) {
@@ -59,12 +40,18 @@ const permConfig = Reflux.createStore({
       this.trigger(changed);
     }
   },
+
   onGetConfigCompleted(response) {
     this.setState({permissions: response.results});
   },
+
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
   },
+
+  /**
+   * Returns a permission url for given permission codename.
+   */
   getPermissionUrl(permCodename) {
     this.verifyReady();
     const foundPerm = this.state.permissions.find((permission) => {
@@ -72,14 +59,22 @@ const permConfig = Reflux.createStore({
     });
     return foundPerm.url;
   },
+
+  /**
+   * Returns a permission name for given permission url.
+   * Fallbacks to codename if name is empty.
+   */
   getPermissionName(permUrl) {
     this.verifyReady();
     const foundPerm = this.state.permissions.find((permission) => {
       return permission.url === permUrl;
     });
-    // fallback to codename
     return foundPerm.name || foundPerm.codename;
   },
+
+  /**
+   * Returns a permission description for given permission url.
+   */
   getPermissionDescription(permUrl) {
     this.verifyReady();
     const foundPerm = this.state.permissions.find((permission) => {
@@ -87,19 +82,29 @@ const permConfig = Reflux.createStore({
     });
     return foundPerm.description;
   },
+
   getImpliedPermissions(permCodename) {
     this.verifyReady();
     return this.state.implied[permCodename];
   },
+
   getAssignablePermissions() {
     this.verifyReady();
     return this.state.assignable;
   },
+
+  /**
+   * Throws if trying to use permConfig before it fetches data from BE.
+   */
   verifyReady() {
     if (this.state.permissions.length === 0) {
       throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
   },
+
+  /**
+   * Returns a list of available permissions for given asset type.
+   */
   getAvailablePermissions(assetType) {
     if (assetType === 'survey') {
       return [
