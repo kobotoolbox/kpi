@@ -39,14 +39,27 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
 
 permissionsActions.setAssetPermissions.listen((assetUid, permData) => {
   dataInterface.assignAssetPermissions(assetUid, permData)
-    .done(permissionsActions.setAssetPermissions.completed)
-    .fail(permissionsActions.setAssetPermissions.failed);
+    .done(() => {
+      permissionsActions.getAssetPermissions(assetUid);
+      permissionsActions.setAssetPermissions.completed();
+    })
+    .fail(() => {
+      permissionsActions.getAssetPermissions(assetUid);
+      permissionsActions.setAssetPermissions.failed();
+    });
 });
 
-permissionsActions.removeAssetPermissions.listen((assetUid, permData) => {
-  dataInterface.removeAssetPermissions(assetUid, permData)
-    .done(permissionsActions.removeAssetPermissions.completed)
-    .fail(permissionsActions.removeAssetPermissions.failed);
+permissionsActions.removeAssetPermissions.listen((assetUid, permUrl) => {
+  dataInterface.removeAssetPermissions(permUrl)
+    .done(() => {
+      permissionsActions.getAssetPermissions(assetUid);
+      permissionsActions.removeAssetPermissions.completed();
+    })
+    .fail(() => {
+      notify(t('failed to remove permissions'), 'error');
+      permissionsActions.getAssetPermissions(assetUid);
+      permissionsActions.removeAssetPermissions.failed();
+    });
 });
 
 /*

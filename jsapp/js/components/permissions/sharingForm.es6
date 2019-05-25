@@ -9,8 +9,6 @@ import actions from 'js/actions';
 import bem from 'js/bem';
 import {
   t,
-  parsePermissions,
-  stringToColor,
   anonUsername
 } from 'js/utils';
 
@@ -61,6 +59,8 @@ class SharingForm extends React.Component {
       });
     }
 
+    // we need to fetch permissions after asset has loaded,
+    // as we need the owner username to parse permissions
     actions.permissions.getAssetPermissions(uid);
   }
 

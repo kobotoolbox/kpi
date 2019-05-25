@@ -65,6 +65,13 @@ const permConfig = Reflux.createStore({
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
   },
+  getPermissionUrl(permCodename) {
+    this.verifyReady();
+    const foundPerm = this.state.permissions.find((permission) => {
+      return permission.codename === permCodename;
+    });
+    return foundPerm.url;
+  },
   getPermissionName(permUrl) {
     this.verifyReady();
     const foundPerm = this.state.permissions.find((permission) => {

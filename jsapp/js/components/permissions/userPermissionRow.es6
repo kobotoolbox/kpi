@@ -11,6 +11,9 @@ import {
   t,
   stringToColor,
 } from 'js/utils';
+import {
+  PERMISSIONS_CODENAMES,
+} from 'js/constants';
 import UserPermissionsEditor from './userPermissionsEditor';
 import permConfig from './permConfig';
 
@@ -40,16 +43,16 @@ class UserPermissionRow extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Remove permissions?'),
-      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.username}</strong>`),
+      message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.user.name}</strong>`),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
       onok: () => {
         this.setState({isBeingDeleted: true});
-        // we remove "view" permission, as it is the most basic one, so removing it
+        // we remove "view_asset" permission, as it is the most basic one, so removing it
         // will in fact remove all permissions
-        actions.permissions.removePerm({
-          permission_url: this.props.can.view.url,
-          content_object_uid: this.props.uid
+        const userViewAssetPerm = this.props.permissions.find((perm) => {
+          return perm.permission === permConfig.getPermissionUrl(PERMISSIONS_CODENAMES.get('view_asset'));
         });
+        actions.permissions.removeAssetPermissions(this.props.assetUid, userViewAssetPerm.url);
       },
       oncancel: dialog.destroy
     };
