@@ -38,4 +38,60 @@ describe('permParser', () => {
       chai.expect(parsed[2].permissions.length).to.equal(2);
     });
   });
+
+  describe('parseFormData', () => {
+    it('should exclude all implied permissions as they are not needed', () => {
+      const parsed = permParser.parseFormData({
+        username: 'leszek',
+        formView: true,
+        formEdit: true,
+        submissionsView: true,
+        submissionsViewPartial: false,
+        submissionsViewPartialUsers: [],
+        submissionsAdd: false,
+        submissionsEdit: false,
+        submissionsValidate: true
+      });
+
+      chai.expect(parsed).to.deep.equal([
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/change_asset/'
+        },
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/validate_submissions/'
+        }
+      ]);
+    });
+
+    it('should create different data for partial submissions permission', () => {
+      const parsed = permParser.parseFormData({
+        username: 'leszek',
+        formView: true,
+        formEdit: false,
+        submissionsView: true,
+        submissionsViewPartial: true,
+        submissionsViewPartialUsers: ['john', 'oliver', 'eric'],
+        submissionsAdd: false,
+        submissionsEdit: false,
+        submissionsValidate: false
+      });
+
+      chai.expect(parsed).to.deep.equal([
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/partial_submissions/',
+          partial_permissions: [
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [
+                {'_submitted_by': {'$in': ['john', 'oliver', 'eric']}}
+              ]
+            }
+          ]
+        }
+      ]);
+    });
+  });
 });

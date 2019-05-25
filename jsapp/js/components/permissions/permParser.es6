@@ -1,13 +1,20 @@
 import permConfig from './permConfig';
 import {
-  PERMISSIONS_CODENAMES,
-  ANON_USERNAME
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 import {
+  buildUserUrl,
   getUsernameFromUrl
 } from 'js/utils';
 
-/*
+/**
+ * @typedef {Object} PermObj
+ * @property {string} user - User url.
+ * @property {string} permission - Permission url.
+ */
+
+/**
  * Builds an object understandable by Backend endpoints from form data.
  *
  * @param {Object} data - Object containing data from the UserPermissionsEditor form.
@@ -20,14 +27,57 @@ import {
  * @param {boolean} data.submissionsAdd - Is able to add submissions.
  * @param {boolean} data.submissionsEdit - Is able to edit submissions.
  * @param {boolean} data.submissionsValidate - Is able to validate submissions.
+ *
+ * @returns {PermObj[]} - An array of permissions to be given.
  */
 function parseFormData (data) {
-  const config = permConfig.getAvailablePermissions();
-  console.log('parseFormData', PERMISSIONS_CODENAMES.get('view_asset'));
-  return data;
+  const parsed = [];
+
+  if (data.formView) {
+    parsed.push(buildPermObj(data.username, PERMISSIONS_CODENAMES.get('view_asset')));
+  }
+
+  if (data.formEdit) {
+    parsed.push(buildPermObj(data.username, PERMISSIONS_CODENAMES.get('change_asset')));
+  }
+
+  if (data.submissionsViewPartial) {
+    let permObj = buildPermObj(data.username, PERMISSIONS_CODENAMES.get('partial_submissions'));
+    permObj.partial_permissions = [{
+      url: permConfig.getPermissionUrl(PERMISSIONS_CODENAMES.get('view_submissions')),
+      filters: [{'_submitted_by': {'$in': data.submissionsViewPartialUsers}}]
+    }];
+    parsed.push(permObj);
+  } else if (data.submissionsView) {
+    parsed.push(buildPermObj(data.username, PERMISSIONS_CODENAMES.get('view_submissions')));
+  }
+
+  if (data.submissionsAdd) {
+    parsed.push(buildPermObj(data.username, PERMISSIONS_CODENAMES.get('add_submissions')));
+  }
+
+  if (data.submissionsEdit) {
+    parsed.push(buildPermObj(data.username, PERMISSIONS_CODENAMES.get('change_submissions')));
+  }
+
+  if (data.submissionsValidate) {
+    parsed.push(buildPermObj(data.username, PERMISSIONS_CODENAMES.get('validate_submissions')));
+  }
+
+  // TODO 1: cleanup implied
+  // TODO 2: cleanup contradictory
+
+  return parsed;
 }
 
-/*
+function buildPermObj(username, permissionCodename) {
+  return {
+    user: buildUserUrl(username),
+    permission: permConfig.getPermissionUrl(permissionCodename)
+  };
+}
+
+/**
  * Builds a form data object from API data.
  *
  * @param {Object} data - Permissions array (results property from endpoint response).
