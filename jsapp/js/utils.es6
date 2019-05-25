@@ -2,7 +2,10 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-import {ANON_USERNAME} from 'js/constants';
+import {
+  ROOT_URL,
+  ANON_USERNAME
+} from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -175,6 +178,10 @@ export function redirectTo(href) {
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl) {
   return userUrl.match(/\/users\/(.*)\//)[1];
+}
+
+export function buildUserUrl(username) {
+  return `${ROOT_URL}/api/v2/users/${username}/`;
 }
 
 export function parsePermissions(owner, permissions) {

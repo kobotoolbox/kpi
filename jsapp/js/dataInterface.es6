@@ -2,8 +2,9 @@ import $ from 'jquery';
 import alertify from 'alertifyjs';
 import {
   t,
-  assign,
+  assign
 } from './utils';
+import {ROOT_URL} from './constants';
 
 var dataInterface;
 (function(){
@@ -15,16 +16,6 @@ var dataInterface;
     'c': 'collections',
     'p': 'permissions',
   };
-
-  var rootUrl = (function(){
-    try {
-      return document.head.querySelector('meta[name=kpi-root-url]').content.replace(/\/$/, '');
-    } catch (e) {
-      console.error('no kpi-root-url meta tag set. defaulting to ""');
-      return '';
-    }
-  })();
-  this.rootUrl = rootUrl;
 
   // hook up to all AJAX requests to check auth problems
   $(document).ajaxError((event, request, settings) => {
@@ -44,18 +35,18 @@ var dataInterface;
   });
 
   assign(this, {
-    selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
-    serverEnvironment: ()=> $ajax({ url: `${rootUrl}/environment/` }),
+    selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
+    serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
-      $ajax({ url: `${rootUrl}/users/${username}/` })
+      $ajax({ url: `${ROOT_URL}/users/${username}/` })
         .done(()=>{ d.resolve(username, true); })
         .fail(()=>{ d.reject(username, false); });
       return d.promise();
     },
     logout: ()=> {
       var d = new $.Deferred();
-      $ajax({ url: `${rootUrl}/api-auth/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
+      $ajax({ url: `${ROOT_URL}/api-auth/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface.selfProfile().done(function(data){
@@ -70,22 +61,22 @@ var dataInterface;
     },
     patchProfile (data) {
       return $ajax({
-        url: `${rootUrl}/me/`,
+        url: `${ROOT_URL}/me/`,
         method: 'PATCH',
         data: data
       });
     },
     listTemplates () {
       return $ajax({
-        url: `${rootUrl}/assets/?q=asset_type:template`
+        url: `${ROOT_URL}/assets/?q=asset_type:template`
       });
     },
     listCollections () {
-      return $.getJSON(`${rootUrl}/collections/?all_public=true`);
+      return $.getJSON(`${ROOT_URL}/collections/?all_public=true`);
     },
     createAssetSnapshot (data) {
       return $ajax({
-        url: `${rootUrl}/asset_snapshots/`,
+        url: `${ROOT_URL}/asset_snapshots/`,
         method: 'POST',
         data: data
       });
@@ -97,19 +88,19 @@ var dataInterface;
 
     getHooks(uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/`,
         method: 'GET'
       });
     },
     getHook(uid, hookUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/`,
         method: 'GET'
       });
     },
     addExternalService(uid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/`,
         method: 'POST',
         data: JSON.stringify(data),
         dataType: 'json',
@@ -118,7 +109,7 @@ var dataInterface;
     },
     updateExternalService(uid, hookUid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/`,
         method: 'PATCH',
         data: JSON.stringify(data),
         dataType: 'json',
@@ -127,7 +118,7 @@ var dataInterface;
     },
     deleteExternalService(uid, hookUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/hooks/${hookUid}/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/`,
         method: 'DELETE'
       });
     },
@@ -165,12 +156,12 @@ var dataInterface;
         identifierString += `&split_by=${data.group_by}`;
 
       return $ajax({
-        url: `${rootUrl}/reports/${data.uid}/${identifierString}`,
+        url: `${ROOT_URL}/reports/${data.uid}/${identifierString}`,
       });
     },
     createTemporaryAssetSnapshot ({source}) {
       return $ajax({
-        url: `${rootUrl}/asset_snapshots/`,
+        url: `${ROOT_URL}/asset_snapshots/`,
         method: 'POST',
         data: {
           source: source
@@ -186,14 +177,14 @@ var dataInterface;
       if (new_asset_type) { data.asset_type = new_asset_type; }
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/assets/`,
+        url: `${ROOT_URL}/assets/`,
         data: data,
       });
     },
     cloneCollection ({uid}) {
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/collections/`,
+        url: `${ROOT_URL}/collections/`,
         data: {
           clone_from: uid
         }
@@ -206,21 +197,21 @@ var dataInterface;
 
     getPermissionsConfig() {
       return $ajax({
-        url: `${rootUrl}/api/v2/permissions/`,
+        url: `${ROOT_URL}/api/v2/permissions/`,
         method: 'GET'
       });
     },
 
     getAssetPermissions(assetUid) {
       return $ajax({
-        url: `${rootUrl}/api/v2/assets/${assetUid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
         method: 'GET'
       });
     },
 
     assignAssetPermissions(assetUid, permData) {
       return $ajax({
-        url: `${rootUrl}/api/v2/assets/${assetUid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
         method: 'POST',
         data: JSON.stringify(permData),
         dataType: 'json',
@@ -247,7 +238,7 @@ var dataInterface;
     },
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${targetUid}/permissions/`,
+        url: `${ROOT_URL}/assets/${targetUid}/permissions/`,
         method: 'PATCH',
         data: {
           clone_from: sourceUid
@@ -256,11 +247,11 @@ var dataInterface;
     },
     assignPerm (creds) {
       // Do we already have these URLs stored somewhere?
-      var objectUrl = creds.objectUrl || `${rootUrl}/${creds.kind}s/${creds.uid}/`;
-      var userUrl = `${rootUrl}/users/${creds.username}/`;
+      var objectUrl = creds.objectUrl || `${ROOT_URL}/${creds.kind}s/${creds.uid}/`;
+      var userUrl = `${ROOT_URL}/users/${creds.username}/`;
       var codename = creds.role.includes('_submissions') ? creds.role : `${creds.role}_${creds.kind}`;
       return $ajax({
-        url: `${rootUrl}/permissions/`,
+        url: `${ROOT_URL}/permissions/`,
         method: 'POST',
         data: {
           'user': userUrl,
@@ -280,7 +271,7 @@ var dataInterface;
     },
     libraryDefaultSearch () {
       return $ajax({
-        url: `${rootUrl}/assets/`,
+        url: `${ROOT_URL}/assets/`,
         data: {
           q: 'asset_type:question OR asset_type:block OR asset_type:template'
         },
@@ -289,28 +280,28 @@ var dataInterface;
     },
     deleteCollection ({uid}) {
       return $ajax({
-        url: `${rootUrl}/collections/${uid}/`,
+        url: `${ROOT_URL}/collections/${uid}/`,
         method: 'DELETE'
       });
     },
     deleteAsset ({uid}) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/`,
+        url: `${ROOT_URL}/assets/${uid}/`,
         method: 'DELETE'
       });
     },
     subscribeCollection ({uid}) {
       return $ajax({
-        url: `${rootUrl}/collection_subscriptions/`,
+        url: `${ROOT_URL}/collection_subscriptions/`,
         data: {
-          collection: `${rootUrl}/collections/${uid}/`,
+          collection: `${ROOT_URL}/collections/${uid}/`,
         },
         method: 'POST'
       });
     },
     unsubscribeCollection ({uid}) {
       return $ajax({
-        url: `${rootUrl}/collection_subscriptions/`,
+        url: `${ROOT_URL}/collection_subscriptions/`,
         data: {
           collection__uid: uid
         },
@@ -323,21 +314,21 @@ var dataInterface;
       });
     },
     getAssetContent ({id}) {
-      return $.getJSON(`${rootUrl}/assets/${id}/content/`);
+      return $.getJSON(`${ROOT_URL}/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
-      return $.getJSON(`${rootUrl}/imports/${uid}/`);
+      return $.getJSON(`${ROOT_URL}/imports/${uid}/`);
     },
     getAsset (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${rootUrl}/assets/${params.id}/`);
+        return $.getJSON(`${ROOT_URL}/assets/${params.id}/`);
       }
     },
     getAssetExports (uid) {
       return $ajax({
-        url: `${rootUrl}/exports/`,
+        url: `${ROOT_URL}/exports/`,
         data: {
           q: `source:${uid}`
         }
@@ -345,13 +336,13 @@ var dataInterface;
     },
     deleteAssetExport (euid) {
       return $ajax({
-        url: `${rootUrl}/exports/${euid}/`,
+        url: `${ROOT_URL}/exports/${euid}/`,
         method: 'DELETE'
       });
     },
     getAssetXformView (uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/xform/`,
+        url: `${ROOT_URL}/assets/${uid}/xform/`,
         dataType: 'html'
       });
     },
@@ -359,7 +350,7 @@ var dataInterface;
       // override limit
       searchData.limit = 200;
       return $.ajax({
-        url: `${rootUrl}/assets/`,
+        url: `${ROOT_URL}/assets/`,
         dataType: 'json',
         data: searchData,
         method: 'GET'
@@ -367,20 +358,20 @@ var dataInterface;
     },
     assetsHash () {
       return $ajax({
-        url: `${rootUrl}/assets/hash/`,
+        url: `${ROOT_URL}/assets/hash/`,
         method: 'GET'
       });
     },
     createCollection (data) {
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/collections/`,
+        url: `${ROOT_URL}/collections/`,
         data: data,
       });
     },
     patchCollection (uid, data) {
       return $ajax({
-        url: `${rootUrl}/collections/${uid}/`,
+        url: `${ROOT_URL}/collections/${uid}/`,
         method: 'PATCH',
         data: data
       });
@@ -388,20 +379,20 @@ var dataInterface;
     createResource (details) {
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/assets/`,
+        url: `${ROOT_URL}/assets/`,
         data: details
       });
     },
     patchAsset (uid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/`,
+        url: `${ROOT_URL}/assets/${uid}/`,
         method: 'PATCH',
         data: data
       });
     },
     listTags (data) {
       return $ajax({
-        url: `${rootUrl}/tags/`,
+        url: `${ROOT_URL}/tags/`,
         method: 'GET',
         data: assign({
           limit: 9999,
@@ -412,7 +403,7 @@ var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${rootUrl}/collections/${params.id}/`);
+        return $.getJSON(`${ROOT_URL}/collections/${params.id}/`);
       }
     },
     loadNextPageUrl(nextPageUrl){
@@ -452,7 +443,7 @@ var dataInterface;
       });
       return $.ajax({
         method: 'POST',
-        url: `${rootUrl}/imports/`,
+        url: `${ROOT_URL}/imports/`,
         data: formData,
         processData: false,
         contentType: false
@@ -461,7 +452,7 @@ var dataInterface;
     getResource ({id}) {
       // how can we avoid pulling asset type from the 1st character of the uid?
       var assetType = assetMapping[id[0]];
-      return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
+      return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
     getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='', count=false) {
       const query = `limit=${pageSize}&start=${page}`;
@@ -475,58 +466,58 @@ var dataInterface;
         filter += '&count=1';
 
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/?${query}${s}${f}${filter}`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/?${query}${s}${f}${filter}`,
         method: 'GET'
       });
     },
     getSubmission(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/`,
         method: 'GET'
       });
     },
     patchSubmissions(uid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/validation_statuses/`,
         method: 'PATCH',
         data: {'payload': JSON.stringify(data)}
       });
     },
     bulkRemoveSubmissionsValidationStatus(uid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/validation_statuses/`,
         method: 'DELETE',
         data: {'payload': JSON.stringify(data)}
       });
     },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/validation_status/`,
         method: 'PATCH',
         data: data
       });
     },
     removeSubmissionValidationStatus(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/validation_status/`,
         method: 'DELETE'
       });
     },
     getSubmissionsQuery(uid, query='') {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/?${query}`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/?${query}`,
         method: 'GET'
       });
     },
     deleteSubmission(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}`,
         method: 'DELETE'
       });
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/edit/?return_url=false`,
         method: 'GET'
       });
     },
@@ -537,7 +528,7 @@ var dataInterface;
       });
 
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/files/`,
+        url: `${ROOT_URL}/assets/${uid}/files/`,
         method: 'POST',
         data: formData,
         processData: false,
@@ -546,26 +537,26 @@ var dataInterface;
     },
     getAssetFiles(uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/files/`,
+        url: `${ROOT_URL}/assets/${uid}/files/`,
         method: 'GET'
       });
     },
     deleteAssetFile(assetUid, uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${assetUid}/files/${uid}/`,
+        url: `${ROOT_URL}/assets/${assetUid}/files/${uid}/`,
         method: 'DELETE'
       });
     },
 
     getHelpInAppMessages() {
       return $ajax({
-        url: `${rootUrl}/help/in_app_messages/`,
+        url: `${ROOT_URL}/help/in_app_messages/`,
         method: 'GET'
       });
     },
     patchHelpInAppMessage(uid, data) {
       return $ajax({
-        url: `${rootUrl}/help/in_app_messages/${uid}/`,
+        url: `${ROOT_URL}/help/in_app_messages/${uid}/`,
         method: 'PATCH',
         data: JSON.stringify(data),
         dataType: 'json',
@@ -575,16 +566,16 @@ var dataInterface;
 
     setLanguage(data) {
       return $ajax({
-        url: `${rootUrl}/i18n/setlang/`,
+        url: `${ROOT_URL}/i18n/setlang/`,
         method: 'POST',
         data: data
       });
     },
     environment() {
-      return $ajax({url: `${rootUrl}/environment/`,method: 'GET'});
+      return $ajax({url: `${ROOT_URL}/environment/`,method: 'GET'});
     },
     login: (creds)=> {
-      return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
+      return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }
   });
 }).call(dataInterface = {});

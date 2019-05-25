@@ -1,8 +1,17 @@
 import {t} from './utils';
 
+const ROOT_URL = (() => {
+  try {
+    return document.head.querySelector('meta[name=kpi-root-url]').content.replace(/\/$/, '');
+  } catch (e) {
+    console.error('no kpi-root-url meta tag set. defaulting to ""');
+    return '';
+  }
+})();
+
 const ANON_USERNAME = 'AnonymousUser';
 
-/*
+/**
  * A hardcoded list of permissions codenames.
  * All of them are really defined on backend, but we need it here to be able to
  * build UI for handling them.
@@ -106,6 +115,7 @@ const ASSET_TYPES = {
 };
 
 export default {
+  ROOT_URL: ROOT_URL,
   ANON_USERNAME: ANON_USERNAME,
   PERMISSIONS_CODENAMES: PERMISSIONS_CODENAMES,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
