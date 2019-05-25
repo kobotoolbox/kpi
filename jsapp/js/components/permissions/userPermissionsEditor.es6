@@ -29,24 +29,27 @@ class UserPermissionsEditor extends React.Component {
       usernamesBeingChecked: new Set(),
       isSubmitPending: false,
       isEditingUsername: false,
-      formViewDisabled: false,
-      submissionsViewDisabled: false,
       // form user inputs
       username: '',
       formView: false,
+      formViewDisabled: false,
       formEdit: false,
       submissionsView: false,
+      submissionsViewDisabled: false,
       submissionsViewPartial: false,
+      submissionsViewPartialDisabled: false,
       submissionsViewPartialUsers: [],
       submissionsAdd: false,
       submissionsEdit: false,
-      submissionsValidate: false
+      submissionsEditDisabled: false,
+      submissionsValidate: false,
+      submissionsValidateDisabled: false
     };
 
     this.applyPropsData();
   }
 
-  /*
+  /**
    * Fills up form with provided user name and permissions (if applicable)
    */
   applyPropsData() {
@@ -80,7 +83,7 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
-  /*
+  /**
    * Single callback for all checkboxes to keep the complex connections logic
    * being up to date regardless which one changed
    * NOTE: the order of things is important
@@ -98,21 +101,28 @@ class UserPermissionsEditor extends React.Component {
 
     this.setState(newState);
 
-    this.verifyConnectedCheckboxes();
+    this.applyValidityRules();
   }
 
-  /*
+  /**
+   * Helps to avoid users submitting invalid data.
+   *
    * Checking some of the checkboxes implies that other are also checked
-   * and disabled (to avoid users from submitting invalid data)
+   * and can't be unchecked.
+   *
+   * Checking some of the checkboxes implies that other can't be checked.
    */
-  verifyConnectedCheckboxes() {
+  applyValidityRules() {
     const newState = this.state;
 
     // reset disabling before checks
     newState.formViewDisabled = false;
     newState.submissionsViewDisabled = false;
+    newState.submissionsViewPartialDisabled = false;
+    newState.submissionsEditDisabled = false;
+    newState.submissionsValidateDisabled = false;
 
-    // checking these options implies having `formView`
+    // checking these options implies having `formView` checked
     if (
       newState.formEdit ||
       newState.submissionsView ||
@@ -125,13 +135,31 @@ class UserPermissionsEditor extends React.Component {
       newState.formViewDisabled = true;
     }
 
-    // checking these options implies having `submissionsView`
+    // checking these options implies having `submissionsView` checked
     if (
       newState.submissionsEdit ||
       newState.submissionsValidate
     ) {
       newState.submissionsView = true;
       newState.submissionsViewDisabled = true;
+    }
+
+    // checking `submissionsViewPartial` disallows checking these
+    if (newState.submissionsViewPartial) {
+      newState.submissionsEdit = false;
+      newState.submissionsEditDisabled = true;
+      newState.submissionsValidate = false;
+      newState.submissionsValidateDisabled = true;
+    }
+
+    // checking these disallows checking `submissionsViewPartial`
+    if (
+      newState.submissionsEdit ||
+      newState.submissionsValidate
+    ) {
+      newState.submissionsViewPartial = false;
+      newState.submissionsViewPartialDisabled = true;
+      newState.submissionsViewPartialUsers = [];
     }
 
     // apply changes of connected checkboxes to state
@@ -351,6 +379,7 @@ class UserPermissionsEditor extends React.Component {
               <div>
                 <Checkbox
                   checked={this.state.submissionsViewPartial}
+                  disabled={this.state.submissionsViewPartialDisabled}
                   onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
                   label={t('Restrict to submissions made by certain users')}
                 />
@@ -375,12 +404,14 @@ class UserPermissionsEditor extends React.Component {
 
           <Checkbox
             checked={this.state.submissionsEdit}
+            disabled={this.state.submissionsEditDisabled}
             onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
             label={t('Edit Submissions')}
           />
 
           <Checkbox
             checked={this.state.submissionsValidate}
+            disabled={this.state.submissionsValidateDisabled}
             onChange={this.onCheckboxChange.bind(this, 'submissionsValidate')}
             label={t('Validate Submissions')}
           />
