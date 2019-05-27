@@ -209,14 +209,20 @@ var dataInterface;
       });
     },
 
-    assignAssetPermissions(assetUid, permData) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
-        method: 'POST',
-        data: JSON.stringify(permData),
-        dataType: 'json',
-        contentType: 'application/json'
+    assignAssetPermissions(assetUid, perms) {
+      const $ajaxCalls = [];
+      perms.forEach((perm) => {
+        $ajaxCalls.push(
+          $ajax({
+            url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
+            method: 'POST',
+            data: JSON.stringify(perm),
+            dataType: 'json',
+            contentType: 'application/json'
+          })
+        );
       });
+      return $.when.apply(undefined, $ajaxCalls);
     },
 
     removeAssetPermissions(permUrl) {

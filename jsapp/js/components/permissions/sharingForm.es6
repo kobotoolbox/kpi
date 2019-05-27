@@ -132,7 +132,7 @@ class SharingForm extends React.Component {
               </bem.Button>
 
               <UserPermissionsEditor
-                uid={uid}
+                assetUid={uid}
                 assetKind={assetKind}
                 objectUrl={objectUrl}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}

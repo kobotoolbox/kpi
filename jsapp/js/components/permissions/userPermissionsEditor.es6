@@ -16,8 +16,8 @@ import {
 } from 'js/utils';
 
 /**
- * Displays a form for either giving a new user some permissions,
- * or for editing existing user permissions
+ * Displays a form either for giving a new user some permissions,
+ * or for editing existing user permissions.
  */
 class UserPermissionsEditor extends React.Component {
   constructor(props) {
@@ -56,7 +56,8 @@ class UserPermissionsEditor extends React.Component {
     // TODO 1: set permissions from props if given
     // TODO 2: set mode based on props (i.e. editing existing permissions vs giving new)
 
-    console.log('applyPropsData', this.props);
+    console.debug('applyPropsData', this.props);
+    console.debug('TODO: here or some other place: hide permissions that are not for given asset kind');
 
     if (this.props.username) {
       this.state.username = this.props.username;
@@ -64,19 +65,19 @@ class UserPermissionsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
-    this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
+    this.listenTo(actions.permissions.setAssetPermissions.completed, this.onSetAssetPermissionsCompleted);
+    this.listenTo(actions.permissions.setAssetPermissions.failed, this.onSetAssetPermissionsFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onAssignPermCompleted() {
+  onSetAssetPermissionsCompleted() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(true);
     }
   }
 
-  onAssignPermFailed() {
+  onSetAssetPermissionsFailed() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(false);
@@ -85,8 +86,7 @@ class UserPermissionsEditor extends React.Component {
 
   /**
    * Single callback for all checkboxes to keep the complex connections logic
-   * being up to date regardless which one changed
-   * NOTE: the order of things is important
+   * being up to date regardless which one changed.
    */
   onCheckboxChange(id, isChecked) {
     // apply checked checkbox change to state
@@ -101,6 +101,7 @@ class UserPermissionsEditor extends React.Component {
 
     this.setState(newState);
 
+    // needs to be called last
     this.applyValidityRules();
   }
 
@@ -144,7 +145,7 @@ class UserPermissionsEditor extends React.Component {
       newState.submissionsViewDisabled = true;
     }
 
-    // checking `submissionsViewPartial` disallows checking these
+    // checking `submissionsViewPartial` disallows checking two other options
     if (newState.submissionsViewPartial) {
       newState.submissionsEdit = false;
       newState.submissionsEditDisabled = true;
@@ -152,7 +153,7 @@ class UserPermissionsEditor extends React.Component {
       newState.submissionsValidateDisabled = true;
     }
 
-    // checking these disallows checking `submissionsViewPartial`
+    // checking these options disallows checking `submissionsViewPartial`
     if (
       newState.submissionsEdit ||
       newState.submissionsValidate
@@ -167,8 +168,8 @@ class UserPermissionsEditor extends React.Component {
   }
 
   /**
-   * we need it just to update the input,
-   * real work is handled by onUsernameChangeEnd
+   * We need it just to update the input,
+   * the real work is handled by onUsernameChangeEnd.
    */
   onUsernameChange(username) {
     this.setState({
@@ -177,6 +178,9 @@ class UserPermissionsEditor extends React.Component {
     });
   }
 
+  /**
+   * Checks if username exist on the Backend and clears input if doesn't.
+   */
   onUsernameChangeEnd() {
     this.setState({isEditingUsername: false});
 
@@ -193,6 +197,9 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
+  /**
+   * Enables Enter key on username input.
+   */
   onUsernameKeyPress(key, evt) {
     if (key === 'Enter') {
       evt.currentTarget.blur();
@@ -200,6 +207,9 @@ class UserPermissionsEditor extends React.Component {
     }
   }
 
+  /**
+   * Handles TagsInput change event and blocks adding nonexistent usernames.
+   */
   onSubmissionsViewPartialUsersChange(allUsers) {
     const submissionsViewPartialUsers = [];
 
@@ -243,7 +253,7 @@ class UserPermissionsEditor extends React.Component {
   }
 
   /**
-   * Remove nonexistent usernames from tagsinput array
+   * Remove nonexistent usernames from TagsInput list and from username input.
    */
   onUserExistsStoreChange(result) {
     // check partial view users
@@ -271,7 +281,7 @@ class UserPermissionsEditor extends React.Component {
   }
 
   /**
-   * Disallows submitting non-ready form
+   * Blocks submitting non-ready form.
    */
   isSubmitEnabled() {
     return (
@@ -300,18 +310,15 @@ class UserPermissionsEditor extends React.Component {
     });
 
     // TODO: add or patch permission
-    console.log('submit', this.state, parsedData);
+    console.debug('submit', parsedData);
 
     // make sure user exists
     if (this.checkUsernameSync(this.state.username)) {
       this.setState({isSubmitPending: true});
-      actions.permissions.assignPerm({
-        username: this.state.username,
-        uid: this.props.assetUid,
-        kind: this.props.assetKind,
-        objectUrl: this.props.objectUrl,
-        role: 'view_submissions'
-      });
+      actions.permissions.setAssetPermissions(
+        this.props.assetUid,
+        parsedData
+      );
     }
   }
 
@@ -339,7 +346,7 @@ class UserPermissionsEditor extends React.Component {
         onSubmit={this.submit}
       >
         {isNew &&
-          // don't display username editor for editing existing user
+          // don't display username editor when editing existing user
           <div className='user-permissions-editor__row user-permissions-editor__row--username'>
             <TextBox
               placeholder={t('username')}

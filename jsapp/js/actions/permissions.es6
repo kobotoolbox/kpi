@@ -37,8 +37,11 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
     .fail(permissionsActions.getAssetPermissions.failed);
 });
 
-permissionsActions.setAssetPermissions.listen((assetUid, permData) => {
-  dataInterface.assignAssetPermissions(assetUid, permData)
+/**
+ * For setting an array of permissions (each permission needs to be a separate call)
+ */
+permissionsActions.setAssetPermissions.listen((assetUid, perms) => {
+  dataInterface.assignAssetPermissions(assetUid, perms)
     .done(() => {
       permissionsActions.getAssetPermissions(assetUid);
       permissionsActions.setAssetPermissions.completed();

@@ -23,6 +23,16 @@ function stateChanges(orig_obj, new_obj) {
   return out;
 }
 
+/**
+ * @typedef {Object} PermDefinition - A permission object from backend.
+ * @property {string} url - Url of given permission type.
+ * @property {string} name
+ * @property {string} description
+ * @property {string} codename
+ * @property {string[]} implied - A list of implied permissions.
+ * @property {string[]} contradictory - A list of contradictory permissions.
+ */
+
 const permConfig = Reflux.createStore({
   init() {
     this.state = {
@@ -50,47 +60,27 @@ const permConfig = Reflux.createStore({
   },
 
   /**
-   * Returns a permission url for given permission codename.
+   * @param {string} permCodename
+   * @returns {PermDefinition}
    */
-  getPermissionUrl(permCodename) {
+  getPermissionByCodename(permCodename) {
     this.verifyReady();
     const foundPerm = this.state.permissions.find((permission) => {
       return permission.codename === permCodename;
     });
-    return foundPerm.url;
+    return foundPerm;
   },
 
   /**
-   * Returns a permission name for given permission url.
-   * Fallbacks to codename if name is empty.
+   * @param {string} permUrl
+   * @returns {PermDefinition}
    */
-  getPermissionName(permUrl) {
+  getPermission(permUrl) {
     this.verifyReady();
     const foundPerm = this.state.permissions.find((permission) => {
       return permission.url === permUrl;
     });
-    return foundPerm.name || foundPerm.codename;
-  },
-
-  /**
-   * Returns a permission description for given permission url.
-   */
-  getPermissionDescription(permUrl) {
-    this.verifyReady();
-    const foundPerm = this.state.permissions.find((permission) => {
-      return permission.url === permUrl;
-    });
-    return foundPerm.description;
-  },
-
-  getImpliedPermissions(permCodename) {
-    this.verifyReady();
-    return this.state.implied[permCodename];
-  },
-
-  getAssignablePermissions() {
-    this.verifyReady();
-    return this.state.assignable;
+    return foundPerm;
   },
 
   /**

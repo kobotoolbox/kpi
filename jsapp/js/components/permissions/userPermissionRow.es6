@@ -26,8 +26,6 @@ class UserPermissionRow extends React.Component {
       isEditFormVisible: false,
       isBeingDeleted: false
     };
-
-    this.availablePermissions = permConfig.getAvailablePermissions(this.props.kind);
   }
 
   componentDidMount() {
@@ -50,7 +48,7 @@ class UserPermissionRow extends React.Component {
         // we remove "view_asset" permission, as it is the most basic one, so removing it
         // will in fact remove all permissions
         const userViewAssetPerm = this.props.permissions.find((perm) => {
-          return perm.permission === permConfig.getPermissionUrl(PERMISSIONS_CODENAMES.get('view_asset'));
+          return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
         });
         actions.permissions.removeAssetPermissions(this.props.assetUid, userViewAssetPerm.url);
       },
