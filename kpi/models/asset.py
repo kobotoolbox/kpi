@@ -131,12 +131,33 @@ FLATTEN_OPTS = {
 
 
 class FormpackXLSFormUtils(object):
+    REQ_COL_APPEND_STRING = 'req_col_append_string'
+    
     def _standardize(self, content):
         if needs_standardization(content):
+            self._survey_prepare_required_col_value(content)
             standardize_content_in_place(content)
+            self._survey_revert_required_col_value(content)
             return True
         else:
             return False
+    
+    def _survey_prepare_required_col_value(self, content):
+        for row in content.get('survey', []):
+            for col in ['required']:
+                if col in row:
+                    if row[col] in ['yes', '']:
+                        row[col] = row[col] + '+' + self.REQ_COL_APPEND_STRING
+
+    def _survey_revert_required_col_value(self, content):
+        for row in content.get('survey', []):
+            for col in ['required']:
+                if col in row:
+                    if self.REQ_COL_APPEND_STRING in row[col]:
+                        req_col_append_string_pos = row[col].find(self.REQ_COL_APPEND_STRING)
+                        row[col] = row[col][:req_col_append_string_pos - 1]
+                    if 'never' in row[col]:
+                        row[col] = ''
 
     def _autoname(self, content):
         autoname_fields_in_place(content, '$autoname')
