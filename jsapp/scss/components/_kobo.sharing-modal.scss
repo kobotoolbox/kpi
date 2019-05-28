@@ -70,6 +70,10 @@ $s-gray-row-spacing: 10px;
     flex-direction: row;
     align-items: center;
     min-height: 50px;
+
+    > .mdl-button {
+      min-width: 32px;
+    }
   }
 
   .user-row__avatar {
@@ -85,10 +89,6 @@ $s-gray-row-spacing: 10px;
     min-width: 160px;
     text-align: right;
     line-height: 2.2em;
-    max-height: 30px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     padding: 0 10px 0 15px;
   }
 

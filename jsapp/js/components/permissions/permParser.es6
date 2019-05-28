@@ -15,19 +15,22 @@ import {
  */
 
 /**
+ * @typedef {Object} FormData  - Object containing data from the UserPermissionsEditor form.
+ * @property {string} data.username - Who give permissions to.
+ * @property {boolean} data.formView - Is able to view forms.
+ * @property {boolean} data.formEdit - Is able to edit forms.
+ * @property {boolean} data.submissionsView - Is able to view submissions.
+ * @property {boolean} data.submissionsViewPartial - If true, then able to view submissions only of some users.
+ * @property {string[]} data.submissionsViewPartialUsers - Users mentioned in the above line.
+ * @property {boolean} data.submissionsAdd - Is able to add submissions.
+ * @property {boolean} data.submissionsEdit - Is able to edit submissions.
+ * @property {boolean} data.submissionsValidate - Is able to validate submissions.
+ */
+
+/**
  * Builds an object understandable by Backend endpoints from form data.
  *
- * @param {Object} data - Object containing data from the UserPermissionsEditor form.
- * @param {string} data.username - Who give permissions to.
- * @param {boolean} data.formView - Is able to view forms.
- * @param {boolean} data.formEdit - Is able to edit forms.
- * @param {boolean} data.submissionsView - Is able to view submissions.
- * @param {boolean} data.submissionsViewPartial - If true, then able to view submissions only of some users.
- * @param {string[]} data.submissionsViewPartialUsers - Users mentioned in the above line.
- * @param {boolean} data.submissionsAdd - Is able to add submissions.
- * @param {boolean} data.submissionsEdit - Is able to edit submissions.
- * @param {boolean} data.submissionsValidate - Is able to validate submissions.
- *
+ * @param {FormData} data
  * @returns {BackendPerm[]} - An array of permissions to be given.
  */
 function parseFormData (data) {
@@ -78,6 +81,53 @@ function buildBackendPerm(username, permissionCodename) {
 }
 
 /**
+ * @param {UserPerm[]} permissions
+ * @returns {FormData}
+ */
+function buildFormData(permissions) {
+  const formData = {
+    // username: '',
+    // formView: false,
+    // formEdit: false,
+    // submissionsView: false,
+    // submissionsViewPartial: false,
+    // submissionsViewPartialUsers: [],
+    // submissionsAdd: false,
+    // submissionsEdit: false,
+    // submissionsValidate: false,
+  };
+
+  permissions.forEach((perm) => {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url) {
+      formData.formView = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_asset')).url) {
+      formData.formEdit = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('partial_submissions')).url) {
+      formData.submissionsViewPartial = true;
+      formData.submissionsViewPartialUsers = perm.partial_permissions[0].filters._submitted_by.$in;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('add_submissions')).url) {
+      formData.submissionsAdd = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url) {
+      formData.submissionsView = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_submissions')).url) {
+      formData.submissionsEdit = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('validate_submissions')).url) {
+      formData.submissionsValidate = true;
+    }
+  });
+
+  console.debug('buildFormData', permissions, formData);
+
+  return formData;
+}
+
+/**
  * @typedef {Object} UserPerm
  * @property {string} url - Url of given permission instance (permission x user).
  * @property {string} name - Permission name.
@@ -95,7 +145,7 @@ function buildBackendPerm(username, permissionCodename) {
  */
 
 /**
- * Builds a form data object from API data.
+ * Groups raw Backend permissions list data into array of users who have a list of permissions.
  *
  * @param {Object} data - Permissions array (results property from endpoint response).
  * @param {string} ownerUrl - Asset owner url (used as identifier).
@@ -120,7 +170,8 @@ function parseBackendData (data, ownerUrl) {
       url: item.url,
       name: permDef.name || permDef.codename, // fallback to codename if empty string
       description: permDef.description,
-      permission: item.permission
+      permission: item.permission,
+      partial_permissions: item.partial_permissions ? item.partial_permissions : undefined
     });
   });
 
@@ -145,5 +196,6 @@ function parseBackendData (data, ownerUrl) {
 
 module.exports = {
   parseFormData: parseFormData,
+  buildFormData: buildFormData,
   parseBackendData: parseBackendData
 };

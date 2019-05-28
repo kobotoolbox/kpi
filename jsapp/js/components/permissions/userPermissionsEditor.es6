@@ -11,6 +11,7 @@ import bem from 'js/bem';
 import classNames from 'classnames';
 import permParser from './permParser';
 import {
+  assign,
   t,
   notify
 } from 'js/utils';
@@ -56,8 +57,10 @@ class UserPermissionsEditor extends React.Component {
     // TODO 1: set permissions from props if given
     // TODO 2: set mode based on props (i.e. editing existing permissions vs giving new)
 
-    console.debug('applyPropsData', this.props);
     console.debug('TODO: here or some other place: hide permissions that are not for given asset kind');
+
+    const formData = permParser.buildFormData(this.props.permissions);
+    this.state = this.applyValidityRules(assign(this.state, formData));
 
     if (this.props.username) {
       this.state.username = this.props.username;
@@ -99,10 +102,8 @@ class UserPermissionsEditor extends React.Component {
       newState.submissionsViewPartialUsers = [];
     }
 
-    this.setState(newState);
-
     // needs to be called last
-    this.applyValidityRules();
+    this.setState(this.applyValidityRules(newState));
   }
 
   /**
@@ -112,59 +113,59 @@ class UserPermissionsEditor extends React.Component {
    * and can't be unchecked.
    *
    * Checking some of the checkboxes implies that other can't be checked.
+   *
+   * @param {Object} state
+   * @returns {Object} updated state
    */
-  applyValidityRules() {
-    const newState = this.state;
-
+  applyValidityRules(stateObj) {
     // reset disabling before checks
-    newState.formViewDisabled = false;
-    newState.submissionsViewDisabled = false;
-    newState.submissionsViewPartialDisabled = false;
-    newState.submissionsEditDisabled = false;
-    newState.submissionsValidateDisabled = false;
+    stateObj.formViewDisabled = false;
+    stateObj.submissionsViewDisabled = false;
+    stateObj.submissionsViewPartialDisabled = false;
+    stateObj.submissionsEditDisabled = false;
+    stateObj.submissionsValidateDisabled = false;
 
     // checking these options implies having `formView` checked
     if (
-      newState.formEdit ||
-      newState.submissionsView ||
-      newState.submissionsViewPartial ||
-      newState.submissionsAdd ||
-      newState.submissionsEdit ||
-      newState.submissionsValidate
+      stateObj.formEdit ||
+      stateObj.submissionsView ||
+      stateObj.submissionsViewPartial ||
+      stateObj.submissionsAdd ||
+      stateObj.submissionsEdit ||
+      stateObj.submissionsValidate
     ) {
-      newState.formView = true;
-      newState.formViewDisabled = true;
+      stateObj.formView = true;
+      stateObj.formViewDisabled = true;
     }
 
     // checking these options implies having `submissionsView` checked
     if (
-      newState.submissionsEdit ||
-      newState.submissionsValidate
+      stateObj.submissionsEdit ||
+      stateObj.submissionsValidate
     ) {
-      newState.submissionsView = true;
-      newState.submissionsViewDisabled = true;
+      stateObj.submissionsView = true;
+      stateObj.submissionsViewDisabled = true;
     }
 
     // checking `submissionsViewPartial` disallows checking two other options
-    if (newState.submissionsViewPartial) {
-      newState.submissionsEdit = false;
-      newState.submissionsEditDisabled = true;
-      newState.submissionsValidate = false;
-      newState.submissionsValidateDisabled = true;
+    if (stateObj.submissionsViewPartial) {
+      stateObj.submissionsEdit = false;
+      stateObj.submissionsEditDisabled = true;
+      stateObj.submissionsValidate = false;
+      stateObj.submissionsValidateDisabled = true;
     }
 
     // checking these options disallows checking `submissionsViewPartial`
     if (
-      newState.submissionsEdit ||
-      newState.submissionsValidate
+      stateObj.submissionsEdit ||
+      stateObj.submissionsValidate
     ) {
-      newState.submissionsViewPartial = false;
-      newState.submissionsViewPartialDisabled = true;
-      newState.submissionsViewPartialUsers = [];
+      stateObj.submissionsViewPartial = false;
+      stateObj.submissionsViewPartialDisabled = true;
+      stateObj.submissionsViewPartialUsers = [];
     }
 
-    // apply changes of connected checkboxes to state
-    this.setState(newState);
+    return stateObj;
   }
 
   /**
