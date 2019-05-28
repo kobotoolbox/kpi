@@ -79,8 +79,6 @@ module.exports = do ->
           @model.set('value', $elVal)
           reflectValueInEl(true)
           inTransition = false
-          console.log('model', @model);
-          console.log('value', $elVal);
 
       reflectValueInEl = (force=false)=>
         # This should never change the model value
@@ -122,6 +120,14 @@ module.exports = do ->
     checkbox: (cid, key, key_label = key, input_label = _t('Yes')) ->
       input_label = input_label
       @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
+
+    radiobutton: (cid, key, options, key_label = key, default_value = '') ->
+      buttons = ""
+      for option in options
+        buttons += """<input type="radio" name="#{key}" id="option_#{option.label}" value="#{option.value}">"""
+        buttons += """<label id="label_#{option.label}" for="#{option.label}">#{option.label}</label>"""
+
+      @field buttons, cid, key_label
 
     dropdown: (cid, key, values, key_label = key) ->
       select = """<select id="#{cid}">"""
@@ -402,11 +408,63 @@ module.exports = do ->
       @listenForCheckboxChange()
 
   viewRowDetail.DetailViewMixins.required =
+    getOptions: () -> 
+      options = [
+        {
+          label: 'Always',
+          value: 'yes'
+        },
+        {
+          label: 'Conditional'
+          value: 'conditional'
+        },
+        {
+          label: 'Never',
+          value: 'never'
+        }
+      ]
+      options
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
+      viewRowDetail.Templates.radiobutton @cid, @model.key, @getOptions(), _t("Required")
     afterRender: ->
-      @listenForCheckboxChange()
+      options = @getOptions()
+      el = @$("input[type=radio][name=#{@model.key}]")
+      $el = $(el)
+      changing = false
+      $input = $('<input/>', {class:'text', type: 'text', style: 'width: auto; margin-left: 5px;'})
+
+      reflectValueInEl = ()=>
+        if !changing
+          modelValue = @model.get('value')
+          if modelValue is ''
+            modelValue = 'never'
+          if modelValue in ['yes', 'never']
+            willSelectedEl = @$("input[type=radio][name=#{@model.key}][value=#{modelValue}]")
+          else
+            willSelectedEl = @$("input[type=radio][name=#{@model.key}][id='option_Conditional']")
+            @$('#label_Conditional').append $input
+            @listenForInputChange el: $input
+          
+          $willSelectedEl = $(willSelectedEl)
+          $willSelectedEl.prop('checked', true)
+      
+      @model.on 'change:value', reflectValueInEl
+      reflectValueInEl()
+
+      $el.on 'change', ()=>
+        changing = true
+        selectedEl = @$("input[type=radio][name=#{@model.key}]:checked")
+        $selectedEl = $(selectedEl)
+        selectedVal = $selectedEl.val()
+        if selectedVal is 'conditional'
+          @model.set('value', '')
+          @$('#label_Conditional').append $input
+          @listenForInputChange el: $input
+        else
+          @model.set('value', selectedVal)
+          $input.remove()
+        changing = false
 
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->

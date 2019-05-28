@@ -125,9 +125,7 @@ module.exports = do ->
         if _.isString(_val)
           _val = _val.toLowerCase()
         @set({
-          value: (
-              _val in ['yes', 'true', true]
-            )
+          value: _val
         })
       else if value not in [undefined, false, null]
         vals2set = {}

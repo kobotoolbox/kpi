@@ -112,19 +112,19 @@ module.exports = do ->
       label:
         value: "Record a line"
       required:
-        value: false
+        value: ""
         _hideUnlessChanged: true
     geoshape:
       label:
         value: "Record an area"
       required:
-        value: false
+        value: ""
         _hideUnlessChanged: true
     geopoint:
       label:
         value: "Record your current location"
       required:
-        value: false
+        value: ""
         _hideUnlessChanged: true
     image:
       label:
@@ -142,7 +142,7 @@ module.exports = do ->
       label:
         value: "This note can be read out loud"
       required:
-        value: false
+        value: ""
         _hideUnlessChanged: true
     integer:
       label:
@@ -165,7 +165,7 @@ module.exports = do ->
       label:
         value: "calculation"
       required:
-        value: false
+        value: ""
         _hideUnlessChanged: true
     datetime:
       label:
@@ -300,7 +300,7 @@ module.exports = do ->
     guidance_hint:
       value: ""
     required:
-      value: false
+      value: ""
       _hideUnlessChanged: true
     relevant:
       value: ""
