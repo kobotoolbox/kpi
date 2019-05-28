@@ -209,8 +209,66 @@ const assetWithMultipleUsers = {
   ]
 };
 
+// /api/v2/assets/<uid>/permissions/
+const assetWithPartial = {
+  'count': 8,
+  'next': null,
+  'previous': null,
+  'results': [
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pTi9qyEax49ZA5RP9KnNHB/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/add_submissions/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pATUgtDW6v44QG4dDDpnEV/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/change_asset/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pUUcqTtQ6FgEDfHUiQbS24/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/change_submissions/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p5BjfEz9JDQtQTzkT7fHA5/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/validate_submissions/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pBjfyz5Zxj95866GtEtsR2/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/view_asset/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pQGiudmuLvN6iHEdH8dJAs/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/view_submissions/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p6KekjhZabd7ao9MBQwN7X/',
+      'user': '/api/v2/users/leszek/',
+      'permission': '/api/v2/permissions/view_asset/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pxp7BPnP9fohF5ZoH5Uwfa/',
+      'user': '/api/v2/users/leszek/',
+      'permission': '/api/v2/permissions/partial_submissions/',
+      'partial_permissions': [
+        {
+          'url': '/api/v2/permissions/view_submissions/',
+          'filters': [
+            {'_submitted_by': {'$in': ['john', 'oliver']}}
+          ]
+        },
+      ]
+    }
+  ]
+};
+
 export default {
   permissions: permissions,
   assetWithAnon: assetWithAnonymousUser,
-  assetWithMulti: assetWithMultipleUsers
+  assetWithMulti: assetWithMultipleUsers,
+  assetWithPartial: assetWithPartial
 };

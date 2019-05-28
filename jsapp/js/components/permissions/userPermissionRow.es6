@@ -67,16 +67,41 @@ class UserPermissionRow extends React.Component {
     this.setState({isEditFormVisible: !this.state.isEditFormVisible});
   }
 
-  render () {
+  renderPermissions(permissions) {
+    return (
+      <bem.UserRow__perms>
+        {permissions.map((perm) => {
+          let permUsers = [];
+
+          if (perm.partial_permissions) {
+            perm.partial_permissions.forEach((partial) => {
+              partial.filters.forEach((filter) => {
+                if (filter._submitted_by) {
+                  permUsers = permUsers.concat(filter._submitted_by.$in);
+                }
+              });
+            });
+          }
+
+          return <bem.UserRow__perm
+            title={perm.description}
+            key={perm.name}
+          >
+            {perm.name}
+
+            {permUsers.length > 0 &&
+              ' (' + permUsers.join(', ') + ')'
+            }
+          </bem.UserRow__perm>;
+        })}
+      </bem.UserRow__perms>
+    );
+  }
+
+  render() {
     const initialsStyle = {
       background: `#${stringToColor(this.props.user.name)}`
     };
-
-    const permNames = [];
-    this.props.permissions.forEach((perm) => {
-      permNames.push(perm.name);
-    });
-    const permNamesString = permNames.sort().join(', ');
 
     const modifiers = [];
     if (this.props.permissions.length === 0) {
@@ -100,13 +125,11 @@ class UserPermissionRow extends React.Component {
           </bem.UserRow__name>
 
           {this.props.user.isOwner &&
-            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+            <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>
           }
           {!this.props.user.isOwner &&
             <React.Fragment>
-              <bem.UserRow__role title={permNamesString}>
-                {permNamesString}
-              </bem.UserRow__role>
+              {this.renderPermissions(this.props.permissions)}
 
               <bem.Button m='icon' onClick={this.toggleEditForm}>
                 {this.state.isEditFormVisible &&

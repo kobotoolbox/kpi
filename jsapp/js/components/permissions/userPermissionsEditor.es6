@@ -59,8 +59,10 @@ class UserPermissionsEditor extends React.Component {
 
     console.debug('TODO: here or some other place: hide permissions that are not for given asset kind');
 
-    const formData = permParser.buildFormData(this.props.permissions);
-    this.state = this.applyValidityRules(assign(this.state, formData));
+    if (this.props.permissions) {
+      const formData = permParser.buildFormData(this.props.permissions);
+      this.state = this.applyValidityRules(assign(this.state, formData));
+    }
 
     if (this.props.username) {
       this.state.username = this.props.username;

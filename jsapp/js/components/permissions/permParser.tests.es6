@@ -39,6 +39,38 @@ describe('permParser', () => {
     });
   });
 
+  describe('buildFormData', () => {
+    it('should check proper options', () => {
+      const parsed = permParser.parseBackendData(
+        endpoints.assetWithMulti.results,
+        endpoints.assetWithMulti.results[0].user
+      );
+
+      const built = permParser.buildFormData(parsed[2].permissions);
+
+      chai.expect(built).to.deep.equal({
+        formView: true,
+        submissionsView: true
+      });
+    });
+
+    it('should handle partial permissions', () => {
+      const parsed = permParser.parseBackendData(
+        endpoints.assetWithPartial.results,
+        endpoints.assetWithPartial.results[0].user
+      );
+
+      const built = permParser.buildFormData(parsed[1].permissions);
+
+      chai.expect(built).to.deep.equal({
+        formView: true,
+        submissionsView: true,
+        submissionsViewPartial: true,
+        submissionsViewPartialUsers: ['john', 'oliver']
+      });
+    });
+  });
+
   describe('parseFormData', () => {
     it('should exclude all implied permissions as they are not needed', () => {
       const parsed = permParser.parseFormData({

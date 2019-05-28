@@ -85,11 +85,19 @@ $s-gray-row-spacing: 10px;
     line-height: 2.2em;
   }
 
-  .user-row__role {
+  .user-row__perms {
     min-width: 160px;
     text-align: right;
     line-height: 2.2em;
     padding: 0 10px 0 15px;
+
+    .user-row__perm {
+      & + & {
+        &::before {
+          content: ', ';
+        }
+      }
+    }
   }
 
   .user-row__editor {

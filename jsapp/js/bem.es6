@@ -234,7 +234,8 @@ bem.UserRow__info = bem.UserRow.__('info');
 bem.UserRow__avatar = bem.UserRow.__('avatar');
 bem.UserRow__name = bem.UserRow.__('name');
 bem.UserRow__email = bem.UserRow.__('email');
-bem.UserRow__role = bem.UserRow.__('role');
+bem.UserRow__perms = bem.UserRow.__('perms');
+bem.UserRow__perm = bem.UserRow.__('perm');
 bem.UserRow__editor = bem.UserRow.__('editor');
 
 bem.uiPanel = BEM('ui-panel');

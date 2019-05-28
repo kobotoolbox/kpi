@@ -105,8 +105,15 @@ function buildFormData(permissions) {
       formData.formEdit = true;
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('partial_submissions')).url) {
+      formData.submissionsView = true;
       formData.submissionsViewPartial = true;
-      formData.submissionsViewPartialUsers = perm.partial_permissions[0].filters._submitted_by.$in;
+      perm.partial_permissions.forEach((partial) => {
+        partial.filters.forEach((filter) => {
+          if (filter._submitted_by) {
+            formData.submissionsViewPartialUsers = filter._submitted_by.$in;
+          }
+        });
+      });
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('add_submissions')).url) {
       formData.submissionsAdd = true;
