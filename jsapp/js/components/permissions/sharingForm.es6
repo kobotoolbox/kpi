@@ -36,10 +36,8 @@ class SharingForm extends React.Component {
   }
 
   onGetAssetPermissionsCompleted(response) {
-    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
-    console.log('onGetAssetPermissionsCompleted', parsedPerms);
     this.setState({
-      permissions: parsedPerms
+      permissions: permParser.parseBackendData(response.results, this.state.asset.owner)
     });
   }
 
@@ -52,6 +50,7 @@ class SharingForm extends React.Component {
 
       this.setState({
         asset: asset,
+        assetKind: asset.kind,
         public_permissions: asset.permissions.filter(function(perm){return perm.user__username === ANON_USERNAME;}),
         related_users: stores.asset.relatedUsers[uid]
       });

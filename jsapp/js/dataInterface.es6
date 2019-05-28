@@ -329,7 +329,7 @@ var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${ROOT_URL}/assets/${params.id}/`);
+        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
       }
     },
     getAssetExports (uid) {
@@ -409,7 +409,7 @@ var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${ROOT_URL}/collections/${params.id}/`);
+        return $.getJSON(`${ROOT_URL}/api/v2/collections/${params.id}/`);
       }
     },
     loadNextPageUrl(nextPageUrl){

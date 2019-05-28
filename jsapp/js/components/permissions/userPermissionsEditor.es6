@@ -54,9 +54,6 @@ class UserPermissionsEditor extends React.Component {
    * Fills up form with provided user name and permissions (if applicable)
    */
   applyPropsData() {
-    // TODO 1: set permissions from props if given
-    // TODO 2: set mode based on props (i.e. editing existing permissions vs giving new)
-
     console.debug('TODO: here or some other place: hide permissions that are not for given asset kind');
 
     if (this.props.permissions) {
@@ -311,9 +308,6 @@ class UserPermissionsEditor extends React.Component {
       submissionsEdit: this.state.submissionsEdit,
       submissionsValidate: this.state.submissionsValidate
     });
-
-    // TODO: add or patch permission
-    console.debug('submit', parsedData);
 
     // make sure user exists
     if (this.checkUsernameSync(this.state.username)) {

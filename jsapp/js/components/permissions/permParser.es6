@@ -129,8 +129,6 @@ function buildFormData(permissions) {
     }
   });
 
-  console.debug('buildFormData', permissions, formData);
-
   return formData;
 }
 
