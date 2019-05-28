@@ -15,6 +15,10 @@ import ui from '../ui';
 import mixins from '../mixins';
 
 import LibrarySidebar from '../components/librarySidebar';
+import {
+  IntercomHelpBubble,
+  SupportHelpBubble
+} from '../components/helpBubbles';
 
 import {MODAL_TYPES} from '../constants';
 
@@ -140,20 +144,26 @@ class Drawer extends Reflux.Component {
   }
   render () {
     return (
-      <bem.Drawer className='k-drawer'>
-        <nav className='k-drawer__icons'>
+      <bem.KDrawer>
+        <bem.KDrawer__primaryIcons>
           <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' />
           <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' />
-        </nav>
+        </bem.KDrawer__primaryIcons>
 
-        <div className='drawer__sidebar'>
+        <bem.KDrawer__sidebar>
           { this.isLibrary()
             ? <LibrarySidebar />
             : <FormSidebar />
           }
-        </div>
+        </bem.KDrawer__sidebar>
 
-        <div className='k-drawer__icons-bottom'>
+        <bem.KDrawer__secondaryIcons>
+          { stores.session.currentAccount &&
+            <IntercomHelpBubble/>
+          }
+          { stores.session.currentAccount &&
+            <SupportHelpBubble/>
+          }
           { stores.session.currentAccount &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
@@ -166,19 +176,12 @@ class Drawer extends Reflux.Component {
           { stores.serverEnvironment &&
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
-              className='k-drawer__link' target='_blank' data-tip={t('source')}>
+              className='k-drawer__link' target='_blank' data-tip={t('Source')}>
               <i className='k-icon k-icon-github' />
             </a>
           }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
-            <a href={stores.serverEnvironment.state.support_url}
-              className='k-drawer__link' target='_blank' data-tip={t('help')}>
-              <i className='k-icon k-icon-help' />
-            </a>
-          }
-        </div>
-      </bem.Drawer>
+        </bem.KDrawer__secondaryIcons>
+      </bem.KDrawer>
       );
   }
 };

@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
-import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
@@ -15,7 +14,7 @@ import moment from 'moment';
 import Chart from 'chart.js';
 
 import {
-  assign, t, formatTime, formatDate, stringToColor
+  t, formatTime, formatDate, stringToColor
 } from '../utils';
 
 import {MODAL_TYPES} from '../constants';
@@ -81,7 +80,6 @@ class FormSummary extends React.Component {
   prepSubmissions(assetid) {
     var wkStart = this.state.chartPeriod == 'week' ? moment().subtract(6, 'days') : moment().subtract(30, 'days');
     var lastWeekStart = this.state.chartPeriod == 'week' ? moment().subtract(13, 'days') : moment().subtract(60, 'days');
-    var startOfWeek = moment().startOf('week');
 
     const query = `query={"_submission_time": {"$gte":"${wkStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
     dataInterface.getSubmissionsQuery(assetid, query).done((thisWeekSubs) => {
@@ -90,10 +88,11 @@ class FormSummary extends React.Component {
       const q2 = `query={"_submission_time": {"$gte":"${lastWeekStart.toISOString()}"}}&fields=["_id"]`;
       dataInterface.getSubmissionsQuery(assetid, q2).done((d) => {
         if (subsCurrentPeriod > 0) {
+          let subsPerDay;
           if (this.state.chartPeriod == 'week')
-            var subsPerDay = [0,0,0,0,0,0,0];
+            subsPerDay = [0,0,0,0,0,0,0];
           else
-            var subsPerDay = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+            subsPerDay = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
           thisWeekSubs.forEach(function(s, i){
             var d = moment(s._submission_time);

@@ -1,14 +1,14 @@
-from collections import defaultdict
-from django.apps import apps
-from django.db import models, transaction
-from django.core.exceptions import ValidationError, ImproperlyConfigured
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User, AnonymousUser, Permission
-from django.conf import settings
-from django.shortcuts import _get_queryset
-import copy
 import re
+import copy
+from django.apps import apps
+from django.conf import settings
+from collections import defaultdict
+from django.db import models, transaction
+from django.shortcuts import _get_queryset
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.auth.models import User, AnonymousUser, Permission
+from django.core.exceptions import ValidationError, ImproperlyConfigured
 
 from ..fields import KpiUidField
 from ..deployment_backends.kc_access.utils import (
@@ -31,6 +31,16 @@ def perm_parse(perm, obj=None):
         app_label = obj_app_label
         codename = perm
     return app_label, codename
+
+def get_models_with_object_permissions():
+    """
+    Return a list of all models that inherit from `ObjectPermissionMixin`
+    """
+    models = []
+    for model in apps.get_models():
+      if issubclass(model, ObjectPermissionMixin):
+        models.append(model)
+    return models
 
 def get_all_objects_for_user(user, klass):
     ''' Return all objects of type klass to which user has been assigned any

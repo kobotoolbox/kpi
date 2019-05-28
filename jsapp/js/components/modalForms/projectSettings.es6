@@ -827,6 +827,7 @@ class ProjectSettings extends React.Component {
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
+              isClearable
             />
           </bem.FormModal__item>
 
@@ -842,6 +843,7 @@ class ProjectSettings extends React.Component {
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
+              isClearable
             />
           </bem.FormModal__item>
 
