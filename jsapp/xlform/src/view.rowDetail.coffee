@@ -121,7 +121,7 @@ module.exports = do ->
       input_label = input_label
       @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
 
-    radiobutton: (cid, key, options, key_label = key, default_value = '') ->
+    radioButton: (cid, key, options, key_label = key, default_value = '') ->
       buttons = ""
       for option in options
         buttons += """<input type="radio" name="#{key}" id="option_#{option.label}" value="#{option.value}">"""
@@ -426,7 +426,7 @@ module.exports = do ->
       options
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.radiobutton @cid, @model.key, @getOptions(), _t("Required")
+      viewRowDetail.Templates.radioButton @cid, @model.key, @getOptions(), _t("Required")
     afterRender: ->
       options = @getOptions()
       el = @$("input[type=radio][name=#{@model.key}]")
