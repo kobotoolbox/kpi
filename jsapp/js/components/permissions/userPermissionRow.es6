@@ -12,9 +12,10 @@ import {
   stringToColor,
 } from 'js/utils';
 import {
-  PERMISSIONS_CODENAMES,
+  ASSET_KINDS,
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
-import UserPermissionsEditor from './userPermissionsEditor';
+import UserAssetPermsEditor from './userAssetPermsEditor';
 import permConfig from './permConfig';
 
 class UserPermissionRow extends React.Component {
@@ -149,13 +150,15 @@ class UserPermissionRow extends React.Component {
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
-            <UserPermissionsEditor
-              username={this.props.user.name}
-              permissions={this.props.permissions}
-              assetUid={this.props.assetUid}
-              assetKind={this.props.assetKind}
-              onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-            />
+            {this.props.assetKind === ASSET_KINDS.get('asset') &&
+              <UserAssetPermsEditor
+                username={this.props.user.name}
+                permissions={this.props.permissions}
+                assetUid={this.props.assetUid}
+                assetKind={this.props.assetKind}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              />
+            }
           </bem.UserRow__editor>
         }
       </bem.UserRow>

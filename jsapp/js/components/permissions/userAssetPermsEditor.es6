@@ -17,10 +17,9 @@ import {
 } from 'js/utils';
 
 /**
- * Displays a form either for giving a new user some permissions,
- * or for editing existing user permissions.
+ * Form for adding/changing user permissions for surveys.
  */
-class UserPermissionsEditor extends React.Component {
+class UserAssetPermsEditor extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -284,7 +283,17 @@ class UserPermissionsEditor extends React.Component {
    * Blocks submitting non-ready form.
    */
   isSubmitEnabled() {
+    const isAnyCheckboxChecked = (
+      this.state.formView ||
+      this.state.formEdit ||
+      this.state.submissionsView ||
+      this.state.submissionsViewPartial ||
+      this.state.submissionsAdd ||
+      this.state.submissionsEdit ||
+      this.state.submissionsValidate
+    );
     return (
+      isAnyCheckboxChecked &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       this.state.username.length > 0 &&
@@ -434,6 +443,6 @@ class UserPermissionsEditor extends React.Component {
     );
   }
 }
-reactMixin(UserPermissionsEditor.prototype, Reflux.ListenerMixin);
+reactMixin(UserAssetPermsEditor.prototype, Reflux.ListenerMixin);
 
-export default UserPermissionsEditor;
+export default UserAssetPermsEditor;

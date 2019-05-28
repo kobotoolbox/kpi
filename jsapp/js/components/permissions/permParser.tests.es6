@@ -97,7 +97,7 @@ describe('permParser', () => {
       ]);
     });
 
-    it('should create different data for partial submissions permission', () => {
+    it('should add partial_permissions property for partial submissions permission', () => {
       const parsed = permParser.parseFormData({
         username: 'leszek',
         formView: true,

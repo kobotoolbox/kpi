@@ -114,6 +114,12 @@ const ASSET_TYPES = {
   }
 };
 
+const ASSET_KINDS = new Map();
+new Set([
+  'asset',
+  'collection'
+]).forEach((kind) => {ASSET_KINDS.set(kind, kind);});
+
 export default {
   ROOT_URL: ROOT_URL,
   ANON_USERNAME: ANON_USERNAME,
@@ -125,5 +131,6 @@ export default {
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES,
+  ASSET_KINDS: ASSET_KINDS,
   HOOK_LOG_STATUSES: HOOK_LOG_STATUSES
 };

@@ -8,11 +8,14 @@ import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import {t} from 'js/utils';
-import {ANON_USERNAME} from 'js/constants';
+import {
+  ASSET_KINDS,
+  ANON_USERNAME
+} from 'js/constants';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
-import UserPermissionsEditor from './userPermissionsEditor';
+import UserAssetPermsEditor from './userAssetPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
 import permParser from './permParser';
@@ -46,8 +49,6 @@ class SharingForm extends React.Component {
     const asset = data[uid];
 
     if (asset) {
-      console.debug('onAssetChange', asset);
-
       this.setState({
         asset: asset,
         assetKind: asset.kind,
@@ -130,12 +131,14 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              <UserPermissionsEditor
-                assetUid={uid}
-                assetKind={assetKind}
-                objectUrl={objectUrl}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-              />
+              {assetKind === ASSET_KINDS.get('asset') &&
+                <UserAssetPermsEditor
+                  assetUid={uid}
+                  assetKind={assetKind}
+                  objectUrl={objectUrl}
+                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+                />
+              }
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
