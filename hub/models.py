@@ -1,11 +1,14 @@
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
-from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from markitup.fields import MarkupField
+from django.utils.translation import ugettext_lazy as _
+from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
+from markitup.fields import MarkupField
 
 
 class SitewideMessage(models.Model):
@@ -45,6 +48,39 @@ class ConfigurationFile(models.Model):
     def url(self):
         return reverse('configurationfile', kwargs={'slug': self.slug})
 
+
+class PerUserSetting(models.Model):
+    """
+    A configuration setting that has different values depending on whether not
+    a user matches certain criteria
+    """
+    user_queries = JSONBField(
+        help_text=_('A JSON representation of a *list* of Django queries, '
+                    'e.g. `[{"email__endswith": "@kobotoolbox.org"}, '
+                    '{"email__endswith": "@kbtdev.org"}]`. '
+                    'A matching user is one who would be returned by ANY of '
+                    'the queries in the list.')
+    )
+    name = models.CharField(max_length=255, unique=True,
+                            default='INTERCOM_APP_ID') # The only one for now!
+    value_when_matched = models.CharField(max_length=2048, blank=True)
+    value_when_not_matched = models.CharField(max_length=2048, blank=True)
+
+    def user_matches(self, user):
+        manager = user._meta.model.objects
+        queryset = manager.none()
+        for user_query in self.user_queries:
+            queryset |= manager.filter(**user_query)
+        return queryset.filter(pk=user.pk).exists()
+
+    def get_for_user(self, user):
+        if self.user_matches(user):
+            return self.value_when_matched
+        else:
+            return self.value_when_not_matched
+
+    def __str__(self):
+        return self.name
 
 class FormBuilderPreference(models.Model):
     KPI = 'K'
