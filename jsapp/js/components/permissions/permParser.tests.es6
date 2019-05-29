@@ -28,14 +28,36 @@ describe('permParser', () => {
         endpoints.assetWithMulti.results,
         endpoints.assetWithMulti.results[0].user
       );
+
       // parsed data should contain data of 3 users
       chai.expect(parsed.length).to.equal(3);
       chai.expect(parsed[0].user.name).to.equal('kobo');
       chai.expect(parsed[0].permissions.length).to.equal(6);
-      chai.expect(parsed[1].user.name).to.equal('oliver');
-      chai.expect(parsed[1].permissions.length).to.equal(1);
-      chai.expect(parsed[2].user.name).to.equal('john');
-      chai.expect(parsed[2].permissions.length).to.equal(2);
+      chai.expect(parsed[1].user.name).to.equal('john');
+      chai.expect(parsed[1].permissions.length).to.equal(2);
+      chai.expect(parsed[2].user.name).to.equal('oliver');
+      chai.expect(parsed[2].permissions.length).to.equal(1);
+    });
+  });
+
+  describe('sortBackendOutput', () => {
+    it('should sort alphabetically with owner always first', () => {
+      const sortedOutput = permParser.sortBackendOutput([
+        {user: {url: '/api/v2/users/frank', isOwner: false}},
+        {user: {url: '/api/v2/users/bob', isOwner: false}},
+        {user: {url: '/api/v2/users/diana', isOwner: true}},
+        {user: {url: '/api/v2/users/arthur', isOwner: false}},
+        {user: {url: '/api/v2/users/esther', isOwner: false}},
+        {user: {url: '/api/v2/users/christian', isOwner: false}}
+      ]);
+      chai.expect(sortedOutput).to.deep.equal([
+        {user: {url: '/api/v2/users/diana', isOwner: true}},
+        {user: {url: '/api/v2/users/arthur', isOwner: false}},
+        {user: {url: '/api/v2/users/bob', isOwner: false}},
+        {user: {url: '/api/v2/users/christian', isOwner: false}},
+        {user: {url: '/api/v2/users/esther', isOwner: false}},
+        {user: {url: '/api/v2/users/frank', isOwner: false}}
+      ]);
     });
   });
 

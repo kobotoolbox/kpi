@@ -196,20 +196,7 @@ function parseBackendData(data, ownerUrl) {
     });
   });
 
-  // sort by abcs but keep the owner at the top
-  output.sort((a, b) => {
-    if (a.user.url === ownerUrl) {
-      return -1;
-    } else if (a.user.url < b.user.url) {
-      return -1;
-    } else if (a.user.url > b.user.url) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
-
-  return output;
+  return sortBackendOutput(output);
 }
 
 /**
@@ -258,10 +245,21 @@ function parseOldBackendData(data, ownerUrl) {
     });
   });
 
-  // sort by abcs but keep the owner at the top
-  output.sort((a, b) => {
-    if (a.user.url === ownerUrl) {
+  return sortBackendOutput(output);
+}
+
+/**
+ * Sort by abcs but keep the owner at the top.
+ *
+ * @param {UserWithPerms[]} output - Possibly unsorted.
+ * @returns {UserWithPerms[]} - Definitely sorted.
+ */
+function sortBackendOutput(output) {
+  return output.sort((a, b) => {
+    if (a.user.isOwner) {
       return -1;
+    } else if (b.user.isOwner) {
+      return 1;
     } else if (a.user.url < b.user.url) {
       return -1;
     } else if (a.user.url > b.user.url) {
@@ -270,13 +268,12 @@ function parseOldBackendData(data, ownerUrl) {
       return 0;
     }
   });
-
-  return output;
 }
 
 module.exports = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,
-  parseOldBackendData: parseOldBackendData
+  parseOldBackendData: parseOldBackendData,
+  sortBackendOutput: sortBackendOutput // for testing purposes
 };
