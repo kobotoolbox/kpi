@@ -88,14 +88,13 @@ $s-gray-row-spacing: 10px;
   .user-row__perms {
     min-width: 160px;
     text-align: right;
-    line-height: 2.2em;
     padding: 0 10px 0 15px;
 
     .user-row__perm {
-      & + & {
-        &::before {
-          content: ', ';
-        }
+      display: inline;
+
+      &:not(:last-of-type)::after {
+        content: ' · ';
       }
     }
   }
