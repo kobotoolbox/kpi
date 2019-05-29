@@ -85,17 +85,7 @@ function buildBackendPerm(username, permissionCodename) {
  * @returns {FormData}
  */
 function buildFormData(permissions) {
-  const formData = {
-    // username: '',
-    // formView: false,
-    // formEdit: false,
-    // submissionsView: false,
-    // submissionsViewPartial: false,
-    // submissionsViewPartialUsers: [],
-    // submissionsAdd: false,
-    // submissionsEdit: false,
-    // submissionsValidate: false,
-  };
+  const formData = {};
 
   permissions.forEach((perm) => {
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url) {

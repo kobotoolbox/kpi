@@ -68,7 +68,7 @@ describe('permParser', () => {
         endpoints.assetWithMulti.results[0].user
       );
 
-      const built = permParser.buildFormData(parsed[2].permissions);
+      const built = permParser.buildFormData(parsed[1].permissions);
 
       chai.expect(built).to.deep.equal({
         formView: true,
