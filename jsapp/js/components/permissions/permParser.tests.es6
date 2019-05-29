@@ -40,9 +40,9 @@ describe('permParser', () => {
     });
   });
 
-  describe('sortBackendOutput', () => {
+  describe('sortParseBackendOutput', () => {
     it('should sort alphabetically with owner always first', () => {
-      const sortedOutput = permParser.sortBackendOutput([
+      const sortedOutput = permParser.sortParseBackendOutput([
         {user: {url: '/api/v2/users/frank', isOwner: false}},
         {user: {url: '/api/v2/users/bob', isOwner: false}},
         {user: {url: '/api/v2/users/diana', isOwner: true}},

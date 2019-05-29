@@ -196,7 +196,7 @@ function parseBackendData(data, ownerUrl) {
     });
   });
 
-  return sortBackendOutput(output);
+  return sortParseBackendOutput(output);
 }
 
 /**
@@ -245,7 +245,7 @@ function parseOldBackendData(data, ownerUrl) {
     });
   });
 
-  return sortBackendOutput(output);
+  return sortParseBackendOutput(output);
 }
 
 /**
@@ -254,7 +254,7 @@ function parseOldBackendData(data, ownerUrl) {
  * @param {UserWithPerms[]} output - Possibly unsorted.
  * @returns {UserWithPerms[]} - Definitely sorted.
  */
-function sortBackendOutput(output) {
+function sortParseBackendOutput(output) {
   return output.sort((a, b) => {
     if (a.user.isOwner) {
       return -1;
@@ -275,5 +275,5 @@ module.exports = {
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,
   parseOldBackendData: parseOldBackendData,
-  sortBackendOutput: sortBackendOutput // for testing purposes
+  sortParseBackendOutput: sortParseBackendOutput // for testing purposes
 };
