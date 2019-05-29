@@ -16,6 +16,7 @@ import {
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
+import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import permConfig from './permConfig';
 
 class UserPermissionRow extends React.Component {
@@ -40,22 +41,45 @@ class UserPermissionRow extends React.Component {
 
   removePermissions() {
     const dialog = alertify.dialog('confirm');
+
+    let okCallback;
+    if (this.props.kind === ASSET_KINDS.get('asset')) {
+      okCallback = this.removeAssetPermissions;
+    } else if (this.props.kind === ASSET_KINDS.get('collection')) {
+      okCallback = this.removeCollectionPermissions;
+    }
+
     const opts = {
       title: t('Remove permissions?'),
       message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.user.name}</strong>`),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
-      onok: () => {
-        this.setState({isBeingDeleted: true});
-        // we remove "view_asset" permission, as it is the most basic one, so removing it
-        // will in fact remove all permissions
-        const userViewAssetPerm = this.props.permissions.find((perm) => {
-          return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-        });
-        actions.permissions.removeAssetPermissions(this.props.assetUid, userViewAssetPerm.url);
-      },
+      onok: okCallback,
       oncancel: dialog.destroy
     };
     dialog.set(opts).show();
+  }
+
+  removeAssetPermissions() {
+    this.setState({isBeingDeleted: true});
+    // we remove "view_asset" permission, as it is the most basic one, so removing it
+    // will in fact remove all permissions
+    const userViewAssetPerm = this.props.permissions.find((perm) => {
+      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
+    });
+    actions.permissions.removeAssetPermissions(this.props.uid, userViewAssetPerm.url);
+  }
+
+  removeCollectionPermissions() {
+    this.setState({isBeingDeleted: true});
+    // we remove "view_asset" permission, as it is the most basic one, so removing it
+    // will in fact remove all permissions
+    const userViewCollectionPerm = this.props.permissions.find((perm) => {
+      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
+    });
+    actions.permissions.removePerm({
+      permission_url: userViewCollectionPerm.url,
+      content_object_uid: this.props.uid
+    });
   }
 
   onPermissionsEditorSubmitEnd(isSuccess) {
@@ -150,15 +174,23 @@ class UserPermissionRow extends React.Component {
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
-            {this.props.assetKind === ASSET_KINDS.get('asset') &&
+            {this.props.kind === ASSET_KINDS.get('asset') &&
               <UserAssetPermsEditor
                 username={this.props.user.name}
                 permissions={this.props.permissions}
-                assetUid={this.props.assetUid}
-                assetKind={this.props.assetKind}
+                uid={this.props.uid}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
             }
+            {this.props.kind === ASSET_KINDS.get('collection') &&
+              <UserCollectionPermsEditor
+                username={this.props.user.name}
+                permissions={this.props.permissions}
+                uid={this.props.uid}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              />
+            }
+
           </bem.UserRow__editor>
         }
       </bem.UserRow>

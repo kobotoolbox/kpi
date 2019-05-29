@@ -1,0 +1,277 @@
+import React from 'react';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
+import Reflux from 'reflux';
+import Checkbox from 'js/components/checkbox';
+import TextBox from 'js/components/textBox';
+import stores from 'js/stores';
+import actions from 'js/actions';
+import bem from 'js/bem';
+import classNames from 'classnames';
+import {
+  t,
+  notify
+} from 'js/utils';
+import {
+  ASSET_KINDS,
+  PERMISSIONS_CODENAMES
+} from 'js/constants';
+
+/**
+ * Form for adding/changing user permissions for collections.
+ */
+class UserCollectionPermissionsEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+
+    this.state = {
+      // inner workings
+      usernamesBeingChecked: new Set(),
+      isSubmitPending: false,
+      isEditingUsername: false,
+      // form user inputs
+      username: '',
+      collectionView: false,
+      collectionViewDisabled: false,
+      collectionEdit: false
+    };
+
+    this.applyPropsData();
+  }
+
+  /**
+   * Fills up form with provided user name and permissions (if applicable)
+   */
+  applyPropsData() {
+    if (this.props.permissions) {
+      this.props.permissions.forEach((perm) => {
+        if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('view_collection')}/`)) {
+          this.state.collectionView = true;
+        }
+        if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('change_collection')}/`)) {
+          this.state.collectionEdit = true;
+        }
+      });
+    }
+    if (this.props.username) {
+      this.state.username = this.props.username;
+    }
+  }
+
+  componentDidMount() {
+    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
+    this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
+    this.listenTo(stores.userExists, this.onUserExistsStoreChange);
+  }
+
+  onAssignPermCompleted() {
+    this.setState({isSubmitPending: false});
+    if (typeof this.props.onSubmitEnd === 'function') {
+      this.props.onSubmitEnd(true);
+    }
+  }
+
+  onAssignPermFailed() {
+    this.setState({isSubmitPending: false});
+    if (typeof this.props.onSubmitEnd === 'function') {
+      this.props.onSubmitEnd(false);
+    }
+  }
+
+  /**
+   * Single callback for all checkboxes.
+   */
+  onCheckboxChange(id, isChecked) {
+    const newState = this.state;
+    newState[id] = isChecked;
+    newState.collectionViewDisabled = false;
+    if (id === 'collectionEdit' && isChecked) {
+      newState.collectionView = true;
+      newState.collectionViewDisabled = true;
+    }
+    this.setState(newState);
+  }
+
+  /**
+   * We need it just to update the input,
+   * the real work is handled by onUsernameChangeEnd.
+   */
+  onUsernameChange(username) {
+    this.setState({
+      username: username,
+      isEditingUsername: true
+    });
+  }
+
+  /**
+   * Checks if username exist on the Backend and clears input if doesn't.
+   */
+  onUsernameChangeEnd() {
+    this.setState({isEditingUsername: false});
+
+    if (this.state.username === '') {
+      return;
+    }
+
+    const userCheck = this.checkUsernameSync(this.state.username);
+    if (userCheck === undefined) {
+      this.checkUsernameAsync(this.state.username);
+    } else if (userCheck === false) {
+      this.notifyUnknownUser(this.state.username);
+      this.setState({username: ''});
+    }
+  }
+
+  /**
+   * Enables Enter key on username input.
+   */
+  onUsernameKeyPress(key, evt) {
+    if (key === 'Enter') {
+      evt.currentTarget.blur();
+      evt.preventDefault(); // prevent submitting form
+    }
+  }
+
+  /**
+   * This function returns either boolean (for known username) or undefined
+   * for usernames that weren't checked before
+   */
+  checkUsernameSync(username) {
+    return stores.userExists.checkUsername(username);
+  }
+
+  /**
+   * This function calls API and relies on onUserExistsStoreChange callback
+   */
+  checkUsernameAsync(username) {
+    const usernamesBeingChecked = this.state.usernamesBeingChecked;
+    usernamesBeingChecked.add(username);
+    this.setState({usernamesBeingChecked: usernamesBeingChecked});
+    actions.misc.checkUsername(username);
+  }
+
+  notifyUnknownUser(username) {
+    notify(`${t('User not found:')} ${username}`, 'warning');
+  }
+
+  /**
+   * Remove nonexistent username from username input.
+   */
+  onUserExistsStoreChange(result) {
+    // check username
+    if (result[this.state.username] === false) {
+      this.notifyUnknownUser(this.state.username);
+      this.setState({username: ''});
+    }
+
+    // clean usernamesBeingChecked array
+    Object.keys(result).forEach((username) => {
+      const usernamesBeingChecked = this.state.usernamesBeingChecked;
+      usernamesBeingChecked.delete(username);
+      this.setState({usernamesBeingChecked: usernamesBeingChecked});
+    });
+  }
+
+  /**
+   * Blocks submitting non-ready form.
+   */
+  isSubmitEnabled() {
+    const isAnyCheckboxChecked = (
+      this.state.collectionView ||
+      this.state.collectionEdit
+    );
+    return (
+      isAnyCheckboxChecked &&
+      !this.state.isSubmitPending &&
+      !this.state.isEditingUsername &&
+      this.state.username.length > 0 &&
+      this.state.usernamesBeingChecked.size === 0
+    );
+  }
+
+  submit() {
+    if (!this.isSubmitEnabled()) {
+      return;
+    }
+
+    let permToSet = PERMISSIONS_CODENAMES.get('view_collection');
+    if (this.state.collectionEdit) {
+      permToSet = PERMISSIONS_CODENAMES.get('change_collection');
+    }
+
+    actions.permissions.assignPerm({
+      username: this.state.username,
+      uid: this.props.uid,
+      kind: ASSET_KINDS.get('collection'),
+      objectUrl: this.props.objectUrl,
+      // OLD api appends part of permission codename based on asset kind
+      role: permToSet.replace('_collection', '')
+    });
+
+    this.setState({isSubmitPending: true});
+  }
+
+  render() {
+    const isNew = typeof this.props.username === 'undefined';
+
+    const formModifiers = [];
+    if (this.state.isSubmitPending) {
+      formModifiers.push('pending');
+    }
+
+    const formClassNames = classNames(
+      'user-permissions-editor',
+      isNew ? 'user-permissions-editor--new' : ''
+    );
+
+    return (
+      <bem.FormModal__form
+        m={formModifiers}
+        className={formClassNames}
+        onSubmit={this.submit}
+      >
+        {isNew &&
+          // don't display username editor when editing existing user
+          <div className='user-permissions-editor__row user-permissions-editor__row--username'>
+            <TextBox
+              placeholder={t('username')}
+              value={this.state.username}
+              onChange={this.onUsernameChange}
+              onBlur={this.onUsernameChangeEnd}
+              onKeyPress={this.onUsernameKeyPress}
+            />
+          </div>
+        }
+
+        <div className='user-permissions-editor__row'>
+          <Checkbox
+            checked={this.state.collectionView}
+            disabled={this.state.collectionViewDisabled}
+            onChange={this.onCheckboxChange.bind(this, 'collectionView')}
+            label={t('View Collection')}
+          />
+
+          <Checkbox
+            checked={this.state.collectionEdit}
+            onChange={this.onCheckboxChange.bind(this, 'collectionEdit')}
+            label={t('Edit Collection')}
+          />
+        </div>
+
+        <div className='user-permissions-editor__row'>
+          <bem.Button
+            m={['raised', 'colored']}
+            type='submit'
+            disabled={!this.isSubmitEnabled()}
+            >
+              {isNew ? t('Grant permissions') : t('Update permissions')}
+            </bem.Button>
+        </div>
+      </bem.FormModal__form>
+    );
+  }
+}
+reactMixin(UserCollectionPermissionsEditor.prototype, Reflux.ListenerMixin);
+
+export default UserCollectionPermissionsEditor;

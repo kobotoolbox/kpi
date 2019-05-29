@@ -15,7 +15,7 @@ import {
  */
 
 /**
- * @typedef {Object} FormData  - Object containing data from the UserPermissionsEditor form.
+ * @typedef {Object} FormData  - Object containing data from the UserAssetPermsEditor form.
  * @property {string} data.username - Who give permissions to.
  * @property {boolean} data.formView - Is able to view forms.
  * @property {boolean} data.formEdit - Is able to edit forms.
@@ -33,7 +33,7 @@ import {
  * @param {FormData} data
  * @returns {BackendPerm[]} - An array of permissions to be given.
  */
-function parseFormData (data) {
+function parseFormData(data) {
   const parsed = [];
 
   if (data.formView) {
@@ -155,9 +155,9 @@ function buildFormData(permissions) {
  * @param {Object} data - Permissions array (results property from endpoint response).
  * @param {string} ownerUrl - Asset owner url (used as identifier).
  *
- * @returns {UserWithPerms[]} An list of users with all their permissions.
+ * @returns {UserWithPerms[]} An ordered list of users with all their permissions.
  */
-function parseBackendData (data, ownerUrl) {
+function parseBackendData(data, ownerUrl) {
   const output = [];
 
   const groupedData = {};
@@ -196,11 +196,87 @@ function parseBackendData (data, ownerUrl) {
     });
   });
 
+  // sort by abcs but keep the owner at the top
+  output.sort((a, b) => {
+    if (a.user.url === ownerUrl) {
+      return -1;
+    } else if (a.user.url < b.user.url) {
+      return -1;
+    } else if (a.user.url > b.user.url) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
+  return output;
+}
+
+/**
+ * Groups OLD raw Backend permissions list data into array of users who have a list of permissions.
+ *
+ * @param {Object} data - OLD permissions array.
+ * @param {string} ownerUrl - Asset owner url (used as identifier).
+ *
+ * @returns {UserWithPerms[]} An list of users with all their permissions.
+ */
+function parseOldBackendData(data, ownerUrl) {
+  const output = [];
+
+  const groupedData = {};
+  data.forEach((item) => {
+    // anonymous user permissions are our inner way of handling public sharing
+    // so we don't want to display them
+    if (item.user__username === ANON_USERNAME) {
+      return;
+    }
+    if (!groupedData[item.user]) {
+      groupedData[item.user] = [];
+    }
+    const permDef = permConfig.getPermissionByCodename(item.permission);
+    groupedData[item.user].push({
+      url: item.url,
+      name: permDef.name || permDef.codename, // fallback to codename if empty string
+      description: permDef.description,
+      permission: permDef.url
+    });
+  });
+
+  Object.keys(groupedData).forEach((userUrl) => {
+    output.push({
+      user: {
+        url: userUrl,
+        name: getUsernameFromUrl(userUrl),
+        // not all endpoints return user url in the v2 format, so as a fallback
+        // we also check plain old usernames
+        isOwner: (
+          userUrl === ownerUrl ||
+          getUsernameFromUrl(userUrl) === getUsernameFromUrl(ownerUrl)
+        )
+      },
+      permissions: groupedData[userUrl]
+    });
+  });
+
+  // sort by abcs but keep the owner at the top
+  output.sort((a, b) => {
+    if (a.user.url === ownerUrl) {
+      return -1;
+    } else if (a.user.url < b.user.url) {
+      return -1;
+    } else if (a.user.url > b.user.url) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
   return output;
 }
 
 module.exports = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
-  parseBackendData: parseBackendData
+  parseBackendData: parseBackendData,
+  parseOldBackendData: parseOldBackendData
 };

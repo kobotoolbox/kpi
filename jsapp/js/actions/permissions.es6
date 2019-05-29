@@ -21,7 +21,7 @@ const permissionsActions = Reflux.createActions({
   setCollectionDiscoverability: {children: ['completed', 'failed']}
 });
 
-/*
+/**
  * New actions
  */
 
@@ -65,7 +65,7 @@ permissionsActions.removeAssetPermissions.listen((assetUid, permUrl) => {
     });
 });
 
-/*
+/**
 Old actions
  */
 

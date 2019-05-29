@@ -16,6 +16,7 @@ import {
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
+import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
 import permParser from './permParser';
@@ -51,15 +52,22 @@ class SharingForm extends React.Component {
     if (asset) {
       this.setState({
         asset: asset,
-        assetKind: asset.kind,
+        kind: asset.kind,
         public_permissions: asset.permissions.filter(function(perm){return perm.user__username === ANON_USERNAME;}),
         related_users: stores.asset.relatedUsers[uid]
       });
     }
 
-    // we need to fetch permissions after asset has loaded,
-    // as we need the owner username to parse permissions
-    actions.permissions.getAssetPermissions(uid);
+    if (asset.kind === ASSET_KINDS.get('asset')) {
+      // we need to fetch permissions after asset has loaded,
+      // as we need the owner username to parse permissions
+      actions.permissions.getAssetPermissions(uid);
+    } else if (asset.kind === ASSET_KINDS.get('collection')) {
+      // TODO: collections works on old api, let's fix it later!
+      this.setState({
+        permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
+      });
+    }
   }
 
   toggleAddUserEditor() {
@@ -89,7 +97,7 @@ class SharingForm extends React.Component {
     }
 
     let uid = this.state.asset.uid,
-        assetKind = this.state.asset.kind,
+        kind = this.state.asset.kind,
         asset_type = this.state.asset.asset_type,
         objectUrl = this.state.asset.url;
 
@@ -106,8 +114,8 @@ class SharingForm extends React.Component {
           {this.state.permissions.map((perm) => {
             return <UserPermissionRow
               key={`perm.${uid}.${perm.user.name}`}
-              assetUid={uid}
-              assetKind={assetKind}
+              uid={uid}
+              kind={kind}
               {...perm}
             />;
           })}
@@ -131,20 +139,27 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              {assetKind === ASSET_KINDS.get('asset') &&
+              {kind === ASSET_KINDS.get('asset') &&
                 <UserAssetPermsEditor
-                  assetUid={uid}
-                  assetKind={assetKind}
+                  uid={uid}
                   objectUrl={objectUrl}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }
+              {kind === ASSET_KINDS.get('collection') &&
+                <UserCollectionPermsEditor
+                  uid={uid}
+                  objectUrl={objectUrl}
+                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+                />
+              }
+
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
 
         {/* public sharing settings */}
-        { assetKind !== 'collection' && asset_type === 'survey' &&
+        { kind !== 'collection' && asset_type === 'survey' &&
           <React.Fragment>
             <bem.Modal__hr/>
 
@@ -153,8 +168,8 @@ class SharingForm extends React.Component {
 
               <PublicShareSettings
                 publicPerms={this.state.public_permissions}
-                assetUid={uid}
-                assetKind={assetKind}
+                uid={uid}
+                kind={kind}
                 objectUrl={objectUrl}
                 deploymentActive={this.state.asset.deployment__active}
               />
@@ -163,7 +178,7 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { assetKind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
+        { kind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
           <React.Fragment>
             <bem.Modal__hr/>
 

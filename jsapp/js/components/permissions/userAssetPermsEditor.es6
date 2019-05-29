@@ -53,8 +53,6 @@ class UserAssetPermsEditor extends React.Component {
    * Fills up form with provided user name and permissions (if applicable)
    */
   applyPropsData() {
-    console.debug('TODO: here or some other place: hide permissions that are not for given asset kind');
-
     if (this.props.permissions) {
       const formData = permParser.buildFormData(this.props.permissions);
       this.state = this.applyValidityRules(assign(this.state, formData));
@@ -318,14 +316,11 @@ class UserAssetPermsEditor extends React.Component {
       submissionsValidate: this.state.submissionsValidate
     });
 
-    // make sure user exists
-    if (this.checkUsernameSync(this.state.username)) {
-      this.setState({isSubmitPending: true});
-      actions.permissions.setAssetPermissions(
-        this.props.assetUid,
-        parsedData
-      );
-    }
+    actions.permissions.setAssetPermissions(
+      this.props.uid,
+      parsedData
+    );
+    this.setState({isSubmitPending: true});
   }
 
   render() {
