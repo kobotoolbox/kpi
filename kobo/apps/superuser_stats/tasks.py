@@ -3,12 +3,13 @@ from celery import shared_task
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
 # complain that the task is unregistered
 
+
 @shared_task
 def generate_user_report(output_filename):
     import unicodecsv
     from django.core.files.storage import get_storage_class
     from django.contrib.auth.models import User
-    from kpi.deployment_backends.kc_access.shadow_models import _models
+    from kpi.deployment_backends.kc_access.shadow_models import UserProfile, ReadOnlyXForm
     from hub.models import ExtraUserDetail, FormBuilderPreference
 
     def format_date(d):
@@ -21,8 +22,8 @@ def generate_user_report(output_filename):
         row = []
 
         try:
-            profile = _models.UserProfile.objects.get(user=u)
-        except _models.UserProfile.DoesNotExist:
+            profile = UserProfile.objects.get(user=u)
+        except UserProfile.DoesNotExist:
             profile = None
         try:
             extra_details = u.extra_details.data
@@ -57,7 +58,7 @@ def generate_user_report(output_filename):
         else:
             row.append('')
 
-        row.append(_models.XForm.objects.filter(user=u).count())
+        row.append(ReadOnlyXForm.objects.filter(user=u).count())
 
         if profile:
             row.append(profile.num_of_submissions)

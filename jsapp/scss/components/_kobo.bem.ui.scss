@@ -1,3 +1,5 @@
+$mdl-layout-width: 1440px;
+
 .kpiapp,
 .mdl-wrapper,
 .mdl-layout {
@@ -5,7 +7,7 @@
 }
 
 .mdl-layout {
-  max-width: 1440px;
+  max-width: $mdl-layout-width;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -195,12 +197,14 @@
 }
 
 .popover-menu__content {
+  @include box-shadow-mid;
+
+  overflow: hidden;
   position: absolute;
   min-width: 160px;
   max-width: 300px;
   text-align: left;
   background: #FFF;
-  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 8px 8px 0 rgba(0, 0, 0, 0.12);
   z-index: 10;
   right: -10px;
   transition: opacity 0.35s;

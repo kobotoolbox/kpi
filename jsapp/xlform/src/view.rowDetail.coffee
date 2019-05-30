@@ -420,7 +420,7 @@ module.exports = do ->
         },
         {
           label: 'Never',
-          value: 'never'
+          value: ''
         }
       ]
       options
@@ -431,17 +431,17 @@ module.exports = do ->
       options = @getOptions()
       el = @$("input[type=radio][name=#{@model.key}]")
       $el = $(el)
-      changing = false
       $input = $('<input/>', {class:'text', type: 'text', style: 'width: auto; margin-left: 5px;'})
-
+      changing = false
+      
       reflectValueInEl = ()=>
         if !changing
           modelValue = @model.get('value')
-          if modelValue is ''
-            modelValue = 'never'
-          if modelValue in ['yes', 'never']
+          if modelValue == ''
+            willSelectedEl = @$("input[type=radio][name=#{@model.key}][id='option_Never']")
+          else if modelValue == 'yes'
             willSelectedEl = @$("input[type=radio][name=#{@model.key}][value=#{modelValue}]")
-          else
+          else 
             willSelectedEl = @$("input[type=radio][name=#{@model.key}][id='option_Conditional']")
             @$('#label_Conditional').append $input
             @listenForInputChange el: $input

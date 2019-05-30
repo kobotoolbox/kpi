@@ -143,6 +143,12 @@ class FormpackXLSFormUtils(object):
             return False
     
     def _survey_prepare_required_col_value(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if 'select_from_list_name' in survey_col and 'required' not in survey_col:
+                content['survey'][survey_col_idx]['required'] = ''
+
         for row in content.get('survey', []):
             for col in ['required']:
                 if col in row:
@@ -156,8 +162,6 @@ class FormpackXLSFormUtils(object):
                     if self.REQ_COL_APPEND_STRING in row[col]:
                         req_col_append_string_pos = row[col].find(self.REQ_COL_APPEND_STRING)
                         row[col] = row[col][:req_col_append_string_pos - 1]
-                    if 'never' in row[col]:
-                        row[col] = ''
 
     def _autoname(self, content):
         autoname_fields_in_place(content, '$autoname')

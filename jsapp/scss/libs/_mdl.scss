@@ -15,6 +15,8 @@ $warm-green: #52ce7b;
 $cool-red: #ff556a;
 $cool-orange: #ffaa56;
 
+$root-background: $cool-whitegray;
+
 $font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $layout-text-color: #414453 !default;
 $layout-nav-color: white !default;
@@ -23,19 +25,20 @@ $layout-drawer-nav-link-color: #7d8a93 !default;
 $layout-drawer-nav-link-active-bg: #f9f9f9 !default;
 $layout-desktop-header-height: 64px;
 
-@mixin shadow-2dp {
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-}
-
-// light is shinging from top
 @mixin box-shadow {
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.06), 0 2px 2px 0 rgba(0, 0, 0, 0.12);
   border-radius: 2px;
 }
 
-// light is shinging from bottom
-@mixin box-shadow-reversed {
-  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.06), 0 -2px 2px 0 rgba(0, 0, 0, 0.12);
+// element appears to be above regular box-shadow elements
+@mixin box-shadow-mid {
+  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 8px 8px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+}
+
+// element appears to be above mid box-shadow elements
+@mixin box-shadow-top {
+  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
   border-radius: 2px;
 }
 
@@ -44,7 +47,7 @@ html {
 }
 
 body {
-  background: $cool-whitegray;
+  background: $root-background;
 }
 
 html, body, input, textarea, select, button {
