@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 
-from models import SitewideMessage, ConfigurationFile
+from models import SitewideMessage, ConfigurationFile, PerUserSetting
 from actions import delete_related_objects, remove_from_kobocat
 
 class UserDeleteKludgeAdmin(UserAdmin):
@@ -35,5 +35,6 @@ class UserDeleteKludgeAdmin(UserAdmin):
 
 admin.site.register(SitewideMessage)
 admin.site.register(ConfigurationFile)
+admin.site.register(PerUserSetting)
 admin.site.unregister(User)
 admin.site.register(User, UserDeleteKludgeAdmin)
