@@ -34,7 +34,7 @@ import {
  * @returns {BackendPerm[]} - An array of permissions to be given.
  */
 function parseFormData(data) {
-  const parsed = [];
+  let parsed = [];
 
   if (data.formView) {
     parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('view_asset')));
@@ -67,12 +67,38 @@ function parseFormData(data) {
     parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('validate_submissions')));
   }
 
-  // TODO 1: cleanup implied
-  // TODO 2: cleanup contradictory
+  // remove contradictory permissions from the parsed list
+  let contraPerms = new Set();
+  parsed.forEach((backendPerm) => {
+    const permDef = permConfig.getPermission(backendPerm.permission);
+    permDef.contradictory.forEach((contraPerm) => {
+      contraPerms.add(contraPerm);
+    });
+  });
+  parsed = parsed.filter((backendPerm) => {
+    return !contraPerms.has(backendPerm.permission);
+  });
+
+  // remove implied permissions from the parsed list
+  let impliedPerms = new Set();
+  parsed.forEach((backendPerm) => {
+    const permDef = permConfig.getPermission(backendPerm.permission);
+    permDef.implied.forEach((impliedPerm) => {
+      impliedPerms.add(impliedPerm);
+    });
+  });
+  parsed = parsed.filter((backendPerm) => {
+    return !impliedPerms.has(backendPerm.permission);
+  });
 
   return parsed;
 }
 
+/**
+ * @param {string} username
+ * @param {string} permissionCodename
+ * @returns {BackendPerm}
+ */
 function buildBackendPerm(username, permissionCodename) {
   return {
     user: buildUserUrl(username),
