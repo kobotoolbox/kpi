@@ -28,12 +28,30 @@ import {
  */
 
 /**
+ * @typedef {Object} UserPerm
+ * @property {string} url - Url of given permission instance (permission x user).
+ * @property {string} name - Permission name.
+ * @property {string} description - Permission user-friendly description.
+ * @property {string} permission - Url of given permission type.
+ */
+
+/**
+ * @typedef {Object} UserWithPerms
+ * @property {Object} user
+ * @property {string} user.url - User url (identifier).
+ * @property {string} user.name - User name.
+ * @property {boolean} user.isOwner - Marks user that owns an asset that the permissions are for.
+ * @property {UserPerm[]} permissions - A list of permissions for that user.
+ */
+
+/**
  * Builds an object understandable by Backend endpoints from form data.
  *
  * @param {FormData} data
+ * @param {boolean} doCleanup - Should contradictory and implied permissions be removed from final data.
  * @returns {BackendPerm[]} - An array of permissions to be given.
  */
-function parseFormData(data) {
+function parseFormData(data, doCleanup = true) {
   let parsed = [];
 
   if (data.formView) {
@@ -67,7 +85,20 @@ function parseFormData(data) {
     parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('validate_submissions')));
   }
 
-  // remove contradictory permissions from the parsed list
+  if (doCleanup) {
+    parsed = removeContradictoryPerms(parsed);
+    parsed = removeImpliedPerms(parsed);
+  }
+
+  return parsed;
+}
+
+/**
+ * Removes contradictory permissions from the parsed list of BackendPerms.
+ *
+ * @param {BackendPerm[]} parsed - A list of permissions.
+ */
+function removeContradictoryPerms(parsed) {
   let contraPerms = new Set();
   parsed.forEach((backendPerm) => {
     const permDef = permConfig.getPermission(backendPerm.permission);
@@ -78,8 +109,15 @@ function parseFormData(data) {
   parsed = parsed.filter((backendPerm) => {
     return !contraPerms.has(backendPerm.permission);
   });
+  return parsed;
+}
 
-  // remove implied permissions from the parsed list
+/**
+ * Removes implied permissions from the parsed list of BackendPerms.
+ *
+ * @param {BackendPerm[]} parsed - A list of permissions.
+ */
+function removeImpliedPerms(parsed) {
   let impliedPerms = new Set();
   parsed.forEach((backendPerm) => {
     const permDef = permConfig.getPermission(backendPerm.permission);
@@ -90,8 +128,32 @@ function parseFormData(data) {
   parsed = parsed.filter((backendPerm) => {
     return !impliedPerms.has(backendPerm.permission);
   });
-
   return parsed;
+}
+
+/**
+ * Returns a list of permissions that are missing from the first list.
+ *
+ * @param {BackendPerm[]} beforePerms - Old permissions.
+ * @param {BackendPerm[]} afterPerms - New permissions.
+ * @returns {BackendPerm[]} - Removed permissions.
+ */
+function getRemovedPerms(beforePerms, afterPerms) {
+  let removedPerms = [];
+
+  beforePerms.forEach((beforePerm) => {
+    let isInAfter = false;
+    afterPerms.forEach((afterPerm) => {
+      if (beforePerm.permission === afterPerm.permission) {
+        isInAfter = true;
+      }
+    });
+    if (!isInAfter) {
+      removedPerms.push(beforePerm);
+    }
+  });
+
+  return removedPerms;
 }
 
 /**
@@ -107,6 +169,8 @@ function buildBackendPerm(username, permissionCodename) {
 }
 
 /**
+ * Builds form data from list of permissions.
+ *
  * @param {UserPerm[]} permissions
  * @returns {FormData}
  */
@@ -147,23 +211,6 @@ function buildFormData(permissions) {
 
   return formData;
 }
-
-/**
- * @typedef {Object} UserPerm
- * @property {string} url - Url of given permission instance (permission x user).
- * @property {string} name - Permission name.
- * @property {string} description - Permission user-friendly description.
- * @property {string} permission - Url of given permission type.
- */
-
-/**
- * @typedef {Object} UserWithPerms
- * @property {Object} user
- * @property {string} user.url - User url (identifier).
- * @property {string} user.name - User name.
- * @property {boolean} user.isOwner - Marks user that owns an asset that the permissions are for.
- * @property {UserPerm[]} permissions - A list of permissions for that user.
- */
 
 /**
  * Groups raw Backend permissions list data into array of users who have a list of permissions.
@@ -289,6 +336,7 @@ function sortParseBackendOutput(output) {
 module.exports = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
+  getRemovedPerms: getRemovedPerms,
   parseBackendData: parseBackendData,
   parseOldBackendData: parseOldBackendData,
   sortParseBackendOutput: sortParseBackendOutput // for testing purposes

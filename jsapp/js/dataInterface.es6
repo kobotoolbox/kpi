@@ -225,11 +225,17 @@ var dataInterface;
       return $.when.apply(undefined, $ajaxCalls);
     },
 
-    removeAssetPermissions(permUrl) {
-      return $ajax({
-        url: permUrl,
-        method: 'DELETE'
+    removeAssetPermissions(perms) {
+      const $ajaxCalls = [];
+      perms.forEach((perm) => {
+        $ajaxCalls.push(
+          $ajax({
+            url: perm,
+            method: 'DELETE'
+          })
+        );
       });
+      return $.when.apply(undefined, $ajaxCalls);
     },
 
     /*

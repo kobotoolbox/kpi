@@ -39,6 +39,9 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
 
 /**
  * For setting an array of permissions (each permission needs to be a separate call)
+ *
+ * @param {string} assetUid
+ * @param {Object[]} perms - list of permissions to add
  */
 permissionsActions.setAssetPermissions.listen((assetUid, perms) => {
   dataInterface.assignAssetPermissions(assetUid, perms)
@@ -52,8 +55,14 @@ permissionsActions.setAssetPermissions.listen((assetUid, perms) => {
     });
 });
 
-permissionsActions.removeAssetPermissions.listen((assetUid, permUrl) => {
-  dataInterface.removeAssetPermissions(permUrl)
+/**
+ * For removing an array of permissions
+ *
+ * @param {string} assetUid
+ * @param {string[]} perms - list of permissions urls to remove
+ */
+permissionsActions.removeAssetPermissions.listen((assetUid, perms) => {
+  dataInterface.removeAssetPermissions(perms)
     .done(() => {
       permissionsActions.getAssetPermissions(assetUid);
       permissionsActions.removeAssetPermissions.completed();
