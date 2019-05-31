@@ -10,6 +10,8 @@ from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
 from markitup.fields import MarkupField
 
+from kpi.models.object_permission import get_anonymous_user
+
 
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
@@ -67,6 +69,8 @@ class PerUserSetting(models.Model):
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
     def user_matches(self, user):
+        if user.is_anonymous():
+            user = get_anonymous_user()
         manager = user._meta.model.objects
         queryset = manager.none()
         for user_query in self.user_queries:
