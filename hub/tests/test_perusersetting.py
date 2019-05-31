@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -30,6 +30,11 @@ class PerUserSettingTestCase(TestCase):
 
     def test_non_matching_user(self):
         u = self.non_matching_user
+        self.assertFalse(self.setting.user_matches(u))
+        self.assertEqual(self.setting.get_for_user(u), 'okay...')
+
+    def test_anonymous_user(self):
+        u = AnonymousUser()
         self.assertFalse(self.setting.user_matches(u))
         self.assertEqual(self.setting.get_for_user(u), 'okay...')
 
