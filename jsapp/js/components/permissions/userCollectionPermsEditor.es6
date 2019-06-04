@@ -45,18 +45,32 @@ class UserCollectionPermissionsEditor extends React.Component {
    */
   applyPropsData() {
     if (this.props.permissions) {
-      this.props.permissions.forEach((perm) => {
-        if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('view_collection')}/`)) {
-          this.state.collectionView = true;
-        }
-        if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('change_collection')}/`)) {
-          this.state.collectionEdit = true;
-        }
-      });
+      const parsedPropsPerms = this.parsePropsPerms(this.props.permissions);
+      this.state.collectionView = parsedPropsPerms.viewUrl !== null;
+      this.state.collectionEdit = parsedPropsPerms.changeUrl !== null;
+      this.state.collectionViewDisabled = this.state.collectionEdit;
     }
     if (this.props.username) {
       this.state.username = this.props.username;
     }
+  }
+
+  parsePropsPerms(perms) {
+    const out = {
+      viewUrl: null,
+      changeUrl: null
+    };
+
+    perms.forEach((perm) => {
+      if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('view_collection')}/`)) {
+        out.viewUrl = perm.url;
+      }
+      if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('change_collection')}/`)) {
+        out.changeUrl = perm.url;
+      }
+    });
+
+    return out;
   }
 
   componentDidMount() {
@@ -195,21 +209,55 @@ class UserCollectionPermissionsEditor extends React.Component {
       return;
     }
 
-    let permToSet = PERMISSIONS_CODENAMES.get('view_collection');
-    if (this.state.collectionEdit) {
-      permToSet = PERMISSIONS_CODENAMES.get('change_collection');
+    let permToSet = null;
+    let permToRemove = null;
+    const isNew = !this.props.permissions;
+
+    if (isNew) {
+      if (this.state.collectionEdit) {
+        permToSet = PERMISSIONS_CODENAMES.get('change_collection');
+      }
+      if (!this.state.collectionEdit && this.state.collectionView) {
+        permToSet = PERMISSIONS_CODENAMES.get('view_collection');
+      }
+    } else {
+      const parsedPropsPerms = this.parsePropsPerms(this.props.permissions);
+      if (!isNew && parsedPropsPerms.changeUrl === null && this.state.collectionEdit) {
+        permToSet = PERMISSIONS_CODENAMES.get('change_collection');
+      }
+      if (!isNew && parsedPropsPerms.changeUrl !== null && !this.state.collectionEdit) {
+        permToRemove = parsedPropsPerms.changeUrl;
+      }
     }
 
-    actions.permissions.assignPerm({
-      username: this.state.username,
-      uid: this.props.uid,
-      kind: ASSET_KINDS.get('collection'),
-      objectUrl: this.props.objectUrl,
-      // OLD api appends part of permission codename based on asset kind
-      role: permToSet.replace('_collection', '')
-    });
+    if (permToRemove) {
+      actions.permissions.removePerm({
+        permission_url: permToRemove,
+        content_object_uid: this.props.uid
+      });
+      this.setState({isSubmitPending: true});
+    }
+    if (permToSet) {
+      actions.permissions.assignPerm({
+        username: this.state.username,
+        uid: this.props.uid,
+        kind: ASSET_KINDS.get('collection'),
+        objectUrl: this.props.objectUrl,
+        // OLD api appends part of permission codename based on asset kind
+        role: permToSet.replace('_collection', '')
+      });
+      this.setState({isSubmitPending: true});
+    }
 
-    this.setState({isSubmitPending: true});
+    // if nothing changes but user wants submits, just notify parent we're good
+    if (
+      permToSet === null &&
+      permToRemove === null &&
+      !this.state.isSubmitPending &&
+      typeof this.props.onSubmitEnd === 'function'
+    ) {
+      this.props.onSubmitEnd(true);
+    }
   }
 
   render() {

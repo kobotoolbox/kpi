@@ -342,10 +342,6 @@ class UserAssetPermsEditor extends React.Component {
     const parsedDirty = permParser.parseFormData(this.getFormData(), false);
     const parsedRemoved = permParser.getRemovedPerms(this.props.permissions, parsedDirty);
 
-    console.debug('TODO: first find permissions that were checked but got unchecked and remove them');
-    console.debug('TODO: second find permissions that were unchecked but got checked and add them');
-    console.debug('TODO: do it for UserCollectionPermsEditor too');
-
     if (parsedRemoved.length > 0) {
       actions.permissions.removeAssetPermissions(
         this.props.uid,
@@ -361,7 +357,7 @@ class UserAssetPermsEditor extends React.Component {
       this.setState({isSubmitSetPending: true});
     }
 
-    // if nothing changes but user wants to submit, just notify parent we're good
+    // if nothing changes but user submits, just notify parent we're good
     if (parsedRemoved.length === 0 && parsed.length === 0) {
       this.notifyParentAboutSubmitEnd(true);
     }
