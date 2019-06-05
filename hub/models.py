@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+from django.core.exceptions import FieldError, ValidationError
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import post_save
@@ -58,8 +59,8 @@ class PerUserSetting(models.Model):
     """
     user_queries = JSONBField(
         help_text=_('A JSON representation of a *list* of Django queries, '
-                    'e.g. `[{"email__endswith": "@kobotoolbox.org"}, '
-                    '{"email__endswith": "@kbtdev.org"}]`. '
+                    'e.g. `[{"email__iendswith": "@kobotoolbox.org"}, '
+                    '{"email__iendswith": "@kbtdev.org"}]`. '
                     'A matching user is one who would be returned by ANY of '
                     'the queries in the list.')
     )
@@ -68,13 +69,19 @@ class PerUserSetting(models.Model):
     value_when_matched = models.CharField(max_length=2048, blank=True)
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
-    def user_matches(self, user):
+    def user_matches(self, user, ignore_invalid_queries=True):
         if user.is_anonymous():
             user = get_anonymous_user()
         manager = user._meta.model.objects
         queryset = manager.none()
         for user_query in self.user_queries:
-            queryset |= manager.filter(**user_query)
+            try:
+                queryset |= manager.filter(**user_query)
+            except (FieldError, TypeError):
+                if ignore_invalid_queries:
+                    return False
+                else:
+                    raise
         return queryset.filter(pk=user.pk).exists()
 
     def get_for_user(self, user):
@@ -82,6 +89,18 @@ class PerUserSetting(models.Model):
             return self.value_when_matched
         else:
             return self.value_when_not_matched
+
+    def clean(self):
+        user = User.objects.first()
+        if not user:
+            return
+        try:
+            self.user_matches(user, ignore_invalid_queries=False)
+        except FieldError as e:
+            raise ValidationError({'user_queries': e.message})
+        except TypeError:
+            raise ValidationError(
+                {'user_queries': _('JSON structure is incorrect.')})
 
     def __str__(self):
         return self.name
