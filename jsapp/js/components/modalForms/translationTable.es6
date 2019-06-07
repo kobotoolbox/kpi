@@ -49,6 +49,7 @@ export class TranslationTable extends React.Component {
             original: choice.label[0],
             value: choice.label[langIndex],
             name: choice.name || choice.$autovalue,
+            listName: choice.list_name,
             itemProp: 'label',
             contentProp: 'choices'
           });
@@ -112,9 +113,14 @@ export class TranslationTable extends React.Component {
         rows = this.state.tableData,
         langIndex = this.props.langIndex;
     for (var i = 0, len = rows.length; i < len; i++) {
-      let contentProp = rows[i].contentProp,
-          item = content[rows[i].contentProp].find(o => o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name),
-          itemProp = rows[i].itemProp;
+      let item = content[rows[i].contentProp].find((o) => {
+        return (
+          o.name === rows[i].name ||
+          o.$autoname === rows[i].name ||
+          o.$autovalue === rows[i].name
+        ) && o.list_name === rows[i].listName;
+      });
+      let itemProp = rows[i].itemProp;
 
       if (item[itemProp][langIndex] !== rows[i].value) {
         item[itemProp][langIndex] = rows[i].value;
