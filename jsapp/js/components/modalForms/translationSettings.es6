@@ -274,7 +274,7 @@ export class TranslationSettings extends React.Component {
               {t('Current languages')}
             </bem.FormView__cell>
           }
-          {translations.map((l, i)=> {
+          {translations.map((l, i) => {
             return (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
