@@ -28,6 +28,9 @@ var defaultOptions = {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         loader: 'eslint-loader',
+        options: {
+          quiet: true
+        }
       },
       {
         test: /\.(js|jsx|es6)$/,
