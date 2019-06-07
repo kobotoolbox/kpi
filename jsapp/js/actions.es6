@@ -1,5 +1,6 @@
 import alertify from 'alertifyjs';
 import {dataInterface} from './dataInterface';
+import helpActions from './actions/help';
 import {
   log,
   t,
@@ -11,8 +12,9 @@ var Reflux = require('reflux');
 import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
-var actions = {};
+const actions = {};
 
+actions.help = helpActions;
 
 actions.navigation = Reflux.createActions([
     'transitionStart',
@@ -258,7 +260,6 @@ actions.misc = Reflux.createActions({
     ]
   },
 });
-
 
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)

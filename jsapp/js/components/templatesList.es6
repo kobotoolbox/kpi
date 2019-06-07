@@ -9,17 +9,11 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import bem from '../bem';
-import classNames from 'classnames';
-import Select from 'react-select';
-import alertify from 'alertifyjs';
 import stores from '../stores';
-import actions from '../actions';
-import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
   t,
   formatTime,
-  notify
 } from '../utils';
 
 class TemplatesList extends React.Component {
@@ -66,13 +60,13 @@ class TemplatesList extends React.Component {
             {t('loading...')}
           </bem.Loading__inner>
         </bem.Loading>
-      )
+      );
     } else if (this.state.templatesCount === 0) {
       return (
         <bem.FormView__cell>
           {t('You have no templates. Go to Library and create some.')}
         </bem.FormView__cell>
-      )
+      );
     } else {
       return (
         <bem.TemplatesList>
@@ -94,7 +88,7 @@ class TemplatesList extends React.Component {
           {this.state.templates.map((template) => {
             const htmlId = `selected_template_${template.uid}`;
             let owner = template.owner__username;
-            if (owner = this.state.currentAccountUsername) {
+            if (owner === this.state.currentAccountUsername) {
               owner = t('me');
             }
 
@@ -126,7 +120,7 @@ class TemplatesList extends React.Component {
                   onChange={this.onSelectedTemplateChange}
                  />
               </bem.TemplatesList__template>
-            )
+            );
           })}
         </bem.TemplatesList>
       );
