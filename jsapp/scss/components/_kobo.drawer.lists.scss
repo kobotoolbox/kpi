@@ -8,7 +8,6 @@
     display: block;
     line-height: 1.2em;
     padding: 2px 0px;
-    text-overflow: ellipsis;
     color: $cool-silver;
     font-weight: normal;
     font-size: 12px;
@@ -84,7 +83,7 @@
   &__item {
     display: block;
     position: relative;
-    padding-left: 13px;
+    padding-left: 8px;
     padding-top: 3px;
     padding-bottom: 4px;
 
