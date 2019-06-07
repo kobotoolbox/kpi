@@ -24,7 +24,7 @@ var defaultOptions = {
   module: {
     rules: [
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         loader: 'eslint-loader',
@@ -35,8 +35,8 @@ var defaultOptions = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["env","react"],
-            plugins: ["add-module-exports", "react-hot-loader/babel"]
+            presets: ['env', 'react'],
+            plugins: ['add-module-exports', 'react-hot-loader/babel']
           }
         }
       },
@@ -56,7 +56,7 @@ var defaultOptions = {
       },
       {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
-        use : {
+        use: {
           loader: 'file-loader',
           options: {
             name: '[name].[ext]'
@@ -83,7 +83,7 @@ var defaultOptions = {
     }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
   ]
-}
+};
 
 module.exports = function (options) {
   options = merge(defaultOptions, options || {});
