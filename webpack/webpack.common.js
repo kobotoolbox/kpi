@@ -38,8 +38,8 @@ var defaultOptions = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["env","react"],
-            plugins: ["add-module-exports", "react-hot-loader/babel"]
+            presets: ['env', 'react'],
+            plugins: ['add-module-exports', 'react-hot-loader/babel']
           }
         }
       },

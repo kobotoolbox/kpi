@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import json
 from collections import Iterable
+import json
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
@@ -12,9 +12,14 @@ from django.db import ProgrammingError, transaction
 from rest_framework.authtoken.models import Token
 import requests
 
-from .shadow_models import safe_kc_read, ReadOnlyXForm, UserProfile, UserObjectPermission
-from kpi.utils.log import logging
 from kpi.exceptions import KoboCatProfileException
+from kpi.utils.log import logging
+from .shadow_models import (
+    safe_kc_read,
+    ReadOnlyXForm,
+    UserProfile,
+    UserObjectPermission,
+)
 
 
 def _trigger_kc_profile_creation(user):
