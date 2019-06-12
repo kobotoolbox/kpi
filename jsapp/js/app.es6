@@ -35,10 +35,15 @@ import mixins from './mixins';
 import MainHeader from './components/header';
 import Drawer from './components/drawer';
 import {
-  AddToLibrary,
   FormPage,
-  LibraryPage
+  LibraryAssetCreator,
+  LibraryAssetEditor
 } from './components/formEditors';
+
+import LibraryAssetsList from 'js/components/library/libraryAssetsList';
+import LibraryPublicCollections from 'js/components/library/libraryPublicCollections';
+import LibraryAsset from 'js/components/library/libraryAsset';
+import LibraryCollection from 'js/components/library/libraryCollection';
 
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
@@ -278,15 +283,26 @@ export var routes = (
     <Route path='change-password' component={ChangePassword} />
 
     <Route path='library' >
-      <Route path='new' component={AddToLibrary} />
-      <Route path='new/template' component={AddToLibrary} />
+      <Route path='new' component={LibraryAssetCreator} />
+      <Route path='new/template' component={LibraryAssetCreator} />
       <Route path='/library/:assetid'>
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
         <Route path='json' component={FormJson} />,
         <Route path='xform' component={FormXform} />,
-        <Route path='edit' component={LibraryPage} />
+        <Route path='edit' component={LibraryAssetEditor} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
+    </Route>
+
+    <Route path='library2'>
+      <Route path='owned' component={LibraryAssetsList}/>
+      <Route path='shared' component={LibraryAssetsList}/>
+      <Route path='public-collections' component={LibraryPublicCollections}/>
+      <Route path='new-asset' component={LibraryAssetCreator}/>
+      <Route path='asset/:uid' component={LibraryAsset}/>
+      <Route path='asset/:uid/edit' component={LibraryAssetEditor}/>
+      <Route path='collection/:uid' component={LibraryCollection}/>
+      <IndexRedirect to='owned'/>
     </Route>
 
     <IndexRedirect to='forms' />
