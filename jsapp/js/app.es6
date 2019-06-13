@@ -282,25 +282,28 @@ export var routes = (
     <Route path='account-settings' component={AccountSettings} />
     <Route path='change-password' component={ChangePassword} />
 
+    {/*
     <Route path='library' >
       <Route path='new' component={LibraryAssetCreator} />
       <Route path='new/template' component={LibraryAssetCreator} />
       <Route path='/library/:assetid'>
-        {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
         <Route path='json' component={FormJson} />,
         <Route path='xform' component={FormXform} />,
         <Route path='edit' component={LibraryAssetEditor} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
     </Route>
+    */}
 
-    <Route path='library2'>
+    <Route path='library'>
       <Route path='owned' component={LibraryAssetsList}/>
       <Route path='shared' component={LibraryAssetsList}/>
       <Route path='public-collections' component={LibraryPublicCollections}/>
       <Route path='new-asset' component={LibraryAssetCreator}/>
       <Route path='asset/:uid' component={LibraryAsset}/>
       <Route path='asset/:uid/edit' component={LibraryAssetEditor}/>
+      <Route path='asset/:uid/json' component={FormJson} />
+      <Route path='asset/:uid/xform' component={FormXform} />
       <Route path='collection/:uid' component={LibraryCollection}/>
       <IndexRedirect to='owned'/>
     </Route>
@@ -310,7 +313,6 @@ export var routes = (
       <IndexRoute component={FormsSearchableList} />
 
       <Route path='/forms/:assetid'>
-        {/*<Route name="form-download" path="download" component={FormDownload} />*/}
         <Route path='json' component={FormJson} />
         <Route path='xform' component={FormXform} />
         <Route path='edit' component={FormPage} />

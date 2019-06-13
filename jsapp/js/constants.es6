@@ -4,12 +4,13 @@ const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0
-}
+};
 
 const MODAL_TYPES = {
   SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
+  LIBRARY_NEW: 'library-new',
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
@@ -17,13 +18,19 @@ const MODAL_TYPES = {
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table'
-}
+};
 
 const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside'
+};
+
+const LIBRARY_ITEM_CONTEXTS = {
+  NEW: 'newLibraryItem',
+  EXISTING_TEMPLATE: 'existingLibraryTemplate',
+  EXISTING_COLLECTION: 'existingLibraryCollection'
 };
 
 const update_states = {
@@ -85,7 +92,7 @@ const ASSET_TYPES = {
     id: 'survey',
     label: t('project')
   }
-}
+};
 
 export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
@@ -93,6 +100,7 @@ export default {
   VALIDATION_STATUSES: VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST: VALIDATION_STATUSES_LIST,
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
+  LIBRARY_ITEM_CONTEXTS: LIBRARY_ITEM_CONTEXTS,
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES,
   HOOK_LOG_STATUSES: HOOK_LOG_STATUSES

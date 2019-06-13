@@ -4,10 +4,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
-import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
-
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import stores from '../stores';
@@ -15,13 +12,10 @@ import bem from '../bem';
 import searches from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
-
 import {MODAL_TYPES} from '../constants';
-
 import {
   t,
   assign,
-  validFileTypes,
   getAnonymousUserPermission,
   anonUsername
 } from '../utils';
@@ -39,7 +33,7 @@ class LibrarySidebar extends Reflux.Component {
     autoBind(this);
   }
   queryCollections () {
-    dataInterface.listCollections().then((collections)=>{
+    dataInterface.listCollections().then((collections) => {
       this.setState({
         sidebarCollections: collections.results.filter((value) => {
           return value.access_type !== 'public';
@@ -103,7 +97,7 @@ class LibrarySidebar extends Reflux.Component {
       filteredByPublicCollection: publicCollection,
     });
   }
-  clickShowPublicCollections (evt) {
+  clickShowPublicCollections () {
     this.setState({
       publicCollectionsVisible: !this.state.publicCollectionsVisible,
     });
@@ -118,7 +112,7 @@ class LibrarySidebar extends Reflux.Component {
       onok: (evt, val) => {
         dataInterface.createCollection({
           name: val,
-        }).then((data)=>{
+        }).then(() => {
           this.queryCollections();
           this.searchValue.refresh();
           dialog.destroy();
@@ -140,9 +134,9 @@ class LibrarySidebar extends Reflux.Component {
       title: t('Delete collection'),
       message: t('are you sure you want to delete this collection? this action is not reversible'),
       labels: {ok: t('Delete'), cancel: t('Cancel')},
-      onok: (evt, val) => {
+      onok: () => {
         actions.resources.deleteCollection({uid: collectionUid}, {
-          onComplete: (data) => {
+          onComplete: () => {
             this.quietUpdateStore({
               parentUid: false,
               parentName: false,
@@ -172,7 +166,7 @@ class LibrarySidebar extends Reflux.Component {
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
         actions.resources.updateCollection.triggerAsync(collectionUid, {name: val}).then(
-          (data) => {
+          () => {
             this.queryCollections();
             dialog.destroy();
           }
@@ -228,8 +222,7 @@ class LibrarySidebar extends Reflux.Component {
           kind: collection.kind,
           objectUrl: collection.url
         });
-      }
-      else if (publicPerm) {
+      } else if (publicPerm) {
         permDeferred = actions.permissions.removePerm({
           permission_url: publicPerm.url,
           content_object_uid: collection.uid
@@ -257,40 +250,20 @@ class LibrarySidebar extends Reflux.Component {
       });
     };
   }
+
+  showLibraryNewModal(evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: MODAL_TYPES.LIBRARY_NEW
+    });
+  }
+
   render () {
     return (
       <bem.CollectionsWrapper>
-        <ui.PopoverMenu
-          type='new-menu'
-          triggerLabel={t('new')}
-        >
-          <Link to={'/library/new'} className='popover-menu__link'>
-            <i className='k-icon-question' />
-            {t('Question')}
-          </Link>
-
-          <Link to={'/library/new/template'} className='popover-menu__link'>
-            <i className='k-icon-template' />
-            {t('Template')}
-          </Link>
-
-          <Dropzone
-            onDrop={this.dropFiles}
-            multiple={false}
-            className='dropzone'
-            accept={validFileTypes()}
-          >
-            <bem.PopoverMenu__link>
-              <i className='k-icon-upload' />
-              {t('upload')}
-            </bem.PopoverMenu__link>
-          </Dropzone>
-
-          <bem.PopoverMenu__link onClick={this.createCollection}>
-            <i className='k-icon-folder' />
-            {t('collection')}
-          </bem.PopoverMenu__link>
-        </ui.PopoverMenu>
+        <button onClick={this.showLibraryNewModal} className='mdl-button mdl-button--raised mdl-button--colored'>
+          {t('new')}
+        </button>
 
         { this.state.sidebarCollections &&
           <bem.FormSidebar>
@@ -306,12 +279,14 @@ class LibrarySidebar extends Reflux.Component {
 
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping>
-              {this.state.sidebarCollections.map((collection)=>{
+              {this.state.sidebarCollections.map((collection) => {
                 var iconClass = 'k-icon-folder';
-                if (collection.discoverable_when_public || this.isCollectionPublic(collection))
+                if (collection.discoverable_when_public || this.isCollectionPublic(collection)) {
                   iconClass = 'k-icon-folder-public';
-                if (collection.access_type == 'shared')
+                }
+                if (collection.access_type === 'shared') {
                   iconClass = 'k-icon-folder-shared';
+                }
 
                 return (
                     <bem.FormSidebar__item
@@ -412,7 +387,7 @@ class LibrarySidebar extends Reflux.Component {
               </bem.FormSidebar__labelCount>
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping m={[this.state.publicCollectionsVisible ? 'visible' : 'collapsed']}>
-              {this.state.sidebarPublicCollections.map((collection)=>{
+              {this.state.sidebarPublicCollections.map((collection) => {
                 return (
                     <bem.FormSidebar__item
                       key={collection.uid}
