@@ -1,8 +1,6 @@
 import React from 'react';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import bem from '../bem';
-import {t} from '../utils';
 
 /*
 Properties:
@@ -28,7 +26,7 @@ class TextBox extends React.Component {
   }
 
   onChange(evt) {
-    this.props.onChange(evt.currentTarget.value)
+    this.props.onChange(evt.currentTarget.value);
   }
 
   render() {
@@ -41,7 +39,7 @@ class TextBox extends React.Component {
       errors.push(this.props.errors);
     }
     if (errors.length > 0) {
-      modifiers.push('error')
+      modifiers.push('error');
     }
 
     let type = this.DEFAULT_TYPE;
@@ -78,7 +76,7 @@ class TextBox extends React.Component {
           </bem.TextBox__error>
         }
       </bem.TextBox>
-    )
+    );
   }
 }
 

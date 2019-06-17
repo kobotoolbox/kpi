@@ -7,6 +7,7 @@ import alertify from 'alertifyjs';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
+import LibraryTemplateForm from './libraryTemplateForm';
 import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
@@ -53,6 +54,15 @@ class LibraryItemForm extends React.Component {
       previousStep: null,
       // template
       isCreatingTemplate: false,
+      templateData: {
+        name: '',
+        organization: '',
+        country: null,
+        primarySector: null,
+        tags: [],
+        description: '',
+        makePublic: false
+      },
       // collection
       isCreatingCollection: false,
       // upload
@@ -157,6 +167,12 @@ class LibraryItemForm extends React.Component {
 
   onFileDrop() {}
 
+  onTemplateFormChange(property, value) {
+    const templateData = this.state.templateData;
+    templateData[property] = value;
+    this.setState({templateData: templateData});
+  }
+
   /*
    * rendering
    */
@@ -192,7 +208,10 @@ class LibraryItemForm extends React.Component {
   renderStepTemplate() {
     return (
       <bem.FormModal__form className='project-settings'>
-        {t('template')}
+        <LibraryTemplateForm
+          data={this.state.templateData}
+          onChange={this.onTemplateFormChange}
+        />
 
         <bem.Modal__footer>
           {this.renderBackButton()}

@@ -11,7 +11,7 @@ Properties:
 class Checkbox extends React.Component {
   constructor(props){
     if (typeof props.onChange !== 'function') {
-      throw new Error('onChange callback missing!')
+      throw new Error('onChange callback missing!');
     }
     super(props);
     autoBind(this);
@@ -40,7 +40,7 @@ class Checkbox extends React.Component {
           }
         </bem.Checkbox__wrapper>
       </bem.Checkbox>
-    )
+    );
   }
 }
 
