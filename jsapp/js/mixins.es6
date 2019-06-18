@@ -139,8 +139,8 @@ mixins.dmix = {
     dialog.set(opts).show();
   },
   deployAsset (asset) {
-    if (!asset || asset.kind != 'asset') {
-        if (this.state && this.state.kind == 'asset') {
+    if (!asset || asset.kind !== 'asset') {
+        if (this.state && this.state.kind === 'asset') {
           asset = this.state;
         } else {
           console.error('Neither the arguments nor the state supplied an asset.');
@@ -156,7 +156,7 @@ mixins.dmix = {
   archiveAsset (uid, callback) {
     mixins.clickAssets.click.asset.archive(uid, callback);
   },
-  unarchiveAsset (uid=null, callback) {
+  unarchiveAsset (uid = null, callback) {
     if (uid === null) {
       mixins.clickAssets.click.asset.unarchive(this.state, callback);
     } else {
@@ -202,11 +202,11 @@ mixins.dmix = {
   },
   _getAssetUid () {
     if (this.props.params) {
-      return this.props.params.assetid || this.props.params.uid
+      return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid
+      return this.props.uid;
     }
   },
   componentDidMount () {
@@ -215,7 +215,7 @@ mixins.dmix = {
     const uid = this._getAssetUid();
 
     if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
+      window.setTimeout(() => {
         actions.resources.loadAsset({id: uid});
       }, Math.random() * 3000);
     } else if (uid) {
@@ -230,7 +230,7 @@ mixins.dmix = {
  */
 const applyImport = (params) => {
   const applyPromise = new Promise((resolve, reject) => {
-    dataInterface.postCreateImport(params).then((data)=> {
+    dataInterface.postCreateImport(params).then((data) => {
       const doneCheckInterval = setInterval(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -258,7 +258,7 @@ const applyImport = (params) => {
               reject(importData);
             }
           }
-        }).fail((failData)=>{
+        }).fail((failData) => {
           clearInterval(doneCheckInterval);
           reject(failData);
         });
@@ -315,12 +315,12 @@ mixins.droppable = {
     return applyPromise;
   },
 
-  _forEachDroppedFile (params={}) {
+  _forEachDroppedFile (params = {}) {
     let router = this.context.router;
     let isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
-      && router.params.assetid != undefined
+      && router.params.assetid !== undefined
     );
     var library = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
@@ -342,7 +342,7 @@ mixins.droppable = {
       }
     }
 
-    dataInterface.postCreateImport(params).then((data)=> {
+    dataInterface.postCreateImport(params).then((data) => {
       window.setTimeout((() => {
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -357,8 +357,9 @@ mixins.droppable = {
               if (!assetUid) {
                 // TODO: use a more specific error message here
                 alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
-                if (params.assetUid)
+                if (params.assetUid) {
                   hashHistory.push(`/forms/${params.assetUid}`);
+                }
               } else {
                 if (isProjectReplaceInForm) {
                   actions.resources.loadAsset({id: assetUid});
@@ -375,7 +376,7 @@ mixins.droppable = {
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
-          } else if (importData.status === 'error')  {
+          } else if (importData.status === 'error') {
             const errLines = [];
             errLines.push(t('Import Failed!'));
             if (params.name) {
@@ -388,22 +389,22 @@ mixins.droppable = {
           } else {
             alertify.error(t('Import Failed!'));
           }
-        }).fail((failData)=>{
+        }).fail((failData) => {
           alertify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();
       }), 2500);
-    }).fail((jqxhr)=> {
+    }).fail((jqxhr) => {
       log('Failed to create import: ', jqxhr);
       alertify.error(t('Failed to create import.'));
     });
   },
 
-  dropFiles (files, rejectedFiles, evt, pms={}) {
+  dropFiles (files, rejectedFiles, evt, pms = {}) {
     files.map((file) => {
       var reader = new FileReader();
-      reader.onload = (e)=> {
+      reader.onload = (e) => {
         let params = assign({
           base64Encoded: e.target.result,
           name: file.name,
@@ -451,7 +452,7 @@ const renderCheckbox = (id, label, isImportant) => {
     additionalClass += 'alertify-toggle-important';
   }
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-}
+};
 
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
@@ -511,10 +512,11 @@ mixins.clickAssets = {
         });
       },
       edit: function (uid) {
-        if (this.context.router.isActive('library'))
+        if (this.context.router.isActive('library')) {
           hashHistory.push(`/library/${uid}/edit`);
-        else
+        } else {
           hashHistory.push(`/forms/${uid}/edit`);
+        }
       },
       delete: function(uid, name, callback) {
         const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
@@ -525,7 +527,7 @@ mixins.clickAssets = {
         let msg, onshow;
         let onok = (evt, val) => {
           actions.resources.deleteAsset({uid: uid}, {
-            onComplete: ()=> {
+            onComplete: () => {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
               if (typeof callback === 'function') {
                 callback();
@@ -535,10 +537,11 @@ mixins.clickAssets = {
         };
 
         if (!deployed) {
-          if (asset.asset_type != ASSET_TYPES.survey.id)
+          if (asset.asset_type !== ASSET_TYPES.survey.id) {
             msg = t('You are about to permanently delete this item from your library.');
-          else
+          } else {
             msg = t('You are about to permanently delete this draft.');
+          }
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
@@ -609,7 +612,7 @@ mixins.clickAssets = {
       },
       unarchive: function(assetOrUid, callback) {
         let asset;
-        if (typeof assetOrUid == 'object') {
+        if (typeof assetOrUid === 'object') {
           asset = assetOrUid;
         } else {
           asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
@@ -689,39 +692,43 @@ mixins.permissions = {
     });
   },
   userCan (permName, asset) {
-    if (!asset.permissions)
+    if (!asset.permissions) {
       return false;
+    }
 
-    if (!stores.session.currentAccount)
+    if (!stores.session.currentAccount) {
       return false;
+    }
 
     const currentUsername = stores.session.currentAccount.username;
-    if (asset.owner__username === currentUsername)
+    if (asset.owner__username === currentUsername) {
       return true;
+    }
 
     // TODO: should super user always have access to all UI?
     // if (stores.session.currentAccount.is_superuser)
     //   return true;
 
     // if permission is granted publicly, then grant it to current user
-    const anonAccess = asset.permissions.some(perm => perm.user__username === 'AnonymousUser' && perm.permission === permName);
-    if (anonAccess)
+    const anonAccess = asset.permissions.some((perm) => {return perm.user__username === 'AnonymousUser' && perm.permission === permName;});
+    if (anonAccess) {
       return true;
+    }
 
-    const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
-    return userPerms.some(p => p.permission === permName);
+    const userPerms = asset.permissions.filter((perm) => {return perm.user__username === currentUsername;});
+    return userPerms.some((p) => {return p.permission === permName;});
   }
 };
 
 mixins.contextRouter = {
   isFormList () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
+    return this.context.router.isActive('forms') && this.context.router.params.assetid === undefined;
   },
   isLibrary () {
     return this.context.router.isActive('library');
   },
   isFormSingle () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid != undefined;
+    return this.context.router.isActive('forms') && this.context.router.params.assetid !== undefined;
   },
   currentAssetID () {
     return this.context.router.params.assetid;
@@ -733,22 +740,22 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder () {
-    if (this.context.router.isActive('/library/new'))
+    if (this.context.router.isActive('/library/new-asset')) {
       return true;
+    }
 
-    if (this.context.router.isActive('/library/new/template'))
-      return true;
-
-    if (this.context.router.params.assetid == undefined)
-      return false
+    if (this.context.router.params.assetid === undefined) {
+      return false;
+    }
 
     var assetid = this.context.router.params.assetid;
-    if (this.context.router.isActive(`/library/${assetid}/edit`))
+    if (this.context.router.isActive(`/library/asset/${assetid}/edit`)) {
       return true;
+    }
 
     return this.context.router.isActive(`/forms/${assetid}/edit`);
   }
-}
+};
 
 /*
  * generates dialog when cloning an asset as new type
@@ -801,6 +808,6 @@ mixins.cloneAssetAsNewType = {
     };
     dialog.set(opts).show();
   }
-}
+};
 
 export default mixins;
