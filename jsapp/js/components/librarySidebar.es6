@@ -254,7 +254,7 @@ class LibrarySidebar extends Reflux.Component {
   showLibraryNewModal(evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: MODAL_TYPES.LIBRARY_NEW
+      type: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
 

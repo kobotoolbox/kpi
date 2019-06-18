@@ -10,11 +10,13 @@ import stores from '../stores';
 import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
-  LIBRARY_ITEM_CONTEXTS,
   MODAL_TYPES
 } from '../constants';
 import ProjectSettings from '../components/modalForms/projectSettings';
-import LibraryItemForm from '../components/modalForms/libraryItemForm';
+import LibraryNewItemForm from '../components/modalForms/libraryNewItemForm';
+import LibraryTemplateForm from '../components/modalForms/libraryTemplateForm';
+import LibraryCollectionForm from '../components/modalForms/libraryCollectionForm';
+import LibraryUploadForm from '../components/modalForms/libraryUploadForm';
 import SharingForm from '../components/modalForms/sharingForm';
 import Submission from '../components/modalForms/submission';
 import TableColumnFilter from '../components/modalForms/tableColumnFilter';
@@ -51,8 +53,20 @@ class Modal extends React.Component {
         // title is set by formEditors
         break;
 
-      case MODAL_TYPES.LIBRARY_NEW:
-        // title is set by formEditors
+      case MODAL_TYPES.LIBRARY_NEW_ITEM:
+        this.setModalTitle(t('Create Library Item'));
+        break;
+
+      case MODAL_TYPES.LIBRARY_TEMPLATE:
+        this.setModalTitle(t('Template details'));
+        break;
+
+      case MODAL_TYPES.LIBRARY_COLLECTION:
+        this.setModalTitle(t('Collection details'));
+        break;
+
+      case MODAL_TYPES.LIBRARY_UPLOAD:
+        this.setModalTitle(t('Upload file'));
         break;
 
       case MODAL_TYPES.ENKETO_PREVIEW:
@@ -200,9 +214,23 @@ class Modal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
               />
             }
-            { this.props.params.type === MODAL_TYPES.LIBRARY_NEW &&
-              <LibraryItemForm
-                context={LIBRARY_ITEM_CONTEXTS.NEW}
+            { this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM &&
+              <LibraryNewItemForm
+                onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.LIBRARY_TEMPLATE &&
+              <LibraryTemplateForm
+                onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.LIBRARY_COLLECTION &&
+              <LibraryCollectionForm
+                onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.LIBRARY_UPLOAD &&
+              <LibraryUploadForm
                 onSetModalTitle={this.setModalTitle}
               />
             }

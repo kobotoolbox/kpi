@@ -10,7 +10,10 @@ const MODAL_TYPES = {
   SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
-  LIBRARY_NEW: 'library-new',
+  LIBRARY_NEW_ITEM: 'library-new-item',
+  LIBRARY_TEMPLATE: 'library-template',
+  LIBRARY_COLLECTION: 'library-collection',
+  LIBRARY_UPLOAD: 'library-upload',
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
@@ -25,12 +28,6 @@ const PROJECT_SETTINGS_CONTEXTS = {
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside'
-};
-
-const LIBRARY_ITEM_CONTEXTS = {
-  NEW: 'newLibraryItem',
-  EXISTING_TEMPLATE: 'existingLibraryTemplate',
-  EXISTING_COLLECTION: 'existingLibraryCollection'
 };
 
 const update_states = {
@@ -100,7 +97,6 @@ export default {
   VALIDATION_STATUSES: VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST: VALIDATION_STATUSES_LIST,
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
-  LIBRARY_ITEM_CONTEXTS: LIBRARY_ITEM_CONTEXTS,
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES,
   HOOK_LOG_STATUSES: HOOK_LOG_STATUSES
