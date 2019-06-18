@@ -11,9 +11,11 @@ import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
 import {hashHistory} from 'react-router';
-import mixins from 'js/mixins';
+import {
+  renderLoading,
+  renderBackButton
+} from './modalHelpers';
 import {t} from 'js/utils';
-import {MODAL_TYPES} from 'js/constants';
 
 class LibraryTemplateForm extends React.Component {
   constructor(props) {
@@ -62,24 +64,13 @@ class LibraryTemplateForm extends React.Component {
 
   goBack() {
     stores.pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_NEW_ITEM
+      type: stores.pageState.state.modal.previousType,
     });
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
-    if (!this.state.isSessionLoaded || this.state.currentStep === null) {
-      return this.renderLoading();
+    if (!this.state.isSessionLoaded) {
+      return renderLoading();
     }
 
     const SECTORS = stores.session.currentAccount.available_sectors;
@@ -164,14 +155,7 @@ class LibraryTemplateForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='back'
-            type='button'
-            onClick={this.goBack}
-            disabled={this.state.isPending}
-          >
-            {t('Back')}
-          </bem.Modal__footerButton>
+          {renderBackButton(this.state.isPending)}
 
           <bem.Modal__footerButton
             m='primary'
@@ -189,8 +173,6 @@ class LibraryTemplateForm extends React.Component {
 }
 
 reactMixin(LibraryTemplateForm.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryTemplateForm.prototype, mixins.droppable);
-reactMixin(LibraryTemplateForm.prototype, mixins.dmix);
 
 LibraryTemplateForm.contextTypes = {
   router: PropTypes.object

@@ -32,19 +32,22 @@ class LibraryNewItemForm extends React.Component {
 
   goToCollection() {
     stores.pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_COLLECTION
+      type: MODAL_TYPES.LIBRARY_COLLECTION,
+      previousType: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
 
   goToTemplate() {
     stores.pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_TEMPLATE
+      type: MODAL_TYPES.LIBRARY_TEMPLATE,
+      previousType: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
 
   goToUpload() {
     stores.pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_UPLOAD
+      type: MODAL_TYPES.LIBRARY_UPLOAD,
+      previousType: MODAL_TYPES.LIBRARY_NEW_ITEM
     });
   }
 

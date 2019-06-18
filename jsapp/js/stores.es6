@@ -141,6 +141,14 @@ var pageStateStore = Reflux.createStore({
     window.setTimeout(() => {
       this.showModal(params);
     }, 0);
+  },
+  switchToPreviousModal() {
+    this.switchModal({
+      type: this.state.modal.previousType
+    });
+  },
+  hasPreviousModal() {
+    return this.state.modal && this.state.modal.previousType;
   }
 });
 

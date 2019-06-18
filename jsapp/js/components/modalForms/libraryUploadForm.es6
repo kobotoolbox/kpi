@@ -3,35 +3,25 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import alertify from 'alertifyjs';
-import Select from 'react-select';
 import Dropzone from 'react-dropzone';
-import TextBox from 'js/components/textBox';
-import LibraryTemplateForm from './libraryTemplateForm';
-import LibraryCollectionForm from './libraryCollectionForm';
-import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
-import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
-import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
-import TemplatesList from 'js/components/templatesList';
-import actions from 'js/actions';
-import {dataInterface} from 'js/dataInterface';
+import {
+  renderLoading,
+  renderBackButton
+} from './modalHelpers';
 import {
   t,
-  validFileTypes,
-  isAValidUrl,
-  escapeHtml
+  validFileTypes
 } from 'js/utils';
-import {MODAL_TYPES} from 'js/constants';
 
 class LibraryUploadForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       isSessionLoaded: !!stores.session.currentAccount,
-      isUploadPending: false
+      isPending: false
     };
 
     autoBind(this);
@@ -43,28 +33,20 @@ class LibraryUploadForm extends React.Component {
     });
   }
 
-  onFileDrop() {}
+  onFileDrop(files, rejectedFiles, evt) {
+    this.setState({isPending: true});
+    this.dropFiles(files, rejectedFiles, evt);
+  }
 
   goBack() {
     stores.pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_NEW_ITEM
+      type: stores.pageState.state.modal.previousType
     });
-  }
-
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
   }
 
   render() {
     if (!this.state.isSessionLoaded) {
-      return this.renderLoading();
+      return renderLoading();
     }
 
     return (
@@ -73,7 +55,7 @@ class LibraryUploadForm extends React.Component {
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
 
-        {!this.state.isUploadPending &&
+        {!this.state.isPending &&
           <Dropzone
             onDrop={this.onFileDrop.bind(this)}
             multiple={false}
@@ -86,21 +68,14 @@ class LibraryUploadForm extends React.Component {
             {t(' Drag and drop the XLSForm file here or click to browse')}
           </Dropzone>
         }
-        {this.state.isUploadPending &&
+        {this.state.isPending &&
           <div className='dropzone'>
-            {this.renderLoading(t('Uploading file…'))}
+            {renderLoading(t('Uploading file…'))}
           </div>
         }
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='back'
-            type='button'
-            onClick={this.goBack}
-            disabled={this.state.isPending}
-          >
-            {t('Back')}
-          </bem.Modal__footerButton>
+          {renderBackButton(this.state.isPending)}
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -109,7 +84,6 @@ class LibraryUploadForm extends React.Component {
 
 reactMixin(LibraryUploadForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryUploadForm.prototype, mixins.droppable);
-reactMixin(LibraryUploadForm.prototype, mixins.dmix);
 
 LibraryUploadForm.contextTypes = {
   router: PropTypes.object

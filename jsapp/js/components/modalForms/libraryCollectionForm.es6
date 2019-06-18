@@ -10,10 +10,11 @@ import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
-import {hashHistory} from 'react-router';
-import mixins from 'js/mixins';
 import {t} from 'js/utils';
-import {MODAL_TYPES} from 'js/constants';
+import {
+  renderLoading,
+  renderBackButton
+} from './modalHelpers';
 
 class LibraryCollectionForm extends React.Component {
   constructor(props) {
@@ -57,24 +58,13 @@ class LibraryCollectionForm extends React.Component {
 
   goBack() {
     stores.pageState.switchModal({
-      type: MODAL_TYPES.LIBRARY_NEW_ITEM
+      type: stores.pageState.state.modal.previousType,
     });
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
-    if (!this.state.isSessionLoaded || this.state.currentStep === null) {
-      return this.renderLoading();
+    if (!this.state.isSessionLoaded) {
+      return renderLoading();
     }
 
     const SECTORS = stores.session.currentAccount.available_sectors;
@@ -159,14 +149,7 @@ class LibraryCollectionForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='back'
-            type='button'
-            onClick={this.goBack}
-            disabled={this.state.isPending}
-          >
-            {t('Back')}
-          </bem.Modal__footerButton>
+          {renderBackButton(this.state.isPending)}
 
           <bem.Modal__footerButton
             m='primary'
@@ -184,8 +167,6 @@ class LibraryCollectionForm extends React.Component {
 }
 
 reactMixin(LibraryCollectionForm.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryCollectionForm.prototype, mixins.droppable);
-reactMixin(LibraryCollectionForm.prototype, mixins.dmix);
 
 LibraryCollectionForm.contextTypes = {
   router: PropTypes.object
