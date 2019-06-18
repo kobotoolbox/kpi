@@ -10,7 +10,7 @@ import bem from 'js/bem';
 import {t} from 'js/utils';
 
 /**
- * @typedef {Object} TemplateData
+ * @typedef {Object} CollectionData
  * @property {string} name
  * @property {string} organization
  * @property {string|null} country
@@ -22,10 +22,10 @@ import {t} from 'js/utils';
 
 /**
  * Properties:
- * props.data {TemplateData}
+ * props.data {CollectionData}
  * props.onChange {function}
  */
-class LibraryTemplateForm extends React.Component {
+class LibraryCollectionForm extends React.Component {
   constructor(props){
     super(props);
     autoBind(this);
@@ -127,4 +127,4 @@ class LibraryTemplateForm extends React.Component {
   }
 }
 
-export default LibraryTemplateForm;
+export default LibraryCollectionForm;

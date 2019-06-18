@@ -8,6 +8,7 @@ import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
 import LibraryTemplateForm from './libraryTemplateForm';
+import LibraryCollectionForm from './libraryCollectionForm';
 import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
@@ -53,18 +54,27 @@ class LibraryItemForm extends React.Component {
       currentStep: null,
       previousStep: null,
       // template
-      isCreatingTemplate: false,
+      isTemplatePending: false,
       templateData: {
         name: '',
         organization: '',
         country: null,
-        primarySector: null,
+        sector: null,
         tags: [],
         description: '',
-        makePublic: false
+        isPublic: false
       },
       // collection
-      isCreatingCollection: false,
+      isCollectionPending: false,
+      collectionData: {
+        name: '',
+        organization: '',
+        country: null,
+        sector: null,
+        tags: [],
+        description: '',
+        isPublic: false
+      },
       // upload
       isUploadFilePending: false
     };
@@ -173,6 +183,12 @@ class LibraryItemForm extends React.Component {
     this.setState({templateData: templateData});
   }
 
+  onCollectionFormChange(property, value) {
+    const collectionData = this.state.collectionData;
+    collectionData[property] = value;
+    this.setState({collectionData: collectionData});
+  }
+
   /*
    * rendering
    */
@@ -220,10 +236,10 @@ class LibraryItemForm extends React.Component {
             m='primary'
             type='submit'
             onClick={this.createTemplate}
-            disabled={!this.state.isCreatingTemplate}
+            disabled={this.state.isTemplatePending}
             className='mdl-js-button'
           >
-            {this.state.isCreatingTemplate ? t('Creating…') : t('Create')}
+            {this.state.isTemplatePending ? t('Creating…') : t('Create')}
           </bem.Modal__footerButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
@@ -233,7 +249,10 @@ class LibraryItemForm extends React.Component {
   renderStepCollection() {
     return (
       <bem.FormModal__form className='project-settings'>
-        {t('collection')}
+        <LibraryCollectionForm
+          data={this.state.collectionData}
+          onChange={this.onCollectionFormChange}
+        />
 
         <bem.Modal__footer>
           {this.renderBackButton()}
@@ -242,10 +261,10 @@ class LibraryItemForm extends React.Component {
             m='primary'
             type='submit'
             onClick={this.createCollection}
-            disabled={!this.state.isCreatingCollection}
+            disabled={this.state.isCollectionPending}
             className='mdl-js-button'
           >
-            {this.state.isCreatingCollection ? t('Creating…') : t('Create')}
+            {this.state.isCollectionPending ? t('Creating…') : t('Create')}
           </bem.Modal__footerButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
@@ -289,8 +308,8 @@ class LibraryItemForm extends React.Component {
     if (this.state.previousStep !== null) {
       const isBackButtonDisabled = (
         this.state.isSubmitPending ||
-        this.state.isCreatingTemplate ||
-        this.state.isCreatingCollection ||
+        this.state.isTemplatePending ||
+        this.state.isCollectionPending ||
         this.state.isUploadFilePending
       );
       return (
