@@ -5,11 +5,8 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from kpi.constants import PERM_VIEW_SUBMISSIONS, \
-    PERM_PARTIAL_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
 from kpi.models import Asset
 from kpi.models.object_permission import get_anonymous_user
-from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
