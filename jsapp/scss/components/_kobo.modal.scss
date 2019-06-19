@@ -420,6 +420,10 @@ $z-modal-x: 10;
     text-align: left;
   }
 
+  .form-modal__item[disabled] {
+    pointer-events: none;
+  }
+
   // override two columns to rows
   &.project-settings--narrow {
     .form-modal__item--sector,

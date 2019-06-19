@@ -753,7 +753,7 @@ class Reports extends React.Component {
     }
   }
   loadReportData() {
-    let uid = this.props.params.assetid;
+    const uid = this.props.params.assetid || this.props.params.uid;
 
     stores.allAssets.whenLoaded(uid, (asset)=>{
       let rowsByKuid = {};
@@ -837,7 +837,7 @@ class Reports extends React.Component {
     });
   }
   refreshReportData() {
-    let uid = this.props.params.assetid,
+    let uid = this.props.params.assetid || this.props.params.uid,
         rowsByIdentifier = this.state.rowsByIdentifier,
         customReport = this.state.currentCustomReport;
 

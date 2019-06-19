@@ -56,12 +56,6 @@ class LibraryCollectionForm extends React.Component {
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
   onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
 
-  goBack() {
-    stores.pageState.switchModal({
-      type: stores.pageState.state.modal.previousType,
-    });
-  }
-
   render() {
     if (!this.state.isSessionLoaded) {
       return renderLoading();

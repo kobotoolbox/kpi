@@ -38,12 +38,6 @@ class LibraryUploadForm extends React.Component {
     this.dropFiles(files, rejectedFiles, evt);
   }
 
-  goBack() {
-    stores.pageState.switchModal({
-      type: stores.pageState.state.modal.previousType
-    });
-  }
-
   render() {
     if (!this.state.isSessionLoaded) {
       return renderLoading();

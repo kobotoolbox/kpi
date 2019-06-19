@@ -51,7 +51,7 @@ mixins.dmix = {
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
-        let uid = this.props.params.assetid;
+        const uid = this.props.params.assetid || this.props.params.uid;
         actions.resources.cloneAsset({
           uid: uid,
           name: value,
@@ -513,7 +513,7 @@ mixins.clickAssets = {
       },
       edit: function (uid) {
         if (this.context.router.isActive('library')) {
-          hashHistory.push(`/library/${uid}/edit`);
+          hashHistory.push(`/library/asset/${uid}/edit`);
         } else {
           hashHistory.push(`/forms/${uid}/edit`);
         }
@@ -722,16 +722,16 @@ mixins.permissions = {
 
 mixins.contextRouter = {
   isFormList () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid === undefined;
+    return this.context.router.isActive('forms') && this.currentAssetID() === undefined;
   },
   isLibrary () {
     return this.context.router.isActive('library');
   },
   isFormSingle () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid !== undefined;
+    return this.context.router.isActive('forms') && this.currentAssetID() !== undefined;
   },
   currentAssetID () {
-    return this.context.router.params.assetid;
+    return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset () {
     return stores.asset.data[this.currentAssetID()];
@@ -744,16 +744,12 @@ mixins.contextRouter = {
       return true;
     }
 
-    if (this.context.router.params.assetid === undefined) {
-      return false;
-    }
-
-    var assetid = this.context.router.params.assetid;
-    if (this.context.router.isActive(`/library/asset/${assetid}/edit`)) {
-      return true;
-    }
-
-    return this.context.router.isActive(`/forms/${assetid}/edit`);
+    const uid = this.currentAssetID();
+    return (
+      uid !== undefined &&
+      this.context.router.isActive(`/library/asset/${uid}/edit`) ||
+      this.context.router.isActive(`/forms/${uid}/edit`)
+    );
   }
 };
 

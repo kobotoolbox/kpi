@@ -508,7 +508,7 @@ actions.resources.createResource.listen(function(details){
       actions.resources.createResource.completed(asset);
     })
     .fail(function(...args){
-      actions.resources.createResource.failed(...args)
+      actions.resources.createResource.failed(...args);
     });
 });
 

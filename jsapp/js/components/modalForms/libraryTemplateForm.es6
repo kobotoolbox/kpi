@@ -10,19 +10,24 @@ import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
+import actions from 'js/actions';
 import {hashHistory} from 'react-router';
+import {
+  t,
+  notify
+} from 'js/utils';
 import {
   renderLoading,
   renderBackButton
 } from './modalHelpers';
-import {t} from 'js/utils';
 
 class LibraryTemplateForm extends React.Component {
   constructor(props) {
     super(props);
+    this.unlisteners = [];
     this.state = {
       isSessionLoaded: !!stores.session.currentAccount,
-      templateData: {
+      data: {
         name: '',
         organization: '',
         country: null,
@@ -31,15 +36,50 @@ class LibraryTemplateForm extends React.Component {
         description: '',
         isPublic: false
       },
+      errors: {},
       isPending: false
     };
-
     autoBind(this);
   }
 
   componentDidMount() {
     this.listenTo(stores.session, () => {
       this.setState({isSessionLoaded: true});
+    });
+    this.unlisteners.push(
+      actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
+      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this))
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  onCreateResourceCompleted(response) {
+    this.setState({isPending: false});
+    notify(t('Template ##name## created').replace('##name##', response.name));
+    this.goToAssetEditor(response.uid);
+  }
+
+  onCreateResourceFailed() {
+    this.setState({isPending: false});
+    notify(t('Failed to create template'), 'error');
+  }
+
+  createTemplate() {
+    this.setState({isPending: true});
+
+    actions.resources.createResource({
+      name: this.state.data.name,
+      asset_type: 'template',
+      settings: JSON.stringify({
+        organization: this.state.data.organization,
+        country: this.state.data.country,
+        sector: this.state.data.sector,
+        tags: this.state.data.tags,
+        description: this.state.data.description
+      })
     });
   }
 
@@ -49,9 +89,10 @@ class LibraryTemplateForm extends React.Component {
   }
 
   onPropertyChange(property, newValue) {
-    const templateData = this.state.templateData;
-    templateData[property] = newValue;
-    this.setState({templateData: templateData});
+    const data = this.state.data;
+    data[property] = newValue;
+    this.setState({data: data});
+    this.validate();
   }
 
   onNameChange(newValue) {this.onPropertyChange('name', newValue);}
@@ -62,10 +103,27 @@ class LibraryTemplateForm extends React.Component {
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
   onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
 
-  goBack() {
-    stores.pageState.switchModal({
-      type: stores.pageState.state.modal.previousType,
-    });
+  validate() {
+    const errors = {};
+    if (this.state.data.isPublic) {
+      if (!this.state.data.name) {
+        errors.name = t('This field is required');
+      }
+      if (!this.state.data.organization) {
+        errors.organization = t('This field is required');
+      }
+      if (!this.state.data.sector) {
+        errors.sector = t('This field is required');
+      }
+    }
+    this.setState({errors: errors});
+  }
+
+  isSubmitEnabled() {
+    return (
+      !this.state.isPending &&
+      Object.keys(this.state.errors).length === 0
+    );
   }
 
   render() {
@@ -76,33 +134,40 @@ class LibraryTemplateForm extends React.Component {
     const SECTORS = stores.session.currentAccount.available_sectors;
     const COUNTRIES = stores.session.currentAccount.available_countries;
 
+    const sectorWrapperClassNames = ['kobo-select__wrapper'];
+    if (this.state.errors.sector) {
+      sectorWrapperClassNames.push('kobo-select__wrapper--error');
+    }
+
     return (
       <bem.FormModal__form className='project-settings'>
-        <bem.FormModal__item m='wrapper'>
+        <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
-              value={this.state.templateData.name}
+              value={this.state.data.name}
               onChange={this.onNameChange}
               label={t('Name') + '*'}
+              errors={this.state.errors.name}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <TextBox
-              value={this.state.templateData.organization}
+              value={this.state.data.organization}
               onChange={this.onOrganizationChange}
               label={t('Organization') + '*'}
+              errors={this.state.errors.organization}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor='country'>
+            <label htmlFor='country' className='kobo-select-label'>
               {t('Country')}
             </label>
 
             <Select
               id='country'
-              value={this.state.templateData.country}
+              value={this.state.data.country}
               onChange={this.onCountryChange}
               options={COUNTRIES}
               className='kobo-select'
@@ -112,14 +177,14 @@ class LibraryTemplateForm extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item>
+          <bem.FormModal__item className={sectorWrapperClassNames.join(' ')}>
             <label htmlFor='sector'>
               {t('Primary Sector') + '*'}
             </label>
 
             <Select
               id='sector'
-              value={this.state.templateData.sector}
+              value={this.state.data.sector}
               onChange={this.onSectorChange}
               options={SECTORS}
               className='kobo-select'
@@ -131,7 +196,7 @@ class LibraryTemplateForm extends React.Component {
 
           <bem.FormModal__item>
             <TagsInput
-              value={this.state.templateData.tags}
+              value={this.state.data.tags}
               onChange={this.onTagsChange}
               inputProps={{placeholder: t('Tags')}}
             />
@@ -140,16 +205,16 @@ class LibraryTemplateForm extends React.Component {
           <bem.FormModal__item>
             <TextareaAutosize
               onChange={this.onDescriptionChange}
-              value={this.state.templateData.description}
+              value={this.state.data.description}
               placeholder={t('Enter short description here')}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <Checkbox
-              checked={this.state.templateData.isPublic}
+              checked={this.state.data.isPublic}
               onChange={this.onIsPublicChange}
-              label={t('Make Public')}
+              label={t('Make Public') + ' ' + t('*required to be made public')}
             />
           </bem.FormModal__item>
         </bem.FormModal__item>
@@ -161,7 +226,7 @@ class LibraryTemplateForm extends React.Component {
             m='primary'
             type='submit'
             onClick={this.createTemplate}
-            disabled={this.state.isPending}
+            disabled={!this.isSubmitEnabled()}
             className='mdl-js-button'
           >
             {this.state.isPending ? t('Creating…') : t('Create')}

@@ -1,3 +1,9 @@
+.kobo-select__wrapper {
+  &.kobo-select__wrapper--error {
+    color: $cool-red;
+  }
+}
+
 .kobo-select-label {
   display: block;
   color: inherit;
@@ -45,9 +51,9 @@
   }
 
   .kobo-select__menu {
+    @include box-shadow;
     // getting select menus to appear over checkboxes
     z-index: 2;
-    @include box-shadow;
   }
 
   .kobo-select__menu-list {
@@ -58,6 +64,7 @@
     &.kobo-select__option--is-focused {
       background-color: lighten($cool-blue, 40%);
     }
+
     &.kobo-select__option--is-selected {
       background-color: $cool-blue;
     }

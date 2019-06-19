@@ -181,7 +181,8 @@ class FormJson extends React.Component {
   }
   componentDidMount () {
     this.listenTo(stores.asset, this.assetStoreTriggered);
-    actions.resources.loadAsset({id: this.props.params.assetid});
+    const uid = this.props.params.assetid || this.props.params.uid;
+    actions.resources.loadAsset({id: uid});
 
   }
   assetStoreTriggered (data, uid) {
@@ -216,7 +217,8 @@ class FormXform extends React.Component {
     };
   }
   componentDidMount () {
-    dataInterface.getAssetXformView(this.props.params.assetid).done((content)=>{
+    const uid = this.props.params.assetid || this.props.params.uid;
+    dataInterface.getAssetXformView(uid).done((content)=>{
       this.setState({
         xformLoaded: true,
         xformHtml: {

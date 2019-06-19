@@ -44,8 +44,9 @@ class FormSummary extends React.Component {
     }
   }
   prep() {
-    this.getLatestSubmissionTime(this.props.params.assetid);
-    this.prepSubmissions(this.props.params.assetid);
+    const uid = this.props.params.assetid || this.props.params.uid;
+    this.getLatestSubmissionTime(uid);
+    this.prepSubmissions(uid);
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';

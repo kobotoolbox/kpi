@@ -70,7 +70,7 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.ENKETO_PREVIEW:
-        var uid = this.props.params.assetid;
+        const uid = this.props.params.assetid || this.props.params.uid;
         stores.allAssets.whenLoaded(uid, function(asset){
           actions.resources.createSnapshot({
             asset: asset.url,
@@ -197,6 +197,8 @@ class Modal extends React.Component {
     }
   }
   render() {
+    const uid = this.props.params.assetid || this.props.params.uid;
+
     return (
       <ui.Modal
         open
@@ -206,7 +208,7 @@ class Modal extends React.Component {
       >
         <ui.Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
-              <SharingForm uid={this.props.params.assetid} />
+              <SharingForm uid={uid} />
             }
             { this.props.params.type === MODAL_TYPES.NEW_FORM &&
               <ProjectSettings
