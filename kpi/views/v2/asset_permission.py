@@ -156,7 +156,7 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 context=context_
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(asset=self.asset)
 
         # returns asset permissions. Users who can change permissions can
         # see all permissions.

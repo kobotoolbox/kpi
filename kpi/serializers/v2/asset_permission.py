@@ -207,8 +207,3 @@ class AssetBulkInsertPermissionSerializer(AssetPermissionSerializer):
             'user',
             'permission',
         )
-
-    def create(self, validated_data):
-        view = self.context.get('view')
-        validated_data['asset'] = view.asset
-        return super(AssetBulkInsertPermissionSerializer, self).create(validated_data)
