@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, renderers
+from rest_framework.decorators import list_route
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
     DestroyModelMixin, ListModelMixin
 from rest_framework.response import Response
@@ -9,7 +10,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetNestedObjectPermission
-from kpi.serializers.v2.asset_permission import AssetPermissionSerializer
+from kpi.serializers.v2.asset_permission import AssetPermissionSerializer, \
+    AssetBulkInsertPermissionSerializer
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -89,7 +91,7 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
 
     **Remove a permission**
-    <span class='label label-danger'>TODO - Block owner deletion</span>
+    <span class='label label-info'>TODO - Block owner deletion</span>
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
     </pre>
@@ -99,6 +101,28 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/pG6AeSjCwNtpWazQAX76Ap/
 
 
+    **Assign all permissions at once**
+
+    <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/bulk/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/bulk/
+
+    > _Payload to assign all permissions at once_
+    >
+    >        [{
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
+    >        },
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
+    >        },...]
+
     ### CURRENT ENDPOINT
     """
 
@@ -106,6 +130,45 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     lookup_field = "uid"
     serializer_class = AssetPermissionSerializer
     permission_classes = (AssetNestedObjectPermission,)
+
+    @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
+                url_path='bulk')
+    def bulk_assignments(self, request, *args, **kwargs):
+        """
+        Assigns all permissions at once for the same asset.
+
+        :param request:
+        :return: JSON
+        """
+
+        assignments = request.data
+
+        # First delete all assignments before assigning new ones.
+        # If something fails later, this query should rollback
+        self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
+
+        for assignment in assignments:
+            context_ = dict(self.get_serializer_context())
+            if 'partial_permissions' in assignment:
+                context_.update({'partial_permissions': assignment['partial_permissions']})
+            serializer = AssetBulkInsertPermissionSerializer(
+                data=assignment,
+                context=context_
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+        # returns asset permissions. Users who can change permissions can
+        # see all permissions.
+        return self.list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # TODO block owner's permission
+        object_permission = self.get_object()
+        user = object_permission.user
+        codename = object_permission.permission.codename
+        self.asset.remove_perm(user, codename)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_context(self):
         """
@@ -129,11 +192,3 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)
-
-    def destroy(self, request, *args, **kwargs):
-        # TODO block owner's permission
-        object_permission = self.get_object()
-        user = object_permission.user
-        codename = object_permission.permission.codename
-        self.asset.remove_perm(user, codename)
-        return Response(status=status.HTTP_204_NO_CONTENT)

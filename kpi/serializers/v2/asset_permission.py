@@ -95,7 +95,10 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         """
         permission = attrs.get('permission')
         request = self.context.get('request')
-        partial_permissions = request.data.get('partial_permissions')
+        if isinstance(request.data, dict):
+            partial_permissions = request.data.get('partial_permissions')
+        elif self.context.get('partial_permissions'):
+            partial_permissions = self.context.get('partial_permissions')
         partial_permissions_attr = {}
 
         if permission.codename.startswith(PREFIX_PARTIAL_PERMS):
@@ -194,3 +197,18 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         return reverse('permission-detail',
                        args=(codename,),
                        request=self.context.get('request', None))
+
+
+class AssetBulkInsertPermissionSerializer(AssetPermissionSerializer):
+
+    class Meta:
+        model = ObjectPermission
+        fields = (
+            'user',
+            'permission',
+        )
+
+    def create(self, validated_data):
+        view = self.context.get('view')
+        validated_data['asset'] = view.asset
+        return super(AssetBulkInsertPermissionSerializer, self).create(validated_data)

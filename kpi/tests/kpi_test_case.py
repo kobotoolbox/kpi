@@ -16,6 +16,7 @@ from .base_test_case import BaseTestCase
 from .test_permissions import BasePermissionsTestCase
 from ..models.asset import Asset
 from ..models.collection import Collection
+from ..models.object_permission import ObjectPermission
 
 
 class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
@@ -45,6 +46,8 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             klass = Collection
         elif uid.startswith('a'):
             klass = Asset
+        elif uid.startswith('p'):
+            klass = ObjectPermission
         else:
             raise NotImplementedError()
         obj = klass.objects.get(uid=uid)
