@@ -7,7 +7,10 @@ import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import {t} from 'js/utils';
+import {
+  t,
+  buildUserUrl
+} from 'js/utils';
 import {
   ASSET_KINDS,
   ANON_USERNAME
@@ -40,8 +43,14 @@ class SharingForm extends React.Component {
   }
 
   onGetAssetPermissionsCompleted(response) {
+    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+    let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
+      return perm.user !== buildUserUrl(this.state.asset.owner);
+    });
+
     this.setState({
-      permissions: permParser.parseBackendData(response.results, this.state.asset.owner)
+      permissions: parsedPerms,
+      nonOwnerPerms: nonOwnerPerms
     });
   }
 
@@ -115,7 +124,7 @@ class SharingForm extends React.Component {
             return <UserPermissionRow
               key={`perm.${uid}.${perm.user.name}`}
               uid={uid}
-              allPermissions={this.state.permissions}
+              nonOwnerPerms={this.state.nonOwnerPerms}
               kind={kind}
               {...perm}
             />;
@@ -143,7 +152,7 @@ class SharingForm extends React.Component {
               {kind === ASSET_KINDS.get('asset') &&
                 <UserAssetPermsEditor
                   uid={uid}
-                  assetPermissions={this.state.permissions}
+                  nonOwnerPerms={this.state.nonOwnerPerms}
                   objectUrl={objectUrl}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />

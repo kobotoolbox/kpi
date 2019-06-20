@@ -334,16 +334,13 @@ class UserAssetPermsEditor extends React.Component {
 
     if (parsedUser.length > 0) {
       // bulk endpoint needs all other users permissions to be passed
-      let parsedAll = permParser.parseUserWithPermsList(this.props.assetPermissions);
-      parsedAll = parsedAll.filter((perm) => {
+      let otherUserPerms = this.props.nonOwnerPerms.filter((perm) => {
         return perm.user !== buildUserUrl(formData.username);
       });
-      parsedAll = parsedAll.concat(parsedUser);
-
       this.setState({isSubmitPending: true});
       actions.permissions.bulkSetAssetPermissions(
         this.props.uid,
-        parsedAll
+        otherUserPerms.concat(parsedUser)
       );
     } else {
       // if nothing changes but user submits, just notify parent we're good

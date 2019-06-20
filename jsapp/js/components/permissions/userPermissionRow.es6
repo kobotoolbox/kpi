@@ -179,7 +179,7 @@ class UserPermissionRow extends React.Component {
                 username={this.props.user.name}
                 permissions={this.props.permissions}
                 uid={this.props.uid}
-                assetPermissions={this.props.assetPermissions}
+                nonOwnerPerms={this.props.nonOwnerPerms}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
             }
