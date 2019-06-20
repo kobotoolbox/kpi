@@ -13,11 +13,17 @@ import permParser from './permParser';
 import {
   assign,
   t,
-  notify
+  notify,
+  buildUserUrl
 } from 'js/utils';
 
 /**
  * Form for adding/changing user permissions for surveys.
+ *
+ * @prop uid - asset uid
+ * @prop username - permissions user username (could be empty for new)
+ * @prop permissions - list of permissions (could be empty for new)
+ * @prop onSubmitEnd - callback to be run when submit ends (success or failure)
  */
 class UserAssetPermsEditor extends React.Component {
   constructor(props) {
@@ -27,8 +33,7 @@ class UserAssetPermsEditor extends React.Component {
     this.state = {
       // inner workings
       usernamesBeingChecked: new Set(),
-      isSubmitSetPending: false,
-      isSubmitRemovePending: false,
+      isSubmitPending: false,
       isEditingUsername: false,
       // form user inputs
       username: '',
@@ -65,37 +70,24 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.setAssetPermissions.completed, this.onSetAssetPermissionsCompleted);
-    this.listenTo(actions.permissions.setAssetPermissions.failed, this.onSetAssetPermissionsFailed);
-    this.listenTo(actions.permissions.removeAssetPermissions.completed, this.onRemoveAssetPermissionsCompleted);
-    this.listenTo(actions.permissions.removeAssetPermissions.failed, this.onRemoveAssetPermissionsFailed);
+    this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onBulkSetAssetPermissionCompleted);
+    this.listenTo(actions.permissions.bulkSetAssetPermissions.failed, this.onBulkSetAssetPermissionFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onSetAssetPermissionsCompleted() {
-    this.setState({isSubmitSetPending: false});
+  onBulkSetAssetPermissionCompleted() {
+    this.setState({isSubmitPending: false});
     this.notifyParentAboutSubmitEnd(true);
   }
 
-  onSetAssetPermissionsFailed() {
-    this.setState({isSubmitSetPending: false});
-    this.notifyParentAboutSubmitEnd(false);
-  }
-
-  onRemoveAssetPermissionsCompleted() {
-    this.setState({isSubmitRemovePending: false});
-    this.notifyParentAboutSubmitEnd(true);
-  }
-
-  onRemoveAssetPermissionsFailed() {
-    this.setState({isSubmitRemovePending: false});
+  onBulkSetAssetPermissionFailed() {
+    this.setState({isSubmitPending: false});
     this.notifyParentAboutSubmitEnd(false);
   }
 
   notifyParentAboutSubmitEnd(isSuccess) {
     if (
-      !this.state.isSubmitSetPending &&
-      !this.state.isSubmitRemovePending &&
+      !this.state.isSubmitPending &&
       typeof this.props.onSubmitEnd === 'function'
     ) {
       this.props.onSubmitEnd(isSuccess);
@@ -311,8 +303,7 @@ class UserAssetPermsEditor extends React.Component {
     );
     return (
       isAnyCheckboxChecked &&
-      !this.state.isSubmitSetPending &&
-      !this.state.isSubmitRemovePending &&
+      !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       this.state.username.length > 0 &&
       this.state.usernamesBeingChecked.size === 0
@@ -338,27 +329,24 @@ class UserAssetPermsEditor extends React.Component {
       return;
     }
 
-    const parsed = permParser.parseFormData(this.getFormData());
-    const parsedDirty = permParser.parseFormData(this.getFormData(), false);
-    const parsedRemoved = permParser.getRemovedPerms(this.props.permissions, parsedDirty);
+    const formData = this.getFormData();
+    const parsedUser = permParser.parseFormData(formData);
 
-    if (parsedRemoved.length > 0) {
-      actions.permissions.removeAssetPermissions(
-        this.props.uid,
-        parsedRemoved
-      );
-      this.setState({isSubmitRemovePending: true});
-    }
-    if (parsed.length > 0) {
-      actions.permissions.setAssetPermissions(
-        this.props.uid,
-        parsed
-      );
-      this.setState({isSubmitSetPending: true});
-    }
+    if (parsedUser.length > 0) {
+      // bulk endpoint needs all other users permissions to be passed
+      let parsedAll = permParser.parseUserWithPermsList(this.props.assetPermissions);
+      parsedAll = parsedAll.filter((perm) => {
+        return perm.user !== buildUserUrl(formData.username);
+      });
+      parsedAll = parsedAll.concat(parsedUser);
 
-    // if nothing changes but user submits, just notify parent we're good
-    if (parsedRemoved.length === 0 && parsed.length === 0) {
+      this.setState({isSubmitPending: true});
+      actions.permissions.bulkSetAssetPermissions(
+        this.props.uid,
+        parsedAll
+      );
+    } else {
+      // if nothing changes but user submits, just notify parent we're good
       this.notifyParentAboutSubmitEnd(true);
     }
   }
@@ -371,7 +359,7 @@ class UserAssetPermsEditor extends React.Component {
     };
 
     const formModifiers = [];
-    if (this.state.isSubmitSetPending || this.state.isSubmitRemovePending) {
+    if (this.state.isSubmitPending) {
       formModifiers.push('pending');
     }
 

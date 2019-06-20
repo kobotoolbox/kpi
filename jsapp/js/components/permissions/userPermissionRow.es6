@@ -44,7 +44,7 @@ class UserPermissionRow extends React.Component {
 
     let okCallback;
     if (this.props.kind === ASSET_KINDS.get('asset')) {
-      okCallback = this.removeAssetPermissions;
+      okCallback = this.removeAssetPermission;
     } else if (this.props.kind === ASSET_KINDS.get('collection')) {
       okCallback = this.removeCollectionPermissions;
     }
@@ -59,14 +59,14 @@ class UserPermissionRow extends React.Component {
     dialog.set(opts).show();
   }
 
-  removeAssetPermissions() {
+  removeAssetPermission() {
     this.setState({isBeingDeleted: true});
     // we remove "view_asset" permission, as it is the most basic one, so removing it
     // will in fact remove all permissions
     const userViewAssetPerm = this.props.permissions.find((perm) => {
       return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
     });
-    actions.permissions.removeAssetPermissions(this.props.uid, [userViewAssetPerm.url]);
+    actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
   }
 
   removeCollectionPermissions() {
@@ -179,6 +179,7 @@ class UserPermissionRow extends React.Component {
                 username={this.props.user.name}
                 permissions={this.props.permissions}
                 uid={this.props.uid}
+                assetPermissions={this.props.assetPermissions}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
             }

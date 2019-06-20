@@ -46,12 +46,12 @@ import {
 
 /**
  * Builds an object understandable by Backend endpoints from form data.
+ * Removes contradictory and implied permissions from final output.
  *
  * @param {FormData} data
- * @param {boolean} doCleanup - Should contradictory and implied permissions be removed from final data.
  * @returns {BackendPerm[]} - An array of permissions to be given.
  */
-function parseFormData(data, doCleanup = true) {
+function parseFormData(data) {
   let parsed = [];
 
   if (data.formView) {
@@ -85,10 +85,8 @@ function parseFormData(data, doCleanup = true) {
     parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('validate_submissions')));
   }
 
-  if (doCleanup) {
-    parsed = removeContradictoryPerms(parsed);
-    parsed = removeImpliedPerms(parsed);
-  }
+  parsed = removeContradictoryPerms(parsed);
+  parsed = removeImpliedPerms(parsed);
 
   return parsed;
 }
@@ -129,31 +127,6 @@ function removeImpliedPerms(parsed) {
     return !impliedPerms.has(backendPerm.permission);
   });
   return parsed;
-}
-
-/**
- * Returns a list of permissions that are missing from the first list.
- *
- * @param {BackendPerm[]} beforePerms - Old permissions.
- * @param {BackendPerm[]} afterPerms - New permissions.
- * @returns {BackendPerm[]} - Removed permissions.
- */
-function getRemovedPerms(beforePerms, afterPerms) {
-  let removedPerms = [];
-
-  beforePerms.forEach((beforePerm) => {
-    let isInAfter = false;
-    afterPerms.forEach((afterPerm) => {
-      if (beforePerm.permission === afterPerm.permission) {
-        isInAfter = true;
-      }
-    });
-    if (!isInAfter) {
-      removedPerms.push(beforePerm);
-    }
-  });
-
-  return removedPerms;
 }
 
 /**
@@ -210,6 +183,25 @@ function buildFormData(permissions) {
   });
 
   return formData;
+}
+
+/**
+ * Builds a flat array of permissions for Backend endpoint
+ *
+ * @param {UserWithPerms[]} data - The one you get from parseBackendData or parseOldBackendData
+ * @returns {BackendPerm[]} A flat list of BackendPerms
+ */
+function parseUserWithPermsList(data) {
+  const output = [];
+  data.forEach((item) => {
+    item.permissions.forEach((itemPerm) => {
+      output.push({
+        user: item.user.url,
+        permission: itemPerm.permission
+      });
+    });
+  });
+  return output;
 }
 
 /**
@@ -336,8 +328,8 @@ function sortParseBackendOutput(output) {
 module.exports = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
-  getRemovedPerms: getRemovedPerms,
   parseBackendData: parseBackendData,
   parseOldBackendData: parseOldBackendData,
+  parseUserWithPermsList: parseUserWithPermsList,
   sortParseBackendOutput: sortParseBackendOutput // for testing purposes
 };

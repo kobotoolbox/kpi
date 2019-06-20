@@ -209,33 +209,31 @@ var dataInterface;
       });
     },
 
-    assignAssetPermissions(assetUid, perms) {
-      const $ajaxCalls = [];
-      perms.forEach((perm) => {
-        $ajaxCalls.push(
-          $ajax({
-            url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
-            method: 'POST',
-            data: JSON.stringify(perm),
-            dataType: 'json',
-            contentType: 'application/json'
-          })
-        );
+    bulkSetAssetPermissions(assetUid, perms) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/bulk/`,
+        method: 'POST',
+        data: JSON.stringify(perms),
+        dataType: 'json',
+        contentType: 'application/json'
       });
-      return $.when.apply(undefined, $ajaxCalls);
     },
 
-    removeAssetPermissions(perms) {
-      const $ajaxCalls = [];
-      perms.forEach((perm) => {
-        $ajaxCalls.push(
-          $ajax({
-            url: perm,
-            method: 'DELETE'
-          })
-        );
+    assignAssetPermission(assetUid, perm) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
+        method: 'POST',
+        data: JSON.stringify(perm),
+        dataType: 'json',
+        contentType: 'application/json'
       });
-      return $.when.apply(undefined, $ajaxCalls);
+    },
+
+    removeAssetPermission(perm) {
+      return $ajax({
+        url: perm,
+        method: 'DELETE'
+      });
     },
 
     /*

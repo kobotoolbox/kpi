@@ -149,66 +149,52 @@ describe('permParser', () => {
     });
   });
 
-  describe('getRemovedPerms', () => {
-    it('should return only removed permissions', () => {
-      const beforePerms = [
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/view_asset/'
-        },
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/change_asset/'
-        },
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/validate_submissions/'
-        }
-      ];
-      const afterPerms = [
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/view_asset/'
-        },
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/add_submissions/'
-        }
-      ];
-      const parsedRemoved = permParser.getRemovedPerms(beforePerms, afterPerms);
+  describe('parseUserWithPermsList', () => {
+    it('should return flat list of permissions', () => {
+      const userWithPermsList = permParser.parseBackendData(
+        endpoints.assetWithMulti.results,
+        endpoints.assetWithMulti.results[0].user
+      );
+      const parsed = permParser.parseUserWithPermsList(userWithPermsList);
 
-      chai.expect(parsedRemoved).to.deep.equal([
+      chai.expect(parsed).to.deep.equal([
         {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/change_asset/'
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/add_submissions/'
         },
         {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/validate_submissions/'
-        }
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/change_asset/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/change_submissions/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/validate_submissions/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/view_asset/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/view_submissions/'
+        },
+        {
+          'user': '/api/v2/users/john/',
+          'permission': '/api/v2/permissions/view_submissions/'
+        },
+        {
+          'user': '/api/v2/users/john/',
+          'permission': '/api/v2/permissions/view_asset/'
+        },
+        {
+          'user': '/api/v2/users/oliver/',
+          'permission': '/api/v2/permissions/view_asset/'
+        },
       ]);
-    });
-
-    it('should return empty array if nothing removed', () => {
-      const beforePerms = [
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/view_asset/'
-        }
-      ];
-      const afterPerms = [
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/view_asset/'
-        },
-        {
-          user: '/api/v2/users/leszek/',
-          permission: '/api/v2/permissions/change_asset/'
-        }
-      ];
-      const parsedRemoved = permParser.getRemovedPerms(beforePerms, afterPerms);
-
-      chai.expect(parsedRemoved.length).to.equal(0);
     });
   });
 });

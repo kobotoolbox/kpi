@@ -115,6 +115,7 @@ class SharingForm extends React.Component {
             return <UserPermissionRow
               key={`perm.${uid}.${perm.user.name}`}
               uid={uid}
+              allPermissions={this.state.permissions}
               kind={kind}
               {...perm}
             />;
@@ -142,6 +143,7 @@ class SharingForm extends React.Component {
               {kind === ASSET_KINDS.get('asset') &&
                 <UserAssetPermsEditor
                   uid={uid}
+                  assetPermissions={this.state.permissions}
                   objectUrl={objectUrl}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />

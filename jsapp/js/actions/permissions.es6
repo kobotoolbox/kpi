@@ -12,8 +12,9 @@ import {
 const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
   getAssetPermissions: {children: ['completed', 'failed']},
-  setAssetPermissions: {children: ['completed', 'failed']},
-  removeAssetPermissions: {children: ['completed', 'failed']},
+  bulkSetAssetPermissions: {children: ['completed', 'failed']},
+  assignAssetPermission: {children: ['completed', 'failed']},
+  removeAssetPermission: {children: ['completed', 'failed']},
   assignPerm: {children: ['completed', 'failed']},
   removePerm: {children: ['completed', 'failed']},
   copyPermissionsFrom: {children: ['completed', 'failed']},
@@ -38,39 +39,57 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
 });
 
 /**
- * For setting an array of permissions (each permission needs to be a separate call)
+ * For bulk setting permissions - wipes all current permissions, sets given ones
  *
  * @param {string} assetUid
- * @param {Object[]} perms - list of permissions to add
+ * @param {Object[]} perms - permissions to set
  */
-permissionsActions.setAssetPermissions.listen((assetUid, perms) => {
-  dataInterface.assignAssetPermissions(assetUid, perms)
+permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
+  dataInterface.bulkSetAssetPermissions(assetUid, perm)
     .done(() => {
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.setAssetPermissions.completed();
+      permissionsActions.bulkSetAssetPermissions.completed();
     })
     .fail(() => {
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.setAssetPermissions.failed();
+      permissionsActions.bulkSetAssetPermissions.failed();
     });
 });
 
 /**
- * For removing an array of permissions
+ * For adding single permission
  *
  * @param {string} assetUid
- * @param {string[]} perms - list of permissions urls to remove
+ * @param {Object} perm - permission to add
  */
-permissionsActions.removeAssetPermissions.listen((assetUid, perms) => {
-  dataInterface.removeAssetPermissions(perms)
+permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
+  dataInterface.assignAssetPermission(assetUid, perm)
     .done(() => {
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.removeAssetPermissions.completed();
+      permissionsActions.assignAssetPermission.completed();
     })
     .fail(() => {
-      notify(t('failed to remove permissions'), 'error');
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.removeAssetPermissions.failed();
+      permissionsActions.assignAssetPermission.failed();
+    });
+});
+
+/**
+ * For removing single permission
+ *
+ * @param {string} assetUid
+ * @param {string} perm - permission url
+ */
+permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
+  dataInterface.removeAssetPermission(perm)
+    .done(() => {
+      permissionsActions.getAssetPermissions(assetUid);
+      permissionsActions.removeAssetPermission.completed();
+    })
+    .fail(() => {
+      notify(t('failed to remove permission'), 'error');
+      permissionsActions.getAssetPermissions(assetUid);
+      permissionsActions.removeAssetPermission.failed();
     });
 });
 
