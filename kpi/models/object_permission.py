@@ -300,10 +300,17 @@ class ObjectPermissionMixin(object):
             # Then copy all permissions from source to target asset
             source_permissions = list(source_object.permissions.all())
             for source_permission in source_permissions:
-                self.assign_perm(
-                    user_obj=source_permission.user,
-                    perm=source_permission.permission.codename,
-                    deny=source_permission.deny)
+                kwargs = {
+                    'user_obj': source_permission.user,
+                    'perm': source_permission.permission.codename,
+                    'deny': source_permission.deny
+                }
+                if source_permission.permission.codename.startswith(PREFIX_PARTIAL_PERMS):
+                    kwargs.update({
+                        'partial_perms': source_object.get_partial_perms(
+                            source_permission.user_id, True)
+                    })
+                self.assign_perm(**kwargs)
             self._recalculate_inherited_perms()
             return True
         else:

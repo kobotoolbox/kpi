@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
-from rest_framework import viewsets, status, renderers
+from django.shortcuts import get_object_or_404
+from rest_framework import exceptions, viewsets, status, renderers
 from rest_framework.decorators import list_route
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
     DestroyModelMixin, ListModelMixin
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.constants import CLONE_ARG_NAME
+from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetNestedObjectPermission
 from kpi.serializers.v2.asset_permission import AssetPermissionSerializer, \
@@ -91,6 +94,7 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
 
     **Remove a permission**
+
     <span class='label label-info'>TODO - Block owner deletion</span>
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
@@ -122,6 +126,24 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >           "user": "https://[kpi]/api/v2/users/{username}/",
     >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
     >        },...]
+
+
+    **Clone permissions from another asset**
+
+    <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permissions/clone/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/clone/
+
+    > _Payload to clone permissions from another asset_
+    >
+    >        {
+    >           "clone_from": "{source_asset_uid}"
+    >        }
 
     ### CURRENT ENDPOINT
     """
@@ -156,7 +178,28 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 context=context_
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(asset=self.asset)
+
+        # returns asset permissions. Users who can change permissions can
+        # see all permissions.
+        return self.list(request, *args, **kwargs)
+
+    @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
+    def clone(self, request, *args, **kwargs):
+
+        source_asset_uid = self.request.data[CLONE_ARG_NAME]
+        source_asset = get_object_or_404(Asset, uid=source_asset_uid)
+        user = request.user
+
+        if user.has_perm('share_asset', self.asset) and \
+                user.has_perm('view_asset', source_asset):
+            if not self.asset.copy_permissions_from(source_asset):
+                http_status = status.HTTP_400_BAD_REQUEST
+                response = {"detail": "Source and destination objects don't "
+                                      "seem to have the same type"}
+                return Response(response, status=http_status)
+        else:
+            raise exceptions.PermissionDenied()
 
         # returns asset permissions. Users who can change permissions can
         # see all permissions.
