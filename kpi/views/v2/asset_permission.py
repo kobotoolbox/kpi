@@ -95,7 +95,6 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     **Remove a permission**
 
-    <span class='label label-info'>TODO - Block owner deletion</span>
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
     </pre>
@@ -206,9 +205,13 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return self.list(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        # TODO block owner's permission
         object_permission = self.get_object()
         user = object_permission.user
+        if user.pk == self.asset.owner_id:
+            return Response({
+                'detail': "Owner's permissions can not be deleted"
+            }, status=status.HTTP_409_CONFLICT)
+
         codename = object_permission.permission.codename
         self.asset.remove_perm(user, codename)
         return Response(status=status.HTTP_204_NO_CONTENT)
