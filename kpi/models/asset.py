@@ -954,7 +954,7 @@ class Asset(ObjectPermissionMixin,
                     user_id=user_id)
                 aupp.permissions = new_partial_perms
                 aupp.save(update_fields=["permissions"])
-        else:
+        elif perm in self.CONTRADICTORY_PERMISSIONS.get(PERM_PARTIAL_SUBMISSIONS):
             clean_up_table()
 
 
