@@ -300,6 +300,8 @@ class ObjectPermissionMixin(object):
             # Then copy all permissions from source to target asset
             source_permissions = list(source_object.permissions.all())
             for source_permission in source_permissions:
+                # if source's owner is the same user, don't need to reassign
+                # permissions
                 if source_permission.user != self.owner:
                     kwargs = {
                         'user_obj': source_permission.user,
