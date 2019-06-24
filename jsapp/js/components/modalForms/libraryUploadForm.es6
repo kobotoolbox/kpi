@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -78,9 +77,5 @@ class LibraryUploadForm extends React.Component {
 
 reactMixin(LibraryUploadForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryUploadForm.prototype, mixins.droppable);
-
-LibraryUploadForm.contextTypes = {
-  router: PropTypes.object
-};
 
 export default LibraryUploadForm;

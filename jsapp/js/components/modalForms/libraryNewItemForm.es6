@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -96,9 +95,5 @@ class LibraryNewItemForm extends React.Component {
 }
 
 reactMixin(LibraryNewItemForm.prototype, Reflux.ListenerMixin);
-
-LibraryNewItemForm.contextTypes = {
-  router: PropTypes.object
-};
 
 export default LibraryNewItemForm;

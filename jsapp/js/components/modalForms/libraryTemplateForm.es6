@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -269,7 +268,3 @@ export class LibraryTemplateForm extends React.Component {
 }
 
 reactMixin(LibraryTemplateForm.prototype, Reflux.ListenerMixin);
-
-LibraryTemplateForm.contextTypes = {
-  router: PropTypes.object
-};
