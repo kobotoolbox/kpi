@@ -21,7 +21,35 @@ import {
   renderBackButton
 } from './modalHelpers';
 
-class LibraryTemplateForm extends React.Component {
+/**
+ * Validates a template data to see if ready to be made public
+ *
+ * @param {string} name
+ * @param {string} organization
+ * @param {string} sector
+ *
+ * @returns {boolean|Object} true for valid template and object with errors for invalid one.
+ */
+export function canMakeTemplatePublic(name, organization, sector) {
+  const errors = {};
+  if (!name) {
+    errors.name = t('Name is required to make template public');
+  }
+  if (!organization) {
+    errors.organization = t('Organization is required to make template public');
+  }
+  if (!sector) {
+    errors.sector = t('Sector is required to make template public');
+  }
+
+  if (Object.keys(errors).length >= 1) {
+    return errors;
+  } else {
+    return true;
+  }
+}
+
+export class LibraryTemplateForm extends React.Component {
   constructor(props) {
     super(props);
     this.unlisteners = [];
@@ -104,16 +132,15 @@ class LibraryTemplateForm extends React.Component {
   onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
 
   validate() {
-    const errors = {};
+    let errors = {};
     if (this.state.data.isPublic) {
-      if (!this.state.data.name) {
-        errors.name = t('This field is required');
-      }
-      if (!this.state.data.organization) {
-        errors.organization = t('This field is required');
-      }
-      if (!this.state.data.sector) {
-        errors.sector = t('This field is required');
+      const validateResult = canMakeTemplatePublic(
+        this.state.data.name,
+        this.state.data.organization,
+        this.state.data.sector
+      );
+      if (validateResult !== true) {
+        errors = validateResult;
       }
     }
     this.setState({errors: errors});
@@ -161,7 +188,7 @@ class LibraryTemplateForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor='country' className='kobo-select-label'>
+            <label htmlFor='country'>
               {t('Country')}
             </label>
 
@@ -192,6 +219,10 @@ class LibraryTemplateForm extends React.Component {
               menuPlacement='auto'
               isClearable
             />
+
+            {this.state.errors.sector &&
+              <div className='kobo-select-error'>{this.state.errors.sector}</div>
+            }
           </bem.FormModal__item>
 
           <bem.FormModal__item>
@@ -242,5 +273,3 @@ reactMixin(LibraryTemplateForm.prototype, Reflux.ListenerMixin);
 LibraryTemplateForm.contextTypes = {
   router: PropTypes.object
 };
-
-export default LibraryTemplateForm;

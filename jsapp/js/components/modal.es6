@@ -14,7 +14,7 @@ import {
 } from '../constants';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import LibraryNewItemForm from '../components/modalForms/libraryNewItemForm';
-import LibraryTemplateForm from '../components/modalForms/libraryTemplateForm';
+import {LibraryTemplateForm} from '../components/modalForms/libraryTemplateForm';
 import LibraryCollectionForm from '../components/modalForms/libraryCollectionForm';
 import LibraryUploadForm from '../components/modalForms/libraryUploadForm';
 import SharingForm from '../components/modalForms/sharingForm';
