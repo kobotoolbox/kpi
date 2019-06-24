@@ -114,7 +114,7 @@ class App extends React.Component {
     return { shortcuts: shortcutManager }
   }
   render() {
-    var assetid = this.props.params.assetid || null;
+    var assetid = this.props.params.assetid || this.props.params.uid || null;
     return (
       <DocumentTitle title='KoBoToolbox'>
         <Shortcuts

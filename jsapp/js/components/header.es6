@@ -17,6 +17,9 @@ import {
   currentLang,
   stringToColor,
 } from '../utils';
+import {
+  ASSET_TYPES,
+} from '../constants';
 import searches from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
@@ -195,11 +198,23 @@ class MainHeader extends Reflux.Component {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
     }
 
-    let iconClassName = 'k-icon-deploy';
-    if (this.state.asset.has_deployment) {
-      iconClassName = 'k-icon-deploy';
-    } else {
-      iconClassName = 'k-icon-drafts';
+    let iconClassName = '';
+
+    if (this.state.asset.asset_type === ASSET_TYPES.template.id) {
+      iconClassName = 'k-icon-template';
+    }
+    if (
+      this.state.asset.asset_type === ASSET_TYPES.question.id ||
+      this.state.asset.asset_type === ASSET_TYPES.block.id
+    ) {
+      iconClassName = 'k-icon-question';
+    }
+    if (this.state.asset.asset_type === ASSET_TYPES.survey.id) {
+      if (this.state.asset.has_deployment) {
+        iconClassName = 'k-icon-deploy';
+      } else {
+        iconClassName = 'k-icon-drafts';
+      }
     }
 
     return (
@@ -229,7 +244,7 @@ class MainHeader extends Reflux.Component {
 
                 <HeaderTitleEditor
                   uid={this.state.asset.uid}
-                  type={this.state.asset.type}
+                  type={this.state.asset.asset_type}
                   name={this.state.asset.name}
                   isEditable={userCanEditAsset}
                 />
@@ -241,7 +256,7 @@ class MainHeader extends Reflux.Component {
 
                 <HeaderTitleEditor
                   uid={this.state.asset.uid}
-                  type={this.state.asset.type}
+                  type={this.state.asset.asset_type}
                   name={this.state.asset.name}
                   isEditable={userCanEditAsset}
                 />
