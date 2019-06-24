@@ -10,18 +10,52 @@ import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
-import {t} from 'js/utils';
+import actions from 'js/actions';
+import {hashHistory} from 'react-router';
+import {
+  t,
+  notify
+} from 'js/utils';
 import {
   renderLoading,
   renderBackButton
 } from './modalHelpers';
 
-class LibraryCollectionForm extends React.Component {
+/**
+ * Validates a collection data to see if ready to be made public
+ *
+ * @param {string} name
+ * @param {string} organization
+ * @param {string} sector
+ *
+ * @returns {boolean|Object} true for valid collection and object with errors for invalid one.
+ */
+export function canMakeCollectionPublic(name, organization, sector) {
+  const errors = {};
+  if (!name) {
+    errors.name = t('Name is required to make collection public');
+  }
+  if (!organization) {
+    errors.organization = t('Organization is required to make collection public');
+  }
+  if (!sector) {
+    errors.sector = t('Sector is required to make collection public');
+  }
+
+  if (Object.keys(errors).length >= 1) {
+    return errors;
+  } else {
+    return true;
+  }
+}
+
+export class LibraryCollectionForm extends React.Component {
   constructor(props) {
     super(props);
+    this.unlisteners = [];
     this.state = {
       isSessionLoaded: !!stores.session.currentAccount,
-      collectionData: {
+      data: {
         name: '',
         organization: '',
         country: null,
@@ -30,9 +64,9 @@ class LibraryCollectionForm extends React.Component {
         description: '',
         isPublic: false
       },
+      errors: {},
       isPending: false
     };
-
     autoBind(this);
   }
 
@@ -40,12 +74,49 @@ class LibraryCollectionForm extends React.Component {
     this.listenTo(stores.session, () => {
       this.setState({isSessionLoaded: true});
     });
+    this.unlisteners.push(
+      actions.resources.createCollection.completed.listen(this.onCreateCollectionCompleted.bind(this)),
+      actions.resources.createCollection.failed.listen(this.onCreateCollectionFailed.bind(this))
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  onCreateCollectionCompleted(response) {
+    this.setState({isPending: false});
+    notify(t('Collection ##name## created').replace('##name##', response.name));
+    this.goToCollectionLandingPage(response.uid);
+  }
+
+  onCreateCollectionFailed() {
+    this.setState({isPending: false});
+  }
+
+  createCollection() {
+    this.setState({isPending: true});
+
+    actions.resources.createCollection({
+      name: this.state.data.name,
+      organization: this.state.data.organization,
+      country: this.state.data.country,
+      sector: this.state.data.sector,
+      tags: this.state.data.tags,
+      description: this.state.data.description
+    });
+  }
+
+  goToCollectionLandingPage(uid) {
+    stores.pageState.hideModal();
+    hashHistory.push(`/library/collection/${uid}/`);
   }
 
   onPropertyChange(property, newValue) {
-    const collectionData = this.state.collectionData;
-    collectionData[property] = newValue;
-    this.setState({collectionData: collectionData});
+    const data = this.state.data;
+    data[property] = newValue;
+    this.setState({data: data});
+    this.validate();
   }
 
   onNameChange(newValue) {this.onPropertyChange('name', newValue);}
@@ -56,6 +127,28 @@ class LibraryCollectionForm extends React.Component {
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
   onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
 
+  validate() {
+    let errors = {};
+    if (this.state.data.isPublic) {
+      const validateResult = canMakeCollectionPublic(
+        this.state.data.name,
+        this.state.data.organization,
+        this.state.data.sector
+      );
+      if (validateResult !== true) {
+        errors = validateResult;
+      }
+    }
+    this.setState({errors: errors});
+  }
+
+  isSubmitEnabled() {
+    return (
+      !this.state.isPending &&
+      Object.keys(this.state.errors).length === 0
+    );
+  }
+
   render() {
     if (!this.state.isSessionLoaded) {
       return renderLoading();
@@ -64,22 +157,29 @@ class LibraryCollectionForm extends React.Component {
     const SECTORS = stores.session.currentAccount.available_sectors;
     const COUNTRIES = stores.session.currentAccount.available_countries;
 
+    const sectorWrapperClassNames = ['kobo-select__wrapper'];
+    if (this.state.errors.sector) {
+      sectorWrapperClassNames.push('kobo-select__wrapper--error');
+    }
+
     return (
       <bem.FormModal__form className='project-settings'>
-        <bem.FormModal__item m='wrapper'>
+        <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
-              value={this.state.collectionData.name}
+              value={this.state.data.name}
               onChange={this.onNameChange}
               label={t('Name') + '*'}
+              errors={this.state.errors.name}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <TextBox
-              value={this.state.collectionData.organization}
+              value={this.state.data.organization}
               onChange={this.onOrganizationChange}
               label={t('Organization') + '*'}
+              errors={this.state.errors.organization}
             />
           </bem.FormModal__item>
 
@@ -90,7 +190,7 @@ class LibraryCollectionForm extends React.Component {
 
             <Select
               id='country'
-              value={this.state.collectionData.country}
+              value={this.state.data.country}
               onChange={this.onCountryChange}
               options={COUNTRIES}
               className='kobo-select'
@@ -100,14 +200,14 @@ class LibraryCollectionForm extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item>
+          <bem.FormModal__item className={sectorWrapperClassNames.join(' ')}>
             <label htmlFor='sector'>
               {t('Primary Sector') + '*'}
             </label>
 
             <Select
               id='sector'
-              value={this.state.collectionData.sector}
+              value={this.state.data.sector}
               onChange={this.onSectorChange}
               options={SECTORS}
               className='kobo-select'
@@ -115,11 +215,15 @@ class LibraryCollectionForm extends React.Component {
               menuPlacement='auto'
               isClearable
             />
+
+            {this.state.errors.sector &&
+              <div className='kobo-select-error'>{this.state.errors.sector}</div>
+            }
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <TagsInput
-              value={this.state.collectionData.tags}
+              value={this.state.data.tags}
               onChange={this.onTagsChange}
               inputProps={{placeholder: t('Tags')}}
             />
@@ -128,16 +232,16 @@ class LibraryCollectionForm extends React.Component {
           <bem.FormModal__item>
             <TextareaAutosize
               onChange={this.onDescriptionChange}
-              value={this.state.collectionData.description}
+              value={this.state.data.description}
               placeholder={t('Enter short description here')}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <Checkbox
-              checked={this.state.collectionData.isPublic}
+              checked={this.state.data.isPublic}
               onChange={this.onIsPublicChange}
-              label={t('Make Public')}
+              label={t('Make Public') + ' ' + t('*required to be made public')}
             />
           </bem.FormModal__item>
         </bem.FormModal__item>
@@ -149,7 +253,7 @@ class LibraryCollectionForm extends React.Component {
             m='primary'
             type='submit'
             onClick={this.createCollection}
-            disabled={this.state.isPending}
+            disabled={!this.isSubmitEnabled()}
             className='mdl-js-button'
           >
             {this.state.isPending ? t('Creating…') : t('Create')}
@@ -165,5 +269,3 @@ reactMixin(LibraryCollectionForm.prototype, Reflux.ListenerMixin);
 LibraryCollectionForm.contextTypes = {
   router: PropTypes.object
 };
-
-export default LibraryCollectionForm;

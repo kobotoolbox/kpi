@@ -529,6 +529,15 @@ actions.resources.deleteAsset.listen(function(details, params={}){
     });
 });
 
+actions.resources.createCollection.listen(function(details){
+  dataInterface.createCollection(details)
+    .done(actions.resources.createCollection.completed)
+    .fail(actions.resources.createCollection.failed);
+});
+actions.resources.createCollection.failed.listen(() => {
+  notify(t('Failed to create collection.'), 'error');
+});
+
 actions.resources.deleteCollection.listen(function(details, params = {}){
   dataInterface.deleteCollection(details)
     .done(function(result) {
