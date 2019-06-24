@@ -159,9 +159,10 @@ bem.FormView__map = bem.FormView.__('map');
 bem.FormView__mapButton = bem.FormView.__('map-button');
 bem.FormView__mapList = bem.FormView.__('map-list');
 
-bem.FormTitle = BEM('form-title');
-bem.FormTitle__name = bem.FormTitle.__('name');
-bem.FormTitle__submissions = bem.FormTitle.__('submissions');
+bem.MainHeader = BEM('main-header', '<header>');
+bem.MainHeader__icon = bem.MainHeader.__('icon', '<i>');
+bem.MainHeader__title = bem.MainHeader.__('title');
+bem.MainHeader__counter = bem.MainHeader.__('counter');
 
 
 bem.ReportView = BEM('report-view');

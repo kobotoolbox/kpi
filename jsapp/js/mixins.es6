@@ -727,6 +727,12 @@ mixins.contextRouter = {
   isLibrary () {
     return this.context.router.isActive('library');
   },
+  isLibraryList () {
+    return this.context.router.isActive('library') && this.currentAssetID() === undefined;
+  },
+  isLibrarySingle () {
+    return this.context.router.isActive('library') && this.currentAssetID() !== undefined;
+  },
   isFormSingle () {
     return this.context.router.isActive('forms') && this.currentAssetID() !== undefined;
   },
