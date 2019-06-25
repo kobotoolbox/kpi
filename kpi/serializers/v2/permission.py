@@ -75,8 +75,12 @@ class PermissionSerializer(serializers.ModelSerializer):
         return []
 
     def get_name(self, permission):
-        # @TODO add name
-        return ""
+        name = Asset.PERMISSIONS_NAMES.get(permission.codename,
+                                           Collection.PERMISSIONS_NAMES.get(
+                                               permission.codename))
+        if not name:
+            name = _(permission.codename.replace('_', ' ').capitalize())
+        return name
 
     @staticmethod
     def __get_key(app_label, model_name):
