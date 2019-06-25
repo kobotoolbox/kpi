@@ -70,10 +70,10 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
         :param view: ViewSet
         :return: Asset/Collection
         """
-        if cls.MODEL_NAME == 'Asset':
-            return cls._get_asset(view)
-        else:
+        if cls.MODEL_NAME == 'collection':
             return cls._get_collection(view)
+        else:
+            return cls._get_asset(view)
 
     def _get_user_permissions(self, object_, user):
         """
