@@ -7,12 +7,14 @@ import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
-from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
+from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
+    PERM_DELETE_COLLECTION, PERM_SHARE_COLLECTION
 from kpi.fields import KpiUidField
 from kpi.haystack_utils import update_object_in_search_index
 from .asset import (
@@ -73,15 +75,25 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             # change_, add_, and delete_collection are provided automatically
             # by Django
             (PERM_VIEW_COLLECTION, 'Can view collection'),
-            ('share_collection',
+            (PERM_SHARE_COLLECTION,
              "Can change this collection's sharing settings"),
         )
 
     # Assignable permissions that are stored in the database
     ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
+
+    # Names exposed in API.
+    # Useful for FE to display human readable name for permissions
+    # TODO Merge with `ASSIGNABLE_PERMISSIONS` and use .keys() wherever
+    # `ASSIGNABLE_PERMISSIONS` is used.
+    PERMISSIONS_NAMES = {
+        PERM_VIEW_COLLECTION: _('View collection'),
+        PERM_CHANGE_COLLECTION: _('Change collection')
+    }
+
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
-    CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
+    CALCULATED_PERMISSIONS = (PERM_SHARE_COLLECTION, PERM_DELETE_COLLECTION)
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
