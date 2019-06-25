@@ -7,10 +7,10 @@ from kpi.fields import PaginatedApiField
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models import CollectionChildrenQuerySet
-
-from .asset import AssetListSerializer
-from .ancestor_collections import AncestorCollectionsSerializer
 from kpi.serializers.v2 import collection
+from .ancestor_collections import AncestorCollectionsSerializer
+from .asset import AssetListSerializer
+from .object_permission import ObjectPermissionSerializer
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
@@ -39,6 +39,8 @@ class CollectionSerializer(collection.CollectionSerializer):
             source
         ).optimize_for_list()
     )
+
+    permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
 
 class CollectionListSerializer(collection.CollectionListSerializer,

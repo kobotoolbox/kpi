@@ -9,9 +9,11 @@ from kpi.serializers.v1.object_permission import ObjectPermissionSerializer
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models import CollectionChildrenQuerySet
+from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 from .asset import AssetListSerializer
 from .ancestor_collections import AncestorCollectionsSerializer
+from .collection_permission import CollectionPermissionSerializer
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
@@ -53,8 +55,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             source
         ).optimize_for_list()
     )
-    # TODO Do what has been done with Asset? e.g. nested permissions
-    permissions = ObjectPermissionSerializer(many=True, read_only=True)
+
+    permissions = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False)
     access_type = serializers.SerializerMethodField()
@@ -121,6 +123,21 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             return 'superuser'
         raise Exception(u'{} has unexpected access to {}'.format(
             request.user.username, obj.uid))
+
+    def get_permissions(self, obj):
+        context = self.context
+        request = self.context.get('request')
+        queryset = ObjectPermissionHelper.get_assignments_queryset(obj,
+                                                                   request.user)
+        # Need to pass `asset` and `asset_uid` to context of
+        # AssetPermissionSerializer serializer to avoid extra queries to DB
+        # within the serializer to retrieve the asset object.
+        context.update({'collection': obj})
+        context.update({'collection_uid': obj.uid})
+
+        return CollectionPermissionSerializer(queryset.all(),
+                                              many=True, read_only=True,
+                                              context=context).data
 
 
 class CollectionListSerializer(CollectionSerializer):

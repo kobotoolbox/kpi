@@ -1,10 +1,11 @@
 from abc import ABCMeta, abstractmethod
 
 from django.http import Http404
-from rest_framework import permissions
+from rest_framework import permissions, exceptions
 from rest_framework_extensions.settings import extensions_api_settings
 
 from kpi.models.asset import Asset
+from kpi.models.collection import Collection
 from kpi.models.object_permission import get_anonymous_user
 from kpi.constants import PERM_PARTIAL_SUBMISSIONS
 
@@ -34,14 +35,13 @@ def get_perm_name(perm_name_prefix, model_instance):
     return perm_name
 
 
-class AbstractAssetNestedObjectPermission(permissions.BasePermission):
+class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
     """
-    Abstract class for Asset and related objects permissions
+    Main abstract class for Asset/Collection and related objects permissions
+    Common methods are property are defined within this class.
     """
 
     __metaclass__ = ABCMeta
-
-    MODEL_NAME = Asset._meta.model_name
 
     @property
     def perms_map(self):
@@ -61,25 +61,28 @@ class AbstractAssetNestedObjectPermission(permissions.BasePermission):
         # always return True.
         return True
 
-    @staticmethod
-    def _get_asset(view):
+    @classmethod
+    def _get_parent_object(cls, view):
         """
-        Returns Asset from the view.
-        The view must have a property `asset`.
+        Returns parent object from the view (`Asset` or `Collection`)
+        The view must have a property `asset` or `collection`
         It's easily done with `AssetNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
         :param view: ViewSet
-        :return: Asset
+        :return: Asset/Collection
         """
-        return view.asset
+        if cls.MODEL_NAME == 'Asset':
+            return cls._get_asset(view)
+        else:
+            return cls._get_collection(view)
 
-    def _get_user_permissions(self, asset, user):
+    def _get_user_permissions(self, object_, user):
         """
         Returns a list of `user`'s permission for `asset`
-        :param asset: Asset
+        :param object_: Asset/Collection
         :param user: auth.User
         :return: list
         """
-        return list(asset.get_perms(user))
+        return list(object_.get_perms(user))
 
     @staticmethod
     def _get_parents_query_dict(request):
@@ -109,7 +112,7 @@ class AbstractAssetNestedObjectPermission(permissions.BasePermission):
         :param action: str. Optional
         :return:
         """
-        app_label = Asset._meta.app_label
+        app_label = self.APP_LABEL
 
         kwargs = {
             'app_label': app_label,
@@ -128,7 +131,47 @@ class AbstractAssetNestedObjectPermission(permissions.BasePermission):
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
 
-class AssetNestedObjectPermission(AbstractAssetNestedObjectPermission):
+class BaseAssetNestedObjectPermission(AbstractParentObjectNestedObjectPermission):
+    """
+    Abstract class for Asset and related objects permissions
+    """
+
+    MODEL_NAME = Asset._meta.model_name
+    APP_LABEL = Asset._meta.app_label
+
+    @staticmethod
+    def _get_asset(view):
+        """
+        Returns Asset from the view.
+        The view must have a property `asset`.
+        It's easily done with `AssetNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
+        :param view: ViewSet
+        :return: Asset
+        """
+        return view.asset
+
+
+class BaseCollectionNestedObjectPermission(AbstractParentObjectNestedObjectPermission):
+    """
+    Abstract class for Collection and related objects permissions
+    """
+
+    MODEL_NAME = Collection._meta.model_name
+    APP_LABEL = Collection._meta.app_label
+
+    @staticmethod
+    def _get_collection(view):
+        """
+        Returns Collection from the view.
+        The view must have a property `collection`.
+        It's easily done with `CollectionNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
+        :param view: ViewSet
+        :return: Collection
+        """
+        return view.collection
+
+
+class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     """
     Permissions for nested objects of Asset.
     Users need `*_asset` permissions to operate on these objects
@@ -147,23 +190,19 @@ class AssetNestedObjectPermission(AbstractAssetNestedObjectPermission):
     perms_map['DELETE'] = perms_map['POST']
 
     def has_permission(self, request, view):
-        # https://github.com/encode/django-rest-framework/blob/master/rest_framework/permissions.py#L220
-        if getattr(view, '_ignore_model_permissions', False):
-            return True
-
         if not request.user:
             return False
         elif request.user.is_superuser:
             return True
 
-        asset = self._get_asset(view)
+        parent_object = self._get_parent_object(view)
 
         required_permissions = self.get_required_permissions(request.method, view.action)
         user = request.user
         if user.is_anonymous():
             user = get_anonymous_user()
 
-        user_permissions = self._get_user_permissions(asset, user)
+        user_permissions = self._get_user_permissions(parent_object, user)
 
         has_perm = False
         for permission in required_permissions:
@@ -186,7 +225,7 @@ class AssetNestedObjectPermission(AbstractAssetNestedObjectPermission):
         return True
 
 
-class AssetOwnerNestedObjectPermission(AbstractAssetNestedObjectPermission):
+class AssetOwnerNestedObjectPermission(BaseAssetNestedObjectPermission):
     """
     Permissions for objects that are nested under Asset which only owner should access.
     Others should receive a 404 response (instead of 403) to avoid revealing existence
@@ -197,14 +236,13 @@ class AssetOwnerNestedObjectPermission(AbstractAssetNestedObjectPermission):
     perms_map = {}
 
     def has_permission(self, request, view):
-        # https://github.com/encode/django-rest-framework/blob/master/rest_framework/permissions.py#L220
-        if getattr(view, '_ignore_model_permissions', False):
-            return True
 
         if not request.user or (request.user and
                                 (request.user.is_anonymous() or
                                  not request.user.is_authenticated())):
             return False
+        elif request.user.is_superuser:
+            return True
 
         asset = self._get_asset(view)
 
@@ -212,6 +250,25 @@ class AssetOwnerNestedObjectPermission(AbstractAssetNestedObjectPermission):
             raise Http404
 
         return True
+
+
+class CollectionNestedObjectPermission(BaseCollectionNestedObjectPermission,
+                                       AssetNestedObjectPermission):
+    """
+    Permissions for nested objects of Collection.
+    Users need `*_collection` permissions to operate on these objects
+    """
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_collection'],
+        'POST': ['%(app_label)s.change_collection'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
 
 
 # FIXME: Name is no longer accurate.

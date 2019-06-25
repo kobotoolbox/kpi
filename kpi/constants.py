@@ -57,18 +57,16 @@ PERM_VIEW_SUBMISSIONS = 'view_submissions'
 PERM_PARTIAL_SUBMISSIONS = 'partial_submissions'
 PERM_CHANGE_SUBMISSIONS = 'change_submissions'
 PERM_VALIDATE_SUBMISSIONS = 'validate_submissions'
-
+PERM_VIEW_COLLECTION = 'view_collection'
+PERM_CHANGE_COLLECTION = 'change_collection'
 
 # CALCULATED_PERMISSIONS
 PERM_SHARE_ASSET = 'share_asset'
 PERM_DELETE_ASSET = 'delete_asset'
 PERM_SHARE_SUBMISSIONS = 'share_submissions'
 PERM_DELETE_SUBMISSIONS = 'delete_submissions'
-
-# MAPPED_PARENT_PERMISSIONS
-PERM_VIEW_COLLECTION = 'view_collection'
-PERM_CHANGE_COLLECTION = 'change_collection'
+PERM_SHARE_COLLECTION = 'share_collection'
+PERM_DELETE_COLLECTION = 'delete_collection'
 
 # KC INTERNAL
 PERM_FROM_KC_ONLY = 'from_kc_only'
-

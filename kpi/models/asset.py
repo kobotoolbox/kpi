@@ -507,6 +507,21 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_SUBMISSIONS,
         PERM_VALIDATE_SUBMISSIONS,
     )
+
+    # Names exposed in API.
+    # Useful for FE to display human readable name for permissions
+    # TODO Merge with `ASSIGNABLE_PERMISSIONS` and use .keys() wherever
+    # `ASSIGNABLE_PERMISSIONS` is used.
+    PERMISSIONS_NAMES = {
+        PERM_VIEW_ASSET: _('View asset'),
+        PERM_CHANGE_ASSET: _('Change asset'),
+        PERM_ADD_SUBMISSIONS: _('Add submissions'),
+        PERM_VIEW_SUBMISSIONS: _('View submissions'),
+        PERM_PARTIAL_SUBMISSIONS: _('Partial View submissions'),
+        PERM_CHANGE_SUBMISSIONS: _('Change submissions'),
+        PERM_VALIDATE_SUBMISSIONS: _('Validate submissions')
+    }
+
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = (
