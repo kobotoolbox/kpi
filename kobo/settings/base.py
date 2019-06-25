@@ -330,7 +330,6 @@ TEMPLATES = [
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-INTERCOM_APP_ID = os.environ.get('INTERCOM_APP_ID')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists
