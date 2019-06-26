@@ -139,7 +139,7 @@ class FormSummary extends React.Component {
   renderSubmissionsGraph() {
     return (
       <bem.FormView__row m='summary-submissions'>
-        <bem.FormView__cell m='label'>
+        <bem.FormView__cell m={['label', 'first']}>
           {t('Submissions')}
         </bem.FormView__cell>
         <bem.FormView__cell m={['box']}>
@@ -292,7 +292,7 @@ class FormSummary extends React.Component {
 
     return (
       <bem.FormView__row m='team'>
-        <bem.FormView__cell m='label'>
+        <bem.FormView__cell m={['label', 'first']}>
           {t('Team members')}
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
@@ -347,7 +347,7 @@ class FormSummary extends React.Component {
           <bem.FormView__column m='left'>
             {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) &&
               <bem.FormView__row m='summary-description'>
-                <bem.FormView__cell m='label'>
+                <bem.FormView__cell m={['label', 'first']}>
                   {t('Description')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box']}>
@@ -377,7 +377,7 @@ class FormSummary extends React.Component {
             }
             {this.renderSubmissionsGraph()}
             <bem.FormView__row m='summary-details'>
-              <bem.FormView__cell m='label'>
+              <bem.FormView__cell m={['label', 'first']}>
                 {t('Form details')}
               </bem.FormView__cell>
               <bem.FormView__cell m={['box']}>
@@ -418,7 +418,7 @@ class FormSummary extends React.Component {
 
           <bem.FormView__column m='right'>
             <bem.FormView__row m='quick-links'>
-              <bem.FormView__cell m='label'>
+              <bem.FormView__cell m={['label', 'first']}>
                 {t('Quick Links')}
               </bem.FormView__cell>
               <bem.FormView__cell m='box'>
@@ -428,7 +428,7 @@ class FormSummary extends React.Component {
 
             {this.state.deployment__submission_count > 0 &&
               <bem.FormView__row m='data-links'>
-                <bem.FormView__cell m='label'>
+                <bem.FormView__cell m={['label', 'first']}>
                   {t('Data')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m='box'>

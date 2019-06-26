@@ -141,10 +141,8 @@ export class FormLanding extends React.Component {
     var dvcount = this.state.deployed_versions.count;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
-        <bem.FormView__cell m={['columns', 'history-label']}>
-          <bem.FormView__cell m='label'>
-            {t('Form history')}
-          </bem.FormView__cell>
+        <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
+          {t('Form history')}
         </bem.FormView__cell>
         <bem.FormView__cell m={['box', 'history-table']}>
           <bem.FormView__group m='deployments'>
@@ -239,10 +237,8 @@ export class FormLanding extends React.Component {
 
     return (
       <bem.FormView__row>
-        <bem.FormView__cell m='columns'>
-          <bem.FormView__cell m='label'>
-              {t('Collect data')}
-          </bem.FormView__cell>
+        <bem.FormView__cell m={['label', 'first']}>
+            {t('Collect data')}
         </bem.FormView__cell>
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding']}>

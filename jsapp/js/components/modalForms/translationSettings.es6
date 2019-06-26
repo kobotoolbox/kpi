@@ -270,7 +270,7 @@ export class TranslationSettings extends React.Component {
               </p>
             </bem.FormView__cell>
             :
-            <bem.FormView__cell m='label'>
+            <bem.FormView__cell m={['label', 'first']}>
               {t('Current languages')}
             </bem.FormView__cell>
           }

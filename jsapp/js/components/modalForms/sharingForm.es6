@@ -306,7 +306,7 @@ class SharingForm extends React.Component {
           <bem.Modal__subheader>
             {name}
           </bem.Modal__subheader>
-          <bem.FormView__cell m='label'>
+          <bem.FormView__cell m={['label', 'first']}>
             {t('Who has access')}
           </bem.FormView__cell>
           <bem.UserRow>
@@ -328,7 +328,7 @@ class SharingForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.FormModal__form onSubmit={this.addInitialUserPermission} className='sharing-form__user'>
-            <bem.FormView__cell m='label'>
+            <bem.FormView__cell m={['label', 'first']}>
               {t('Invite collaborators')}
             </bem.FormView__cell>
             <bem.FormModal__item m={['gray-row', 'invite-collaborators']}>
@@ -358,7 +358,7 @@ class SharingForm extends React.Component {
 
         { kind != 'collection' && asset_type == 'survey' &&
           <bem.FormView__cell>
-            <bem.FormView__cell m='label'>
+            <bem.FormView__cell m={['label', 'first']}>
               {t('Select share settings')}
             </bem.FormView__cell>
             <PublicPermDiv
