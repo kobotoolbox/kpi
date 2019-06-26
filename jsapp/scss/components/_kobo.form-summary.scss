@@ -12,9 +12,10 @@
   }
 }
 
-.form-view__cell--description {
-  border-top: 1px solid $divider-color;
-  padding: 20px;
+.form-view__row--summary-description {
+  .form-view__cell--description:not(:first-child) {
+    border-top: 1px solid $divider-color;
+  }
 }
 
 .form-view__group--summary-details-cols {

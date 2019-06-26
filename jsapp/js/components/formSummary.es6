@@ -368,7 +368,7 @@ class FormSummary extends React.Component {
                     </bem.FormView__group>
                   }
                   {this.state.settings.description &&
-                    <bem.FormView__cell m='description'>
+                    <bem.FormView__cell m={['padding', 'description']}>
                       {this.state.settings.description}
                     </bem.FormView__cell>
                   }

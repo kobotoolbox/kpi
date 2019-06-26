@@ -106,7 +106,9 @@ class LibraryAsset extends React.Component {
               {this.renderActionButtons()}
             </bem.FormView__cell>
 
-            <AssetInfoBox/>
+            <AssetInfoBox
+              asset={this.state.asset}
+            />
           </bem.FormView__row>
         </bem.FormView>
       </DocumentTitle>
