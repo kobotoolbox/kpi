@@ -1394,11 +1394,18 @@ class EnvironmentView(APIView):
     ]
 
     def get(self, request, *args, **kwargs):
-        '''
+        """
         Return the lowercased key and value of each setting in
-        `CONFIGS_TO_EXPOSE`
-        '''
-        return Response({
+        `CONFIGS_TO_EXPOSE`, along with the static lists of sectors, countries,
+        all known languages, and languages for which the interface has
+        translations.
+        """
+        data = {
             key.lower(): getattr(constance.config, key)
                 for key in self.CONFIGS_TO_EXPOSE
-        })
+        }
+        data['available_sectors'] = SECTORS
+        data['available_countries'] = COUNTRIES
+        data['all_languages'] = LANGUAGES
+        data['interface_languages'] = settings.LANGUAGES
+        return Response(data)

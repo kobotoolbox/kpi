@@ -219,31 +219,33 @@ var sessionStore = Reflux.createStore({
   },
   triggerAnonymous (/*data*/) {},
   triggerEnv (environment) {
+    const nestedArrToChoiceObjs = (i) => {
+      return {
+        value: i[0],
+        label: i[1],
+      };
+    };
+    if (environment.available_sectors) {
+      environment.available_sectors = environment.available_sectors.map(
+        nestedArrToChoiceObjs);
+    }
+    if (environment.available_countries) {
+      environment.available_countries = environment.available_countries.map(
+        nestedArrToChoiceObjs);
+    }
+    if (environment.interface_languages) {
+      environment.interface_languages = environment.interface_languages.map(
+        nestedArrToChoiceObjs);
+    }
+    if (environment.all_languages) {
+      environment.all_languages = environment.all_languages.map(
+        nestedArrToChoiceObjs);
+    }
     this.environment = environment;
+    this.trigger({environment: environment});
   },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
-    var nestedArrToChoiceObjs = function (_s) {
-      return {
-        value: _s[0],
-        label: _s[1],
-      };
-    };
-    if (acct.available_sectors) {
-      acct.available_sectors = acct.available_sectors.map(
-        nestedArrToChoiceObjs);
-    }
-    if (acct.available_countries) {
-      acct.available_countries = acct.available_countries.map(
-        nestedArrToChoiceObjs);
-    }
-    if (acct.languages) {
-      acct.languages = acct.languages.map(nestedArrToChoiceObjs);
-    }
-    if (acct.all_languages) {
-      acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
-    }
-
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,
