@@ -7,6 +7,7 @@ import bem from 'js/bem';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import {t} from 'js/utils';
+import {ASSET_TYPES} from 'js/constants';
 
 class HeaderTitleEditor extends React.Component {
   constructor(props){
@@ -29,7 +30,7 @@ class HeaderTitleEditor extends React.Component {
 
   updateAssetTitle() {
     if (!this.state.name.trim()) {
-      alertify.error(t('Please enter a title for your project'));
+      alertify.error(t('Please enter a title for your ##type##').replace('##type##', ASSET_TYPES[this.props.type].label));
       return false;
     } else {
       this.setState({isPending: true});
@@ -65,12 +66,28 @@ class HeaderTitleEditor extends React.Component {
       modifiers.push('long');
     }
 
+    let placeholder = '';
+    switch (this.props.type) {
+      case ASSET_TYPES.question.id:
+        placeholder = t('Question title');
+        break;
+      case ASSET_TYPES.block.id:
+        placeholder = t('Block title');
+        break;
+      case ASSET_TYPES.template.id:
+        placeholder = t('Template title');
+        break;
+      case ASSET_TYPES.survey.id:
+        placeholder = t('Project title');
+        break;
+    }
+
     return (
       <bem.MainHeader__title m={modifiers}>
         <input
           type='text'
           name='title'
-          placeholder={t('Project title')}
+          placeholder={placeholder}
           value={this.state.name}
           onChange={this.assetTitleChange.bind(this)}
           onKeyDown={this.assetTitleKeyDown.bind(this)}
