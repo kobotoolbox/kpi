@@ -971,10 +971,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         if obj.is_anonymous():
             return {'message': 'user is not logged in'}
         rep = super(CurrentUserSerializer, self).to_representation(obj)
-        if settings.UPCOMING_DOWNTIME:
-            # setting is in the format:
-            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
-            rep['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
         # TODO: Find a better location for SECTORS and COUNTRIES
         # as the functionality develops. (possibly in tags?)
         rep['available_sectors'] = SECTORS

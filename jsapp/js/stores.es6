@@ -223,27 +223,6 @@ var sessionStore = Reflux.createStore({
   },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
-    if (acct.upcoming_downtime) {
-      var downtimeString = acct.upcoming_downtime[0];
-      acct.downtimeDate = new Date(Date.parse(acct.upcoming_downtime[0]));
-      acct.downtimeMessage = acct.upcoming_downtime[1];
-      stores.pageState._onHideModal = function () {
-        window.localStorage.setItem('downtimeNoticeSeen', downtimeString);
-      }
-      if (window.localStorage['downtimeNoticeSeen'] !== downtimeString) {
-        // user has not seen the notification about upcoming downtime
-        window.setTimeout(function(){
-          stores.pageState.showModal({
-            message: acct.downtimeMessage,
-            icon: 'gears',
-          })
-        }, 1500);
-      }
-    } else {
-      if ('downtimeNoticeSeen' in window.localStorage) {
-        localStorage.removeItem('downtimeNoticeSeen');
-      }
-    }
     var nestedArrToChoiceObjs = function (_s) {
       return {
         value: _s[0],
