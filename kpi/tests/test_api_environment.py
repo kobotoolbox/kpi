@@ -22,24 +22,33 @@ class EnvironmentTests(APITestCase):
             'support_url': constance.config.SUPPORT_URL,
             'support_email': constance.config.SUPPORT_EMAIL,
             'available_sectors': lambda x: \
-                len(x) > 10 and ("Humanitarian - Sanitation, Water & Hygiene",
-                    "Humanitarian - Sanitation, Water & Hygiene"
-                ) in x,
+                self.assertGreater(len(x), 10) and self.assertIn(
+                    ("Humanitarian - Sanitation, Water & Hygiene",
+                     "Humanitarian - Sanitation, Water & Hygiene"),
+                    x
+                ),
             'available_countries': lambda x: \
-                len(x) > 200 and ('KEN', 'Kenya') in x,
+                self.assertGreater(len(x), 200) and self.assertIn(
+                    ('KEN', 'Kenya'), x
+                ),
             'all_languages': lambda x: \
-                len(x) > 100 and ('fa', 'Persian') in x,
+                self.assertGreater(len(x), 100) and self.assertIn(
+                    ('fa', 'Persian'), x
+                ),
             'interface_languages': lambda x: \
-                len(x) > 5 and ('ar', 'العربيّة') in x,
+                self.assertGreater(len(x), 5) and self.assertIn(
+                    ('ar', 'العربيّة'), x
+                ),
         }
 
     def _check_response_dict(self, response_dict):
         self.assertEqual(len(response_dict), len(self.dict_checks))
         for key, callable_or_value in self.dict_checks.items():
+            response_value = response_dict[key]
             try:
-                self.assertTrue(callable_or_value(response_dict[key]))
+                callable_or_value(response_value)
             except TypeError:
-                self.assertEqual(response_dict[key], callable_or_value)
+                self.assertEqual(response_value, callable_or_value)
 
     def test_anonymous_succeeds(self):
         response = self.client.get(self.url, format='json')
