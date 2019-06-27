@@ -67,9 +67,9 @@ export class AccountSettings extends React.Component {
       instagram: currentAccount.extra_details.instagram,
       metadata: currentAccount.extra_details.metadata,
 
-      languageChoices: currentAccount.all_languages,
-      countryChoices: currentAccount.available_countries,
-      sectorChoices: currentAccount.available_sectors,
+      languageChoices: stores.session.environment.all_languages,
+      countryChoices: stores.session.environment.available_countries,
+      sectorChoices: stores.session.environment.available_sectors,
       genderChoices: [
         {
           value: 'male',
