@@ -51,7 +51,7 @@
 
     {% if intercom_app_id %}
     <script>
-      window.IntercomAppId = '{{intercom_app_id}}';
+      window.IntercomAppId = '{{ intercom_app_id|safe }}';
     </script>
     {% endif %}
   </head>

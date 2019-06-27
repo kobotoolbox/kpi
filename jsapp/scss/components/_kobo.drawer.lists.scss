@@ -6,13 +6,11 @@
 
   &__itemlink {
     display: block;
-    line-height: 1em;
-    padding: 8px 0px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
+    line-height: 1.2em;
+    padding: 2px 0px;
     color: $cool-silver;
     font-weight: normal;
+    font-size: 12px;
 
     &:hover {
       color: $cool-charcoal;
@@ -85,7 +83,7 @@
   &__item {
     display: block;
     position: relative;
-    padding-left: 30px;
+    padding-left: 8px;
     padding-top: 3px;
     padding-bottom: 4px;
 

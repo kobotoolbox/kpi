@@ -943,7 +943,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         deployment = self._get_deployment()
         filters = request.GET.dict()
         # remove `format` from filters, it's redundant.
-        del filters['format', None)
+        filters.pop('format', None)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
 
