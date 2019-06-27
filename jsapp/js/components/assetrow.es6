@@ -107,7 +107,7 @@ class AssetRow extends React.Component {
     }
 
     if (this.isLibrary()) {
-      hrefTo = `/library/asset/${this.props.uid}/edit`;
+      hrefTo = `/library/asset/${this.props.uid}`;
       parent = this.state.parent || undefined;
       ownedCollections = this.props.ownedCollections.map(function(c){
         var p = false;

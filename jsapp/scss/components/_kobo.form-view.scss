@@ -166,6 +166,11 @@ $z-form-view-fullscreen: 101;
   }
 }
 
+.form-view__cell-label {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
 .form-view__cell {
   &.form-view__cell--box {
     @include box-shadow;
@@ -177,6 +182,14 @@ $z-form-view-fullscreen: 101;
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  &.form-view__cell--column-1 {
+    flex: 1;
+  }
+
+  &.form-view__cell--column-2 {
+    flex: 2;
   }
 
   &.form-view__cell--bordertop {
@@ -214,6 +227,8 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--buttons {
+    text-align: right;
+
     a.mdl-button {
       text-transform: uppercase;
       padding-left: 30px;
