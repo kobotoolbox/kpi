@@ -3,6 +3,7 @@ from django.conf import settings
 from models import FormBuilderPreference
 from hub.views import switch_builder
 
+
 class OtherFormBuilderRedirectMiddleware(object):
     '''
     If the user prefers to use another form builder, redirect to it
@@ -46,3 +47,17 @@ class OtherFormBuilderRedirectMiddleware(object):
         (preferred_builder, created) = \
             FormBuilderPreference.objects.get_or_create(user=request.user)
         return self._redirect_if_necessary(request, preferred_builder)
+
+
+class UsernameInResponseHeaderMiddleware(object):
+    """
+    Record the authenticated user (if any) in the `X-KoBoNaUt` HTTP header
+    """
+    def process_response(self, request, response):
+        try:
+            user = request.user
+        except AttributeError:
+            return response
+        if user.is_authenticated():
+            response['X-KoBoNaUt'] = request.user.username
+        return response
