@@ -88,7 +88,7 @@ class SearchCollectionList extends Reflux.Component {
       resource.summary.labels &&
       resource.summary.labels.length > 0
     ) {
-      firstQuestionLabel = resource.summary.labels[0]
+      firstQuestionLabel = resource.summary.labels[0];
     }
 
     return (
@@ -165,7 +165,7 @@ class SearchCollectionList extends Reflux.Component {
     var results = ['Deployed', 'Draft', 'Archived'].map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
-          return []
+          return [];
         }
         return [
           <bem.List__subheading key={i}>
@@ -175,8 +175,7 @@ class SearchCollectionList extends Reflux.Component {
             {this.renderGroupedHeadings()}
             {
               (() => {
-                return this.state[[searchResultsBucket]][category].map(
-                  this.renderAssetRow)
+                return this.state[[searchResultsBucket]][category].map(this.renderAssetRow);
               })()
             }
           </bem.AssetItems>

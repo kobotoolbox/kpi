@@ -2,31 +2,22 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 require('jquery-ui/ui/widgets/sortable');
-
 import React from 'react';
-import ReactDOM from 'react-dom';
-
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-
 import {
   IndexRoute,
   IndexRedirect,
-  Link,
   Route,
   hashHistory,
   Router
 } from 'react-router';
 
-import Select from 'react-select';
 import moment from 'moment';
-
 import actions from './actions';
-
 import stores from './stores';
 import {dataInterface} from './dataInterface';
 import bem from './bem';
@@ -39,12 +30,10 @@ import {
   LibraryAssetCreator,
   LibraryAssetEditor
 } from './components/formEditors';
-
 import LibraryAssetsList from 'js/components/library/libraryAssetsList';
 import LibraryPublicCollections from 'js/components/library/libraryPublicCollections';
 import LibraryAsset from 'js/components/library/libraryAsset';
 import LibraryCollection from 'js/components/library/libraryCollection';
-
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
@@ -53,29 +42,15 @@ import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
 import Modal from './components/modal';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
-
 import {
-  getAnonymousUserPermission,
-  anonUsername,
-  log,
   t,
   assign,
   currentLang
 } from './utils';
+import keymap from './keymap';
+import { ShortcutManager, Shortcuts } from 'react-shortcuts';
 
-import keymap from './keymap'
-import { ShortcutManager, Shortcuts } from 'react-shortcuts'
-const shortcutManager = new ShortcutManager(keymap)
-
-
-function stringifyRoutes(contextRouter) {
-  return JSON.stringify(contextRouter.getCurrentRoutes().map(function(r){
-    return {
-      name: r.name,
-      href: r.path
-    };
-  }), null, 4);
-}
+const shortcutManager = new ShortcutManager(keymap);
 
 class App extends React.Component {
   constructor(props) {
@@ -87,11 +62,13 @@ class App extends React.Component {
   }
   componentWillReceiveProps() {
     // slide out drawer overlay on every page change (better mobile experience)
-    if (this.state.pageState.showFixedDrawer)
+    if (this.state.pageState.showFixedDrawer) {
       stores.pageState.setState({showFixedDrawer: false});
+    }
     // hide modal on every page change
-    if (this.state.pageState.modal)
+    if (this.state.pageState.modal) {
       stores.pageState.hideModal();
+    }
   }
   componentDidMount () {
     actions.misc.getServerEnvironment();
@@ -106,15 +83,24 @@ class App extends React.Component {
   _handleShortcuts(action) {
     switch (action) {
       case 'EDGE':
-        document.body.classList.toggle('hide-edge')
-        break
+        document.body.classList.toggle('hide-edge');
+        break;
     }
   }
   getChildContext() {
-    return { shortcuts: shortcutManager }
+    return {shortcuts: shortcutManager};
   }
   render() {
     var assetid = this.props.params.assetid || this.props.params.uid || null;
+
+    const pageWrapperContentModifiers = [];
+    if (this.isFormSingle()) {
+      pageWrapperContentModifiers.push('form-landing');
+    }
+    if (this.isLibrarySingle()) {
+      pageWrapperContentModifiers.push('library-landing');
+    }
+
     return (
       <DocumentTitle title='KoBoToolbox'>
         <Shortcuts
@@ -122,43 +108,47 @@ class App extends React.Component {
           handler={this._handleShortcuts}
           className='mdl-wrapper'
           global
-          isolate>
+          isolate
+        >
+          <IntercomHandler/>
 
-        <IntercomHandler/>
-
-          { !this.isFormBuilder() &&
+          {!this.isFormBuilder() &&
             <div className='k-header__bar' />
           }
-          <bem.PageWrapper m={{
+
+          <bem.PageWrapper
+            m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
               'in-formbuilder': this.isFormBuilder()
-                }} className='mdl-layout mdl-layout--fixed-header'>
-              { this.state.pageState.modal &&
-                <Modal params={this.state.pageState.modal} />
-              }
+            }}
+            className='mdl-layout mdl-layout--fixed-header'
+          >
+            { this.state.pageState.modal &&
+              <Modal params={this.state.pageState.modal} />
+            }
 
-              { !this.isFormBuilder() &&
+            { !this.isFormBuilder() &&
+              <React.Fragment>
                 <MainHeader assetid={assetid}/>
-              }
-              { !this.isFormBuilder() &&
                 <Drawer/>
-              }
-              <bem.PageWrapper__content className='mdl-layout__content' m={this.isFormSingle() ? 'form-landing' : ''}>
-                { !this.isFormBuilder() &&
-                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
-                }
-                { !this.isFormBuilder() &&
-                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
-                }
-                {this.props.children}
+              </React.Fragment>
+            }
 
-              </bem.PageWrapper__content>
+            <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
+              { !this.isFormBuilder() &&
+                <React.Fragment>
+                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
+                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                </React.Fragment>
+              }
+              {this.props.children}
+            </bem.PageWrapper__content>
           </bem.PageWrapper>
         </Shortcuts>
       </DocumentTitle>
     );
   }
-};
+}
 
 App.contextTypes = {
   router: PropTypes.object
@@ -166,7 +156,7 @@ App.contextTypes = {
 
 App.childContextTypes = {
   shortcuts: PropTypes.object.isRequired
-}
+};
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);

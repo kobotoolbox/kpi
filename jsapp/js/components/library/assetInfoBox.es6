@@ -1,11 +1,6 @@
 import React from 'react';
-import Reflux from 'reflux';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import alertify from 'alertifyjs';
 import bem from 'js/bem';
-import stores from 'js/stores';
-import actions from 'js/actions';
 import {
   t,
   formatTime
@@ -15,9 +10,18 @@ import {ASSET_TYPES} from 'js/constants';
 class AssetInfoBox extends React.Component {
   constructor(props){
     super(props);
+    this.state = {
+      areDetailsVisible: false
+    };
     autoBind(this);
+  }
 
-    console.debug('AssetInfoBox', this.props);
+  componentDidMount() {
+    console.debug('AssetInfoBox did mount', this.props);
+  }
+
+  toggleDetails() {
+    this.setState({areDetailsVisible: !this.state.areDetailsVisible});
   }
 
   makePublic() {}
@@ -82,34 +86,54 @@ class AssetInfoBox extends React.Component {
           </bem.FormView__cell>
         </bem.FormView__cell>
 
-        <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
-          <bem.FormView__cell m={['languages', 'column-1']}>
-            <bem.FormView__cellLabel>
-              {t('Languages')}
-            </bem.FormView__cellLabel>
+        {this.state.areDetailsVisible &&
+          <React.Fragment>
+            <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
+              <bem.FormView__cell m={['languages', 'column-1']}>
+                <bem.FormView__cellLabel>
+                  {t('Languages')}
+                </bem.FormView__cellLabel>
 
-            langs
-          </bem.FormView__cell>
+                langs
+              </bem.FormView__cell>
 
-          <bem.FormView__cell m={['description', 'column-2']}>
-            <bem.FormView__cellLabel>
-              {t('Description')}
-            </bem.FormView__cellLabel>
+              <bem.FormView__cell m={['description', 'column-2']}>
+                <bem.FormView__cellLabel>
+                  {t('Description')}
+                </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.description || t('n/a')}
-          </bem.FormView__cell>
-        </bem.FormView__cell>
+                {this.props.asset.settings.description || t('n/a')}
+              </bem.FormView__cell>
+            </bem.FormView__cell>
 
-        <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
-          <bem.FormView__cell m='owner'>
-            owner {this.props.asset.owner__username}
-          </bem.FormView__cell>
+            <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
+              <bem.FormView__cell m='column-1'>
+                <bem.FormView__cellLabel>
+                  {t('Owner')}
+                </bem.FormView__cellLabel>
+
+                {this.props.asset.owner__username}
+              </bem.FormView__cell>
+
+              <bem.FormView__cell m='column-1'>
+                <bem.FormView__cellLabel>
+                  {t('Member since')}
+                </bem.FormView__cellLabel>
+
+                TODO
+              </bem.FormView__cell>
+            </bem.FormView__cell>
+          </React.Fragment>
+        }
+
+        <bem.FormView__cell m={['bordertop', 'toggle-details']}>
+          <button onClick={this.toggleDetails}>
+            {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
+          </button>
         </bem.FormView__cell>
       </bem.FormView__cell>
     );
   }
 }
-
-reactMixin(AssetInfoBox.prototype, Reflux.ListenerMixin);
 
 export default AssetInfoBox;

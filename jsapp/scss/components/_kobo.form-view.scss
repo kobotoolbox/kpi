@@ -1,29 +1,30 @@
 $z-form-view-fullscreen: 101;
 
-.form-view__toptabs {
-  background: white;
-  text-align: center;
-  height: 48px;
-  border-bottom: 1px solid $divider-color;
-}
+// form landing takes .form-view__toptabs into account
+.page-wrapper__content--form-landing {
+  .form-view {
+    height: calc(100% - 48px);
+  }
 
-.form-view__sidetabs {
-  border-right: 1px solid $divider-color;
-  width: 170px;
-  height: 100%;
-  max-height: calc(100% - 48px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  float: left;
-  background: white;
-  padding-top: 20px;
+  .form-view__sidetabs {
+    max-height: calc(100% - 48px);
+
+    & + .form-view,
+    & + .report-view,
+    & + .loading {
+      width: calc(100% - 170px);
+      height: calc(100% - 48px);
+      overflow: auto;
+      overflow-x: hidden;
+    }
+  }
 }
 
 .form-view {
   width: 100%;
-  height: calc(100% - 48px);
+  height: 100%;
   overflow-y: auto;
-  background: #F8F8F8;
+  background: $cool-whitesilver;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -42,65 +43,32 @@ $z-form-view-fullscreen: 101;
   }
 }
 
-.form-view__sidetabs + .form-view,
-.form-view__sidetabs + .report-view,
-.form-view__sidetabs + .loading {
-  width: calc(100% - 170px);
-  height: calc(100% - 48px);
-  overflow: auto;
-  overflow-x: hidden;
-}
-
-.form-view__sidetabs + .loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
-
-  .loading__inner code {
-    margin: 20px auto;
-  }
-}
-
-.form-view__sidetabs + .form-view.form-view--table {
-  overflow: hidden;
-}
-
-.form-view__toptabs {
-  position: relative;
-
-  a.form-view__tab {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    padding: 13px 30px;
-    text-transform: uppercase;
-    margin-right: 10px;
-    font-size: 15px;
-    cursor: pointer;
-    position: relative;
-    color: lighten($cool-gray, 10%);
-    font-weight: normal;
-    display: inline-block;
-
-    &.active {
-      color: $black;
-      border-bottom: 2px solid $cool-green;
-    }
-
-    &:hover {
-      color: $black;
-    }
-  }
-
-  a.form-view__link--close {
-    position: absolute;
-    right: 0px;
-    top: 5px;
-  }
-}
-
 .form-view__sidetabs {
+  border-right: 1px solid $divider-color;
+  width: 170px;
+  height: 100%;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  float: left;
+  background: white;
+  padding-top: 20px;
+
+  & + .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+
+    .loading__inner code {
+      margin: 20px auto;
+    }
+  }
+
+  & + .form-view.form-view--table {
+    overflow: hidden;
+  }
+
   a.form-view__tab {
     background: transparent;
     border: none;
@@ -132,6 +100,44 @@ $z-form-view-fullscreen: 101;
     span {
       vertical-align: middle;
     }
+  }
+}
+
+.form-view__toptabs {
+  position: relative;
+  background: white;
+  text-align: center;
+  height: 48px;
+  border-bottom: 1px solid $divider-color;
+
+  a.form-view__tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 13px 30px;
+    text-transform: uppercase;
+    margin-right: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    position: relative;
+    color: lighten($cool-gray, 10%);
+    font-weight: normal;
+    display: inline-block;
+
+    &.active {
+      color: $black;
+      border-bottom: 2px solid $cool-green;
+    }
+
+    &:hover {
+      color: $black;
+    }
+  }
+
+  a.form-view__link--close {
+    position: absolute;
+    right: 0;
+    top: 5px;
   }
 }
 

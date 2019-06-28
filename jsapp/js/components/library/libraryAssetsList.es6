@@ -37,7 +37,7 @@ class LibraryAssetsList extends React.Component {
           searchContext={this.state.searchContext}
         />
       </bem.Library>
-      );
+    );
   }
 }
 

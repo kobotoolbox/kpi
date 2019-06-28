@@ -24,7 +24,10 @@ $mdl-layout-width: 1440px;
     @include box-shadow;
 
     height: calc(100% - 102px);
-    margin-right: 18px;
+  }
+
+  &.page-wrapper__content--library-landing {
+    @include box-shadow;
   }
 
   > .dropzone {
