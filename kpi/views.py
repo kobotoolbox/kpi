@@ -9,7 +9,7 @@ from hashlib import md5
 from itertools import chain
 
 import constance
-from deployment_backends.backends import DEPLOYMENT_BACKENDS
+
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
