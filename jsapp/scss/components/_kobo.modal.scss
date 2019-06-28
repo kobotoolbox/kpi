@@ -125,7 +125,7 @@ $z-modal-x: 10;
 }
 
 .modal__subheader {
-  background: #f8f8f8;
+  background: $cool-whitesilver;
   padding: 20px 30px;
   margin: -30px -30px 20px;
   color: $cool-silver;
@@ -197,7 +197,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: #F8F8F8;
+    background-color: $cool-whitesilver;
     color: $layout-text-color;
   }
 
@@ -313,7 +313,7 @@ $z-modal-x: 10;
     }
 
     .submission--repeat-group {
-      background: #F8F8F8;
+      background: $cool-whitesilver;
       padding: 0px 30px;
 
       table {
@@ -322,7 +322,7 @@ $z-modal-x: 10;
     }
 
     .submission--group {
-      background: #F8F8F8;
+      background: $cool-whitesilver;
 
       h4 {
         margin: 0px;
@@ -447,7 +447,7 @@ $z-modal-x: 10;
       display: inline-block;
       vertical-align: top;
       border: 1px solid $divider-color;
-      background: #F8F8F8;
+      background: $cool-whitesilver;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
@@ -612,7 +612,7 @@ $z-modal-x: 10;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: #F8F8F8;
+    background: $cool-whitesilver;
     padding: 15px;
     position: relative;
 

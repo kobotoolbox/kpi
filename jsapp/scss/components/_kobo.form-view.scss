@@ -140,7 +140,7 @@ $z-form-view-fullscreen: 101;
   margin-right: 44px;
 
   + .form-view__row {
-    margin-top: 0px;
+    margin-top: 0;
   }
 
   &.historyHidden {
@@ -150,7 +150,7 @@ $z-form-view-fullscreen: 101;
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     padding: 0;
-    max-height: 0px;
+    max-height: 0;
     overflow: hidden;
     transition: 0.2s max-height;
   }
@@ -175,7 +175,7 @@ $z-form-view-fullscreen: 101;
   &.form-view__cell--box {
     @include box-shadow;
 
-    background-color: #FFF;
+    background-color: $white;
   }
 
   &.form-view__cell--columns {
@@ -219,7 +219,7 @@ $z-form-view-fullscreen: 101;
 
     .form-view__group {
       position: absolute;
-      right: 0px;
+      right: 0;
       top: -12px;
       min-width: 200px;
       text-align: right;
@@ -259,8 +259,10 @@ $z-form-view-fullscreen: 101;
     ul {
       list-style: none;
       display: inline;
+
       li {
         display: inline;
+
         &:not(:last-child)::after {
           content: ', ';
         }
@@ -294,10 +296,10 @@ $z-form-view-fullscreen: 101;
 
   &.form-view__cell--warning {
     margin: 10px 20px;
-    margin-top: 0px;
-    border-top: 15px solid #FFF;
+    margin-top: 0;
+    border-top: 15px solid $white;
     padding: 10px;
-    background: #F8F8F8;
+    background: $cool-whitesilver;
 
     i {
       color: #FFB775;
@@ -350,7 +352,7 @@ $z-form-view-fullscreen: 101;
 
     code {
       display: block;
-      background: #F8F8F8;
+      background: $cool-whitesilver;
       padding: 10px;
       margin-top: 15px;
       border: 1px solid $cool-lightgray;
@@ -386,7 +388,7 @@ $z-form-view-fullscreen: 101;
 
 @keyframes recent {
   0% {
-    background-color: #FFF;
+    background-color: $white;
   }
 
   10% {
@@ -496,7 +498,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view--form-settings,
 .form-view--settings-sharing {
-  background: #FFF;
+  background: $white;
   padding: 40px;
 }
 
@@ -612,7 +614,7 @@ $z-form-view-fullscreen: 101;
     margin: 10px 0px;
     padding: 10px;
     border: 1px solid $divider-color;
-    background: #F8F8F8;
+    background: $cool-whitesilver;
     font-size: 13px;
     white-space: normal;
   }
@@ -638,7 +640,7 @@ $z-form-view-fullscreen: 101;
   code {
     padding: 4px;
     border: 1px solid $divider-color;
-    background: #F8F8F8;
+    background: $cool-whitesilver;
     margin-left: 5px;
     margin-right: 5px;
   }

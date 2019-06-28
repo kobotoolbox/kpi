@@ -57,8 +57,8 @@
     margin-bottom: -1px;
 
     &.active {
-      background: #F8F8F8;
-      border-bottom: 1px solid #F8F8F8;
+      background: $cool-whitesilver;
+      border-bottom: 1px solid $cool-whitesilver;
     }
 
     .matrix-cols__colattr--type {
@@ -84,7 +84,7 @@
 
 .matrix-cols__settings {
   width: 100%;
-  background: #F8F8F8;
+  background: $cool-whitesilver;
   border: 1px solid $cool-lightgray;
   border-bottom: none;
   padding: 15px;
@@ -267,7 +267,7 @@
 
   .matrix-items__itemsettings {
     width: 100%;
-    background: #F8F8F8;
+    background: $cool-whitesilver;
     border: 1px solid $cool-lightgray;
     border-bottom: none;
     padding: 15px;

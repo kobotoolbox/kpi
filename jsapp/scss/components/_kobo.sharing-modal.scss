@@ -69,7 +69,7 @@ $s-gray-row-spacing: 10px;
   flex-direction: row;
   align-items: flex-start;
   position: relative;
-  background: #F8F8F8;
+  background: $cool-whitesilver;
   padding: 15px;
 
   > *:not(:first-child) {

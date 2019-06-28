@@ -400,7 +400,7 @@ $mdl-layout-width: 1440px;
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    background: #F8F8F8;
+    background: $cool-whitesilver;
     position: relative;
 
     @include box-shadow;

@@ -155,7 +155,7 @@
   -webkit-appearance: none;
   text-transform: capitalize;
   color: #333;
-  background-color: #f8f8f8;
+  background-color: $cool-whitesilver;
 
   &:hover {
     background-color: #f0f0f0;
@@ -189,7 +189,7 @@
 // ==========================================================================
 
 .settings__hxl {
-    background: #F8F8F8;
+    background: $cool-whitesilver;
     display: table-row;
     .hxlTag {
       width: 120px;
