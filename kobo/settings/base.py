@@ -43,8 +43,6 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
 if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
     USE_X_FORWARDED_HOST = True
 
-UPCOMING_DOWNTIME = False
-
 # Domain must not exclude KoBoCAT when sharing sessions
 if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
@@ -116,6 +114,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
+    'hub.middleware.UsernameInResponseHeaderMiddleware',
 )
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
@@ -338,7 +337,6 @@ TEMPLATES = [
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-INTERCOM_APP_ID = os.environ.get('INTERCOM_APP_ID')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists

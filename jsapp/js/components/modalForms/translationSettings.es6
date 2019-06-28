@@ -261,11 +261,11 @@ export class TranslationSettings extends React.Component {
               <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
               <p>{t('For the language code field, we suggest using the')}
                 <a target='_blank' href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'>
-                  {t('official language code')}
+                  {' ' + t('official language code') + ' '}
                 </a>
                 {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
                 <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
-                  {t('Read more.')}
+                  {' ' + t('Read more.')}
                 </a>
               </p>
             </bem.FormView__cell>
@@ -274,7 +274,7 @@ export class TranslationSettings extends React.Component {
               {t('Current languages')}
             </bem.FormView__cell>
           }
-          {translations.map((l, i)=> {
+          {translations.map((l, i) => {
             return (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
