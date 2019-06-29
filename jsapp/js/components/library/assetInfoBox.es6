@@ -122,7 +122,7 @@ class AssetInfoBox extends React.Component {
                   {t('Languages')}
                 </bem.FormView__cellLabel>
 
-                langs
+                {this.props.asset.content.translations && this.props.asset.content.translations.join(', ') || t('n/a')}
               </bem.FormView__cell>
 
               <bem.FormView__cell m={['description', 'column-2']}>
