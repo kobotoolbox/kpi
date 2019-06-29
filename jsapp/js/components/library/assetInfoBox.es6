@@ -94,7 +94,7 @@ class AssetInfoBox extends React.Component {
               {t('Tags')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.tags.join(', ') || t('n/a')}
+            {this.props.asset.settings.tags && this.props.asset.settings.tags.join(', ') || t('n/a')}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['sector', 'column-1']}>
@@ -102,7 +102,7 @@ class AssetInfoBox extends React.Component {
               {t('Sector')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.sector.value || t('n/a')}
+            {this.props.asset.settings.sector && this.props.asset.settings.sector.value || t('n/a')}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['country', 'column-1']}>
@@ -110,7 +110,7 @@ class AssetInfoBox extends React.Component {
               {t('Country')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.country.value || t('n/a')}
+            {this.props.asset.settings.country && this.props.asset.settings.country.value || t('n/a')}
           </bem.FormView__cell>
         </bem.FormView__cell>
 
