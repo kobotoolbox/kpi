@@ -67,6 +67,9 @@ export class LibraryTemplateForm extends React.Component {
       isPending: false
     };
     autoBind(this);
+    if (this.props.asset) {
+      this.applyPropsData();
+    }
   }
 
   componentDidMount() {
@@ -75,12 +78,38 @@ export class LibraryTemplateForm extends React.Component {
     });
     this.unlisteners.push(
       actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
-      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this))
+      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this)),
+      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
+      actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this))
     );
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  applyPropsData() {
+    if (this.props.asset.name) {
+      this.state.data.name = this.props.asset.name;
+    }
+    if (this.props.asset.settings.organization) {
+      this.state.data.organization = this.props.asset.settings.organization;
+    }
+    if (this.props.asset.settings.country) {
+      this.state.data.country = this.props.asset.settings.country;
+    }
+    if (this.props.asset.settings.sector) {
+      this.state.data.sector = this.props.asset.settings.sector;
+    }
+    if (this.props.asset.settings.tags) {
+      this.state.data.tags = this.props.asset.settings.tags;
+    }
+    if (this.props.asset.settings.description) {
+      this.state.data.description = this.props.asset.settings.description;
+    }
+    if (this.props.asset.isPublic) {
+      // TODO isPublic
+    }
   }
 
   onCreateResourceCompleted(response) {
@@ -94,20 +123,46 @@ export class LibraryTemplateForm extends React.Component {
     notify(t('Failed to create template'), 'error');
   }
 
-  createTemplate() {
+  onUpdateAssetCompleted() {
+    this.setState({isPending: false});
+    stores.pageState.hideModal();
+  }
+
+  onUpdateAssetFailed() {
+    this.setState({isPending: false});
+    notify(t('Failed to update template'), 'error');
+  }
+
+  onSubmit() {
     this.setState({isPending: true});
 
-    actions.resources.createResource({
-      name: this.state.data.name,
-      asset_type: 'template',
-      settings: JSON.stringify({
-        organization: this.state.data.organization,
-        country: this.state.data.country,
-        sector: this.state.data.sector,
-        tags: this.state.data.tags,
-        description: this.state.data.description
-      })
-    });
+    if (this.props.asset) {
+      actions.resources.updateAsset(
+        this.props.asset.uid,
+        {
+          name: this.state.data.name,
+          settings: JSON.stringify({
+            organization: this.state.data.organization,
+            country: this.state.data.country,
+            sector: this.state.data.sector,
+            tags: this.state.data.tags,
+            description: this.state.data.description
+          })
+        }
+      );
+    } else {
+      actions.resources.createResource({
+        name: this.state.data.name,
+        asset_type: 'template',
+        settings: JSON.stringify({
+          organization: this.state.data.organization,
+          country: this.state.data.country,
+          sector: this.state.data.sector,
+          tags: this.state.data.tags,
+          description: this.state.data.description
+        })
+      });
+    }
   }
 
   goToAssetEditor(assetUid) {
@@ -150,6 +205,20 @@ export class LibraryTemplateForm extends React.Component {
       !this.state.isPending &&
       Object.keys(this.state.errors).length === 0
     );
+  }
+
+  getSubmitButtonLabel() {
+    if (this.props.asset) {
+      if (this.state.isPending) {
+        return t('Saving…');
+      } else {
+        return t('Save');
+      }
+    } else if (this.state.isPending) {
+      return t('Creating…');
+    } else {
+      return t('Create');
+    }
   }
 
   render() {
@@ -255,11 +324,11 @@ export class LibraryTemplateForm extends React.Component {
           <bem.Modal__footerButton
             m='primary'
             type='submit'
-            onClick={this.createTemplate}
+            onClick={this.onSubmit}
             disabled={!this.isSubmitEnabled()}
             className='mdl-js-button'
           >
-            {this.state.isPending ? t('Creating…') : t('Create')}
+            {this.getSubmitButtonLabel()}
           </bem.Modal__footerButton>
         </bem.Modal__footer>
       </bem.FormModal__form>

@@ -51,6 +51,20 @@ class LibraryAsset extends React.Component {
     });
   }
 
+  showDetailsModal (evt) {
+    let modalType;
+    if (this.state.asset.asset_type === ASSET_TYPES.template.id) {
+      modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
+    } else if (this.state.asset.asset_type === ASSET_TYPES.collection.id) {
+      modalType = MODAL_TYPES.LIBRARY_COLLECTION;
+    }
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: modalType,
+      asset: this.state.asset
+    });
+  }
+
   renderLoading() {
     return (
       <ui.Panel>
@@ -65,15 +79,31 @@ class LibraryAsset extends React.Component {
   }
 
   renderActionButtons() {
+    let hasDetailsEditable = (
+      this.state.asset.asset_type === ASSET_TYPES.template.id ||
+      this.state.asset.asset_type === ASSET_TYPES.collection.id
+    );
     return (
       <bem.FormView__cell>
-        <Link
-          to={`/library/asset/${this.state.asset.uid}/edit`}
-          className='form-view__link form-view__link--edit'
-          data-tip={t('edit')}
-        >
-          <i className='k-icon-edit' />
-        </Link>
+        {this.state.asset.asset_type !== ASSET_TYPES.collection.id &&
+          <Link
+            to={`/library/asset/${this.state.asset.uid}/edit`}
+            className='form-view__link form-view__link--edit right-tooltip'
+            data-tip={t('Edit in Form Builder')}
+          >
+            <i className='k-icon-edit' />
+          </Link>
+        }
+
+        {hasDetailsEditable &&
+          <bem.FormView__link
+            onClick={this.showDetailsModal}
+            className='right-tooltip'
+            data-tip={t('Modify details')}
+          >
+            <i className='k-icon-settings' />
+          </bem.FormView__link>
+        }
 
         <bem.FormView__link
           m='preview'

@@ -11,6 +11,7 @@ class AssetInfoBox extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      isPublic: false,
       areDetailsVisible: false
     };
     autoBind(this);
@@ -24,7 +25,16 @@ class AssetInfoBox extends React.Component {
     this.setState({areDetailsVisible: !this.state.areDetailsVisible});
   }
 
-  makePublic() {}
+  makePublic() {
+    // 1. check if all required properties filled up
+    // 2. make public
+    this.setState({isPublic: true});
+  }
+
+  makePrivate() {
+    // 1. make private
+    this.setState({isPublic: false});
+  }
 
   render() {
     if (!this.props.asset) {
@@ -51,12 +61,22 @@ class AssetInfoBox extends React.Component {
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['buttons', 'column-1']}>
-            <button
-              className='mdl-button mdl-button--raised mdl-button--colored'
-              onClick={this.makePublic}
-            >
-              {t('Make public')}
-            </button>
+            {!this.state.isPublic &&
+              <button
+                className='mdl-button mdl-button--raised mdl-button--colored'
+                onClick={this.makePublic}
+              >
+                {t('Make public')}
+              </button>
+            }
+            {this.state.isPublic &&
+              <button
+                className='mdl-button mdl-button--raised mdl-button--colored'
+                onClick={this.makePrivate}
+              >
+                {t('Make private')}
+              </button>
+            }
           </bem.FormView__cell>
         </bem.FormView__cell>
 
@@ -82,7 +102,15 @@ class AssetInfoBox extends React.Component {
               {t('Sector')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.sector || t('n/a')}
+            {this.props.asset.settings.sector.value || t('n/a')}
+          </bem.FormView__cell>
+
+          <bem.FormView__cell m={['country', 'column-1']}>
+            <bem.FormView__cellLabel>
+              {t('Country')}
+            </bem.FormView__cellLabel>
+
+            {this.props.asset.settings.country.value || t('n/a')}
           </bem.FormView__cell>
         </bem.FormView__cell>
 

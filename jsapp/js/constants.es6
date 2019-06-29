@@ -88,8 +88,15 @@ const ASSET_TYPES = {
   survey: {
     id: 'survey',
     label: t('project')
+  },
+  collection: {
+    id: 'collection',
+    label: t('collection')
   }
 };
+
+// TODO: collection will soon be an asset type - remove this when it's true
+console.warn('Is collection a type of asset?');
 
 export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,

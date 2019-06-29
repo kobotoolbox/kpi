@@ -223,11 +223,13 @@ class Modal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.LIBRARY_TEMPLATE &&
               <LibraryTemplateForm
+                asset={this.props.params.asset}
                 onSetModalTitle={this.setModalTitle}
               />
             }
             { this.props.params.type === MODAL_TYPES.LIBRARY_COLLECTION &&
               <LibraryCollectionForm
+                asset={this.props.params.asset}
                 onSetModalTitle={this.setModalTitle}
               />
             }
