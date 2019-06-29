@@ -128,6 +128,7 @@ class AssetInfoBox extends React.Component {
 
         <bem.FormView__cell m={['bordertop', 'toggle-details']}>
           <button onClick={this.toggleDetails}>
+            {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
             {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
           </button>
         </bem.FormView__cell>
