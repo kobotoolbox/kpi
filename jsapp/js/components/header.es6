@@ -200,16 +200,19 @@ class MainHeader extends Reflux.Component {
 
     let iconClassName = '';
 
-    if (this.state.asset.asset_type === ASSET_TYPES.template.id) {
+    if (this.state.asset && this.state.asset.asset_type === ASSET_TYPES.template.id) {
       iconClassName = 'k-icon-template';
     }
     if (
-      this.state.asset.asset_type === ASSET_TYPES.question.id ||
-      this.state.asset.asset_type === ASSET_TYPES.block.id
+      this.state.asset &&
+      (
+        this.state.asset.asset_type === ASSET_TYPES.question.id ||
+        this.state.asset.asset_type === ASSET_TYPES.block.id
+      )
     ) {
       iconClassName = 'k-icon-question';
     }
-    if (this.state.asset.asset_type === ASSET_TYPES.survey.id) {
+    if (this.state.asset && this.state.asset.asset_type === ASSET_TYPES.survey.id) {
       if (this.state.asset.has_deployment) {
         iconClassName = 'k-icon-deploy';
       } else {
