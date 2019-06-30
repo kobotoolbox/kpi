@@ -17,36 +17,9 @@ import {
 } from 'js/utils';
 import {
   renderLoading,
-  renderBackButton
+  renderBackButton,
+  canMakeLibraryAssetPublic
 } from './modalHelpers';
-
-/**
- * Validates a collection data to see if ready to be made public
- *
- * @param {string} name
- * @param {string} organization
- * @param {string} sector
- *
- * @returns {boolean|Object} true for valid collection and object with errors for invalid one.
- */
-export function canMakeCollectionPublic(name, organization, sector) {
-  const errors = {};
-  if (!name) {
-    errors.name = t('Name is required to make collection public');
-  }
-  if (!organization) {
-    errors.organization = t('Organization is required to make collection public');
-  }
-  if (!sector) {
-    errors.sector = t('Sector is required to make collection public');
-  }
-
-  if (Object.keys(errors).length >= 1) {
-    return errors;
-  } else {
-    return true;
-  }
-}
 
 export class LibraryCollectionForm extends React.Component {
   constructor(props) {
@@ -129,7 +102,7 @@ export class LibraryCollectionForm extends React.Component {
   validate() {
     let errors = {};
     if (this.state.data.isPublic) {
-      const validateResult = canMakeCollectionPublic(
+      const validateResult = canMakeLibraryAssetPublic(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector

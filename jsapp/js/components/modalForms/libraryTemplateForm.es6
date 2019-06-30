@@ -13,41 +13,20 @@ import actions from 'js/actions';
 import {hashHistory} from 'react-router';
 import {
   t,
-  notify
+  notify,
+  anonUsername
 } from 'js/utils';
 import {
   renderLoading,
-  renderBackButton
+  renderBackButton,
+  isLibraryAssetPublic,
+  canMakeLibraryAssetPublic
 } from './modalHelpers';
 
 /**
- * Validates a template data to see if ready to be made public
- *
- * @param {string} name
- * @param {string} organization
- * @param {string} sector
- *
- * @returns {boolean|Object} true for valid template and object with errors for invalid one.
+ * @param {Object} asset - Modal asset.
+ * @param {boolean} forceMakePublic - Used to check "Make Public" from the start, causing required properties to validate.
  */
-export function canMakeTemplatePublic(name, organization, sector) {
-  const errors = {};
-  if (!name) {
-    errors.name = t('Name is required to make template public');
-  }
-  if (!organization) {
-    errors.organization = t('Organization is required to make template public');
-  }
-  if (!sector) {
-    errors.sector = t('Sector is required to make template public');
-  }
-
-  if (Object.keys(errors).length >= 1) {
-    return errors;
-  } else {
-    return true;
-  }
-}
-
 export class LibraryTemplateForm extends React.Component {
   constructor(props) {
     super(props);
@@ -61,7 +40,7 @@ export class LibraryTemplateForm extends React.Component {
         sector: null,
         tags: [],
         description: '',
-        isPublic: false
+        makePublic: false,
       },
       errors: {},
       isPending: false
@@ -107,9 +86,17 @@ export class LibraryTemplateForm extends React.Component {
     if (this.props.asset.settings.description) {
       this.state.data.description = this.props.asset.settings.description;
     }
-    if (this.props.asset.isPublic) {
-      // TODO isPublic
+
+    if (this.props.forceMakePublic) {
+      this.state.data.makePublic = true;
+    } else {
+      this.state.data.makePublic = isLibraryAssetPublic(
+        this.props.asset.permissions,
+        this.props.asset.discoverable_when_public
+      );
     }
+
+    this.validate(false);
   }
 
   onCreateResourceCompleted(response) {
@@ -150,6 +137,23 @@ export class LibraryTemplateForm extends React.Component {
           })
         }
       );
+
+      // TODO: merge this change with above action to make single BE call
+      if (
+        isLibraryAssetPublic(
+          this.props.asset.permissions,
+          this.props.asset.discoverable_when_public
+        ) === false &&
+        this.state.data.makePublic === true
+      ) {
+        actions.permissions.assignPerm({
+          username: anonUsername,
+          uid: this.props.asset.uid,
+          kind: this.props.asset.kind,
+          objectUrl: this.props.asset.object_url,
+          role: 'view'
+        });
+      }
     } else {
       actions.resources.createResource({
         name: this.state.data.name,
@@ -183,12 +187,12 @@ export class LibraryTemplateForm extends React.Component {
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
   onTagsChange(newValue) {this.onPropertyChange('tags', newValue);}
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
-  onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
+  onIsPublicChange(newValue) {this.onPropertyChange('makePublic', newValue);}
 
-  validate() {
+  validate(async = true) {
     let errors = {};
-    if (this.state.data.isPublic) {
-      const validateResult = canMakeTemplatePublic(
+    if (this.state.data.makePublic) {
+      const validateResult = canMakeLibraryAssetPublic(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector
@@ -197,7 +201,12 @@ export class LibraryTemplateForm extends React.Component {
         errors = validateResult;
       }
     }
-    this.setState({errors: errors});
+
+    if (async) {
+      this.setState({errors: errors});
+    } else {
+      this.state.errors = errors;
+    }
   }
 
   isSubmitEnabled() {
@@ -311,7 +320,7 @@ export class LibraryTemplateForm extends React.Component {
 
           <bem.FormModal__item>
             <Checkbox
-              checked={this.state.data.isPublic}
+              checked={this.state.data.makePublic}
               onChange={this.onIsPublicChange}
               label={t('Make Public') + ' ' + t('*required to be made public')}
             />

@@ -230,10 +230,6 @@ var dataInterface;
         }
       });
     },
-    assignPublicPerm (params) {
-      params.username = 'AnonymousUser';
-      return dataInterface(params);
-    },
     setCollectionDiscoverability (uid, discoverable) {
       dataInterface.patchCollection(uid, {
         discoverable_when_public: discoverable

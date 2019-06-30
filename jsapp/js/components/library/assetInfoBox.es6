@@ -1,17 +1,27 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
+import stores from 'js/stores';
+import actions from 'js/actions';
+import {
+  ASSET_TYPES,
+  MODAL_TYPES
+} from 'js/constants';
 import {
   t,
-  formatTime
+  formatTime,
+  anonUsername
 } from 'js/utils';
-import {ASSET_TYPES} from 'js/constants';
+import {
+  isLibraryAssetPublic,
+  canMakeLibraryAssetPublic
+} from 'js/components/modalForms/modalHelpers';
 
 class AssetInfoBox extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      isPublic: false,
+      isPublicPending: false,
       areDetailsVisible: false
     };
     autoBind(this);
@@ -21,25 +31,77 @@ class AssetInfoBox extends React.Component {
     console.debug('AssetInfoBox did mount', this.props);
   }
 
+  componentWillReceiveProps(nextProps) {
+    console.debug('AssetInfoBox will receive props', nextProps);
+    this.setState({isPublicPending: false});
+  }
+
   toggleDetails() {
     this.setState({areDetailsVisible: !this.state.areDetailsVisible});
   }
 
   makePublic() {
-    // 1. check if all required properties filled up
-    // 2. make public
-    this.setState({isPublic: true});
+    const requiredPropsReady = canMakeLibraryAssetPublic(
+      this.props.asset.name,
+      this.props.asset.settings.organization,
+      this.props.asset.settings.sector
+    );
+
+    if (requiredPropsReady === true) {
+      actions.permissions.assignPerm({
+        // TODO: change to constant after #2259 is closed
+        username: anonUsername,
+        uid: this.props.asset.uid,
+        kind: this.props.asset.kind,
+        objectUrl: this.props.asset.object_url,
+        // TODO: change to constant after #2259 is closed
+        role: 'view'
+      });
+      this.setState({isPublicPending: true});
+    } else {
+      this.showDetailsModalForced();
+    }
+  }
+
+  showDetailsModalForced() {
+    let modalType;
+    if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
+      modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
+    } else if (this.props.asset.asset_type === ASSET_TYPES.collection.id) {
+      modalType = MODAL_TYPES.LIBRARY_COLLECTION;
+    }
+    stores.pageState.showModal({
+      type: modalType,
+      asset: this.props.asset,
+      forceMakePublic: true
+    });
   }
 
   makePrivate() {
-    // 1. make private
-    this.setState({isPublic: false});
+    let permUrl;
+    this.props.asset.permissions.forEach((perm) => {
+      // TODO: change to constant after #2259 is closed
+      if (perm.user__username === anonUsername) {
+        permUrl = perm.url;
+      }
+    });
+
+    actions.permissions.removePerm({
+      permission_url: permUrl,
+      content_object_uid: this.props.asset.uid
+    });
+    this.setState({isPublicPending: true});
   }
 
   render() {
     if (!this.props.asset) {
       return null;
     }
+
+    const isPublic = isLibraryAssetPublic(
+      this.props.asset.permissions,
+      this.props.asset.discoverable_when_public
+    );
 
     return (
       <bem.FormView__cell m='box'>
@@ -61,18 +123,20 @@ class AssetInfoBox extends React.Component {
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['buttons', 'column-1']}>
-            {!this.state.isPublic &&
+            {!isPublic &&
               <button
                 className='mdl-button mdl-button--raised mdl-button--colored'
                 onClick={this.makePublic}
+                disabled={this.state.isPublicPending}
               >
                 {t('Make public')}
               </button>
             }
-            {this.state.isPublic &&
+            {isPublic &&
               <button
                 className='mdl-button mdl-button--raised mdl-button--colored'
                 onClick={this.makePrivate}
+                disabled={this.state.isPublicPending}
               >
                 {t('Make private')}
               </button>

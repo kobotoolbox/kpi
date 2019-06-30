@@ -215,12 +215,6 @@ actions.permissions = Reflux.createActions({
       'failed'
     ]
   },
-  assignPublicPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   setCollectionDiscoverability: {
     children: [
       'completed',
