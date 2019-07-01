@@ -46,7 +46,10 @@ class AssetNavigatorListView extends React.Component {
       cursor: 'move',
       distance: 5,
       items: '> li',
-      connectWith: '.survey-editor__list',
+      connectWith: [
+        '.survey-editor__list',
+        '.group__rows'
+      ],
       opacity: 0.9,
       scroll: false,
       deactivate: ()=> {
