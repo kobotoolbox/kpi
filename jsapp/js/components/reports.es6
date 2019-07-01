@@ -735,7 +735,7 @@ class Reports extends React.Component {
       showCustomReportModal: false,
       currentCustomReport: false,
       currentQuestionGraph: false,
-      groupBy: []
+      groupBy: ''
     };
     autoBind(this);
   }
@@ -759,7 +759,7 @@ class Reports extends React.Component {
       let rowsByKuid = {};
       let rowsByIdentifier = {};
       let names = [],
-          groupBy = [],
+          groupBy = '',
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
@@ -817,7 +817,7 @@ class Reports extends React.Component {
         }).fail((err)=> {
           if (groupBy && groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
             // reset default report groupBy if it fails and notify user
-            reportStyles.default.groupDataBy = [];
+            reportStyles.default.groupDataBy = '';
             this.setState({
               reportStyles: reportStyles
             });
@@ -841,7 +841,7 @@ class Reports extends React.Component {
         rowsByIdentifier = this.state.rowsByIdentifier,
         customReport = this.state.currentCustomReport;
 
-    var groupBy = [];
+    var groupBy = '';
 
     if (!customReport && this.state.reportStyles.default.groupDataBy !== undefined)
       groupBy = this.state.reportStyles.default.groupDataBy;
