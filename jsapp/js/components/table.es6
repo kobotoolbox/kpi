@@ -130,7 +130,7 @@ export class DataTable extends React.Component {
     });
   }
   getValidationStatusOption(originalRow) {
-    if (originalRow._validation_status.uid) {
+    if (originalRow._validation_status && originalRow._validation_status.uid) {
       return VALIDATION_STATUSES[originalRow._validation_status.uid];
     } else {
       return VALIDATION_STATUSES.no_status;
