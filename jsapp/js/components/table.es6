@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
@@ -13,21 +12,16 @@ import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 import alertify from 'alertifyjs';
-
-import ReactTable from 'react-table'
+import ReactTable from 'react-table';
 import Select from 'react-select';
 import {DebounceInput} from 'react-debounce-input';
-
 import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES
 } from '../constants';
-
 import {
-  assign,
   t,
-  log,
   notify,
   formatTimeDate
 } from '../utils';
@@ -107,7 +101,7 @@ export class DataTable extends React.Component {
           selectAll: false,
           tableData: data,
           submissionPager: false
-        })
+        });
         this._prepColumns(data);
       } else {
         if (filterQuery.length) {
@@ -434,7 +428,7 @@ export class DataTable extends React.Component {
 
     columns.sort(function(a, b) {
       return a.index.localeCompare(b.index, 'en', {numeric: true});
-    })
+    });
 
     let selectedColumns = false,
         frozenColumn = false;
@@ -460,7 +454,7 @@ export class DataTable extends React.Component {
       '_id',
       '_uuid',
       '_submission_time'
-    ]
+    ];
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
       frozenColumn = settings['data-table']['frozen-column'];
@@ -507,7 +501,7 @@ export class DataTable extends React.Component {
         col.className = col.className ? `frozen ${col.className}` : 'frozen';
         col.headerClassName = 'frozen';
       }
-    })
+    });
 
     // prepare list of selected columns, if configured
     if (settings['data-table'] && settings['data-table']['selected-columns']) {
@@ -527,8 +521,8 @@ export class DataTable extends React.Component {
         if (el.id == '__SubmissionCheckbox' && selCos.includes('_validation_status.uid'))
           return true;
 
-        return selCos.includes(el.id) !== false}
-      );
+        return selCos.includes(el.id) !== false;
+      });
     }
 
     this.setState({
@@ -672,7 +666,7 @@ export class DataTable extends React.Component {
 
     tableData.forEach(function(r) {
       ids.push(r._id);
-    })
+    });
 
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
@@ -765,7 +759,7 @@ export class DataTable extends React.Component {
       } else {
         delete s[r._id];
       }
-    })
+    });
 
     this.setState({
       selectedRows: s,
@@ -834,7 +828,7 @@ export class DataTable extends React.Component {
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
           showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
           selected = this.state.selectedRows,
-          maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
+          maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
           //
     return (
@@ -872,7 +866,7 @@ export class DataTable extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
-        )
+      );
     }
 
     const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
@@ -981,7 +975,7 @@ export class DataTable extends React.Component {
       </bem.FormView>
     );
   }
-};
+}
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
 reactMixin(DataTable.prototype, mixins.permissions);
