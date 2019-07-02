@@ -1,18 +1,21 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, absolute_import
+
 import base64
 import copy
 import datetime
 import json
-from distutils.util import strtobool
 from hashlib import md5
 from itertools import chain
 
 import constance
+
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, resolve_url
@@ -28,8 +31,7 @@ from rest_framework.decorators import (
     api_view,
     authentication_classes,
     detail_route,
-    list_route,
-    renderer_classes
+    list_route
 )
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -38,23 +40,22 @@ from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from taggit.models import Tag
 
-from deployment_backends.backends import DEPLOYMENT_BACKENDS
-from deployment_backends.mixin import KobocatDataProxyViewSetMixin
 from hub.models import SitewideMessage
 from kobo.apps.hook.utils import HookUtils
 from kobo.static_lists import COUNTRIES, LANGUAGES, SECTORS
-
+from kpi.exceptions import BadAssetTypeException
+from kpi.utils.log import logging
 from .constants import (
+    ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
-    ASSET_TYPES,
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
-    COLLECTION_CLONE_FIELDS
+    COLLECTION_CLONE_FIELDS,
 )
-from .exceptions import BadAssetTypeException
+from .deployment_backends.backends import DEPLOYMENT_BACKENDS
 from .filters import (
     AssetOwnerFilterBackend,
     KpiAssignedObjectPermissionsFilter,
@@ -83,14 +84,16 @@ from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
-    get_perm_name
+    get_perm_name,
+    SubmissionsPermissions
 )
 from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
+    XMLRenderer,
+    SubmissionXMLRenderer,
     XlsRenderer,
-    XMLRenderer
 )
 from .serializers import (
     AssetFileSerializer,
@@ -116,10 +119,8 @@ from .serializers import (
     UserCollectionSubscriptionSerializer,
     UserSerializer
 )
-from .tasks import export_in_background, import_in_background
-from .utils.gravatar_url import gravatar_url
+from .tasks import import_in_background, export_in_background
 from .utils.kobo_to_xlsform import to_xlsform_structure
-from .utils.log import logging
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
@@ -200,6 +201,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
                 instance.user,
                 instance.permission.codename
             )
+
 
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
@@ -712,57 +714,277 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
         return view(self.request, uid=af.uid)
 
 
-class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
-                        KobocatDataProxyViewSetMixin):
-    '''
-    TODO: Access the submission data directly instead of merely proxying to
-    KoBoCAT. We can now use `KobocatBackend.get_submissions()` and
-     `KobocatBackend.get_submission()`
-    '''
-    parent_model = Asset
+class HookSignalViewSet(NestedViewSetMixin, viewsets.ViewSet):
+    """
+    ##
+    This endpoint is only used to trigger asset's hooks if any.
 
-    # @TODO Handle list of ids before using it
-    # def list(self, request, *args, **kwargs):
-    #     asset_uid = self.get_parents_query_dict().get("asset")
-    #     asset = get_object_or_404(self.parent_model, uid=asset_uid)
-    #     format_type = kwargs.get("format", "json")
-    #     submissions = asset.deployment.get_submissions(format_type=format_type)
-    #     return Response(list(submissions))
+    Tells the hooks to post an instance to external servers.
+    <pre class="prettyprint">
+    <b>POST</b> /assets/<code>{uid}</code>/hook-signal/
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/hook-signal/
+
+
+    > **Expected payload**
+    >
+    >        {
+    >           "instance_id": {integer}
+    >        }
+
+    """
+    parent_model = Asset
 
     def create(self, request, *args, **kwargs):
         """
-        This endpoint is handled by the SubmissionViewSet (not KobocatDataProxyViewSetMixin)
-        because it doesn't use KC proxy.
         It's only used to trigger hook services of the Asset (so far).
 
         :param request:
         :return:
         """
-        # Follow Open Rosa responses by default
-        response_status_code = status.HTTP_202_ACCEPTED
-        response = {
-            "detail": _(
-                "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
-        }
-        try:
-            asset_uid = self.get_parents_query_dict().get("asset")
-            asset = get_object_or_404(self.parent_model, uid=asset_uid)
-            instance_id = request.data.get("instance_id")
-            if not HookUtils.call_services(asset, instance_id):
-                response_status_code = status.HTTP_409_CONFLICT
-                response = {
-                    "detail": _(
-                        "Your data for instance {} has been already submitted.".format(instance_id))
-                }
+        asset_uid = self.get_parents_query_dict().get("asset")
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
 
-        except Exception as e:
-            logging.error("SubmissionViewSet.create - {}".format(str(e)))
+        instance_id = request.data.get("instance_id")
+        if instance_id is None:
+            raise exceptions.ValidationError(
+                {'instance_id': _('This field is required.')})
+
+        instance = None
+        try:
+            instance = asset.deployment.get_submission(instance_id)
+        except ValueError:
+            raise Http404
+
+        # Check if instance really belongs to Asset.
+        if not (instance and
+                instance.get(asset.deployment.INSTANCE_ID_FIELDNAME) == instance_id):
+            raise Http404
+
+        if HookUtils.call_services(asset, instance_id):
+            # Follow Open Rosa responses by default
+            response_status_code = status.HTTP_202_ACCEPTED
             response = {
-                "detail": _("An error has occurred when calling the external service. Please retry later.")
+                "detail": _(
+                    "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
             }
-            response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        else:
+            # call_services() refused to launch any task because this
+            # instance already has a `HookLog`
+            response_status_code = status.HTTP_409_CONFLICT
+            response = {
+                "detail": _(
+                    "Your data for instance {} has been already submitted.".format(instance_id))
+            }
 
         return Response(response, status=response_status_code)
+
+
+class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
+    """
+    ## List of submissions for a specific asset
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions/
+    </pre>
+
+    By default, JSON format is used but XML format can be used too.
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions.xml
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions.json
+    </pre>
+
+    or
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions/?format=xml
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions/?format=json
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/
+
+    ## CRUD
+
+    * `uid` - is the unique identifier of a specific asset
+    * `id` - is the unique identifier of a specific submission
+
+    **It's not allowed to create submissions with `kpi`'s API**
+
+    Retrieves current submission
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>/
+    </pre>
+
+    It's also possible to specify the format.
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>.xml
+    <b>GET</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>.json
+    </pre>
+
+    or
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions/<code>{id}</code>/?format=xml
+    <b>GET</b> /assets/<code>{asset_uid}</code>/submissions/<code>{id}</code>/?format=json
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/234/
+
+    Deletes current submission
+    <pre class="prettyprint">
+    <b>DELETE</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>/
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/234/
+
+
+    Update current submission
+
+    _It's not possible to update a submission directly with `kpi`'s API.
+    Instead, it returns the link where the instance can be opened for editing._
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>/edit/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/234/edit/
+
+
+    ### Validation statuses
+
+    Retrieves the validation status of a submission.
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>/validation_status/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/234/validation_status/
+
+    Update the validation of a submission
+    <pre class="prettyprint">
+    <b>PATCH</b> /assets/<code>{uid}</code>/submissions/<code>{id}</code>/validation_status/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/234/validation_status/
+
+    > **Payload**
+    >
+    >        {
+    >           "validation_status.uid": <validation_status>
+    >        }
+
+    where `<validation_status>` is a string and can be one of theses values:
+
+        - `validation_status_approved`
+        - `validation_status_not_approved`
+        - `validation_status_on_hold`
+
+    Bulk update
+    <pre class="prettyprint">
+    <b>PATCH</b> /assets/<code>{uid}</code>/submissions/validation_statuses/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/submissions/validation_statuses/
+
+    > **Payload**
+    >
+    >        {
+    >           "submissions_ids": [{integer}],
+    >           "validation_status.uid": <validation_status>
+    >        }
+
+
+    ### CURRENT ENDPOINT
+    """
+    parent_model = Asset
+    renderer_classes = (renderers.BrowsableAPIRenderer,
+                        renderers.JSONRenderer,
+                        SubmissionXMLRenderer
+                        )
+    permission_classes = (SubmissionsPermissions,)
+
+    def _get_asset(self):
+        asset_uid = self.get_parents_query_dict()['asset']
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
+
+        return asset
+
+    def _get_deployment(self):
+        """
+        Returns the deployment for the asset specified by the request
+        """
+        asset = self._get_asset()
+
+        if not asset.has_deployment:
+            raise serializers.ValidationError(
+                _('The specified asset has not been deployed'))
+        return asset.deployment
+
+    def destroy(self, request, *args, **kwargs):
+        deployment = self._get_deployment()
+        pk = kwargs.get("pk")
+        json_response = deployment.delete_submission(pk, user=request.user)
+        return Response(**json_response)
+
+    @detail_route(methods=['GET'], renderer_classes=[renderers.JSONRenderer])
+    def edit(self, request, pk, *args, **kwargs):
+        deployment = self._get_deployment()
+        json_response = deployment.get_submission_edit_url(pk, user=request.user, params=request.GET)
+        return Response(**json_response)
+
+    def list(self, request, *args, **kwargs):
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
+        deployment = self._get_deployment()
+        filters = request.GET.dict()
+        # remove `format` from filters, it's redundant.
+        filters.pop('format', None)
+        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        return Response(list(submissions))
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
+        deployment = self._get_deployment()
+        filters = request.GET.dict()
+        # remove `format` from filters, it's redundant.
+        filters.pop('format', None)
+        submission = deployment.get_submission(pk, format_type=format_type, **filters)
+        return Response(submission)
+
+    @detail_route(methods=["GET", "PATCH"], renderer_classes=[renderers.JSONRenderer])
+    def validation_status(self, request, pk, *args, **kwargs):
+        deployment = self._get_deployment()
+        if request.method == "PATCH":
+            json_response = deployment.set_validation_status(pk, request.data, request.user)
+        else:
+            json_response = deployment.get_validation_status(pk, request.GET, request.user)
+
+        return Response(**json_response)
+
+    @list_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    def validation_statuses(self, request, *args, **kwargs):
+        deployment = self._get_deployment()
+        json_response = deployment.set_validation_statuses(request.data, request.user)
+
+        return Response(**json_response)
 
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -1383,7 +1605,9 @@ class TokenView(APIView):
 
 
 class EnvironmentView(APIView):
-    ''' GET-only view for certain server-provided configuration data '''
+    """
+    GET-only view for certain server-provided configuration data
+    """
 
     CONFIGS_TO_EXPOSE = [
         'TERMS_OF_SERVICE_URL',

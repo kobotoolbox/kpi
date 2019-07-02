@@ -34,7 +34,6 @@ class XMLRenderer(DRFXMLRenderer):
                 return getattr(obj, relationship).xml
             return obj.xml
         else:
-            # @TODO Handle submissions
             return super(XMLRenderer, self).render(data=data,
                                                    accepted_media_type=accepted_media_type,
                                                    renderer_context=renderer_context)
@@ -47,6 +46,15 @@ class XFormRenderer(XMLRenderer):
                                                  accepted_media_type=accepted_media_type,
                                                  renderer_context=renderer_context,
                                                  relationship="snapshot")
+
+
+class SubmissionXMLRenderer(DRFXMLRenderer):
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        if renderer_context.get("view").action == "list":
+            return "<root>{}</root>".format("".join(data))
+        else:
+            return data
 
 
 class XlsRenderer(renderers.BaseRenderer):

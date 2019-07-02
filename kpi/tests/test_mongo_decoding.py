@@ -6,15 +6,14 @@ import unittest
 from django.test import TestCase
 from django.conf import settings
 
-from kpi.utils.mongo_helper import MongoDecodingHelper
+from kpi.utils.mongo_helper import MongoHelper
 
 
 def get_instances_from_mongo():
     query = {'_deleted_at': {'$exists': False}}
     instances = settings.MONGO_DB.instances.find(query)
     return (
-        MongoDecodingHelper.to_readable_dict(instance)
-            for instance in instances
+        MongoHelper.to_readable_dict(instance) for instance in instances
     )
 
 
@@ -29,8 +28,10 @@ class FakeMongoDB(object):
     class FakeMongoCollection(object):
         def __init__(self, fake_query_results):
             self.fake_query_results = fake_query_results
+
         def find(self, *args, **kwargs):
             return self.fake_query_results
+
     def __init__(self, fake_query_results):
         self.instances = FakeMongoDB.FakeMongoCollection(fake_query_results)
 
