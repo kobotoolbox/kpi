@@ -757,8 +757,8 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = session.currentAccount.available_sectors;
-    const countries = session.currentAccount.available_countries;
+    const sectors = stores.session.environment.available_sectors;
+    const countries = stores.session.environment.available_countries;
 
     return (
       <bem.FormModal__form
