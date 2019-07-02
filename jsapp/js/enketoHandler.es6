@@ -6,6 +6,7 @@ import {t, notify} from 'js/utils';
  */
 const enketoHandler = {
   enketoUrls: new Map(),
+  winTab: null,
 
   /**
    * Builds unique url id.
@@ -22,8 +23,7 @@ const enketoHandler = {
    * Opens submission editing in new window.
    */
   _openEnketoUrl(aid, sid) {
-    const newWin = window.open('', '_blank');
-    newWin.location = this.enketoUrls.get(this._getUrlId(aid, sid));
+    this.winTab.location.href = this.enketoUrls.get(this._getUrlId(aid, sid));
   },
 
   _saveEnketoUrl(aid, sid, url) {
@@ -46,6 +46,8 @@ const enketoHandler = {
    * @returns {Promise} Promise that resolves when url is being opened.
    */
   editSubmission(aid, sid) {
+    // we create the tab immediately to avoid browser popup blocker killing it
+    this.winTab = window.open('', '_blank');
     const editPromise = new Promise((resolve, reject) => {
       if (this._hasEnketoUrl(aid, sid)) {
         this._openEnketoUrl(aid, sid);
