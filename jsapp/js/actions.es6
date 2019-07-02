@@ -1,5 +1,6 @@
 import alertify from 'alertifyjs';
 import {dataInterface} from './dataInterface';
+import helpActions from './actions/help';
 import {
   log,
   t,
@@ -11,8 +12,9 @@ var Reflux = require('reflux');
 import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
-var actions = {};
+const actions = {};
 
+actions.help = helpActions;
 
 actions.navigation = Reflux.createActions([
     'transitionStart',
@@ -179,6 +181,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ],
   },
+  removeSubmissionValidationStatus: {
+    children: [
+      'completed',
+      'failed'
+    ],
+  },
   getAssetFiles: {
     children: [
       'completed',
@@ -252,7 +260,6 @@ actions.misc = Reflux.createActions({
     ]
   },
 });
-
 
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)
@@ -711,6 +718,15 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
   }).fail((error)=>{
     console.error(error);
     actions.resources.updateSubmissionValidationStatus.failed(error);
+  });
+});
+
+actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
+  dataInterface.removeSubmissionValidationStatus(uid, sid).done((result) => {
+    actions.resources.removeSubmissionValidationStatus.completed(result, sid);
+  }).fail((error)=>{
+    console.error(error);
+    actions.resources.removeSubmissionValidationStatus.failed(error);
   });
 });
 

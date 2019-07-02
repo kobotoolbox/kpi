@@ -12,7 +12,7 @@ from django.conf import settings
 PROJECT_NAME = os.path.basename(os.path.dirname(__file__))
 
 # Set the default Django settings module for the 'celery' command-line program
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{}.settings'.format(
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{}.settings.prod'.format(
     PROJECT_NAME))
 
 Celery = celery.Celery

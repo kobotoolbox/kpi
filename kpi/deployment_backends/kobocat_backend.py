@@ -18,31 +18,13 @@ from rest_framework import exceptions, status, serializers
 from rest_framework.request import Request
 from rest_framework.authtoken.models import Token
 
-from ..exceptions import BadFormatException
+from ..exceptions import BadFormatException, KobocatDeploymentException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
-from .kc_access.shadow_models import _models
+from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.utils.mongo_helper import MongoDecodingHelper
 from kpi.utils.log import logging
-
-
-class KobocatDeploymentException(exceptions.APIException):
-    def __init__(self, *args, **kwargs):
-        if 'response' in kwargs:
-            self.response = kwargs.pop('response')
-        super(KobocatDeploymentException, self).__init__(*args, **kwargs)
-
-    @property
-    def invalid_form_id(self):
-        # We recognize certain KC API responses as indications of an
-        # invalid form id:
-        invalid_form_id_responses = (
-            'Form with this id or SMS-keyword already exists.',
-            'In strict mode, the XForm ID must be a valid slug and '
-                'contain no spaces.',
-        )
-        return self.detail in invalid_form_id_responses
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -89,47 +71,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def backend_response(self):
         return self.asset._deployment_data['backend_response']
-
-    def to_csv_io(self, asset_xls_io, id_string):
-        ''' Convert the output of `Asset.to_xls_io()` or
-        `Asset.to_versioned_xls_io()` into a CSV appropriate for KC's
-        `text_xls_form` '''
-        xls_dict = xls_to_dict(asset_xls_io)
-        csv_io = cStringIO.StringIO()
-        writer = unicodecsv.writer(
-            csv_io, delimiter=',', quotechar='"',
-            quoting=unicodecsv.QUOTE_MINIMAL
-        )
-        settings_arr = xls_dict.get('settings', [])
-        if len(settings_arr) == 0:
-            settings_dict = {}
-        else:
-            settings_dict = settings_arr[0]
-        if 'form_id' in settings_dict:
-            del settings_dict['form_id']
-        settings_dict['id_string'] = id_string
-        settings_dict['form_title'] = self.asset.name
-        xls_dict['settings'] = [settings_dict]
-
-        for sheet_name, rows in xls_dict.items():
-            if re.search(r'_header$', sheet_name):
-                continue
-
-            writer.writerow([sheet_name])
-            out_keys = []
-            out_rows = []
-            for row in rows:
-                out_row = []
-                for key in row.keys():
-                    if key not in out_keys:
-                        out_keys.append(key)
-                for out_key in out_keys:
-                    out_row.append(row.get(out_key, None))
-                out_rows.append(out_row)
-            writer.writerow([None] + out_keys)
-            for out_row in out_rows:
-                writer.writerow([None] + out_row)
-        return csv_io
 
     def _kobocat_request(self, method, url, **kwargs):
         '''
@@ -210,7 +151,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform_id(self):
         pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
-        xform = _models.XForm.objects.filter(pk=pk).only(
+        xform = ReadOnlyXForm.objects.filter(pk=pk).only(
             'user__username', 'id_string').first()
         if not (xform.user.username == self.asset.owner.username and
                 xform.id_string == self.xform_id_string):
@@ -556,7 +497,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param instances_ids: list. Optional
         :return: list<XML>
         """
-        queryset = _models.Instance.objects.filter(
+        queryset = ReadOnlyInstance.objects.filter(
             xform_id=self.xform_id,
             deleted_at=None
         )

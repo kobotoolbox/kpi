@@ -32,7 +32,7 @@ import {
 
 import icons from '../xlform/src/view.icons';
 
-const IMPORT_CHECK_INTERVAL = 500;
+const IMPORT_CHECK_INTERVAL = 1000;
 
 var mixins = {};
 
@@ -236,7 +236,7 @@ const applyImport = (params) => {
           uid: data.uid,
         }).done((importData) => {
           switch (importData.status) {
-            case 'complete':
+            case 'complete': {
               const finalData = importData.messages.updated || importData.messages.created;
               if (finalData && finalData.length > 0 && finalData[0].uid) {
                 clearInterval(doneCheckInterval);
@@ -246,14 +246,17 @@ const applyImport = (params) => {
                 reject(importData);
               }
               break;
+            }
             case 'processing':
-            case 'created':
+            case 'created': {
               // TODO: notify promise awaiter about delay (after multiple interval rounds)
               break;
+            }
             case 'error':
-            default:
+            default: {
               clearInterval(doneCheckInterval);
               reject(importData);
+            }
           }
         }).fail((failData)=>{
           clearInterval(doneCheckInterval);

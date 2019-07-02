@@ -32,10 +32,10 @@ var dataInterface;
     if (request.status === 403 || request.status === 401 || request.status === 404) {
       dataInterface.selfProfile().done((data) => {
         if (data.message === 'user is not logged in') {
-          let errorMessage = t("Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>")
+          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>')
           let serverMessage = request.status.toString();
           if (request.responseJSON && request.responseJSON.detail) {
-            serverMessage += ": " + request.responseJSON.detail;
+            serverMessage += ': ' + request.responseJSON.detail;
           }
           errorMessage = errorMessage.replace('##server_message##', serverMessage);
           alertify.alert(t('You are not logged in'), errorMessage);
@@ -453,11 +453,24 @@ var dataInterface;
         data: {'payload': JSON.stringify(data)}
       });
     },
+    bulkRemoveSubmissionsValidationStatus(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        method: 'DELETE',
+        data: {'payload': JSON.stringify(data)}
+      });
+    },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
         method: 'PATCH',
         data: data
+      });
+    },
+    removeSubmissionValidationStatus(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        method: 'DELETE'
       });
     },
     getSubmissionsQuery(uid, query='') {
@@ -502,6 +515,22 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/${assetUid}/files/${uid}/`,
         method: 'DELETE'
+      });
+    },
+
+    getHelpInAppMessages() {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/`,
+        method: 'GET'
+      });
+    },
+    patchHelpInAppMessage(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/${uid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
 

@@ -38,8 +38,13 @@ class SurveyScope {
       console.error('cannot add group to question library');
     }
   }
-  handleItem({position, itemData}) {
-    actions.survey.addItemAtPosition({position: position, uid: itemData.uid, survey: this.survey});
+  handleItem({position, itemData, groupId}) {
+    actions.survey.addItemAtPosition({
+      position: position,
+      uid: itemData.uid,
+      survey: this.survey,
+      groupId: groupId
+    });
   }
 }
 

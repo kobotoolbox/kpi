@@ -98,12 +98,13 @@ class MainHeader extends Reflux.Component {
     );
   }
   renderAccountNavMenu () {
-    var langs = [];
-
+    let langs = [];
+    if (stores.session.environment) {
+      langs = stores.session.environment.interface_languages;
+    }
     if (stores.session.currentAccount) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
-      langs = stores.session.currentAccount.languages;
 
       var initialsStyle = {background: `#${stringToColor(accountName)}`};
       var accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;

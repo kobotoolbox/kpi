@@ -1,113 +1,126 @@
-from distutils.util import strtobool
-from itertools import chain
-import copy
-from hashlib import md5
-import json
 import base64
+import copy
 import datetime
+import json
+from distutils.util import strtobool
+from hashlib import md5
+from itertools import chain
 
+import constance
+from django.conf import settings
 from django.contrib.auth import login
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Count, Q
 from django.forms import model_to_dict
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
-from django.utils.http import is_safe_url
 from django.shortcuts import get_object_or_404, resolve_url
 from django.template.response import TemplateResponse
-from django.conf import settings
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
-
-
-from rest_framework import (
-    viewsets,
-    mixins,
-    renderers,
-    status,
-    exceptions,
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from private_storage.views import PrivateStorageDetailView
+from rest_framework import exceptions, mixins, renderers, status, viewsets
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    detail_route,
+    list_route,
+    renderer_classes
 )
-from rest_framework.decorators import api_view
-from rest_framework.decorators import renderer_classes
-from rest_framework.decorators import detail_route, list_route
-from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
-import constance
 from taggit.models import Tag
-from private_storage.views import PrivateStorageDetailView
 
-from .filters import KpiAssignedObjectPermissionsFilter
-from .filters import AssetOwnerFilterBackend
-from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
-from .filters import SearchFilter
-from .highlighters import highlight_xform
+from deployment_backends.backends import DEPLOYMENT_BACKENDS
+from deployment_backends.mixin import KobocatDataProxyViewSetMixin
 from hub.models import SitewideMessage
+from kobo.apps.hook.utils import HookUtils
+from kobo.static_lists import COUNTRIES, LANGUAGES, SECTORS
+
+from .constants import (
+    ASSET_TYPE_ARG_NAME,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+    ASSET_TYPES,
+    CLONE_ARG_NAME,
+    CLONE_COMPATIBLE_TYPES,
+    CLONE_FROM_VERSION_ID_ARG_NAME,
+    COLLECTION_CLONE_FIELDS
+)
+from .exceptions import BadAssetTypeException
+from .filters import (
+    AssetOwnerFilterBackend,
+    KpiAssignedObjectPermissionsFilter,
+    KpiObjectPermissionsFilter,
+    RelatedAssetPermissionsFilter,
+    SearchFilter
+)
+from .highlighters import highlight_xform
+from .model_utils import disable_auto_field_update, remove_string_prefix
 from .models import (
-    Collection,
     Asset,
-    AssetVersion,
-    AssetSnapshot,
     AssetFile,
-    ImportTask,
-    ExportTask,
-    ObjectPermission,
+    AssetSnapshot,
+    AssetVersion,
     AuthorizedApplication,
+    Collection,
+    ExportTask,
+    ImportTask,
+    ObjectPermission,
     OneTimeAuthenticationKey,
-    UserCollectionSubscription,
-    )
-from .models.object_permission import get_anonymous_user, get_objects_for_user
+    UserCollectionSubscription
+)
 from .models.authorized_application import ApplicationTokenAuthentication
 from .models.import_export_task import _resolve_url_to_asset_or_collection
-from .model_utils import disable_auto_field_update, remove_string_prefix
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
-    get_perm_name,
+    get_perm_name
 )
 from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    XMLRenderer,
-    XlsRenderer,)
+    XlsRenderer,
+    XMLRenderer
+)
 from .serializers import (
-    AssetSerializer, AssetListSerializer,
+    AssetFileSerializer,
+    AssetListSerializer,
+    AssetSerializer,
+    AssetSnapshotSerializer,
     AssetVersionListSerializer,
     AssetVersionSerializer,
-    AssetFileSerializer,
-    AssetSnapshotSerializer,
-    SitewideMessageSerializer,
-    CollectionSerializer, CollectionListSerializer,
-    UserSerializer,
-    CurrentUserSerializer, CreateUserSerializer,
-    TagSerializer, TagListSerializer,
-    ImportTaskSerializer, ImportTaskListSerializer,
-    ExportTaskSerializer,
-    ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
-    OneTimeAuthenticationKeySerializer,
+    CollectionListSerializer,
+    CollectionSerializer,
+    CreateUserSerializer,
+    CurrentUserSerializer,
     DeploymentSerializer,
-    UserCollectionSubscriptionSerializer,)
+    ExportTaskSerializer,
+    ImportTaskListSerializer,
+    ImportTaskSerializer,
+    ObjectPermissionSerializer,
+    OneTimeAuthenticationKeySerializer,
+    SitewideMessageSerializer,
+    TagListSerializer,
+    TagSerializer,
+    UserCollectionSubscriptionSerializer,
+    UserSerializer
+)
+from .tasks import export_in_background, import_in_background
 from .utils.gravatar_url import gravatar_url
 from .utils.kobo_to_xlsform import to_xlsform_structure
+from .utils.log import logging
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from .tasks import import_in_background, export_in_background
-from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
-    COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
-    ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
-from deployment_backends.backends import DEPLOYMENT_BACKENDS
-from deployment_backends.mixin import KobocatDataProxyViewSetMixin
-from kobo.apps.hook.utils import HookUtils
-from kpi.exceptions import BadAssetTypeException
-from kpi.utils.log import logging
 
 
 @login_required
@@ -1381,11 +1394,18 @@ class EnvironmentView(APIView):
     ]
 
     def get(self, request, *args, **kwargs):
-        '''
+        """
         Return the lowercased key and value of each setting in
-        `CONFIGS_TO_EXPOSE`
-        '''
-        return Response({
+        `CONFIGS_TO_EXPOSE`, along with the static lists of sectors, countries,
+        all known languages, and languages for which the interface has
+        translations.
+        """
+        data = {
             key.lower(): getattr(constance.config, key)
                 for key in self.CONFIGS_TO_EXPOSE
-        })
+        }
+        data['available_sectors'] = SECTORS
+        data['available_countries'] = COUNTRIES
+        data['all_languages'] = LANGUAGES
+        data['interface_languages'] = settings.LANGUAGES
+        return Response(data)

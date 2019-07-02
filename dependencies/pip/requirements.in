@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # Formpack
--e git+https://github.com/kobotoolbox/formpack.git@45a49bbcc794c6ac3756afe04a4f851c3da9219d#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@eb7d723eb2b54dbfd56a1c32d72e0008bbb29149#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -26,7 +26,7 @@ django-braces
 django-celery-beat
 django-constance[database]
 django-cors-headers
-django-debug-toolbar
+django-debug-toolbar==1.4 # DO NOT UPGRADE TO 1.6 WITHOUT TESTING!
 django-extensions
 django-jsonbfield
 django-oauth-toolkit
@@ -36,6 +36,7 @@ django-toolbelt
 django-webpack-loader
 django-haystack
 django-loginas==0.2.3
+django-markdownx
 django-markitup
 django-mptt
 django-reversion
@@ -51,8 +52,8 @@ kombu
 lxml
 mock
 oauthlib
+py-gfm
 pymongo
-pytest-django
 python-dateutil
 pytz
 pyxform
@@ -74,3 +75,6 @@ xlwt
 pyopenssl
 ndg-httpsclient
 pyasn1
+
+# Force new version of redis
+redis==3.2.0
