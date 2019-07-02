@@ -1,12 +1,4 @@
-"""
-Django settings for kobo project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.7/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.7/ref/settings/
-"""
+# coding: utf-8
 from __future__ import absolute_import
 
 from datetime import timedelta
@@ -18,16 +10,18 @@ from celery.schedules import crontab
 import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
+from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
 import dj_database_url
-
 from pymongo import MongoClient
 
-from .static_lists import EXTRA_LANG_INFO
+from ..static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+settings_dirname = os.path.dirname(os.path.abspath(__file__))
+parent_dirname = os.path.dirname(settings_dirname)
+BASE_DIR = os.path.abspath(os.path.dirname(parent_dirname))
 
 
 # Quick-start development settings - unsuitable for production
@@ -49,8 +43,6 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
 if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
     USE_X_FORWARDED_HOST = True
-
-UPCOMING_DOWNTIME = False
 
 # Domain must not exclude KoBoCAT when sharing sessions
 if os.environ.get('CSRF_COOKIE_DOMAIN'):
@@ -106,6 +98,8 @@ INSTALLED_APPS = (
     'django_celery_beat',
     'corsheaders',
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
+    'markdownx',
+    'kobo.apps.help',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -121,6 +115,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
+    'hub.middleware.UsernameInResponseHeaderMiddleware',
 )
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
@@ -161,10 +156,13 @@ CONSTANCE_CONFIG = {
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
+
 # Warn developers to use `pytest` instead of `./manage.py test`
 class DoNotUseRunner(object):
     def __init__(self, *args, **kwargs):
         raise NotImplementedError('Please run tests with `pytest` instead')
+
+
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
 # used in kpi.models.sitewide_messages
@@ -202,12 +200,10 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
-# This project does not use GIS (yet). Change the database engine accordingly
-# to avoid unnecessary dependencies.
-for db in DATABASES.values():
-    if db['ENGINE'] == 'django.contrib.gis.db.backends.postgis':
-        db['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
+
+DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
 
 
 # Internationalization
@@ -225,7 +221,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-LOCALE_PATHS= (os.path.join(BASE_DIR, 'locale'),)
+LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 USE_I18N = True
 
@@ -242,6 +238,11 @@ MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \
     'kpi.utils.private_storage.superuser_or_username_matches_prefix'
+
+# django-markdownx, for in-app messages
+MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
+# Github-flavored Markdown from `py-gfm`
+MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
@@ -329,7 +330,6 @@ TEMPLATES = [
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
-INTERCOM_APP_ID = os.environ.get('INTERCOM_APP_ID')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists
@@ -524,6 +524,9 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
+        # Proxy S3 through our application instead of redirecting to bucket
+        # URLs with query parameter authentication
+        PRIVATE_STORAGE_S3_REVERSE_PROXY = True
 
 
 # Need a default logger when sentry is not activated
