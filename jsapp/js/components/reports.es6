@@ -763,7 +763,11 @@ class Reports extends React.Component {
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
-      if (this.state.currentCustomReport && this.state.currentCustomReport.reportStyle) {
+      if (
+        this.state.currentCustomReport &&
+        this.state.currentCustomReport.reportStyle &&
+        this.state.currentCustomReport.reportStyle.groupDataBy
+      ) {
         groupBy = this.state.currentCustomReport.reportStyle.groupDataBy;
       } else if (reportStyles.default.groupDataBy !== undefined) {
         groupBy = reportStyles.default.groupDataBy;
