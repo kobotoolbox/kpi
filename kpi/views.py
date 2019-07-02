@@ -45,9 +45,16 @@ from kobo.apps.hook.utils import HookUtils
 from kobo.static_lists import COUNTRIES, LANGUAGES, SECTORS
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.log import logging
-from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
-    COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
-    ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
+from .constants import (
+    ASSET_TYPES,
+    ASSET_TYPE_ARG_NAME,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+    CLONE_ARG_NAME,
+    CLONE_COMPATIBLE_TYPES,
+    CLONE_FROM_VERSION_ID_ARG_NAME,
+    COLLECTION_CLONE_FIELDS,
+)
 from .deployment_backends.backends import DEPLOYMENT_BACKENDS
 from .filters import (
     AssetOwnerFilterBackend,
@@ -739,38 +746,40 @@ class HookSignalViewSet(NestedViewSetMixin, viewsets.ViewSet):
         :param request:
         :return:
         """
-        # Follow Open Rosa responses by default
-        response_status_code = status.HTTP_202_ACCEPTED
-        response = {
-            "detail": _(
-                "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
-        }
+        asset_uid = self.get_parents_query_dict().get("asset")
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
+
+        instance_id = request.data.get("instance_id")
+        if instance_id is None:
+            raise exceptions.ValidationError(
+                {'instance_id': _('This field is required.')})
+
+        instance = None
         try:
-            asset_uid = self.get_parents_query_dict().get("asset")
-            asset = get_object_or_404(self.parent_model, uid=asset_uid)
-            instance_id = request.data.get("instance_id")
             instance = asset.deployment.get_submission(instance_id)
+        except ValueError:
+            raise Http404
 
-            # Check if instance really belongs to Asset.
-            if not (instance and instance.get(asset.deployment.INSTANCE_ID_FIELDNAME) == instance_id):
-                response_status_code = status.HTTP_404_NOT_FOUND
-                response = {
-                    "detail": _("Resource not found")
-                }
+        # Check if instance really belongs to Asset.
+        if not (instance and
+                instance.get(asset.deployment.INSTANCE_ID_FIELDNAME) == instance_id):
+            raise Http404
 
-            elif not HookUtils.call_services(asset, instance_id):
-                response_status_code = status.HTTP_409_CONFLICT
-                response = {
-                    "detail": _(
-                        "Your data for instance {} has been already submitted.".format(instance_id))
-                }
-
-        except Exception as e:
-            logging.error("HookSignalViewSet.create - {}".format(str(e)))
+        if HookUtils.call_services(asset, instance_id):
+            # Follow Open Rosa responses by default
+            response_status_code = status.HTTP_202_ACCEPTED
             response = {
-                "detail": _("An error has occurred when calling the external service. Please retry later.")
+                "detail": _(
+                    "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
             }
-            response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        else:
+            # call_services() refused to launch any task because this
+            # instance already has a `HookLog`
+            response_status_code = status.HTTP_409_CONFLICT
+            response = {
+                "detail": _(
+                    "Your data for instance {} has been already submitted.".format(instance_id))
+            }
 
         return Response(response, status=response_status_code)
 
@@ -964,16 +973,16 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == "PATCH":
-            json_response = deployment.set_validate_status(pk, request.data, request.user)
+            json_response = deployment.set_validation_status(pk, request.data, request.user)
         else:
-            json_response = deployment.get_validate_status(pk, request.GET, request.user)
+            json_response = deployment.get_validation_status(pk, request.GET, request.user)
 
         return Response(**json_response)
 
     @list_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.set_validate_statuses(request.data, request.user)
+        json_response = deployment.set_validation_statuses(request.data, request.user)
 
         return Response(**json_response)
 

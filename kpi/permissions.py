@@ -2,7 +2,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions
+from rest_framework import exceptions, permissions
 from rest_framework_extensions.settings import extensions_api_settings
 
 from kpi.models.asset import Asset

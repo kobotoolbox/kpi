@@ -458,8 +458,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It can be filtered on instances ids.
 
         :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param instances_ids: list. Optional
-        :param kwargs: dict. Optional. Mostly for Mongo query.
+        :param instances_ids: list. Ids of instances to retrieve
+        :param kwargs: dict. Filter parameters for Mongo query. See
+            https://docs.mongodb.com/manual/reference/operator/query/
         :return: list: mixed
         """
         submissions = []
@@ -492,19 +493,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             raise ValueError(_("Primary key must be provided"))
 
-    def get_validate_status(self, submission_pk, params, user):
+    def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
         kc_request = requests.Request(method="GET", url=url, data=params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validate_status(self, submission_pk, data, user):
+    def set_validation_status(self, submission_pk, data, user):
         url = self.get_submission_validation_status_url(submission_pk)
         kc_request = requests.Request(method="PATCH", url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validate_statuses(self, data, user):
+    def set_validation_statuses(self, data, user):
         url = self.submission_list_url
         kc_request = requests.Request(method="PATCH", url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -607,18 +608,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         prepared_drf_response = {}
 
-        try:
-            # `requests_response` may not have `headers` attribute
-            content_type = requests_response.headers.get('Content-Type')
-            content_language = requests_response.headers.get('Content-Language')
-            if content_type:
-                prepared_drf_response['content_type'] = content_type
-            if content_language:
-                prepared_drf_response['headers'] = {
-                    'Content-Language': content_language
-                }
-        except AttributeError:
-            pass
+        # `requests_response` may not have `headers` attribute
+        content_type = requests_response.headers.get('Content-Type')
+        content_language = requests_response.headers.get('Content-Language')
+        if content_type:
+            prepared_drf_response['content_type'] = content_type
+        if content_language:
+            prepared_drf_response['headers'] = {
+                'Content-Language': content_language
+            }
 
         prepared_drf_response['status'] = requests_response.status_code
 

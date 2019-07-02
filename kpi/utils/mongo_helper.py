@@ -7,6 +7,7 @@ import re
 
 from bson import json_util, ObjectId
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
@@ -182,12 +183,8 @@ class MongoHelper(object):
         :param key: string
         :return: string
         """
-        return (
-                key not in cls.KEY_WHITELIST and (
-                    key.startswith('JA==') or
-                    key.count('Lg==') > 0
-                )
-        )
+        return key not in cls.KEY_WHITELIST and (key.startswith('JA==') or
+                                                 key.count('Lg==') > 0)
 
     @staticmethod
     def _is_nested_reserved_attribute(key):
@@ -198,7 +195,7 @@ class MongoHelper(object):
         :return: boolean
         """
         for reserved_attribute in NESTED_MONGO_RESERVED_ATTRIBUTES:
-            if key.startswith(u"{}.".format(reserved_attribute)):
+            if key.startswith("{}.".format(reserved_attribute)):
                 return True
         return False
 
@@ -214,8 +211,11 @@ class MongoHelper(object):
         instances_ids = params.get("instances_ids")
 
         # check if query contains and _id and if its a valid ObjectID
-        if "_uuid" in query and ObjectId.is_valid(query.get("_uuid")):
-            query["_uuid"] = ObjectId(query.get("_uuid"))
+        if "_uuid" in query:
+            if ObjectId.is_valid(query.get("_uuid")):
+                query["_uuid"] = ObjectId(query.get("_uuid"))
+            else:
+                raise ValidationError(_('Invalid _uuid specified'))
 
         if len(instances_ids) > 0:
             query.update({
@@ -234,14 +234,15 @@ class MongoHelper(object):
 
         query = cls.to_safe_dict(query, reading=True)
 
-        # Can't mix including and excluding fields in a single query
         if len(fields) > 0:
-            # Remove `cls.USERFORM_ID` from fields in case users try to add it.
+            # Retrieve only specified fields from Mongo. Remove
+            # `cls.USERFORM_ID` from those fields in case users try to add it.
             if cls.USERFORM_ID in fields:
                 fields.remove(cls.USERFORM_ID)
             fields_to_select = dict(
                 [(cls.encode(field), 1) for field in fields])
         else:
+            # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
@@ -285,7 +286,7 @@ class MongoHelper(object):
         if isinstance(sort, basestring):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
-            except Exception as e:
+            except ValueError:
                 raise ValueError(_("Invalid `sort` param"))
 
         try:
