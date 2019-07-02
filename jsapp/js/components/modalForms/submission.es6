@@ -4,7 +4,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
-
+import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
 import actions from 'js/actions';
 import mixins from 'js/mixins';
@@ -41,7 +41,7 @@ class Submission extends React.Component {
       next: -1,
       sid: props.sid,
       showBetaFieldsWarning: false,
-      isGettingEnketoEditLink: false,
+      isEditLoading: false,
       promptRefresh: false,
       translationIndex: 0,
       translationOptions: translationOptions
@@ -66,7 +66,7 @@ class Submission extends React.Component {
   }
 
   isSubmissionEditable() {
-    return this.props.asset.deployment__active && !this.state.isGettingEnketoEditLink;
+    return this.props.asset.deployment__active && !this.state.isEditLoading;
   }
 
   getSubmission(assetUid, sid) {
@@ -143,28 +143,14 @@ class Submission extends React.Component {
   }
 
   launchEditSubmission() {
-    this.setState({isGettingEnketoEditLink: true});
-    dataInterface.getEnketoEditLink(this.props.asset.uid, this.props.sid)
-      .done((editData) => {
-        this.setState({
-          promptRefresh: true,
-          isGettingEnketoEditLink: false
-        });
-        if (editData.url) {
-          const newWin = window.open('', '_blank');
-          newWin.location = editData.url;
-        } else {
-          let errorMsg = t('There was an error loading Enketo.');
-          if (editData.detail) {
-            errorMsg += `<br><code>${editData.detail}</code>`;
-          }
-          notify(errorMsg, 'error');
-        }
-      })
-      .fail(() => {
-        this.setState({isGettingEnketoEditLink: false});
-        notify(t('There was an error getting Enketo edit link'), 'error');
-      });
+    this.setState({
+      promptRefresh: true,
+      isEditLoading: true
+    });
+    enketoHandler.editSubmission(this.props.asset.uid, this.props.sid).then(
+      () => {this.setState({isEditLoading: false});},
+      () => {this.setState({isEditLoading: false});}
+    );
   }
 
   renderAttachment(filename, type) {
@@ -525,12 +511,10 @@ class Submission extends React.Component {
               <a
                 onClick={this.launchEditSubmission.bind(this)}
                 className='mdl-button mdl-button--raised mdl-button--colored'
-                {...({
-                  disabled: this.isSubmissionEditable() ? null : true
-                })}
+                disabled={!this.isSubmissionEditable()}
               >
-                {this.state.isGettingEnketoEditLink && t('Loading…')}
-                {!this.state.isGettingEnketoEditLink && t('Edit')}
+                {this.state.isEditLoading && t('Loading…')}
+                {!this.state.isEditLoading && t('Edit')}
               </a>
             }
 
