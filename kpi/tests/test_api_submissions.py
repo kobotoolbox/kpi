@@ -23,7 +23,7 @@ class BaseTestCase(APITestCase):
 
     """
     SubmissionViewset uses `BrowsableAPIRenderer` as the first renderer.
-    Force JSON to test the API by specifying `format`, `HTTP_ACCEPT` or 
+    Force JSON to test the API by specifying `format`, `HTTP_ACCEPT` or
     `content_type`
     """
 
@@ -71,23 +71,20 @@ class BaseTestCase(APITestCase):
         self.asset.deployment.mock_submissions(self.submissions)
         self.submission_url = self.asset.deployment.submission_list_url
 
-    def _other_user_login(self, shared_asset=False, view_only=True):
+    def _log_in_as_another_user(self):
         """
         Helper to switch user from `someuser` to `anotheruser`.
-        `anotheruser` can be given permissions on submissions 
-        when `shared_asset` is True.
-
-        `view_only` controls what kind of permissions to give.
-
-        :param shared_asset: bool
-        :param view_only: bool
-        
         """
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
-        if shared_asset:
-            perm = 'view_submissions' if view_only else 'change_submissions'
-            self.asset.assign_perm(self.anotheruser, perm)
+
+    def _share_with_another_user(self, view_only=True):
+        """
+        Helper to share `self.asset` with `self.anotheruser`.
+        `view_only` controls what kind of permissions to give.
+        """
+        perm = 'view_submissions' if view_only else 'change_submissions'
+        self.asset.assign_perm(self.anotheruser, perm)
 
 
 class SubmissionApiTests(BaseTestCase):
@@ -103,7 +100,8 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # Shared
-        self._other_user_login(True)
+        self._share_with_another_user()
+        self._log_in_as_another_user()
         response = self.client.post(self.submission_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -118,12 +116,13 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.data, self.submissions)
 
     def test_list_submissions_not_shared_other(self):
-        self._other_user_login()
+        self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_shared_other(self):
-        self._other_user_login(True)
+        self._share_with_another_user()
+        self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
@@ -132,7 +131,7 @@ class SubmissionApiTests(BaseTestCase):
         self.client.logout()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        
+
     def test_list_submissions_anonymous_asset_publicly_shared(self):
         self.client.logout()
         anonymous_user = get_anonymous_user()
@@ -150,14 +149,15 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.data, submission)
 
     def test_retrieve_submission_not_shared_other(self):
-        self._other_user_login()
+        self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve_submission_shared_other(self):
-        self._other_user_login(True)
+        self._share_with_another_user()
+        self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
         response = self.client.get(url, {"format": "json"})
@@ -184,7 +184,7 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_not_shared_other(self):
-        self._other_user_login()
+        self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
 
@@ -194,7 +194,8 @@ class SubmissionApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_shared_other(self):
-        self._other_user_login(True)
+        self._share_with_another_user()
+        self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
         response = self.client.delete(url,
@@ -238,17 +239,19 @@ class SubmissionEditApiTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_edit_link_submission_not_shared_other(self):
-        self._other_user_login()
+        self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    
+
     def test_get_edit_link_submission_shared_other_view_only(self):
-        self._other_user_login(shared_asset=True, view_only=True)
+        self._share_with_another_user()
+        self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_edit_link_submission_shared_other_can_edit(self):
-        self._other_user_login(shared_asset=True, view_only=False)
+        self._share_with_another_user(view_only=False)
+        self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -263,23 +266,24 @@ class SubmissionValidationStatusApiTests(BaseTestCase):
         self.validation_status_url = self.asset.deployment.get_submission_validation_status_url(
             self.submission.get("id"))
 
-    def test_submission_validate_status_owner(self):
+    def test_submission_validation_status_owner(self):
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submission.get("_validation_status"))
 
-    def test_submission_validate_status_not_shared_other(self):
-        self._other_user_login()
+    def test_submission_validation_status_not_shared_other(self):
+        self._log_in_as_another_user()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submission_validate_status_other(self):
-        self._other_user_login(True)
+    def test_submission_validation_status_other(self):
+        self._share_with_another_user()
+        self._log_in_as_another_user()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submission.get("_validation_status"))
 
-    def test_submission_validate_status_anonymous(self):
+    def test_submission_validation_status_anonymous(self):
         self.client.logout()
         response = self.client.get(self.validation_status_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
