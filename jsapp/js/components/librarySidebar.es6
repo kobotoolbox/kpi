@@ -32,7 +32,7 @@ class LibrarySidebar extends Reflux.Component {
 
     autoBind(this);
   }
-  queryCollections () {
+  queryCollections() {
     dataInterface.listCollections().then((collections) => {
       this.setState({
         sidebarCollections: collections.results.filter((value) => {
@@ -45,7 +45,7 @@ class LibrarySidebar extends Reflux.Component {
       });
     });
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(this.searchStore, this.searchChanged);
     this.searchDefault();
     this.queryCollections();
@@ -53,12 +53,14 @@ class LibrarySidebar extends Reflux.Component {
   componentWillMount() {
     this.setStates();
   }
-  searchChanged (state) {
+  searchChanged(state) {
     this.setState(state);
   }
   setStates() {
     this.setState({
       headerFilters: 'library',
+      shadedWithMeVisible: false,
+      sidebarSharedWithMe: [],
       publicCollectionsVisible: false,
       searchContext: searches.getSearchContext('library', {
         filterParams: {
@@ -68,7 +70,7 @@ class LibrarySidebar extends Reflux.Component {
       })
     });
   }
-  clickFilterByCollection (evt) {
+  clickFilterByCollection(evt) {
     var target = $(evt.target);
     if (target.hasClass('collection-toggle')) {
       return false;
@@ -97,13 +99,18 @@ class LibrarySidebar extends Reflux.Component {
       filteredByPublicCollection: publicCollection,
     });
   }
-  clickShowPublicCollections () {
+  clickShowPublicCollections() {
     this.setState({
       publicCollectionsVisible: !this.state.publicCollectionsVisible,
     });
     //TODO: show the collections in the main pane?
   }
-  createCollection () {
+  clickShowSharedWithMe() {
+    this.setState({
+      sharedWithMeVisible: !this.state.sharedWithMeVisible,
+    });
+  }
+  createCollection() {
     let dialog = alertify.dialog('prompt');
     let opts = {
       title: t('Create collection'),
@@ -126,7 +133,7 @@ class LibrarySidebar extends Reflux.Component {
     };
     dialog.set(opts).show();
   }
-  deleteCollection (evt) {
+  deleteCollection(evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     let dialog = alertify.dialog('confirm');
@@ -154,7 +161,7 @@ class LibrarySidebar extends Reflux.Component {
     };
     dialog.set(opts).show();
   }
-  renameCollection (evt) {
+  renameCollection(evt) {
     var collectionUid = evt.currentTarget.dataset.collectionUid;
     var collectionName = evt.currentTarget.dataset.collectionName;
 
@@ -180,7 +187,7 @@ class LibrarySidebar extends Reflux.Component {
     };
     dialog.set(opts).show();
   }
-  subscribeCollection (evt) {
+  subscribeCollection(evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     dataInterface.subscribeCollection({
@@ -189,7 +196,7 @@ class LibrarySidebar extends Reflux.Component {
       this.queryCollections();
     });
   }
-  unsubscribeCollection (evt) {
+  unsubscribeCollection(evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     dataInterface.unsubscribeCollection({
@@ -198,7 +205,7 @@ class LibrarySidebar extends Reflux.Component {
       this.queryCollections();
     });
   }
-  sharingModal (evt) {
+  sharingModal(evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     stores.pageState.showModal({
@@ -209,7 +216,7 @@ class LibrarySidebar extends Reflux.Component {
   isCollectionPublic(collection) {
     return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
   }
-  setCollectionDiscoverability (discoverable, collection) {
+  setCollectionDiscoverability(discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
       var publicPerm = getAnonymousUserPermission(collection.permissions);
@@ -258,7 +265,7 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
 
-  render () {
+  render() {
     return (
       <bem.CollectionsWrapper>
         <button onClick={this.showLibraryNewModal} className='mdl-button mdl-button--raised mdl-button--colored'>
@@ -376,11 +383,23 @@ class LibrarySidebar extends Reflux.Component {
                   );
               })}
             </bem.FormSidebar__grouping>
+
+            <bem.FormSidebar__label
+              key='shared'
+              m={{selected: this.state.sharedWithMeVisible}}
+              onClick={this.clickShowSharedWithMe}>
+              <i className='k-icon-users' />
+              {t('Shared with me')}
+              <bem.FormSidebar__labelCount>
+                {this.state.sidebarSharedWithMe.length}
+              </bem.FormSidebar__labelCount>
+            </bem.FormSidebar__label>
+
             <bem.FormSidebar__label
               key='public'
               m={{selected: this.state.publicCollectionsVisible}}
               onClick={this.clickShowPublicCollections}>
-              <i className='k-icon-globe' />
+              <i className='k-icon-library-public' />
               {t('Public Collections')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarPublicCollections.length}
