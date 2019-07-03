@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import cStringIO
 import json
@@ -10,8 +10,10 @@ import unicodecsv
 import urlparse
 import posixpath
 
+from bson import json_util
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
@@ -23,15 +25,17 @@ from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
 from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.utils.mongo_helper import MongoDecodingHelper
+from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.log import logging
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
-    '''
+    """
     Used to deploy a project into KC. Stores the project identifiers in the
     "self.asset._deployment_data" JSONField.
-    '''
+    """
+
+    INSTANCE_ID_FIELDNAME = "_id"
 
     @staticmethod
     def make_identifier(username, id_string):
@@ -90,15 +94,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 u'This backend does not implement the {} method'.format(method)
             )
 
-        # Get or create the API authorization token for the asset's owner
-        (token, is_new) = Token.objects.get_or_create(user=self.asset.owner)
-        headers = kwargs.pop('headers', {})
-        headers[u'Authorization'] = 'Token ' + token.key
-
         # Make the request to KC
         try:
-            response = requests.request(
-                method, url, headers=headers, **kwargs)
+            kc_request = requests.Request(method=method, url=url, **kwargs)
+            response = self.__kobocat_proxy_request(kc_request, user=self.asset.owner)
+
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
@@ -320,6 +320,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise
         super(KobocatDeploymentBackend, self).delete()
 
+    def delete_submission(self, pk, user):
+        """
+        Deletes submission through `KoBoCat` proxy
+        :param pk: int
+        :param user: User
+        :return: JSON
+        """
+
+        kc_url = self.get_submission_detail_url(pk)
+        kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
     def get_enketo_survey_links(self):
         data = {
             'server_url': u'{}/{}'.format(
@@ -410,11 +424,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission_edit_url(self, submission_pk):
+    def get_submission_edit_url(self, submission_pk, user, params=None):
+        """
+        Gets edit URL of the submission from `kc` through proxy
+
+        :param submission_pk: int
+        :param user: User
+        :param params: dict
+        :return: JSON
+        """
         url = '{detail_url}/enketo'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
-        )
-        return url
+            detail_url=self.get_submission_detail_url(submission_pk))
+        kc_request = requests.Request(method='GET', url=url, params=params)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
 
     def _last_submission_time(self):
         _deployment_data = self.asset._deployment_data
@@ -422,81 +446,116 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
 
-
     def get_submission_validation_status_url(self, submission_pk):
         url = '{detail_url}/validation_status'.format(
             detail_url=self.get_submission_detail_url(submission_pk)
         )
         return url
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[]):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
         """
-        Retreives submissions through Postgres or Mongo depending on `format_type`.
-        It can be filtered on instances uuids.
-        `uuid` is used instead of `id` because `id` is not available in ReadOnlyInstance model
+        Retrieves submissions through Postgres or Mongo depending on `format_type`.
+        It can be filtered on instances ids.
 
         :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param instances_ids: list. Optional
+        :param instances_ids: list. Ids of instances to retrieve
+        :param kwargs: dict. Filter parameters for Mongo query. See
+            https://docs.mongodb.com/manual/reference/operator/query/
         :return: list: mixed
         """
         submissions = []
+
         if format_type == INSTANCE_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(instances_ids)
+            submissions = self.__get_submissions_in_json(instances_ids, **kwargs)
         elif format_type == INSTANCE_FORMAT_TYPE_XML:
-            submissions = self.__get_submissions_in_xml(instances_ids)
+            submissions = self.__get_submissions_in_xml(instances_ids, **kwargs)
         else:
             raise BadFormatException(
                 "The format {} is not supported".format(format_type)
             )
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON):
+    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
         """
         Returns only one occurrence.
 
         :param pk: int. `Instance.id`
         :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+        :param kwargs: dict. Filter params
         :return: mixed. JSON or XML
         """
 
         if pk:
-            submissions = list(self.get_submissions(format_type, [pk]))
+            submissions = list(self.get_submissions(format_type, [int(pk)], **kwargs))
             if len(submissions) > 0:
                 return submissions[0]
             return None
         else:
-            raise ValueError("Primary key must be provided")
+            raise ValueError(_("Primary key must be provided"))
 
-    def __get_submissions_in_json(self, instances_ids=[]):
+    def get_validation_status(self, submission_pk, params, user):
+        url = self.get_submission_validation_status_url(submission_pk)
+        kc_request = requests.Request(method="GET", url=url, data=params)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def set_validation_status(self, submission_pk, data, user):
+        url = self.get_submission_validation_status_url(submission_pk)
+        kc_request = requests.Request(method="PATCH", url=url, json=data)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def set_validation_statuses(self, data, user):
+        url = self.submission_list_url
+        kc_request = requests.Request(method="PATCH", url=url, json=data)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def __get_submissions_in_json(self, instances_ids=[], **kwargs):
         """
         Retrieves instances directly from Mongo.
 
         :param instances_ids: list. Optional
+        :param kwargs: dict. Filter params
         :return: generator<JSON>
         """
-        query = {
-            "_userform_id": self.mongo_userform_id,
-            "_deleted_at": {"$exists": False}
-        }
 
-        if len(instances_ids) > 0:
-            query.update({
-                "_id": {"$in": instances_ids}
-            })
+        kwargs["instances_ids"] = instances_ids
+        instances = MongoHelper.get_instances(self.mongo_userform_id, **kwargs)
 
-        instances = settings.MONGO_DB.instances.find(query)
         return (
-            MongoDecodingHelper.to_readable_dict(instance)
+            MongoHelper.to_readable_dict(instance)
             for instance in instances
         )
 
-    def __get_submissions_in_xml(self, instances_ids=[]):
+    def __get_submissions_in_xml(self, instances_ids=[], **kwargs):
         """
         Retrieves instances directly from Postgres.
 
         :param instances_ids: list. Optional
+        :param kwargs: dict. Filter params
         :return: list<XML>
         """
+
+        sort = {"id": 1}
+        kwargs["instances_ids"] = instances_ids
+        use_mongo = False
+
+        if "fields" in kwargs:
+            raise ValueError(_("`Fields` param is not supported with XML format"))
+
+        # Because `kwargs`' values are for `Mongo`'s query engine
+        # We still use MongoHelper to validate params.
+        params = MongoHelper.validate_params(**kwargs)
+
+        if "query" in kwargs:
+            # We use Mongo to retrieve matching instances.
+            # Get only their ids and pass them to PostgreSQL.
+            params["fields"] = ["_id"]
+            instances_ids = [instance.get("_id") for instance in
+                             MongoHelper.get_instances(self.mongo_userform_id, **params)]
+            use_mongo = True
+
         queryset = ReadOnlyInstance.objects.filter(
             xform_id=self.xform_id,
             deleted_at=None
@@ -505,6 +564,69 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if len(instances_ids) > 0:
             queryset = queryset.filter(id__in=instances_ids)
 
-        queryset = queryset.order_by("id")
+        # Sort
+        sort = params.get("sort") or sort
+        sort_key = sort.keys()[0]
+        sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
+        queryset = queryset.order_by("{direction}{field}".format(
+            direction="-" if sort_dir < 0 else "",
+            field=sort_key
+        ))
+
+        # When using Mongo, data is already paginated, no need to do it with PostgreSQL too.
+        if not use_mongo:
+            offset = params.get("start")
+            limit = offset + params.get("limit")
+            queryset = queryset[offset:limit]
 
         return (lazy_instance.xml for lazy_instance in queryset)
+
+    @staticmethod
+    def __kobocat_proxy_request(kc_request, user=None):
+        """
+        Send `kc_request`, which must specify `method` and `url` at a minimum.
+        If the incoming request to be proxied is authenticated,
+        logged-in user's API token will be added to `kc_request.headers`
+
+        :param kc_request: requests.models.Request
+        :param user: User
+        :return: requests.models.Response
+        """
+        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
+            token, created = Token.objects.get_or_create(user=user)
+            kc_request.headers['Authorization'] = 'Token %s' % token.key
+        session = requests.Session()
+        return session.send(kc_request.prepare())
+
+    @staticmethod
+    def __prepare_as_drf_response_signature(requests_response):
+        """
+        Prepares a dict from `Requests` response.
+        Useful to get response from `kc` and use it as a dict or pass it to
+        DRF Response
+        """
+
+        prepared_drf_response = {}
+
+        # `requests_response` may not have `headers` attribute
+        content_type = requests_response.headers.get('Content-Type')
+        content_language = requests_response.headers.get('Content-Language')
+        if content_type:
+            prepared_drf_response['content_type'] = content_type
+        if content_language:
+            prepared_drf_response['headers'] = {
+                'Content-Language': content_language
+            }
+
+        prepared_drf_response['status'] = requests_response.status_code
+
+        try:
+            prepared_drf_response['data'] = json.loads(requests_response.content)
+        except ValueError as e:
+            if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
+                prepared_drf_response['data'] = {
+                    'detail': _('KoBoCat returned an unexpected response: {}'.format(str(e)))
+                }
+
+        return prepared_drf_response
+
