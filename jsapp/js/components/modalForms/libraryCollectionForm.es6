@@ -126,8 +126,8 @@ export class LibraryCollectionForm extends React.Component {
       return renderLoading();
     }
 
-    const SECTORS = stores.session.currentAccount.available_sectors;
-    const COUNTRIES = stores.session.currentAccount.available_countries;
+    const SECTORS = stores.session.environment.available_sectors;
+    const COUNTRIES = stores.session.environment.available_countries;
 
     const sectorWrapperClassNames = ['kobo-select__wrapper'];
     if (this.state.errors.sector) {

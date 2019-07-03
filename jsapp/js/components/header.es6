@@ -211,7 +211,7 @@ class MainHeader extends Reflux.Component {
         this.state.asset.asset_type === ASSET_TYPES.block.id
       )
     ) {
-      iconClassName = 'k-icon-question';
+      iconClassName = 'k-icon-question-block';
     }
     if (this.state.asset && this.state.asset.asset_type === ASSET_TYPES.survey.id) {
       if (this.state.asset.has_deployment) {
