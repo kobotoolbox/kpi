@@ -380,6 +380,10 @@ export default assign({
     params = koboMatrixParser(params);
 
     if (this.state.editorState === 'new') {
+      // we're intentionally leaving after creating new asset,
+      // so there is nothing unsaved here
+      this.unpreventClosingTab();
+
       // create new asset
       if (this.state.desiredAssetType) {
         params.asset_type = this.state.desiredAssetType;
