@@ -275,7 +275,7 @@ class AssetRow extends React.Component {
                   data-tip= {t('Share')}
                   data-disabled={false}
                   >
-                <i className='k-icon-share' />
+                <i className='k-icon-user-share' />
               </bem.AssetRow__actionIcon>
             }
 

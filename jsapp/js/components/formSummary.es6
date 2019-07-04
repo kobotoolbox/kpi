@@ -212,7 +212,7 @@ class FormSummary extends React.Component {
         </Link>
         {this.userCan('change_asset', this.state) &&
           <bem.PopoverMenu__link onClick={this.sharingModal}>
-            <i className='k-icon-share'/>
+            <i className='k-icon-user-share'/>
             {t('Share project')}
             <i className='fa fa-angle-right' />
           </bem.PopoverMenu__link>
@@ -297,7 +297,7 @@ class FormSummary extends React.Component {
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
-            <i className='k-icon-share' />
+            <i className='k-icon-user-share' />
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>

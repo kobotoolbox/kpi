@@ -339,7 +339,7 @@ class LibrarySidebar extends Reflux.Component {
                                 onClick={this.sharingModal}
                                 data-collection-uid={collection.uid}
                                 >
-                              <i className='k-icon-share' />
+                              <i className='k-icon-user-share' />
                               {t('Share')}
                             </bem.PopoverMenu__link>
                           }
@@ -388,7 +388,7 @@ class LibrarySidebar extends Reflux.Component {
               key='shared'
               m={{selected: this.state.sharedWithMeVisible}}
               onClick={this.clickShowSharedWithMe}>
-              <i className='k-icon-users' />
+              <i className='k-icon-library-shared' />
               {t('Shared with me')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarSharedWithMe.length}

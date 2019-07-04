@@ -113,7 +113,7 @@ class FormViewTabs extends Reflux.Component {
        sideTabs = [
           {label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`},
           {label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`},
-          {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
+          {label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`},
           {label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`},
           {label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'},
         ];

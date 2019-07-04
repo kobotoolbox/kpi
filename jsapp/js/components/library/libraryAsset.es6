@@ -111,7 +111,7 @@ class LibraryAsset extends React.Component {
           className='right-tooltip'
           data-tip={t('Share this ##type##').replace('##type##', ASSET_TYPES[this.state.asset.asset_type].label)}
         >
-          <i className='k-icon-share' />
+          <i className='k-icon-user-share' />
         </bem.FormView__link>
       </bem.FormView__cell>
     );
