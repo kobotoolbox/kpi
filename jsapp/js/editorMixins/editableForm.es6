@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import $ from 'jquery';
 import Select from 'react-select';
@@ -10,25 +9,22 @@ import Checkbox from '../components/checkbox';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
-import {Link, hashHistory} from 'react-router';
+import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import {
   surveyToValidJson,
   unnullifyTranslations,
-  notify,
   assign,
   t,
   koboMatrixParser
 } from '../utils';
-
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
 } from '../constants';
-
 import ui from '../ui';
 import bem from '../bem';
 import stores from '../stores';
@@ -38,7 +34,6 @@ import {dataInterface} from '../dataInterface';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
-const ErrorMessage__link = bem.create('error-message__link', '<a>');
 
 var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
 
@@ -87,7 +82,7 @@ class FormSettingsEditor extends React.Component {
   focusSelect () {
     this.refs.webformStyle.focus();
   }
-};
+}
 
 class FormSettingsBox extends React.Component {
   constructor(props) {
@@ -107,7 +102,7 @@ class FormSettingsBox extends React.Component {
     this.updateState();
   }
 
-  updateState(newState={}) {
+  updateState(newState = {}) {
     this.META_PROPERTIES.forEach(this.passValueIntoObj('meta', newState));
     this.PHONE_META_PROPERTIES.map(this.passValueIntoObj('phoneMeta', newState));
     this.setState(newState);
@@ -155,13 +150,13 @@ class FormSettingsBox extends React.Component {
       <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange.bind(this)} />
     );
   }
-};
+}
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
 export default assign({
   componentDidMount() {
-    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave)
+    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
 
     document.body.classList.add('hide-edge');
 
@@ -195,7 +190,7 @@ export default assign({
     this.unpreventClosingTab();
   },
 
-  routerWillLeave(nextLocation) {
+  routerWillLeave() {
     if (this.state.preventNavigatingOut) {
       return t('You have unsaved changes. Leave form without saving?');
     }
@@ -302,13 +297,15 @@ export default assign({
       evt.preventDefault();
     }
 
-    if (this.state.settings__style)
+    if (this.state.settings__style) {
       this.app.survey.settings.set('style', this.state.settings__style);
+    }
 
-    if (this.state.name)
+    if (this.state.name) {
       this.app.survey.settings.set('title', this.state.name);
+    }
 
-    let surveyJSON = surveyToValidJson(this.app.survey)
+    let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
       surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
     }
@@ -327,7 +324,7 @@ export default assign({
     }).fail((jqxhr) => {
       let err;
       if (jqxhr && jqxhr.responseJSON && jqxhr.responseJSON.error) {
-        err = jqxhr.responseJSON.error
+        err = jqxhr.responseJSON.error;
       } else {
         err = t('Unknown Enketo preview error');
       }
@@ -346,7 +343,7 @@ export default assign({
       this.app.survey.settings.set('style', this.state.settings__style);
     }
 
-    let surveyJSON = surveyToValidJson(this.app.survey)
+    let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
       surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
     }
@@ -388,9 +385,9 @@ export default assign({
         params.asset_type = 'block';
       }
       actions.resources.createResource.triggerAsync(params)
-        .then((asset) => {
+        .then(() => {
           hashHistory.push('/library');
-        })
+        });
     } else {
       // update existing asset
       var assetId = this.props.params.assetid;
@@ -405,8 +402,9 @@ export default assign({
         })
         .catch((resp) => {
           var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;${t('Keep this window open and try saving again while using a better connection.')}`;
-          if (resp.statusText != 'error')
+          if (resp.statusText !== 'error') {
             errorMsg = resp.statusText;
+          }
 
           alertify.defaults.theme.ok = 'ajs-cancel';
           let dialog = alertify.dialog('alert');
@@ -509,7 +507,7 @@ export default assign({
     });
   },
 
-  launchAppForSurveyContent(survey, _state={}) {
+  launchAppForSurveyContent(survey, _state = {}) {
     if (_state.name) {
       _state.savedName = _state.name;
     }
@@ -572,12 +570,10 @@ export default assign({
         title: t('You have unsaved changes. Leave form without saving?'),
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
-        onok: (evt, val) => {
+        onok: () => {
           hashHistory.push(route);
         },
-        oncancel: () => {
-          dialog.destroy();
-        }
+        oncancel: dialog.destroy
       };
       dialog.set(opts).show();
     }
@@ -590,18 +586,16 @@ export default assign({
       } else {
         this.safeNavigateToRoute('/library/');
       }
+    } else if (this.props.location.pathname.startsWith('/library/new')) {
+      this.safeNavigateToRoute('/library/');
     } else {
-      if (this.props.location.pathname.startsWith('/library/new')) {
-        this.safeNavigateToRoute('/library/');
-      } else {
-        this.safeNavigateToRoute('/forms/');
-      }
+      this.safeNavigateToRoute('/forms/');
     }
   },
 
   safeNavigateToForm() {
     var backRoute = this.state.backRoute;
-    if (this.state.backRoute == '/forms') {
+    if (this.state.backRoute === '/forms') {
       backRoute = `/forms/${this.state.asset_uid}`;
     }
     this.safeNavigateToRoute(backRoute);
@@ -611,12 +605,10 @@ export default assign({
 
   renderFormBuilderHeader () {
     let {
-      allButtonsDisabled,
       previewDisabled,
       groupable,
       showAllOpen,
       showAllAvailable,
-      name,
       saveButtonText,
     } = this.buttonStates();
 
@@ -890,7 +882,7 @@ export default assign({
           </bem.FormBuilderAside__content>
         }
       </bem.FormBuilderAside>
-    )
+    );
   },
 
   renderNotLoadedMessage() {
