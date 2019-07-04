@@ -217,6 +217,10 @@ $z-form-view-fullscreen: 101;
       color: $cool-gray;
       font-size: 12px;
     }
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
 
   &.form-view__cell--first {

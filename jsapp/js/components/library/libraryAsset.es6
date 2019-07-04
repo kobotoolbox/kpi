@@ -16,6 +16,7 @@ import {
   MODAL_TYPES
 } from 'js/constants';
 import AssetInfoBox from './assetInfoBox';
+import AssetContentSummary from './AssetContentSummary';
 
 class LibraryAsset extends React.Component {
   constructor(props) {
@@ -43,7 +44,7 @@ class LibraryAsset extends React.Component {
     }
   }
 
-  showSharingModal (evt) {
+  showSharingModal(evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: MODAL_TYPES.SHARING,
@@ -51,7 +52,7 @@ class LibraryAsset extends React.Component {
     });
   }
 
-  showDetailsModal (evt) {
+  showDetailsModal(evt) {
     let modalType;
     if (this.state.asset.asset_type === ASSET_TYPES.template.id) {
       modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
@@ -117,7 +118,7 @@ class LibraryAsset extends React.Component {
     );
   }
 
-  render () {
+  render() {
     if (this.state.asset === false) {
       return this.renderLoading();
     }
@@ -138,6 +139,18 @@ class LibraryAsset extends React.Component {
 
             <AssetInfoBox
               asset={this.state.asset}
+            />
+          </bem.FormView__row>
+
+          <bem.FormView__row>
+            <bem.FormView__cell m={['columns', 'first']}>
+              <bem.FormView__cell m='label'>
+                {t('##type## content').replace('##type##', this.state.asset.asset_type)}
+              </bem.FormView__cell>
+            </bem.FormView__cell>
+
+            <AssetContentSummary
+              assetContent={this.state.asset.content}
             />
           </bem.FormView__row>
         </bem.FormView>
