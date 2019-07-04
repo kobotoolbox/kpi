@@ -4,10 +4,10 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  &__itemlink {
+  .form-sidebar__itemlink {
     display: block;
     line-height: 1.2em;
-    padding: 2px 0px;
+    padding: 2px 0;
     color: $cool-silver;
     font-weight: normal;
     font-size: 12px;
@@ -17,13 +17,14 @@
     }
   }
 
-  &__label, &__grouping {
+  .form-sidebar__label,
+  .form-sidebar__grouping {
     color: $cool-silver;
     cursor: pointer;
 
     i {
       font-size: 36px;
-      margin-right: 0px;
+      margin-right: 0;
       margin-left: -4px;
       vertical-align: middle;
       display: inline-block;
@@ -34,53 +35,45 @@
     span {
       vertical-align: middle;
     }
-
-    &--Deployed i {
-      @extend .k-icon-deploy;
-    }
-
-    &--Draft i {
-      @extend .k-icon-drafts;
-    }
-
-    &--Archived i {
-      @extend .k-icon-archived;
-    }
   }
 
-  &__label {
-    padding: 3px 0px;
+  .form-sidebar__label {
+    padding: 3px 0;
     position: relative;
+
+    &.form-sidebar__label--selected {
+      color: $cool-gray;
+    }
+
+    &:hover {
+      color: $cool-charcoal;
+    }
 
     .form-sidebar__label-count {
       position: absolute;
-      right: 0px;
-      top: 9px;
-      padding: 2px 3px;
-      width: 32px;
-      border-radius: 40px;
-      background: #E6E6E8;
+      right: 3px;
+      top: 11px;
+      padding: 0 6px;
+      font-size: 12px;
+      line-height: 20px;
+      min-width: 20px;
+      border-radius: 20px;
+      background-color: $divider-color;
       text-align: center;
     }
-
-    // &--visible, &--selected {
-    //   color: $cool-charcoal;
-    // }
-
   }
 
-  &__grouping {
-    margin-top: 6px;
-    margin-bottom: 12px;
+  .form-sidebar__grouping {
+    margin-bottom: 10px;
 
-    &--collapsed {
-      margin: 0px;
-      height: 0px;
+    &.form-sidebar__grouping--collapsed {
+      margin: 0;
+      height: 0;
       overflow: hidden;
     }
   }
 
-  &__item {
+  .form-sidebar__item {
     display: block;
     position: relative;
     padding-left: 8px;
@@ -97,18 +90,28 @@
       }
     }
 
-    &--selected {
+    &.form-sidebar__item--collection {
+      .form-sidebar__itemlink {
+        i {
+          font-size: 32px;
+          vertical-align: middle;
+          display: inline-block;
+        }
+      }
+    }
+
+    &.form-sidebar__item--selected {
       background: #ededee;
 
       .popover-menu {
         position: absolute;
         right: -4px;
-        top: -2px;
-        margin: 0px;
+        top: 4px;
+        margin: 0;
 
         .popover-menu__toggle {
           i {
-            margin-left: 0px;
+            margin-left: 0;
             line-height: 1em;
           }
         }
@@ -130,21 +133,6 @@
 
       .form-sidebar__itemlink {
         color: $cool-green;
-      }
-    }
-  }
-
-  &__item--collection {
-    padding-left: 15px;
-    margin: 5px 0px;
-
-    .form-sidebar__itemlink {
-      padding: 0px;
-
-      i {
-        font-size: 32px;
-        vertical-align: middle;
-        display: inline-block;
       }
     }
   }

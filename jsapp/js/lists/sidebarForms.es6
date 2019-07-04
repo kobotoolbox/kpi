@@ -50,7 +50,10 @@ class SidebarFormsList extends Reflux.Component {
       href = href + '/summary';
 
     return (
-      <bem.FormSidebar__item key={asset.uid} className={asset.uid == this.currentAssetID() ? 'active' : ''}>
+      <bem.FormSidebar__item
+        key={asset.uid}
+        className={asset.uid === this.currentAssetID() ? 'active' : ''}
+      >
         <Link to={href} className={'form-sidebar__itemlink'}>
           <ui.SidebarAssetName {...asset} />
         </Link>
@@ -119,11 +122,25 @@ class SidebarFormsList extends Reflux.Component {
                   if (s[activeItems][category].length < 1) {
                     categoryVisible = false;
                   }
+
+                  const icon = ['k-icon'];
+                  if (category === 'Deployed') {
+                    icon.push('k-icon-deploy');
+                  }
+                  if (category === 'Draft') {
+                    icon.push('k-icon-drafts');
+                  }
+                  if (category === 'Archived') {
+                    icon.push('k-icon-archived');
+                  }
+
                   return [
-                    <bem.FormSidebar__label m={[category, categoryVisible ? 'visible' : 'collapsed']}
-                                            onClick={this.toggleCategory(category)}
-                                            key={`${category}-label`}>
-                      <i />
+                    <bem.FormSidebar__label
+                      m={[category, categoryVisible ? 'visible' : 'collapsed']}
+                      onClick={this.toggleCategory(category)}
+                      key={`${category}-label`}
+                    >
+                      <i className={icon.join(' ')}/>
                       {t(category)}
                       <bem.FormSidebar__labelCount>
                         {s[activeItems][category].length}
