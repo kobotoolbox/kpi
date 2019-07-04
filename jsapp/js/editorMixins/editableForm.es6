@@ -37,6 +37,8 @@ const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
 
 var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
 
+const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
+
 class FormSettingsEditor extends React.Component {
   constructor(props) {
     super(props);
@@ -192,7 +194,7 @@ export default assign({
 
   routerWillLeave() {
     if (this.state.preventNavigatingOut) {
-      return t('You have unsaved changes. Leave form without saving?');
+      return UNSAVED_CHANGES_WARNING;
     }
   },
 
@@ -254,7 +256,7 @@ export default assign({
   preventClosingTab() {
     this.setState({preventNavigatingOut: true});
     $(window).on('beforeunload.noclosetab', function(){
-      return t('You have unsaved changes. Leave form without saving?');
+      return UNSAVED_CHANGES_WARNING;
     });
   },
 
@@ -567,7 +569,7 @@ export default assign({
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
-        title: t('You have unsaved changes. Leave form without saving?'),
+        title: UNSAVED_CHANGES_WARNING,
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
