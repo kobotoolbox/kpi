@@ -128,7 +128,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data, self.submissions)
 
     def test_list_submissions_with_partial_permissions(self):
-        self._other_user_login()
+        self._log_in_as_another_user()
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
@@ -182,7 +182,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data, submission)
 
     def test_retrieve_submission_with_partial_permissions(self):
-        self._other_user_login()
+        self._log_in_as_another_user()
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
