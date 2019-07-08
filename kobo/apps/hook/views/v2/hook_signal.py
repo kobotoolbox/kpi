@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
+from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status, viewsets
 from rest_framework.response import Response
@@ -8,7 +9,6 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.hook.utils import HookUtils
 from kpi.models import Asset
-from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
