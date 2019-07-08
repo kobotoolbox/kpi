@@ -16,6 +16,7 @@ import dj_database_url
 from pymongo import MongoClient
 
 from ..static_lists import EXTRA_LANG_INFO
+from kpi.utils.redis_helper import RedisHelper
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -198,9 +199,17 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
+
+# @TODO add `KC_DATABASE_URL` and `KPI_DATABASE_URL`:
+#  - `kobo-install` templates
+#  - `kobo-docker` templates
+#  - `kobo-deployments` templates`
+
+kobocat_database_url = os.getenv("KC_DATABASE_URL", "sqlite:///%s/db.sqlite3" % BASE_DIR)
+
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
-    'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'kobocat': dj_database_url.parse(kobocat_database_url)
 }
 
 DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
@@ -694,3 +703,9 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+
+SESSION_ENGINE = "redis_sessions.session"
+SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+
+TESTING = False

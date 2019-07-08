@@ -2,31 +2,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-import cStringIO
 import json
-import re
-import requests
-import unicodecsv
-import urlparse
 import posixpath
+import re
+import urlparse
 
-from bson import json_util
+import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
-from pyxform.xls2json_backends import xls_to_dict
-from rest_framework import exceptions, status, serializers
-from rest_framework.request import Request
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from ..exceptions import BadFormatException, KobocatDeploymentException
-from .base_backend import BaseDeploymentBackend
-from .kc_access.utils import instance_count, last_submission_time
-from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.log import logging
+from kpi.utils.mongo_helper import MongoHelper
+from .base_backend import BaseDeploymentBackend
+from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
+from .kc_access.utils import instance_count, last_submission_time
+from ..exceptions import BadFormatException, KobocatDeploymentException
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):

@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+
 class UserListTests(APITestCase):
     fixtures = ['test_data']
 

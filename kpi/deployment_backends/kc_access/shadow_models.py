@@ -7,6 +7,7 @@ from django.db import ProgrammingError
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 
@@ -23,8 +24,9 @@ class ReadOnlyModelError(ValueError):
 
 
 class ShadowModel(models.Model):
-    ''' Allows identification of writeable and read-only shadow models'''
-
+    """
+    Allows identification of writeable and read-only shadow models
+    """
     class Meta:
         managed = False
         abstract = True
@@ -150,7 +152,7 @@ class UserProfile(ShadowModel):
 
 
 class UserObjectPermission(ShadowModel):
-    '''
+    """
     For the _sole purpose_ of letting us manipulate KoBoCAT
     permissions, this comprises the following django-guardian classes
     all condensed into one:
@@ -162,7 +164,7 @@ class UserObjectPermission(ShadowModel):
 
     CAVEAT LECTOR: The django-guardian custom manager,
     UserObjectPermissionManager, is NOT included!
-    '''
+    """
     permission = models.ForeignKey(Permission)
     content_type = models.ForeignKey(ContentType)
     object_pk = models.CharField(_('object ID'), max_length=255)
@@ -200,6 +202,66 @@ class UserObjectPermission(ShadowModel):
                 % (self.permission.content_type, content_type)
             )
         return super(UserObjectPermission, self).save(*args, **kwargs)
+
+
+class KCUser(ShadowModel):
+
+    username = models.CharField(_("username"), max_length=30)
+    password = models.CharField(_("password"), max_length=128)
+    last_login = models.DateTimeField(_("last login"), blank=True, null=True)
+    is_superuser = models.BooleanField(_('superuser status'), default=False)
+    first_name = models.CharField(_('first name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    email = models.EmailField(_('email address'), blank=True)
+    is_staff = models.BooleanField(_('staff status'), default=False)
+    is_active = models.BooleanField(_('active'), default=True)
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = "auth_user"
+
+    @classmethod
+    def sync(cls, auth_user):
+        try:
+            kc_auth_user = cls.objects.get(pk=auth_user.pk)
+            assert kc_auth_user.username == auth_user.username
+        except KCUser.DoesNotExist:
+            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
+
+        kc_auth_user.password = auth_user.password
+        kc_auth_user.last_login = auth_user.last_login
+        kc_auth_user.is_superuser = auth_user.is_superuser
+        kc_auth_user.first_name = auth_user.first_name
+        kc_auth_user.last_name = auth_user.last_name
+        kc_auth_user.email = auth_user.email
+        kc_auth_user.is_staff = auth_user.is_staff
+        kc_auth_user.is_active = auth_user.is_active
+        kc_auth_user.date_joined = auth_user.date_joined
+
+        kc_auth_user.save()
+
+
+class KCToken(ShadowModel):
+
+    key = models.CharField(_("Key"), max_length=40, primary_key=True)
+    user = models.OneToOneField(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
+                                related_name='auth_token',
+                                on_delete=models.CASCADE, verbose_name=_("User"))
+    created = models.DateTimeField(_("Created"), auto_now_add=True)
+
+    class Meta(ShadowModel.Meta):
+        db_table = "authtoken_token"
+
+    @classmethod
+    def sync(cls, auth_token):
+        try:
+            # Token use a One-to-One relationship on User.
+            # Thus, we can retrieve tokens from users' id. 
+            kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
+        except KCToken.DoesNotExist:
+            kc_auth_token = cls(pk=auth_token.pk, user=auth_token.user)
+
+        kc_auth_token.save()
 
 
 def safe_kc_read(func):
