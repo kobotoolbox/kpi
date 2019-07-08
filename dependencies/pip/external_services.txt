@@ -77,7 +77,6 @@ lxml==4.3.0
 markdown==2.6.11
 mock==2.0.0
 ndg-httpsclient==0.4.2
-newrelic==2.84.0.64
 oauthlib==1.0.3
 path.py==11.5.0
 pathlib2==2.3.3           # via importlib-metadata

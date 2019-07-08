@@ -1,4 +1,5 @@
 _ = require 'underscore'
+cloneDeep = require('lodash.clonedeep')
 $aliases = require './model.aliases'
 utils = require '../../js/utils'
 
@@ -97,7 +98,11 @@ module.exports = do ->
   inputParser.parseArr = parseArr
 
   # pass baseSurvey whenever you import other asset into existing form
-  inputParser.parse = (o, baseSurvey)->
+  inputParser.parse = (originalObj, baseSurvey)->
+    # cloning received object to avoid errors happening because
+    # of messing around with original data
+    o = cloneDeep(originalObj)
+
     translations = o.translations
 
     nullified = utils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)

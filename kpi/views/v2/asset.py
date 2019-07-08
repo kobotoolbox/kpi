@@ -12,9 +12,15 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import ASSET_TYPES, ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \
-    ASSET_TYPE_TEMPLATE, CLONE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
-    CLONE_FROM_VERSION_ID_ARG_NAME
+from kpi.constants import (
+    ASSET_TYPES,
+    ASSET_TYPE_ARG_NAME,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+    CLONE_ARG_NAME,
+    CLONE_COMPATIBLE_TYPES,
+    CLONE_FROM_VERSION_ID_ARG_NAME,
+)
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
 from kpi.filters import KpiObjectPermissionsFilter, SearchFilter

@@ -70,7 +70,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return reverse(view_name, kwargs={"parent_lookup_asset": self.asset.uid})
 
     def get_submission_detail_url(self, submission_pk):
-        # Same comment as in `submission_list_url()`
+        # This doesn't really need to be implemented.
+        # We keep it to stay close to `KobocatDeploymentBackend`
         url = '{list_url}{pk}/'.format(
             list_url=self.submission_list_url,
             pk=submission_pk
@@ -84,7 +85,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         :param submission_pk: int
         :param user: User
         :param params: dict
-        :return: JSON
+        :return: dict
         """
 
         return {
@@ -94,7 +95,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def get_submission_validation_status_url(self, submission_pk):
-        # Same comment as in `submission_list_url()`
+        # This doesn't really need to be implemented.
+        # We keep it to stay close to `KobocatDeploymentBackend`
         url = '{detail_url}validation_status/'.format(
             detail_url=self.get_submission_detail_url(submission_pk)
         )
@@ -158,7 +160,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                                if re.search(r"<id>({})<\/id>".format(pattern), submission)]
             else:
                 submissions = [submission for submission in submissions if submission.get("id") in
-                               list(map(int, instances_ids))]
+                               map(int, instances_ids)]
 
         if permission_filters:
             submitted_by = [k.get('_submitted_by') for k in permission_filters]
@@ -180,16 +182,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         else:
             raise ValueError("Primary key must be provided")
 
-    def get_validate_status(self, submission_pk, params, user):
+    def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(submission_pk, INSTANCE_FORMAT_TYPE_JSON)
         return {
             "data": submission.get("_validation_status")
         }
 
-    def set_validate_status(self, submission_pk, data, user):
+    def set_validation_status(self, submission_pk, data, user):
         pass
 
-    def set_validate_statuses(self, data, user):
+    def set_validation_statuses(self, data, user):
         pass
 
     def set_has_kpi_hooks(self):

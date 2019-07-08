@@ -197,16 +197,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == "PATCH":
-            json_response = deployment.set_validate_status(pk, request.data, request.user)
+            json_response = deployment.set_validation_status(pk, request.data, request.user)
         else:
-            json_response = deployment.get_validate_status(pk, request.GET, request.user)
+            json_response = deployment.get_validation_status(pk, request.GET, request.user)
 
         return Response(**json_response)
 
     @list_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.set_validate_statuses(request.data, request.user)
+        json_response = deployment.set_validation_statuses(request.data, request.user)
 
         return Response(**json_response)
 

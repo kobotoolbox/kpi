@@ -46,35 +46,36 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         :param request:
         :return:
         """
-        # Follow Open Rosa responses by default
-        response_status_code = status.HTTP_202_ACCEPTED
-        response = {
-            "detail": _(
-                "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
-        }
+        instance_id = request.data.get("instance_id")
+        if instance_id is None:
+            raise exceptions.ValidationError(
+                {'instance_id': _('This field is required.')})
+
+        instance = None
         try:
-            instance_id = request.data.get("instance_id")
             instance = self.asset.deployment.get_submission(instance_id)
+        except ValueError:
+            raise Http404
 
-            # Check if instance really belongs to Asset.
-            if not (instance and instance.get(self.asset.deployment.INSTANCE_ID_FIELDNAME) == instance_id):
-                response_status_code = status.HTTP_404_NOT_FOUND
-                response = {
-                    "detail": _("Resource not found")
-                }
+        # Check if instance really belongs to Asset.
+        if not (instance and
+                instance.get(self.asset.deployment.INSTANCE_ID_FIELDNAME) == instance_id):
+            raise Http404
 
-            elif not HookUtils.call_services(self.asset, instance_id):
-                response_status_code = status.HTTP_409_CONFLICT
-                response = {
-                    "detail": _(
-                        "Your data for instance {} has been already submitted.".format(instance_id))
-                }
-
-        except Exception as e:
-            logging.error("HookSignalViewSet.create - {}".format(str(e)))
+        if HookUtils.call_services(self.asset, instance_id):
+            # Follow Open Rosa responses by default
+            response_status_code = status.HTTP_202_ACCEPTED
             response = {
-                "detail": _("An error has occurred when calling the external service. Please retry later.")
+                "detail": _(
+                    "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
             }
-            response_status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        else:
+            # call_services() refused to launch any task because this
+            # instance already has a `HookLog`
+            response_status_code = status.HTTP_409_CONFLICT
+            response = {
+                "detail": _(
+                    "Your data for instance {} has been already submitted.".format(instance_id))
+            }
 
         return Response(response, status=response_status_code)
