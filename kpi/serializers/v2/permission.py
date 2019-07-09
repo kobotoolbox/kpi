@@ -157,46 +157,9 @@ class PermissionSerializer(serializers.ModelSerializer):
         :return: dict
         """
 
-        def get_all_implied_permissions(obj):
-            """
-            Object.`IMPLIED_PERMISSIONS` only returns direct mapped permissions.
-            This returns all parent implied permissions.
-
-            e.g: In `Asset.IMPLIED_PERMISSIONS`, `change_submissions` is only mapped
-            to `view_submissions`. But `view_submissions` implies `view_asset`.
-
-            For this particular case return dict will be:
-            ```
-            {
-                "change_submissions": ["view_asset", "view_submission"]
-            }
-            ```
-            instead of
-            ```
-            {
-                "change_submissions": ["view_submissions"]
-            }
-            ```
-
-            :param obj: Class Object.
-            :return: dict
-            """
-            obj_implied_permissions = {}
-            for perm, implied_perms in obj.IMPLIED_PERMISSIONS.items():
-                all_implied_perms = set()
-                for implied_perm in implied_perms:
-                    all_implied_perms.add(implied_perm)
-                    for other_implied_perm in obj.get_implied_perms(implied_perm):
-                        all_implied_perms.add(other_implied_perm)
-                obj_implied_permissions[perm] = list(all_implied_perms)
-
-            return obj_implied_permissions
-
         self.__implied_permissions = {
             self.__asset_key: self.__get_hyperlinked_permissions(
-                get_all_implied_permissions(Asset)),
+                Asset.get_all_implied_perms()),
             self.__collection_key: self.__get_hyperlinked_permissions(
-                get_all_implied_permissions(Collection))
+                Collection.get_all_implied_perms()),
         }
-
-

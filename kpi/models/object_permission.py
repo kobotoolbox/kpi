@@ -656,6 +656,38 @@ class ObjectPermissionMixin(object):
             result.update(implied_perms)
         return result
 
+    @classmethod
+    def get_all_implied_perms(cls):
+        """
+        Return a dictionary with permission codenames as keys and a complete
+        list of implied permissions as each value. For example, given a model
+        with:
+        ```
+        IMPLIED_PERMISSIONS = {
+            'view_submissions': ('view_asset'),
+            'change_submissions': ('view_submissions'),
+        }
+        ```
+        this method will return
+        ```
+        {
+            'view_submissions': ['view_asset'],
+            'change_submissions': ['view_asset', 'view_submission']
+        }
+        ```
+        instead of
+        ```
+        {
+            'view_submissions': ['view_asset'],
+            'change_submissions': ['view_submissions']
+        }
+        ```
+        """
+        return {
+            codename: list(cls.get_implied_perms(codename))
+            for codename in cls.IMPLIED_PERMISSIONS.keys()
+        }
+
     @transaction.atomic
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
                     skip_kc=False, **kwargs):

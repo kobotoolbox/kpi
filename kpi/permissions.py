@@ -119,15 +119,19 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
             'model_name': self.MODEL_NAME
         }
 
-        # Handle
-        if action in self.action_map and self.action_map.get(action).get(method):
-            perms = [perm % kwargs for perm in self.action_map.get(action).get(method)]
+        if action is None:
+            try:
+                perm_list = self.perms_map[method]
+            except KeyError:
+                raise exceptions.MethodNotAllowed(method)
         else:
-            if method not in self.perms_map:
+            try:
+                perm_list = self.action_map[action][method]
+            except KeyError:
                 raise exceptions.MethodNotAllowed(method)
 
-            perms = [perm % kwargs for perm in self.perms_map[method]]
-
+        perms = [perm % kwargs for perm in perm_list]
+        # TODO: See if we can leave the `app_label` in each permission string
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
 
@@ -197,32 +201,37 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
 
         parent_object = self._get_parent_object(view)
 
-        required_permissions = self.get_required_permissions(request.method, view.action)
         user = request.user
         if user.is_anonymous():
             user = get_anonymous_user()
 
         user_permissions = self._get_user_permissions(parent_object, user)
+        view_permissions = self.get_required_permissions("GET")
+        can_view = set(view_permissions).issubset(user_permissions)
 
-        has_perm = False
-        for permission in required_permissions:
-            if permission in user_permissions:
-                has_perm = True
-                break
+        try:
+            required_permissions = self.get_required_permissions(
+                request.method, view.action)
+        except exceptions.MethodNotAllowed as e:
+            # Only reveal the HTTP 405 if the user has view access
+            if can_view:
+                raise e
+            else:
+                raise Http404
 
-        # We don't want to make a difference between non-existing assets vs non permitted assets
-        # to avoid users to be able guess asset existence
-        if not has_perm:
-            # Except if users are allowed to view submissions, we want to show them Access Denied
-            if request.method not in permissions.SAFE_METHODS:
-                view_permissions = self.get_required_permissions("GET")
-                can_view = view_permissions[0] in user_permissions
-                if can_view:
-                    return False
+        has_perm = set(required_permissions).issubset(user_permissions)
 
-            raise Http404
+        if has_perm:
+            # Access granted!
+            return True
 
-        return True
+        if not has_perm and can_view:
+            # If users are allowed to view, we want to show them HTTP 403
+            return False
+
+        # Don't reveal the existence of this object to users who do not have
+        # permission to view it
+        raise Http404
 
 
 class AssetOwnerNestedObjectPermission(BaseAssetNestedObjectPermission):
