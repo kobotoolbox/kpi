@@ -9,7 +9,11 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import Asset
-from kpi.permissions import SubmissionPermission
+from kpi.permissions import (
+    EditSubmissionPermission,
+    SubmissionPermission,
+    SubmissionValidationStatusPermission,
+)
 from kpi.renderers import SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -169,7 +173,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.delete_submission(pk, user=request.user)
         return Response(**json_response)
 
-    @detail_route(methods=['GET'], renderer_classes=[renderers.JSONRenderer])
+    @detail_route(methods=['GET'], renderer_classes=[renderers.JSONRenderer],
+                  permission_classes=[EditSubmissionPermission])
     def edit(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         json_response = deployment.get_submission_edit_url(pk,
@@ -193,7 +198,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             raise Http404
         return Response(submission)
 
-    @detail_route(methods=["GET", "PATCH"], renderer_classes=[renderers.JSONRenderer])
+    @detail_route(methods=["GET", "PATCH"],
+                  renderer_classes=[renderers.JSONRenderer],
+                  permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == "PATCH":

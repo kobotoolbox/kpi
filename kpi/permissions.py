@@ -47,10 +47,6 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
     def perms_map(self):
         raise NotImplementedError
 
-    @property
-    def action_map(self):
-        raise NotImplementedError
-
     @abstractmethod
     def has_permission(self, request, view):
         # This method should be overridden in subclasses
@@ -103,13 +99,12 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
                 result[query_lookup] = query_value
         return result
 
-    def get_required_permissions(self, method, action=None):
+    def get_required_permissions(self, method):
         """
         Given a model and an HTTP method, return the list of permission
         codes that the user is required to have.
 
         :param method: str. e.g. Mostly keys of `perms_map`
-        :param action: str. Optional
         :return:
         """
         app_label = self.APP_LABEL
@@ -119,16 +114,10 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
             'model_name': self.MODEL_NAME
         }
 
-        if action is None:
-            try:
-                perm_list = self.perms_map[method]
-            except KeyError:
-                raise exceptions.MethodNotAllowed(method)
-        else:
-            try:
-                perm_list = self.action_map[action][method]
-            except KeyError:
-                raise exceptions.MethodNotAllowed(method)
+        try:
+            perm_list = self.perms_map[method]
+        except KeyError:
+            raise exceptions.MethodNotAllowed(method)
 
         perms = [perm % kwargs for perm in perm_list]
         # TODO: See if we can leave the `app_label` in each permission string
@@ -181,7 +170,6 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     Users need `*_asset` permissions to operate on these objects
     """
 
-    action_map = {}
     perms_map = {
         'GET': ['%(app_label)s.view_asset'],
         'POST': ['%(app_label)s.change_asset'],
@@ -210,8 +198,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         can_view = set(view_permissions).issubset(user_permissions)
 
         try:
-            required_permissions = self.get_required_permissions(
-                request.method, view.action)
+            required_permissions = self.get_required_permissions(request.method)
         except exceptions.MethodNotAllowed as e:
             # Only reveal the HTTP 405 if the user has view access
             if can_view:
@@ -241,7 +228,6 @@ class AssetOwnerNestedObjectPermission(BaseAssetNestedObjectPermission):
     of objects.
     """
 
-    action_map = {}
     perms_map = {}
 
     def has_permission(self, request, view):
@@ -311,7 +297,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
     """
 
     MODEL_NAME = "submissions"  # Hardcode model_name to match permissions
-    
+
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
@@ -319,15 +305,6 @@ class SubmissionPermission(AssetNestedObjectPermission):
         'POST': ['%(app_label)s.add_%(model_name)s'],
         'PATCH': ['%(app_label)s.change_%(model_name)s'],
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-    action_map = {
-        "edit": {
-            "GET": ["%(app_label)s.change_%(model_name)s"],
-        },
-        "validation_status": {
-            "PATCH": ["%(app_label)s.validate_%(model_name)s"],
-        }
     }
 
     def _get_user_permissions(self, asset, user):
@@ -353,3 +330,17 @@ class SubmissionPermission(AssetNestedObjectPermission):
                 ))
 
         return user_permissions
+
+
+class EditSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        "GET": ["%(app_label)s.change_%(model_name)s"],
+    }
+
+
+class SubmissionValidationStatusPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        "PATCH": ["%(app_label)s.validate_%(model_name)s"],
+    }
+
