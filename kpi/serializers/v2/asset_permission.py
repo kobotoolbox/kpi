@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+
+from collections import defaultdict
 from urlparse import urlparse
 
 from django.contrib.auth.models import Permission, User
-from django.core.urlresolvers import resolve
+from django.core.urlresolvers import resolve, Resolver404
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -99,46 +102,44 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
             partial_permissions = request.data.get('partial_permissions')
         elif self.context.get('partial_permissions'):
             partial_permissions = self.context.get('partial_permissions')
-        partial_permissions_attr = {}
+        partial_permissions_attr = defaultdict(list)
 
         if permission.codename.startswith(PREFIX_PARTIAL_PERMS):
             if partial_permissions:
                 is_valid = True
-                try:
-                    for partial_permission, filter_ in \
-                            self.__get_partial_permissions_generator(partial_permissions):
 
+                for partial_permission, filter_ in \
+                        self.__get_partial_permissions_generator(partial_permissions):
+                    try:
                         parse_result = urlparse(partial_permission.get('url'))
                         resolver = resolve(parse_result.path)
                         codename = resolver.kwargs.get('codename')
-                        # Permission must valid and must be assignable.
-                        # Ensure `filter_` is a `dict`.
-                        # No need to validate Mongo syntax, query will fail
-                        # if syntax is not correct.
-                        if (self._validate_permission(codename,
-                                                      SUFFIX_SUBMISSIONS_PERMS)
-                                and isinstance(filter_, dict)):
-
-                            if codename not in partial_permissions_attr:
-                                partial_permissions_attr[codename] = []
-
-                            partial_permissions_attr[codename].append(filter_)
-                            continue
-
+                    except (AttributeError, Resolver404):
                         is_valid = False
+                        break  # No need to go further
 
-                except (AttributeError, ValueError):
+                    # Permission must valid and must be assignable.
+                    # Ensure `filter_` is a `dict`.
+                    # No need to validate Mongo syntax, query will fail
+                    # if syntax is not correct.
+                    if (self._validate_permission(codename,
+                                                  SUFFIX_SUBMISSIONS_PERMS)
+                            and isinstance(filter_, dict)):
+                        partial_permissions_attr[codename].append(filter_)
+                        continue
+
                     is_valid = False
+                    break  # No need to go further
 
                 if not is_valid:
-                    raise serializers.ValidationError('Invalid partial permissions')
+                    raise serializers.ValidationError(_('Invalid partial permissions'))
 
                 # Everything went well. Add it to `attrs`
                 attrs.update({'partial_permissions': partial_permissions_attr})
             else:
                 raise serializers.ValidationError(
-                    "Can not assign '{}' permission. Partial permissions "
-                    "are missing.".format(permission.codename))
+                    _("Can not assign '{}' permission. Partial permissions "
+                      "are missing.").format(permission.codename))
 
         return attrs
 
