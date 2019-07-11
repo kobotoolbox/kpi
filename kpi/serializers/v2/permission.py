@@ -79,7 +79,7 @@ class PermissionSerializer(serializers.ModelSerializer):
                                            Collection.PERMISSIONS_NAMES.get(
                                                permission.codename))
         if not name:
-            name = _(permission.codename.replace('_', ' ').capitalize())
+            name = permission.codename.replace('_', ' ').capitalize()
         return name
 
     @staticmethod
@@ -98,9 +98,10 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     def __get_hyperlinked_permissions(self, mapped_perms_dict):
         """
-        Replaces permissions' codenames in value of key,value dict `mapped_perms_dict`
-        but their API detail url.
+        Replaces permissions' codenames in the values of
+        `mapped_perms_dict` with API detail URLs.
         Useful for RESTful API representation.
+
 
         For example:
         ```
@@ -136,7 +137,7 @@ class PermissionSerializer(serializers.ModelSerializer):
     def __init_contradictory_permissions(self):
         """
         Prepares `self.__contradictory_permissions` for serializing
-        It will contains all contradictory permissions for `Asset` and `Collection`
+        It will contain all contradictory permissions for `Asset` and `Collection`
         classes.
 
         :return: dict
@@ -151,7 +152,7 @@ class PermissionSerializer(serializers.ModelSerializer):
     def __init_implied_permissions(self):
         """
         Prepares `self.__implied_permissions` for serializing
-        It will contains all implied permissions for `Asset` and `Collection`
+        It will contain all implied permissions for `Asset` and `Collection`
         classes.
 
         :return: dict

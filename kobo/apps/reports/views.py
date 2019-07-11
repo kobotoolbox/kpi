@@ -22,7 +22,7 @@ class ReportsViewSet(mixins.ListModelMixin,
         
         # Retrieve all deployed assets first.
         deployed_assets = Asset.objects.filter(asset_versions__deployed=True).distinct()
-        # Then retrieve all assets user is allowed to view (user must have `PERM_VIEW_SUBMISSIONS` on Asset objects)
+        # Then retrieve all assets user is allowed to view (user must have 'view_submissions' on Asset objects)
         user_assets = get_objects_for_user(self.request.user, PERM_VIEW_SUBMISSIONS, deployed_assets)
         publicly_shared_assets = get_objects_for_user(get_anonymous_user(), PERM_VIEW_SUBMISSIONS, deployed_assets)
 

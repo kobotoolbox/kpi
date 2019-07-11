@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext as _
 from rest_framework import exceptions, viewsets, status, renderers
 from rest_framework.decorators import list_route
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
@@ -77,7 +78,6 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
 
     N.B.:
 
-    - Filters use Mongo Query Engine to narrow down results.
     - Implied permissions will be also assigned. (e.g. `change_collection` will add `view_collection` too)
 
 
@@ -181,8 +181,8 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
                 user.has_perm(PERM_VIEW_COLLECTION, source_collection):
             if not self.collection.copy_permissions_from(source_collection):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {"detail": "Source and destination objects don't "
-                                      "seem to have the same type"}
+                response = {'detail': _("Source and destination objects don't "
+                                        "seem to have the same type")}
                 return Response(response, status=http_status)
         else:
             raise exceptions.PermissionDenied()
@@ -196,7 +196,7 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
         user = object_permission.user
         if user.pk == self.collection.owner_id:
             return Response({
-                'detail': "Owner's permissions can not be deleted"
+                'detail': _("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)
 
         codename = object_permission.permission.codename
@@ -207,14 +207,12 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
         """
         Extra context provided to the serializer class.
         Inject collection_uid to avoid extra queries to DB inside the serializer.
-        @TODO Check if there is a better way to do it?
         """
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self,
+        context_ = super(CollectionPermissionViewSet, self).get_serializer_context()
+        context_.update({
             'collection_uid': self.collection.uid
-        }
+        })
+        return context_
 
     def get_queryset(self):
         return ObjectPermissionHelper.get_assignments_queryset(self.collection,

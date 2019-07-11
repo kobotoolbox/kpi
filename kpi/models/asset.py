@@ -644,12 +644,12 @@ class Asset(ObjectPermissionMixin,
         the filters (as values) to apply on query to narrow down the results.
 
         For example:
-        `get_partial_perms(user1_obj.id)`  would return returns
+        `get_partial_perms(user1_obj.id)` would return
         ```
         ['view_submissions',]
         ```
 
-        `get_partial_perms(user1_obj.id, with_filters=True)`  would return returns
+        `get_partial_perms(user1_obj.id, with_filters=True)` would return
         ```
         {
             'view_submissions: [
@@ -680,16 +680,15 @@ class Asset(ObjectPermissionMixin,
 
     def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
-        Returns the list of filters for a specfic permission `perm`
-        and this specific asset. This
-        :param user_obj: auth.User
+        Returns the list of filters for a specific permission `perm`
+        and this specific asset.
+        :param user_id:
         :param perm: see `constants.*_SUBMISSIONS`
         :return:
         """
-        if not (perm.endswith(SUFFIX_SUBMISSIONS_PERMS) and
-                not perm == PERM_PARTIAL_SUBMISSIONS):
-            raise BadPermissionsException("Only global permissions for "
-                                          "submissions are supported.")
+        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
+            raise BadPermissionsException(_('Only partial permissions for '
+                                            'submissions are supported'))
 
         perms = self.get_partial_perms(user_id, with_filters=True)
         if perms:
@@ -898,35 +897,54 @@ class Asset(ObjectPermissionMixin,
                                                     source=self.content)
         return snapshot
 
-    def _update_partial_permissions(self, user_id, perm, remove=False, **kwargs):
+    def _update_partial_permissions(self, user_id, perm, remove=False,
+                                    partial_perms=None):
         """
         Updates partial permissions relation table according to `perm`.
 
         If `perm` == `PERM_PARTIAL_SUBMISSIONS`, then
-        kwargs should contain a dict `partial_perms` with usernames mapped to
-        their corresponding permission. e.g.:
+        If `partial_perms` is not `None`, it should be a dict with filters mapped to
+        their corresponding permission.
+        Each filter is used to narrow down results when querying Mongo.
+        e.g.:
         ```
             {
-                PERM_VIEW_SUBMISSIONS: ['someuser', 'anotheruser'],
+                'view_submissions': [{
+                    '_submitted_by': {
+                        '$in': [
+                            'someuser',
+                            'anotheruser'
+                        ]
+                    }
+                }],
             }
         ```
 
         Even if we can only restrict an user to view another's submissions so far,
         this code wants to be future-proof and supports other permissions such as:
-            - PERM_CHANGE_SUBMISSIONS
-            - PERM_VALIDATE_SUBMISSIONS
+            - `change_submissions`
+            - `validate_submissions`
         `partial_perms` could be passed as:
         ```
             {
-                PERM_CHANGE_SUBMISSIONS': ['someuser'],
-                PERM_VALIDATE_SUBMISSIONS': ['anotheruser'],
+                'change_submissions': [{
+                    '_submitted_by': {
+                        '$in': [
+                            'someuser',
+                            'anotheruser'
+                        ]
+                    }
+                }]
+                'validate_submissions': [{
+                    '_submitted_by': 'someuser'
+                }],
             }
         ```
 
         :param user_id: int.
         :param perm: str. see Asset.ASSIGNABLE_PERMISSIONS
         :param remove: boolean. Default is false.
-        :param kwargs:
+        :param partial_perms: dict. Default is None.
         :return:
         """
 
@@ -940,35 +958,35 @@ class Asset(ObjectPermissionMixin,
 
             if remove:
                 clean_up_table()
-            else:
-                if user_id == self.owner.pk:
-                    raise BadPermissionsException(
-                        _("Can not assign '{}' permission to owner".format(perm)))
+                return
 
-                partial_perms = kwargs.get("partial_perms")
-                if not partial_perms:
-                    raise BadPermissionsException(
-                        _("Can not assign '{}' permission. "
-                          "Partial permissions are missing.".format(perm)))
+            if user_id == self.owner.pk:
+                raise BadPermissionsException(
+                    _("Can not assign '{}' permission to owner".format(perm)))
 
-                new_partial_perms = {}
-                for partial_perm, filters in partial_perms.items():
-                    implied_perms = [implied_perm
-                                     for implied_perm in
-                                     list(self.get_implied_perms(partial_perm))
-                                     if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
-                                     ]
-                    implied_perms.append(partial_perm)
-                    for implied_perm in implied_perms:
-                        if implied_perm not in new_partial_perms:
-                            new_partial_perms[implied_perm] = []
-                        new_partial_perms[implied_perm] += filters
+            if not partial_perms:
+                raise BadPermissionsException(
+                    _("Can not assign '{}' permission. "
+                      "Partial permissions are missing.".format(perm)))
 
-                aupp, created = AssetUserPartialPermission.objects.get_or_create(
-                    asset_id=self.pk,
-                    user_id=user_id)
-                aupp.permissions = new_partial_perms
-                aupp.save(update_fields=["permissions"])
+            new_partial_perms = {}
+            for partial_perm, filters in partial_perms.items():
+                implied_perms = [implied_perm
+                                 for implied_perm in
+                                 self.get_implied_perms(partial_perm)
+                                 if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
+                                 ]
+                implied_perms.append(partial_perm)
+                for implied_perm in implied_perms:
+                    if implied_perm not in new_partial_perms:
+                        new_partial_perms[implied_perm] = []
+                    new_partial_perms[implied_perm] += filters
+
+            AssetUserPartialPermission.objects.update_or_create(
+                asset_id=self.pk,
+                user_id=user_id,
+                defaults={'permissions': new_partial_perms})
+
         elif perm in self.CONTRADICTORY_PERMISSIONS.get(PERM_PARTIAL_SUBMISSIONS):
             clean_up_table()
 

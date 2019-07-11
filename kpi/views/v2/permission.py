@@ -11,8 +11,6 @@ from kpi.serializers.v2.permission import PermissionSerializer
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    <span class='label label-danger'>TODO - Add name</span>
-
     **Display all assignable permissions for `Asset` and `Collection`**
 
     `implied` property shows which permission is assigned at the time as
@@ -103,14 +101,10 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
         assignable_permissions = list(Asset.ASSIGNABLE_PERMISSIONS +
                                       Collection.ASSIGNABLE_PERMISSIONS)
 
-        queryset = queryset.filter(content_type__app_label='kpi',
-                                   content_type__model__in=models,
-                                   codename__in=assignable_permissions).\
-            select_related("content_type")
+        queryset = queryset.filter(
+            content_type__app_label="kpi",
+            content_type__model__in=models,
+            codename__in=assignable_permissions,
+        ).select_related("content_type")
+
         return queryset
-
-    def list(self, request, *args, **kwargs):
-        return super(PermissionViewSet, self).list(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        return super(PermissionViewSet, self).retrieve(request, *args, **kwargs)

@@ -80,25 +80,6 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
         """
         return list(object_.get_perms(user))
 
-    @staticmethod
-    def _get_parents_query_dict(request):
-        """
-        Mimics NestedViewSetMixin.get_parents_query_dict
-        :param request:
-        :return:
-        """
-        result = {}
-        for kwarg_name, kwarg_value in request.parser_context.get("kwargs").items():
-            if kwarg_name.startswith(extensions_api_settings.DEFAULT_PARENT_LOOKUP_KWARG_NAME_PREFIX):
-                query_lookup = kwarg_name.replace(
-                    extensions_api_settings.DEFAULT_PARENT_LOOKUP_KWARG_NAME_PREFIX,
-                    '',
-                    1
-                )
-                query_value = kwarg_value
-                result[query_lookup] = query_value
-        return result
-
     def get_required_permissions(self, method):
         """
         Given a model and an HTTP method, return the list of permission
@@ -126,7 +107,7 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
 
 class BaseAssetNestedObjectPermission(AbstractParentObjectNestedObjectPermission):
     """
-    Abstract class for Asset and related objects permissions
+    Base class for Asset and related objects permissions
     """
 
     MODEL_NAME = Asset._meta.model_name
@@ -146,7 +127,7 @@ class BaseAssetNestedObjectPermission(AbstractParentObjectNestedObjectPermission
 
 class BaseCollectionNestedObjectPermission(AbstractParentObjectNestedObjectPermission):
     """
-    Abstract class for Collection and related objects permissions
+    Base class for Collection and related objects permissions
     """
 
     MODEL_NAME = Collection._meta.model_name

@@ -58,7 +58,7 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
             # fallback to context. (e.g. AssetViewSet)
             asset = getattr(view, 'asset', self.context.get('asset'))
             partial_perms = asset.get_partial_perms(
-                object_permission.user_id, True)
+                object_permission.user_id, with_filters=True)
 
             hyperlinked_partial_perms = []
             for perm_codename, filters in partial_perms.items():

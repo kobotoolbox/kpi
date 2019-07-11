@@ -259,6 +259,9 @@ class ObjectPermissionMixin(object):
     @classmethod
     def get_assignable_permissions(cls, with_partial=True):
         """
+        The "versioned app registry" used during migrations apparently does
+        not store non-database attributes, so this awful workaround is needed
+
         Returns assignable permissions including permissions prefixed by
         `PREFIX_PARTIAL_PERMS` if `with_partial` is True.
 
@@ -311,7 +314,7 @@ class ObjectPermissionMixin(object):
                     if source_permission.permission.codename.startswith(PREFIX_PARTIAL_PERMS):
                         kwargs.update({
                             'partial_perms': source_object.get_partial_perms(
-                                source_permission.user_id, True)
+                                source_permission.user_id, with_filters=True)
                         })
                     self.assign_perm(**kwargs)
             self._recalculate_inherited_perms()
@@ -550,7 +553,7 @@ class ObjectPermissionMixin(object):
         if self.owner is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
-                codename__in=self.get_assignable_permissions(False)
+                codename__in=self.get_assignable_permissions(with_partial=False)
             ):
                 new_permission = ObjectPermission()
                 new_permission.content_object = self
@@ -651,7 +654,7 @@ class ObjectPermissionMixin(object):
                 continue
             if result.intersection(implied_perms):
                 raise ImproperlyConfigured(
-                    'Loop in IMPLIED_PERMISSIONS for {}'.format(type(cls)))
+                    'Loop in IMPLIED_PERMISSIONS for {}'.format(cls))
             perms_to_process.extend(implied_perms)
             result.update(implied_perms)
         return result
@@ -690,7 +693,7 @@ class ObjectPermissionMixin(object):
 
     @transaction.atomic
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
-                    skip_kc=False, **kwargs):
+                    skip_kc=False, partial_perms=None):
         r"""
             Assign `user_obj` the given `perm` on this object, or break
             inheritance from a parent object. By default, recalculate
@@ -703,6 +706,8 @@ class ObjectPermissionMixin(object):
                 descendants
             :param skip_kc: bool. When `True`, skip assignment of applicable KC
                 permissions
+            :param partial_perms: dict. Filters used to narrow down query for
+              partial permissions
         """
         app_label, codename = perm_parse(perm, self)
         if codename not in self.get_assignable_permissions():
@@ -739,7 +744,8 @@ class ObjectPermissionMixin(object):
         if identical_existing_perm.exists():
             # We need to always update partial permissions because
             # they may have changed even if `perm` is the same.
-            self._update_partial_permissions(user_obj.pk, perm, **kwargs)
+            self._update_partial_permissions(user_obj.pk, perm,
+                                             partial_perms=partial_perms)
             # The user already has this permission directly applied
             return identical_existing_perm.first()
 
@@ -786,7 +792,8 @@ class ObjectPermissionMixin(object):
         if defer_recalc:
             return new_permission
 
-        self._update_partial_permissions(user_obj.pk, perm, **kwargs)
+        self._update_partial_permissions(user_obj.pk, perm,
+                                         partial_perms=partial_perms)
 
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
@@ -804,8 +811,7 @@ class ObjectPermissionMixin(object):
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
-        Returns the list of permissions the user is partial to,
-        for this specific object.
+        Returns the list of partial permissions related to the user.
 
         Should implemented on classes that inherit from this mixin
         """
@@ -813,7 +819,7 @@ class ObjectPermissionMixin(object):
 
     def get_filters_for_partial_perm(self, user_id, perm=None):
         """
-        Returns the list of usernames for a specfic permission `perm`
+        Returns the list of (Mongo) filters for a specific permission `perm`
         and this specific object.
 
         Should implemented on classes that inherit from this mixin
@@ -932,7 +938,8 @@ class ObjectPermissionMixin(object):
         fresh_self = type(self).objects.get(pk=self.pk)
         fresh_self.recalculate_descendants_perms()
 
-    def _update_partial_permissions(self, user_id, perm, remove=False, **kwargs):
+    def _update_partial_permissions(self, user_id, perm, remove=False,
+                                    partial_perms=None):
         # Class is not an abstract class. Just pass.
         # Let the dev implement within the classes that inherit from this mixin
         pass

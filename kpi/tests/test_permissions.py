@@ -525,12 +525,12 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
     def test_copy_permissions_between_objects_different_owner(self):
 
-        asset1 = Asset.objects.create(content={'survey': [
+        another_user_asset = Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 3', 'name': 'q3', 'kuid': 'ghi'},
             {'type': 'text', 'label': 'Question 4', 'name': 'q4', 'kuid': 'ijk'},
         ]}, owner=self.anotheruser)
 
-        asset2 = Asset.objects.create(content={'survey': [
+        someuser_asset = Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 5', 'name': 'q5', 'kuid': 'lmn'},
             {'type': 'text', 'label': 'Question 6', 'name': 'q6', 'kuid': 'opq'},
         ]}, owner=self.someuser)
@@ -544,18 +544,18 @@ class PermissionsTestCase(BasePermissionsTestCase):
         # Assign permissions to 1st asset.
         for assigned_someuser_perm in assigned_someuser_perms:
             if assigned_someuser_perm in Asset.get_assignable_permissions(False):
-                asset1.assign_perm(self.someuser, assigned_someuser_perm)
+                another_user_asset.assign_perm(self.someuser, assigned_someuser_perm)
 
         # Assign permissions to 2nd asset.
-        asset2.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
-        asset2.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        asset2.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        someuser_asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        someuser_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        someuser_asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
 
         # Copy permissions from 1st to 2nd asset.
-        asset2.copy_permissions_from(asset1)
+        someuser_asset.copy_permissions_from(another_user_asset)
 
-        asset2_perms = asset2.get_users_with_perms(attach_perms=True)
-        asset1_perms = asset1.get_users_with_perms(attach_perms=True)
+        someuser_asset_perms = someuser_asset.get_users_with_perms(attach_perms=True)
+        another_user_asset_perms = another_user_asset.get_users_with_perms(attach_perms=True)
         expected_anotheruser_perms = [
             PERM_ADD_SUBMISSIONS,
             PERM_CHANGE_ASSET,
@@ -566,25 +566,43 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS
         ]
-        
-        # Ensure `self.someuser` has same permissions as owner
+
+        # Ensure `self.someuser` is still the owner
+        self.assertTrue(someuser_asset.owner == self.someuser)
+
+        # Ensure permissions for `self.someuser` have not changed
         self.assertListEqual(
-            sorted(asset2_perms[self.someuser]), 
-            sorted(asset2.get_perms(asset2.owner)))
-        
-        # Ensure `self.someuser` is the owner
-        self.assertTrue(asset2.owner == self.someuser)
+            sorted(someuser_asset_perms[self.someuser]),
+            sorted(someuser_asset.get_perms(someuser_asset.owner)))
 
         # Ensure `self.anotheruser` has all (assignable) permissions
-        self.assertTrue(asset2.owner == self.someuser)
         self.assertListEqual(
-            sorted(asset2_perms[self.anotheruser]), expected_anotheruser_perms)
+            sorted(someuser_asset_perms[self.anotheruser]), expected_anotheruser_perms)
 
-        self.assertTrue(len(asset1_perms.keys()) == len(asset2_perms.keys()))
+        self.assertTrue(len(another_user_asset_perms.keys()) == len(someuser_asset_perms.keys()))
 
     def test_add_partial_submission_permission_to_owner(self):
         """
         Owner can't receive `PERM_PARTIAL_SUBMISSIONS permission.
+        """
+        asset = self.admin_asset
+        grantee = asset.owner
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': {'$in': [
+                    self.someuser.username,
+                    self.anotheruser.username
+                ]}
+            }]
+        }
+        codename = PERM_PARTIAL_SUBMISSIONS
+        self.assertRaises(BadPermissionsException, asset.assign_perm, grantee,
+                          codename, partial_perms=partial_perms)
+
+    def test_mandatory_partial_perms_with_partial_submissions_permission(self):
+        """
+        If partial permissions are omitted when assigning
+        `partial_submissions` permission, it should raise an error
         """
         asset = self.admin_asset
         grantee = self.someuser
@@ -592,34 +610,21 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertRaises(BadPermissionsException, asset.assign_perm, grantee,
                           codename)
 
-    def test_mandatory_partial_perms_with_partial_submissions_permission(self):
-        """
-        If partial permissions are omitted when assigning
-        `PERM_PARTIAL_SUBMISSIONS` permission, it should raise an error
-        """
-        asset = self.admin_asset
-        grantee = asset.owner
-        partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.someuser.username,
-                                    self.anotheruser.username]
-        }
-        codename = PERM_PARTIAL_SUBMISSIONS
-        self.assertRaises(BadPermissionsException, asset.assign_perm, grantee,
-                          codename, partial_perms=partial_perms)
-
     def test_add_partial_submission_permission(self):
         asset = self.admin_asset
         grantee = self.someuser
         codename = PERM_PARTIAL_SUBMISSIONS
         self.assertFalse(grantee.has_perm(codename, asset))
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username]
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': self.anotheruser.username
+            }]
         }
-        # Asset doesn't any relations with the Many-To-Many table
+        # Asset doesn't have any relations with the Many-To-Many table
         self.assertTrue(asset.asset_partial_permissions.count() == 0)
         asset.assign_perm(grantee, codename, partial_perms=partial_perms)
         self.assertTrue(grantee.has_perm(codename, asset))
-        self.assertTrue(asset.get_partial_perms(grantee.id, True),
+        self.assertTrue(asset.get_partial_perms(grantee.id, with_filters=True),
                         partial_perms)
         # Asset should have 1 relation with the Many-To-Many table
         self.assertTrue(asset.asset_partial_permissions.count() == 1)
@@ -629,34 +634,47 @@ class PermissionsTestCase(BasePermissionsTestCase):
         grantee = self.someuser
         self.test_add_partial_submission_permission()
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.someuser.username,
-                                    self.anotheruser.username]
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': {'$in': [
+                    self.someuser.username,
+                    self.anotheruser.username
+                ]}
+            }]
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
                           partial_perms=partial_perms)
-        self.assertTrue(asset.get_partial_perms(grantee.id, True),
-                        partial_perms)
+        self.assertEquals(asset.get_partial_perms(grantee.id, with_filters=True),
+                          partial_perms)
 
     def test_add_contradict_partial_submission_permission(self):
         """
-        When `PERM_PARTIAL_SUBMISSIONS` permission is assigned to a user,
-        this user should loose all other submissions permissions and vice-versa.
+        `partial_submissions` is mutually exclusive with other submissions
+        permissions.
+        When `partial_submissions` is assigned to a user, this user should
+        lose any other submissions permissions that were previously assigned.
+        Likewise, if a user already has `partial_submissions` and is then
+        assigned another submissions permission (e.g. `view_submissions`),
+        then `partial_submissions` should be removed.
         """
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username]
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': self.anotheruser.username
+            }]
         }
         # User should not have any permissions on the asset.
         self.assertFalse(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         self.assertFalse(grantee.has_perm(PERM_PARTIAL_SUBMISSIONS, asset))
 
-        # User should have only `PERM_VIEW_SUBMISSIONS` permission on the asset.
+        # Assign `view_submissions` to the user and make sure they do not
+        # receive anything else.
         asset.assign_perm(grantee, PERM_VIEW_SUBMISSIONS)
         self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         self.assertFalse(grantee.has_perm(PERM_PARTIAL_SUBMISSIONS, asset))
 
-        # User should have only `PERM_PARTIAL_SUBMISSIONS` permission on the asset.
+        # Assign `partial_submissions` and make sure that `view_submissions`
+        # has been revoked.
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
                           partial_perms=partial_perms)
         self.assertFalse(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
@@ -666,9 +684,11 @@ class PermissionsTestCase(BasePermissionsTestCase):
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username]
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': self.anotheruser.username
+            }]
         }
-        # Assign `PERM_PARTIAL_SUBMISSIONS` permission.
+        # Assign `partial_submissions` permission.
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
                           partial_perms=partial_perms)
         self.assertTrue(grantee.has_perm(PERM_PARTIAL_SUBMISSIONS, asset))
@@ -681,21 +701,27 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
     def test_implied_partial_submission_permission(self):
         """
-        This test is present even we can only restrict users to view subset data
-        of other users, so far.
+        This test is present even though we can only restrict users to view
+        subset of data submitted by other users, so far.
         """
         asset = self.admin_asset
         grantee = self.someuser
         partial_perms = {
-            PERM_CHANGE_SUBMISSIONS: [self.anotheruser.username]
+            PERM_CHANGE_SUBMISSIONS: [{
+                '_submitted_by': self.anotheruser.username
+            }]
         }
         expected_partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [self.anotheruser.username],
-            PERM_CHANGE_SUBMISSIONS: [self.anotheruser.username]
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': self.anotheruser.username
+            }],
+            PERM_CHANGE_SUBMISSIONS: [{
+                '_submitted_by': self.anotheruser.username
+            }]
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
                           partial_perms=partial_perms)
 
-        partial_perms = asset.get_partial_perms(grantee.id)
-        self.assertTrue(expected_partial_perms, partial_perms)
+        partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
+        self.assertDictEqual(expected_partial_perms, partial_perms)
 

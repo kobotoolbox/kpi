@@ -51,6 +51,9 @@ class BaseApiAssetPermissionTestCase(KpiTestCase):
 class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
     def _logged_user_gives_permission(self, username, permission):
+        """
+        Uses the API to grant `permission` to `username`
+        """
         data = {
             'user': getattr(self, '{}_detail_url'.format(username)),
             'permission': getattr(self, '{}_permission_detail_url'.format(permission))
@@ -178,7 +181,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         admin_perms = self.asset.get_perms(self.admin)
         results = permission_list_response.data.get('results')
 
-        # As an editor of the asset. `someuser` should see all.
+        # Get admin permissions.
         expected_perms = []
         for admin_perm in admin_perms:
             if admin_perm in Asset.get_assignable_permissions():
