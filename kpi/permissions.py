@@ -101,7 +101,8 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
             raise exceptions.MethodNotAllowed(method)
 
         perms = [perm % kwargs for perm in perm_list]
-        # TODO: See if we can leave the `app_label` in each permission string
+        # Because `ObjectPermissionMixin.get_perms()` returns codenames only, remove the
+        # `app_label` prefix before returning
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
 
