@@ -14,3 +14,6 @@ LOGGING['handlers']['console'] = {
 # displayed in the console and later when buffer is flushed.
 # This monkey-patch makes stout.write to flush buffer right away
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+
+# Comment out the line below to use `Django Debug Toolbar`
+# INTERNAL_IPS = ['172.24.0.3']  # Change IP to KPI container's IP

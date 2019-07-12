@@ -1,6 +1,5 @@
 import constance
 from django.contrib.auth.decorators import login_required
-from django.core.management import call_command
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from registration.backends.default.views import RegistrationView
@@ -8,7 +7,8 @@ from registration.forms import RegistrationForm
 from rest_framework.decorators import api_view
 
 from kpi.tasks import sync_kobocat_xforms, import_survey_drafts_from_dkobo
-from .models import FormBuilderPreference, ExtraUserDetail
+from .models import FormBuilderPreference
+
 
 # The `api_view` decorator allows authentication via DRF
 @api_view(['GET'])

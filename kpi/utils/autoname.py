@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from copy import deepcopy
+from collections import OrderedDict
 import re
 import string
 import random
-import json
-from copy import deepcopy
-from collections import OrderedDict, defaultdict
-
-from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
 
 from formpack.utils.json_hash import json_hash
 
+from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
 
 
 def _increment(name):

@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 
+from dicttoxml import dicttoxml
 from rest_framework import renderers
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
@@ -51,6 +52,12 @@ class XFormRenderer(XMLRenderer):
 class SubmissionXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
+
+        # data should be str, but in case it's a dict, return as XML.
+        # e.g. It happens with 404
+        if isinstance(data, dict):
+            return dicttoxml(data, attr_type=False)
+
         if renderer_context.get("view").action == "list":
             return "<root>{}</root>".format("".join(data))
         else:

@@ -1,16 +1,17 @@
-import json
-import hashlib
+from __future__ import absolute_import
+
 import datetime
-from django.utils import timezone
+import hashlib
+import json
 
 from django.db import models
-
+from django.utils import timezone
+from formpack.utils.expand_content import expand_content
 from jsonbfield.fields import JSONField as JSONBField
 from reversion.models import Version
-from ..fields import KpiUidField
-from ..utils.kobo_to_xlsform import to_xlsform_structure
 
-from formpack.utils.expand_content import expand_content
+from kpi.fields import KpiUidField
+from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 

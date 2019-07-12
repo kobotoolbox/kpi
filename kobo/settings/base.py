@@ -1,23 +1,21 @@
 # coding: utf-8
 from __future__ import absolute_import
 
-from datetime import timedelta
 import multiprocessing
 import os
 import subprocess
+from datetime import timedelta
 
-from celery.schedules import crontab
+import dj_database_url
 import django.conf.locale
-from django.conf import global_settings
+from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
-import dj_database_url
 from pymongo import MongoClient
 
-from ..static_lists import EXTRA_LANG_INFO
 from kpi.utils.redis_helper import RedisHelper
-
+from ..static_lists import EXTRA_LANG_INFO
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -289,7 +287,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.serializers.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -302,7 +300,8 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.JSONRenderer',
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
-    ]
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
 }
 
 TEMPLATES = [

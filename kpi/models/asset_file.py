@@ -1,23 +1,29 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import posixpath
+
 from django.db import models
 from django.utils import timezone
-from private_storage.fields import PrivateFileField
 from jsonbfield.fields import JSONField as JSONBField
+from private_storage.fields import PrivateFileField
 
-from ..fields import KpiUidField
+from kpi.fields import KpiUidField
+
 
 def upload_to(self, filename):
-    '''
+    """
     Please note that due to Python 2 limitations, you cannot serialize unbound
     method functions (e.g. a method declared and used in the same class body).
     Please move the function into the main module body to use migrations. For
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
-    '''
+    """
     return posixpath.join(
         self.asset.owner.username, 'asset_files', self.asset.uid,
         self.file_type, filename
     )
+
 
 class AssetFile(models.Model):
     # More to come!

@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 from .models.object_permission import get_anonymous_user, perm_parse
 
+
 class ObjectPermissionBackend(ModelBackend):
     @staticmethod
     def _translate_anonymous_user(user_obj):

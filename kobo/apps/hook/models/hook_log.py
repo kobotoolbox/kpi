@@ -1,15 +1,9 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
-from importlib import import_module
+from datetime import timedelta
 
 import constance
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext as _
-from jsonbfield.fields import JSONField as JSONBField
-import requests
-from rest_framework import status
-from rest_framework.reverse import reverse
 
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 from kpi.fields import KpiUidField

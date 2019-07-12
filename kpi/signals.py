@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
+from taggit.models import Tag
 
 from kobo.apps.hook.models.hook import Hook
-from taggit.models import Tag
-from .models import TagUid
-from .model_utils import grant_default_model_level_perms
 from kpi.deployment_backends.kc_access.shadow_models import KCUser, KCToken
+from kpi.model_utils import grant_default_model_level_perms
+from kpi.models import Asset, Collection, ObjectPermission, TagUid
 
 
 @receiver(post_save, sender=User)
@@ -73,3 +75,17 @@ def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     asset = instance.asset
     if asset.has_deployment:
         asset.deployment.set_has_kpi_hooks()
+
+
+@receiver(post_delete, sender=Collection)
+def post_delete_collection(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted
+
+
+@receiver(post_delete, sender=Asset)
+def post_delete_asset(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted

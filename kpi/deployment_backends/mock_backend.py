@@ -12,13 +12,13 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
-    '''
-    only used for unit testing and interface testing.
+    """
+    Only used for unit testing and interface testing.
 
     defines the interface for a deployment backend.
 
     # TODO. Stop using protected property `_deployment_data`.
-    '''
+    """
 
     INSTANCE_ID_FIELDNAME = "id"
 
@@ -30,10 +30,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             })
 
     def redeploy(self, active=None):
-        '''
+        """
         Replace (overwrite) the deployment, keeping the same identifier, and
         optionally changing whether the deployment is active
-        '''
+        """
         if active is None:
             active = self.active
         self.set_active(active)
@@ -42,6 +42,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
                 'active': bool(active),
             })
+
+    def set_namespace(self, namespace):
+        self.store_data({
+            'namespace': namespace,
+        })
 
     def get_enketo_survey_links(self):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
@@ -58,7 +63,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def submission_list_url(self):
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
-        return reverse("submission-list", kwargs={"parent_lookup_asset": self.asset.uid})
+        view_name = 'submission-list'
+        namespace = self.asset._deployment_data.get('namespace', None)
+        if namespace is not None:
+            view_name = '{}:{}'.format(namespace, view_name)
+        return reverse(view_name, kwargs={"parent_lookup_asset": self.asset.uid})
 
     def get_submission_detail_url(self, submission_pk):
         # This doesn't really need to be implemented.
@@ -141,6 +150,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         :return: list
         """
         submissions = self.asset._deployment_data.get("submissions", [])
+        permission_filters = kwargs.get('permission_filters')
 
         if len(instances_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
@@ -151,6 +161,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             else:
                 submissions = [submission for submission in submissions if submission.get("id") in
                                map(int, instances_ids)]
+
+        if permission_filters:
+            submitted_by = [k.get('_submitted_by') for k in permission_filters]
+            if format_type == INSTANCE_FORMAT_TYPE_XML:
+                # TODO handle `submitted_by` too.
+                pass
+            else:
+                submissions = [submission for submission in submissions
+                               if submission.get('submitted_by') in submitted_by]
 
         return submissions
 
