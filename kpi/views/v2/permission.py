@@ -13,11 +13,12 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     **Display all assignable permissions for `Asset` and `Collection`**
 
-    `implied` property shows which permission is assigned at the time as
-    the corresponding permission.
+    The `implied` property of a given permission shows which additional
+    permissions are automatically granted when assigning that particular
+    permission.
 
-    `contradictory` property shows which permissions are removed when assigning
-    the corresponding permission.
+    The `contradictory` property shows which permissions are removed when
+    assigning that particular permission.
 
 
     <pre class="prettyprint">
