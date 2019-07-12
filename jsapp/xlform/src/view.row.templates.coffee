@@ -246,7 +246,7 @@ module.exports = do ->
   paramsSettingsField = ->
     """
     <div class="card__settings__fields__field">
-      <label>#{_t('Parameters')}:</label>
+      <label>#{_t("Parameters")}:</label>
       <span class="settings__input">
         <div class="params-view"></div>
       </span>

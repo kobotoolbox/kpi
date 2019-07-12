@@ -150,7 +150,7 @@ module.exports = do ->
 
     deleteGroup: (evt)=>
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
-      if skipConfirm or confirm(_t('Are you sure you want to split apart this group?'))
+      if skipConfirm or confirm(_t("Are you sure you want to split apart this group?"))
         @_deleteGroup()
       evt.preventDefault()
 
@@ -300,7 +300,7 @@ module.exports = do ->
 
       if @model._scoreRows.length < 1
         @model._scoreRows.add
-          label: _t('Enter your question')
+          label: _t("Enter your question")
           name: ''
 
       score_rows = for sr in @model._scoreRows.models
