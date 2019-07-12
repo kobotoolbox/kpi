@@ -15,6 +15,7 @@ from kpi.fields.relative_prefix_hyperlinked_related import \
     RelativePrefixHyperlinkedRelatedField
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
+from kpi.utils.urls import absolute_resolve
 
 
 class AssetPermissionSerializer(serializers.ModelSerializer):
@@ -93,53 +94,65 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         If data is valid, `partial_permissions` attribute is added to `attrs`.
         Useful to permission assignment in `create()`.
 
-        :param attrs: dict.
-        :return: dict.
+        :param attrs: dict of `{'user': '<username>',
+                                'permission': <permission object>}`
+        :return: dict, the `attrs` parameter updated (if necessary) with
+                 validated `partial_permissions` dicts.
         """
-        permission = attrs.get('permission')
-        request = self.context.get('request')
-        if isinstance(request.data, dict):
+        permission = attrs['permission']
+        if not permission.codename.startswith(PREFIX_PARTIAL_PERMS):
+            # No additional validation needed
+            return attrs
+
+        def _invalid_partial_permissions(message):
+            raise serializers.ValidationError(
+                {'partial_permissions': message}
+            )
+
+        request = self.context['request']
+        if isinstance(request.data, dict): # for a single assignment
             partial_permissions = request.data.get('partial_permissions')
-        elif self.context.get('partial_permissions'):
+        elif self.context.get('partial_permissions'): # injected during bulk assignment
             partial_permissions = self.context.get('partial_permissions')
+
+        if not partial_permissions:
+            _invalid_partial_permissions(
+                _("This field is required for the '{}' permission").format(
+                    permission.codename
+                )
+            )
+
         partial_permissions_attr = defaultdict(list)
 
-        if permission.codename.startswith(PREFIX_PARTIAL_PERMS):
-            if partial_permissions:
-                is_valid = True
+        for partial_permission, filters_ in \
+                self.__get_partial_permissions_generator(partial_permissions):
+            try:
+                resolver_match = absolute_resolve(
+                    partial_permission.get('url')
+                )
+            except (TypeError, Resolver404):
+                _invalid_partial_permissions(_('Invalid `url`'))
 
-                for partial_permission, filter_ in \
-                        self.__get_partial_permissions_generator(partial_permissions):
-                    try:
-                        parse_result = urlparse(partial_permission.get('url'))
-                        resolver = resolve(parse_result.path)
-                        codename = resolver.kwargs.get('codename')
-                    except (AttributeError, Resolver404):
-                        is_valid = False
-                        break  # No need to go further
+            try:
+                codename = resolver_match.kwargs['codename']
+            except KeyError:
+                _invalid_partial_permissions(_('Invalid `url`'))
 
-                    # Permission must valid and must be assignable.
-                    # Ensure `filter_` is a `dict`.
-                    # No need to validate Mongo syntax, query will fail
-                    # if syntax is not correct.
-                    if (self._validate_permission(codename,
-                                                  SUFFIX_SUBMISSIONS_PERMS)
-                            and isinstance(filter_, dict)):
-                        partial_permissions_attr[codename].append(filter_)
-                        continue
+            # Permission must valid and must be assignable.
+            if not self._validate_permission(codename,
+                                             SUFFIX_SUBMISSIONS_PERMS):
+                _invalid_partial_permissions(_('Invalid `url`'))
 
-                    is_valid = False
-                    break  # No need to go further
+            # No need to validate Mongo syntax, query will fail
+            # if syntax is not correct.
+            if not isinstance(filters_, dict):
+                _invalid_partial_permissions(_('Invalid `filters`'))
 
-                if not is_valid:
-                    raise serializers.ValidationError(_('Invalid partial permissions'))
+            # Validation passed!
+            partial_permissions_attr[codename].append(filters_)
 
-                # Everything went well. Add it to `attrs`
-                attrs.update({'partial_permissions': partial_permissions_attr})
-            else:
-                raise serializers.ValidationError(
-                    _("Can not assign '{}' permission. Partial permissions "
-                      "are missing.").format(permission.codename))
+        # Everything went well. Add it to `attrs`
+        attrs.update({'partial_permissions': partial_permissions_attr})
 
         return attrs
 
@@ -186,8 +199,8 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         :return: generator
         """
         for partial_permission in partial_permissions:
-            for filter_ in partial_permission.get('filters'):
-                yield partial_permission, filter_
+            for filters_ in partial_permission.get('filters'):
+                yield partial_permission, filters_
 
     def __get_permission_hyperlink(self, codename):
         """
