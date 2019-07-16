@@ -9,7 +9,7 @@ module.exports = do ->
     events: {
       'input input': 'onChange'
     }
-    placeholder: _t('e.g. ".pdf,.doc,.odt"')
+    placeholder: _t("e.g. \".pdf,.doc,.odt\"")
 
     initialize: ({@rowView, @acceptedFiles=''}) -> return
 
