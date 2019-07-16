@@ -33,9 +33,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def make_identifier(username, id_string):
-        ''' Uses `settings.KOBOCAT_URL` to construct an identifier from a
+        """
+        Uses `settings.KOBOCAT_URL` to construct an identifier from a
         username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers '''
+        or know the full format of KC identifiers
+        """
         # No need to use the internal URL here; it will be substituted in when
         # appropriate
         return u'{}/{}/forms/{}'.format(
@@ -46,9 +48,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def external_to_internal_url(url):
-        ''' Replace the value of `settings.KOBOCAT_URL` with that of
+        """
+        Replace the value of `settings.KOBOCAT_URL` with that of
         `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
-        `url` '''
+        `url`
+        """
         return re.sub(
             pattern=u'^{}'.format(re.escape(settings.KOBOCAT_URL)),
             repl=settings.KOBOCAT_INTERNAL_URL,
@@ -57,9 +61,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def internal_to_external_url(url):
-        ''' Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
+        """
+        Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
         `settings.KOBOCAT_URL` when it appears at the beginning of
-        `url` '''
+        `url`
+        """
         return re.sub(
             pattern=u'^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
             repl=settings.KOBOCAT_URL,
@@ -71,10 +77,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.asset._deployment_data['backend_response']
 
     def _kobocat_request(self, method, url, **kwargs):
-        '''
+        """
         Make a POST or PATCH request and return parsed JSON. Keyword arguments,
         e.g. `data` and `files`, are passed through to `requests.request()`.
-        '''
+        """
 
         expected_status_codes = {
             'POST': 201,
@@ -157,10 +163,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
     def connect(self, identifier=None, active=False):
-        '''
+        """
         POST initial survey content to kobocat and create a new project.
         store results in self.asset._deployment_data.
-        '''
+        """
         # If no identifier was provided, construct one using
         # `settings.KOBOCAT_URL` and the uid of the asset
         if not identifier:
@@ -224,10 +230,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
 
     def redeploy(self, active=None):
-        '''
+        """
         Replace (overwrite) the deployment, keeping the same identifier, and
         optionally changing whether the deployment is active
-        '''
+        """
         if active is None:
             active = self.active
         url = self.external_to_internal_url(self.backend_response['url'])
@@ -262,10 +268,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise
 
     def set_active(self, active):
-        '''
+        """
         PATCH active boolean of survey.
         store results in self.asset._deployment_data
-        '''
+        """
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
         url = self.external_to_internal_url(
@@ -302,7 +308,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
 
     def delete(self):
-        ''' WARNING! Deletes all submitted data! '''
+        """
+        WARNING! Deletes all submitted data!
+        """
         url = self.external_to_internal_url(self.backend_response['url'])
         try:
             self._kobocat_request('DELETE', url)
