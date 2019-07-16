@@ -14,11 +14,10 @@ from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
-from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
 from .fields import PaginatedApiField, SerializerMethodFileField
 from .models import Asset
@@ -49,6 +48,13 @@ class Paginated(LimitOffsetPagination):
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
+
+
+class TinyPaginated(PageNumberPagination):
+    """
+    Same as Paginated with a small page size
+    """
+    page_size = 50
 
 
 class WritableJSONField(serializers.Field):
@@ -519,6 +525,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
 
+    # Only add link instead of hooks list to avoid multiple access to DB.
+    hooks_link = serializers.SerializerMethodField()
+
     class Meta:
         model = Asset
         lookup_field = 'uid'
@@ -552,6 +561,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'embeds',
                   'koboform_link',
                   'xform_link',
+                  'hooks_link',
                   'tag_string',
                   'uid',
                   'kind',
@@ -612,6 +622,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
+
+    def get_hooks_link(self, obj):
+        return reverse('hook-list', args=(obj.uid,), request=self.context.get('request', None))
 
     def get_embeds(self, obj):
         request = self.context.get('request', None)
@@ -901,7 +914,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
-    languages = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
@@ -921,7 +933,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'gravatar',
             'is_staff',
             'last_login',
-            'languages',
             'extra_details',
             'current_password',
             'new_password',
@@ -943,9 +954,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)
 
-    def get_languages(self, obj):
-        return settings.LANGUAGES
-
     def get_git_rev(self, obj):
         request = self.context.get('request', False)
         if settings.EXPOSE_GIT_REV or (request and request.user.is_superuser):
@@ -957,15 +965,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         if obj.is_anonymous():
             return {'message': 'user is not logged in'}
         rep = super(CurrentUserSerializer, self).to_representation(obj)
-        if settings.UPCOMING_DOWNTIME:
-            # setting is in the format:
-            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
-            rep['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
-        # TODO: Find a better location for SECTORS and COUNTRIES
-        # as the functionality develops. (possibly in tags?)
-        rep['available_sectors'] = SECTORS
-        rep['available_countries'] = COUNTRIES
-        rep['all_languages'] = LANGUAGES
         if not rep['extra_details']:
             rep['extra_details'] = {}
         # `require_auth` needs to be read from KC every time

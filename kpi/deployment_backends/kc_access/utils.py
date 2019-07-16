@@ -1,22 +1,26 @@
-import logging
-import json
-import logging
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from collections import Iterable
+import json
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.checks import Warning, register as register_check
 from django.db import ProgrammingError, transaction
-from guardian.models import UserObjectPermission
 from rest_framework.authtoken.models import Token
 import requests
 
-from .shadow_models import _models, safe_kc_read
+from kpi.exceptions import KoboCatProfileException
+from kpi.utils.log import logging
+from .shadow_models import (
+    safe_kc_read,
+    ReadOnlyXForm,
+    UserProfile,
+    UserObjectPermission,
+)
 
-
-class _KoboCatProfileException(Exception):
-    pass
 
 def _trigger_kc_profile_creation(user):
     '''
@@ -28,26 +32,29 @@ def _trigger_kc_profile_creation(user):
     response = requests.get(
         url, headers={'Authorization': 'Token ' + token.key})
     if not response.status_code == 200:
-        raise _KoboCatProfileException(
+        raise KoboCatProfileException(
             'Bad HTTP status code `{}` when retrieving KoBoCAT user profile'
             ' for `{}`.'.format(response.status_code, user.username))
     return response
 
+
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
     try:
-        return _models.XForm.objects.only('num_of_submissions').get(
+        return ReadOnlyXForm.objects.only('num_of_submissions').get(
             id_string=xform_id_string,
             user_id=user_id
         ).num_of_submissions
-    except _models.XForm.DoesNotExist:
+    except ReadOnlyXForm.DoesNotExist:
         return 0
+
 
 @safe_kc_read
 def last_submission_time(xform_id_string, user_id):
-    return _models.XForm.objects.get(
+    return ReadOnlyXForm.objects.get(
         user_id=user_id, id_string=xform_id_string
     ).last_submission_time
+
 
 @safe_kc_read
 def get_kc_profile_data(user_id):
@@ -56,16 +63,16 @@ def get_kc_profile_data(user_id):
     dictionary
     '''
     try:
-        profile_model = _models.UserProfile.objects.get(user_id=user_id)
+        profile_model = UserProfile.objects.get(user_id=user_id)
         # Use a dict instead of the object in case we enter the next exception.
         # The response will return a json.
         # We want the variable to have the same type in both cases.
         profile = profile_model.__dict__
-    except _models.UserProfile.DoesNotExist:
+    except UserProfile.DoesNotExist:
         try:
             response = _trigger_kc_profile_creation(User.objects.get(pk=user_id))
             profile = response.json()
-        except _KoboCatProfileException:
+        except KoboCatProfileException:
             logging.exception('Failed to create KoBoCAT user profile')
             return {}
 
@@ -116,7 +123,7 @@ def set_kc_require_auth(user_id, require_auth):
     token, _ = Token.objects.get_or_create(user=user)
     with transaction.atomic():
         try:
-            profile = _models.UserProfile.objects.get(user_id=user_id)
+            profile = UserProfile.objects.get(user_id=user_id)
         except ProgrammingError as e:
             raise ProgrammingError(u'set_kc_require_auth error accessing '
                                    u'kobocat tables: {}'.format(repr(e)))
@@ -188,6 +195,7 @@ def _get_xform_id_for_asset(asset):
         return None
     return asset.deployment.backend_response['formid']
 
+
 def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
                                              remove=False):
     r"""
@@ -226,7 +234,8 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             flags = {flag: not value for flag, value in flags.iteritems()}
         xform_updates.update(flags)
     # Write to the KC database
-    _models.XForm.objects.filter(pk=xform_id).update(**xform_updates)
+    ReadOnlyXForm.objects.filter(pk=xform_id).update(**xform_updates)
+
 
 @transaction.atomic()
 def assign_applicable_kc_permissions(obj, user, kpi_codenames):
@@ -256,10 +265,6 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
-        # Since `logger` isn't in `INSTALLED_APPS`, `get_or_create()` raises
-        # `AttributeError: 'NoneType' object has no attribute '_base_manager'`.
-        # We hack around this with `bulk_create()`, which bypasses
-        # `UserObjectPermission.save()`
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(UserObjectPermission(
@@ -292,27 +297,8 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs(obj)
-    # Do NOT try to `print` or do anything else that would `repr()` this
-    # queryset, or you'll be greeted by
-    # `AttributeError: 'NoneType' object has no attribute '_base_manager'`
     UserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
         # `permission` has a FK to `ContentType`, but I'm paranoid
         **content_type_kwargs
     ).delete()
-
-
-@register_check()
-def guardian_message(app_configs, **kwargs):
-    r"""
-        Including `guardian` in `INSTALLED_APPS` but not using its
-        authentication backend causes Guardian to raise a warning through the
-        Django system check framework. Here we raise our own warning
-        instructing the administrator to ignore Guardian's warning.
-    """
-    return [
-        Warning(
-            '*** Please disregard warning guardian.W001. ***',
-            id='guardian.W001'
-        )
-    ]

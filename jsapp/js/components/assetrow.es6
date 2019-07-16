@@ -91,14 +91,15 @@ class AssetRow extends React.Component {
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
-        linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
         tags = this.props.tags || [],
         ownedCollections = [],
         parent = undefined;
 
-    var isDeployable = this.props.asset_type && this.props.asset_type === 'survey' && this.props.deployed_version_id === null;
+    var isDeployable = this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.deployed_version_id === null;
 
     const userCanEdit = this.userCan('change_asset', this.props);
+
+    const assetName = this.props.name || this.props.firstQuestionLabel;
 
     if (this.props.has_deployment && this.props.deployment__submission_count &&
         this.userCan('view_submissions', this.props)) {
@@ -138,6 +139,14 @@ class AssetRow extends React.Component {
             onClick={this.clickAssetButton}
             data-asset-type={this.props.kind}
           >
+            <Link
+              to={hrefTo}
+              data-kind={this.props.kind}
+              data-asset-type={this.props.kind}
+              draggable={false}
+              className='asset-row__link-overlay'
+            />
+
             {/* "title" column */}
             <bem.AssetRow__cell
               m={'title'}
@@ -150,16 +159,10 @@ class AssetRow extends React.Component {
                 ) &&
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
-              <Link
-                to={hrefTo}
-                data-kind={this.props.kind}
-                data-asset-type={this.props.kind}
-                draggable={false}
-                className={`asset-row__celllink asset-row__celllink--name ${linkClassName}`}
-              >
+              <bem.AssetRow__cell m='name'>
                 <ui.AssetName {...this.props} />
-              </Link>
-              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.settings.description &&
+              </bem.AssetRow__cell>
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>
                   {this.props.settings.description}
                 </bem.AssetRow__description>
@@ -186,19 +189,19 @@ class AssetRow extends React.Component {
               key={'userlink'}
               className={[
                 'mdl-cell',
-                this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'
+                this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'
               ]}
             >
-              { this.props.asset_type == 'survey' &&
+              { this.props.asset_type == ASSET_TYPES.survey.id &&
                 <span>{ selfowned ? ' ' : this.props.owner__username }</span>
               }
-              { this.props.asset_type != 'survey' &&
+              { this.props.asset_type != ASSET_TYPES.survey.id &&
                 <span>{selfowned ? t('me') : this.props.owner__username}</span>
               }
             </bem.AssetRow__cell>
 
             {/* "date created" column for surveys */}
-            { this.props.asset_type == 'survey' &&
+            { this.props.asset_type == ASSET_TYPES.survey.id &&
               <bem.AssetRow__cell m={'date-created'}
                   key={'date-created'}
                   className='mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone'
@@ -216,7 +219,7 @@ class AssetRow extends React.Component {
             </bem.AssetRow__cell>
 
             {/* "submission count" column for surveys */}
-            { this.props.asset_type == 'survey' &&
+            { this.props.asset_type == ASSET_TYPES.survey.id &&
               <bem.AssetRow__cell
                 m={'submission-count'}
                 key={'submisson-count'}
@@ -282,7 +285,7 @@ class AssetRow extends React.Component {
                 data-action='clone'
                 data-tip={t('Clone')}
                 data-asset-type={this.props.kind}
-                data-asset-name={this.props.name}
+                data-asset-name={assetName}
                 data-disabled={false}
                 >
               <i className='k-icon-clone' />
@@ -297,7 +300,7 @@ class AssetRow extends React.Component {
                 data-action={'cloneAsSurvey'}
                 data-tip={t('Create project')}
                 data-asset-type={this.props.kind}
-                data-asset-name={this.props.name}
+                data-asset-name={assetName}
                 data-disabled={false}
               >
                 <i className='k-icon-projects' />
@@ -326,7 +329,7 @@ class AssetRow extends React.Component {
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
-              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit && isDeployable &&
                 <bem.PopoverMenu__link
                     m={'deploy'}
                     data-action={'deploy'}
@@ -335,7 +338,7 @@ class AssetRow extends React.Component {
                   {t('Deploy this project')}
                 </bem.PopoverMenu__link>
               }
-              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
                 <bem.PopoverMenu__link
                       m={'unarchive'}
                       data-action={'unarchive'}
@@ -345,14 +348,14 @@ class AssetRow extends React.Component {
                   {t('Unarchive')}
                 </bem.PopoverMenu__link>
               }
-              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit &&
                 <bem.PopoverMenu__link
                   m={'refresh'}
                   data-action={'refresh'}
                   data-asset-type={this.props.kind}
                 >
                   <i className='k-icon-replace' />
-                  {t('Replace project')}
+                  {t('Replace form')}
                 </bem.PopoverMenu__link>
               }
               { userCanEdit &&
@@ -361,7 +364,7 @@ class AssetRow extends React.Component {
                   data-asset-uid={this.props.uid}
                 >
                   <i className='k-icon-language' />
-                  {t('Manage translations')}
+                  {t('Manage Translations')}
                 </bem.PopoverMenu__link>
               }
               {this.props.downloads.map((dl)=>{
@@ -374,12 +377,12 @@ class AssetRow extends React.Component {
                     </bem.PopoverMenu__link>
                   );
               })}
-              { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
+              { this.props.asset_type && this.props.asset_type != ASSET_TYPES.survey.id && ownedCollections.length > 0 &&
                 <bem.PopoverMenu__heading>
                   {t('Move to')}
                 </bem.PopoverMenu__heading>
               }
-              { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
+              { this.props.asset_type && this.props.asset_type != ASSET_TYPES.survey.id && ownedCollections.length > 0 &&
                 <bem.PopoverMenu__moveTo>
                   {ownedCollections.map((col)=>{
                     return (
@@ -400,7 +403,7 @@ class AssetRow extends React.Component {
                   })}
                 </bem.PopoverMenu__moveTo>
               }
-              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
                 <bem.PopoverMenu__link
                       m={'archive'}
                       data-action={'archive'}
@@ -410,12 +413,12 @@ class AssetRow extends React.Component {
                   {t('Archive')}
                 </bem.PopoverMenu__link>
               }
-              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit &&
                 <bem.PopoverMenu__link
                   m={'cloneAsTemplate'}
                   data-action={'cloneAsTemplate'}
                   data-asset-type={this.props.kind}
-                  data-asset-name={this.props.name}
+                  data-asset-name={assetName}
                 >
                   <i className='k-icon-template' />
                   {t('Create template')}
@@ -423,10 +426,11 @@ class AssetRow extends React.Component {
               }
               {userCanEdit &&
                 <bem.PopoverMenu__link
-                      m={'delete'}
-                      data-action={'delete'}
-                      data-asset-type={this.props.kind}
-                    >
+                  m={'delete'}
+                  data-action={'delete'}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={assetName}
+                >
                   <i className='k-icon-trash' />
                   {t('Delete')}
                 </bem.PopoverMenu__link>

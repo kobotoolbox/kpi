@@ -476,8 +476,6 @@ $z-form-view-fullscreen: 101;
 }
 
 .form-view.form-view--form-settings {
-  overflow: initial;
-
   .form-modal__form {
     height: 100%;
 
@@ -489,6 +487,15 @@ $z-form-view-fullscreen: 101;
         height: 820px;
       }
     }
+  }
+}
+
+.form-view.form-view--form-settings-sharing {
+  .form-modal {
+    background: white;
+    padding: 40px;
+    height: 100%;
+    overflow: auto;
   }
 }
 
@@ -636,6 +643,7 @@ $z-form-view-fullscreen: 101;
       padding: 3px;
       padding-left: 1px;
       font-size: 10px;
+      line-height: 1.5em;
       text-align: center;
       display: block;
       letter-spacing: -0.05em;

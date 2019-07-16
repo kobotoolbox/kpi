@@ -1,10 +1,12 @@
 import contextlib
 import haystack
-import logging
+
 from django.apps import apps as kpi_apps
 from django.db import models
 from django.conf import settings
 from django.core import exceptions
+from kpi.utils.log import logging
+
 
 def update_object_in_search_index(obj):
     '''

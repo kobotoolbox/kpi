@@ -1,7 +1,6 @@
 from StringIO import StringIO
 from optparse import make_option
 from pyxform.xls2json_backends import csv_to_dict
-import logging
 import re
 
 from django.contrib.auth.models import User
@@ -13,6 +12,7 @@ from taggit.managers import TaggableManager
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.asset import KpiTaggableManager
+from kpi.utils.log import logging
 
 
 class SurveyDraft(models.Model):

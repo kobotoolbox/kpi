@@ -250,7 +250,7 @@
 .error-message {
   font-size: 14px;
   color: $cool-red;
-  background-color: rgba(255, 0, 0, 0.075);
+  background-color: rgba($cool-red, 0.075);
 }
 
 .registration__credit {
@@ -334,6 +334,9 @@
 @media screen and (max-width: 767px) {
   .registration__bg {
     form.registration--register {
+      display: flex;
+      flex-direction: column;
+
       h1 {
         text-align: center;
         margin-top: 0.5em;
@@ -342,11 +345,16 @@
       .registration--logo {
         display: block;
         text-align: center;
+        order: 1;
       }
-    }
 
-    .registration__second-half {
-      display: none;
+      .registration__first-half {
+        order: 3;
+      }
+
+      .registration__second-half {
+        order: 2;
+      }
     }
   }
 }

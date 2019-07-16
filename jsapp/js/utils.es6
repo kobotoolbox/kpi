@@ -1,9 +1,7 @@
 import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
-import $ from 'jquery';
-import cookie from 'react-cookie';
-import Promise from 'es6-promise';
+import {Cookies} from 'react-cookie';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -12,6 +10,8 @@ export var assign = require('object-assign');
 alertify.defaults.notifier.delay = 10;
 alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
+
+const cookies = new Cookies();
 
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
@@ -75,7 +75,7 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
       surveyData.choices.forEach((choice) => {
         translatedProps.forEach((translatedProp) => {
           if (typeof choice[translatedProp] !== 'undefined') {
-            choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
+            choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp];
             delete choice[translatedProp];
           }
         });
@@ -85,7 +85,7 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
       surveyData.survey.forEach((surveyRow) => {
         translatedProps.forEach((translatedProp) => {
           if (typeof surveyRow[translatedProp] !== 'undefined') {
-            surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
+            surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp];
             delete surveyRow[translatedProp];
           }
         });
@@ -146,7 +146,7 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       data.survey.forEach((row) => {
         translatedProps.forEach((translatedProp) => {
           if (row[translatedProp]) {
-            let propVal = null
+            let propVal = null;
             if (row.name) {
               propVal = row.name;
             } else if (row.$autoname) {
@@ -161,8 +161,8 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
 
   // no need to nullify null
   if (data.translations[0] !== null) {
-    data.translations_0 = data.translations[0]
-    data.translations[0] = null
+    data.translations_0 = data.translations[0];
+    data.translations[0] = null;
   }
 
   return data;
@@ -222,17 +222,18 @@ window.log = log;
 var __strings = [];
 
 
-/*global gettext*/
+/*a global gettext function*/
+let _gettext;
 if (window.gettext) {
-  var _gettext = window.gettext;
+  _gettext = window.gettext;
 } else {
-  var _gettext = function(s){
+  _gettext = function(s){
     return s;
   };
 }
 export function t(str) {
   return _gettext(str);
-};
+}
 
 
 const originalSupportEmail = 'help@kobotoolbox.org';
@@ -247,7 +248,7 @@ export function replaceSupportEmail(str) {
 }
 
 export function currentLang() {
-  return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
+  return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
 // langString contains name and code e.g. "English (en)"
@@ -301,7 +302,7 @@ export var randString = function () {
 
 export function stringToColor(str, prc) {
   // Higher prc = lighter color, lower = darker
-  var prc = typeof prc === 'number' ? prc : -15;
+  prc = typeof prc === 'number' ? prc : -15;
   var hash = function(word) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {
@@ -361,10 +362,11 @@ export function validFileTypes() {
 }
 
 export function koboMatrixParser(params) {
+  let content = {};
   if (params.content)
-    var content = JSON.parse(params.content);
+    content = JSON.parse(params.content);
   if (params.source)
-    var content = JSON.parse(params.source);
+    content = JSON.parse(params.source);
 
   if (!content.survey)
     return params;
@@ -418,4 +420,49 @@ export function escapeHtml(str) {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(str));
   return div.innerHTML;
+}
+
+export function readParameters(str) {
+  if (typeof str !== 'string') {
+    return null;
+  }
+
+  const params = {};
+
+  let separator = ' ';
+  if (str.includes(';')) {
+    separator = ';';
+  } else if (str.includes(',')) {
+    separator = ',';
+  }
+  const otherSeparators = ';, '.replace(separator, '');
+  const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=');
+  const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'));
+
+  parts.forEach((part) => {
+    if (part.includes('=')) {
+      const key = part.slice(0, part.indexOf('='));
+      const value = part.slice(key.length + 1);
+      params[key] = value;
+    }
+  });
+
+  if (Object.keys(params).length < 1) {
+    return null;
+  }
+  return params;
+}
+
+export function writeParameters(obj) {
+  let params = [];
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] !== undefined && obj[key] !== null) {
+      let value = obj[key];
+      if (typeof value === 'object') {
+        value = JSON.stringify(value);
+      }
+      params.push(`${key}=${value}`);
+    }
+  });
+  return params.join(';');
 }

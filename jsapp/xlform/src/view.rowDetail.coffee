@@ -96,6 +96,11 @@ module.exports = do ->
         if transformFn
           $elVal = transformFn($elVal)
         changeModelValue($elVal)
+
+      $el.on('keyup', (evt) =>
+        if evt.key is 'Enter' or evt.keyCode is 13
+          $el.blur()
+      )
       return
 
     _insertInDOM: (where, how) ->
@@ -157,13 +162,34 @@ module.exports = do ->
     html: -> false
     insertInDOM: (rowView)->
       cht = rowView.$label
-      cht.html(@model.get("value")|| new Array(10).join('&nbsp;'))
-      @
+      cht.value = @model.get('value')
+      return @
+    afterRender: ->
+      @listenForInputChange({
+        el: this.rowView.$label,
+        transformFn: (value) ->
+          value = value.replace(new RegExp(String.fromCharCode(160), 'g'), '')
+          value = value.replace /\t/g, ' '
+          return value
+      })
+      return
 
   viewRowDetail.DetailViewMixins.hint =
+    html: -> false
+    insertInDOM: (rowView) ->
+      hintEl = rowView.$hint
+      hintEl.value = @model.get("value")
+      return @
+    afterRender: ->
+      @listenForInputChange({
+        el: this.rowView.$hint
+      })
+      return
+
+  viewRowDetail.DetailViewMixins.guidance_hint =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Question hint"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Guidance hint"), 'text'
     afterRender: ->
       @listenForInputChange()
 
@@ -175,6 +201,16 @@ module.exports = do ->
       @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
     afterRender: ->
       @listenForInputChange()
+
+  # parameters are handled per case
+  viewRowDetail.DetailViewMixins.parameters =
+    html: -> false
+    insertInDOM: (rowView)-> return
+
+  # body::accept is handled in custom view
+  viewRowDetail.DetailViewMixins['body::accept'] =
+    html: -> false
+    insertInDOM: (rowView)-> return
 
   viewRowDetail.DetailViewMixins.relevant =
     html: ->

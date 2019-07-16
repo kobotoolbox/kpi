@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
-
+INSTANCE_FORMAT_TYPE_XML = "xml"
+INSTANCE_FORMAT_TYPE_JSON = "json"
 
 ASSET_TYPE_TEXT = 'text'
 ASSET_TYPE_EMPTY = 'empty'
@@ -35,3 +38,10 @@ CLONE_COMPATIBLE_TYPES = {
 }
 
 ASSET_TYPE_ARG_NAME = "asset_type"
+
+SHADOW_MODEL_APP_LABEL = "shadow_model"
+
+# List of nested attributes which bypass 'dots' encoding
+NESTED_MONGO_RESERVED_ATTRIBUTES = [
+    "_validation_status",
+]

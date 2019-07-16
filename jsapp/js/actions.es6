@@ -1,5 +1,6 @@
 import alertify from 'alertifyjs';
 import {dataInterface} from './dataInterface';
+import helpActions from './actions/help';
 import {
   log,
   t,
@@ -11,8 +12,9 @@ var Reflux = require('reflux');
 import RefluxPromise from './libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 
-var actions = {};
+const actions = {};
 
+actions.help = helpActions;
 
 actions.navigation = Reflux.createActions([
     'transitionStart',
@@ -179,6 +181,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ],
   },
+  removeSubmissionValidationStatus: {
+    children: [
+      'completed',
+      'failed'
+    ],
+  },
   getAssetFiles: {
     children: [
       'completed',
@@ -221,6 +229,16 @@ actions.permissions = Reflux.createActions({
   },
 });
 
+actions.hooks = Reflux.createActions({
+  getAll: {children: ['completed', 'failed']},
+  add: {children: ['completed', 'failed']},
+  update: {children: ['completed', 'failed']},
+  delete: {children: ['completed', 'failed']},
+  getLogs: {children: ['completed', 'failed']},
+  retryLog: {children: ['completed', 'failed']},
+  retryLogs: {children: ['completed', 'failed']},
+});
+
 actions.misc = Reflux.createActions({
   checkUsername: {
     asyncResult: true,
@@ -242,7 +260,6 @@ actions.misc = Reflux.createActions({
     ]
   },
 });
-
 
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)
@@ -408,7 +425,7 @@ actions.resources.setDeploymentActive.listen(function(details) {
     .fail(actions.resources.setDeploymentActive.failed);
 });
 actions.resources.setDeploymentActive.completed.listen((result) => {
-  if (result.active) {
+  if (result.deployment__active) {
     notify(t('Project unarchived successfully'));
   } else {
     notify(t('Project archived successfully'));
@@ -547,6 +564,9 @@ actions.resources.cloneAsset.listen(function(details, params={}){
     })
     .fail(actions.resources.cloneAsset.failed);
 });
+actions.resources.cloneAsset.failed.listen(() => {
+  notify(t('Could not create project!'), 'error');
+});
 
 actions.search.assets.listen(function(searchData, params={}){
   dataInterface.searchAssets(searchData)
@@ -572,6 +592,9 @@ actions.permissions.assignPerm.listen(function(creds){
 actions.permissions.assignPerm.completed.listen(function(val){
   actions.resources.loadAsset({url: val.content_object});
 });
+actions.permissions.assignPerm.failed.listen(function(){
+  notify(t('failed to update permissions'), 'error');
+});
 
 // copies permissions from one asset to other
 actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
@@ -596,6 +619,9 @@ actions.permissions.removePerm.listen(function(details){
 
 actions.permissions.removePerm.completed.listen(function(uid){
   actions.resources.loadAsset({id: uid});
+});
+actions.permissions.removePerm.failed.listen(function(){
+  notify(t('failed to remove permissions'), 'error');
 });
 
 actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
@@ -693,6 +719,162 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
     console.error(error);
     actions.resources.updateSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
+  dataInterface.removeSubmissionValidationStatus(uid, sid).done((result) => {
+    actions.resources.removeSubmissionValidationStatus.completed(result, sid);
+  }).fail((error)=>{
+    console.error(error);
+    actions.resources.removeSubmissionValidationStatus.failed(error);
+  });
+});
+
+actions.hooks.getAll.listen((assetUid, callbacks = {}) => {
+  dataInterface.getHooks(assetUid)
+    .done((...args) => {
+      actions.hooks.getAll.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.getAll.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.hooks.add.listen((assetUid, data, callbacks = {}) => {
+  dataInterface.addExternalService(assetUid, data)
+    .done((...args) => {
+      actions.hooks.getAll(assetUid);
+      actions.hooks.add.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.add.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.add.completed.listen((response) => {
+  notify(t('REST Service added successfully'));
+});
+actions.hooks.add.failed.listen((response) => {
+  notify(t('Failed adding REST Service'), 'error');
+});
+
+actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
+  dataInterface.updateExternalService(assetUid, hookUid, data)
+    .done((...args) => {
+      actions.hooks.getAll(assetUid);
+      actions.hooks.update.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.update.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.update.completed.listen((response) => {
+  notify(t('REST Service updated successfully'));
+});
+actions.hooks.update.failed.listen((response) => {
+  notify(t('Failed saving REST Service'), 'error');
+});
+
+actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.deleteExternalService(assetUid, hookUid)
+    .done((...args) => {
+      actions.hooks.getAll(assetUid);
+      actions.hooks.delete.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.delete.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.delete.completed.listen((response) => {
+  notify(t('REST Service deleted permanently'));
+});
+actions.hooks.delete.failed.listen((response) => {
+  notify(t('Could not delete REST Service'), 'error');
+});
+
+actions.hooks.getLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.getHookLogs(assetUid, hookUid)
+    .done((...args) => {
+      actions.hooks.getLogs.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.getLogs.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+
+actions.hooks.retryLog.listen((assetUid, hookUid, lid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLog(assetUid, hookUid, lid)
+    .done((...args) => {
+      actions.hooks.getLogs(assetUid, hookUid);
+      actions.hooks.retryLog.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.retryLog.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.retryLog.completed.listen((response) => {
+  notify(t('Submission retry requested successfully'));
+});
+actions.hooks.retryLog.failed.listen((response) => {
+  notify(t('Submission retry request failed'), 'error');
+});
+
+actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
+  dataInterface.retryExternalServiceLogs(assetUid, hookUid)
+    .done((...args) => {
+      actions.hooks.retryLogs.completed(...args);
+      if (typeof callbacks.onComplete === 'function') {
+        callbacks.onComplete(...args);
+      }
+    })
+    .fail((...args) => {
+      actions.hooks.getLogs(assetUid, hookUid);
+      actions.hooks.retryLogs.failed(...args);
+      if (typeof callbacks.onFail === 'function') {
+        callbacks.onFail(...args);
+      }
+    });
+});
+actions.hooks.retryLogs.completed.listen((response) => {
+  notify(t(response.detail), 'warning');
+});
+actions.hooks.retryLogs.failed.listen((response) => {
+  notify(t('Retrying all submissions failed'), 'error');
 });
 
 module.exports = actions;

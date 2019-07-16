@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
@@ -15,7 +14,7 @@ import stores from 'js/stores';
 import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
 import {
-  VALIDATION_STATUSES,
+  VALIDATION_STATUSES_LIST,
   MODAL_TYPES
 } from 'js/constants';
 
@@ -30,7 +29,7 @@ class Submission extends React.Component {
         return {
           value: trns,
           label: trns || t('Unnamed language')
-        }
+        };
       });
     }
 
@@ -52,14 +51,17 @@ class Submission extends React.Component {
   }
   componentDidMount() {
     this.getSubmission(this.props.asset.uid, this.state.sid);
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
   }
 
-  refreshSubmission(result, sid) {
-    if (result.uid) {
+  refreshSubmissionValidationStatus(result, sid) {
+    if (result && result.uid) {
       this.state.submission._validation_status = result;
-      this.setState({submission: this.state.submission});
+    } else {
+      this.state.submission._validation_status = {};
     }
+    this.setState({submission: this.state.submission});
   }
 
   getSubmission(assetUid, sid) {
@@ -75,8 +77,7 @@ class Submission extends React.Component {
 
       if (this.props.ids && sid) {
         const c = this.props.ids.findIndex(k => k==sid);
-        let tableInfo = this.props.tableInfo || false,
-            nextAvailable = false;
+        let tableInfo = this.props.tableInfo || false;
         if (this.props.ids[c - 1])
           prev = this.props.ids[c - 1];
         if (this.props.ids[c + 1])
@@ -148,7 +149,7 @@ class Submission extends React.Component {
     var attachmentUrl = null;
 
     // Match filename with full filename in attachment list
-    // TODO: find a better way to do this, this works but seems inefficient
+    // TODO: find a better way to do this, this works but seems inefficient
     s._attachments.some(function(a) {
       if (a.filename.includes(filename)) {
         filename = a.filename;
@@ -217,9 +218,12 @@ class Submission extends React.Component {
     });
   }
 
-  validationStatusChange(e) {
-    const data = {'validation_status.uid': e.value};
-    actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
+  validationStatusChange(evt) {
+    if (evt.value === null) {
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, this.state.sid);
+    } else {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, {'validation_status.uid': evt.value});
+    }
   }
 
   languageChange(e) {
@@ -240,14 +244,14 @@ class Submission extends React.Component {
       submissionValue = overrideValue;
 
     switch(q.type) {
-      case 'select_one':
+      case 'select_one': {
         const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === submissionValue);
         if (choice && choice.label && choice.label[translationIndex])
           return choice.label[translationIndex];
         else
           return submissionValue;
-        break;
-      case 'select_multiple':
+      }
+      case 'select_multiple': {
         var responses = submissionValue.split(' ');
         var list = responses.map((r)=> {
           const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
@@ -257,15 +261,22 @@ class Submission extends React.Component {
             return <li key={r}>{r}</li>;
         })
         return <ul>{list}</ul>;
-        break;
+      }
       case 'image':
       case 'audio':
-      case 'video':
+      case 'video': {
         return this.renderAttachment(submissionValue, q.type);
-        break;
-      default:
+      }
+      case 'begin_repeat': {
+        const list = submissionValue.map((r) => {
+          const stringified = JSON.stringify(r);
+          return <li key={stringified}>{stringified}</li>
+        });
+        return <ul>{list}</ul>
+      }
+      default: {
         return submissionValue;
-        break;
+      }
     }
   }
   renderRows() {
@@ -277,18 +288,27 @@ class Submission extends React.Component {
     const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
     const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
+    const getGroupedName = (name) => {
+      if (openedGroups.length === 0) {
+        return name;
+      }
+      return `${openedGroups.join('/')}/${name}`;
+    }
+
     return survey.map((q)=> {
       var name = q.name || q.$autoname || q.$kuid;
 
       if (q.type === 'begin_repeat') {
+        let groupedName = getGroupedName(name);
+
         return (
-          <tr key={`row-${name}`}>
+          <tr key={`row-${groupedName}`}>
             <td colSpan='3' className='submission--repeat-group'>
               <h4>
                 {t('Repeat group: ')}
                 {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled')}
               </h4>
-              {s[name] && s[name].map((repQ, i)=> {
+              {s[groupedName] && s[groupedName].map((repQ, i)=> {
                 var response = [];
                 for (var pN in repQ) {
                   var qName = pN.split('/').pop(-1);
@@ -350,20 +370,18 @@ class Submission extends React.Component {
         );
       }
 
-      if (openedGroups.length !== 0) {
-        name = `${openedGroups.join('/')}/${name}`;
-      }
+      let groupedName = getGroupedName(name);
 
-      if (q.label == undefined || s[name] == undefined) { return false;}
+      if (q.label == undefined || s[groupedName] == undefined) { return false;}
 
-      const response = this.responseDisplayHelper(q, s, false, name);
+      const response = this.responseDisplayHelper(q, s, false, groupedName);
       const icon = icons._byId[q.type];
       var type = q.type;
       if (icon)
         type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
 
       return (
-        <tr key={`row-${name}`}>
+        <tr key={`row-${groupedName}`}>
           <td className='submission--question-type'>{type}</td>
           <td className='submission--question'>{q.label[translationIndex] || t('Unlabelled')}</td>
           <td className='submission--response'>{response}</td>
@@ -438,7 +456,7 @@ class Submission extends React.Component {
                 isDisabled={!this.userCan('validate_submissions', this.props.asset)}
                 isClearable={false}
                 value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
-                options={VALIDATION_STATUSES}
+                options={VALIDATION_STATUSES_LIST}
                 onChange={this.validationStatusChange}
                 className='kobo-select'
                 classNamePrefix='kobo-select'

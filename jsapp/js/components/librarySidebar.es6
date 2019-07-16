@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -5,7 +6,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import Dropzone from 'react-dropzone';
-import Select from 'react-select';
 import alertify from 'alertifyjs';
 
 import {dataInterface} from '../dataInterface';
@@ -26,9 +26,6 @@ import {
   anonUsername
 } from '../utils';
 
-import SidebarFormsList from '../lists/sidebarForms';
-
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -38,6 +35,7 @@ class LibrarySidebar extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
+
     autoBind(this);
   }
   queryCollections () {
@@ -54,11 +52,15 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
   componentDidMount () {
+    this.listenTo(this.searchStore, this.searchChanged);
     this.searchDefault();
     this.queryCollections();
   }
   componentWillMount() {
     this.setStates();
+  }
+  searchChanged (state) {
+    this.setState(state);
   }
   setStates() {
     this.setState({
@@ -210,6 +212,9 @@ class LibrarySidebar extends Reflux.Component {
       assetid: collectionUid
     });
   }
+  isCollectionPublic(collection) {
+    return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
+  }
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
@@ -230,8 +235,9 @@ class LibrarySidebar extends Reflux.Component {
           content_object_uid: collection.uid
         });
       }
+      let discovDeferred;
       if (permDeferred) {
-        var discovDeferred = permDeferred.then(() => {
+        discovDeferred = permDeferred.then(() => {
           actions.permissions.setCollectionDiscoverability.triggerAsync(
             collection.uid, discoverable
           );
@@ -242,7 +248,7 @@ class LibrarySidebar extends Reflux.Component {
           }
         });
       } else {
-        var discovDeferred = actions.permissions.setCollectionDiscoverability.triggerAsync(
+        discovDeferred = actions.permissions.setCollectionDiscoverability.triggerAsync(
           collection.uid, discoverable
         );
       }
@@ -295,14 +301,14 @@ class LibrarySidebar extends Reflux.Component {
                   <i className='k-icon-library' />
                   {t('My Library')}
               <bem.FormSidebar__labelCount>
-                {this.state.sidebarCollections.length}
+                {this.state.defaultQueryCount}
               </bem.FormSidebar__labelCount>
 
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping>
               {this.state.sidebarCollections.map((collection)=>{
                 var iconClass = 'k-icon-folder';
-                if (collection.discoverable_when_public)
+                if (collection.discoverable_when_public || this.isCollectionPublic(collection))
                   iconClass = 'k-icon-folder-public';
                 if (collection.access_type == 'shared')
                   iconClass = 'k-icon-folder-shared';
@@ -462,9 +468,10 @@ class LibrarySidebar extends Reflux.Component {
   componentWillReceiveProps() {
     this.setStates();
   }
-};
+}
 
 reactMixin(LibrarySidebar.prototype, searches.common);
+reactMixin(LibrarySidebar.prototype, Reflux.ListenerMixin);
 reactMixin(LibrarySidebar.prototype, mixins.droppable);
 
 LibrarySidebar.contextTypes = {

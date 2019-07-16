@@ -1,21 +1,13 @@
-import $ from 'jquery';
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import classNames from 'classnames';
-
 import TextBox from 'js/components/textBox';
-
 import bem from 'js/bem';
 import stores from 'js/stores';
-import mixins from 'js/mixins';
-import ui from 'js/ui';
 import actions from 'js/actions';
-import {MODAL_TYPES} from 'js/constants'
-
+import {MODAL_TYPES} from 'js/constants';
 import {t, getLangAsObject, getLangString, notify} from 'utils';
 
 export class TranslationSettings extends React.Component {
@@ -34,14 +26,18 @@ export class TranslationSettings extends React.Component {
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
       renameLanguageIndex: -1
-    }
+    };
     autoBind(this);
   }
   componentDidMount () {
     this.listenTo(stores.asset, this.onAssetsChange);
 
     if (!this.state.asset && this.state.assetUid) {
-      stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
+      if (stores.asset.data[this.state.assetUid]) {
+        this.onAssetChange(stores.asset.data[this.state.assetUid]);
+      } else {
+        stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
+      }
     }
   }
   onAssetChange(asset) {
@@ -51,7 +47,7 @@ export class TranslationSettings extends React.Component {
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
       renameLanguageIndex: -1
-    })
+    });
 
     stores.pageState.showModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
@@ -70,12 +66,12 @@ export class TranslationSettings extends React.Component {
   showAddLanguageForm() {
     this.setState({
       showAddLanguageForm: true
-    })
+    });
   }
   hideAddLanguageForm() {
     this.setState({
       showAddLanguageForm: false
-    })
+    });
   }
   toggleRenameLanguageForm(evt) {
     const index = parseInt(evt.currentTarget.dataset.index);
@@ -117,7 +113,7 @@ export class TranslationSettings extends React.Component {
   canAddLanguages() {
     return !(this.state.translations.length === 1 && this.state.translations[0] === null);
   }
-  getAllLanguages(thisLanguage) {
+  getAllLanguages() {
     return this.state.translations;
   }
   deleteLanguage(evt) {
@@ -134,7 +130,7 @@ export class TranslationSettings extends React.Component {
           this.updateAsset(content);
           dialog.destroy();
         },
-        oncancel: () => {dialog.destroy()}
+        oncancel: () => {dialog.destroy();}
       };
       dialog.set(opts).show();
     } else {
@@ -148,9 +144,9 @@ export class TranslationSettings extends React.Component {
         choices = content.choices;
 
     // append null values to translations for each survey row
-    for (var i = 0, len = survey.length; i < len; i++) {
+    for (let i = 0, len = survey.length; i < len; i++) {
       let row = survey[i];
-      for (var j = 0, len2 = translated.length; j < len2; j++) {
+      for (let j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j];
         if (row[property] && row[property].length < translationsLength) {
           row[property].push(null);
@@ -160,7 +156,7 @@ export class TranslationSettings extends React.Component {
 
     // append null values to translations for choices
     if (content.choices && content.choices.length) {
-      for (var i = 0, len = choices.length; i < len; i++) {
+      for (let i = 0, len = choices.length; i < len; i++) {
         if (choices[i].label.length < translationsLength) {
           choices[i].label.push(null);
         }
@@ -174,9 +170,9 @@ export class TranslationSettings extends React.Component {
         survey = content.survey,
         choices = content.choices;
 
-    for (var i = 0, len = survey.length; i < len; i++) {
+    for (let i = 0, len = survey.length; i < len; i++) {
       let row = survey[i];
-      for (var j = 0, len2 = translated.length; j < len2; j++) {
+      for (let j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j];
         if (row[property]) {
           if (row[property].length === translationsLength) {
@@ -190,7 +186,7 @@ export class TranslationSettings extends React.Component {
     }
 
     if (content.choices && content.choices.length) {
-      for (var i = 0, len = choices.length; i < len; i++) {
+      for (let i = 0, len = choices.length; i < len; i++) {
         if (choices[i].label) {
           if (choices[i].label.length === translationsLength) {
             choices[i].label.splice(langIndex, 1);
@@ -219,7 +215,7 @@ export class TranslationSettings extends React.Component {
         this.updateAsset(content);
         dialog.destroy();
       },
-      oncancel: () => {dialog.destroy()}
+      oncancel: () => {dialog.destroy();}
     };
     dialog.set(opts).show();
   }
@@ -261,16 +257,24 @@ export class TranslationSettings extends React.Component {
         <bem.FormModal__item>
           {(translations && translations[0] === null) ?
             <bem.FormView__cell m='translation-note'>
-              {t('Here you can add more languages to your project, and translate the strings in each of them.')}
-              <br/>
-              <strong>{t('Please name your default language before adding languages and translations.')}</strong>
+              <p>{t('Here you can add more languages to your project, and translate the strings in each of them.')}</p>
+              <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
+              <p>{t('For the language code field, we suggest using the')}
+                <a target='_blank' href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'>
+                  {' ' + t('official language code') + ' '}
+                </a>
+                {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
+                <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
+                  {' ' + t('Read more.')}
+                </a>
+              </p>
             </bem.FormView__cell>
             :
             <bem.FormView__cell m='label'>
               {t('Current languages')}
             </bem.FormView__cell>
           }
-          {translations.map((l, i)=> {
+          {translations.map((l, i) => {
             return (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
@@ -391,7 +395,7 @@ export class TranslationSettings extends React.Component {
       return this.renderTranslationsSettings(translations);
     }
   }
-};
+}
 
 reactMixin(TranslationSettings.prototype, Reflux.ListenerMixin);
 
@@ -412,7 +416,7 @@ class LanguageForm extends React.Component {
       nameError: null,
       code: '',
       codeError: null
-    }
+    };
 
     if (this.props.langString) {
       const lang = getLangAsObject(this.props.langString);
@@ -421,13 +425,13 @@ class LanguageForm extends React.Component {
         this.state = {
           name: lang.name || '',
           code: lang.code || ''
-        }
+        };
       } else {
         // if language isn't in "English (en)" format, assume it is a simple language name string
         this.state = {
           name: this.props.langString,
           code: ''
-        }
+        };
       }
     }
     autoBind(this);
@@ -541,4 +545,4 @@ class LanguageForm extends React.Component {
       </bem.FormView__form>
       );
   }
-};
+}

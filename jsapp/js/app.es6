@@ -45,6 +45,7 @@ import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
+import IntercomHandler from './components/intercomHandler';
 import Modal from './components/modal';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 
@@ -102,9 +103,6 @@ class App extends React.Component {
       case 'EDGE':
         document.body.classList.toggle('hide-edge')
         break
-      case 'CLOSE_MODAL':
-        stores.pageState.hideModal()
-        break
     }
   }
   getChildContext() {
@@ -120,6 +118,8 @@ class App extends React.Component {
           className='mdl-wrapper'
           global
           isolate>
+
+        <IntercomHandler/>
 
           { !this.isFormBuilder() &&
             <div className='k-header__bar' />
@@ -320,8 +320,11 @@ export var routes = (
 
         <Route path='settings'>
           <IndexRoute component={FormSubScreens} />
-          <Route path='kobocat' component={FormSubScreens} />
+          <Route path='media' component={FormSubScreens} />
           <Route path='sharing' component={FormSubScreens} />
+          <Route path='rest' component={FormSubScreens} />
+          <Route path='rest/:hookUid' component={FormSubScreens} />
+          <Route path='kobocat' component={FormSubScreens} />
         </Route>
 
         {/* used to force refresh form screens */}

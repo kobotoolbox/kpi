@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import cookie from 'react-cookie';
+import {Cookies} from 'react-cookie';
 import alertify from 'alertifyjs';
 
 import dkobo_xlform from '../xlform/src/_xlform.init';
@@ -11,6 +11,8 @@ import {
   notify,
   assign,
 } from './utils';
+
+const cookies = new Cookies();
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -77,6 +79,26 @@ var assetSearchStore = Reflux.createStore({
   }
 });
 
+const translationsStore = Reflux.createStore({
+  init() {
+    this.state = {
+      isTranslationTableUnsaved: false
+    }
+  },
+  setState (change) {
+    const changed = changes(this.state, change);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
+  setTranslationTableUnsaved (isUnsaved) {
+    this.setState({
+      isTranslationTableUnsaved: isUnsaved
+    });
+  },
+});
+
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
@@ -114,14 +136,10 @@ var pageStateStore = Reflux.createStore({
   // use it when you have one modal opened and want to display different one
   // because just calling showModal has weird outcome
   switchModal (params) {
-    this.setState({
-      modal: false
-    });
+    this.hideModal();
     // HACK switch to setState callback after updating to React 16+
     window.setTimeout(() => {
-      this.setState({
-        modal: params
-      });
+      this.showModal(params);
     }, 0);
   }
 });
@@ -201,52 +219,33 @@ var sessionStore = Reflux.createStore({
   },
   triggerAnonymous (/*data*/) {},
   triggerEnv (environment) {
+    const nestedArrToChoiceObjs = (i) => {
+      return {
+        value: i[0],
+        label: i[1],
+      };
+    };
+    if (environment.available_sectors) {
+      environment.available_sectors = environment.available_sectors.map(
+        nestedArrToChoiceObjs);
+    }
+    if (environment.available_countries) {
+      environment.available_countries = environment.available_countries.map(
+        nestedArrToChoiceObjs);
+    }
+    if (environment.interface_languages) {
+      environment.interface_languages = environment.interface_languages.map(
+        nestedArrToChoiceObjs);
+    }
+    if (environment.all_languages) {
+      environment.all_languages = environment.all_languages.map(
+        nestedArrToChoiceObjs);
+    }
     this.environment = environment;
+    this.trigger({environment: environment});
   },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
-    if (acct.upcoming_downtime) {
-      var downtimeString = acct.upcoming_downtime[0];
-      acct.downtimeDate = new Date(Date.parse(acct.upcoming_downtime[0]));
-      acct.downtimeMessage = acct.upcoming_downtime[1];
-      stores.pageState._onHideModal = function () {
-        window.localStorage.setItem('downtimeNoticeSeen', downtimeString);
-      }
-      if (window.localStorage['downtimeNoticeSeen'] !== downtimeString) {
-        // user has not seen the notification about upcoming downtime
-        window.setTimeout(function(){
-          stores.pageState.showModal({
-            message: acct.downtimeMessage,
-            icon: 'gears',
-          })
-        }, 1500);
-      }
-    } else {
-      if ('downtimeNoticeSeen' in window.localStorage) {
-        localStorage.removeItem('downtimeNoticeSeen');
-      }
-    }
-    var nestedArrToChoiceObjs = function (_s) {
-      return {
-        value: _s[0],
-        label: _s[1],
-      };
-    };
-    if (acct.available_sectors) {
-      acct.available_sectors = acct.available_sectors.map(
-        nestedArrToChoiceObjs);
-    }
-    if (acct.available_countries) {
-      acct.available_countries = acct.available_countries.map(
-        nestedArrToChoiceObjs);
-    }
-    if (acct.languages) {
-      acct.languages = acct.languages.map(nestedArrToChoiceObjs);
-    }
-    if (acct.all_languages) {
-      acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
-    }
-
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,
@@ -281,10 +280,10 @@ var surveyCompanionStore = Reflux.createStore({
   init () {
     this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
   },
-  addItemAtPosition ({position, survey, uid}) {
+  addItemAtPosition ({position, survey, uid, groupId}) {
     stores.allAssets.whenLoaded(uid, function(asset){
       var _s = dkobo_xlform.model.Survey.loadDict(asset.content, survey)
-      survey.insertSurvey(_s, position);
+      survey.insertSurvey(_s, position, groupId);
     });
   }
 })
@@ -298,9 +297,10 @@ var allAssetsStore = Reflux.createStore({
 
     this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.search.assets.failed, this.onListAssetsFailed);
+    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
-    this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
     if (this.byUid[uid] && this.byUid[uid].content) {
@@ -313,7 +313,15 @@ var allAssetsStore = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
-  loadAssetCompleted (asset) {
+  onUpdateAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
+    this.data.forEach((dataAsset, index) => {
+      if (dataAsset.uid === asset.uid) {
+        this.data[index] = asset;
+      }
+    });
+  },
+  onLoadAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
   },
   onCloneAssetCompleted (asset) {
@@ -360,7 +368,7 @@ var allAssetsStore = Reflux.createStore({
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = cookie.load('selectedAssetUid');
+    this.uid = cookies.get('selectedAssetUid');
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
   },
   onCloneAssetCompleted (asset) {
@@ -379,7 +387,7 @@ var selectedAssetStore = Reflux.createStore({
       this.uid = false;
       this.asset = {};
     }
-    cookie.save('selectedAssetUid', this.uid);
+    cookies.set('selectedAssetUid', this.uid);
     this.trigger({
       selectedAssetUid: this.uid,
     });
@@ -463,40 +471,10 @@ var serverEnvironmentStore = Reflux.createStore({
   },
 });
 
-if (window.Intercom) {
-  var IntercomStore = Reflux.createStore({
-    init () {
-      this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-      this.listenTo(actions.auth.verifyLogin.loggedin, this.loggedIn);
-      this.listenTo(actions.auth.logout.completed, this.loggedOut);
-    },
-    routeUpdate (routes) {
-      window.Intercom('update');
-    },
-    loggedIn (acct) {
-      let name = acct.extra_details.name;
-      let legacyName = [
-        acct.first_name, acct.last_name].filter(val => val).join(' ');
-      let userData = {
-        'user_id': [acct.username, window.location.host].join('@'),
-        'username': acct.username,
-        'email': acct.email,
-        'name': name ? name : legacyName ? legacyName : acct.username,
-        'created_at': Math.floor(
-          (new Date(acct.date_joined)).getTime() / 1000),
-        'app_id': window.IntercomAppId
-      }
-      window.Intercom('boot', userData);
-    },
-    loggedOut () {
-      window.Intercom('shutdown');
-    }
-  });
-}
-
 assign(stores, {
   tags: tagsStore,
   pageState: pageStateStore,
+  translations: translationsStore,
   assetSearch: assetSearchStore,
   selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,

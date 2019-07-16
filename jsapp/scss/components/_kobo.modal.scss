@@ -17,6 +17,8 @@ $z-modal-x: 10;
 }
 
 .modal {
+  @include box-shadow-top;
+
   align-items: stretch;
   display: flex;
   position: absolute;
@@ -27,8 +29,6 @@ $z-modal-x: 10;
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
-  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
-  border-radius: 2px;
   visibility: hidden;
 
   &.modal--open {
@@ -408,8 +408,11 @@ $z-modal-x: 10;
 .project-settings {
   // make sure it doesn't get too small (but only inside modal)
   .modal & {
-    width: 600px;
-    max-width: 100%;
+    width: 100%;
+
+    @media screen and (min-width: 768px) {
+      min-width: 600px;
+    }
   }
 
   .intro {
@@ -510,6 +513,52 @@ $z-modal-x: 10;
   }
 }
 
+.form-modal__item--http-headers {
+  .form-modal__item--http-header-row {
+    margin-top: 10px;
+
+    input {
+      width: calc(50% - 20px);
+      background-color: rgba($black, 0.05);
+      padding-left: 5px;
+      padding-right: 5px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .http-header-add,
+  .http-header-row-remove {
+    height: 30px;
+    min-height: 30px;
+    line-height: 30px;
+
+    .k-icon {
+      font-size: 1.5em;
+      vertical-align: middle;
+    }
+  }
+
+  .http-header-add {
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+    background: $cool-gray;
+    vertical-align: middle;
+    padding: 0 12px 0 6px;
+
+    &:hover {background: darken($cool-gray, 10%);}
+  }
+
+  .http-header-row-remove {
+    @extend .mdl-button, .mdl-button--icon;
+    width: 30px;
+    vertical-align: top;
+    padding: 0;
+    &:hover {color: $cool-red;}
+  }
+}
+
 .form-modal--translation-settings {
   @media (min-width: 600px) {
     min-width: 500px;
@@ -517,6 +566,10 @@ $z-modal-x: 10;
 
   .form-view__cell--translation-note {
     padding-bottom: 20px;
+
+    p {
+      margin: 0;
+    }
   }
   .form-view__cell--translation {
     display: flex;

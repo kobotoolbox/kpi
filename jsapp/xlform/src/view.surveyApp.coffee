@@ -11,6 +11,7 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 _t = require('utils').t
+alertify = require 'alertifyjs'
 
 module.exports = do ->
   surveyApp = {}
@@ -52,7 +53,6 @@ module.exports = do ->
       "click #xlf-download": "downloadButtonClick"
       "click #save": "saveButtonClick"
       "click #publish": "publishButtonClick"
-      "click #settings": "toggleSurveySettings"
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
       "click .js-select-row--force": "forceSelectRow"
@@ -233,28 +233,6 @@ module.exports = do ->
 
     getApp: -> @
 
-    toggleSurveySettings: (evt) ->
-      $et = $(evt.currentTarget)
-      $et.toggleClass('active__settings')
-      if @features.surveySettings
-        $settings = @$(".form__settings")
-        $settings.toggle()
-        close_settings = (e) ->
-          $settings_toggle = $('#settings')
-
-          is_in_settings = (element) ->
-            element == $settings[0] || $settings.find(element).length > 0
-          is_in_settings_toggle = (element) ->
-            element == $settings_toggle[0] || $settings_toggle.find(element).length > 0
-
-          if !(is_in_settings(e.target) || is_in_settings_toggle(e.target))
-            $settings.hide()
-            $et.removeClass('active__settings')
-            $('body').off 'click', close_settings
-
-        $('body').on 'click', close_settings
-
-
     _getViewForTarget: (evt)->
       $et = $(evt.currentTarget)
       modelId = $et.closest('.survey__row').data('row-id')
@@ -330,12 +308,6 @@ module.exports = do ->
         for key, value of validations
             break
 
-      if @features.displayTitle
-        $viewUtils.makeEditable @, @survey.settings, '.form-title', property:'form_title', options: validate: (value) ->
-          if value.length > 255
-            return "Length cannot exceed 255 characters, is " + value.length + " characters."
-          return
-
       $inps = {}
       _settings = @survey.settings
 
@@ -376,12 +348,6 @@ module.exports = do ->
       @null_top_row_view_selector = new $viewRowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), survey: @survey, ngScope: @ngScope, surveyView: @, reversible:true)
 
     _render_hideConditionallyDisplayedContent: ->
-      if not @features.displayTitle
-        @$(".survey-header__inner").hide()
-
-      if not @features.surveySettings
-        @$(".survey-header__options-toggle").hide()
-
       if !@features.multipleQuestions
         @$el.addClass('survey-editor--singlequestion')
         @$el.find(".survey-editor__null-top-row").addClass("survey-editor__null-top-row--hidden")
@@ -470,19 +436,20 @@ module.exports = do ->
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
               return
-            item = ui.item.prev()
+            prevItem = ui.item.prev()
+            prevItemPosition = @getItemPosition(prevItem)
             if @ngScope.handleItem
               @ngScope.handleItem({
-                  position: @getItemPosition(item) - 1,
+                  position: prevItemPosition - 1
                   itemData: ui.item.data()
                 })
             else
-              @ngScope.add_item @getItemPosition(item) - 1
+              @ngScope.add_item @getItemPosition(prevItem) - 1
             ui.sender.sortable('cancel')
         })
       group_rows = @formEditorEl.find('.group__rows')
-      group_rows.each (index) ->
-        $(@).sortable({
+      group_rows.each (index) =>
+        $(group_rows[index]).sortable({
           cancel: 'button, .btn--addrow, .well, ul.list-view, li.editor-message, .editableform, .row-extras, .js-cancel-sort, .js-cancel-group-sort' + index
           cursor: "move"
           distance: 5
@@ -494,6 +461,22 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          receive: (evt, ui) =>
+            if ui.sender.hasClass('group__rows')
+              return
+            prevItem = ui.item.prev()
+            if @ngScope.handleItem
+              uiItemParentWithId = $(ui.item).parents('[data-row-id]')[0]
+              if uiItemParentWithId
+                groupId = uiItemParentWithId.dataset.rowId
+              @ngScope.handleItem({
+                  position: @getItemPosition(prevItem),
+                  itemData: ui.item.data(),
+                  groupId: groupId
+                })
+            else
+              @ngScope.add_item(@getItemPosition(prevItem))
+            ui.sender.sortable('cancel')
         })
         $(@).attr('data-sortable-index', index)
 
@@ -681,16 +664,8 @@ module.exports = do ->
           enketoServer: window.koboConfigs?.enketoServer or false
           enketoPreviewUri: window.koboConfigs?.enketoPreviewUri or false
           onSuccess: => @onEscapeKeydown = $viewUtils.enketoIframe.close
-          onError: (message, opts)=> @alert message, opts
+          onError: (message)=> alertify.error(message)
       return
-
-    alert: (message, opts={}) ->
-      title = opts.title or 'Error'
-      $('.alert-modal').html(message).dialog('option', {
-        title: title,
-        width: 500,
-        dialogClass: 'surveyapp__alert'
-      }).dialog 'open'
     downloadButtonClick: (evt)->
       # Download = save a CSV file to the disk
       surveyCsv = @survey.toCSV()
@@ -750,17 +725,13 @@ module.exports = do ->
     features:
       multipleQuestions: true
       skipLogic: true
-      displayTitle: true
       copyToLibrary: true
-      surveySettings: true
 
   class surveyApp.QuestionApp extends SurveyFragmentApp
     features:
       multipleQuestions: false
       skipLogic: false
-      displayTitle: false
       copyToLibrary: false
-      surveySettings: false
     render: () ->
       super
       @$('.survey-editor.form-editor-wrap.container').append $('.question__tags')

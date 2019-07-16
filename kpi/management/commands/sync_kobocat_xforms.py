@@ -2,7 +2,6 @@ import StringIO
 import datetime
 import io
 import json
-import logging
 import re
 import requests
 import xlwt
@@ -17,15 +16,17 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
-from guardian.models import UserObjectPermission
 from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...deployment_backends.kc_access.shadow_models import _models
+from ...deployment_backends.kc_access.shadow_models import ShadowModel, \
+    ReadOnlyXForm, UserObjectPermission
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
+from kpi.utils.log import logging
+
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -36,7 +37,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.iteritems()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename='from_kc_only')
-XFORM_CT = _models.get_content_type_for_model(_models.XForm)
+XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyXForm)
 # Replace codenames with Permission PKs, remembering the codenames
 KPI_CODENAMES = {}
 for kc_codename, kpi_codename in PERMISSIONS_MAP.items():
@@ -429,8 +430,8 @@ class Command(BaseCommand):
             )
         self._quiet = options.get('quiet')
         users = User.objects.all()
-        # Do a basic query just to make sure the lazy XForm model is loaded
-        if not _models.XForm.objects.exists():
+        # Do a basic query just to make sure the ReadOnlyXForm model is loaded
+        if not ReadOnlyXForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?

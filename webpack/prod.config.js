@@ -4,7 +4,7 @@ const publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFI
 const WebpackCommon = require('./webpack.common');
 
 module.exports = WebpackCommon({
-  mode: "production",
+  mode: 'production',
   entry: {
     app: './jsapp/js/main.es6',
     tests: path.resolve(__dirname, '../test/index.js')
@@ -12,6 +12,13 @@ module.exports = WebpackCommon({
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
-    filename: "[name]-[hash].js"
+    filename: '[name]-[hash].js'
   },
+  // mainly for hiding stylelint output
+  stats: {
+    all: false,
+    maxModules: 0,
+    errors: true,
+    errorDetails: true
+  }
 });

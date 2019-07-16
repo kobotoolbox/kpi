@@ -13,6 +13,7 @@ import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
 import Dropzone from 'react-dropzone';
 import {t, validFileTypes} from '../utils';
+import {ASSET_TYPES} from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -78,6 +79,18 @@ class SearchCollectionList extends Reflux.Component {
     var isSelected = stores.selectedAsset.uid === resource.uid;
     var ownedCollections = this.state.ownedCollections;
 
+    // for unnamed assets, we try to display first question label
+    let firstQuestionLabel;
+    if (
+      resource.asset_type !== ASSET_TYPES.survey.id &&
+      resource.name === '' &&
+      resource.summary &&
+      resource.summary.labels &&
+      resource.summary.labels.length > 0
+    ) {
+      firstQuestionLabel = resource.summary.labels[0]
+    }
+
     return (
       <this.props.assetRowClass key={resource.uid}
         currentUsername={currentUsername}
@@ -85,6 +98,7 @@ class SearchCollectionList extends Reflux.Component {
         isSelected={isSelected}
         ownedCollections={ownedCollections}
         deleting={resource.deleting}
+        firstQuestionLabel={firstQuestionLabel}
         {...resource}
       />
     );
@@ -180,11 +194,12 @@ class SearchCollectionList extends Reflux.Component {
   render () {
     var s = this.state;
     var docTitle = '';
+    let display;
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
-      var display = 'grouped';
+      display = 'grouped';
       docTitle = t('Projects');
     } else {
-      var display = 'regular';
+      display = 'regular';
       docTitle = t('Library');
     }
     return (

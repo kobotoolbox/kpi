@@ -7,7 +7,7 @@ ENV KPI_LOGS_DIR=/srv/logs \
     BUILD_DIR=/srv/build \
     FONTS_DIR=/srv/fonts \
     WEBPACK_STATS_PATH=/srv/webpack-stats.json \
-    DJANGO_SETTINGS_MODULE=kobo.settings \
+    DJANGO_SETTINGS_MODULE=kobo.settings.prod \
     # The mountpoint of a volume shared with the `nginx` container. Static files will
     #   be copied there.
     NGINX_STATIC_DIR=/srv/static
@@ -58,7 +58,8 @@ RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
 COPY ./scripts/copy_fonts.py ${KPI_SRC_DIR}/scripts/copy_fonts.py
 COPY ./scripts/generate_icons.js ${KPI_SRC_DIR}/scripts/generate_icons.js
 COPY ./webpack ${KPI_SRC_DIR}/webpack
-COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
+COPY ./.eslintrc.json ${KPI_SRC_DIR}/.eslintrc.json
+COPY ./.stylelintrc.json ${KPI_SRC_DIR}/.stylelintrc.json
 COPY ./test ${KPI_SRC_DIR}/test
 
 COPY ./jsapp ${KPI_SRC_DIR}/jsapp
@@ -127,6 +128,8 @@ RUN ln -s "${KPI_SRC_DIR}/docker/init.bash" /etc/my_init.d/10_init_kpi.bash && \
     ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run && \
     mkdir -p /etc/service/celery && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" /etc/service/celery/run && \
+    mkdir -p /etc/service/celery_beat && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" /etc/service/celery_beat/run && \
     mkdir -p /etc/service/celery_sync_kobocat_xforms && \
     ln -s "${KPI_SRC_DIR}/docker/run_celery_sync_kobocat_xforms.bash" /etc/service/celery_sync_kobocat_xforms/run
 
