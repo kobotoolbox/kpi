@@ -885,6 +885,12 @@ export class DataTable extends React.Component {
           </span>
         }
 
+        /**
+         * Olivier Leger: 2019-07-16.
+         * Code from merge with `master`.
+         * To remove when merge is completed and code is fixed
+         *
+
         {Object.keys(this.state.selectedRows).length > 0 &&
           <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
             <bem.PopoverMenu__heading>
@@ -899,10 +905,11 @@ export class DataTable extends React.Component {
             })}
           </ui.PopoverMenu>
         }
+        */
 
         {Object.keys(selected).length > 0 &&
           <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
-            {VALIDATION_STATUSES.map((item, n) => {
+            {VALIDATION_STATUSES_LIST.map((item, n) => {
               return (
                 <bem.PopoverMenu__link
                   onClick={this.bulkUpdateStatus}
