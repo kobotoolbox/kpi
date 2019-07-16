@@ -485,6 +485,13 @@ var dataInterface;
         method: 'DELETE'
       });
     },
+    bulkDeleteSubmissions(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/bulk/`,
+        method: 'DELETE',
+        data: {'payload': JSON.stringify(data)}
+      });
+    },
     getEnketoEditLink(uid, sid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit/?return_url=false`,
