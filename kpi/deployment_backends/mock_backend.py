@@ -188,10 +188,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             "data": submission.get("_validation_status")
         }
 
-    def set_validation_status(self, submission_pk, data, user):
+    def set_validation_status(self, submission_pk, data, user, method):
         pass
 
-    def set_validation_statuses(self, data, user):
+    def set_validation_statuses(self, data, user, method):
         pass
 
     def set_has_kpi_hooks(self):

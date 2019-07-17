@@ -198,22 +198,29 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             raise Http404
         return Response(submission)
 
-    @detail_route(methods=["GET", "PATCH"],
+    @detail_route(methods=['GET', 'PATCH', 'DELETE'],
                   renderer_classes=[renderers.JSONRenderer],
                   permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        if request.method == "PATCH":
-            json_response = deployment.set_validation_status(pk, request.data, request.user)
-        else:
+        if request.method == 'GET':
             json_response = deployment.get_validation_status(pk, request.GET, request.user)
+        else:
+            json_response = deployment.set_validation_status(pk,
+                                                             request.data,
+                                                             request.user,
+                                                             request.method)
 
         return Response(**json_response)
 
-    @list_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    @list_route(methods=['PATCH', 'DELETE'],
+                renderer_classes=[renderers.JSONRenderer],
+                permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.set_validation_statuses(request.data, request.user)
+        json_response = deployment.set_validation_statuses(request.data,
+                                                           request.user,
+                                                           request.method)
 
         return Response(**json_response)
 

@@ -497,14 +497,52 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_status(self, submission_pk, data, user):
-        url = self.get_submission_validation_status_url(submission_pk)
-        kc_request = requests.Request(method='PATCH', url=url, json=data)
+    def set_validation_status(self, submission_pk, data, user, method):
+        """
+        Updates validation status from `kc` through proxy
+        If method is `DELETE`, it resets the status to `None`
+
+        Args:
+            submission_pk (int)
+            data (dict): data to update when `PATCH` is used.
+            user (User)
+            method (string): 'PATCH'|'DELETE'
+
+        Returns:
+            dict (a formatted dict to be passed to a Response object)
+        """
+        kc_request_params = {
+            'method': method,
+            'url': self.get_submission_validation_status_url(submission_pk)
+        }
+        if method == 'PATCH':
+            kc_request_params.update({
+                'json': data
+            })
+        kc_request = requests.Request(**kc_request_params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, data, user):
+    def set_validation_statuses(self, data, user, method):
+        """
+        Bulk update for validation status from `kc` through proxy
+        If method is `DELETE`, it resets statuses to `None`
+
+        Args:
+            data (dict): data to update when `PATCH` is used.
+            user (User)
+            method (string): 'PATCH'|'DELETE'
+
+        Returns:
+            dict (a formatted dict to be passed to a Response object)
+        """
         url = self.submission_list_url
+        data = data.copy()  # Need to get a copy to update the dict
+
+        if method == 'DELETE':
+            data['reset'] = True
+
+        # `PATCH` KC even if kpi receives `DELETE`
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
