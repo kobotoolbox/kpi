@@ -251,6 +251,9 @@ var sessionStore = Reflux.createStore({
     this.trigger({environment: environment});
   },
   triggerLoggedIn (acct) {
+    delete acct.git_rev;
+    console.warn('DELETING git_rev temporarily to hide it');
+
     this.currentAccount = acct;
     this.trigger({
       isLoggedIn: true,
