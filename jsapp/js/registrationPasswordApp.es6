@@ -1,3 +1,8 @@
+/**
+ * This application handles password strength in registration form (which is
+ * mainly non-JS Backend fueled form).
+ */
+
 import React from 'react';
 import PasswordStrength from './components/passwordStrength';
 

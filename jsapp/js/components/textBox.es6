@@ -1,19 +1,24 @@
+/**
+ * A text box generic component.
+ *
+ * Properties:
+ * - type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
+ * - value <string>: required
+ * - onChange <function>: required
+ * - errors <string[]> or <string>
+ * - label <string>
+ * - placeholder <string>
+ * - description <string>
+ *
+ * TODO: would be best to move it to `jsapp/js/components/generic` directory.
+ */
+
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import bem from '../bem';
 import {t} from '../utils';
 
-/*
-Properties:
-- type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
-- value <string>: required
-- onChange <function>: required
-- errors <string[]> or <string>
-- label <string>
-- placeholder <string>
-- description <string>
-*/
 class TextBox extends React.Component {
   constructor(props){
     super(props);
