@@ -1,6 +1,6 @@
 /**
  * This application handles password strength in registration form (which is
- * mainly non-JS Backend fueled form).
+ * mainly non-JS form).
  */
 
 import React from 'react';
