@@ -1,3 +1,13 @@
+/**
+ * A collection of miscellaneous utility functions.
+ *
+ * NOTE: these are used also by the Form Builder coffee code (see
+ * `jsapp/xlform/src/view.surveyApp.coffee`)
+ *
+ * TODO: group these functions by what are they doing or where are they mostly
+ * (or uniquely) used, and split to smaller files.
+ */
+
 import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
