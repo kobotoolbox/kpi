@@ -96,6 +96,11 @@ module.exports = do ->
         if transformFn
           $elVal = transformFn($elVal)
         changeModelValue($elVal)
+
+      $el.on('keyup', (evt) =>
+        if evt.key is 'Enter' or evt.keyCode is 13
+          $el.blur()
+      )
       return
 
     _insertInDOM: (where, how) ->
@@ -107,7 +112,7 @@ module.exports = do ->
     textbox: (cid, key, key_label = key, input_class = '') ->
       @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
 
-    checkbox: (cid, key, key_label = key, input_label = _t('Yes')) ->
+    checkbox: (cid, key, key_label = key, input_label = _t("Yes")) ->
       input_label = input_label
       @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
 
@@ -157,15 +162,29 @@ module.exports = do ->
     html: -> false
     insertInDOM: (rowView)->
       cht = rowView.$label
-      cht.html(@model.get("value")|| new Array(10).join('&nbsp;'))
-      @
+      cht.value = @model.get('value')
+      return @
+    afterRender: ->
+      @listenForInputChange({
+        el: this.rowView.$label,
+        transformFn: (value) ->
+          value = value.replace(new RegExp(String.fromCharCode(160), 'g'), '')
+          value = value.replace /\t/g, ' '
+          return value
+      })
+      return
 
   viewRowDetail.DetailViewMixins.hint =
-    html: ->
-      @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Question hint"), 'text'
+    html: -> false
+    insertInDOM: (rowView) ->
+      hintEl = rowView.$hint
+      hintEl.value = @model.get("value")
+      return @
     afterRender: ->
-      @listenForInputChange()
+      @listenForInputChange({
+        el: this.rowView.$hint
+      })
+      return
 
   viewRowDetail.DetailViewMixins.guidance_hint =
     html: ->
@@ -185,6 +204,11 @@ module.exports = do ->
 
   # parameters are handled per case
   viewRowDetail.DetailViewMixins.parameters =
+    html: -> false
+    insertInDOM: (rowView)-> return
+
+  # body::accept is handled in custom view
+  viewRowDetail.DetailViewMixins['body::accept'] =
     html: -> false
     insertInDOM: (rowView)-> return
 
@@ -285,16 +309,16 @@ module.exports = do ->
       @$el.find('input.hxlTag').select2({
           tags:$hxl.dict,
           maximumSelectionSize: 1,
-          placeholder: _t('#tag'),
+          placeholder: _t("#tag"),
           tokenSeparators: ['+',',', ':'],
-          formatSelectionTooBig: _t('Only one HXL tag allowed per question. ')
+          formatSelectionTooBig: _t("Only one HXL tag allowed per question. ")
           createSearchChoice: @_hxlTagCleanup
         })
       @$el.find('input.hxlAttrs').select2({
           tags:[],
           tokenSeparators: ['+',',', ':'],
-          formatNoMatches: _t('Type attributes for this tag'),
-          placeholder: _t('Attributes'),
+          formatNoMatches: _t("Type attributes for this tag"),
+          placeholder: _t("Attributes"),
           createSearchChoice: @_hxlAttrCleanup
           allowClear: 1
         })

@@ -1,18 +1,18 @@
-import React from 'react'
-import ReactTable from 'react-table'
-import TextareaAutosize from 'react-autosize-textarea'
-import alertify from 'alertifyjs'
-import bem from 'js/bem'
-import actions from 'js/actions'
-import stores from 'js/stores'
-import {MODAL_TYPES} from 'js/constants'
-import {t} from 'utils'
+import React from 'react';
+import ReactTable from 'react-table';
+import TextareaAutosize from 'react-autosize-textarea';
+import alertify from 'alertifyjs';
+import bem from 'js/bem';
+import actions from 'js/actions';
+import stores from 'js/stores';
+import {MODAL_TYPES} from 'js/constants';
+import {t} from 'utils';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
   UNSAVED: t('* Save Changes'),
   PENDING: t('Saving…')
-}
+};
 
 export class TranslationTable extends React.Component {
   constructor(props){
@@ -27,8 +27,8 @@ export class TranslationTable extends React.Component {
     const langIndex = props.langIndex;
 
     // add each translatable property for survey items to translation table
-    survey.forEach(row => {
-      translated.forEach(property => {
+    survey.forEach((row) => {
+      translated.forEach((property) => {
         if (row[property] && row[property][0]) {
           this.state.tableData.push({
             original: row[property][0],
@@ -43,12 +43,13 @@ export class TranslationTable extends React.Component {
 
     // add choice options to translation table
     if (choices && choices.length) {
-      choices.forEach(choice => {
+      choices.forEach((choice) => {
         if (choice.label && choice.label[0]) {
           this.state.tableData.push({
             original: choice.label[0],
             value: choice.label[langIndex],
             name: choice.name || choice.$autovalue,
+            listName: choice.list_name,
             itemProp: 'label',
             contentProp: 'choices'
           });
@@ -61,21 +62,24 @@ export class TranslationTable extends React.Component {
         Header: t('Original string'),
         accessor: 'original',
         minWidth: 130,
-        Cell: cellInfo => cellInfo.original.original
-      },{
+        Cell: (cellInfo) => {return cellInfo.original.original;}
+      }, {
         Header: t('##lang## translation').replace('##lang##', translations[langIndex]),
         accessor: 'translation',
         className: 'translation',
-        Cell: cellInfo => (
-          <TextareaAutosize
-            onChange={e => {
-              const data = [...this.state.tableData];
-              data[cellInfo.index].value = e.target.value;
-              this.setState({ data });
-              this.markFormUnsaved();
-            }}
-            value={this.state.tableData[cellInfo.index].value || ''}/>
-        )
+        Cell: (cellInfo) => {
+          return (
+            <TextareaAutosize
+              onChange={(e) => {
+                const data = [...this.state.tableData];
+                data[cellInfo.index].value = e.target.value;
+                this.setState({ data });
+                this.markFormUnsaved();
+              }}
+              value={this.state.tableData[cellInfo.index].value || ''}
+            />
+          );
+        }
       }
     ];
   }
@@ -109,9 +113,14 @@ export class TranslationTable extends React.Component {
         rows = this.state.tableData,
         langIndex = this.props.langIndex;
     for (var i = 0, len = rows.length; i < len; i++) {
-      let contentProp = rows[i].contentProp,
-          item = content[rows[i].contentProp].find(o => o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name),
-          itemProp = rows[i].itemProp;
+      let item = content[rows[i].contentProp].find((o) => {
+        return (
+          o.name === rows[i].name ||
+          o.$autoname === rows[i].name ||
+          o.$autovalue === rows[i].name
+        ) && o.list_name === rows[i].listName;
+      });
+      let itemProp = rows[i].itemProp;
 
       if (item[itemProp][langIndex] !== rows[i].value) {
         item[itemProp][langIndex] = rows[i].value;
@@ -194,6 +203,6 @@ export class TranslationTable extends React.Component {
       </bem.FormModal>
     );
   }
-};
+}
 
 export default TranslationTable;

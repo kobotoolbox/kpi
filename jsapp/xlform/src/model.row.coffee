@@ -212,7 +212,7 @@ module.exports = do ->
       @_extendAll(rr)
       rankConstraintMessageKey = 'kobo--rank-constraint-message'
       if !rr.get(rankConstraintMessageKey)
-        rr.set(rankConstraintMessageKey, _t('Items cannot be selected more than once'))
+        rr.set(rankConstraintMessageKey, _t("Items cannot be selected more than once"))
 
     _beginEndKey: ->
       'rank'
@@ -419,6 +419,12 @@ module.exports = do ->
     _isSelectQuestion: ->
       # TODO [ald]: pull this from $aliases
       @get('type').get('typeId') in ['select_one', 'select_multiple']
+
+    getAcceptedFiles: -> return @attributes['body::accept']?.attributes?.value
+
+    setAcceptedFiles: (bodyAcceptString) ->
+      @setDetail('body::accept', bodyAcceptString)
+      return
 
     getParameters: -> readParameters(@attributes.parameters?.attributes?.value)
 

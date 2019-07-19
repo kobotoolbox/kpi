@@ -1,4 +1,16 @@
-/*eslint no-unused-vars:0*/
+/**
+ * Mixins to be used via react-mixin plugin. These extend components with the
+ * methods defined within the given mixin, using the component as `this`.
+ *
+ * NOTE: please try using mixins as less as possible - when needing a method
+ * from here, move it out to separete file (utils?), import here to avoid
+ * breaking the code and use the separete file instead of mixin.
+ *
+ * TODO: think about moving out of mixins, as they are deprecated in new React
+ * versions and considered harmful (see
+ * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ */
+
 import React from 'react';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
@@ -32,7 +44,7 @@ import {
 
 import icons from '../xlform/src/view.icons';
 
-const IMPORT_CHECK_INTERVAL = 500;
+const IMPORT_CHECK_INTERVAL = 1000;
 
 var mixins = {};
 
@@ -163,8 +175,8 @@ mixins.dmix = {
       mixins.clickAssets.click.asset.unarchive(uid, callback);
     }
   },
-  deleteAsset (uid, callback) {
-    mixins.clickAssets.click.asset.delete(uid, callback);
+  deleteAsset (uid, name, callback) {
+    mixins.clickAssets.click.asset.delete(uid, name, callback);
   },
   toggleDeploymentHistory () {
     this.setState({
@@ -236,7 +248,7 @@ const applyImport = (params) => {
           uid: data.uid,
         }).done((importData) => {
           switch (importData.status) {
-            case 'complete':
+            case 'complete': {
               const finalData = importData.messages.updated || importData.messages.created;
               if (finalData && finalData.length > 0 && finalData[0].uid) {
                 clearInterval(doneCheckInterval);
@@ -246,14 +258,17 @@ const applyImport = (params) => {
                 reject(importData);
               }
               break;
+            }
             case 'processing':
-            case 'created':
+            case 'created': {
               // TODO: notify promise awaiter about delay (after multiple interval rounds)
               break;
+            }
             case 'error':
-            default:
+            default: {
               clearInterval(doneCheckInterval);
               reject(importData);
+            }
           }
         }).fail((failData)=>{
           clearInterval(doneCheckInterval);
@@ -353,7 +368,7 @@ mixins.droppable = {
             } else {
               if (!assetUid) {
                 // TODO: use a more specific error message here
-                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace project" icon.'));
+                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
                 if (params.assetUid)
                   hashHistory.push(`/forms/${params.assetUid}`);
               } else {
@@ -513,13 +528,9 @@ mixins.clickAssets = {
         else
           hashHistory.push(`/forms/${uid}/edit`);
       },
-      delete: function(uid, callback){
-        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
-        var assetTypeLabel = t('project');
-
-        if (asset.asset_type != 'survey') {
-          assetTypeLabel = t('library item');
-        }
+      delete: function(uid, name, callback) {
+        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+        let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
@@ -528,7 +539,6 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
-              $('.alertify-toggle input').prop('checked', false);
               if (typeof callback === 'function') {
                 callback();
               }
@@ -537,7 +547,7 @@ mixins.clickAssets = {
         };
 
         if (!deployed) {
-          if (asset.asset_type != 'survey')
+          if (asset.asset_type != ASSET_TYPES.survey.id)
             msg = t('You are about to permanently delete this item from your library.');
           else
             msg = t('You are about to permanently delete this draft.');
@@ -552,10 +562,13 @@ mixins.clickAssets = {
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
             let $els = $('.alertify-toggle input');
+
             ok_button.disabled = true;
+            $els.each(function () {$(this).prop('checked', false);});
+
             $els.change(function () {
               ok_button.disabled = false;
-              $els.each(function ( index ) {
+              $els.each(function () {
                 if (!$(this).prop('checked')) {
                   ok_button.disabled = true;
                 }
@@ -564,7 +577,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel}`,
+          title: `${t('Delete')} ${assetTypeLabel} "${name}"`,
           message: msg,
           labels: {
             ok: t('Delete'),

@@ -1,3 +1,9 @@
+/**
+ * The React application used in `jsapp/js/main.es6` bundle file.
+ *
+ * TODO: move routes configuration to separate file for clarity.
+ */
+
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
@@ -45,6 +51,7 @@ import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
+import IntercomHandler from './components/intercomHandler';
 import Modal from './components/modal';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 
@@ -117,6 +124,8 @@ class App extends React.Component {
           className='mdl-wrapper'
           global
           isolate>
+
+        <IntercomHandler/>
 
           { !this.isFormBuilder() &&
             <div className='k-header__bar' />

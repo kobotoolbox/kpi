@@ -68,6 +68,7 @@
     "select2": "3.5.2-browserify",
     "spark-md5": "^3.0.0",
     "style-loader": "^0.23.0",
+    "stylelint": "^9.9.0",
     "underscore": "^1.8.3",
     "webfonts-generator": "^0.4.0",
     "webpack": "^4.20.2",
@@ -83,6 +84,7 @@
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-chrome test/tests.html && npm run cypress:test",
     "cypress:open": "cypress open",
     "cypress:test": "cypress run",
+    "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python ./scripts/copy_fonts.py && npm run generate-icons"

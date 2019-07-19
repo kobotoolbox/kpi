@@ -4,6 +4,7 @@ import shutil
 
 dest_dir = "./jsapp/fonts/"
 
+
 def create_folder_if_not_exists():
     if not os.path.exists(dest_dir):
         try:
@@ -11,6 +12,7 @@ def create_folder_if_not_exists():
             print("Destination folder has been created!")
         except Exception as e:
             print("Could not create fonts folder - Error: {}".format(str(e)))
+
 
 def copy_fonts():
 
@@ -26,5 +28,6 @@ def copy_fonts():
         shutil.copy(file, dest_dir)
 
     print("DONE")
+
 
 copy_fonts()

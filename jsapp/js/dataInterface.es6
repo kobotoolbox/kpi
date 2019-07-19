@@ -1,7 +1,18 @@
-import $ from 'jquery';
+/**
+ * The only file that is making calls to Backend. You shouldn't use it directly,
+ * but through proper actions in `jsapp/js/actions.es6`.
+ *
+ * TODO: Instead of splitting this huge file it could be a good idead to move
+ * all the calls from here to appropriate actions and drop this file entirely.
+ * And make actions for calls that doesn't have them.
+ */
 
+import $ from 'jquery';
+import alertify from 'alertifyjs';
 import {
+  t,
   assign,
+  notify
 } from './utils';
 
 var dataInterface;
@@ -24,6 +35,23 @@ var dataInterface;
     }
   })();
   this.rootUrl = rootUrl;
+
+  // hook up to all AJAX requests to check auth problems
+  $(document).ajaxError((event, request, settings) => {
+    if (request.status === 403 || request.status === 401 || request.status === 404) {
+      dataInterface.selfProfile().done((data) => {
+        if (data.message === 'user is not logged in') {
+          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>')
+          let serverMessage = request.status.toString();
+          if (request.responseJSON && request.responseJSON.detail) {
+            serverMessage += ': ' + request.responseJSON.detail;
+          }
+          errorMessage = errorMessage.replace('##server_message##', serverMessage);
+          alertify.alert(t('You are not logged in'), errorMessage);
+        }
+      });
+    }
+  });
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
@@ -293,7 +321,7 @@ var dataInterface;
     },
     getAssetXformView (uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/xform`,
+        url: `${rootUrl}/assets/${uid}/xform/`,
         dataType: 'html'
       });
     },
@@ -417,13 +445,13 @@ var dataInterface;
         filter += '&count=1';
 
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
+        url: `${rootUrl}/assets/${uid}/submissions/?${query}${s}${f}${filter}`,
         method: 'GET'
       });
     },
     getSubmission(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/`,
         method: 'GET'
       });
     },
@@ -434,6 +462,13 @@ var dataInterface;
         data: {'payload': JSON.stringify(data)}
       });
     },
+    bulkRemoveSubmissionsValidationStatus(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        method: 'DELETE',
+        data: {'payload': JSON.stringify(data)}
+      });
+    },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
@@ -441,9 +476,15 @@ var dataInterface;
         data: data
       });
     },
+    removeSubmissionValidationStatus(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        method: 'DELETE'
+      });
+    },
     getSubmissionsQuery(uid, query='') {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions?${query}`,
+        url: `${rootUrl}/assets/${uid}/submissions/?${query}`,
         method: 'GET'
       });
     },
@@ -455,7 +496,7 @@ var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=false`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit/?return_url=false`,
         method: 'GET'
       });
     },
@@ -475,14 +516,30 @@ var dataInterface;
     },
     getAssetFiles(uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/files`,
+        url: `${rootUrl}/assets/${uid}/files/`,
         method: 'GET'
       });
     },
     deleteAssetFile(assetUid, uid) {
       return $ajax({
-        url: `${rootUrl}/assets/${assetUid}/files/${uid}`,
+        url: `${rootUrl}/assets/${assetUid}/files/${uid}/`,
         method: 'DELETE'
+      });
+    },
+
+    getHelpInAppMessages() {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/`,
+        method: 'GET'
+      });
+    },
+    patchHelpInAppMessage(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/${uid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
 

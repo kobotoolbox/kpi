@@ -9,7 +9,6 @@ import Radio from './radio';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
-import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
@@ -21,7 +20,6 @@ import ReportViewItem from './reportViewItem';
 import {
   assign,
   t,
-  log,
 } from '../utils';
 
 function labelVal(label, value) {
@@ -71,7 +69,7 @@ class ChartTypePicker extends React.Component {
         </bem.GraphSettings__charttype>
       );
   }
-};
+}
 
 let reportColorSets = [
   {
@@ -492,10 +490,11 @@ class ReportContents extends React.Component {
       if ((_type === 'select_one' || _type === 'select_multiple') && asset.content.choices) {
         let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
         let resps = reportData[i].data.responses;
+        let choice;
         if (resps) {
           reportData[i].data.responseLabels = [];
           for (var j = resps.length - 1; j >= 0; j--) {
-            var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
+            choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
             if (choice && choice.label && choice.label[tnslIndex])
               reportData[i].data.responseLabels.unshift(choice.label[tnslIndex]);
             else
@@ -508,13 +507,13 @@ class ReportContents extends React.Component {
             reportData[i].data.responseLabels = [];
             let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
             respValues.forEach(function(r, ind){
-              var choice = asset.content.choices.find(o => qGB && o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
+              choice = asset.content.choices.find(o => qGB && o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
               reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
             });
 
             // TODO: use a better way to store translated labels per row
             for (var vD = vals.length - 1; vD >= 0; vD--) {
-              var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
+              choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
               vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
             }
           }
@@ -736,7 +735,7 @@ class Reports extends React.Component {
       showCustomReportModal: false,
       currentCustomReport: false,
       currentQuestionGraph: false,
-      groupBy: []
+      groupBy: ''
     };
     autoBind(this);
   }
@@ -760,7 +759,7 @@ class Reports extends React.Component {
       let rowsByKuid = {};
       let rowsByIdentifier = {};
       let names = [],
-          groupBy = [],
+          groupBy = '',
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
@@ -816,9 +815,9 @@ class Reports extends React.Component {
             error: false
           });
         }).fail((err)=> {
-          if (groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
+          if (groupBy && groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
             // reset default report groupBy if it fails and notify user
-            reportStyles.default.groupDataBy = [];
+            reportStyles.default.groupDataBy = '';
             this.setState({
               reportStyles: reportStyles
             });
@@ -842,7 +841,7 @@ class Reports extends React.Component {
         rowsByIdentifier = this.state.rowsByIdentifier,
         customReport = this.state.currentCustomReport;
 
-    var groupBy = [];
+    var groupBy = '';
 
     if (!customReport && this.state.reportStyles.default.groupDataBy !== undefined)
       groupBy = this.state.reportStyles.default.groupDataBy;
@@ -911,16 +910,26 @@ class Reports extends React.Component {
       showReportGraphSettings: !this.state.showReportGraphSettings,
     });
   }
+  hasAnyProvidedData (reportData) {
+    let hasAny = false;
+    reportData.map((rowContent, i)=>{
+      if (rowContent.data.provided) {
+        hasAny = true;
+      }
+    });
+    return hasAny;
+  }
   setCustomReport (e) {
     var crid = e ? e.target.getAttribute('data-crid') : false;
 
     if(!this.state.showCustomReportModal) {
+      let currentCustomReport;
       if (crid) {
         // existing report
-        var currentCustomReport = this.state.reportCustom[crid];
+        currentCustomReport = this.state.reportCustom[crid];
       } else {
         // new custom report
-        var currentCustomReport = {
+        currentCustomReport = {
           crid: txtid(),
           name: '',
           questions: []
@@ -1099,7 +1108,6 @@ class Reports extends React.Component {
     var reportData = this.state.reportData || [];
 
     if (reportData.length) {
-
       if (currentCustomReport && currentCustomReport.questions.length) {
         const currentQuestions = currentCustomReport.questions;
         const fullReportData = this.state.reportData;
@@ -1109,7 +1117,6 @@ class Reports extends React.Component {
       if (this.state.reportLimit && reportData.length > this.state.reportLimit) {
         reportData = reportData.slice(0, this.state.reportLimit);
       }
-
     }
 
     if (this.state.reportData === undefined) {
@@ -1133,24 +1140,13 @@ class Reports extends React.Component {
       );
     }
 
-    if (this.state.reportData && reportData.length === 0) {
-      return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.ReportView>
-            <bem.Loading>
-              <bem.Loading__inner>
-                {t('This report has no data.')}
-              </bem.Loading__inner>
-            </bem.Loading>
-          </bem.ReportView>
-        </DocumentTitle>
-      );
-    }
-
     const formViewModifiers = [];
     if (this.state.isFullscreen) {
       formViewModifiers.push('fullscreen');
     }
+
+    const hasAnyProvidedData = this.hasAnyProvidedData(reportData);
+    const hasGroupBy = this.state.groupBy.length !== 0;
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -1158,27 +1154,42 @@ class Reports extends React.Component {
           <bem.ReportView>
             {this.renderReportButtons()}
 
-            <bem.ReportView__wrap>
-              <bem.PrintOnly>
-                <h3>{asset.name}</h3>
-              </bem.PrintOnly>
-              {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
-                <bem.FormView__cell m={['centered', 'reportLimit']}>
-                  <div>
-                    {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
-                  </div>
-                  <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
-                    {t('Show all (##)').replace('##', this.state.reportData.length)}
-                  </button>
-                </bem.FormView__cell>
-              }
+            {!hasAnyProvidedData &&
+              <bem.ReportView__wrap>
+                <bem.Loading>
+                  <bem.Loading__inner>
+                    {t('This report has no data.')}
 
-              <bem.ReportView__warning>
-                <h4>{t('Warning')}</h4>
-                <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-              </bem.ReportView__warning>
-              <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
-            </bem.ReportView__wrap>
+                    {hasGroupBy && ' ' + t('Try changing Report Style to "No grouping".')}
+                  </bem.Loading__inner>
+                </bem.Loading>
+              </bem.ReportView__wrap>
+            }
+
+            {hasAnyProvidedData &&
+              <bem.ReportView__wrap>
+                <bem.PrintOnly>
+                  <h3>{asset.name}</h3>
+                </bem.PrintOnly>
+                {!this.state.currentCustomReport && this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+                  <bem.FormView__cell m={['centered', 'reportLimit']}>
+                    <div>
+                      {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
+                    </div>
+                    <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
+                      {t('Show all (##)').replace('##', this.state.reportData.length)}
+                    </button>
+                  </bem.FormView__cell>
+                }
+
+                <bem.ReportView__warning>
+                  <h4>{t('Warning')}</h4>
+                  <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+                </bem.ReportView__warning>
+
+                <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
+              </bem.ReportView__wrap>
+            }
 
             {this.state.showReportGraphSettings &&
               <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Edit Report Style')}>
@@ -1197,7 +1208,6 @@ class Reports extends React.Component {
                 <QuestionGraphSettings question={this.state.currentQuestionGraph} parentState={this.state} />
               </ui.Modal>
             }
-
           </bem.ReportView>
         </bem.FormView>
       </DocumentTitle>

@@ -1,8 +1,7 @@
-"""
-Mostly copied from django/contrib/admin/actions.py
-"""
-
+import requests
 from collections import OrderedDict
+from django.conf import settings
+from django.http import HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.contrib.admin import helpers
@@ -13,7 +12,8 @@ from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy, ugettext as _
 
-from kpi.deployment_backends.kc_access.shadow_models import _ShadowModel
+from kpi.deployment_backends.kc_access.shadow_models import ShadowModel
+
 
 def delete_related_objects(modeladmin, request, queryset):
     """
@@ -24,6 +24,8 @@ def delete_related_objects(modeladmin, request, queryset):
     childs (foreignkeys), a "permission denied" message.
 
     Next, it deletes all related objects and redirects back to the change list.
+
+    The code is mostly copied from django/contrib/admin/actions.py
     """
     opts = modeladmin.model._meta
     app_label = opts.app_label
@@ -47,7 +49,7 @@ def delete_related_objects(modeladmin, request, queryset):
                 # element. We can skip it since delete() on the first
                 # level of related objects will cascade.
                 continue
-            elif not isinstance(obj, _ShadowModel):
+            elif not isinstance(obj, ShadowModel):
                 first_level_related_objects.append(obj)
 
     # Populate deletable_objects, a data structure of (string representations
@@ -109,4 +111,31 @@ def delete_related_objects(modeladmin, request, queryset):
         context, current_app=modeladmin.admin_site.name)
 
 delete_related_objects.short_description = ugettext_lazy(
-    "Remove related objects for these %(verbose_name_plural)s")
+    "Remove related objects for these %(verbose_name_plural)s "
+    "(deletion step 1)")
+
+
+def remove_from_kobocat(modeladmin, kpi_request, queryset):
+    '''
+    This is a shortcut to try and make administrators' lives less miserable
+    when they need to delete users. It simply takes the list of selected users
+    (from `queryset`) and redirects to a filtered list view in the KoBoCAT
+    Django admin interface. From there, an administrator can easily select all
+    matching users and delete them.
+    '''
+    if not kpi_request.user.is_superuser:
+        raise PermissionDenied
+    if kpi_request.method != 'POST':
+        raise NotImplementedError
+    kc_url = settings.KOBOCAT_URL + kpi_request.path
+    response = HttpResponseRedirect(
+        kc_url + '?pk__in=' + ','.join(
+            map(str, queryset.values_list('pk', flat=True))
+        )
+    )
+    return response
+
+remove_from_kobocat.short_description = ugettext_lazy(
+    "View these %(verbose_name_plural)s in the KoBoCAT admin interface "
+    "(deletion step 2)"
+)

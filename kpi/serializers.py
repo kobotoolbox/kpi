@@ -18,7 +18,6 @@ from rest_framework.pagination import LimitOffsetPagination, PageNumberPaginatio
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
-from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
 from .fields import PaginatedApiField, SerializerMethodFileField
 from .models import Asset
@@ -915,7 +914,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
-    languages = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
@@ -935,7 +933,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'gravatar',
             'is_staff',
             'last_login',
-            'languages',
             'extra_details',
             'current_password',
             'new_password',
@@ -957,9 +954,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)
 
-    def get_languages(self, obj):
-        return settings.LANGUAGES
-
     def get_git_rev(self, obj):
         request = self.context.get('request', False)
         if settings.EXPOSE_GIT_REV or (request and request.user.is_superuser):
@@ -971,15 +965,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         if obj.is_anonymous():
             return {'message': 'user is not logged in'}
         rep = super(CurrentUserSerializer, self).to_representation(obj)
-        if settings.UPCOMING_DOWNTIME:
-            # setting is in the format:
-            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
-            rep['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
-        # TODO: Find a better location for SECTORS and COUNTRIES
-        # as the functionality develops. (possibly in tags?)
-        rep['available_sectors'] = SECTORS
-        rep['available_countries'] = COUNTRIES
-        rep['all_languages'] = LANGUAGES
         if not rep['extra_details']:
             rep['extra_details'] = {}
         # `require_auth` needs to be read from KC every time

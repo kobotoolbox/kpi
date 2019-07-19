@@ -4,9 +4,7 @@ $headerAccountTextColor: #dbedf7;
 
 .k-header__bar {
   background-color: $layout-header-bg-color;
-
-  @include shadow-2dp;
-
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
   position: absolute;
   min-height: 64px;
   width: 100%;
@@ -142,6 +140,8 @@ $headerAccountTextColor: #dbedf7;
 
 .account-box__menu {
   min-width: 270px;
+  max-height: 80vh;
+  overflow-y: auto;
 
   .account-box__menu-item--avatar {
     display: inline-block;
@@ -215,17 +215,10 @@ $headerAccountTextColor: #dbedf7;
     padding-bottom: 5px;
 
     ul {
-      position: absolute;
-      right: 100%;
-      top: 0px;
       background-color: #FFF;
       color: $cool-gray;
       min-width: 140px;
-      transition: all 0.5s;
-      max-height: 0px;
-      opacity: 0;
-      overflow: hidden;
-      padding: 8px 0px;
+      padding: 0;
 
       @include box-shadow;
 
@@ -238,13 +231,6 @@ $headerAccountTextColor: #dbedf7;
           border-bottom: 0px;
         }
       }
-    }
-
-    &:hover > ul {
-      transition: all 0.5s;
-      max-height: 1000px;
-      opacity: 1;
-      overflow: visible;
     }
   }
 

@@ -1,3 +1,7 @@
+/**
+ * A list of all shareable constants for the application.
+ */
+
 import {t} from './utils';
 
 const HOOK_LOG_STATUSES = {
@@ -42,19 +46,30 @@ const AVAILABLE_FORM_STYLES = [
   {value: 'theme-grid pages', label: t('Grid theme + Multiple pages + headings in ALL CAPS')},
 ];
 
-const VALIDATION_STATUSES = [
-  {
+const VALIDATION_STATUSES = {
+  no_status: {
+    value: null,
+    label: '—'
+  },
+  validation_status_not_approved: {
     value: 'validation_status_not_approved',
     label: t('Not Approved')
   },
-  {
+  validation_status_approved: {
     value: 'validation_status_approved',
     label: t('Approved')
   },
-  {
+  validation_status_on_hold: {
     value: 'validation_status_on_hold',
     label: t('On Hold')
   },
+};
+
+const VALIDATION_STATUSES_LIST = [
+  VALIDATION_STATUSES.no_status,
+  VALIDATION_STATUSES.validation_status_not_approved,
+  VALIDATION_STATUSES.validation_status_approved,
+  VALIDATION_STATUSES.validation_status_on_hold
 ];
 
 const ASSET_TYPES = {
@@ -80,6 +95,7 @@ export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,
+  VALIDATION_STATUSES_LIST: VALIDATION_STATUSES_LIST,
   PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES,

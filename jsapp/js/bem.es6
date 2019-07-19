@@ -1,5 +1,8 @@
-/*eslint new-cap: 0*/
-/*eslint no-multi-spaces: 0*/
+/**
+ * A list of all our BEM components. It helps avoiding errors and code bloat.
+ * Instead of writing BEM class names for `<div>`, please import this module and
+ * use `<bem.ModuleName__partial m={['modifier1', 'modifier2']}>` in your JSX.
+ */
 
 var BEM = require('./libs/react-create-bem-element');
 var bem = BEM.init();
@@ -239,7 +242,22 @@ bem.UserRow__cancel = bem.UserRow.__('cancel');
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 
-bem.Drawer = bem('drawer');
+bem.KDrawer = bem('k-drawer');
+bem.KDrawer__primaryIcons = bem.KDrawer.__('primary-icons', 'nav');
+bem.KDrawer__secondaryIcons = bem.KDrawer.__('secondary-icons', 'nav');
+bem.KDrawer__sidebar = bem.KDrawer.__('sidebar', 'aside');
+
+bem.HelpBubble = bem('help-bubble');
+bem.HelpBubble__close = bem.HelpBubble.__('close', 'button');
+bem.HelpBubble__back = bem.HelpBubble.__('back', 'button');
+bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
+bem.HelpBubble__triggerCounter = bem.HelpBubble.__('trigger-counter', 'span');
+bem.HelpBubble__triggerBadge = bem.HelpBubble.__('trigger-badge', 'span');
+bem.HelpBubble__popup = bem.HelpBubble.__('popup');
+bem.HelpBubble__popupContent = bem.HelpBubble.__('popup-content');
+bem.HelpBubble__row = bem.HelpBubble.__('row');
+bem.HelpBubble__rowAnchor = bem.HelpBubble.__('row', 'a');
+bem.HelpBubble__rowWrapper = bem.HelpBubble.__('row-wrapper');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');

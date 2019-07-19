@@ -29,6 +29,7 @@ class MainHeader extends Reflux.Component {
     this.state = assign({
       asset: false,
       currentLang: currentLang(),
+      isLanguageSelectorVisible: false,
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
@@ -64,6 +65,9 @@ class MainHeader extends Reflux.Component {
   logout () {
     actions.auth.logout();
   }
+  toggleLanguageSelector() {
+    this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible})
+  }
   accountSettings () {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
@@ -94,12 +98,13 @@ class MainHeader extends Reflux.Component {
     );
   }
   renderAccountNavMenu () {
-    var langs = [];
-
+    let langs = [];
+    if (stores.session.environment) {
+      langs = stores.session.environment.interface_languages;
+    }
     if (stores.session.currentAccount) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
-      langs = stores.session.currentAccount.languages;
 
       var initialsStyle = {background: `#${stringToColor(accountName)}`};
       var accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;
@@ -139,13 +144,16 @@ class MainHeader extends Reflux.Component {
                   </bem.AccountBox__menuLI>
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
-                  <bem.AccountBox__menuLink>
+                  <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
                     <i className='k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
-                  <ul>
-                    {langs.map(this.renderLangItem)}
-                  </ul>
+
+                  {this.state.isLanguageSelectorVisible &&
+                    <ul>
+                      {langs.map(this.renderLangItem)}
+                    </ul>
+                  }
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
@@ -270,7 +278,7 @@ class MainHeader extends Reflux.Component {
                     name='title'
                     placeholder={t('Project title')}
                     value={this.state.asset.name ? this.state.asset.name : ''}
-                    onChange={this.assetTitleChange}
+                    onChange={this.assetTitleChange.bind(this)}
                     onKeyDown={this.assetTitleKeyDown}
                     disabled={!userCanEditAsset}
                   />

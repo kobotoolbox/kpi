@@ -10,7 +10,7 @@ var publicDomain = isPublicDomainDefined ? process.env.KOBOFORM_PUBLIC_SUBDOMAIN
 var publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
 
 module.exports = WebpackCommon({
-  mode: "development",
+  mode: 'development',
   entry: {
     app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
     tests: path.resolve(__dirname, '../test/index.js')
@@ -19,7 +19,7 @@ module.exports = WebpackCommon({
     library: 'KPI',
     path: path.resolve(__dirname, '../jsapp/compiled/'),
     publicPath: publicPath,
-    filename: "[name]-[hash].js"
+    filename: '[name]-[hash].js'
   },
   devServer: {
     publicPath: publicPath,

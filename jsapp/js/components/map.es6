@@ -1,9 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 import {hashHistory} from 'react-router';
 import bem from '../bem';
@@ -23,9 +21,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import {MODAL_TYPES} from '../constants';
 
 import {
-  assign,
   t,
-  log,
   notify,
   checkLatLng
 } from '../utils';
@@ -91,6 +87,12 @@ export class FormMap extends React.Component {
     autoBind(this);
   }
 
+  componentWillUnmount () {
+    if (this.state.map) {
+      this.state.map.remove();
+    }
+  }
+
   componentDidMount () {
     if (!this.state.hasGeoPoint)
       return false;
@@ -140,7 +142,6 @@ export class FormMap extends React.Component {
   }
   updateOverlayList(data) {
     let map = this.state.map;
-    var overlays = [];
 
     // remove layers from controls if they are no longer in asset files
     controls._layers.forEach(function(controlLayer) {
@@ -211,7 +212,7 @@ export class FormMap extends React.Component {
               l.bindPopup(name);
             } else {
               // when no name or title, load full list of feature's properties
-              l.bindPopup('<pre>'+JSON.stringify(fprops, null, 2).replace(/[\{\}"]/g,'')+'</pre>');
+              l.bindPopup('<pre>'+JSON.stringify(fprops, null, 2).replace(/[{}"]/g,'')+'</pre>');
             }
           });
         });
@@ -271,11 +272,12 @@ export class FormMap extends React.Component {
     return 20;
   }
   calcColorSet() {
+    let colorSet;
     if (this.state.overridenStyles && this.state.overridenStyles.colorSet) {
-      var colorSet = this.state.overridenStyles.colorSet;
+      colorSet = this.state.overridenStyles.colorSet;
     } else {
       let ms = this.props.asset.map_styles;
-      var colorSet = ms.colorSet ? ms.colorSet : undefined;
+      colorSet = ms.colorSet ? ms.colorSet : undefined;
     }
 
     return colorSet;
@@ -369,10 +371,11 @@ export class FormMap extends React.Component {
     });
 
     if (prepPoints.length > 0) {
+      let markers;
       if (viewby) {
-        var markers = L.featureGroup(prepPoints);
+        markers = L.featureGroup(prepPoints);
       } else {
-        var markers = L.markerClusterGroup({
+        markers = L.markerClusterGroup({
           maxClusterRadius: this.calculateClusterRadius,
           disableClusteringAtZoom: 16,
           iconCreateFunction: function(cluster) {
@@ -811,7 +814,7 @@ export class FormMap extends React.Component {
       </bem.FormView>
       );
   }
-};
+}
 
 reactMixin(FormMap.prototype, Reflux.ListenerMixin);
 

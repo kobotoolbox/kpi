@@ -79,7 +79,10 @@ class ProjectSettings extends React.Component {
       applyTemplateButton: t('Next'),
       chosenTemplateUid: null,
       // upload files
-      isUploadFilePending: false
+      isUploadFilePending: false,
+      // archive flow
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
     };
 
     autoBind(this);
@@ -100,7 +103,10 @@ class ProjectSettings extends React.Component {
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
       actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
-      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this))
+      actions.resources.cloneAsset.failed.listen(this.onCloneAssetFailed.bind(this)),
+      actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
+      actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
+      hashHistory.listen(this.onRouteChange.bind(this))
     )
   }
 
@@ -126,7 +132,7 @@ class ProjectSettings extends React.Component {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
         return t('Create project');
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
-        return t('Replace project');
+        return t('Replace form');
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
       case PROJECT_SETTINGS_CONTEXTS.BUILDER:
       default:
@@ -213,29 +219,63 @@ class ProjectSettings extends React.Component {
     });
   }
 
+  deleteProject() {
+    this.deleteAsset(
+      this.state.formAsset.uid,
+      this.state.formAsset.name,
+      this.goToProjectsList.bind(this)
+    );
+  }
+
+  // archive flow
+
   isArchived() {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
   }
 
   archiveProject() {
-    this.archiveAsset(
-      this.state.formAsset.uid,
-      this.goToProjectsList.bind(this)
-    );
+    this.archiveAsset(this.state.formAsset.uid, this.onArchiveProjectStarted.bind(this));
+  }
+
+  onArchiveProjectStarted() {
+    this.setState({isAwaitingArchiveCompleted: true});
   }
 
   unarchiveProject() {
-    this.unarchiveAsset(
-      this.state.formAsset.uid,
-      this.goToFormLanding.bind(this)
-    );
+    this.unarchiveAsset(this.state.formAsset.uid, this.onUnarchiveProjectStarted.bind(this));
   }
 
-  deleteProject() {
-    this.deleteAsset(
-      this.state.formAsset.uid,
-      this.goToProjectsList.bind(this)
-    );
+  onUnarchiveProjectStarted() {
+    this.setState({isAwaitingUnarchiveCompleted: true});
+  }
+
+  onSetDeploymentActiveFailed() {
+    this.setState({
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
+    });
+  }
+
+  // when archiving/unarchiving finishes, take user to a route that makes sense
+  // unless user navigates by themselves before that happens
+  onSetDeploymentActiveCompleted() {
+    if (this.state.isAwaitingArchiveCompleted) {
+      this.goToProjectsList();
+    }
+    if (this.state.isAwaitingUnarchiveCompleted) {
+      this.goToFormLanding();
+    }
+    this.setState({
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
+    });
+  }
+
+  onRouteChange() {
+    this.setState({
+      isAwaitingArchiveCompleted: false,
+      isAwaitingUnarchiveCompleted: false
+    });
   }
 
   /*
@@ -502,6 +542,13 @@ class ProjectSettings extends React.Component {
           this.applyFileToAsset(files[0], asset).then(
             (data) => {
               dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
+                // TODO: Getting asset outside of actions.resources.loadAsset
+                // is not going to notify all the listeners, causing some hard
+                // to identify bugs.
+                // Until we switch this code to use actions we HACK it so other
+                // places are notified.
+                actions.resources.loadAsset.completed(finalAsset);
+
                 if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
@@ -708,8 +755,8 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = session.currentAccount.available_sectors;
-    const countries = session.currentAccount.available_countries;
+    const sectors = stores.session.environment.available_sectors;
+    const countries = stores.session.environment.available_countries;
 
     return (
       <bem.FormModal__form
@@ -780,6 +827,7 @@ class ProjectSettings extends React.Component {
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
+              isClearable
             />
           </bem.FormModal__item>
 
@@ -795,6 +843,7 @@ class ProjectSettings extends React.Component {
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
+              isClearable
             />
           </bem.FormModal__item>
 
@@ -825,12 +874,6 @@ class ProjectSettings extends React.Component {
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
             </bem.Modal__footer>
-          }
-
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
           }
 
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
@@ -873,6 +916,12 @@ class ProjectSettings extends React.Component {
                 {t('Delete Project and Data')}
               </button>
             </bem.FormModal__item>
+          }
+
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
+            <bem.FormView__cell m='iframe'>
+              <iframe src={this.props.iframeUrl} />
+            </bem.FormView__cell>
           }
         </bem.FormModal__item>
       </bem.FormModal__form>
