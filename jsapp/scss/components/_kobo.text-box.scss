@@ -1,7 +1,7 @@
 // TODO: cleanup the other places
 // this copies a lot of global styles defined in _kobo.bem.ui.scss
 // we copy it because we want to use this component outside of .form-modal__item
-// plus we fight the specificity battle because of too general styles of FB
+// plus we fight the specificity battle because of too general styles of Form Builder
 
 label.text-box {
   &.text-box--error {
