@@ -46,7 +46,7 @@ class BasePermissionsTestCase(TestCase):
         :param user: The user for whom permissions on `obj` will be manipulated.
         :type user: :py:class:`User`
         '''
-        perm_name= self._get_perm_name(perm_name_prefix, obj)
+        perm_name = self._get_perm_name(perm_name_prefix, obj)
         self.assertFalse(user.has_perm(perm_name, obj))
         obj.assign_perm(user, perm_name)
         self.assertTrue(user.has_perm(perm_name, obj))

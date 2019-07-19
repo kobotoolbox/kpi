@@ -9,7 +9,6 @@ import Radio from './radio';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
-import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
@@ -21,7 +20,6 @@ import ReportViewItem from './reportViewItem';
 import {
   assign,
   t,
-  log,
 } from '../utils';
 
 function labelVal(label, value) {
@@ -71,7 +69,7 @@ class ChartTypePicker extends React.Component {
         </bem.GraphSettings__charttype>
       );
   }
-};
+}
 
 let reportColorSets = [
   {
@@ -492,10 +490,11 @@ class ReportContents extends React.Component {
       if ((_type === 'select_one' || _type === 'select_multiple') && asset.content.choices) {
         let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
         let resps = reportData[i].data.responses;
+        let choice;
         if (resps) {
           reportData[i].data.responseLabels = [];
           for (var j = resps.length - 1; j >= 0; j--) {
-            var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
+            choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
             if (choice && choice.label && choice.label[tnslIndex])
               reportData[i].data.responseLabels.unshift(choice.label[tnslIndex]);
             else
@@ -508,13 +507,13 @@ class ReportContents extends React.Component {
             reportData[i].data.responseLabels = [];
             let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
             respValues.forEach(function(r, ind){
-              var choice = asset.content.choices.find(o => qGB && o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
+              choice = asset.content.choices.find(o => qGB && o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
               reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
             });
 
             // TODO: use a better way to store translated labels per row
             for (var vD = vals.length - 1; vD >= 0; vD--) {
-              var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
+              choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
               vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
             }
           }
@@ -736,7 +735,7 @@ class Reports extends React.Component {
       showCustomReportModal: false,
       currentCustomReport: false,
       currentQuestionGraph: false,
-      groupBy: []
+      groupBy: ''
     };
     autoBind(this);
   }
@@ -760,7 +759,7 @@ class Reports extends React.Component {
       let rowsByKuid = {};
       let rowsByIdentifier = {};
       let names = [],
-          groupBy = [],
+          groupBy = '',
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
@@ -816,9 +815,9 @@ class Reports extends React.Component {
             error: false
           });
         }).fail((err)=> {
-          if (groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
+          if (groupBy && groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
             // reset default report groupBy if it fails and notify user
-            reportStyles.default.groupDataBy = [];
+            reportStyles.default.groupDataBy = '';
             this.setState({
               reportStyles: reportStyles
             });
@@ -842,7 +841,7 @@ class Reports extends React.Component {
         rowsByIdentifier = this.state.rowsByIdentifier,
         customReport = this.state.currentCustomReport;
 
-    var groupBy = [];
+    var groupBy = '';
 
     if (!customReport && this.state.reportStyles.default.groupDataBy !== undefined)
       groupBy = this.state.reportStyles.default.groupDataBy;
@@ -924,12 +923,13 @@ class Reports extends React.Component {
     var crid = e ? e.target.getAttribute('data-crid') : false;
 
     if(!this.state.showCustomReportModal) {
+      let currentCustomReport;
       if (crid) {
         // existing report
-        var currentCustomReport = this.state.reportCustom[crid];
+        currentCustomReport = this.state.reportCustom[crid];
       } else {
         // new custom report
-        var currentCustomReport = {
+        currentCustomReport = {
           crid: txtid(),
           name: '',
           questions: []

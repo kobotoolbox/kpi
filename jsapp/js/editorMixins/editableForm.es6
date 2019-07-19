@@ -161,6 +161,8 @@ const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
 export default assign({
   componentDidMount() {
+    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave)
+
     document.body.classList.add('hide-edge');
 
     this.loadAsideSettings();
@@ -191,6 +193,12 @@ export default assign({
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
+  },
+
+  routerWillLeave(nextLocation) {
+    if (this.state.preventNavigatingOut) {
+      return t('You have unsaved changes. Leave form without saving?');
+    }
   },
 
   loadAsideSettings() {
@@ -249,12 +257,14 @@ export default assign({
   }, 200),
 
   preventClosingTab() {
+    this.setState({preventNavigatingOut: true});
     $(window).on('beforeunload.noclosetab', function(){
-      return t('you have unsaved changes');
+      return t('You have unsaved changes. Leave form without saving?');
     });
   },
 
   unpreventClosingTab() {
+    this.setState({preventNavigatingOut: false});
     $(window).off('beforeunload.noclosetab');
   },
 

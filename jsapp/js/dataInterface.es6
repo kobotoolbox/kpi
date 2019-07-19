@@ -1,3 +1,12 @@
+/**
+ * The only file that is making calls to Backend. You shouldn't use it directly,
+ * but through proper actions in `jsapp/js/actions.es6`.
+ *
+ * TODO: Instead of splitting this huge file it could be a good idead to move
+ * all the calls from here to appropriate actions and drop this file entirely.
+ * And make actions for calls that doesn't have them.
+ */
+
 import $ from 'jquery';
 import alertify from 'alertifyjs';
 import {
@@ -453,11 +462,24 @@ var dataInterface;
         data: {'payload': JSON.stringify(data)}
       });
     },
+    bulkRemoveSubmissionsValidationStatus(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        method: 'DELETE',
+        data: {'payload': JSON.stringify(data)}
+      });
+    },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
         method: 'PATCH',
         data: data
+      });
+    },
+    removeSubmissionValidationStatus(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        method: 'DELETE'
       });
     },
     getSubmissionsQuery(uid, query='') {
@@ -502,6 +524,22 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/${assetUid}/files/${uid}/`,
         method: 'DELETE'
+      });
+    },
+
+    getHelpInAppMessages() {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/`,
+        method: 'GET'
+      });
+    },
+    patchHelpInAppMessage(uid, data) {
+      return $ajax({
+        url: `${rootUrl}/help/in_app_messages/${uid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
 

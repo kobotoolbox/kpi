@@ -53,26 +53,30 @@ class ApiHookTestCase(HookTestCase):
         responses.add(responses.POST, first_hook.endpoint,
                       status=status.HTTP_200_OK,
                       content_type="application/json")
-        submission_url = reverse("submission-list", kwargs={"parent_lookup_asset": self.asset.uid})
+        hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
 
         submissions = self.asset.deployment.get_submissions()
         data = {"instance_id": submissions[0].get("id")}
-        response = self.client.post(submission_url, data)
+        response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         # Create second hook
         second_hook = self._create_hook(name="other dummy external service",
-                                       endpoint="http://otherdummy.service.local/",
-                                       settings={})
+                                        endpoint="http://otherdummy.service.local/",
+                                        settings={})
         responses.add(responses.POST, second_hook.endpoint,
                       status=status.HTTP_200_OK,
                       content_type="application/json")
 
-        response = self.client.post(submission_url, data)
+        response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
-        response = self.client.post(submission_url, data)
+        response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+
+        data = {"instance_id": 4}  # Instance doesn't belong to `self.asset`
+        response = self.client.post(hook_signal_url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_non_owner_cannot_access(self):
         hook = self._create_hook()
