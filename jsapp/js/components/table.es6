@@ -797,14 +797,17 @@ export class DataTable extends React.Component {
       title: t('Update status of selected submissions'),
       message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        apiFn(this.props.asset.uid, data).done((res) => {
+      onok: () => {
+        apiFn(this.props.asset.uid, data).done(() => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
+          dialog.destroy();
+        }).fail((jqxhr) => {
           console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
+          dialog.destroy();
         });
+        // keep the dialog open
+        return false;
       },
       oncancel: dialog.destroy
     };
@@ -816,7 +819,7 @@ export class DataTable extends React.Component {
   clearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
   }
-  onBulkDelete(evt) {
+  onBulkDelete() {
     const apiFn = dataInterface.bulkDeleteSubmissions;
     const data = {};
     let selectedCount;
@@ -841,14 +844,17 @@ export class DataTable extends React.Component {
       title: t('Delete selected submissions'),
       message: t('You have selected ## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        apiFn(this.props.asset.uid, data).done((res) => {
+      onok: () => {
+        apiFn(this.props.asset.uid, data).done(() => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
+          dialog.destroy();
+        }).fail((jqxhr) => {
           console.error(jqxhr);
           alertify.error(t('Failed to delete submissions.'));
+          dialog.destroy();
         });
+        // keep the dialog open
+        return false;
       },
       oncancel: () => {
         dialog.destroy();
