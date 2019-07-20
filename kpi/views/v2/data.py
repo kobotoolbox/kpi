@@ -169,12 +169,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     @list_route(methods=['DELETE'], renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
-        # WIP - returns a dummy empty reponse.
-        # ToDo
-        json_response = {
-            'data': '',
-            'status': status.HTTP_204_NO_CONTENT
-        }
+        deployment = self._get_deployment()
+        json_response = deployment.delete_submissions(request.data,
+                                                      request.user)
         return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
