@@ -5,13 +5,15 @@
 #    make pip_compile
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@eb7d723eb2b54dbfd56a1c32d72e0008bbb29149#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@200-geojson-export#egg=formpack
+-e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
 amqp==2.4.0
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.3.0       # via pytest
 attrs==19.1.0             # via pytest
+backports.csv==1.0.7
 backports.os==0.1.1       # via path.py
 backports.shutil-get-terminal-size==1.0.0  # via ipython
 bcrypt==3.1.6             # via paramiko
