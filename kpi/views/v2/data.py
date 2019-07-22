@@ -10,6 +10,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -17,7 +18,7 @@ from kpi.permissions import (
     SubmissionPermission,
     SubmissionValidationStatusPermission,
 )
-from kpi.renderers import SubmissionXMLRenderer
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -157,6 +158,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
+                        SubmissionGeoJsonRenderer,
                         SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
@@ -203,6 +205,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
+
+        if format_type == 'geojson':
+            # For GeoJSON, get the submissions as JSON and let
+            # `SubmissionGeoJsonRenderer` handle the rest
+            return Response(
+                deployment.get_submissions(
+                    format_type=INSTANCE_FORMAT_TYPE_JSON, **filters)
+            )
+
         submissions = deployment.get_submissions(request.user.id,
                                                  format_type=format_type,
                                                  **filters)

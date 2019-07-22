@@ -6,9 +6,12 @@ import json
 from dicttoxml import dicttoxml
 from django.utils.six import text_type
 from rest_framework import renderers
+from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
+from kobo.apps.reports.report_data import build_formpack
+from kpi.constants import GEO_QUESTION_TYPES
 
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
@@ -49,6 +52,47 @@ class XFormRenderer(XMLRenderer):
                                                  accepted_media_type=accepted_media_type,
                                                  renderer_context=renderer_context,
                                                  relationship="snapshot")
+
+
+class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
+    media_type = 'application/json'
+    format = 'geojson'
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        view = renderer_context['view']
+        # `AssetNestedObjectViewsetMixin` provides the asset
+        asset = view.asset
+        if renderer_context['response'].status_code != status.HTTP_200_OK:
+            # We're ending up with stuff like `{u'detail': u'Not found.'}` in
+            # `data`. Is this the best way to handle that?
+            return None
+        pack, submission_stream = build_formpack(asset, data)
+        export = pack.export(
+            versions=pack.versions.keys(),
+            # Which of these do we want? Would it be better to run this through
+            # ExportTask, just synchronously?
+            #'group_sep': group_sep,
+            lang='_xml',
+            hierarchy_in_labels=True,
+            #'copy_fields': self.COPY_FIELDS,
+            #'force_index': True,
+            #'tag_cols_for_header': tag_cols_for_header,
+        )
+        geo_question_name = view.request.query_params.get('geo_question_name')
+        if not geo_question_name:
+            # No geo question specified; use the first one in the latest
+            # version of the form
+            latest_version = pack.versions.values()[-1]
+            geo_questions = filter(
+                lambda field: field.data_type in ('geopoint', 'geotrace'),
+                latest_version.sections.values()[0].fields.values()
+            )
+            try:
+                geo_question_name = geo_questions[0].name
+            except IndexError:
+                geo_question_name = None
+        return ''.join(
+            export.to_geojson(submission_stream, geo_question_name)
+        )
 
 
 class SubmissionXMLRenderer(DRFXMLRenderer):
