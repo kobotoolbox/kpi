@@ -88,8 +88,6 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
-bem.CollectionsWrapper = bem('collections-wrapper');
-
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
@@ -109,16 +107,6 @@ bem.List__subheading = bem.List.__('subheading');
 
 bem.AssetList = bem('asset-list');
 bem.AssetItems = bem('asset-items', '<ul>');
-
-bem.FormSidebar = bem('form-sidebar');
-bem.FormSidebar__wrapper = bem.FormSidebar.__('wrapper');
-bem.FormSidebar__item = bem.FormSidebar.__('item');
-bem.FormSidebar__label = bem.FormSidebar.__('label');
-bem.FormSidebar__labelCount = bem.FormSidebar.__('label-count', '<span>');
-bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
-bem.FormSidebar__itemlink = bem.FormSidebar.__('itemlink', '<a>');
-bem.FormSidebar__iteminner = bem.FormSidebar.__('iteminner', '<span>');
-bem.FormSidebar__itembyline = bem.FormSidebar.__('itembyline', '<span>');
 
 bem.AssetListSorts = bem('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
@@ -243,6 +231,12 @@ bem.UserRow__cancel = bem.UserRow.__('cancel');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
+
+bem.FormSidebar = bem('form-sidebar');
+bem.FormSidebar__item = bem.FormSidebar.__('item', '<a>');
+bem.FormSidebar__label = bem.FormSidebar.__('label', '<a>');
+bem.FormSidebar__labelCount = bem.FormSidebar.__('label-count', '<span>');
+bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
 
 bem.KDrawer = bem('k-drawer');
 bem.KDrawer__primaryIcons = bem.KDrawer.__('primary-icons', 'nav');

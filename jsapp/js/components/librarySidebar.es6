@@ -4,22 +4,17 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import alertify from 'alertifyjs';
 import {dataInterface} from '../dataInterface';
-import actions from '../actions';
 import stores from '../stores';
 import bem from '../bem';
 import searches from '../searches';
-import ui from '../ui';
 import mixins from '../mixins';
 import {MODAL_TYPES} from '../constants';
 import {
   t,
   assign,
-  getAnonymousUserPermission,
-  anonUsername
+  getAnonymousUserPermission
 } from '../utils';
-
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -29,9 +24,9 @@ class LibrarySidebar extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
-
     autoBind(this);
   }
+
   queryCollections() {
     dataInterface.listCollections().then((collections) => {
       this.setState({
@@ -45,17 +40,21 @@ class LibrarySidebar extends Reflux.Component {
       });
     });
   }
+
   componentDidMount() {
     this.listenTo(this.searchStore, this.searchChanged);
     this.searchDefault();
     this.queryCollections();
   }
+
   componentWillMount() {
     this.setStates();
   }
+
   searchChanged(state) {
     this.setState(state);
   }
+
   setStates() {
     this.setState({
       headerFilters: 'library',
@@ -70,6 +69,7 @@ class LibrarySidebar extends Reflux.Component {
       })
     });
   }
+
   clickFilterByCollection(evt) {
     var target = $(evt.target);
     if (target.hasClass('collection-toggle')) {
@@ -99,163 +99,22 @@ class LibrarySidebar extends Reflux.Component {
       filteredByPublicCollection: publicCollection,
     });
   }
+
   clickShowPublicCollections() {
     this.setState({
       publicCollectionsVisible: !this.state.publicCollectionsVisible,
     });
     //TODO: show the collections in the main pane?
   }
+
   clickShowSharedWithMe() {
     this.setState({
       sharedWithMeVisible: !this.state.sharedWithMeVisible,
     });
   }
-  createCollection() {
-    let dialog = alertify.dialog('prompt');
-    let opts = {
-      title: t('Create collection'),
-      message: t('Please enter the name of your new Collection. Collections can help you better organize your library, and it is possible to share each collection with different people.'),
-      labels: {ok: t('Create collection'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        dataInterface.createCollection({
-          name: val,
-        }).then(() => {
-          this.queryCollections();
-          this.searchValue.refresh();
-          dialog.destroy();
-        });
-        // keep the dialog open
-        return false;
-      },
-      oncancel: () => {
-        dialog.destroy();
-      }
-    };
-    dialog.set(opts).show();
-  }
-  deleteCollection(evt) {
-    evt.preventDefault();
-    var collectionUid = $(evt.currentTarget).data('collection-uid');
-    let dialog = alertify.dialog('confirm');
-    let opts = {
-      title: t('Delete collection'),
-      message: t('are you sure you want to delete this collection? this action is not reversible'),
-      labels: {ok: t('Delete'), cancel: t('Cancel')},
-      onok: () => {
-        actions.resources.deleteCollection({uid: collectionUid}, {
-          onComplete: () => {
-            this.quietUpdateStore({
-              parentUid: false,
-              parentName: false,
-              allPublic: false
-            });
-            this.searchValue();
-            this.queryCollections();
-            dialog.destroy();
-          }
-        });
-      },
-      oncancel: () => {
-        dialog.destroy();
-      }
-    };
-    dialog.set(opts).show();
-  }
-  renameCollection(evt) {
-    var collectionUid = evt.currentTarget.dataset.collectionUid;
-    var collectionName = evt.currentTarget.dataset.collectionName;
 
-    let dialog = alertify.dialog('prompt');
-    let opts = {
-      title: t('Rename collection'),
-      message: t('Please enter the name of your new collection.'),
-      value: collectionName,
-      labels: {ok: t('Ok'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        actions.resources.updateCollection.triggerAsync(collectionUid, {name: val}).then(
-          () => {
-            this.queryCollections();
-            dialog.destroy();
-          }
-        );
-        // keep the dialog open
-        return false;
-      },
-      oncancel: () => {
-        dialog.destroy();
-      }
-    };
-    dialog.set(opts).show();
-  }
-  subscribeCollection(evt) {
-    evt.preventDefault();
-    var collectionUid = $(evt.currentTarget).data('collection-uid');
-    dataInterface.subscribeCollection({
-      uid: collectionUid,
-    }).then(() => {
-      this.queryCollections();
-    });
-  }
-  unsubscribeCollection(evt) {
-    evt.preventDefault();
-    var collectionUid = $(evt.currentTarget).data('collection-uid');
-    dataInterface.unsubscribeCollection({
-      uid: collectionUid,
-    }).then(() => {
-      this.queryCollections();
-    });
-  }
-  sharingModal(evt) {
-    evt.preventDefault();
-    var collectionUid = $(evt.currentTarget).data('collection-uid');
-    stores.pageState.showModal({
-      type: MODAL_TYPES.SHARING,
-      assetid: collectionUid
-    });
-  }
   isCollectionPublic(collection) {
     return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
-  }
-  setCollectionDiscoverability(discoverable, collection) {
-    return (evt) => {
-      evt.preventDefault();
-      var publicPerm = getAnonymousUserPermission(collection.permissions);
-      var permDeferred = false;
-      if (discoverable) {
-        permDeferred = actions.permissions.assignPerm({
-          role: 'view',
-          username: anonUsername,
-          uid: collection.uid,
-          kind: collection.kind,
-          objectUrl: collection.url
-        });
-      } else if (publicPerm) {
-        permDeferred = actions.permissions.removePerm({
-          permission_url: publicPerm.url,
-          content_object_uid: collection.uid
-        });
-      }
-      let discovDeferred;
-      if (permDeferred) {
-        discovDeferred = permDeferred.then(() => {
-          actions.permissions.setCollectionDiscoverability.triggerAsync(
-            collection.uid, discoverable
-          );
-        }).catch((jqxhr) => {
-          // maybe publicPerm was already removed
-          if (jqxhr.status !== 404) {
-            alertify.error(t('unexpected error removing public permission'));
-          }
-        });
-      } else {
-        discovDeferred = actions.permissions.setCollectionDiscoverability.triggerAsync(
-          collection.uid, discoverable
-        );
-      }
-      discovDeferred.then(() => {
-        window.setTimeout(this.queryCollections, 1);
-      });
-    };
   }
 
   showLibraryNewModal(evt) {
@@ -265,9 +124,40 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
 
+  renderSidebarItem(collection) {
+    var iconClass = 'k-icon-folder';
+    if (collection.discoverable_when_public || this.isCollectionPublic(collection)) {
+      iconClass = 'k-icon-folder-public';
+    }
+    if (collection.access_type === 'shared') {
+      iconClass = 'k-icon-folder-shared';
+    }
+
+    const modifiers = ['collection'];
+    if (
+      this.state.filteredCollectionUid === collection.uid &&
+      !this.state.filteredByPublicCollection
+    ) {
+      modifiers.push('selected');
+    }
+
+    return (
+      <bem.FormSidebar__item
+        key={collection.uid}
+        m={modifiers}
+        href={`#/library/collection/${collection.uid}`}
+        data-collection-uid={collection.uid}
+        data-collection-name={collection.name}
+      >
+        <i className={iconClass}/>
+        {collection.name}
+      </bem.FormSidebar__item>
+    );
+  }
+
   render() {
     return (
-      <bem.CollectionsWrapper>
+      <React.Fragment>
         <button onClick={this.showLibraryNewModal} className='mdl-button mdl-button--raised mdl-button--colored'>
           {t('new')}
         </button>
@@ -275,120 +165,27 @@ class LibrarySidebar extends Reflux.Component {
         { this.state.sidebarCollections &&
           <bem.FormSidebar>
             <bem.FormSidebar__label
-              key='allitems'
               m={{selected: !this.state.publicCollectionsVisible}}
-              onClick={this.clickFilterByCollection}>
-                  <i className='k-icon-library' />
-                  {t('My Library')}
+              href='#/library/owned'
+            >
+              <i className='k-icon-library'/>
+              {t('My Library')}
               <bem.FormSidebar__labelCount>
                 {this.state.defaultQueryCount}
               </bem.FormSidebar__labelCount>
-
             </bem.FormSidebar__label>
-            <bem.FormSidebar__grouping>
-              {this.state.sidebarCollections.map((collection) => {
-                var iconClass = 'k-icon-folder';
-                if (collection.discoverable_when_public || this.isCollectionPublic(collection)) {
-                  iconClass = 'k-icon-folder-public';
-                }
-                if (collection.access_type === 'shared') {
-                  iconClass = 'k-icon-folder-shared';
-                }
 
-                return (
-                    <bem.FormSidebar__item
-                      key={collection.uid}
-                      m={{
-                        collection: true,
-                        selected:
-                          this.state.filteredCollectionUid ===
-                            collection.uid &&
-                          !this.state.filteredByPublicCollection,
-                      }}>
-                      <bem.FormSidebar__itemlink
-                        onClick={this.clickFilterByCollection}
-                        data-collection-uid={collection.uid}
-                        data-collection-name={collection.name}>
-                        <i className={iconClass} />
-                        {collection.name}
-                      </bem.FormSidebar__itemlink>
-                      { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
-                        <ui.PopoverMenu type='collectionSidebarPublic-menu'
-                            triggerLabel={<i className='k-icon-more' />}>
-                          { collection.access_type === 'owned' && collection.discoverable_when_public &&
-                            <bem.PopoverMenu__link
-                                m={'make-private'}
-                                onClick={this.setCollectionDiscoverability(false, collection)}
-                                >
-                              <i className='k-icon-globe' />
-                              {t('Make Private')}
-                            </bem.PopoverMenu__link>
-                          }
-                          { collection.access_type === 'owned' && !collection.discoverable_when_public &&
-                            <bem.PopoverMenu__link
-                                m={'make-public'}
-                                onClick={this.setCollectionDiscoverability(true, collection)}
-                                >
-                              <i className='k-icon-globe' />
-                              {t('Make Public')}
-                            </bem.PopoverMenu__link>
-                          }
-                          { collection.access_type !== 'subscribed' &&
-                            <bem.PopoverMenu__link
-                                m={'share'}
-                                onClick={this.sharingModal}
-                                data-collection-uid={collection.uid}
-                                >
-                              <i className='k-icon-user-share' />
-                              {t('Share')}
-                            </bem.PopoverMenu__link>
-                          }
-
-                          { collection.access_type !== 'subscribed' &&
-                            <bem.PopoverMenu__link
-                                m={'rename'}
-                                onClick={this.renameCollection}
-                                data-collection-uid={collection.uid}
-                                data-collection-name={collection.name}
-                                >
-                              <i className='k-icon-edit' />
-                              {t('Rename')}
-                            </bem.PopoverMenu__link>
-                          }
-                          { collection.access_type !== 'subscribed' &&
-                            <bem.PopoverMenu__link
-                                m={'delete'}
-                                onClick={this.deleteCollection}
-                                data-collection-uid={collection.uid}
-                                >
-                              <i className='k-icon-trash' />
-                              {t('Delete')}
-                            </bem.PopoverMenu__link>
-                          }
-                          { collection.access_type === 'subscribed' &&
-
-                            <bem.PopoverMenu__link
-                                m={'unsubscribe'}
-                                onClick={this.unsubscribeCollection}
-                                data-collection-uid={collection.uid}
-                                >
-                              <i className='k-icon-trash' />
-                              {t('Unsubscribe')}
-                            </bem.PopoverMenu__link>
-                          }
-
-                        </ui.PopoverMenu>
-                      }
-                    </bem.FormSidebar__item>
-                  );
-              })}
-            </bem.FormSidebar__grouping>
+            {this.state.sidebarCollections.length > 0 &&
+              <bem.FormSidebar__grouping>
+                {this.state.sidebarCollections.map(this.renderSidebarItem)}
+              </bem.FormSidebar__grouping>
+            }
 
             <bem.FormSidebar__label
-              key='shared'
               m={{selected: this.state.sharedWithMeVisible}}
-              onClick={this.clickShowSharedWithMe}>
-              <i className='k-icon-library-shared' />
+              href='#/library/shared'
+            >
+              <i className='k-icon-library-shared'/>
               {t('Shared with me')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarSharedWithMe.length}
@@ -396,67 +193,22 @@ class LibrarySidebar extends Reflux.Component {
             </bem.FormSidebar__label>
 
             <bem.FormSidebar__label
-              key='public'
               m={{selected: this.state.publicCollectionsVisible}}
-              onClick={this.clickShowPublicCollections}>
+              href='#/library/public-collections'
+            >
               <i className='k-icon-library-public' />
               {t('Public Collections')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarPublicCollections.length}
               </bem.FormSidebar__labelCount>
             </bem.FormSidebar__label>
+
             <bem.FormSidebar__grouping m={[this.state.publicCollectionsVisible ? 'visible' : 'collapsed']}>
-              {this.state.sidebarPublicCollections.map((collection) => {
-                return (
-                    <bem.FormSidebar__item
-                      key={collection.uid}
-                      m={{
-                        collection: true,
-                        selected:
-                          this.state.filteredCollectionUid ===
-                            collection.uid &&
-                          this.state.filteredByPublicCollection,
-                      }}
-                    >
-                      <bem.FormSidebar__itemlink
-                        onClick={this.clickFilterByCollection}
-                        data-collection-uid={collection.uid}
-                        data-public-collection>
-                          <i className='k-icon-folder-public' />
-                          <bem.FormSidebar__iteminner>
-                            {collection.name}
-                            <bem.FormSidebar__itembyline>
-                              {t('by ___').replace('___', collection.owner__username)}
-                            </bem.FormSidebar__itembyline>
-                          </bem.FormSidebar__iteminner>
-                      </bem.FormSidebar__itemlink>
-                      {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection &&
-                        <ui.PopoverMenu type='collectionSidebar-menu'
-                            triggerLabel={<i className='k-icon-more' />}>
-                            { collection.access_type === 'subscribed' ?
-                                <bem.PopoverMenu__link href={'#'}
-                                  onClick={this.unsubscribeCollection}
-                                  data-collection-uid={collection.uid}>
-                                  <i className='k-icon-next' />
-                                  {t('unsubscribe')}
-                                </bem.PopoverMenu__link>
-                              :
-                                <bem.PopoverMenu__link href={'#'}
-                                  onClick={this.subscribeCollection}
-                                  data-collection-uid={collection.uid}>
-                                  <i className='k-icon-next' />
-                                  {t('subscribe')}
-                                </bem.PopoverMenu__link>
-                            }
-                          </ui.PopoverMenu>
-                        }
-                    </bem.FormSidebar__item>
-                  );
-              })}
+              {this.state.sidebarPublicCollections.map(this.renderSidebarItem)}
             </bem.FormSidebar__grouping>
           </bem.FormSidebar>
         }
-      </bem.CollectionsWrapper>
+      </React.Fragment>
       );
   }
   componentWillReceiveProps() {

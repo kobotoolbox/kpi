@@ -1,0 +1,95 @@
+.form-sidebar {
+  margin-top: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+
+  .form-sidebar__label,
+  .form-sidebar__grouping {
+    color: $cool-silver;
+    cursor: pointer;
+
+    span {
+      vertical-align: middle;
+    }
+  }
+
+  .form-sidebar__label {
+    display: block;
+    padding: 3px 0;
+    position: relative;
+
+    &.form-sidebar__label--selected {
+      color: $cool-gray;
+    }
+
+    &:hover {
+      color: $cool-charcoal;
+    }
+
+    i {
+      font-size: 36px;
+      margin-right: 0;
+      margin-left: -4px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    .form-sidebar__label-count {
+      position: absolute;
+      right: 3px;
+      top: 11px;
+      padding: 0 6px;
+      font-size: 12px;
+      line-height: 20px;
+      min-width: 20px;
+      border-radius: 20px;
+      background-color: $divider-color;
+      text-align: center;
+    }
+  }
+
+  .form-sidebar__grouping {
+    margin-bottom: 10px;
+
+    &.form-sidebar__grouping--collapsed {
+      margin: 0;
+      height: 0;
+      overflow: hidden;
+    }
+  }
+
+  .form-sidebar__item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    line-height: 1;
+    color: $cool-silver;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 5px;
+
+    &:hover {
+      color: $cool-charcoal;
+    }
+
+    i {
+      font-size: 32px;
+      margin: -5px -1px -5px 0;
+    }
+
+    .form-sidebar__iteminner {
+      display: inline-block;
+
+      .form-sidebar__itembyline {
+        display: block;
+        font-size: 0.85em;
+        opacity: 0.6;
+      }
+    }
+
+    &.form-sidebar__item--selected {
+      background: #ededee;
+    }
+  }
+}

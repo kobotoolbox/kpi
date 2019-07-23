@@ -3,14 +3,12 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
 import mixins from '../mixins';
 import bem from '../bem';
 import ui from '../ui';
 import searches from '../searches';
 import stores from '../stores';
-
-import {t, assign} from '../utils';
+import {t} from '../utils';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -19,7 +17,7 @@ class SidebarFormsList extends Reflux.Component {
       'Draft': false,
       'Deployed': false,
       'Archived': false
-    }
+    };
     this.state = {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
@@ -32,44 +30,45 @@ class SidebarFormsList extends Reflux.Component {
     this.store = stores.pageState;
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(this.searchStore, this.searchChanged);
-    if (!this.isFormList())
+    if (!this.isFormList()) {
       this.searchSemaphore();
+    }
   }
-  componentWillReceiveProps () {
+  componentWillReceiveProps() {
     this.listenTo(this.searchStore, this.searchChanged);
   }
-  searchChanged (searchStoreState) {
+  searchChanged(searchStoreState) {
     this.setState(searchStoreState);
   }
-  renderMiniAssetRow (asset) {
-    var href = `/forms/${asset.uid}`;
+  renderMiniAssetRow(asset) {
+    var href = `#/forms/${asset.uid}`;
 
-    if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count)
+    if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count) {
       href = href + '/summary';
+    }
 
     return (
       <bem.FormSidebar__item
         key={asset.uid}
         className={asset.uid === this.currentAssetID() ? 'active' : ''}
+        href={href}
       >
-        <Link to={href} className={'form-sidebar__itemlink'}>
-          <ui.SidebarAssetName {...asset} />
-        </Link>
+        <ui.SidebarAssetName {...asset} />
       </bem.FormSidebar__item>
     );
   }
   toggleCategory(c) {
-    return function (e) {
+    return function() {
     var selectedCategories = this.state.selectedCategories;
     selectedCategories[c] = !selectedCategories[c];
       this.setState({
         selectedCategories: selectedCategories,
       });
-    }.bind(this)
+    }.bind(this);
   }
-  render () {
+  render() {
     var s = this.state;
     var activeItems = 'defaultQueryCategorizedResultsLists';
 
@@ -84,7 +83,7 @@ class SidebarFormsList extends Reflux.Component {
       activeItems = 'searchResultsCategorizedResultsLists';
     }
 
-    if (s.searchState === 'loading' && s.searchString === false ) {
+    if (s.searchState === 'loading' && s.searchString === false) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -165,7 +164,7 @@ class SidebarFormsList extends Reflux.Component {
       </bem.FormSidebar>
     );
   }
-};
+}
 
 SidebarFormsList.contextTypes = {
   router: PropTypes.object
