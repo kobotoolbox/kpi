@@ -1,4 +1,16 @@
-/*eslint no-unused-vars:0*/
+/**
+ * Mixins to be used via react-mixin plugin. These extend components with the
+ * methods defined within the given mixin, using the component as `this`.
+ *
+ * NOTE: please try using mixins as less as possible - when needing a method
+ * from here, move it out to separete file (utils?), import here to avoid
+ * breaking the code and use the separete file instead of mixin.
+ *
+ * TODO: think about moving out of mixins, as they are deprecated in new React
+ * versions and considered harmful (see
+ * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ */
+
 import React from 'react';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';

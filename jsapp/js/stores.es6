@@ -1,3 +1,19 @@
+/**
+ * Reflux stores for keeping all the user data.
+ *
+ * Using it in multiple components helps with keeping whole application up to
+ * date and avoids making unnecessary calls to Backend.
+ *
+ * It is tightly connected to actions and the most kosher way of handling data
+ * would be to trigger Backend calls through actions but to observe the results
+ * throught stores not actions callbacks (for applicable stores of course - not
+ * every action is connected to a store).
+ *
+ * TODO: it would be best to split these to separate files within `jsapp/js/stores`
+ * directory and probably import all of them here and keep this file as a single
+ * source for all stores(?).
+ */
+
 import Reflux from 'reflux';
 import {Cookies} from 'react-cookie';
 import dkobo_xlform from '../xlform/src/_xlform.init';

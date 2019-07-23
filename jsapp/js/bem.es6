@@ -1,3 +1,9 @@
+/**
+ * A list of all our BEM components. It helps avoiding errors and code bloat.
+ * Instead of writing BEM class names for `<div>`, please import this module and
+ * use `<bem.ModuleName__partial m={['modifier1', 'modifier2']}>` in your JSX.
+ */
+
 var BEM = require('./libs/react-create-bem-element');
 var bem = BEM.init();
 
