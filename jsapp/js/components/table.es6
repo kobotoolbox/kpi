@@ -870,7 +870,7 @@ export class DataTable extends React.Component {
     const { pageSize, currentPage, resultsTotal } = this.state;
 
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
-          res1 = (currentPage * pageSize) + 1,
+          res1 = (resultsTotal === 0) ? 0 : (currentPage * pageSize) + 1,
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
           showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
           selected = this.state.selectedRows,
