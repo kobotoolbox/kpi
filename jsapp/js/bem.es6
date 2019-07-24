@@ -234,6 +234,7 @@ bem.uiPanel__body = bem.uiPanel.__('body');
 
 bem.FormSidebar = bem('form-sidebar');
 bem.FormSidebar__item = bem.FormSidebar.__('item', '<a>');
+bem.FormSidebar__itemText = bem.FormSidebar.__('item-text');
 bem.FormSidebar__label = bem.FormSidebar.__('label', '<a>');
 bem.FormSidebar__labelCount = bem.FormSidebar.__('label-count', '<span>');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');

@@ -19,12 +19,12 @@
     padding: 3px 0;
     position: relative;
 
-    &.form-sidebar__label--selected {
-      color: $cool-gray;
-    }
-
     &:hover {
       color: $cool-charcoal;
+    }
+
+    &.form-sidebar__label--selected {
+      color: $cool-gray;
     }
 
     i {
@@ -62,7 +62,7 @@
   .form-sidebar__item {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     line-height: 1;
     color: $cool-silver;
     font-weight: normal;
@@ -73,23 +73,17 @@
       color: $cool-charcoal;
     }
 
+    &.form-sidebar__item--selected {
+      background: #ededee;
+    }
+
     i {
       font-size: 32px;
       margin: -5px -1px -5px 0;
     }
 
-    .form-sidebar__iteminner {
-      display: inline-block;
-
-      .form-sidebar__itembyline {
-        display: block;
-        font-size: 0.85em;
-        opacity: 0.6;
-      }
-    }
-
-    &.form-sidebar__item--selected {
-      background: #ededee;
+    i + .form-sidebar__item-text {
+      margin-top: 5px;
     }
   }
 }

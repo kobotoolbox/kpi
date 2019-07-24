@@ -150,7 +150,7 @@ class LibrarySidebar extends Reflux.Component {
         data-collection-name={collection.name}
       >
         <i className={iconClass}/>
-        {collection.name}
+        <bem.FormSidebar__itemText>{collection.name}</bem.FormSidebar__itemText>
       </bem.FormSidebar__item>
     );
   }
