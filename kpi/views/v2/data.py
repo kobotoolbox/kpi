@@ -194,7 +194,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
-        return Response(list(submissions))
+        # not optimized calculation.
+        # ToDo improve this
+        filters.pop('limit', None)
+        filters.pop('offset', None)
+        submissions_count = len(list(deployment.get_submissions(format_type=format_type, **filters)))
+        response_ = {
+            'next': '',
+            'prev': '',
+            'count': submissions_count,
+            'results': list(submissions)
+        }
+        return Response(response_)
 
     def retrieve(self, request, pk, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
