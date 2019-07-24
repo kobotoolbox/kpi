@@ -12,7 +12,7 @@ class LibraryCollection extends React.Component {
     autoBind(this);
   }
 
-  share(evt) {
+  showSharingModal(evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: MODAL_TYPES.SHARING,
@@ -25,7 +25,7 @@ class LibraryCollection extends React.Component {
       <bem.Library>
         {t('Library Collection')}
 
-        <button onClick={this.share.bind(this)}>
+        <button onClick={this.showSharingModal.bind(this)}>
           share
         </button>
       </bem.Library>

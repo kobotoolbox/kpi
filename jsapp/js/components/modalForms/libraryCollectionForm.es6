@@ -18,7 +18,7 @@ import {
 import {
   renderLoading,
   renderBackButton,
-  canMakeLibraryAssetPublic
+  isLibraryAssetPublicReady
 } from './modalHelpers';
 
 export class LibraryCollectionForm extends React.Component {
@@ -102,7 +102,7 @@ export class LibraryCollectionForm extends React.Component {
   validate() {
     let errors = {};
     if (this.state.data.isPublic) {
-      const validateResult = canMakeLibraryAssetPublic(
+      const validateResult = isLibraryAssetPublicReady(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector

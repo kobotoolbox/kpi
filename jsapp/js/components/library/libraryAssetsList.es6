@@ -23,7 +23,11 @@ class LibraryAssetsList extends React.Component {
     autoBind(this);
   }
 
-  render () {
+  componentDidMount() {
+    this.searchDefault();
+  }
+
+  render() {
     return (
       <bem.Library>
         <SearchCollectionList

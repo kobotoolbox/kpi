@@ -14,7 +14,7 @@ import {
 } from 'js/utils';
 import {
   isLibraryAssetPublic,
-  canMakeLibraryAssetPublic
+  isLibraryAssetPublicReady
 } from 'js/components/modalForms/modalHelpers';
 
 class AssetInfoBox extends React.Component {
@@ -41,7 +41,7 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = canMakeLibraryAssetPublic(
+    const requiredPropsReady = isLibraryAssetPublicReady(
       this.props.asset.name,
       this.props.asset.settings.organization,
       this.props.asset.settings.sector
@@ -98,6 +98,11 @@ class AssetInfoBox extends React.Component {
       return null;
     }
 
+    const isPublicable = (
+      this.props.asset.asset_type === ASSET_TYPES.template.id ||
+      this.props.asset.asset_type === ASSET_TYPES.collection.id
+    );
+
     const isPublic = isLibraryAssetPublic(
       this.props.asset.permissions,
       this.props.asset.discoverable_when_public
@@ -122,26 +127,28 @@ class AssetInfoBox extends React.Component {
             {this.props.asset.summary.row_count || 0}
           </bem.FormView__cell>
 
-          <bem.FormView__cell m={['buttons', 'column-1']}>
-            {!isPublic &&
-              <button
-                className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.makePublic}
-                disabled={this.state.isPublicPending}
-              >
-                {t('Make public')}
-              </button>
-            }
-            {isPublic &&
-              <button
-                className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.makePrivate}
-                disabled={this.state.isPublicPending}
-              >
-                {t('Make private')}
-              </button>
-            }
-          </bem.FormView__cell>
+          {isPublicable &&
+            <bem.FormView__cell m={['buttons', 'column-1']}>
+              {!isPublic &&
+                <button
+                  className='mdl-button mdl-button--raised mdl-button--colored'
+                  onClick={this.makePublic}
+                  disabled={this.state.isPublicPending}
+                >
+                  {t('Make public')}
+                </button>
+              }
+              {isPublic &&
+                <button
+                  className='mdl-button mdl-button--raised mdl-button--colored'
+                  onClick={this.makePrivate}
+                  disabled={this.state.isPublicPending}
+                >
+                  {t('Make private')}
+                </button>
+              }
+            </bem.FormView__cell>
+          }
         </bem.FormView__cell>
 
         <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>

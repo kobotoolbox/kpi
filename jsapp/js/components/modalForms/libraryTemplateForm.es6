@@ -20,7 +20,7 @@ import {
   renderLoading,
   renderBackButton,
   isLibraryAssetPublic,
-  canMakeLibraryAssetPublic
+  isLibraryAssetPublicReady
 } from './modalHelpers';
 
 /**
@@ -192,7 +192,7 @@ export class LibraryTemplateForm extends React.Component {
   validate(async = true) {
     let errors = {};
     if (this.state.data.makePublic) {
-      const validateResult = canMakeLibraryAssetPublic(
+      const validateResult = isLibraryAssetPublicReady(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector

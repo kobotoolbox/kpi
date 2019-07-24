@@ -145,7 +145,7 @@ class LibraryAsset extends React.Component {
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
               <bem.FormView__cell m='label'>
-                {t('##type## content').replace('##type##', this.state.asset.asset_type)}
+                {t('Quick look')}
               </bem.FormView__cell>
             </bem.FormView__cell>
 

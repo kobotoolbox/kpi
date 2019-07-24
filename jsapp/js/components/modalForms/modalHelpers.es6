@@ -41,7 +41,7 @@ export function renderBackButton(isDisabled = false) {
  *
  * @returns {boolean|Object} true for valid library asset and object with errors for invalid one.
  */
-export function canMakeLibraryAssetPublic(name, organization, sector) {
+export function isLibraryAssetPublicReady(name, organization, sector) {
   const errors = {};
   if (!name) {
     errors.name = t('Name is required to make asset public');
