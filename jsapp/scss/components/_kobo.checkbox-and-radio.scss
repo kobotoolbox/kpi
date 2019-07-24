@@ -44,6 +44,7 @@
 
   .radio__input {
     border-radius: 50%;
+
     &::after {
       content: "";
       top: 4px;
@@ -57,6 +58,7 @@
 
   .checkbox__input {
     border-radius: 2px;
+
     &::after {
       content: "✓";
       top: 0;
@@ -93,12 +95,17 @@
     &:checked {
       border-color: $cool-blue;
 
-      &::after {opacity: 1;}
+      &::after { opacity: 1; }
     }
 
     &[disabled] {
       pointer-events: none;
       opacity: 0.5;
+
+      & + .radio__label,
+      & + .checkbox__label {
+        opacity: 0.5;
+      }
     }
   }
 }
