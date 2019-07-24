@@ -24,11 +24,15 @@ class AssetContentSummary extends React.Component {
     });
   }
 
-  renderQuestion(question) {
+  renderQuestion(question, itemIndex) {
     const typeDef = QUESTION_TYPES.get(question.type);
+    const modifiers = ['columns', 'padding-small'];
+    if (itemIndex !== 0) {
+      modifiers.push('bordertop');
+    }
     return (
       <bem.FormView__cell
-        m={['columns', 'padding', 'bordertop']}
+        m={modifiers}
         key={question.$kuid}
       >
         <bem.FormView__cell m='column-1'>

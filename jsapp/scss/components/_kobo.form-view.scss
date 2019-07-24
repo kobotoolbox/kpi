@@ -206,6 +206,10 @@ $z-form-view-fullscreen: 101;
     padding: 20px;
   }
 
+  &.form-view__cell--padding-small {
+    padding: 10px 20px;
+  }
+
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: 14px;
