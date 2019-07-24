@@ -100,7 +100,7 @@ class SidebarFormsList extends Reflux.Component {
           s.defaultQueryState === 'done' &&
           <bem.FormSidebar__label m={'active-projects'} className='is-edge'>
             <i className='k-icon-projects' />
-            {t('Active Projects')}
+            <bem.FormSidebar__labelText>{t('Active Projects')}</bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
         }
         {
@@ -140,16 +140,15 @@ class SidebarFormsList extends Reflux.Component {
                       key={`${category}-label`}
                     >
                       <i className={icon.join(' ')}/>
-                      {t(category)}
-                      <bem.FormSidebar__labelCount>
-                        {s[activeItems][category].length}
-                      </bem.FormSidebar__labelCount>
+                      <bem.FormSidebar__labelText>{t(category)}</bem.FormSidebar__labelText>
+                      <bem.FormSidebar__labelCount>{s[activeItems][category].length}</bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
-                    <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}
-                                               key={`${category}-group`}>
-                      {
-                        s[activeItems][category].map(this.renderMiniAssetRow)
-                      }
+
+                    <bem.FormSidebar__grouping
+                      m={[category, categoryVisible ? 'visible' : 'collapsed']}
+                      key={`${category}-group`}
+                    >
+                      {s[activeItems][category].map(this.renderMiniAssetRow)}
                     </bem.FormSidebar__grouping>
                   ];
                 }

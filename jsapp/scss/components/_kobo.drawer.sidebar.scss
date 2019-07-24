@@ -3,21 +3,33 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
+  color: $cool-silver;
 
-  .form-sidebar__label,
-  .form-sidebar__grouping {
-    color: $cool-silver;
-    cursor: pointer;
+  &.form-sidebar--loading {
+    pointer-events: none;
+    opacity: 0.5;
 
-    span {
-      vertical-align: middle;
+    .form-sidebar__label-count {
+      color: transparent;
+    }
+
+    .form-sidebar__label.form-sidebar__label--selected {
+      color: inherit;
     }
   }
 
+  .form-sidebar__label,
+  .form-sidebar__item {
+    cursor: pointer;
+  }
+
   .form-sidebar__label {
-    display: block;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     padding: 3px 0;
     position: relative;
+    color: inherit;
 
     &:hover {
       color: $cool-charcoal;
@@ -29,16 +41,16 @@
 
     i {
       font-size: 36px;
-      margin-right: 0;
+      margin-right: -1px;
       margin-left: -4px;
-      vertical-align: middle;
       display: inline-block;
     }
 
+    .form-sidebar__label-text {
+      flex: 1;
+    }
+
     .form-sidebar__label-count {
-      position: absolute;
-      right: 3px;
-      top: 11px;
       padding: 0 6px;
       font-size: 12px;
       line-height: 20px;
@@ -46,6 +58,7 @@
       border-radius: 20px;
       background-color: $divider-color;
       text-align: center;
+      margin-right: 4px;
     }
   }
 
@@ -63,7 +76,7 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    line-height: 1;
+    line-height: 15px;
     color: $cool-silver;
     font-weight: normal;
     font-size: 12px;

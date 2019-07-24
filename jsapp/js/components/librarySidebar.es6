@@ -1,40 +1,34 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import stores from '../stores';
 import bem from '../bem';
-import searches from '../searches';
-import mixins from '../mixins';
 import {MODAL_TYPES} from '../constants';
 import {
   t,
-  assign,
   getAnonymousUserPermission
 } from '../utils';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
     super(props);
-    this.state = assign({}, stores.pageState.state);
-    this.stores = [
-      stores.session,
-      stores.pageState
-    ];
+    this.state = {
+      isLoading: true,
+      myCollections: [],
+      sharedCollections: [],
+      publicCollections: []
+    };
     autoBind(this);
   }
 
   queryCollections() {
     dataInterface.listCollections().then((collections) => {
       this.setState({
+        isLoading: false,
         myCollections: collections.results.filter((value) => {
-          return (
-            value.access_type !== 'public' &&
-            value.access_type !== 'subscribed' &&
-            value.access_type !== 'shared'
-          );
+          return value.access_type === 'owned';
         }),
         sharedCollections: collections.results.filter((value) => {
           return value.access_type === 'shared';
@@ -49,32 +43,7 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   componentDidMount() {
-    this.listenTo(this.searchStore, this.searchChanged);
-    this.searchDefault();
     this.queryCollections();
-  }
-
-  componentWillMount() {
-    this.setStates();
-  }
-
-  searchChanged(state) {
-    this.setState(state);
-  }
-
-  setStates() {
-    this.setState({
-      headerFilters: 'library',
-      myCollections: [],
-      sharedCollections: [],
-      publicCollections: [],
-      searchContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
-        },
-        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
-      })
-    });
   }
 
   isCollectionPublic(collection) {
@@ -89,7 +58,7 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   renderCollection(collection) {
-    var iconClass = 'k-icon-folder';
+    let iconClass = 'k-icon-folder';
     if (collection.discoverable_when_public || this.isCollectionPublic(collection)) {
       iconClass = 'k-icon-folder-public';
     }
@@ -98,10 +67,7 @@ class LibrarySidebar extends Reflux.Component {
     }
 
     const modifiers = ['collection'];
-    if (
-      this.state.filteredCollectionUid === collection.uid &&
-      !this.state.filteredByPublicCollection
-    ) {
+    if (this.isCollectionSelected(collection.uid)) {
       modifiers.push('selected');
     }
 
@@ -110,12 +76,18 @@ class LibrarySidebar extends Reflux.Component {
         key={collection.uid}
         m={modifiers}
         href={`#/library/collection/${collection.uid}`}
-        data-collection-uid={collection.uid}
-        data-collection-name={collection.name}
       >
         <i className={iconClass}/>
         <bem.FormSidebar__itemText>{collection.name}</bem.FormSidebar__itemText>
       </bem.FormSidebar__item>
+    );
+  }
+
+  isCollectionSelected(uid) {
+    return (
+      this.context.router &&
+      this.context.router.params &&
+      this.context.router.params.uid === uid
     );
   }
 
@@ -132,22 +104,28 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   render() {
+    let sidebarModifier = '';
+    if (this.state.isLoading) {
+      sidebarModifier = 'loading';
+    }
+
     return (
       <React.Fragment>
-        <button onClick={this.showLibraryNewModal} className='mdl-button mdl-button--raised mdl-button--colored'>
+        <button
+          onClick={this.showLibraryNewModal}
+          className='mdl-button mdl-button--raised mdl-button--colored'
+        >
           {t('new')}
         </button>
 
-        <bem.FormSidebar>
+        <bem.FormSidebar m={sidebarModifier}>
           <bem.FormSidebar__label
             m={{selected: this.isMyCollectionsSelected()}}
             href='#/library/owned'
           >
             <i className='k-icon-library'/>
-            {t('My Library')}
-            <bem.FormSidebar__labelCount>
-              {this.state.myCollections.length}
-            </bem.FormSidebar__labelCount>
+            <bem.FormSidebar__labelText>{t('My Library')}</bem.FormSidebar__labelText>
+            <bem.FormSidebar__labelCount>{this.state.myCollections.length}</bem.FormSidebar__labelCount>
           </bem.FormSidebar__label>
 
           {this.state.myCollections.length > 0 &&
@@ -161,10 +139,8 @@ class LibrarySidebar extends Reflux.Component {
             href='#/library/shared'
           >
             <i className='k-icon-library-shared'/>
-            {t('Shared with me')}
-            <bem.FormSidebar__labelCount>
-              {this.state.sharedCollections.length}
-            </bem.FormSidebar__labelCount>
+            <bem.FormSidebar__labelText>{t('Shared with me')}</bem.FormSidebar__labelText>
+            <bem.FormSidebar__labelCount>{this.state.sharedCollections.length}</bem.FormSidebar__labelCount>
           </bem.FormSidebar__label>
 
           {this.state.sharedCollections.length > 0 &&
@@ -178,10 +154,8 @@ class LibrarySidebar extends Reflux.Component {
             href='#/library/public-collections'
           >
             <i className='k-icon-library-public'/>
-            {t('Public Collections')}
-            <bem.FormSidebar__labelCount>
-              {this.state.publicCollections.length}
-            </bem.FormSidebar__labelCount>
+            <bem.FormSidebar__labelText>{t('Public Collections')}</bem.FormSidebar__labelText>
+            <bem.FormSidebar__labelCount>{this.state.publicCollections.length}</bem.FormSidebar__labelCount>
           </bem.FormSidebar__label>
 
           {this.state.publicCollections.length > 0 &&
@@ -191,16 +165,9 @@ class LibrarySidebar extends Reflux.Component {
           }
         </bem.FormSidebar>
       </React.Fragment>
-      );
-  }
-  componentWillReceiveProps() {
-    this.setStates();
+    );
   }
 }
-
-reactMixin(LibrarySidebar.prototype, searches.common);
-reactMixin(LibrarySidebar.prototype, Reflux.ListenerMixin);
-reactMixin(LibrarySidebar.prototype, mixins.droppable);
 
 LibrarySidebar.contextTypes = {
   router: PropTypes.object
