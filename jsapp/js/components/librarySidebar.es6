@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -30,12 +29,20 @@ class LibrarySidebar extends Reflux.Component {
   queryCollections() {
     dataInterface.listCollections().then((collections) => {
       this.setState({
-        sidebarCollections: collections.results.filter((value) => {
-          return value.access_type !== 'public';
+        myCollections: collections.results.filter((value) => {
+          return (
+            value.access_type !== 'public' &&
+            value.access_type !== 'subscribed' &&
+            value.access_type !== 'shared'
+          );
         }),
-        sidebarPublicCollections: collections.results.filter((value) => {
-          return value.access_type === 'public' ||
-            value.access_type === 'subscribed';
+        sharedCollections: collections.results.filter((value) => {
+          return value.access_type === 'shared';
+        }),
+        publicCollections: collections.results.filter((value) => {
+          return (
+            value.access_type === 'public' || value.access_type === 'subscribed'
+          );
         })
       });
     });
@@ -58,58 +65,15 @@ class LibrarySidebar extends Reflux.Component {
   setStates() {
     this.setState({
       headerFilters: 'library',
-      shadedWithMeVisible: false,
-      sidebarSharedWithMe: [],
-      publicCollectionsVisible: false,
+      myCollections: [],
+      sharedCollections: [],
+      publicCollections: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
         },
         filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
       })
-    });
-  }
-
-  clickFilterByCollection(evt) {
-    var target = $(evt.target);
-    if (target.hasClass('collection-toggle')) {
-      return false;
-    }
-    var data = $(evt.currentTarget).data();
-    var collectionUid = false;
-    var collectionName = false;
-    var publicCollection = false;
-    if (data.collectionUid) {
-      collectionUid = data.collectionUid;
-    }
-    if (data.collectionName) {
-      collectionName = data.collectionName;
-    }
-    if (data.publicCollection) {
-      publicCollection = true;
-    }
-    this.quietUpdateStore({
-      parentUid: collectionUid,
-      parentName: collectionName,
-      allPublic: publicCollection
-    });
-    this.searchValue();
-    this.setState({
-      filteredCollectionUid: collectionUid,
-      filteredByPublicCollection: publicCollection,
-    });
-  }
-
-  clickShowPublicCollections() {
-    this.setState({
-      publicCollectionsVisible: !this.state.publicCollectionsVisible,
-    });
-    //TODO: show the collections in the main pane?
-  }
-
-  clickShowSharedWithMe() {
-    this.setState({
-      sharedWithMeVisible: !this.state.sharedWithMeVisible,
     });
   }
 
@@ -124,7 +88,7 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
 
-  renderSidebarItem(collection) {
+  renderCollection(collection) {
     var iconClass = 'k-icon-folder';
     if (collection.discoverable_when_public || this.isCollectionPublic(collection)) {
       iconClass = 'k-icon-folder-public';
@@ -155,6 +119,18 @@ class LibrarySidebar extends Reflux.Component {
     );
   }
 
+  isMyCollectionsSelected() {
+    return this.context.router.isActive('library/owned');
+  }
+
+  isSharedCollectionsSelected() {
+    return this.context.router.isActive('library/shared');
+  }
+
+  isPublicCollectionsSelected() {
+    return this.context.router.isActive('library/public-collections');
+  }
+
   render() {
     return (
       <React.Fragment>
@@ -162,52 +138,58 @@ class LibrarySidebar extends Reflux.Component {
           {t('new')}
         </button>
 
-        { this.state.sidebarCollections &&
-          <bem.FormSidebar>
-            <bem.FormSidebar__label
-              m={{selected: !this.state.publicCollectionsVisible}}
-              href='#/library/owned'
-            >
-              <i className='k-icon-library'/>
-              {t('My Library')}
-              <bem.FormSidebar__labelCount>
-                {this.state.defaultQueryCount}
-              </bem.FormSidebar__labelCount>
-            </bem.FormSidebar__label>
+        <bem.FormSidebar>
+          <bem.FormSidebar__label
+            m={{selected: this.isMyCollectionsSelected()}}
+            href='#/library/owned'
+          >
+            <i className='k-icon-library'/>
+            {t('My Library')}
+            <bem.FormSidebar__labelCount>
+              {this.state.myCollections.length}
+            </bem.FormSidebar__labelCount>
+          </bem.FormSidebar__label>
 
-            {this.state.sidebarCollections.length > 0 &&
-              <bem.FormSidebar__grouping>
-                {this.state.sidebarCollections.map(this.renderSidebarItem)}
-              </bem.FormSidebar__grouping>
-            }
-
-            <bem.FormSidebar__label
-              m={{selected: this.state.sharedWithMeVisible}}
-              href='#/library/shared'
-            >
-              <i className='k-icon-library-shared'/>
-              {t('Shared with me')}
-              <bem.FormSidebar__labelCount>
-                {this.state.sidebarSharedWithMe.length}
-              </bem.FormSidebar__labelCount>
-            </bem.FormSidebar__label>
-
-            <bem.FormSidebar__label
-              m={{selected: this.state.publicCollectionsVisible}}
-              href='#/library/public-collections'
-            >
-              <i className='k-icon-library-public' />
-              {t('Public Collections')}
-              <bem.FormSidebar__labelCount>
-                {this.state.sidebarPublicCollections.length}
-              </bem.FormSidebar__labelCount>
-            </bem.FormSidebar__label>
-
-            <bem.FormSidebar__grouping m={[this.state.publicCollectionsVisible ? 'visible' : 'collapsed']}>
-              {this.state.sidebarPublicCollections.map(this.renderSidebarItem)}
+          {this.state.myCollections.length > 0 &&
+            <bem.FormSidebar__grouping>
+              {this.state.myCollections.map(this.renderCollection)}
             </bem.FormSidebar__grouping>
-          </bem.FormSidebar>
-        }
+          }
+
+          <bem.FormSidebar__label
+            m={{selected: this.isSharedCollectionsSelected()}}
+            href='#/library/shared'
+          >
+            <i className='k-icon-library-shared'/>
+            {t('Shared with me')}
+            <bem.FormSidebar__labelCount>
+              {this.state.sharedCollections.length}
+            </bem.FormSidebar__labelCount>
+          </bem.FormSidebar__label>
+
+          {this.state.sharedCollections.length > 0 &&
+            <bem.FormSidebar__grouping>
+              {this.state.sharedCollections.map(this.renderCollection)}
+            </bem.FormSidebar__grouping>
+          }
+
+          <bem.FormSidebar__label
+            m={{selected: this.isPublicCollectionsSelected()}}
+            href='#/library/public-collections'
+          >
+            <i className='k-icon-library-public'/>
+            {t('Public Collections')}
+            <bem.FormSidebar__labelCount>
+              {this.state.publicCollections.length}
+            </bem.FormSidebar__labelCount>
+          </bem.FormSidebar__label>
+
+          {this.state.publicCollections.length > 0 &&
+            <bem.FormSidebar__grouping>
+              {this.state.publicCollections.map(this.renderCollection)}
+            </bem.FormSidebar__grouping>
+          }
+        </bem.FormSidebar>
       </React.Fragment>
       );
   }
