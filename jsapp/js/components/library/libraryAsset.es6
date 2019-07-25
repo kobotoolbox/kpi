@@ -104,7 +104,7 @@ class LibraryAsset extends React.Component {
           m='preview'
           onClick={this.showSharingModal}
           className='right-tooltip'
-          data-tip={t('Share this ##type##').replace('##type##', ASSET_TYPES[this.state.asset.asset_type].label)}
+          data-tip={t('Share')}
         >
           <i className='k-icon-user-share' />
         </bem.FormView__link>

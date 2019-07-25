@@ -69,7 +69,6 @@ export function isLibraryAssetPublicReady(name, organization, sector) {
  * @returns {boolean} Is asset public.
  */
 export function isLibraryAssetPublic(permissions, isDiscoverable) {
-  console.debug('isLibraryAssetPublic', permissions, isDiscoverable)
   // TODO: collections have `discoverable_when_public` property but it will go away
   // when they will become assets, for now disregard it when undefined
   if (isDiscoverable === false) {
