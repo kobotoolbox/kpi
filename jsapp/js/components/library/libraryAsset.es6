@@ -79,7 +79,7 @@ class LibraryAsset extends React.Component {
       this.state.asset.asset_type === ASSET_TYPES.collection.id
     );
     return (
-      <bem.FormView__cell>
+      <bem.FormView__cell m='action-buttons'>
         {this.state.asset.asset_type !== ASSET_TYPES.collection.id &&
           <Link
             to={`/library/asset/${this.state.asset.uid}/edit`}

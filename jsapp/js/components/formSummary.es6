@@ -381,7 +381,7 @@ class FormSummary extends React.Component {
                 {t('Form details')}
               </bem.FormView__cell>
               <bem.FormView__cell m={['box']}>
-                <bem.FormView__group m={['items', 'summary-details-cols']}>
+                <bem.FormView__group m='summary-details-cols'>
                   <bem.FormView__cell>
                     <bem.FormView__label>{t('Last modified')}</bem.FormView__label>
                     {formatTime(this.state.date_modified)}

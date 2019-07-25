@@ -337,11 +337,11 @@ export class FormLanding extends React.Component {
     }
 
     return (
-      <bem.FormView__group m='buttons'>
+      <React.Fragment>
         {userCanEdit ?
           <Link to={`/forms/${this.state.uid}/edit`}
                 className='form-view__link form-view__link--edit'
-                data-tip={t('edit')}>
+                data-tip={t('Edit in Form Builder')}>
             <i className='k-icon-edit' />
           </Link>
         :
@@ -417,7 +417,7 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
         </ui.PopoverMenu>
-      </bem.FormView__group>
+      </React.Fragment>
     );
   }
   renderLanguages (canEdit) {
@@ -483,7 +483,7 @@ export class FormLanding extends React.Component {
                   this.state.has_deployment ? t('Archived version') :
                     t('Draft version')}
               </bem.FormView__cell>
-              <bem.FormView__cell>
+              <bem.FormView__cell m='action-buttons'>
                 {this.renderButtons(userCanEdit)}
               </bem.FormView__cell>
             </bem.FormView__cell>

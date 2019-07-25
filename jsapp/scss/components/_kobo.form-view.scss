@@ -227,16 +227,7 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--first {
-    position: relative;
     padding-bottom: 20px;
-
-    .form-view__group {
-      position: absolute;
-      right: 0;
-      top: -12px;
-      min-width: 200px;
-      text-align: right;
-    }
   }
 
   &.form-view__cell--buttons {
@@ -256,6 +247,11 @@ $z-form-view-fullscreen: 101;
 
   &.form-view__cell--undeployed {
     display: inline-block;
+  }
+
+  // visually make same amount of white space as without buttons
+  &.form-view__cell--label + &.form-view__cell--action-buttons {
+    margin: -8px 0;
   }
 
   &.form-view__cell--date {
