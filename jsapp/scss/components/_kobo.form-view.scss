@@ -143,7 +143,6 @@ $z-form-view-fullscreen: 101;
 
 .form-view__row {
   margin: 40px;
-  margin-right: 44px;
 
   + .form-view__row {
     margin-top: 0;
@@ -339,7 +338,7 @@ $z-form-view-fullscreen: 101;
     background: $cool-whitesilver;
 
     i {
-      color: #FFB775;
+      color: #ffb775;
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
@@ -366,14 +365,14 @@ $z-form-view-fullscreen: 101;
     }
 
     &:hover {
-      background: #F2F2F3;
+      background: #f2f2f3;
     }
 
     a.copy {
       position: absolute;
       right: 15px;
       top: 15px;
-      padding: 0px 12px;
+      padding: 0 12px;
       cursor: pointer;
       display: none;
       text-transform: uppercase;
@@ -400,6 +399,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view__icon-button {
   @extend .mdl-button, .mdl-button--icon;
+
   overflow: visible;
   padding: 0;
 }
@@ -408,7 +408,7 @@ $z-form-view-fullscreen: 101;
 .form-view__link {
   font-size: 36px;
   line-height: 18px;
-  padding: 0px 5px;
+  padding: 0 5px;
   color: $cool-gray;
   cursor: pointer;
   vertical-align: middle;
@@ -465,7 +465,7 @@ $z-form-view-fullscreen: 101;
   }
 
   &--items {
-    padding: 0px;
+    padding: 0;
     border-top: 1px solid $divider-color;
     display: flex;
     align-items: center;
@@ -513,17 +513,13 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--headings {
-    font-weight: 600;
-  }
-
-  &--deployments {
+  .form-view__group--deployments {
     .form-view__group--items:hover {
       background: $hover-asset-row;
     }
   }
 
-  &--headings {
+  .form-view__group--headings {
     font-weight: 600;
     border-top: none;
 
@@ -566,7 +562,7 @@ $z-form-view-fullscreen: 101;
 .form-view.form-view--form-data-downloads {
   .form-modal__item {
     &:last-child {
-      margin-bottom: 0px;
+      margin-bottom: 0;
     }
 
     &--export-type,
@@ -608,7 +604,7 @@ $z-form-view-fullscreen: 101;
     }
 
     .form-view__group--headings {
-      padding: 8px 0px;
+      padding: 8px 0;
 
       .form-view__label--type {
         text-transform: none;
@@ -648,7 +644,7 @@ $z-form-view-fullscreen: 101;
 .form-view__cell--collect-meta {
   pre {
     display: block;
-    margin: 10px 0px;
+    margin: 10px 0;
     padding: 10px;
     border: 1px solid $divider-color;
     background: $cool-whitesilver;
@@ -668,7 +664,7 @@ $z-form-view-fullscreen: 101;
     }
 
     i {
-      margin: 0px 6px;
+      margin: 0 6px;
       font-size: 18px;
       display: inline-block;
     }
@@ -701,7 +697,7 @@ $z-form-view-fullscreen: 101;
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width: 50px;
-    padding-top: 0px;
+    padding-top: 0;
 
     a.form-view__tab {
       padding: 3px;
@@ -731,7 +727,8 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  .form-view__sidetabs + .form-view, .form-view__sidetabs + .report-view {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view {
     width: calc(100% - 50px);
     overflow-x: hidden;
   }
@@ -742,7 +739,7 @@ $z-form-view-fullscreen: 101;
 
     a.form-view__link {
       font-size: 32px;
-      padding: 0px 3px;
+      padding: 0 3px;
     }
   }
 
@@ -766,6 +763,6 @@ $z-form-view-fullscreen: 101;
 
   .form-view__cell--date {
     display: block;
-    margin-left: 0px;
+    margin-left: 0;
   }
 }
