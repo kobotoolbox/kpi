@@ -5,7 +5,6 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {Link} from 'react-router';
-import ui from 'js/ui';
 import bem from 'js/bem';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
@@ -17,6 +16,7 @@ import {
 } from 'js/constants';
 import AssetInfoBox from './assetInfoBox';
 import AssetContentSummary from './AssetContentSummary';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 class LibraryAsset extends React.Component {
   constructor(props) {
@@ -25,6 +25,13 @@ class LibraryAsset extends React.Component {
       asset: false
     };
     autoBind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // trigger loading message when switching assets
+    if (nextProps.params.uid !== this.props.params.uid) {
+      this.setState({asset: false});
+    }
   }
 
   componentDidMount() {
@@ -64,19 +71,6 @@ class LibraryAsset extends React.Component {
       type: modalType,
       asset: this.state.asset
     });
-  }
-
-  renderLoading() {
-    return (
-      <ui.Panel>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </ui.Panel>
-    );
   }
 
   renderActionButtons() {
@@ -120,7 +114,7 @@ class LibraryAsset extends React.Component {
 
   render() {
     if (this.state.asset === false) {
-      return this.renderLoading();
+      return renderLoading();
     }
 
     const docTitle = this.state.asset.name || t('Untitled');
@@ -137,9 +131,7 @@ class LibraryAsset extends React.Component {
               {this.renderActionButtons()}
             </bem.FormView__cell>
 
-            <AssetInfoBox
-              asset={this.state.asset}
-            />
+            <AssetInfoBox asset={this.state.asset}/>
           </bem.FormView__row>
 
           <bem.FormView__row>

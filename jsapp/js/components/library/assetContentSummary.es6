@@ -18,7 +18,6 @@ class AssetContentSummary extends React.Component {
   }
 
   componentDidMount() {
-    console.debug('AssetContentSummary did mount', this.props);
     this.setState({
       isExpandable: this.props.assetContent.survey.length > QUESTION_LIMIT
     });

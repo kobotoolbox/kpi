@@ -27,12 +27,7 @@ class AssetInfoBox extends React.Component {
     autoBind(this);
   }
 
-  componentDidMount() {
-    console.debug('AssetInfoBox did mount', this.props);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    console.debug('AssetInfoBox will receive props', nextProps);
+  componentWillReceiveProps() {
     this.setState({isPublicPending: false});
   }
 
