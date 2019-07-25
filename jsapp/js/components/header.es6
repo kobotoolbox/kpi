@@ -16,10 +16,8 @@ import {
   assign,
   currentLang,
   stringToColor,
-} from '../utils';
-import {
-  ASSET_TYPES,
-} from '../constants';
+} from 'js/utils';
+import {getAssetIcon} from 'js/assetUtils';
 import searches from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
@@ -199,27 +197,7 @@ class MainHeader extends Reflux.Component {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
     }
 
-    let iconClassName = '';
-
-    if (this.state.asset && this.state.asset.asset_type === ASSET_TYPES.template.id) {
-      iconClassName = 'k-icon-template';
-    }
-    if (
-      this.state.asset &&
-      (
-        this.state.asset.asset_type === ASSET_TYPES.question.id ||
-        this.state.asset.asset_type === ASSET_TYPES.block.id
-      )
-    ) {
-      iconClassName = 'k-icon-question-block';
-    }
-    if (this.state.asset && this.state.asset.asset_type === ASSET_TYPES.survey.id) {
-      if (this.state.asset.has_deployment) {
-        iconClassName = 'k-icon-deploy';
-      } else {
-        iconClassName = 'k-icon-drafts';
-      }
-    }
+    const iconClassName = getAssetIcon(this.state.asset);
 
     return (
         <bem.MainHeader className='mdl-layout__header'>

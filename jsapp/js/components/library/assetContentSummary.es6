@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
-import {getQuestionDisplayName} from 'js/formUtils';
+import {getQuestionDisplayName} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 import {t} from 'js/utils';
 

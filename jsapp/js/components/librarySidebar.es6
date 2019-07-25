@@ -6,10 +6,8 @@ import {dataInterface} from '../dataInterface';
 import stores from '../stores';
 import bem from '../bem';
 import {MODAL_TYPES} from '../constants';
-import {
-  t,
-  getAnonymousUserPermission
-} from '../utils';
+import {t} from 'js/utils';
+import {getAssetIcon} from 'js/assetUtils';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
@@ -46,10 +44,6 @@ class LibrarySidebar extends Reflux.Component {
     this.queryCollections();
   }
 
-  isCollectionPublic(collection) {
-    return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
-  }
-
   showLibraryNewModal(evt) {
     evt.preventDefault();
     stores.pageState.showModal({
@@ -58,13 +52,7 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   renderCollection(collection) {
-    let iconClass = 'k-icon-folder';
-    if (collection.discoverable_when_public || this.isCollectionPublic(collection)) {
-      iconClass = 'k-icon-folder-public';
-    }
-    if (collection.access_type === 'shared') {
-      iconClass = 'k-icon-folder-shared';
-    }
+    const iconClass = getAssetIcon(collection);
 
     const modifiers = ['collection'];
     if (this.isCollectionSelected(collection.uid)) {
