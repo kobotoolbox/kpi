@@ -79,34 +79,35 @@ export class DataTable extends React.Component {
       });
       filterQuery += '}';
       dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
-        if (data.count) {
-          this.setState({resultsTotal: data.count});
-        }
+        this.setState({resultsTotal: data.count});
       });
     } else {
       this.setState({resultsTotal: this.props.asset.deployment__submission_count});
     }
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      if (data && data.length > 0) {
+      let results = data.results;
+
+      if (results && results.length > 0) {
         if (this.state.submissionPager == 'next') {
-          this.submissionModalProcessing(data[0]._id, data);
+          this.submissionModalProcessing(results[0]._id, results);
         }
         if (this.state.submissionPager == 'prev') {
-          this.submissionModalProcessing(data[data.length - 1]._id, data);
+          this.submissionModalProcessing(results[results.length - 1]._id, results);
         }
         this.setState({
           loading: false,
           selectedRows: {},
           selectAll: false,
-          tableData: data,
+          tableData: results,
           submissionPager: false
         });
-        this._prepColumns(data);
+        this._prepColumns(results);
       } else {
         if (filterQuery.length) {
           this.setState({
-            loading: false
+            loading: false,
+            tableData: results
           });
           // TODO: debounce the queries and then enable this notification
           alertify.warning(t('The query did not return any results.'));
@@ -993,7 +994,7 @@ export class DataTable extends React.Component {
           columns={selectedColumns || columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={1}
+          minRows={0}
           className={tableClasses}
           pages={pages}
           manual
