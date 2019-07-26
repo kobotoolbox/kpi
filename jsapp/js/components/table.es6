@@ -107,10 +107,14 @@ export class DataTable extends React.Component {
         if (filterQuery.length) {
           this.setState({
             loading: false,
+            selectedRows: {},
             tableData: results
           });
           // TODO: debounce the queries and then enable this notification
-          alertify.warning(t('The query did not return any results.'));
+          // Block the warning if selectAll is true
+          if (!this.state.selectAll) {
+            alertify.warning(t('The query did not return any results.'));
+          }
         } else {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
@@ -762,10 +766,22 @@ export class DataTable extends React.Component {
       }
     });
 
-    this.setState({
-      selectedRows: s,
-      selectAll: false
-    });
+    // If the entirety of the results has been selected, selectAll should be true
+    // Useful when the # of results is smaller than the page size.
+    var scount = Object.keys(s).length;
+
+    if (scount == this.state.resultsTotal) {
+      this.setState({
+        selectedRows: s,
+        selectAll: true
+      });
+    } else {
+      this.setState({
+        selectedRows: s,
+        selectAll: false
+      });
+    }
+
   }
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
