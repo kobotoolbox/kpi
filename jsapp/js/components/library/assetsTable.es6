@@ -4,7 +4,12 @@ import bem from 'js/bem';
 import {t} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
 
-export const ASSETS_TABLE_COLUMNS = new Map([
+export const ASSETS_TABLE_CONTEXTS = new Map([
+  ['default', 'default'],
+  ['collection-content', 'collection-content']
+]);
+
+const COLUMNS = new Map([
   ['collection', {label: t('Collection'), id: 'collection'}],
   ['country', {label: t('Country'), id: 'country'}],
   ['icon', {label: null, id: 'icon'}],
@@ -18,61 +23,42 @@ export const ASSETS_TABLE_COLUMNS = new Map([
 export class AssetsTable extends React.Component {
   constructor(props){
     super(props);
+    this.state = {
+      orderBy: COLUMNS.get('name').id,
+      isOrderAsc: true
+    };
     autoBind(this);
   }
 
-  renderHeader() {
+  reorder(columnId) {
+    if (this.state.orderBy === columnId) {
+      // clicking already selected column results in switching the order direction
+      this.setState({isOrderAsc: !this.state.isOrderAsc});
+    } else {
+      this.setState({
+        orderBy: columnId,
+        isOrderAsc: true
+      });
+    }
+  }
+
+  renderHeaderColumn(columnDef) {
+    let icon = null;
+    if (this.state.orderBy === columnDef.id) {
+      if (this.state.isOrderAsc) {
+        icon = (<i className='k-icon k-icon-up'/>);
+      } else {
+        icon = (<i className='k-icon k-icon-down'/>);
+      }
+    }
     return (
-      <bem.AssetsTableRow m='header'>
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('icon').id) &&
-          <bem.AssetsTableRow__column m='icon'>
-            {ASSETS_TABLE_COLUMNS.get('icon').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('name').id) &&
-          <bem.AssetsTableRow__column m='name'>
-            {ASSETS_TABLE_COLUMNS.get('name').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('owner').id) &&
-          <bem.AssetsTableRow__column m='owner'>
-            {ASSETS_TABLE_COLUMNS.get('owner').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('status').id) &&
-          <bem.AssetsTableRow__column m='status'>
-            {ASSETS_TABLE_COLUMNS.get('status').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('collection').id) &&
-          <bem.AssetsTableRow__column m='collection'>
-            {ASSETS_TABLE_COLUMNS.get('collection').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('primary-sector').id) &&
-          <bem.AssetsTableRow__column m='primary-sector'>
-            {ASSETS_TABLE_COLUMNS.get('primary-sector').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('country').id) &&
-          <bem.AssetsTableRow__column m='country'>
-            {ASSETS_TABLE_COLUMNS.get('country').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-        {this.props.columns.includes(ASSETS_TABLE_COLUMNS.get('last-modified').id) &&
-          <bem.AssetsTableRow__column m='last-modified'>
-            {ASSETS_TABLE_COLUMNS.get('last-modified').label}
-            <i className='k-icon k-icon-down'/>
-          </bem.AssetsTableRow__column>
-        }
-      </bem.AssetsTableRow>
+      <bem.AssetsTableRow__column
+        m={columnDef.id}
+        onClick={this.reorder.bind(this, columnDef.id)}
+      >
+        {columnDef.label}
+        {icon}
+      </bem.AssetsTableRow__column>
     );
   }
 
@@ -88,8 +74,25 @@ export class AssetsTable extends React.Component {
 
   render() {
     return (
-      <bem.AssetsTable>
-        {this.renderHeader()}
+      <bem.AssetsTable m={this.props.context}>
+        <bem.AssetsTableRow m='header'>
+          {this.renderHeaderColumn(COLUMNS.get('icon'))}
+          {this.renderHeaderColumn(COLUMNS.get('name'))}
+          {this.renderHeaderColumn(COLUMNS.get('owner'))}
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+            this.renderHeaderColumn(COLUMNS.get('status'))
+          }
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+            this.renderHeaderColumn(COLUMNS.get('collection'))
+          }
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+            this.renderHeaderColumn(COLUMNS.get('primary-sector'))
+          }
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+            this.renderHeaderColumn(COLUMNS.get('country'))
+          }
+          {this.renderHeaderColumn(COLUMNS.get('last-modified'))}
+        </bem.AssetsTableRow>
 
         {this.props.assets.length === 0 &&
           <bem.AssetsTableRow m='empty-message'>
@@ -101,7 +104,8 @@ export class AssetsTable extends React.Component {
           return (
             <AssetsTableRow
               asset={asset}
-              columns={this.props.columns}
+              key={asset.uid}
+              context={this.props.context}
             />
           );
         })}

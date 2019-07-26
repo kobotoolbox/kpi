@@ -1,6 +1,42 @@
 .assets-table {
   width: 100%;
   background-color: $white;
+
+  &.assets-table--default {
+    .assets-table-row__column--owner {
+      width: 10%;
+    }
+
+    .assets-table-row__column--status {
+      width: 50px;
+    }
+
+    .assets-table-row__column--collection {
+      width: 10%;
+    }
+
+    .assets-table-row__column--primary-sector {
+      width: 10%;
+    }
+
+    .assets-table-row__column--country {
+      width: 10%;
+    }
+
+    .assets-table-row__column--last-modified {
+      width: 10%;
+    }
+  }
+
+  &.assets-table--collection-content {
+    .assets-table-row__column--owner {
+      width: 20%;
+    }
+
+    .assets-table-row__column--last-modified {
+      width: 20%;
+    }
+  }
 }
 
 .assets-table-row {
@@ -32,6 +68,8 @@
     cursor: pointer;
     font-weight: 700;
     white-space: nowrap;
+    height: 30px;
+    line-height: 20px;
 
     &:hover {
       background-color: $cool-whitegray;
@@ -99,26 +137,6 @@
 
     &.assets-table-row__column--name {
       flex: 1;
-    }
-
-    &.assets-table-row__column--owner {
-      //
-    }
-
-    &.assets-table-row__column--status {
-      //
-    }
-
-    &.assets-table-row__column--collection {
-      //
-    }
-
-    &.assets-table-row__column--primary-sector {
-      //
-    }
-
-    &.assets-table-row__column--country {
-      //
     }
 
     &.assets-table-row__column--last-modified {

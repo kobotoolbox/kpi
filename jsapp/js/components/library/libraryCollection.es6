@@ -19,7 +19,7 @@ import {
 import AssetInfoBox from './assetInfoBox';
 import {
   AssetsTable,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_CONTEXTS
 } from './assetsTable';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
@@ -115,6 +115,8 @@ class LibraryCollection extends React.Component {
       settings: {}
     }, this.state.asset);
 
+    const fakeAssetsList = [{uid: 1}, {uid: 2}, {uid: 3}, {uid: 4}, {uid: 5}];
+
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
@@ -139,13 +141,8 @@ class LibraryCollection extends React.Component {
 
             <bem.FormView__cell m='box'>
               <AssetsTable
-                assets={[{uid: 1}, {uid: 2}, {uid: 3}, {uid: 4}, {uid: 5}]}
-                columns={[
-                  ASSETS_TABLE_COLUMNS.get('icon').id,
-                  ASSETS_TABLE_COLUMNS.get('name').id,
-                  ASSETS_TABLE_COLUMNS.get('owner').id,
-                  ASSETS_TABLE_COLUMNS.get('last-modified').id
-                ]}
+                assets={fakeAssetsList}
+                context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
               />
             </bem.FormView__cell>
           </bem.FormView__row>
