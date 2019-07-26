@@ -1,0 +1,132 @@
+.assets-table {
+  width: 100%;
+  background-color: $white;
+}
+
+.assets-table-row {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: flex-start;
+
+  &:hover {
+    &.assets-table-row--asset {
+      background-color: $cool-whitegray;
+    }
+
+    .assets-table-row__buttons {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  &:active {
+    &.assets-table-row--asset {
+      background-color: $cool-whitesilver;
+    }
+  }
+
+  &.assets-table-row--header .assets-table-row__column {
+    border-top: 0;
+    border-bottom: 1px solid $divider-color;
+    cursor: pointer;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: $cool-whitegray;
+    }
+
+    &:active {
+      border-bottom-color: transparent;
+    }
+
+    .k-icon {
+      font-size: 20px;
+    }
+  }
+
+  &.assets-table-row--footer {
+    display: block;
+
+    .assets-table-row__column {
+      border-top: 2px solid $divider-color;
+    }
+  }
+
+  &.assets-table-row--asset {
+    .assets-table-row__column--icon {
+      padding: 0;
+
+      .k-icon {
+        font-size: 32px;
+      }
+    }
+  }
+
+  &.assets-table-row--empty-message {
+    padding: 60px 40px;
+  }
+
+  .assets-table-row__link {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .assets-table-row__buttons {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+    visibility: hidden;
+    transition: 0.25s;
+  }
+
+  .assets-table-row__column {
+    border-top: 1px solid $divider-color;
+    padding: 5px;
+
+    &.assets-table-row__column--icon {
+      width: 32px;
+      text-align: center;
+    }
+
+    &.assets-table-row__column--name {
+      flex: 1;
+    }
+
+    &.assets-table-row__column--owner {
+      //
+    }
+
+    &.assets-table-row__column--status {
+      //
+    }
+
+    &.assets-table-row__column--collection {
+      //
+    }
+
+    &.assets-table-row__column--primary-sector {
+      //
+    }
+
+    &.assets-table-row__column--country {
+      //
+    }
+
+    &.assets-table-row__column--last-modified {
+      text-align: right;
+    }
+
+    .k-icon {
+      vertical-align: middle;
+    }
+  }
+}
