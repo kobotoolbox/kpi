@@ -315,18 +315,18 @@ export class TranslationSettings extends React.Component {
                       }
                     </bem.FormView__iconButton>
 
+                    <bem.FormView__iconButton
+                      data-index={i}
+                      onClick={this.launchTranslationTableModal}
+                      disabled={this.state.isUpdatingDefaultLanguage}
+                      data-tip={t('Update translations')}
+                      className='right-tooltip'
+                    >
+                      <i className='k-icon-globe-alt' />
+                    </bem.FormView__iconButton>
+
                     {i !== 0 &&
                       <React.Fragment>
-                        <bem.FormView__iconButton
-                          data-index={i}
-                          onClick={this.launchTranslationTableModal}
-                          disabled={this.state.isUpdatingDefaultLanguage}
-                          data-tip={t('Update translations')}
-                          className='right-tooltip'
-                        >
-                          <i className='k-icon-globe-alt' />
-                        </bem.FormView__iconButton>
-
                         <bem.FormView__iconButton
                           data-index={i}
                           onClick={this.deleteLanguage}

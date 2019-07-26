@@ -25,6 +25,7 @@ export class TranslationTable extends React.Component {
     stores.translations.setTranslationTableUnsaved(false);
     const {translated, survey, choices, translations} = props.asset.content;
     const langIndex = props.langIndex;
+    const editableColTitle = (langIndex == 0) ? t('updated text') : t('translation');
 
     // add each translatable property for survey items to translation table
     survey.forEach((row) => {
@@ -64,7 +65,7 @@ export class TranslationTable extends React.Component {
         minWidth: 130,
         Cell: (cellInfo) => {return cellInfo.original.original;}
       }, {
-        Header: t('##lang## translation').replace('##lang##', translations[langIndex]),
+        Header: t('##lang## ' + editableColTitle).replace('##lang##', translations[langIndex]),
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {
