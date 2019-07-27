@@ -30,7 +30,7 @@ const enketoHandler = {
     const urlId = this._getUrlId(aid, sid);
     this.enketoUrls.set(urlId, url);
     // store url for 30 seconds as configured in Enketo
-    setTimeout(this._removeEnketoUrl.bind(this, urlId), 30 * 1000);
+    setTimeout(this._removeEnketoUrl.bind(this, aid, sid), 30 * 1000);
   },
 
   _removeEnketoUrl(aid, sid) {
@@ -73,6 +73,10 @@ const enketoHandler = {
             reject();
           });
       }
+    }).catch(() => {
+      // close the blank tab since it will never load anything 😢
+      // (and it obscures the error message)
+      this.winTab.close();
     });
     return editPromise;
   }
