@@ -115,7 +115,33 @@ class LibraryCollection extends React.Component {
       settings: {}
     }, this.state.asset);
 
-    const fakeAssetsList = [{uid: 1}, {uid: 2}, {uid: 3}, {uid: 4}, {uid: 5}];
+    const fakeAssetsList = [
+      {
+        uid: 1,
+        questionCount: 7,
+        date_modified: new Date()
+      },
+      {
+        uid: 2,
+        questionCount: 1,
+        date_modified: new Date()
+      },
+      {
+        uid: 3,
+        questionCount: 45,
+        date_modified: new Date()
+      },
+      {
+        uid: 4,
+        questionCount: 288,
+        date_modified: new Date()
+      },
+      {
+        uid: 5,
+        questionCount: 0,
+        date_modified: new Date()
+      }
+    ];
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>

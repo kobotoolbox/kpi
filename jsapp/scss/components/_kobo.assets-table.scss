@@ -1,3 +1,7 @@
+/* ==========================================================================
+ * AssetsTable
+ * ========================================================================== */
+
 .assets-table {
   width: 100%;
   background-color: $white;
@@ -39,26 +43,31 @@
   }
 }
 
+/* ==========================================================================
+ * AssetsTableRow
+ * ========================================================================== */
+
+$z-assets-table-row-link: 10;
+$z-assets-table-row-buttons: 20;
+
 .assets-table-row {
   display: flex;
   flex-direction: row;
   position: relative;
   align-items: flex-start;
 
-  &:hover {
-    &.assets-table-row--asset {
+  &.assets-table-row--asset {
+    &:hover {
       background-color: $cool-whitegray;
-    }
 
-    .assets-table-row__buttons {
-      opacity: 1;
-      visibility: visible;
-    }
-  }
+      .k-icon[data-counter]::after {
+        background-color: $cool-whitegray;
+      }
 
-  &:active {
-    &.assets-table-row--asset {
-      background-color: $cool-whitesilver;
+      .assets-table-row__buttons {
+        opacity: 1;
+        visibility: visible;
+      }
     }
   }
 
@@ -68,7 +77,7 @@
     cursor: pointer;
     font-weight: 700;
     white-space: nowrap;
-    height: 30px;
+    height: 40px;
     line-height: 20px;
 
     &:hover {
@@ -81,6 +90,9 @@
 
     .k-icon {
       font-size: 20px;
+      // to take up space when empty
+      min-width: 20px;
+      display: inline-block;
     }
   }
 
@@ -109,6 +121,7 @@
   .assets-table-row__link {
     cursor: pointer;
     position: absolute;
+    z-index: $z-assets-table-row-link;
     top: 0;
     left: 0;
     width: 100%;
@@ -117,6 +130,7 @@
 
   .assets-table-row__buttons {
     position: absolute;
+    z-index: $z-assets-table-row-buttons;
     top: 0;
     right: 0;
     opacity: 0;
@@ -128,10 +142,10 @@
 
   .assets-table-row__column {
     border-top: 1px solid $divider-color;
-    padding: 5px;
+    padding: 10px;
 
     &.assets-table-row__column--icon {
-      width: 32px;
+      width: 40px;
       text-align: center;
     }
 

@@ -1,7 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
-import {t} from 'js/utils';
+import AssetActionButtons from './assetActionButtons';
+import {
+  t,
+  formatTime
+} from 'js/utils';
+import {ASSET_TYPES} from 'js/constants';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
 
 class AssetsTableRow extends React.Component {
@@ -13,14 +18,12 @@ class AssetsTableRow extends React.Component {
   render() {
     return (
       <bem.AssetsTableRow m='asset'>
-        <bem.AssetsTableRow__link href='#'/>
+        <bem.AssetsTableRow__link href='#TODO'/>
 
-        <bem.AssetsTableRow__buttons>
-          buttons
-        </bem.AssetsTableRow__buttons>
+        <AssetActionButtons asset={this.props.asset}/>
 
         <bem.AssetsTableRow__column m='icon'>
-          <i className='k-icon k-icon-folder'/>
+          <i className='k-icon k-icon-folder' data-counter={this.props.asset.questionCount}/>
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>
@@ -56,7 +59,7 @@ class AssetsTableRow extends React.Component {
         }
 
         <bem.AssetsTableRow__column m='last-modified'>
-          last-modified {this.props.asset.uid}
+          {formatTime(this.props.asset.date_modified)}
         </bem.AssetsTableRow__column>
       </bem.AssetsTableRow>
     );

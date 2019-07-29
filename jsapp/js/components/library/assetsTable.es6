@@ -43,7 +43,8 @@ export class AssetsTable extends React.Component {
   }
 
   renderHeaderColumn(columnDef) {
-    let icon = null;
+    // empty icon to take up space in column
+    let icon = (<i className='k-icon'/>);
     if (this.state.orderBy === columnDef.id) {
       if (this.state.isOrderAsc) {
         icon = (<i className='k-icon k-icon-up'/>);

@@ -1,0 +1,24 @@
+// Main styles are generated from `jsapp/k-icons-css-template.hbs` template
+// here are some additional ones
+
+.k-icon[data-counter] {
+  position: relative;
+
+  &::after {
+    content: attr(data-counter);
+    pointer-events: none;
+    font-family: $font;
+    position: absolute;
+    bottom: 3px;
+    left: 75%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 0.3em;
+    line-height: 1.2em;
+    color: currentColor;
+    background-color: white;
+    box-shadow: 0 0 0 1px currentColor;
+    border-radius: 2em;
+    padding: 0 0.3em;
+  }
+}
