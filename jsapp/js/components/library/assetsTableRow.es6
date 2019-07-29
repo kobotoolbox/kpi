@@ -23,7 +23,12 @@ class AssetsTableRow extends React.Component {
         <AssetActionButtons asset={this.props.asset}/>
 
         <bem.AssetsTableRow__column m='icon'>
-          <i className='k-icon k-icon-folder' data-counter={this.props.asset.questionCount}/>
+          {this.props.asset.questionCount > 0 &&
+            <i className='k-icon k-icon-folder' data-counter={this.props.asset.questionCount}/>
+          }
+          {this.props.asset.questionCount === 0 &&
+            <i className='k-icon k-icon-folder'/>
+          }
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>

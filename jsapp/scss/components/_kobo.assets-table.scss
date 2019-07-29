@@ -69,6 +69,14 @@ $z-assets-table-row-buttons: 20;
         visibility: visible;
       }
     }
+
+    .assets-table-row__column--icon {
+      padding: 3px 0 0 0;
+
+      .k-icon {
+        font-size: 32px;
+      }
+    }
   }
 
   &.assets-table-row--header .assets-table-row__column {
@@ -101,16 +109,6 @@ $z-assets-table-row-buttons: 20;
 
     .assets-table-row__column {
       border-top: 2px solid $divider-color;
-    }
-  }
-
-  &.assets-table-row--asset {
-    .assets-table-row__column--icon {
-      padding: 0;
-
-      .k-icon {
-        font-size: 32px;
-      }
     }
   }
 

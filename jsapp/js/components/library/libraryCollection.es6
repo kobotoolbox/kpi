@@ -123,7 +123,7 @@ class LibraryCollection extends React.Component {
       },
       {
         uid: 2,
-        questionCount: 1,
+        questionCount: 0,
         date_modified: new Date()
       },
       {
@@ -138,7 +138,7 @@ class LibraryCollection extends React.Component {
       },
       {
         uid: 5,
-        questionCount: 0,
+        questionCount: 1,
         date_modified: new Date()
       }
     ];
