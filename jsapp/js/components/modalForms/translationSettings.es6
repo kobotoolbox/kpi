@@ -256,19 +256,23 @@ export class TranslationSettings extends React.Component {
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
           {(translations && translations[0] === null) ?
-            <bem.FormView__cell m='translation-note'>
-              <p>{t('Here you can add more languages to your project, and translate the strings in each of them.')}</p>
-              <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
-              <p>{t('For the language code field, we suggest using the')}
-                <a target='_blank' href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'>
-                  {' ' + t('official language code') + ' '}
-                </a>
-                {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
-                <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
-                  {' ' + t('Read more.')}
-                </a>
-              </p>
-            </bem.FormView__cell>
+            <React.Fragment>
+              <bem.FormView__cell m='translation-note'>
+                <p>{t('Here you can add more languages to your project, and translate the strings in each of them.')}</p>
+                <p>{t('For the language code field, we suggest using the')}
+                  <a target='_blank' href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'>
+                    {' ' + t('official language code') + ' '}
+                  </a>
+                  {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
+                  <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
+                    {' ' + t('Read more.')}
+                  </a>
+                </p>
+              </bem.FormView__cell>
+              <bem.FormView__cell m='translation'>
+                <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
+              </bem.FormView__cell>
+            </React.Fragment>
             :
             <bem.FormView__cell m='label'>
               {t('Current languages')}
