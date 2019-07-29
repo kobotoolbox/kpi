@@ -7,18 +7,21 @@
   &::after {
     content: attr(data-counter);
     pointer-events: none;
-    font-family: $font;
     position: absolute;
-    bottom: 3px;
+    top: 50%;
     left: 75%;
     transform: translateX(-50%);
+    font-family: $font;
     text-align: center;
     font-size: 0.3em;
     line-height: 1.2em;
+    height: 1.2em;
+    min-width: 1.2em;
+    padding: 0 0.3em;
+    box-sizing: border-box;
+    border-radius: 2em;
     color: currentColor;
     background-color: white;
     box-shadow: 0 0 0 1px currentColor;
-    border-radius: 2em;
-    padding: 0 0.3em;
   }
 }
