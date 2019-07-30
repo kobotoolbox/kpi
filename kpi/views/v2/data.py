@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import Asset
+from kpi.paginators import DataPagination
 from kpi.permissions import (
     EditSubmissionPermission,
     SubmissionPermission,
@@ -19,7 +20,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.ViewSet):
+                  viewsets.GenericViewSet):
     """
     ## List of submissions for a specific asset
 
@@ -157,6 +158,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                         SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
+    pagination_class = DataPagination
 
     def _get_deployment(self):
         """
@@ -194,18 +196,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
-        # not optimized calculation.
-        # ToDo improve this
-        filters.pop('limit', None)
-        filters.pop('offset', None)
-        submissions_count = len(list(deployment.get_submissions(format_type=format_type, **filters)))
-        response_ = {
-            'next': '',
-            'prev': '',
-            'count': submissions_count,
-            'results': list(submissions)
-        }
-        return Response(response_)
+        # Create a dummy list to let the Paginator do all the calculation
+        # for pagination because it does not need the list of real objects.
+        # It avoids to retrieve all the objects from MongoDB
+        dummy_submissions_list = [None] * deployment.current_submissions_count
+        page = self.paginate_queryset(dummy_submissions_list)
+        if page is not None:
+            return self.get_paginated_response(submissions)
+
+        return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
