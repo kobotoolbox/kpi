@@ -79,37 +79,42 @@ export class DataTable extends React.Component {
       });
       filterQuery += '}';
       dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
-        if (data.count) {
-          this.setState({resultsTotal: data.count});
-        }
+        this.setState({resultsTotal: data.count});
       });
     } else {
       this.setState({resultsTotal: this.props.asset.deployment__submission_count});
     }
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      if (data && data.length > 0) {
+      let results = data.results;
+
+      if (results && results.length > 0) {
         if (this.state.submissionPager == 'next') {
-          this.submissionModalProcessing(data[0]._id, data);
+          this.submissionModalProcessing(results[0]._id, results);
         }
         if (this.state.submissionPager == 'prev') {
-          this.submissionModalProcessing(data[data.length - 1]._id, data);
+          this.submissionModalProcessing(results[results.length - 1]._id, results);
         }
         this.setState({
           loading: false,
           selectedRows: {},
           selectAll: false,
-          tableData: data,
+          tableData: results,
           submissionPager: false
         });
-        this._prepColumns(data);
+        this._prepColumns(results);
       } else {
         if (filterQuery.length) {
           this.setState({
-            loading: false
+            loading: false,
+            selectedRows: {},
+            tableData: results
           });
           // TODO: debounce the queries and then enable this notification
-          alertify.warning(t('The query did not return any results.'));
+          // Block the warning if selectAll is true
+          if (!this.state.selectAll) {
+            alertify.warning(t('The query did not return any results.'));
+          }
         } else {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
@@ -761,10 +766,22 @@ export class DataTable extends React.Component {
       }
     });
 
-    this.setState({
-      selectedRows: s,
-      selectAll: false
-    });
+    // If the entirety of the results has been selected, selectAll should be true
+    // Useful when the # of results is smaller than the page size.
+    var scount = Object.keys(s).length;
+
+    if (scount == this.state.resultsTotal) {
+      this.setState({
+        selectedRows: s,
+        selectAll: true
+      });
+    } else {
+      this.setState({
+        selectedRows: s,
+        selectAll: false
+      });
+    }
+
   }
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
@@ -993,7 +1010,7 @@ export class DataTable extends React.Component {
           columns={selectedColumns || columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={1}
+          minRows={0}
           className={tableClasses}
           pages={pages}
           manual
