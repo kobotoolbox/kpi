@@ -260,8 +260,13 @@ bem.HelpBubble__rowWrapper = bem.HelpBubble.__('row-wrapper');
 bem.AssetsTable = BEM('assets-table');
 bem.AssetsTableRow = BEM('assets-table-row');
 bem.AssetsTableRow__link = bem.AssetsTableRow.__('link', '<a>');
-bem.AssetsTableRow__buttons = bem.AssetsTableRow.__('buttons', '<menu>');
+bem.AssetsTableRow__buttons = bem.AssetsTableRow.__('buttons');
 bem.AssetsTableRow__column = bem.AssetsTableRow.__('column');
+bem.AssetsTableRow__tags = bem.AssetsTableRow.__('tags', '<ul>');
+bem.AssetsTableRow__tag = bem.AssetsTableRow.__('tag', '<li>');
+
+bem.AssetActionButtons = BEM('asset-action-buttons', '<menu>');
+bem.AssetActionButtons__iconButton = bem.AssetActionButtons.__('icon-button', '<a>');
 
 bem.tagSelect = BEM('tag-select');
 bem.collectionFilter = BEM('collection-filter');

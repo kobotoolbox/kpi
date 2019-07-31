@@ -1,0 +1,22 @@
+.asset-action-buttons {
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+
+  .k-icon {
+    font-size: 32px;
+    color: inherit;
+  }
+}
+
+.asset-action-buttons__icon-button {
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+  color: $cool-gray;
+
+  &:hover {
+    color: $cool-blue;
+  }
+}

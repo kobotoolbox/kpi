@@ -12,10 +12,8 @@ import {
   t,
   assign
 } from 'js/utils';
-import {
-  ASSET_TYPES,
-  MODAL_TYPES
-} from 'js/constants';
+import {ASSET_TYPES} from 'js/constants';
+import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
 import {
   AssetsTable,
@@ -56,45 +54,6 @@ class LibraryCollection extends React.Component {
     }
   }
 
-  showSharingModal(evt) {
-    evt.preventDefault();
-    stores.pageState.showModal({
-      type: MODAL_TYPES.SHARING,
-      assetid: this.state.asset.uid
-    });
-  }
-
-  showDetailsModal(evt) {
-    evt.preventDefault();
-    stores.pageState.showModal({
-      type: MODAL_TYPES.LIBRARY_COLLECTION,
-      asset: this.state.asset
-    });
-  }
-
-  renderActionButtons() {
-    return (
-      <bem.FormView__cell>
-        <bem.FormView__link
-          onClick={this.showDetailsModal}
-          className='right-tooltip'
-          data-tip={t('Modify details')}
-        >
-          <i className='k-icon-settings' />
-        </bem.FormView__link>
-
-        <bem.FormView__link
-          m='preview'
-          onClick={this.showSharingModal}
-          className='right-tooltip'
-          data-tip={t('Share')}
-        >
-          <i className='k-icon-user-share' />
-        </bem.FormView__link>
-      </bem.FormView__cell>
-    );
-  }
-
   render() {
     if (this.state.asset === false) {
       return renderLoading();
@@ -118,26 +77,36 @@ class LibraryCollection extends React.Component {
     const fakeAssetsList = [
       {
         uid: 1,
+        name: 'How to train a dragon',
+        tags: [],
         questionCount: 7,
         date_modified: new Date()
       },
       {
         uid: 2,
+        name: 'Current steps in autodestructing your home planet',
+        tags: ['ecology'],
         questionCount: 0,
         date_modified: new Date()
       },
       {
         uid: 3,
+        name: 'Test form',
+        tags: ['final-version'],
         questionCount: 45,
         date_modified: new Date()
       },
       {
         uid: 4,
+        name: 'Few questions on how to be a good human being towards other earthlings and thus saving the Gaia from sudden death',
+        tags: ['ecology', 'earthlings', 'final version'],
         questionCount: 288,
         date_modified: new Date()
       },
       {
         uid: 5,
+        name: 'A simple question',
+        tags: [],
         questionCount: 1,
         date_modified: new Date()
       }
@@ -152,7 +121,7 @@ class LibraryCollection extends React.Component {
                 {t('Details')}
               </bem.FormView__cell>
 
-              {this.renderActionButtons()}
+              <AssetActionButtons asset={this.state.asset}/>
             </bem.FormView__cell>
 
             <AssetInfoBox asset={fakeAsset}/>

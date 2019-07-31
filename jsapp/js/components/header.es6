@@ -197,7 +197,10 @@ class MainHeader extends Reflux.Component {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
     }
 
-    const iconClassName = getAssetIcon(this.state.asset);
+    let iconClassName = '';
+    if (this.state.asset) {
+      iconClassName = getAssetIcon(this.state.asset);
+    }
 
     return (
         <bem.MainHeader className='mdl-layout__header'>

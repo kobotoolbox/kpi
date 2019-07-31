@@ -49,6 +49,7 @@
 
 $z-assets-table-row-link: 10;
 $z-assets-table-row-buttons: 20;
+$c-assets-table-row-hover: $cool-whitegray;
 
 .assets-table-row {
   display: flex;
@@ -61,7 +62,7 @@ $z-assets-table-row-buttons: 20;
       background-color: $cool-whitegray;
 
       .k-icon[data-counter]::after {
-        background-color: $cool-whitegray;
+        background-color: $c-assets-table-row-hover;
       }
 
       .assets-table-row__buttons {
@@ -126,18 +127,6 @@ $z-assets-table-row-buttons: 20;
     height: 100%;
   }
 
-  .assets-table-row__buttons {
-    position: absolute;
-    z-index: $z-assets-table-row-buttons;
-    top: 0;
-    right: 0;
-    opacity: 0;
-    margin: 0;
-    padding: 0;
-    visibility: hidden;
-    transition: 0.25s;
-  }
-
   .assets-table-row__column {
     border-top: 1px solid $divider-color;
     padding: 10px;
@@ -158,5 +147,51 @@ $z-assets-table-row-buttons: 20;
     .k-icon {
       vertical-align: middle;
     }
+  }
+}
+
+/* ==========================================================================
+ * AssetsTableRow tags
+ * ========================================================================== */
+
+.assets-table-row__tags {
+  display: inline;
+}
+
+.assets-table-row__tag {
+  display: inline-block;
+  vertical-align: middle;
+  color: $white;
+  background: $cool-silver;
+  border-radius: 1em;
+  font-size: 9px;
+  line-height: 1;
+  padding: 3px 6px;
+}
+
+/* ==========================================================================
+ * AssetsTableRow buttons
+ * ========================================================================== */
+
+.assets-table-row__buttons {
+  position: absolute;
+  z-index: $z-assets-table-row-buttons;
+  top: 1px; // because of top border
+  right: 0;
+  opacity: 0;
+  visibility: hidden;
+  background-color: $c-assets-table-row-hover;
+  padding: 3px 10px 0 0;
+  height: 40px;
+
+  // for nicer blending in with the possible text underneath
+  &::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 100%;
+    width: 15px;
+    background: linear-gradient(90deg, transparent, $c-assets-table-row-hover);
   }
 }

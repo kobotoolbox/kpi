@@ -1,3 +1,9 @@
+/**
+ * This is intended to be displayed in multiple places:
+ * - asset landing page
+ * - asset listing row
+ */
+
 import React from 'react';
 import autoBind from 'react-autobind';
 import ui from 'js/ui';
@@ -32,12 +38,28 @@ class AssetActionButtons extends React.Component {
 
   // Methods for managing the asset
 
+  showDetailsModal(evt) {
+    console.debug('showDetailsModal');
+
+    // evt.preventDefault();
+    // stores.pageState.showModal({
+    //   type: MODAL_TYPES.LIBRARY_COLLECTION,
+    //   asset: this.state.asset
+    // });
+  }
+
   showLanguagesModal() {
     console.debug('showLanguagesModal');
   }
 
-  showSharingModal() {
+  showSharingModal(evt) {
     console.debug('showSharingModal');
+
+    // evt.preventDefault();
+    // stores.pageState.showModal({
+    //   type: MODAL_TYPES.SHARING,
+    //   assetid: this.state.asset.uid
+    // });
   }
 
   showTagsModal() {
@@ -84,60 +106,91 @@ class AssetActionButtons extends React.Component {
     console.debug('moveToCollection');
   }
 
+  viewContainingCollection() {
+    console.debug('viewCollection');
+  }
+
   render() {
     const userCanEdit = true;
     const isDeployable = true;
+    const isInsideCollection = true;
     const ownedCollections = [];
     const downloads = [];
 
     return (
-      <bem.AssetsTableRow__buttons onMouseLeave={this.onMouseLeave}>
+      <bem.AssetActionButtons onMouseLeave={this.onMouseLeave}>
         {userCanEdit &&
-          <bem.AssetRow__actionIcon
+          <bem.AssetActionButtons__iconButton
             onClick={this.edit}
-            data-tip={t('Edit')}
+            data-tip={t('Edit in Form Builder')}
+            className='right-tooltip'
           >
             <i className='k-icon k-icon-edit'/>
-          </bem.AssetRow__actionIcon>
+          </bem.AssetActionButtons__iconButton>
         }
 
         {userCanEdit &&
-          <bem.AssetRow__actionIcon
+          <bem.AssetActionButtons__iconButton
+            onClick={this.showDetailsModal}
+            data-tip={t('Modify details')}
+            className='right-tooltip'
+          >
+            <i className='k-icon k-icon-settings' />
+          </bem.AssetActionButtons__iconButton>
+        }
+
+        {userCanEdit &&
+          <bem.AssetActionButtons__iconButton
             onClick={this.showTagsModal}
-            data-tip= {t('Tags')}
+            data-tip= {t('Edit Tags')}
+            className='right-tooltip'
           >
             <i className='k-icon k-icon-tag'/>
-          </bem.AssetRow__actionIcon>
+          </bem.AssetActionButtons__iconButton>
         }
 
         {userCanEdit &&
-          <bem.AssetRow__actionIcon
+          <bem.AssetActionButtons__iconButton
             onClick={this.showSharingModal}
             data-tip= {t('Share')}
+            className='right-tooltip'
           >
             <i className='k-icon k-icon-user-share'/>
-          </bem.AssetRow__actionIcon>
+          </bem.AssetActionButtons__iconButton>
         }
 
-        <bem.AssetRow__actionIcon
+        <bem.AssetActionButtons__iconButton
           onClick={this.clone}
           data-tip={t('Clone')}
+          className='right-tooltip'
         >
           <i className='k-icon k-icon-clone'/>
-        </bem.AssetRow__actionIcon>
+        </bem.AssetActionButtons__iconButton>
 
         {this.props.asset_type && this.props.asset_type === ASSET_TYPES.template.id && userCanEdit &&
-          <bem.AssetRow__actionIcon
+          <bem.AssetActionButtons__iconButton
             onClick={this.cloneAsSurvey}
             data-tip={t('Create project')}
+            className='right-tooltip'
           >
             <i className='k-icon k-icon-projects'/>
-          </bem.AssetRow__actionIcon>
+          </bem.AssetActionButtons__iconButton>
+        }
+
+        {isInsideCollection &&
+          <bem.AssetActionButtons__iconButton
+            onClick={this.viewContainingCollection}
+            data-tip={t('View containing Collection')}
+            className='right-tooltip'
+          >
+            <i className='k-icon k-icon-folder'/>
+          </bem.AssetActionButtons__iconButton>
         }
 
         <ui.PopoverMenu
           triggerLabel={<i className='k-icon k-icon-more'/>}
           triggerTip={t('More Actions')}
+          triggerClassName='right-tooltip'
           clearPopover={this.state.shouldHidePopover}
           popoverSetVisible={this.onPopoverSetVisible}
         >
@@ -226,7 +279,7 @@ class AssetActionButtons extends React.Component {
             </bem.PopoverMenu__link>
           }
         </ui.PopoverMenu>
-      </bem.AssetsTableRow__buttons>
+      </bem.AssetActionButtons>
     );
   }
 }

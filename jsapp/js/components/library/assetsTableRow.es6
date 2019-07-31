@@ -20,7 +20,9 @@ class AssetsTableRow extends React.Component {
       <bem.AssetsTableRow m='asset'>
         <bem.AssetsTableRow__link href='#TODO'/>
 
-        <AssetActionButtons asset={this.props.asset}/>
+        <bem.AssetsTableRow__buttons>
+          <AssetActionButtons asset={this.props.asset}/>
+        </bem.AssetsTableRow__buttons>
 
         <bem.AssetsTableRow__column m='icon'>
           {this.props.asset.questionCount > 0 &&
@@ -32,7 +34,15 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>
-          name {this.props.asset.uid}
+          {this.props.asset.name}
+
+          {this.props.asset.tags.length > 0 &&
+            <bem.AssetsTableRow__tags>
+              {this.props.asset.tags.map((tag) => {
+                return ([' ', <bem.AssetsTableRow__tag key={tag}>{tag}</bem.AssetsTableRow__tag>]);
+              })}
+            </bem.AssetsTableRow__tags>
+          }
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='owner'>
