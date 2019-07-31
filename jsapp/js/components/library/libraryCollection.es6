@@ -77,6 +77,7 @@ class LibraryCollection extends React.Component {
     const fakeAssetsList = [
       {
         uid: 1,
+        asset_type: ASSET_TYPES.block.id,
         name: 'How to train a dragon',
         tags: [],
         questionCount: 7,
@@ -84,6 +85,7 @@ class LibraryCollection extends React.Component {
       },
       {
         uid: 2,
+        asset_type: ASSET_TYPES.template.id,
         name: 'Current steps in autodestructing your home planet',
         tags: ['ecology'],
         questionCount: 0,
@@ -91,6 +93,7 @@ class LibraryCollection extends React.Component {
       },
       {
         uid: 3,
+        asset_type: ASSET_TYPES.template.id,
         name: 'Test form',
         tags: ['final-version'],
         questionCount: 45,
@@ -98,6 +101,7 @@ class LibraryCollection extends React.Component {
       },
       {
         uid: 4,
+        asset_type: ASSET_TYPES.template.id,
         name: 'Few questions on how to be a good human being towards other earthlings and thus saving the Gaia from sudden death',
         tags: ['ecology', 'earthlings', 'final version'],
         questionCount: 288,
@@ -105,6 +109,7 @@ class LibraryCollection extends React.Component {
       },
       {
         uid: 5,
+        asset_type: ASSET_TYPES.question.id,
         name: 'A simple question',
         tags: [],
         questionCount: 1,

@@ -161,12 +161,13 @@ $c-assets-table-row-hover: $cool-whitegray;
 .assets-table-row__tag {
   display: inline-block;
   vertical-align: middle;
-  color: $white;
-  background: $cool-silver;
   border-radius: 1em;
+  padding: 2px 4px;
   font-size: 9px;
   line-height: 1;
-  padding: 3px 6px;
+  color: currentColor;
+  background: transparent;
+  border: 1px solid currentColor;
 }
 
 /* ==========================================================================

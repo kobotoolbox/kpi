@@ -6,6 +6,9 @@ import {
   t,
   formatTime
 } from 'js/utils';
+import {
+  getAssetIcon
+} from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
 
@@ -16,9 +19,14 @@ class AssetsTableRow extends React.Component {
   }
 
   render() {
+    let iconClassName = '';
+    if (this.props.asset) {
+      iconClassName = getAssetIcon(this.props.asset);
+    }
+
     return (
       <bem.AssetsTableRow m='asset'>
-        <bem.AssetsTableRow__link href='#TODO'/>
+        <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`}/>
 
         <bem.AssetsTableRow__buttons>
           <AssetActionButtons asset={this.props.asset}/>
@@ -26,10 +34,10 @@ class AssetsTableRow extends React.Component {
 
         <bem.AssetsTableRow__column m='icon'>
           {this.props.asset.questionCount > 0 &&
-            <i className='k-icon k-icon-folder' data-counter={this.props.asset.questionCount}/>
+            <i className={`k-icon ${iconClassName}`} data-counter={this.props.asset.questionCount}/>
           }
           {this.props.asset.questionCount === 0 &&
-            <i className='k-icon k-icon-folder'/>
+            <i className={`k-icon ${iconClassName}`}/>
           }
         </bem.AssetsTableRow__column>
 

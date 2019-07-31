@@ -9,7 +9,11 @@ import autoBind from 'react-autobind';
 import ui from 'js/ui';
 import bem from 'js/bem';
 import {t} from 'js/utils';
-import {ASSET_TYPES} from 'js/constants';
+import assetUtils from 'js/assetUtils';
+import {
+  ASSET_TYPES,
+  MODAL_TYPES
+} from 'js/constants';
 
 class AssetActionButtons extends React.Component {
   constructor(props){
@@ -38,36 +42,24 @@ class AssetActionButtons extends React.Component {
 
   // Methods for managing the asset
 
-  showDetailsModal(evt) {
-    console.debug('showDetailsModal');
-
-    // evt.preventDefault();
-    // stores.pageState.showModal({
-    //   type: MODAL_TYPES.LIBRARY_COLLECTION,
-    //   asset: this.state.asset
-    // });
+  modifyDetails(evt) {
+    console.debug('modifyDetails');
+    evt.preventDefault();
+    assetUtils.modifyDetails(this.props.asset);
   }
 
   showLanguagesModal() {
     console.debug('showLanguagesModal');
   }
 
-  showSharingModal(evt) {
-    console.debug('showSharingModal');
-
-    // evt.preventDefault();
-    // stores.pageState.showModal({
-    //   type: MODAL_TYPES.SHARING,
-    //   assetid: this.state.asset.uid
-    // });
+  share(evt) {
+    console.debug('share');
+    evt.preventDefault();
+    assetUtils.share(this.props.asset);
   }
 
   showTagsModal() {
     console.debug('showTagsModal');
-  }
-
-  edit() {
-    console.debug('edit');
   }
 
   replace() {
@@ -112,6 +104,10 @@ class AssetActionButtons extends React.Component {
 
   render() {
     const userCanEdit = true;
+    const hasDetailsEditable = (
+      this.props.asset.asset_type === ASSET_TYPES.template.id ||
+      this.props.asset.asset_type === ASSET_TYPES.collection.id
+    );
     const isDeployable = true;
     const isInsideCollection = true;
     const ownedCollections = [];
@@ -119,9 +115,9 @@ class AssetActionButtons extends React.Component {
 
     return (
       <bem.AssetActionButtons onMouseLeave={this.onMouseLeave}>
-        {userCanEdit &&
+        {userCanEdit && this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
           <bem.AssetActionButtons__iconButton
-            onClick={this.edit}
+            href={`#/library/asset/${this.props.asset.uid}/edit`}
             data-tip={t('Edit in Form Builder')}
             className='right-tooltip'
           >
@@ -129,9 +125,9 @@ class AssetActionButtons extends React.Component {
           </bem.AssetActionButtons__iconButton>
         }
 
-        {userCanEdit &&
+        {hasDetailsEditable &&
           <bem.AssetActionButtons__iconButton
-            onClick={this.showDetailsModal}
+            onClick={this.modifyDetails}
             data-tip={t('Modify details')}
             className='right-tooltip'
           >
@@ -151,7 +147,7 @@ class AssetActionButtons extends React.Component {
 
         {userCanEdit &&
           <bem.AssetActionButtons__iconButton
-            onClick={this.showSharingModal}
+            onClick={this.share}
             data-tip= {t('Share')}
             className='right-tooltip'
           >

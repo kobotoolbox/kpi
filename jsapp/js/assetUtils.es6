@@ -1,9 +1,17 @@
+import stores from 'js/stores';
 import {
   t,
   getAnonymousUserPermission
 } from 'js/utils';
-import {ASSET_TYPES} from 'js/constants';
+import {
+  ASSET_TYPES,
+  MODAL_TYPES
+} from 'js/constants';
 
+/**
+ * @param {Object} question - Part of BE asset data
+ * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
+ */
 export function getQuestionDisplayName(question) {
   if (question.label) {
     return question.label[0];
@@ -17,8 +25,9 @@ export function getQuestionDisplayName(question) {
 }
 
 /**
+ * For getting the icon class name for given asset type.
  * @param {Object} asset - BE asset data
- * @return {string} k-icon CSS class name
+ * @returns {string} k-icon CSS class name
  */
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
@@ -46,3 +55,38 @@ export function getAssetIcon(asset) {
     }
   }
 }
+
+/**
+ * Opens a modal for editing asset details.
+ * @param {Object} asset - BE asset data
+ */
+export function modifyDetails(asset) {
+  let modalType;
+  if (asset.asset_type === ASSET_TYPES.template.id) {
+    modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
+  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
+    modalType = MODAL_TYPES.LIBRARY_COLLECTION;
+  }
+  stores.pageState.showModal({
+    type: modalType,
+    asset: asset
+  });
+}
+
+/**
+ * Opens a modal for sharing asset.
+ * @param {Object} asset - BE asset data
+ */
+export function share(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.SHARING,
+    assetid: asset.uid
+  });
+}
+
+export default {
+  getQuestionDisplayName: getQuestionDisplayName,
+  getAssetIcon: getAssetIcon,
+  modifyDetails: modifyDetails,
+  share: share
+};

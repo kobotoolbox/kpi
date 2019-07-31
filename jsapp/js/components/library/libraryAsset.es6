@@ -4,16 +4,12 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import {Link} from 'react-router';
 import bem from 'js/bem';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import {t} from 'js/utils';
-import {
-  ASSET_TYPES,
-  MODAL_TYPES
-} from 'js/constants';
+import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
 import AssetContentSummary from './AssetContentSummary';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
@@ -51,67 +47,6 @@ class LibraryAsset extends React.Component {
     }
   }
 
-  showSharingModal(evt) {
-    evt.preventDefault();
-    stores.pageState.showModal({
-      type: MODAL_TYPES.SHARING,
-      assetid: this.state.asset.uid
-    });
-  }
-
-  showDetailsModal(evt) {
-    let modalType;
-    if (this.state.asset.asset_type === ASSET_TYPES.template.id) {
-      modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
-    } else if (this.state.asset.asset_type === ASSET_TYPES.collection.id) {
-      modalType = MODAL_TYPES.LIBRARY_COLLECTION;
-    }
-    evt.preventDefault();
-    stores.pageState.showModal({
-      type: modalType,
-      asset: this.state.asset
-    });
-  }
-
-  renderActionButtons() {
-    let hasDetailsEditable = (
-      this.state.asset.asset_type === ASSET_TYPES.template.id ||
-      this.state.asset.asset_type === ASSET_TYPES.collection.id
-    );
-    return (
-      <bem.FormView__cell m='action-buttons'>
-        {this.state.asset.asset_type !== ASSET_TYPES.collection.id &&
-          <Link
-            to={`/library/asset/${this.state.asset.uid}/edit`}
-            className='form-view__link form-view__link--edit right-tooltip'
-            data-tip={t('Edit in Form Builder')}
-          >
-            <i className='k-icon-edit' />
-          </Link>
-        }
-
-        {hasDetailsEditable &&
-          <bem.FormView__link
-            onClick={this.showDetailsModal}
-            className='right-tooltip'
-            data-tip={t('Modify details')}
-          >
-            <i className='k-icon-settings' />
-          </bem.FormView__link>
-        }
-
-        <bem.FormView__link
-          m='preview'
-          onClick={this.showSharingModal}
-          className='right-tooltip'
-          data-tip={t('Share')}
-        >
-          <i className='k-icon-user-share' />
-        </bem.FormView__link>
-      </bem.FormView__cell>
-    );
-  }
-
   render() {
     if (this.state.asset === false) {
       return renderLoading();
@@ -128,7 +63,7 @@ class LibraryAsset extends React.Component {
                 {t('Details')}
               </bem.FormView__cell>
 
-              {this.renderActionButtons()}
+              <AssetActionButtons asset={this.state.asset}/>
             </bem.FormView__cell>
 
             <AssetInfoBox asset={this.state.asset}/>
