@@ -28,6 +28,8 @@ import {
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
+export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
+
 export class DataTable extends React.Component {
   constructor(props){
     super(props);
@@ -251,7 +253,7 @@ export class DataTable extends React.Component {
       Header: '',
       accessor: 'sub-link',
       index: '__1',
-      id: '__SubmissionLinks',
+      id: SUBMISSION_LINKS_ID,
       minWidth: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
@@ -515,7 +517,7 @@ export class DataTable extends React.Component {
 
       selectedColumns = columns.filter((el) => {
         // always include edit/preview links column
-        if (el.id == '__SubmissionLinks')
+        if (el.id == SUBMISSION_LINKS_ID)
           return true;
 
         // include multi-select checkboxes if validation status is visible
