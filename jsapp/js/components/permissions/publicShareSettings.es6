@@ -43,28 +43,30 @@ class PublicShareSettings extends React.Component {
 
     return (
       <bem.FormModal__item m='permissions'>
-        <bem.FormModal__item m='perms-link'>
+        <bem.FormModal__item>
           <Checkbox
             checked={anonCanView ? true : false}
             onChange={this.togglePerms.bind(this, 'view_asset')}
-            label={t('Share by link')}
+            label={t('Anyone can view this form')}
           />
-          { anonCanView &&
-            <bem.FormModal__item m='shareable-link'>
-              <label>
-                {t('Shareable link')}
-              </label>
-              <input type='text' value={url} readOnly />
-            </bem.FormModal__item>
-          }
         </bem.FormModal__item>
+
         { this.props.deploymentActive &&
-          <bem.FormModal__item m='perms-public-data'>
+          <bem.FormModal__item>
             <Checkbox
               checked={anonCanViewData ? true : false}
               onChange={this.togglePerms.bind(this, 'view_submissions')}
-              label={t('Share data publicly')}
+              label={t('Anyone can view submissions made to this form')}
             />
+          </bem.FormModal__item>
+        }
+
+        { anonCanView &&
+          <bem.FormModal__item m='shareable-link'>
+            <label>
+              {t('Shareable link')}
+            </label>
+            <input type='text' value={url} readOnly />
           </bem.FormModal__item>
         }
       </bem.FormModal__item>

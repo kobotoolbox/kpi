@@ -175,7 +175,7 @@ class SharingForm extends React.Component {
             <bem.Modal__hr/>
 
             <bem.FormModal__item m='share-settings'>
-              <h2>{t('Select share settings')}</h2>
+              <h2>{t('Share publicly by link')}</h2>
 
               <PublicShareSettings
                 publicPerms={this.state.public_permissions}
