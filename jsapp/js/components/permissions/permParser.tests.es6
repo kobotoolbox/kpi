@@ -35,7 +35,7 @@ describe('permParser', () => {
       chai.expect(parsed[0].permissions.length).to.equal(6);
       chai.expect(parsed[1].user.name).to.equal('john');
       chai.expect(parsed[1].permissions.length).to.equal(2);
-      chai.expect(parsed[2].user.name).to.equal('oliver');
+      chai.expect(parsed[2].user.name).to.equal('olivier');
       chai.expect(parsed[2].permissions.length).to.equal(1);
     });
   });
@@ -88,7 +88,7 @@ describe('permParser', () => {
         formView: true,
         submissionsView: true,
         submissionsViewPartial: true,
-        submissionsViewPartialUsers: ['john', 'oliver']
+        submissionsViewPartialUsers: ['john', 'olivier']
       });
     });
   });
@@ -126,7 +126,7 @@ describe('permParser', () => {
         formEdit: false,
         submissionsView: true,
         submissionsViewPartial: true,
-        submissionsViewPartialUsers: ['john', 'oliver', 'eric'],
+        submissionsViewPartialUsers: ['john', 'olivier', 'eric'],
         submissionsAdd: false,
         submissionsEdit: false,
         submissionsValidate: false
@@ -140,7 +140,7 @@ describe('permParser', () => {
             {
               url: '/api/v2/permissions/view_submissions/',
               filters: [
-                {'_submitted_by': {'$in': ['john', 'oliver', 'eric']}}
+                {'_submitted_by': {'$in': ['john', 'olivier', 'eric']}}
               ]
             }
           ]
@@ -191,7 +191,7 @@ describe('permParser', () => {
           'permission': '/api/v2/permissions/view_asset/'
         },
         {
-          'user': '/api/v2/users/oliver/',
+          'user': '/api/v2/users/olivier/',
           'permission': '/api/v2/permissions/view_asset/'
         },
       ]);
