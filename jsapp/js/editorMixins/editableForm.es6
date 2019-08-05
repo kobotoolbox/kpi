@@ -664,6 +664,7 @@ export default assign({
                 type='text'
                 onChange={this.nameChange}
                 value={this.state.name}
+                title={this.state.name}
                 id='nameField'
               />
             </bem.FormModal__item>

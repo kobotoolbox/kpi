@@ -26,6 +26,8 @@ import {
   formatTimeDate
 } from '../utils';
 
+const NOT_ASSIGNED = 'validation_status_not_assigned';
+
 export class DataTable extends React.Component {
   constructor(props){
     super(props);
@@ -70,7 +72,7 @@ export class DataTable extends React.Component {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
         } else if (f.id === '_validation_status.uid') {
-          filterQuery += `"${f.id}":"${f.value}"`;
+          (f.value === NOT_ASSIGNED) ? filterQuery += `"${f.id}":null` : filterQuery += `"${f.id}":"${f.value}"`;
         } else {
           filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
         }
@@ -292,7 +294,7 @@ export class DataTable extends React.Component {
           <option value=''>Show All</option>
           {VALIDATION_STATUSES_LIST.map((item, n) => {
             return (
-              <option value={item.value} key={n}>{item.label}</option>
+              <option value={(item.value === null) ? NOT_ASSIGNED : item.value} key={n}>{item.label}</option>
             );
           })}
         </select>,
