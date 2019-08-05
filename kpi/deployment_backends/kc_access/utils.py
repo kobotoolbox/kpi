@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from collections import Iterable
 import json
 
+import requests
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.checks import Warning, register as register_check
 from django.db import ProgrammingError, transaction
 from rest_framework.authtoken.models import Token
-import requests
 
 from kpi.exceptions import KoboCatProfileException
 from kpi.utils.log import logging
