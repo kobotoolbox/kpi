@@ -439,7 +439,7 @@ class UserAssetPermsEditor extends React.Component {
             checked={this.state.submissionsEdit}
             disabled={this.state.submissionsEditDisabled}
             onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
-            label={t('Edit Submissions')}
+            label={t('Change Submissions')}
           />
 
           <Checkbox
