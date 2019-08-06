@@ -1,10 +1,6 @@
-/*eslint no-unused-vars:0*/
 import React from 'react';
-import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {Link, hashHistory} from 'react-router';
-import DocumentTitle from 'react-document-title';
-import classNames from 'classnames';
+import {hashHistory} from 'react-router';
 
 import {
   PROJECT_SETTINGS_CONTEXTS,
@@ -13,24 +9,16 @@ import {
 } from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
-import bem from './bem';
 import actions from './actions';
-import ui from './ui';
 import $ from 'jquery';
 
 import {
-  anonUsername,
-  formatTime,
-  currentLang,
   log,
   t,
   assign,
   notify,
-  stringToColor,
   escapeHtml
 } from './utils';
-
-import icons from '../xlform/src/view.icons';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -202,11 +190,11 @@ mixins.dmix = {
   },
   _getAssetUid () {
     if (this.props.params) {
-      return this.props.params.assetid || this.props.params.uid
+      return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid
+      return this.props.uid;
     }
   },
   componentDidMount () {
@@ -375,7 +363,7 @@ mixins.droppable = {
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
-          } else if (importData.status === 'error')  {
+          } else if (importData.status === 'error') {
             const errLines = [];
             errLines.push(t('Import Failed!'));
             if (params.name) {
@@ -451,7 +439,7 @@ const renderCheckbox = (id, label, isImportant) => {
     additionalClass += 'alertify-toggle-important';
   }
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-}
+};
 
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
@@ -740,7 +728,7 @@ mixins.contextRouter = {
       return true;
 
     if (this.context.router.params.assetid == undefined)
-      return false
+      return false;
 
     var assetid = this.context.router.params.assetid;
     if (this.context.router.isActive(`/library/${assetid}/edit`))
@@ -748,7 +736,7 @@ mixins.contextRouter = {
 
     return this.context.router.isActive(`/forms/${assetid}/edit`);
   }
-}
+};
 
 /*
  * generates dialog when cloning an asset as new type
@@ -801,6 +789,6 @@ mixins.cloneAssetAsNewType = {
     };
     dialog.set(opts).show();
   }
-}
+};
 
 export default mixins;
