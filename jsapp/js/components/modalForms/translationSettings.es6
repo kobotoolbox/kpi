@@ -478,6 +478,7 @@ class LanguageForm extends React.Component {
   }
   onSubmit(evt) {
     evt.preventDefault();
+    evt.currentTarget.disabled = true;
 
     const isNameValid = this.isLanguageNameValid();
     if (!isNameValid) {
