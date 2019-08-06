@@ -358,7 +358,7 @@ export class TranslationSettings extends React.Component {
               </React.Fragment>
             );
           })}
-          {!this.state.showAddLanguageForm &&
+          {!this.state.showAddLanguageForm && translations[0] !== null &&
             <bem.FormView__cell m='add-language'>
               <button
                 className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
