@@ -364,7 +364,7 @@ class UserAssetPermsEditor extends React.Component {
     const isNew = typeof this.props.username === 'undefined';
 
     const submissionsViewPartialUsersInputProps = {
-      placeholder: t('Add username(s)'),
+      placeholder: t('Enter usernames separated by spaces'),
       onFocus: this.onSubmissionsViewPartialUsersInputFocus,
       onBlur: this.onSubmissionsViewPartialUsersInputBlur
     };
@@ -436,6 +436,7 @@ class UserAssetPermsEditor extends React.Component {
                     value={this.state.submissionsViewPartialUsers}
                     onChange={this.onSubmissionsViewPartialUsersChange}
                     addOnBlur
+                    addKeys={[9, 13, 32]}
                     inputProps={submissionsViewPartialUsersInputProps}
                     onlyUnique
                   />
