@@ -35,6 +35,7 @@ class UserAssetPermsEditor extends React.Component {
       usernamesBeingChecked: new Set(),
       isSubmitPending: false,
       isEditingUsername: false,
+      isAddingPartialUsernames: false,
       // form user inputs
       username: '',
       formView: false,
@@ -217,8 +218,10 @@ class UserAssetPermsEditor extends React.Component {
 
   /**
    * Handles TagsInput change event and blocks adding nonexistent usernames.
+   * Also unblocks the submit button.
    */
   onSubmissionsViewPartialUsersChange(allUsers) {
+    this.setState({isAddingPartialUsernames: false});
     const submissionsViewPartialUsers = [];
 
     allUsers.forEach((username) => {
@@ -236,6 +239,14 @@ class UserAssetPermsEditor extends React.Component {
     });
 
     this.setState({submissionsViewPartialUsers: submissionsViewPartialUsers});
+  }
+
+  onSubmissionsViewPartialUsersInputFocus() {
+    this.setState({isAddingPartialUsernames: true});
+  }
+
+  onSubmissionsViewPartialUsersInputBlur() {
+    this.setState({isAddingPartialUsernames: false});
   }
 
   /**
@@ -305,6 +316,7 @@ class UserAssetPermsEditor extends React.Component {
       isAnyCheckboxChecked &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
+      !this.state.isAddingPartialUsernames &&
       this.state.username.length > 0 &&
       this.state.usernamesBeingChecked.size === 0
     );
@@ -352,7 +364,9 @@ class UserAssetPermsEditor extends React.Component {
     const isNew = typeof this.props.username === 'undefined';
 
     const submissionsViewPartialUsersInputProps = {
-      placeholder: t('Add username(s)')
+      placeholder: t('Add username(s)'),
+      onFocus: this.onSubmissionsViewPartialUsersInputFocus,
+      onBlur: this.onSubmissionsViewPartialUsersInputBlur
     };
 
     const formModifiers = [];
@@ -421,6 +435,7 @@ class UserAssetPermsEditor extends React.Component {
                   <TagsInput
                     value={this.state.submissionsViewPartialUsers}
                     onChange={this.onSubmissionsViewPartialUsersChange}
+                    addOnBlur
                     inputProps={submissionsViewPartialUsersInputProps}
                     onlyUnique
                   />
