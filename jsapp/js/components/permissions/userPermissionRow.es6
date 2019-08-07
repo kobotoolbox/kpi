@@ -71,7 +71,7 @@ class UserPermissionRow extends React.Component {
 
   removeCollectionPermissions() {
     this.setState({isBeingDeleted: true});
-    // we remove "view_asset" permission, as it is the most basic one, so removing it
+    // we remove "view_collection" permission, as it is the most basic one, so removing it
     // will in fact remove all permissions
     const userViewCollectionPerm = this.props.permissions.find((perm) => {
       return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
