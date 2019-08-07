@@ -90,27 +90,6 @@ const permConfig = Reflux.createStore({
     if (this.state.permissions.length === 0) {
       throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
-  },
-
-  /**
-   * Returns a list of available permissions for given asset type.
-   */
-  getAvailablePermissions(assetType) {
-    if (assetType === 'survey') {
-      return [
-        {value: 'view', label: t('View Form')},
-        {value: 'change', label: t('Edit Form')},
-        {value: 'view_submissions', label: t('View Submissions')},
-        {value: 'add_submissions', label: t('Add Submissions')},
-        {value: 'change_submissions', label: t('Edit Submissions')},
-        {value: 'validate_submissions', label: t('Validate Submissions')}
-      ];
-    } else {
-      return [
-        {value: 'view', label: t('View')},
-        {value: 'change', label: t('Edit')},
-      ];
-    }
   }
 });
 
