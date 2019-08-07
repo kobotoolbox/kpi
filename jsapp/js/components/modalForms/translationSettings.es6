@@ -3,12 +3,12 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import TextBox from 'js/components/textBox';
+import LanguageForm from 'js/components/modalForms/languageForm'
 import bem from 'js/bem';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
-import {t, getLangAsObject, getLangString, notify} from 'utils';
+import {t, getLangString, notify} from 'utils';
 
 export class TranslationSettings extends React.Component {
   constructor(props){
@@ -404,150 +404,3 @@ export class TranslationSettings extends React.Component {
 reactMixin(TranslationSettings.prototype, Reflux.ListenerMixin);
 
 export default TranslationSettings;
-
-/*
-Properties:
-- langString <string>: follows pattern "NAME (CODE)"
-- langIndex <string>
-- onLanguageChange <function>: required
-- existingLanguages <langString[]>: for validation purposes
-*/
-class LanguageForm extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      name: '',
-      nameError: null,
-      code: '',
-      codeError: null
-    };
-
-    if (this.props.langString) {
-      const lang = getLangAsObject(this.props.langString);
-
-      if (lang) {
-        this.state = {
-          name: lang.name || '',
-          code: lang.code || ''
-        };
-      } else {
-        // if language isn't in "English (en)" format, assume it is a simple language name string
-        this.state = {
-          name: this.props.langString,
-          code: ''
-        };
-      }
-    }
-    autoBind(this);
-  }
-  isLanguageNameValid() {
-    if (this.props.existingLanguages) {
-      let isNameUnique = true;
-      this.props.existingLanguages.forEach((langString) => {
-        if (this.props.langString && langString === this.props.langString) {
-          // skip comparing to itself (editing language context)
-        } else if (langString !== null) {
-          const langObj = getLangAsObject(langString);
-          if (langObj && langObj.name === this.state.name) {
-            isNameUnique = false;
-          }
-        }
-      });
-      return isNameUnique;
-    } else {
-      return true;
-    }
-  }
-  isLanguageCodeValid() {
-    if (this.props.existingLanguages) {
-      let isCodeUnique = true;
-      this.props.existingLanguages.forEach((langString) => {
-        if (this.props.langString && langString === this.props.langString) {
-          // skip comparing to itself (editing language context)
-        } else if (langString !== null) {
-          const langObj = getLangAsObject(langString);
-          if (langObj && langObj.code === this.state.code) {
-            isCodeUnique = false;
-          }
-        }
-      });
-      return isCodeUnique;
-    } else {
-      return true;
-    }
-  }
-  onSubmit(evt) {
-    evt.preventDefault();
-    evt.currentTarget.disabled = true;
-
-    const isNameValid = this.isLanguageNameValid();
-    if (!isNameValid) {
-      this.setState({nameError: t('Name must be unique!')});
-    } else {
-      this.setState({nameError: null});
-    }
-
-    const isCodeValid = this.isLanguageCodeValid();
-    if (!isCodeValid) {
-      this.setState({codeError: t('Code must be unique!')});
-    } else {
-      this.setState({codeError: null});
-    }
-
-    if (isNameValid && isCodeValid) {
-      let langIndex = -1;
-      if (this.props.langIndex !== undefined) {
-        langIndex = this.props.langIndex;
-      }
-      this.props.onLanguageChange({
-        name: this.state.name,
-        code: this.state.code
-      }, langIndex);
-    }
-  }
-  onNameChange (newName) {
-    this.setState({name: newName.trim()});
-  }
-  onCodeChange (newCode) {
-    this.setState({code: newCode.trim()});
-  }
-  render () {
-    let isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
-
-    return (
-      <bem.FormView__form m='add-language-fields'>
-        <bem.FormView__cell m='lang-name'>
-          <bem.FormModal__item>
-            <label>{t('Language name')}</label>
-            <TextBox
-              value={this.state.name}
-              onChange={this.onNameChange}
-              errors={this.state.nameError}
-            />
-          </bem.FormModal__item>
-        </bem.FormView__cell>
-
-        <bem.FormView__cell m='lang-code'>
-          <bem.FormModal__item>
-            <label>{t('Language code')}</label>
-            <TextBox
-              value={this.state.code}
-              onChange={this.onCodeChange}
-              errors={this.state.codeError}
-            />
-          </bem.FormModal__item>
-        </bem.FormView__cell>
-
-        <bem.FormView__cell m='submit-button'>
-          <button
-            className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
-            onClick={this.onSubmit} type='submit'
-            disabled={isAnyFieldEmpty}
-          >
-            {this.props.langIndex !== undefined ? t('Update') : t('Add')}
-          </button>
-        </bem.FormView__cell>
-      </bem.FormView__form>
-      );
-  }
-}
