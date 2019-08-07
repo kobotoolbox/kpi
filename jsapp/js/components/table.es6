@@ -859,7 +859,7 @@ export class DataTable extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Delete selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##', selectedCount),
+      message: t('You have selected ##count## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##count##', selectedCount),
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
       onok: () => {
         apiFn(this.props.asset.uid, data).done(() => {
@@ -897,7 +897,7 @@ export class DataTable extends React.Component {
     if (this.state.selectAll) {
       selectedCount = resultsTotal;
     }
-    const selectedLabel = t('## selected').replace('##', selectedCount);
+    const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
 
     return (
       <bem.FormView__item m='table-meta'>
@@ -916,7 +916,7 @@ export class DataTable extends React.Component {
           resultsTotal > pageSize &&
           <span>
             <a className='select-all' onClick={this.bulkSelectAll}>
-              {t('Select all ##').replace('##', resultsTotal)}
+              {t('Select all ##count##').replace('##count##', resultsTotal)}
             </a>
           </span>
         }
