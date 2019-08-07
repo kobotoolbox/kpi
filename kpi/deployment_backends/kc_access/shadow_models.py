@@ -5,8 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db import ProgrammingError
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.models import User, Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
 from django.utils import six, timezone
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
@@ -52,7 +51,8 @@ class ShadowModel(models.Model):
             app_label, model_name = model_name_mapping[model._meta.model_name]
         except KeyError:
             raise NotImplementedError
-        return ContentType.objects.get(app_label=app_label, model=model_name)
+        return KobocatContentType.objects.get(
+            app_label=app_label, model=model_name)
 
 
 class ReadOnlyModel(ShadowModel):
@@ -205,10 +205,11 @@ class KobocatUserObjectPermission(ShadowModel):
     CAVEAT LECTOR: The django-guardian custom manager,
     UserObjectPermissionManager, is NOT included!
     """
-    permission = models.ForeignKey(Permission)
-    content_type = models.ForeignKey(ContentType)
+    permission = models.ForeignKey(KobocatPermission)
+    content_type = models.ForeignKey(KobocatContentType)
     object_pk = models.CharField(_('object ID'), max_length=255)
     content_object = GenericForeignKey(fk_field='object_pk')
+    # It's okay not to use `KobocatUser` as long as PKs are synchronized
     user = models.ForeignKey(
         getattr(settings, 'AUTH_USER_MODEL', 'auth.User'))
 
@@ -231,7 +232,7 @@ class KobocatUserObjectPermission(ShadowModel):
             unicode(self.permission.codename))
 
     def save(self, *args, **kwargs):
-        content_type = ContentType.objects.get_for_model(
+        content_type = KobocatContentType.objects.get_for_model(
             self.content_object)
         if content_type != self.permission.content_type:
             raise ValidationError(
@@ -261,6 +262,8 @@ class KobocatUser(ShadowModel):
 
     @classmethod
     def sync(cls, auth_user):
+        # NB: `KobocatUserObjectPermission` (and probably other things) depend
+        # upon PKs being synchronized between KPI and KoBoCAT
         try:
             kc_auth_user = cls.objects.get(pk=auth_user.pk)
             assert kc_auth_user.username == auth_user.username

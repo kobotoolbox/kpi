@@ -5,7 +5,7 @@ from collections import Iterable
 import json
 
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.checks import Warning, register as register_check
 from django.db import ProgrammingError, transaction
@@ -16,6 +16,8 @@ from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
 from .shadow_models import (
     safe_kc_read,
+    KobocatContentType,
+    KobocatPermission,
     KobocatUserObjectPermission,
     KobocatUserProfile,
     ReadOnlyKobocatXForm,
@@ -133,7 +135,7 @@ def set_kc_require_auth(user_id, require_auth):
                 profile.save()
 
 
-def _get_content_type_kwargs(obj):
+def _get_content_type_kwargs_for_related(obj):
     r"""
         Given an `obj` with a `KC_CONTENT_TYPE_KWARGS` dictionary attribute,
         prepend `content_type__` to each key in that dictionary and return the
@@ -159,7 +161,7 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
     r"""
         Given a KPI object and one KPI permission codename as a single string,
         or many codenames as an iterable, return the corresponding KC
-        permissions as a list of `Permission` objects.
+        permissions as a list of `KobocatPermission` objects.
         :param obj: Object with `KC_PERMISSIONS_MAP` dictionary attribute
         :param kpi_codenames: One or more codenames for KPI permissions
         :type kpi_codenames: str or list(str)
@@ -184,8 +186,8 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
         except KeyError:
             # This permission doesn't map to anything in KC
             continue
-    content_type_kwargs = _get_content_type_kwargs(obj)
-    permissions = Permission.objects.filter(
+    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
+    permissions = KobocatPermission.objects.filter(
         codename__in=kc_codenames, **content_type_kwargs)
     return permissions
 
@@ -259,7 +261,8 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
-    xform_content_type = ContentType.objects.get(**obj.KC_CONTENT_TYPE_KWARGS)
+    xform_content_type = KobocatContentType.objects.get(
+        **obj.KC_CONTENT_TYPE_KWARGS)
     kc_permissions_already_assigned = KobocatUserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
@@ -296,7 +299,7 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
-    content_type_kwargs = _get_content_type_kwargs(obj)
+    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
     KobocatUserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
         # `permission` has a FK to `ContentType`, but I'm paranoid
