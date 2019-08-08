@@ -83,6 +83,7 @@ class LanguageForm extends React.Component {
     const isNameValid = this.isLanguageNameValid();
     if (!isNameValid) {
       this.setState({nameError: t('Name must be unique!')});
+      evt.currentTarget.disabled = false;
     } else {
       this.setState({nameError: null});
     }
@@ -90,6 +91,7 @@ class LanguageForm extends React.Component {
     const isCodeValid = this.isLanguageCodeValid();
     if (!isCodeValid) {
       this.setState({codeError: t('Code must be unique!')});
+      evt.currentTarget.disabled = false;
     } else {
       this.setState({codeError: null});
     }
