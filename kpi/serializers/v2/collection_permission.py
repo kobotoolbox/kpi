@@ -40,6 +40,9 @@ class CollectionPermissionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = validated_data['user']
         collection = validated_data['collection']
+        if collection.owner_id == user.id:
+            raise serializers.ValidationError({
+                'user': "Owner's permissions cannot be assigned explicitly"})
         permission = validated_data['permission']
         return collection.assign_perm(user, permission.codename)
 
