@@ -251,39 +251,51 @@ export class TranslationSettings extends React.Component {
       </bem.Loading>
     );
   }
+  renderUndefinedDefaultSettings(translations){
+    return (
+      <bem.FormModal m='translation-settings'>
+        <bem.FormModal__item>
+          <React.Fragment>
+            <bem.FormView__cell m='translation-note'>
+              <p>{t('Here you can add more languages to your project, and translate the strings in each of them.')}</p>
+              <p>{t('For the language code field, we suggest using the')}
+                <a target='_blank' href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'>
+                  {' ' + t('official language code') + ' '}
+                </a>
+                {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
+                <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
+                  {' ' + t('Read more.')}
+                </a>
+              </p>
+            </bem.FormView__cell>
+            <bem.FormView__cell m='translation'>
+              <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
+            </bem.FormView__cell>
+          </React.Fragment>
+          <bem.FormView__cell m='add-language-form'>
+            <LanguageForm
+              onLanguageChange={this.onLanguageChange}
+              existingLanguages={this.getAllLanguages()}
+              isDefault
+            />
+          </bem.FormView__cell>
+        </bem.FormModal__item>
+      </bem.FormModal>
+    );
+  }
   renderTranslationsSettings(translations) {
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
-          {(translations && translations[0] === null) ?
-            <React.Fragment>
-              <bem.FormView__cell m='translation-note'>
-                <p>{t('Here you can add more languages to your project, and translate the strings in each of them.')}</p>
-                <p>{t('For the language code field, we suggest using the')}
-                  <a target='_blank' href='https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry'>
-                    {' ' + t('official language code') + ' '}
-                  </a>
-                  {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
-                  <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
-                    {' ' + t('Read more.')}
-                  </a>
-                </p>
-              </bem.FormView__cell>
-              <bem.FormView__cell m='translation'>
-                <p><strong>{t('Please name your default language before adding languages and translations.')}</strong></p>
-              </bem.FormView__cell>
-            </React.Fragment>
-            :
-            <bem.FormView__cell m='label'>
-              {t('Current languages')}
-            </bem.FormView__cell>
-          }
+          <bem.FormView__cell m='label'>
+            {t('Current languages')}
+          </bem.FormView__cell>
           {translations.map((l, i) => {
             return (
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
                   <bem.FormView__cell m='translation-name'>
-                    {l ? l : t('Unnamed language')}
+                    {l}
 
                     {i === 0 &&
                       <bem.FormView__label m='default-language'>
@@ -358,17 +370,15 @@ export class TranslationSettings extends React.Component {
               </React.Fragment>
             );
           })}
-          {!this.state.showAddLanguageForm && translations[0] !== null &&
-            <bem.FormView__cell m='add-language'>
-              <button
-                className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
-                onClick={this.showAddLanguageForm}
-                disabled={!this.canAddLanguages()}
-              >
-                {t('Add language')}
-              </button>
-            </bem.FormView__cell>
-          }
+          <bem.FormView__cell m='add-language'>
+            <button
+              className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+              onClick={this.showAddLanguageForm}
+              disabled={!this.canAddLanguages()}
+            >
+              {t('Add language')}
+            </button>
+          </bem.FormView__cell>
           {this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language-form'>
               <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
@@ -395,6 +405,8 @@ export class TranslationSettings extends React.Component {
     let translations = this.state.translations;
     if (translations.length === 0) {
       return this.renderEmptyMessage();
+    } else if (translations && translations[0] === null) {
+      return this.renderUndefinedDefaultSettings(translations);
     } else {
       return this.renderTranslationsSettings(translations);
     }

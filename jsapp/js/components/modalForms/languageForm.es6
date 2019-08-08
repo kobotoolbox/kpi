@@ -37,6 +37,7 @@ class LanguageForm extends React.Component {
         };
       }
     }
+
     autoBind(this);
   }
   isLanguageNameValid() {
@@ -94,7 +95,7 @@ class LanguageForm extends React.Component {
     }
 
     if (isNameValid && isCodeValid) {
-      let langIndex = -1;
+      let langIndex = (this.props.isDefault) ? 0 : -1;
       if (this.props.langIndex !== undefined) {
         langIndex = this.props.langIndex;
       }
@@ -117,7 +118,7 @@ class LanguageForm extends React.Component {
       <bem.FormView__form m='add-language-fields'>
         <bem.FormView__cell m='lang-name'>
           <bem.FormModal__item>
-            <label>{t('Language name')}</label>
+            <label>{(this.props.isDefault) ? t('Default language name') : t('Language name')}</label>
             <TextBox
               value={this.state.name}
               onChange={this.onNameChange}
@@ -128,7 +129,7 @@ class LanguageForm extends React.Component {
 
         <bem.FormView__cell m='lang-code'>
           <bem.FormModal__item>
-            <label>{t('Language code')}</label>
+            <label>{(this.props.isDefault) ? t('Default language code') : t('Language code')}</label>
             <TextBox
               value={this.state.code}
               onChange={this.onCodeChange}
@@ -143,7 +144,7 @@ class LanguageForm extends React.Component {
             onClick={this.onSubmit} type='submit'
             disabled={isAnyFieldEmpty}
           >
-            {this.props.langIndex !== undefined ? t('Update') : t('Add')}
+            {this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
           </button>
         </bem.FormView__cell>
       </bem.FormView__form>
