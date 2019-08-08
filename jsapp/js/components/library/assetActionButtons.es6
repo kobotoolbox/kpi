@@ -6,14 +6,18 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
+import {hashHistory} from 'react-router';
 import ui from 'js/ui';
 import bem from 'js/bem';
 import {t} from 'js/utils';
 import assetUtils from 'js/assetUtils';
+import {ASSET_TYPES} from 'js/constants';
 import {
-  ASSET_TYPES,
-  MODAL_TYPES
-} from 'js/constants';
+  dmix,
+  clickAssets
+} from 'js/mixins';
+
+const assetActions = clickAssets.click.asset;
 
 class AssetActionButtons extends React.Component {
   constructor(props){
@@ -42,64 +46,63 @@ class AssetActionButtons extends React.Component {
 
   // Methods for managing the asset
 
-  modifyDetails(evt) {
-    console.debug('modifyDetails');
-    evt.preventDefault();
+  modifyDetails() {
     assetUtils.modifyDetails(this.props.asset);
   }
 
-  showLanguagesModal() {
-    console.debug('showLanguagesModal');
+  editLanguages() {
+    assetUtils.editLanguages(this.props.asset);
   }
 
-  share(evt) {
-    console.debug('share');
-    evt.preventDefault();
+  share() {
     assetUtils.share(this.props.asset);
   }
 
   showTagsModal() {
-    console.debug('showTagsModal');
+    assetUtils.editTags(this.props.asset);
   }
 
   replace() {
-    console.debug('replace');
+    assetUtils.replaceForm(this.props.asset);
   }
 
   delete() {
     console.debug('delete');
+    assetActions.delete(this.props.asset.uid, this.props.asset.name);
+    // TODO: should navigate out of landing page if still there when deleting
   }
 
   deploy() {
-    console.debug('deploy');
+    dmix.deployAsset(this.props.asset);
   }
 
   archive() {
-    console.debug('archive');
+    assetActions.archive(this.props.asset);
   }
 
   unarchive() {
-    console.debug('unarchive');
+    assetActions.unarchive(this.props.asset);
   }
 
   clone() {
-    console.debug('clone');
+    assetActions.clone(this.props.asset.uid);
   }
 
   cloneAsSurvey() {
-    console.debug('cloneAsSurvey');
+    assetActions.cloneAsSurvey(this.props.asset.uid, this.props.asset.name);
   }
 
   cloneAsTemplate() {
-    console.debug('cloneAsTemplate');
+    assetActions.cloneAsTemplate(this.props.asset.uid, this.props.asset.name);
   }
 
-  moveToCollection() {
-    console.debug('moveToCollection');
+  moveToCollection(collectionId) {
+    assetUtils.moveToCollection(this.props.asset.uid, collectionId);
   }
 
   viewContainingCollection() {
-    console.debug('viewCollection');
+    console.debug('viewContainingCollection');
+    hashHistory.push(`/library/collection/${this.props.asset.parent}/`);
   }
 
   render() {
@@ -212,7 +215,7 @@ class AssetActionButtons extends React.Component {
           }
 
           {userCanEdit &&
-            <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
+            <bem.PopoverMenu__link onClick={this.editLanguages}>
               <i className='k-icon k-icon-language'/>
               {t('Manage Translations')}
             </bem.PopoverMenu__link>

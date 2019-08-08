@@ -24,7 +24,8 @@ const MODAL_TYPES = {
   TABLE_COLUMNS: 'table-columns',
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
-  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table',
+  ASSET_TAGS: 'asset-tags'
 };
 
 const PROJECT_SETTINGS_CONTEXTS = {

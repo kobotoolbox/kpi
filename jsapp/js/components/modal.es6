@@ -35,6 +35,7 @@ import ProjectSettings from '../components/modalForms/projectSettings';
 import LibraryNewItemForm from '../components/modalForms/libraryNewItemForm';
 import {LibraryTemplateForm} from '../components/modalForms/libraryTemplateForm';
 import {LibraryCollectionForm} from '../components/modalForms/libraryCollectionForm';
+import {AssetTagsForm} from '../components/modalForms/assetTagsForm';
 import LibraryUploadForm from '../components/modalForms/libraryUploadForm';
 import SharingForm from '../components/modalForms/sharingForm';
 import Submission from '../components/modalForms/submission';
@@ -82,6 +83,10 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.LIBRARY_COLLECTION:
         this.setModalTitle(t('Collection details'));
+        break;
+
+      case MODAL_TYPES.ASSET_TAGS:
+        this.setModalTitle(t('Edit tags'));
         break;
 
       case MODAL_TYPES.LIBRARY_UPLOAD:
@@ -252,6 +257,11 @@ class Modal extends React.Component {
                 asset={this.props.params.asset}
                 forceMakePublic={this.props.params.forceMakePublic}
                 onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.ASSET_TAGS &&
+              <AssetTagsForm
+                asset={this.props.params.asset}
               />
             }
             { this.props.params.type === MODAL_TYPES.LIBRARY_UPLOAD &&

@@ -1,3 +1,4 @@
+import actions from 'js/actions';
 import stores from 'js/stores';
 import {
   t,
@@ -84,9 +85,59 @@ export function share(asset) {
   });
 }
 
+/**
+ * Opens a modal for modifying asset languages and translation strings.
+ * @param {Object} asset - BE asset data
+ */
+export function editLanguages(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.FORM_LANGUAGES,
+    asset: asset
+  });
+}
+
+/**
+ * Opens a modal for modifying asset tags (also editable in Details Modal).
+ * @param {Object} asset - BE asset data
+ */
+export function editTags(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.ASSET_TAGS,
+    asset: asset
+  });
+}
+
+/**
+ * Opens a modal for replacing an asset using a file.
+ * @param {Object} asset - BE asset data
+ */
+export function replaceForm(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.REPLACE_PROJECT,
+    asset: asset
+  });
+}
+
+/**
+ * Moves asset to a non-nested collection.
+ * @param {string} assetUid
+ * @param {string} collectionId
+ */
+export function moveToCollection(assetUid, collectionId) {
+  const collectionUrl = '/collections/' + collectionId + '/';
+  actions.resources.updateAsset(
+    assetUid,
+    {parent: collectionUrl}
+  );
+}
+
 export default {
-  getQuestionDisplayName: getQuestionDisplayName,
-  getAssetIcon: getAssetIcon,
-  modifyDetails: modifyDetails,
-  share: share
+  getQuestionDisplayName,
+  getAssetIcon,
+  modifyDetails,
+  share,
+  editLanguages,
+  editTags,
+  replaceForm,
+  moveToCollection
 };
