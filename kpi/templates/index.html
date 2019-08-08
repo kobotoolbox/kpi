@@ -6,7 +6,8 @@
     <title>{{title}}</title>
     <meta name="description" content="koboform view">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="kpi-root-url" content="{% url 'kpi-root' %}">
+    {# From the Django documentation: the `url` tag "Returns an absolute path reference (a URL without the domain name)" #}
+    <meta name="kpi-root-path" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
 
     {% if raven_js_dsn %}
