@@ -6,7 +6,10 @@ import mixins from 'js/mixins';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import {t} from 'js/utils';
-import {ANON_USERNAME} from 'js/constants';
+import {
+  ROOT_URL,
+  ANON_USERNAME
+} from 'js/constants';
 
 class PublicShareSettings extends React.Component {
   constructor(props) {
@@ -33,37 +36,37 @@ class PublicShareSettings extends React.Component {
   }
   render () {
     var uid = this.props.uid;
-
-    var href = `#/forms/${uid}`;
-    var url = `${window.location.protocol}//${window.location.host}/${href}`;
+    var url = `${ROOT_URL}/#/forms/${uid}`;
 
     var anonCanView = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_asset';})[0];
     var anonCanViewData = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_submissions';})[0];
 
     return (
       <bem.FormModal__item m='permissions'>
-        <bem.FormModal__item m='perms-link'>
+        <bem.FormModal__item>
           <Checkbox
             checked={anonCanView ? true : false}
             onChange={this.togglePerms.bind(this, 'view_asset')}
-            label={t('Share by link')}
+            label={t('Anyone can view this form')}
           />
-          { anonCanView &&
-            <bem.FormModal__item m='shareable-link'>
-              <label>
-                {t('Shareable link')}
-              </label>
-              <input type='text' value={url} readOnly />
-            </bem.FormModal__item>
-          }
         </bem.FormModal__item>
+
         { this.props.deploymentActive &&
-          <bem.FormModal__item m='perms-public-data'>
+          <bem.FormModal__item>
             <Checkbox
               checked={anonCanViewData ? true : false}
               onChange={this.togglePerms.bind(this, 'view_submissions')}
-              label={t('Share data publicly')}
+              label={t('Anyone can view submissions made to this form')}
             />
+          </bem.FormModal__item>
+        }
+
+        { anonCanView &&
+          <bem.FormModal__item m='shareable-link'>
+            <label>
+              {t('Shareable link')}
+            </label>
+            <input type='text' value={url} readOnly />
           </bem.FormModal__item>
         }
       </bem.FormModal__item>

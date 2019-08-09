@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 from collections import defaultdict
-from urlparse import urlparse
 
 from django.contrib.auth.models import Permission, User
 from django.core.urlresolvers import resolve, Resolver404
@@ -49,6 +48,9 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = validated_data['user']
         asset = validated_data['asset']
+        if asset.owner_id == user.id:
+            raise serializers.ValidationError({
+                'user': "Owner's permissions cannot be assigned explicitly"})
         permission = validated_data['permission']
         partial_permissions = validated_data.get('partial_permissions', None)
         return asset.assign_perm(user, permission.codename,

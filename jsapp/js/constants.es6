@@ -1,12 +1,17 @@
 import {t} from './utils';
 
 const ROOT_URL = (() => {
-  try {
-    return document.head.querySelector('meta[name=kpi-root-url]').content.replace(/\/$/, '');
-  } catch (e) {
-    console.error('no kpi-root-url meta tag set. defaulting to ""');
-    return '';
+  // This is an "absolute path reference (a URL without the domain name)"
+  // according to the Django docs
+  let rootPath = document.head.querySelector('meta[name=kpi-root-path]');
+  if (rootPath === null) {
+    console.error('no kpi-root-path meta tag set. defaulting to ""');
+    rootPath = '';
+  } else {
+    // Strip trailing slashes
+    rootPath = rootPath.content.replace(/\/*$/, '');
   }
+  return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
 const ANON_USERNAME = 'AnonymousUser';

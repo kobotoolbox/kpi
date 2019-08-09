@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import exceptions, viewsets, status, renderers
@@ -153,22 +154,27 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
 
         assignments = request.data
 
-        # First delete all assignments before assigning new ones.
-        # If something fails later, this query should rollback
-        self.collection.permissions.exclude(user__username=self.collection.owner.username).delete()
+        # We don't want to lock tables, only queries to rollback in case
+        # one assignment fails.
+        with transaction.atomic():
 
-        for assignment in assignments:
-            context_ = dict(self.get_serializer_context())
-            serializer = CollectionBulkInsertPermissionSerializer(
-                data=assignment,
-                context=context_
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save(collection=self.collection)
+            # First delete all assignments before assigning new ones.
+            # If something fails later, this query should rollback
+            self.collection.permissions.exclude(
+                user__username=self.collection.owner.username).delete()
 
-        # returns collection permissions. Users who can change permissions can
-        # see all permissions.
-        return self.list(request, *args, **kwargs)
+            for assignment in assignments:
+                context_ = dict(self.get_serializer_context())
+                serializer = CollectionBulkInsertPermissionSerializer(
+                    data=assignment,
+                    context=context_
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save(collection=self.collection)
+
+            # returns collection permissions. Users who can change permissions can
+            # see all permissions.
+            return self.list(request, *args, **kwargs)
 
     @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
     def clone(self, request, *args, **kwargs):
