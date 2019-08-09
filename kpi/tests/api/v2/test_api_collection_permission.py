@@ -26,6 +26,10 @@ class BaseApiCollectionPermissionTestCase(KpiTestCase):
         self.client.login(username='admin', password='pass')
         self.collection = self.create_collection('A collection to be shared')
 
+        self.admin_detail_url = reverse(
+            self._get_endpoint('user-detail'),
+            kwargs={'username': self.admin.username})
+
         self.someuser_detail_url = reverse(
             self._get_endpoint('user-detail'),
             kwargs={'username': self.someuser.username})
@@ -47,9 +51,6 @@ class BaseApiCollectionPermissionTestCase(KpiTestCase):
             kwargs={'parent_lookup_collection': self.collection.uid}
         )
 
-
-class ApiCollectionPermissionTestCase(BaseApiCollectionPermissionTestCase):
-
     def _logged_user_gives_permission(self, username, permission):
         data = {
             'user': getattr(self, '{}_detail_url'.format(username)),
@@ -58,6 +59,9 @@ class ApiCollectionPermissionTestCase(BaseApiCollectionPermissionTestCase):
         response = self.client.post(self.collection_permissions_list_url,
                                     data, format='json')
         return response
+
+
+class ApiCollectionPermissionTestCase(BaseApiCollectionPermissionTestCase):
 
     def test_owner_can_give_permissions(self):
         # Current user is `self.admin`
@@ -192,3 +196,55 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
         obj_perms = sorted(obj_perms, key=lambda element: (element[0],
                                                            element[1]))
         self.assertEqual(expected_perms, obj_perms)
+
+
+class ApiBulkCollectionPermissionTestCase(BaseApiCollectionPermissionTestCase):
+
+    def _logged_user_gives_permissions(self, assignments):
+        """
+        Uses the API to grant `permission` to `username`
+        """
+        url = '{}bulk/'.format(self.collection_permissions_list_url)
+
+        def get_data_template(username_, permission_):
+            return {
+                'user': getattr(self, '{}_detail_url'.format(username_)),
+                'permission': getattr(self, '{}_permission_detail_url'.format(
+                    permission_))
+            }
+
+        data = []
+        for username, permission in assignments:
+            data.append(get_data_template(username, permission))
+
+        response = self.client.post(url, data, format='json')
+        return response
+
+    def test_cannot_assign_permissions_to_owner(self):
+        self._logged_user_gives_permission('someuser', PERM_CHANGE_COLLECTION)
+        self.client.login(username='someuser', password='someuser')
+        response = self._logged_user_gives_permissions([
+            ('admin', PERM_VIEW_COLLECTION),
+            ('admin', PERM_CHANGE_COLLECTION)
+        ])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_bulk_assign_permissions(self):
+        # TODO Improve this test
+        permission_list_response = self.client.get(self.collection_permissions_list_url,
+                                                   format='json')
+        self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
+        total = permission_list_response.data.get('count')
+        # Add number of permissions added with 'view_collection'
+        total += len(Collection.get_implied_perms(PERM_VIEW_COLLECTION)) + 1
+        # Add number of permissions added with 'change_collection'
+        total += len(Collection.get_implied_perms(PERM_CHANGE_COLLECTION)) + 1
+
+        response = self._logged_user_gives_permissions([
+            ('someuser', PERM_VIEW_COLLECTION),
+            ('someuser', PERM_VIEW_COLLECTION),  # Add a duplicate which should not count
+            ('anotheruser', PERM_CHANGE_COLLECTION)
+        ])
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get('count'), total)
