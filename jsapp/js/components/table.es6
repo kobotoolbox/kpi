@@ -110,11 +110,6 @@ export class DataTable extends React.Component {
             selectedRows: {},
             tableData: results
           });
-          // TODO: debounce the queries and then enable this notification
-          // Block the warning if selectAll is true
-          if (!this.state.selectAll) {
-            alertify.warning(t('The query did not return any results.'));
-          }
         } else {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
@@ -859,7 +854,7 @@ export class DataTable extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Delete selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##', selectedCount),
+      message: t('You have selected ##count## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##count##', selectedCount),
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
       onok: () => {
         apiFn(this.props.asset.uid, data).done(() => {
@@ -897,13 +892,12 @@ export class DataTable extends React.Component {
     if (this.state.selectAll) {
       selectedCount = resultsTotal;
     }
-    const selectedLabel = t('## selected').replace('##', selectedCount);
+    const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
 
     return (
       <bem.FormView__item m='table-meta'>
         <span>{showingResults}</span>
-
-        {this.state.selectAll &&
+        {selectedCount > 1 &&
           <span>
             <a className='select-all' onClick={this.clearSelection}>
               {t('Clear selection')}
@@ -916,7 +910,7 @@ export class DataTable extends React.Component {
           resultsTotal > pageSize &&
           <span>
             <a className='select-all' onClick={this.bulkSelectAll}>
-              {t('Select all ##').replace('##', resultsTotal)}
+              {t('Select all ##count##').replace('##count##', resultsTotal)}
             </a>
           </span>
         }
@@ -1024,7 +1018,7 @@ export class DataTable extends React.Component {
               {t('Loading...')}
             </span>
           }
-          noDataText={t('No rows found')} // TODO: fix display
+          noDataText={t('Your filters returned no submissions.')} 
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
