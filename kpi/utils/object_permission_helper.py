@@ -5,7 +5,7 @@ from kpi.constants import PERM_SHARE_SUBMISSIONS
 from kpi.models import ObjectPermission
 
 
-class ObjectPermissionHelper:
+class ObjectPermissionHelper(object):
 
     @staticmethod
     def user_can_share(affected_object, user_object, codename=''):
@@ -34,7 +34,9 @@ class ObjectPermissionHelper:
     @classmethod
     def get_assignments_queryset(cls, affected_object, user):
 
-        queryset = ObjectPermission.objects.filter(object_id=affected_object.pk)
+        # `affected_object.permissions` is a `GenericRelation(ObjectPermission)`
+        queryset = affected_object.permissions.all()
+
         # Filtering is done in `get_queryset` instead of FilteredBackend class
         # because it's specific to `ObjectPermission`.
 

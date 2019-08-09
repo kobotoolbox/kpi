@@ -36,8 +36,7 @@ class PublicShareSettings extends React.Component {
   }
   render () {
     var uid = this.props.uid;
-    var href = `${ROOT_URL}/#/forms/${uid}`;
-    var url = `${window.location.protocol}//${window.location.host}${href}`;
+    var url = `${ROOT_URL}/#/forms/${uid}`;
 
     var anonCanView = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_asset';})[0];
     var anonCanViewData = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_submissions';})[0];
