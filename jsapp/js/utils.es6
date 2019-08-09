@@ -181,6 +181,10 @@ export function getUsernameFromUrl(userUrl) {
 }
 
 export function buildUserUrl(username) {
+  if (username.startsWith(window.location.protocol)) {
+    console.error("buildUserUrl() called with URL instead of username (incomplete v2 migration)");
+    return username;
+  }
   return `${ROOT_URL}/api/v2/users/${username}/`;
 }
 
@@ -192,6 +196,11 @@ export function parsePermissions(owner, permissions) {
   }
   permissions.map((perm) => {
     perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
+    const codename = perm.permission.match(/\/permissions\/(.+)\//);
+    if (codename !== null) {
+      console.error("parsePermissions(): converting new-style permission URL to codename (incomplete v2 migration)");
+      perm.permission = codename[1];
+    }
     return perm;
   }).filter((perm)=> {
     return ( perm.user__username !== owner && perm.user__username !== ANON_USERNAME);

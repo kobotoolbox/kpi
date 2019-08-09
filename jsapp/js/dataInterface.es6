@@ -124,25 +124,25 @@ var dataInterface;
     },
     getHookLogs(uid, hookUid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${hookUid}/logs/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/logs/`,
         method: 'GET'
       });
     },
     getHookLog(uid, hookUid, lid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
         method: 'GET'
       });
     },
     retryExternalServiceLogs(uid, hookUid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${hookUid}/retry/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/retry/`,
         method: 'PATCH'
       });
     },
     retryExternalServiceLog(uid, hookUid, lid) {
       return $ajax({
-        url: `/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
+        url: `${ROOT_URL}/assets/${uid}/hooks/${hookUid}/logs/${lid}/retry/`,
         method: 'PATCH'
       });
     },
