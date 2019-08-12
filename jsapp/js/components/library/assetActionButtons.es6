@@ -1,12 +1,16 @@
 /**
  * This is intended to be displayed in multiple places:
- * - asset landing page
- * - asset listing row
+ * - library asset landing page
+ * - library listing row
+ * - project landing page (TODO in future)
+ * - projects listing row (TODO in future)
  */
 
 import React from 'react';
 import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
 import ui from 'js/ui';
 import bem from 'js/bem';
 import {t} from 'js/utils';
@@ -14,7 +18,8 @@ import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
   dmix,
-  clickAssets
+  clickAssets,
+  contextRouter
 } from 'js/mixins';
 
 const assetActions = clickAssets.click.asset;
@@ -67,9 +72,23 @@ class AssetActionButtons extends React.Component {
   }
 
   delete() {
-    console.debug('delete');
-    assetActions.delete(this.props.asset.uid, this.props.asset.name);
-    // TODO: should navigate out of landing page if still there when deleting
+    assetActions.delete(
+      this.props.asset.uid,
+      this.props.asset.name,
+      this.onDeleteComplete.bind(this, this.props.asset.uid)
+    );
+  }
+
+  /**
+   * Navigates out of nonexistent paths after asset was successfuly deleted
+   */
+  onDeleteComplete(assetUid) {
+    if (this.isLibrarySingle() && this.currentAssetID() === assetUid) {
+      hashHistory.push('/library');
+    }
+    if (this.isFormSingle() && this.currentAssetID() === assetUid) {
+      hashHistory.push('/forms');
+    }
   }
 
   deploy() {
@@ -101,8 +120,9 @@ class AssetActionButtons extends React.Component {
   }
 
   viewContainingCollection() {
-    console.debug('viewContainingCollection');
-    hashHistory.push(`/library/collection/${this.props.asset.parent}/`);
+    const parentArr = this.props.asset.parent.split('/');
+    const parentCollectionUid = parentArr[parentArr.length - 2];
+    hashHistory.push(`/library/collection/${parentCollectionUid}`);
   }
 
   render() {
@@ -112,7 +132,7 @@ class AssetActionButtons extends React.Component {
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     );
     const isDeployable = true;
-    const isInsideCollection = true;
+    const isInsideCollection = this.props.asset.parent !== null;
     const ownedCollections = [];
     const downloads = [];
 
@@ -282,5 +302,10 @@ class AssetActionButtons extends React.Component {
     );
   }
 }
+
+reactMixin(AssetActionButtons.prototype, contextRouter);
+AssetActionButtons.contextTypes = {
+  router: PropTypes.object
+};
 
 export default AssetActionButtons;
