@@ -118,7 +118,7 @@ class FormViewTabs extends Reflux.Component {
         sideTabs.push({label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
       }
 
-      sideTabs.push({label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
+      sideTabs.push({label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
       if (this.state.asset.deployment__active) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
