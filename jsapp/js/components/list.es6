@@ -177,6 +177,7 @@ class ListCollectionFilter extends React.Component {
         <Select
           name='collections'
           placeholder={t('Select Collection Name')}
+          isClearable
           isLoading={!this.state.collectionsLoaded}
           loadingMessage={() => {return t('Collections are loading...');}}
           options={this.state.availableCollections}
