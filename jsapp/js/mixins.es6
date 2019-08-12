@@ -599,8 +599,13 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      archive: function(uid, callback) {
-        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+      archive: function(assetOrUid, callback) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Archive Project'),
