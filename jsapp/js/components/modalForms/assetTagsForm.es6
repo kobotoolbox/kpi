@@ -46,10 +46,8 @@ export class AssetTagsForm extends React.Component {
 
   applyPropsData() {
     if (this.props.asset.settings.tags) {
-      this.state.data.tags = this.props.asset.settings.tags;
+      this.state.tags = this.props.asset.settings.tags;
     }
-
-    this.validate(false);
   }
 
   onUpdateAssetCompleted() {
@@ -67,7 +65,7 @@ export class AssetTagsForm extends React.Component {
     this.setState({isPending: true});
     actions.resources.updateAsset(
       this.props.asset.uid,
-      {settings: JSON.stringify({tags: this.state.data.tags})}
+      {settings: JSON.stringify({tags: this.state.tags})}
     );
   }
 
@@ -93,7 +91,7 @@ export class AssetTagsForm extends React.Component {
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TagsInput
-              value={this.state.data.tags}
+              value={this.state.tags}
               onChange={this.onTagsChange}
               inputProps={{placeholder: t('Tags')}}
             />

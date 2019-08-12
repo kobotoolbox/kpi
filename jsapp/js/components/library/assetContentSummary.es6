@@ -5,7 +5,7 @@ import {getQuestionDisplayName} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 import {t} from 'js/utils';
 
-const QUESTION_LIMIT = 8;
+const DISPLAY_LIMIT = 8;
 
 class AssetContentSummary extends React.Component {
   constructor(props){
@@ -19,7 +19,7 @@ class AssetContentSummary extends React.Component {
 
   componentDidMount() {
     this.setState({
-      isExpandable: this.props.assetContent.survey.length > QUESTION_LIMIT
+      isExpandable: this.props.asset.content.survey.length > DISPLAY_LIMIT
     });
   }
 
@@ -54,13 +54,21 @@ class AssetContentSummary extends React.Component {
   }
 
   render() {
-    if (!this.props.assetContent) {
+    if (!this.props.asset) {
       return null;
     }
 
-    let items = this.filterRealQuestions(this.props.assetContent.survey);
+    let items = this.filterRealQuestions(this.props.asset.content.survey);
     if (this.state.isExpandable && !this.state.isExpanded) {
-      items = items.slice(0, QUESTION_LIMIT);
+      items = items.slice(0, DISPLAY_LIMIT);
+    }
+
+    if (items.length === 0) {
+      return (
+        <bem.FormView__cell m={['box', 'padding-small']}>
+          {t('This ##asset_type## is empty.').replace('##asset_type##', this.props.asset.asset_type)}
+        </bem.FormView__cell>
+      );
     }
 
     return (

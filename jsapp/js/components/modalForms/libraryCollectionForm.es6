@@ -81,7 +81,7 @@ export class LibraryCollectionForm extends React.Component {
 
   goToCollectionLandingPage(uid) {
     stores.pageState.hideModal();
-    hashHistory.push(`/library/collection/${uid}/`);
+    hashHistory.push(`/library/collection/${uid}`);
   }
 
   onPropertyChange(property, newValue) {

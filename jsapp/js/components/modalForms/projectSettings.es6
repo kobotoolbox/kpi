@@ -308,7 +308,7 @@ class ProjectSettings extends React.Component {
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    hashHistory.push('/forms/');
+    hashHistory.push('/forms');
   }
 
   /*

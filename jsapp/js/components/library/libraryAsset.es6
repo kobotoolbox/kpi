@@ -77,7 +77,7 @@ class LibraryAsset extends React.Component {
             </bem.FormView__cell>
 
             <AssetContentSummary
-              assetContent={this.state.asset.content}
+              asset={this.state.asset}
             />
           </bem.FormView__row>
         </bem.FormView>
