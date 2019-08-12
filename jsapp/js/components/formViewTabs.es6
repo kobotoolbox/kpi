@@ -124,6 +124,7 @@ class FormViewTabs extends Reflux.Component {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
         sideTabs.push({label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'});
       }
+    }
 
     if (sideTabs.length > 0) {
       return (
