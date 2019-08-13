@@ -10,6 +10,17 @@ import {
 } from 'js/constants';
 
 /**
+ * Removes whitespace from tags.
+ * NOTE: Behavior should match KpiTaggableManager.add()
+ * @param {Array<string>} tags - list of tags.
+ * @return {Array<string>} list of cleaned up tags.
+ */
+export function cleanupTags(tags) {
+  return tags.map(function(tag) {
+    return tag.trim().replace(/ /g, '-');
+  });
+}
+/**
  * @param {Object} question - Part of BE asset data
  * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
  */
@@ -132,6 +143,7 @@ export function moveToCollection(assetUid, collectionId) {
 }
 
 export default {
+  cleanupTags,
   getQuestionDisplayName,
   getAssetIcon,
   modifyDetails,

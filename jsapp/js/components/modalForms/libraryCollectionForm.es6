@@ -15,6 +15,7 @@ import {
   t,
   notify
 } from 'js/utils';
+import {cleanupTags} from 'js/assetUtils';
 import {
   renderLoading,
   renderBackButton,
@@ -95,7 +96,7 @@ export class LibraryCollectionForm extends React.Component {
   onOrganizationChange(newValue) {this.onPropertyChange('organization', newValue);}
   onCountryChange(newValue) {this.onPropertyChange('country', newValue);}
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
-  onTagsChange(newValue) {this.onPropertyChange('tags', newValue);}
+  onTagsChange(newValue) {this.onPropertyChange('tags', cleanupTags(newValue));}
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
   onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
 

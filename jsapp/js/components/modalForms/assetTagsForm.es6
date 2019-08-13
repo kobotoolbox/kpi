@@ -10,6 +10,7 @@ import {
   t,
   notify
 } from 'js/utils';
+import {cleanupTags} from 'js/assetUtils';
 import {renderLoading} from './modalHelpers';
 
 /**
@@ -52,7 +53,6 @@ export class AssetTagsForm extends React.Component {
 
   onUpdateAssetCompleted() {
     this.setState({isPending: false});
-    notify(t('Tags updated successfuly'));
     stores.pageState.hideModal();
   }
 
@@ -70,7 +70,7 @@ export class AssetTagsForm extends React.Component {
   }
 
   onTagsChange(newValue) {
-    this.setState({tags: newValue});
+    this.setState({tags: cleanupTags(newValue)});
   }
 
   getSubmitButtonLabel() {

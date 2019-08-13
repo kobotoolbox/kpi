@@ -4,6 +4,7 @@ import TagsInput from 'react-tagsinput';
 import stores from '../stores';
 import actions from '../actions';
 import {t} from '../utils';
+import {cleanupTags} from 'js/assetUtils';
 
 class TagInput extends React.Component {
   constructor(props) {
@@ -13,10 +14,7 @@ class TagInput extends React.Component {
   }
 
   handleChange(tags) {
-    var transformed = tags.map(function(tag) {
-      // Behavior should match KpiTaggableManager.add()
-      return tag.trim().replace(/ /g, '-');
-    });
+    var transformed = cleanupTags(tags);
     this.setState({tags: transformed});
 
     var uid = this.props.uid;
