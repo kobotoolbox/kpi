@@ -239,9 +239,20 @@ def grant_kc_model_level_perms(user):
             'Searched for content types {}.'.format(content_types)
         )
 
+    # What KC permissions does this user already have? Getting the KC database
+    # column names right necessitated a custom M2M model,
+    # `KobocatUserPermission`, which means we can't use Django's tolerant
+    # `add()`. Prior to Django 2.2, there's no way to make `bulk_create()`
+    # ignore `IntegrityError`s, so we have to avoid duplication manually:
+    # https://docs.djangoproject.com/en/2.2/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+    existing_user_perm_pks = KobocatUserPermission.objects.filter(
+        user=user
+    ).values_list('permission_id', flat=True)
+
     KobocatUserPermission.objects.bulk_create([
         KobocatUserPermission(user=user, permission=p)
             for p in permissions_to_assign
+            if p.pk not in existing_user_perm_pks
     ])
 
 
