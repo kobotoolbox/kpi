@@ -118,7 +118,8 @@ $c-assets-table-row-hover: $cool-whitegray;
   }
 
   &.assets-table-row--empty-message {
-    padding: 60px 40px;
+    padding: 40px;
+    justify-content: center;
   }
 
   .assets-table-row__link {
