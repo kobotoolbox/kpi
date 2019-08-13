@@ -74,49 +74,6 @@ class LibraryCollection extends React.Component {
       settings: {}
     }, this.state.asset);
 
-    const fakeAssetsList = [
-      {
-        uid: 1,
-        asset_type: ASSET_TYPES.block.id,
-        name: 'How to train a dragon',
-        tags: [],
-        questionCount: 7,
-        date_modified: new Date()
-      },
-      {
-        uid: 2,
-        asset_type: ASSET_TYPES.template.id,
-        name: 'Current steps in autodestructing your home planet',
-        tags: ['ecology'],
-        questionCount: 0,
-        date_modified: new Date()
-      },
-      {
-        uid: 3,
-        asset_type: ASSET_TYPES.template.id,
-        name: 'Test form',
-        tags: ['final-version'],
-        questionCount: 45,
-        date_modified: new Date()
-      },
-      {
-        uid: 4,
-        asset_type: ASSET_TYPES.template.id,
-        name: 'Few questions on how to be a good human being towards other earthlings and thus saving the Gaia from sudden death',
-        tags: ['ecology', 'earthlings', 'final version'],
-        questionCount: 288,
-        date_modified: new Date()
-      },
-      {
-        uid: 5,
-        asset_type: ASSET_TYPES.question.id,
-        name: 'A simple question',
-        tags: [],
-        questionCount: 1,
-        date_modified: new Date()
-      }
-    ];
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
@@ -141,7 +98,7 @@ class LibraryCollection extends React.Component {
 
             <bem.FormView__cell m='box'>
               <AssetsTable
-                assets={fakeAssetsList}
+                assets={this.state.asset.children.results}
                 context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
               />
             </bem.FormView__cell>

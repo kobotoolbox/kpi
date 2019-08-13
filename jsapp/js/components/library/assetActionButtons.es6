@@ -37,7 +37,6 @@ class AssetActionButtons extends React.Component {
   // methods for inner workings of component
 
   onMouseLeave() {
-    console.debug('onMouseLeave');
     // force hide popover in next render cycle
     // (ui.PopoverMenu interface handles it this way)
     if (this.state.isPopoverVisible) {

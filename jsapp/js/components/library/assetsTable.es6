@@ -5,7 +5,9 @@ import {t} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
 
 export const ASSETS_TABLE_CONTEXTS = new Map([
+  // default displays all available columns
   ['default', 'default'],
+  // collection-content displays only a few columns
   ['collection-content', 'collection-content']
 ]);
 
@@ -20,6 +22,13 @@ const COLUMNS = new Map([
   ['status', {label: t('Status'), id: 'status'}]
 ]);
 
+/**
+ * Displays a table of assets.
+ *
+ * @prop {string} [emptyMessage]
+ * @prop {Array<object>} assets - list of assets to be displayed.
+ * @prop {string} context - one of ASSETS_TABLE_CONTEXTS.
+ */
 export class AssetsTable extends React.Component {
   constructor(props){
     super(props);
@@ -67,7 +76,9 @@ export class AssetsTable extends React.Component {
     return (
       <bem.AssetsTableRow m='footer'>
         <bem.AssetsTableRow__column>
-          footer
+          <span>
+            {t('##count## items available').replace('##count##', this.props.assets.length)}
+          </span>
         </bem.AssetsTableRow__column>
       </bem.AssetsTableRow>
     );
