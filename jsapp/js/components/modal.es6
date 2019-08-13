@@ -282,7 +282,8 @@ class Modal extends React.Component {
               />
             }
             { this.props.params.type == MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
-              <TranslationTable asset={this.props.params.asset} langIndex={this.props.params.langIndex} />
+            <React.Fragment>
+              <TranslationTable asset={this.props.params.asset} langString={this.props.params.langString} langIndex={this.props.params.langIndex} /></React.Fragment>
             }
         </ui.Modal.Body>
       </ui.Modal>

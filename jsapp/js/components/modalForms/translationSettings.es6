@@ -3,7 +3,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import LanguageForm from 'js/components/modalForms/languageForm'
+import LanguageForm from 'js/components/modalForms/languageForm';
 import bem from 'js/bem';
 import stores from 'js/stores';
 import actions from 'js/actions';
@@ -87,10 +87,12 @@ export class TranslationSettings extends React.Component {
   }
   launchTranslationTableModal(evt) {
     const index = evt.currentTarget.dataset.index;
+    const langString = evt.currentTarget.dataset.string;
     stores.pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
       asset: this.state.asset,
-      langIndex: index
+      langString: langString,
+      langIndex: index,
     });
   }
   onLanguageChange(lang, index) {
@@ -333,6 +335,7 @@ export class TranslationSettings extends React.Component {
 
                     <bem.FormView__iconButton
                       data-index={i}
+                      data-string={this.state.translations[i]}
                       onClick={this.launchTranslationTableModal}
                       disabled={this.state.isUpdatingDefaultLanguage}
                       data-tip={t('Update translations')}
