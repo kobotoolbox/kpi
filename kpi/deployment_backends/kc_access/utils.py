@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 from collections import Iterable
 import json
+import logging
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -18,7 +19,9 @@ from .shadow_models import (
     safe_kc_read,
     KobocatContentType,
     KobocatPermission,
+    KobocatUser,
     KobocatUserObjectPermission,
+    KobocatUserPermission,
     KobocatUserProfile,
     ReadOnlyKobocatXForm,
 )
@@ -196,6 +199,50 @@ def _get_xform_id_for_asset(asset):
     if not asset.has_deployment:
         return None
     return asset.deployment.backend_response['formid']
+
+
+def grant_kc_model_level_perms(user):
+    """
+    Gives `user` unrestricted model-level access to everything listed in
+    settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES.  Without this, actions
+    on individual instances are immediately denied and object-level permissions
+    are never considered.
+    """
+    if not isinstance(user, KobocatUser):
+        user = KobocatUser.objects.get(pk=user.pk)
+
+    content_types = []
+    for pair in settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES:
+        try:
+            content_types.append(
+                KobocatContentType.objects.get(
+                    app_label=pair[0],
+                    model=pair[1]
+                )
+            )
+        except KobocatContentType.DoesNotExist:
+            # Consider raising `ImproperlyConfigured` here. Anyone running KPI
+            # without KC should change
+            # `KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES` appropriately in their
+            # settings
+            logging.error(
+                'Could not find KoBoCAT content type for {}.{}'.format(*pair)
+            )
+
+    permissions_to_assign = KobocatPermission.objects.filter(
+        content_type__in=content_types)
+
+    if content_types and not permissions_to_assign.exists():
+        raise RuntimeError(
+            'No KoBoCAT permissions found! You may need to run the Django '
+            'management command `migrate` in your KoBoCAT environment. '
+            'Searched for content types {}.'.format(content_types)
+        )
+
+    KobocatUserPermission.objects.bulk_create([
+        KobocatUserPermission(user=user, permission=p)
+            for p in permissions_to_assign
+    ])
 
 
 def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
