@@ -15,6 +15,7 @@ import {
   formatTime,
   t
 } from '../utils';
+import {getAssetOwnerDisplayName} from 'js/assetUtils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -196,7 +197,7 @@ class AssetRow extends React.Component {
                 <span>{ selfowned ? ' ' : this.props.owner__username }</span>
               }
               { this.props.asset_type != ASSET_TYPES.survey.id &&
-                <span>{selfowned ? t('me') : this.props.owner__username}</span>
+                <span>{getAssetOwnerDisplayName(this.props.owner__username)}</span>
               }
             </bem.AssetRow__cell>
 

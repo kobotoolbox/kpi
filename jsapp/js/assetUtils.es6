@@ -20,6 +20,24 @@ export function cleanupTags(tags) {
     return tag.trim().replace(/ /g, '-');
   });
 }
+
+/**
+ * Displays nicer "me" label for your own assets.
+ * @param {Object} asset - BE asset data
+ * @returns {string} nice owner username.
+ */
+export function getAssetOwnerDisplayName(username) {
+  if (
+    stores.session.currentAccount &&
+    stores.session.currentAccount.username &&
+    stores.session.currentAccount.username === username
+  ) {
+    return t('me');
+  } else {
+    return username;
+  }
+}
+
 /**
  * @param {Object} question - Part of BE asset data
  * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
@@ -144,6 +162,7 @@ export function moveToCollection(assetUid, collectionId) {
 
 export default {
   cleanupTags,
+  getAssetOwnerDisplayName,
   getQuestionDisplayName,
   getAssetIcon,
   modifyDetails,
