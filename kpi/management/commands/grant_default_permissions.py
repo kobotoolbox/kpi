@@ -1,9 +1,11 @@
 import sys
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
+
+from kpi.utils.permissions import grant_default_model_level_perms
 from ...models import Asset, Collection
-from ...model_utils import grant_default_model_level_perms
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

@@ -13,8 +13,8 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
 )
-from kpi.model_utils import grant_default_model_level_perms
 from kpi.models import Asset, Collection, ObjectPermission, TagUid
+from kpi.utils.permissions import grant_default_model_level_perms
 
 
 @receiver(post_save, sender=User)
