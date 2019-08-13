@@ -110,6 +110,10 @@ $c-assets-table-row-hover: $cool-whitegray;
 
     .assets-table-row__column {
       border-top: 2px solid $divider-color;
+
+      span {
+        opacity: 0.6;
+      }
     }
   }
 

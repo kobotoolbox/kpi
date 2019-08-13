@@ -174,44 +174,42 @@ class SidebarAssetName extends React.Component {
         </BemSidebarAssetName>
       );
   }
-};
+}
 
 class AssetName extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
-    var name = this.props.name,
-        extra = false,
-        isEmpty;
-    var summary = this.props.summary;
-    var row_count;
+
+  render() {
+    let name = this.props.name;
+    let extra = null;
+    const classNames = ['asset-name'];
+    const summary = this.props.summary;
+
     if (!name) {
-      row_count = summary.row_count;
       // for unnamed assets, we try to display first question name
-      name = summary.labels ? summary.labels[0] : false;
+      name = summary.labels ? summary.labels[0] : undefined;
+
       if (!name) {
-        isEmpty = true;
+        // if still no name to display, we show special empty value
+        classNames.push('asset-name--empty');
         name = t('no name');
-      }
-      if (row_count) {
-        if (row_count === 2) {
+      } else if (summary.row_count) {
+        if (summary.row_count === 2) {
           extra = <small>{t('and one other question')}</small>;
-        } else if (row_count > 2) {
-          extra = <small>{t('and ## other questions').replace('##', row_count - 1)}</small>;
+        } else if (summary.row_count > 2) {
+          extra = <small>{t('and ## other questions').replace('##', summary.row_count - 1)}</small>;
         }
       }
     }
     return (
-        <span className={isEmpty ? 'asset-name asset-name--empty' : 'asset-name'}>
-          {name}
-          {extra ?
-            extra
-          : null }
-        </span>
-      );
+      <span className={classNames.join(' ')}>
+        {name} {extra}
+      </span>
+    );
   }
-};
+}
 
 class PopoverMenu extends React.Component {
   constructor(props) {
