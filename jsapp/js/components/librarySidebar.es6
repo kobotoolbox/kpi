@@ -21,6 +21,9 @@ class LibrarySidebar extends Reflux.Component {
     autoBind(this);
   }
 
+  // TODO: move all dataInterface collection methods calls to some new actions
+  // also add all these: https://github.com/kobotoolbox/kpi/blob/master/jsapp/js/components/librarySidebar.es6
+
   queryCollections() {
     dataInterface.listCollections().then((collections) => {
       this.setState({
