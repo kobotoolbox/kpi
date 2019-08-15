@@ -108,6 +108,11 @@ export class AssetsTable extends React.Component {
     autoBind(this);
   }
 
+  /**
+   * This function is only a callback handler, as the asset reordering itself
+   * should be handled by the component that is providing the assets list.
+   * @param {string} columnId
+   */
   reorder(columnId) {
     if (this.props.orderBy.id === columnId) {
       // clicking already selected column results in switching the order direction
