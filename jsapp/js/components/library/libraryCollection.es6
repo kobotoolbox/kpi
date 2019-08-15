@@ -4,6 +4,7 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
+import orderBy from 'lodash.orderby';
 import bem from 'js/bem';
 import mixins from 'js/mixins';
 import stores from 'js/stores';
@@ -12,20 +13,26 @@ import {
   t,
   assign
 } from 'js/utils';
+import {getAssetDisplayName} from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
 import {
   AssetsTable,
-  ASSETS_TABLE_CONTEXTS
+  ASSETS_TABLE_CONTEXTS,
+  ASSETS_TABLE_COLUMNS
 } from './assetsTable';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
+
+const defaultColumn = ASSETS_TABLE_COLUMNS.get('last-modified');
 
 class LibraryCollection extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      asset: false
+      asset: false,
+      orderBy: defaultColumn,
+      isOrderAsc: defaultColumn.defaultIsOrderAsc
     };
     autoBind(this);
   }
@@ -33,7 +40,12 @@ class LibraryCollection extends React.Component {
   componentWillReceiveProps(nextProps) {
     // trigger loading message when switching assets
     if (nextProps.params.uid !== this.props.params.uid) {
-      this.setState({asset: false});
+      this.setState({
+        asset: false,
+        // reset ordering when switching asset
+        orderBy: defaultColumn,
+        isOrderAsc: defaultColumn.defaultIsOrderAsc
+      });
     }
   }
 
@@ -52,6 +64,47 @@ class LibraryCollection extends React.Component {
     if (asset) {
       this.setState({asset: asset});
     }
+  }
+
+  onAssetsTableReorder(orderBy, isOrderAsc) {
+    this.setState({
+      orderBy,
+      isOrderAsc
+    });
+  }
+
+  nameOrderFunction(asset) {
+    const displayName = getAssetDisplayName(asset);
+    if (displayName.empty) {
+      // empty ones should be at the end
+      return null;
+    } else {
+      return displayName.final.toLowerCase();
+    }
+  }
+
+  defaultOrderFunction(asset) {
+    return asset[this.state.orderBy.backendProp];
+  }
+
+  /**
+   * Returns asset children ordered by orderBy and isOrderAsc properties
+   * @return {Array}
+   */
+  getOrderedChildren() {
+    let orderFn = this.defaultOrderFunction.bind(this);
+    if (this.state.orderBy.id === ASSETS_TABLE_COLUMNS.get('name').id) {
+      orderFn = this.nameOrderFunction.bind(this);
+    }
+    const orderDirection = this.state.isOrderAsc ? 'asc' : 'desc';
+
+    return orderBy(
+      this.state.asset.children.results,
+      // first order property is the one user chooses
+      // second order property is always asset name in ascending direction
+      [orderFn, this.nameOrderFunction.bind(this)],
+      [orderDirection, 'asc'],
+    );
   }
 
   render() {
@@ -73,6 +126,8 @@ class LibraryCollection extends React.Component {
       },
       settings: {}
     }, this.state.asset);
+
+    const orderedChildren = this.getOrderedChildren();
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -98,7 +153,10 @@ class LibraryCollection extends React.Component {
 
             <bem.FormView__cell m='box'>
               <AssetsTable
-                assets={this.state.asset.children.results}
+                assets={orderedChildren}
+                orderBy={this.state.orderBy}
+                isOrderAsc={this.state.isOrderAsc}
+                onReorder={this.onAssetsTableReorder.bind(this)}
                 context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
               />
             </bem.FormView__cell>
