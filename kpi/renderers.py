@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
+import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 
@@ -66,29 +67,26 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
             # `data`. Is this the best way to handle that?
             return None
         pack, submission_stream = build_formpack(asset, data)
+        # Right now, we're more-or-less mirroring the JSON renderer. In the
+        # future, we could expose more export options (e.g. label language)
         export = pack.export(
             versions=pack.versions.keys(),
-            # Which of these do we want? Would it be better to run this through
-            # ExportTask, just synchronously?
-            #'group_sep': group_sep,
-            lang='_xml',
+            group_sep='/',
+            lang=formpack.constants.UNSPECIFIED_TRANSLATION,
             hierarchy_in_labels=True,
-            #'copy_fields': self.COPY_FIELDS,
-            #'force_index': True,
-            #'tag_cols_for_header': tag_cols_for_header,
         )
         geo_question_name = view.request.query_params.get('geo_question_name')
         if not geo_question_name:
             # No geo question specified; use the first one in the latest
             # version of the form
             latest_version = pack.versions.values()[-1]
-            geo_questions = filter(
-                lambda field: field.data_type in ('geopoint', 'geotrace'),
-                latest_version.sections.values()[0].fields.values()
-            )
+            first_section = next(iter(latest_version.sections.values()))
+            geo_questions = (field for field in first_section.fields.values()
+                             if field.data_type in GEO_QUESTION_TYPES)
             try:
-                geo_question_name = geo_questions[0].name
-            except IndexError:
+                geo_question_name = next(geo_questions).name
+            except StopIteration:
+                # formpack will gracefully return an empty `features` array
                 geo_question_name = None
         return ''.join(
             export.to_geojson(submission_stream, geo_question_name)
