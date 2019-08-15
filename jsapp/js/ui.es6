@@ -7,10 +7,9 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
-
+import {getAssetDisplayName} from 'js/assetUtils';
 import bem from './bem';
 import {t, assign} from './utils';
 import classNames from 'classnames';
@@ -182,30 +181,27 @@ class AssetName extends React.Component {
   }
 
   render() {
-    let name = this.props.name;
+    const displayName = getAssetDisplayName(this.props);
     let extra = null;
     const classNames = ['asset-name'];
     const summary = this.props.summary;
 
-    if (!name) {
-      // for unnamed assets, we try to display first question name
-      name = summary.labels ? summary.labels[0] : undefined;
-
-      if (!name) {
-        // if still no name to display, we show special empty value
-        classNames.push('asset-name--empty');
-        name = t('no name');
-      } else if (summary.row_count) {
-        if (summary.row_count === 2) {
-          extra = <small>{t('and one other question')}</small>;
-        } else if (summary.row_count > 2) {
-          extra = <small>{t('and ## other questions').replace('##', summary.row_count - 1)}</small>;
-        }
+    if (displayName.question && summary.row_count) {
+      if (summary.row_count === 2) {
+        extra = <small>{t('and one other question')}</small>;
+      } else if (summary.row_count > 2) {
+        extra = <small>{t('and ## other questions').replace('##', summary.row_count - 1)}</small>;
       }
     }
+
+    if (displayName.empty) {
+      // if we display empty name fallback, we style it differently
+      classNames.push('asset-name--empty');
+    }
+
     return (
       <span className={classNames.join(' ')}>
-        {name} {extra}
+        {displayName.final} {extra}
       </span>
     );
   }
