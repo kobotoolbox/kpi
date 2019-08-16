@@ -1,6 +1,7 @@
 _ = require 'underscore'
 cloneDeep = require('lodash.clonedeep')
 $aliases = require './model.aliases'
+$configs = require './model.configs'
 utils = require '../../js/utils'
 
 module.exports = do ->
@@ -95,6 +96,16 @@ module.exports = do ->
 
     _curGrp().export().__rows
 
+  # normalizes required value - truthy values become `true` and falsy values become `false`
+  normalizeRequiredValues = (survey) ->
+    normalizedSurvey = cloneDeep(survey)
+    for row in normalizedSurvey
+      if row.required in $configs.truthyValues
+        row.required = true
+      else if row.required in $configs.falsyValues or row.required in [undefined, '']
+        row.required = false
+    return normalizedSurvey
+
   inputParser.parseArr = parseArr
 
   # pass baseSurvey whenever you import other asset into existing form
@@ -110,6 +121,9 @@ module.exports = do ->
     o.survey = nullified.survey;
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
+
+    if o.survey
+      o.survey = normalizeRequiredValues(o.survey)
 
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
