@@ -73,7 +73,6 @@ export class TranslationTable extends React.Component {
             <React.Fragment>
               <bem.FormView__iconButton
                 onClick={this.toggleRenameLanguageForm.bind(this)}
-                data-tip={t('Edit language')}
                 className='right-tooltip form-view__icon-button-edit'
                 >
                   {this.state.showLanguageForm &&
@@ -132,7 +131,7 @@ export class TranslationTable extends React.Component {
 
   toggleRenameLanguageForm(evt) {
     evt.stopPropagation();
-    this.state.showLanguageForm ? this.setState({showLanguageForm : false}) : this.setState({showLanguageForm : true});
+    this.setState({showLanguageForm : !this.state.showLanguageForm})
   }
 
   saveChanges() {
@@ -197,7 +196,7 @@ export class TranslationTable extends React.Component {
     content.translations[index] = langString;
     this.setState({ langString: langString });
 
-    if (index == 0) {
+    if (index === 0) {
       content.settings.default_language = langString;
     }
 
@@ -226,13 +225,13 @@ export class TranslationTable extends React.Component {
         {this.state.showLanguageForm &&
           <bem.FormModal>
             <bem.FormModal__item>
-              <bem.FormView__cell m='add-language-form'>
+              <bem.FormView__cell m='update-language-form'>
                 <LanguageForm
                   langString={this.state.langString}
                   langIndex={this.props.langIndex}
                   onLanguageChange={this.onLanguageChange.bind(this)}
                   existingLanguages={this.getAllLanguages()}
-                  isDefault={this.props.langIndex == 0}
+                  isDefault={this.props.langIndex === 0}
                 />
               </bem.FormView__cell>
             </bem.FormModal__item>

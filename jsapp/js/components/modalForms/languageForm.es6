@@ -10,6 +10,7 @@ Properties:
 - langIndex <string>
 - onLanguageChange <function>: required
 - existingLanguages <langString[]>: for validation purposes
+- isDefault <boolean>: for default language only
 */
 class LanguageForm extends React.Component {
   constructor(props) {
