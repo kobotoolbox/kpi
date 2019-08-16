@@ -4,6 +4,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import $ from 'jquery';
+import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
 import actions from '../actions';
@@ -264,8 +265,12 @@ export class DataTable extends React.Component {
           </span>
 
           {userCanSeeEditIcon &&
-            <span onClick={this.launchEditSubmission} data-sid={row.original._id}
-                  className='table-link' data-tip={t('Edit')}>
+            <span
+              onClick={this.launchEditSubmission.bind(this)}
+              data-sid={row.original._id}
+              className='table-link'
+              data-tip={t('Edit')}
+            >
               <i className='k-icon k-icon-edit'/>
             </span>
           }
@@ -692,20 +697,7 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission (evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0),
-        uid = this.props.asset.uid,
-        newWin = window.open('', '_blank');
-    const sid = el.getAttribute('data-sid');
-
-    dataInterface.getEnketoEditLink(uid, sid).done((editData) => {
-      this.setState({ promptRefresh: true });
-      if (editData.url) {
-        newWin.location = editData.url;
-      } else {
-        newWin.close();
-        notify(t('There was an error loading Enketo.'));
-      }
-    });
+    enketoHandler.editSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid);
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal)
