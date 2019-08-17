@@ -18,7 +18,7 @@ class ImportAssetException(Exception):
     pass
 
 
-class KoboCatProfileException(Exception):
+class KobocatProfileException(Exception):
     pass
 
 
