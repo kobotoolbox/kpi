@@ -1,12 +1,15 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import)
 import sys
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from django.conf import settings
+
 
 from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
 from kpi.utils.permissions import grant_default_model_level_perms
-from ...models import Asset, Collection
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -24,4 +27,4 @@ class Command(BaseCommand):
             last_progress_message_length = len(progress_message)
             sys.stdout.write(progress_message)
             sys.stdout.flush()
-        print " done!"
+        print(" done!")

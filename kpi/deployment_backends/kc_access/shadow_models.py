@@ -95,7 +95,10 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
 
     @property
     def prefixed_hash(self):
-        ''' Matches what's returned by the KC API '''
+        """
+        Matches what's returned by the KC API
+        """
+
         return u"md5:%s" % self.hash
 
 
@@ -118,10 +121,10 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
 
 
 class KobocatUserProfile(ShadowModel):
-    '''
+    """
     From onadata/apps/main/models/user_profile.py
     Not read-only because we need write access to `require_auth`
-    '''
+    """
     class Meta(ShadowModel.Meta):
         db_table = 'main_userprofile'
         verbose_name = 'user profile'
@@ -248,6 +251,7 @@ class KobocatUserPermission(ShadowModel):
     """ Needed to assign model-level KoBoCAT permissions """
     user = models.ForeignKey('KobocatUser', db_column='user_id')
     permission = models.ForeignKey('KobocatPermission', db_column='permission_id')
+
     class Meta(ShadowModel.Meta):
         db_table = 'auth_user_user_permissions'
 
