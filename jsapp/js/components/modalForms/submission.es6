@@ -4,7 +4,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
-
+import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
 import actions from 'js/actions';
 import mixins from 'js/mixins';
@@ -37,11 +37,11 @@ class Submission extends React.Component {
       submission: {},
       loading: true,
       error: false,
-      enketoEditLink: false,
       previous: -1,
       next: -1,
       sid: props.sid,
       showBetaFieldsWarning: false,
+      isEditLoading: false,
       promptRefresh: false,
       translationIndex: 0,
       translationOptions: translationOptions
@@ -49,6 +49,7 @@ class Submission extends React.Component {
 
     autoBind(this);
   }
+
   componentDidMount() {
     this.getSubmission(this.props.asset.uid, this.state.sid);
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
@@ -64,16 +65,13 @@ class Submission extends React.Component {
     this.setState({submission: this.state.submission});
   }
 
+  isSubmissionEditable() {
+    return this.props.asset.deployment__active && !this.state.isEditLoading;
+  }
+
   getSubmission(assetUid, sid) {
     dataInterface.getSubmission(assetUid, sid).done((data) => {
       var prev = -1, next = -1;
-
-      if (this.props.asset.deployment__active) {
-        dataInterface.getEnketoEditLink(assetUid, sid).done((editData) => {
-          if (editData.url)
-            this.setState({enketoEditLink: editData.url});
-        });
-      }
 
       if (this.props.ids && sid) {
         const c = this.props.ids.findIndex(k => k==sid);
@@ -144,6 +142,17 @@ class Submission extends React.Component {
     dialog.set(opts).show();
   }
 
+  launchEditSubmission() {
+    this.setState({
+      promptRefresh: true,
+      isEditLoading: true
+    });
+    enketoHandler.editSubmission(this.props.asset.uid, this.props.sid).then(
+      () => {this.setState({isEditLoading: false});},
+      () => {this.setState({isEditLoading: false});}
+    );
+  }
+
   renderAttachment(filename, type) {
     const s = this.state.submission, originalFilename = filename;
     var attachmentUrl = null;
@@ -171,12 +180,6 @@ class Submission extends React.Component {
     } else {
       return <a href={attachmentUrl} target='_blank'>{originalFilename}</a>
     }
-  }
-
-  promptRefresh() {
-    this.setState({
-      promptRefresh: true
-    });
   }
 
   triggerRefresh() {
@@ -504,18 +507,23 @@ class Submission extends React.Component {
           </div>
 
           <div className='submission-actions'>
-            {this.userCan('change_submissions', this.props.asset) && this.state.enketoEditLink &&
-              <a href={this.state.enketoEditLink}
-                onClick={this.promptRefresh}
-                target='_blank'
-                className='mdl-button mdl-button--raised mdl-button--colored'>
-                {t('Edit')}
+            {this.userCan('change_submissions', this.props.asset) &&
+              <a
+                onClick={this.launchEditSubmission.bind(this)}
+                className='mdl-button mdl-button--raised mdl-button--colored'
+                disabled={!this.isSubmissionEditable()}
+              >
+                {this.state.isEditLoading && t('Loading…')}
+                {!this.state.isEditLoading && t('Edit')}
               </a>
             }
+
             {this.userCan('change_submissions', this.props.asset) &&
-              <a onClick={this.deleteSubmission}
-                    className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'
-                    data-tip={t('Delete submission')}>
+              <a
+                onClick={this.deleteSubmission}
+                className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'
+                data-tip={t('Delete submission')}
+              >
                 <i className='k-icon-trash' />
               </a>
             }

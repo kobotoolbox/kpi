@@ -555,12 +555,12 @@ mixins.clickAssets = {
             msg = t('You are about to permanently delete this draft.');
           }
         } else {
-          msg = `
-            ${t('You are about to permanently delete this form.')}
-            ${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}
-            ${renderCheckbox('dt2', t('All questions created for this form will be deleted.'))}
-            ${renderCheckbox('dt3', t('The form associated with this project will be deleted.'))}
-            ${renderCheckbox('dt4', t('I understand that if I delete this project I will not be able to recover it.'), true)}
+          msg = `${t('You are about to permanently delete this form.')}`;
+          if (asset.deployment__submission_count !== 0) {
+            msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`;
+          }
+          msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}
+            ${renderCheckbox('dt3', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
