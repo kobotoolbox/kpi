@@ -1,26 +1,24 @@
 # coding: utf-8
-from __future__ import unicode_literals
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
-import itertools
 from collections import OrderedDict
 from copy import deepcopy
 
-from django.conf import settings
 from django.utils.translation import ugettext as _
-from formpack import FormPack
 from rest_framework import serializers
 
-from .constants import SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
+from formpack import FormPack
 from kpi.utils.log import logging
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
-    '''
+    """
     Return a tuple containing a `FormPack` instance and the iterable stream of
     submissions for the given `asset`. If `use_all_form_versions` is `False`,
     then only the newest version of the form is considered, and all submissions
     are assumed to have been collected with that version of the form.
-    '''
+    """
     FUZZY_VERSION_ID_KEY = '_version_'
     INFERRED_VERSION_ID_KEY = '__inferred_version__'
 
@@ -171,9 +169,10 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
             'style': specified_styles.get(identifier, {}),
         }
 
-    return [_package_stat(*stat_tup, split_by=split_by) for
-            stat_tup in report.get_stats(submission_stream,
-                                         fields=field_names,
-                                         lang=lang,
-                                         split_by=split_by)
+    return [
+        _package_stat(*stat_tup, split_by=split_by) for
+        stat_tup in report.get_stats(submission_stream,
+                                     fields=field_names,
+                                     lang=lang,
+                                     split_by=split_by)
     ]

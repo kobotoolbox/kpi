@@ -1,7 +1,11 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import base64
-import unittest
 
 import responses
+import unittest
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction

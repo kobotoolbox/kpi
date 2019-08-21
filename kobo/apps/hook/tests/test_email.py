@@ -1,20 +1,17 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
-import json
-
+import responses
 from django.conf import settings
 from django.core import mail
-from django_celery_beat.models import PeriodicTask
 from django.template import Context
 from django.template.loader import get_template
 from django.utils import translation, dateparse
-import responses
-from rest_framework import status
+from django_celery_beat.models import PeriodicTask
 
 from .hook_test_case import HookTestCase
 from ..tasks import failures_reports
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 
 
 class EmailTestCase(HookTestCase):
@@ -25,7 +22,6 @@ class EmailTestCase(HookTestCase):
                                      enabled=True,
                                      task=beat_schedule.get("task"))
         periodic_task.save()
-
 
     @responses.activate
     def test_notifications(self):
@@ -59,7 +55,7 @@ class EmailTestCase(HookTestCase):
             "username": expected_record.get("username"),
             "assets": expected_record.get("assets")
         }
-        ## Localize templates
+        # Localize templates
         translation.activate(expected_record.get("language"))
         text_content = plain_text_template.render(Context(variables))
 

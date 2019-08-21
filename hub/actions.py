@@ -1,5 +1,7 @@
-import requests
-from collections import OrderedDict
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
@@ -110,19 +112,20 @@ def delete_related_objects(modeladmin, request, queryset):
         request, "delete_related_for_selected_confirmation.html",
         context, current_app=modeladmin.admin_site.name)
 
+
 delete_related_objects.short_description = ugettext_lazy(
     "Remove related objects for these %(verbose_name_plural)s "
     "(deletion step 1)")
 
 
 def remove_from_kobocat(modeladmin, kpi_request, queryset):
-    '''
+    """
     This is a shortcut to try and make administrators' lives less miserable
     when they need to delete users. It simply takes the list of selected users
     (from `queryset`) and redirects to a filtered list view in the KoBoCAT
     Django admin interface. From there, an administrator can easily select all
     matching users and delete them.
-    '''
+    """
     if not kpi_request.user.is_superuser:
         raise PermissionDenied
     if kpi_request.method != 'POST':
@@ -134,6 +137,7 @@ def remove_from_kobocat(modeladmin, kpi_request, queryset):
         )
     )
     return response
+
 
 remove_from_kobocat.short_description = ugettext_lazy(
     "View these %(verbose_name_plural)s in the KoBoCAT admin interface "

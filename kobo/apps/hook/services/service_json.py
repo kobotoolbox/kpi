@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
-import json
 import re
 
 from ..models.service_definition_interface import ServiceDefinitionInterface

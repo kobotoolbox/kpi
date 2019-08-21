@@ -1,15 +1,22 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
+
 from .models.object_permission import get_anonymous_user, perm_parse
 
 
 class ObjectPermissionBackend(ModelBackend):
     @staticmethod
     def _translate_anonymous_user(user_obj):
-        ''' Returns user_obj, is_anonymous, where user_obj is always a real
+        """
+        Returns user_obj, is_anonymous, where user_obj is always a real
         User object (translated from AnonymousUser if necessary), and
-        is_anonymous is True if the user is anonymous '''
+        is_anonymous is True if the user is anonymous
+        """
         is_anonymous = False
         if isinstance(user_obj, AnonymousUser):
             is_anonymous = True
@@ -60,11 +67,13 @@ class ObjectPermissionBackend(ModelBackend):
         if is_anonymous:
             # Obey limits on anonymous users' permissions
             proceed = False
+            # FIXME `allowed_perm` & `perm` are not declared.
+            # how can it work?
             for allowed_perm in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                 if perm[:perm.index('.')] == app_label:
                     proceed = True
             if not proceed:
                 return False
-        return super(ObjectPermissionBackend, self
-            ).has_module_perms(user_obj, app_label)
+        return super(ObjectPermissionBackend, self).has_module_perms(
+            user_obj, app_label)
 

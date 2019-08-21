@@ -1,21 +1,23 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from hashlib import md5
 
-from django.db import models
 from django.conf import settings
-from django.db import ProgrammingError
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
-from django.utils import six, timezone
-
-from kpi.constants import SHADOW_MODEL_APP_LABEL
 
 try:
     from django.contrib.contenttypes.fields import GenericForeignKey
 except ImportError:
     from django.contrib.contenttypes.generic import GenericForeignKey
-
+from django.db import ProgrammingError
+from django.db import models
+from django.utils import six, timezone
+from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
+
+from kpi.constants import SHADOW_MODEL_APP_LABEL
 
 
 class ReadOnlyModelError(ValueError):

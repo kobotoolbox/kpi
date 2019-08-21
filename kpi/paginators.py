@@ -1,4 +1,7 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from django.core.paginator import InvalidPage
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound

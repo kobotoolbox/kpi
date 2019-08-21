@@ -1,13 +1,14 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import contextlib
 import copy
 import re
+from collections import defaultdict
 
 from django.apps import apps
 from taggit.models import Tag, TaggedItem
-from .models import Asset
-from .models import Collection
-from .haystack_utils import update_object_in_search_index
-
 
 '''
 This circular import will bite you if you don't import kpi.models before
@@ -19,9 +20,13 @@ importing kpi.model_utils:
   File "kpi/models/import_task.py", line 6, in <module>
     from kpi.model_utils import create_assets
 '''
+from .models import Asset
+from .models import Collection
+from .haystack_utils import update_object_in_search_index
+
 
 TAG_RE = r'tag:(.*)'
-from collections import defaultdict
+
 
 def _load_library_content(structure):
     content = structure.get('content', {})
@@ -117,6 +122,7 @@ def _load_library_content(structure):
 
     return collection
 
+
 def create_assets(kls, structure, **options):
     if kls == "collection":
         obj = Collection.objects.create(**structure)
@@ -126,6 +132,7 @@ def create_assets(kls, structure, **options):
         else:
             obj = Asset.objects.create(**structure)
     return obj
+
 
 @contextlib.contextmanager
 def disable_auto_field_update(kls, field_name):
@@ -139,6 +146,7 @@ def disable_auto_field_update(kls, field_name):
     finally:
         field.auto_now = original_auto_now
         field.auto_now_add = original_auto_now_add
+
 
 def remove_string_prefix(string, prefix):
     return string[len(prefix):] if string.startswith(prefix) else string

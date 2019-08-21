@@ -1,22 +1,20 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import os
-import mock
-import xlrd
 import zipfile
-import datetime
-import unittest
 from collections import defaultdict
 
+import datetime
+import mock
+import xlrd
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from kobo.apps.reports import report_data
-from formpack import FormPack
-
 from kpi.models import Asset, ExportTask
 
 

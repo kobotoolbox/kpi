@@ -1,4 +1,7 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from importlib import import_module
 
 from django.contrib.postgres.fields import ArrayField
@@ -6,8 +9,8 @@ from django.db import models
 from django.utils import timezone
 from jsonbfield.fields import JSONField as JSONBField
 
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 from kpi.fields import KpiUidField
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 
 
 class Hook(models.Model):

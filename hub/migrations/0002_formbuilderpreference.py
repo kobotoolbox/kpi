@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import absolute_import, unicode_literals
 
 from django.db import models, migrations, connection
 from django.conf import settings
@@ -12,11 +12,13 @@ def south_forwards(apps, schema_editor):
     if u'south_migrationhistory' in connection.introspection.table_names():
         schema_editor.execute(statement, params=None)
 
+
 def south_backwards(apps, schema_editor):
     statement = "DELETE FROM south_migrationhistory WHERE app_name='hub' " \
                 "AND migration='0002_formbuilderpreference';"
     if u'south_migrationhistory' in connection.introspection.table_names():
         schema_editor.execute(statement, params=None)
+
 
 class Migration(migrations.Migration):
 

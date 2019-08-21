@@ -1,6 +1,11 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import urlparse
 from django.utils.encoding import uri_to_iri
 from rest_framework.compat import get_script_prefix, resolve
+
 
 def absolute_resolve(url):
     """

@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from django import template
-from datetime import date, timedelta
 
 register = template.Library()
 

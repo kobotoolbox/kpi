@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import base64
 import json
@@ -35,7 +36,7 @@ class MongoHelper(object):
     ]
 
     # Match KoBoCat's variables of ParsedInstance class
-    USERFORM_ID = "_userform_id"
+    USERFORM_ID = '_userform_id'
     DEFAULT_LIMIT = 30000
     DEFAULT_BATCHSIZE = 1000
 

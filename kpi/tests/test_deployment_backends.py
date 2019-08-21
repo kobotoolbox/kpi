@@ -1,9 +1,10 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import pytest
-
 from django.test import TestCase
+
 from kpi.models.asset import Asset
 from kpi.models.asset_version import AssetVersion
 

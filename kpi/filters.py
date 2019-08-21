@@ -1,17 +1,22 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import re
+from distutils.util import strtobool
+
 import haystack
 from django.conf import settings
-from rest_framework import filters
-from whoosh.query import Term, And
-from distutils.util import strtobool
-from whoosh.qparser import QueryParser
-from haystack.utils import get_model_ct
-from haystack.query import SearchQuerySet
-from django.core.exceptions import FieldError
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import FieldError
 from haystack.backends.whoosh_backend import WhooshSearchBackend
-from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
+from haystack.constants import DJANGO_CT
+from haystack.query import SearchQuerySet
+from haystack.utils import get_model_ct
+from rest_framework import filters
+from whoosh.qparser import QueryParser
+from whoosh.query import Term
 
 from .models import Asset, ObjectPermission
 from .models.object_permission import (

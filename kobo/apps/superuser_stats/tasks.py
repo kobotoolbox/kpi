@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from celery import shared_task
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will

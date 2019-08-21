@@ -1,10 +1,14 @@
-import contextlib
-import haystack
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
+import contextlib
+
+import haystack
 from django.apps import apps as kpi_apps
-from django.db import models
 from django.conf import settings
-from django.core import exceptions
+from django.db import models
+
 from kpi.utils.log import logging
 
 
@@ -29,6 +33,7 @@ class SignalProcessor(haystack.signals.BaseSignalProcessor):
     Allows for observing when saves/deletes fire & automatically updates the
     search engine appropriately.
     """
+
     def __init__(self, *args, **kwargs):
         self.signal_models = []
         self.tagged_item_model = None
@@ -77,11 +82,11 @@ class SignalProcessor(haystack.signals.BaseSignalProcessor):
 
     @staticmethod
     def handle_tagged_item_save(sender, instance, created, raw, **kwargs):
-        '''
+        """
         TaggedItem is the through model for the tag-to-object M2M relationship.
         When a TaggedItem is saved, we need to update the search index for the tag
         itself, as well as the tagged item
-        '''
+        """
         if raw:
             # Since we touch other objects, we cannot run when the database is
             # not yet consistent
@@ -98,8 +103,10 @@ class SignalProcessor(haystack.signals.BaseSignalProcessor):
 
     @contextlib.contextmanager
     def defer(self):
-        ''' Do not perform any automatic, real-time Haystack indexing for
-        operations performed inside the body of the `with` block '''
+        """
+        Do not perform any automatic, real-time Haystack indexing for
+        operations performed inside the body of the `with` block
+        """
         self.teardown()
         yield
         self.setup()

@@ -1,13 +1,15 @@
-# -*- coding: utf-8 -*-
-from datetime import timedelta
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import constance
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 from kpi.fields import KpiUidField
 from kpi.utils.log import logging
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 
 
 class HookLog(models.Model):

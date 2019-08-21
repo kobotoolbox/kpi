@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
-import time
+from optparse import make_option
 
-from kpi.models import Asset, AssetVersion
+import time
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand
 from reversion.models import Version
 
-from optparse import make_option
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models.signals import post_save
-
 from kpi.model_utils import disable_auto_field_update
+from kpi.models import Asset, AssetVersion
 
 NULL_CHAR_REPR = '\\u0000'
 
@@ -133,12 +132,12 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
             a_ids_done += 1
             if a_ids_done % 100 == 0:
                 elapsed = time.time() - start_time
-                print 'Completed {}/{} ({}%); est\'d time left: {}s'.format(
+                print('Completed {}/{} ({}%); est\'d time left: {}s'.format(
                     a_ids_done,
                     a_ids_len,
                     a_ids_done * float(100) / a_ids_len,
                     elapsed / a_ids_done * (a_ids_len - a_ids_done)
-                )
+                ))
 
     if len(ids_not_counted) > 0:
         print('DeploymentIDs not found: '

@@ -1,6 +1,11 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from pygments.lexers.html import XmlLexer
 from pygments.formatters.html import HtmlFormatter
 from pygments import highlight
+
 
 class XFormFormatter(HtmlFormatter):
     def _wrap_full(self, inner, outfile):
@@ -10,6 +15,7 @@ class XFormFormatter(HtmlFormatter):
             yield t, line
         yield 0, ''
         yield 0, ''
+
 
 def highlight_xform(xml, **options):
     formatter = XFormFormatter(style='friendly', **options)

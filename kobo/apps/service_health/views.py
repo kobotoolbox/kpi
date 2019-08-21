@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 import requests
 import time
 
@@ -35,8 +39,11 @@ def get_response(url_):
 
 
 def service_health(request):
-    ''' Return a HTTP 200 if some very basic runtime tests of the application
-    pass. Otherwise, return HTTP 500 '''
+    """
+    Return a HTTP 200 if some very basic runtime tests of the application
+    pass. Otherwise, return HTTP 500
+    """
+
     any_failure = False
 
     t0 = time.time()

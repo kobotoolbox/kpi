@@ -1,49 +1,46 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-import re
-import pytz
 import base64
 import datetime
-import requests
-import tempfile
-import posixpath
 import dateutil.parser
+import posixpath
+import pytz
+import re
+import tempfile
+from collections import defaultdict
 from io import BytesIO
 from os.path import splitext
-from collections import defaultdict
 
-from jsonfield import JSONField
+import requests
 from django.conf import settings
-from rest_framework import exceptions
-from django.db import models, transaction
 from django.core.files.base import ContentFile
-from private_storage.fields import PrivateFileField
 from django.core.urlresolvers import Resolver404, resolve
+from django.db import models, transaction
 from django.utils.six.moves.urllib import parse as urlparse
-
-import formpack.constants
+from jsonfield import JSONField
+from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
-from formpack.utils.string import ellipsize
-from formpack.schema.fields import ValidationStatusCopyField
-
-from kpi.constants import PERM_VIEW_SUBMISSIONS
-from kpi.utils.log import logging
-from kobo.apps.reports.report_data import build_formpack
-
-from ..fields import KpiUidField
-from ..models import Collection, Asset
-from ..zip_importer import HttpContentParse
-from ..model_utils import create_assets, _load_library_content, \
-                          remove_string_prefix
-from ..deployment_backends.mock_backend import MockDeploymentBackend
-
-
+from rest_framework import exceptions
 # TODO: Remove lines below (38:58) when django and django-storages are upgraded
 # to latest version.
 # Because current version of Django is 1.8, we can't upgrade `django-storages`.
 # `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.1) requires `Django 1.11`
 from storages.backends.s3boto3 import S3Boto3StorageFile
+
+import formpack.constants
+from formpack.schema.fields import ValidationStatusCopyField
+from formpack.utils.string import ellipsize
+from kobo.apps.reports.report_data import build_formpack
+from kpi.constants import PERM_VIEW_SUBMISSIONS
+from kpi.utils.log import logging
+from ..deployment_backends.mock_backend import MockDeploymentBackend
+from ..fields import KpiUidField
+from ..model_utils import create_assets, _load_library_content, \
+    remove_string_prefix
+from ..models import Collection, Asset
+from ..zip_importer import HttpContentParse
 
 
 def _flush_write_buffer(self):

@@ -1,15 +1,13 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import User
-from django.conf import settings
-import StringIO
-import tempfile
-import pyxform
-import urllib
-import json
-import xlrd
-import csv
-import sys
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import re
+
+import xlrd
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+
 
 def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     """
@@ -83,6 +81,7 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
         sheet_contents = _sheet_to_lists(sheet)
         ss_structure[sheet_name] = sheet_contents
     return ss_structure
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

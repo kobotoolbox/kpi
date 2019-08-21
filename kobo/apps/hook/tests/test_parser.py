@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
-from lxml import etree
 import json
 import re
 
-from .hook_test_case import HookTestCase
+from lxml import etree
+
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML
+from .hook_test_case import HookTestCase
 
 
 class ParserTestCase(HookTestCase):

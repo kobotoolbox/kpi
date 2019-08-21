@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets

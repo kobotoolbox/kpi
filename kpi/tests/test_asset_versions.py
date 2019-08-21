@@ -1,15 +1,17 @@
-import json
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import hashlib
-import unittest
-from django.contrib.auth.models import User
-from django.test import TestCase
+import json
 from copy import deepcopy
 
-from formpack.utils.expand_content import SCHEMA_VERSION
+from django.test import TestCase
 
+from formpack.utils.expand_content import SCHEMA_VERSION
+from kpi.exceptions import BadAssetTypeException
 from ..models import Asset
 from ..models import AssetVersion
-from kpi.exceptions import BadAssetTypeException
 
 
 class AssetVersionTestCase(TestCase):

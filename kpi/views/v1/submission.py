@@ -1,17 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-from django.http import Http404
-from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
-from rest_framework import renderers, viewsets
-from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
-from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.models import Asset
-from kpi.permissions import SubmissionPermission
-from kpi.renderers import SubmissionXMLRenderer
 from kpi.views.v2.data import DataViewSet
 
 

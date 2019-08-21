@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse

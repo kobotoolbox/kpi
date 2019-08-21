@@ -1,7 +1,8 @@
 # coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -53,7 +54,6 @@ class InAppMessageSerializer(serializers.ModelSerializer):
                 )
             else:
                 interactions.save()
-
 
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='inappmessage-detail')

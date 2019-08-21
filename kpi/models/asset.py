@@ -1,6 +1,7 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😬
-from __future__ import absolute_import
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import StringIO
 import copy
@@ -15,15 +16,15 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.translation import ugettext_lazy as _
-from formpack import FormPack
-from formpack.utils.flatten_content import flatten_content
-from formpack.utils.json_hash import json_hash
-from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack import FormPack
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.json_hash import json_hash
+from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK, \

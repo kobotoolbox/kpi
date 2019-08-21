@@ -1,12 +1,15 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.forms.models import model_to_dict
-import dateutil.parser
-from kpi.models import Collection
-from kpi.models import Asset
-from django.contrib.auth.models import Permission
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import random
+
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+
+from kpi.models import Asset
+from kpi.models import Collection
 
 # random words
 TAGS = ' '.join(['whale various alien cat witness before cliff damp critic have now swallow',

@@ -1,4 +1,8 @@
-from base_handlers import GroupHandler
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
+from .base_handlers import GroupHandler
 
 COLS = {
     'score-choices': 'kobo--score-choices',
@@ -47,9 +51,11 @@ class KoboScoreGroup(GroupHandler):
     def begin(self, initial_row):
         super(KoboScoreGroup, self).begin(initial_row)
 
-        begin_group = {u'type': u'begin_group',
-                       u'appearance': u'field-list'}
-        begin_group[u'name'] = self.name
+        begin_group = {
+            u'type': u'begin_group',
+            u'appearance': u'field-list',
+            u'name': self.name
+        }
 
         if 'required' in initial_row:
             self._initial_row_required = initial_row['required']

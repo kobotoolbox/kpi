@@ -1,10 +1,13 @@
 # coding: utf-8
-from __future__ import absolute_import
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import multiprocessing
 import os
 import subprocess
 from datetime import timedelta
+# TODO remove this import when Python2 support is dropped
+from future.utils import bytes_to_native_str as n
 
 import dj_database_url
 import django.conf.locale
@@ -110,7 +113,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # TODO: Uncomment this when interoperability with dkobo is no longer
     # needed. See https://code.djangoproject.com/ticket/21649
-    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
@@ -130,9 +133,9 @@ CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
                                 'themselves'),
     'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
-                            'URL for terms of service document'),
+                             'URL for terms of service document'),
     'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
-                          'URL for privacy policy'),
+                           'URL for privacy policy'),
     'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
                         'URL of source code repository. When empty, a link '
                         'will not be shown in the user interface'),
@@ -141,8 +144,8 @@ CONSTANCE_CONFIG = {
                     'URL of user support portal. When empty, a link will not '
                     'be shown in the user interface'),
     'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
-                        os.environ.get('DEFAULT_FROM_EMAIL',
-                                       'help@kobotoolbox.org'),
+                      os.environ.get('DEFAULT_FROM_EMAIL',
+                                     'help@kobotoolbox.org'),
                       'Email address for users to contact, e.g. when they '
                       'encounter unhandled errors in the application'),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
@@ -155,7 +158,6 @@ CONSTANCE_CONFIG = {
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
-
 # Warn developers to use `pytest` instead of `./manage.py test`
 class DoNotUseRunner(object):
     def __init__(self, *args, **kwargs):
@@ -165,7 +167,9 @@ class DoNotUseRunner(object):
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
 # used in kpi.models.sitewide_messages
-MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
+# markdown does not support imports as unicode.
+# see `python2.7/dist-packages/markitup/fields.py:L14`
+MARKITUP_FILTER = (n(b'markdown.markdown'), {n(b'safe_mode'): False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level

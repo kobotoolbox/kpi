@@ -1,8 +1,11 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from abc import ABCMeta, abstractmethod
 
 from django.http import Http404
 from rest_framework import exceptions, permissions
-from rest_framework_extensions.settings import extensions_api_settings
 
 from kpi.models.asset import Asset
 from kpi.models.collection import Collection

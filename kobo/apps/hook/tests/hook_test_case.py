@@ -1,18 +1,19 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import json
 
 import responses
 from django.conf import settings
-from rest_framework import status
 from django.core.urlresolvers import reverse
+from rest_framework import status
 
-from ..models import HookLog, Hook
-from ..constants import HOOK_LOG_FAILED
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from ..constants import HOOK_LOG_FAILED
+from ..models import HookLog, Hook
 
 
 class HookTestCase(KpiTestCase):

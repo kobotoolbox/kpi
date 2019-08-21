@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import datetime
+
 from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
@@ -13,8 +15,10 @@ from rest_framework import exceptions
 KEY_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 KEY_LENGTH = 60
 
+
 def _generate_random_key():
     return get_random_string(KEY_LENGTH, KEY_CHARS)
+
 
 class AuthorizedApplication(models.Model):
     name = models.CharField(max_length=50)
@@ -30,6 +34,7 @@ class AuthorizedApplication(models.Model):
 
 def ten_minutes_from_now():
     return datetime.datetime.now() + datetime.timedelta(minutes=10)
+
 
 class OneTimeAuthenticationKey(models.Model):
     user = models.ForeignKey('auth.User')

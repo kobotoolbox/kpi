@@ -1,10 +1,10 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import re
 
-from base_handlers import GroupHandler
+from .base_handlers import GroupHandler
 
 SPAN_WRAP = '<span style="display:none">{}</span>'
 HEADER_WRAP = '**{}**'

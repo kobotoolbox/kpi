@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
 import logging
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
 from rest_framework.authtoken.models import Token

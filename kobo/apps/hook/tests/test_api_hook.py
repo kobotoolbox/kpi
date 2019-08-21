@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-import json
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import constance
-from django.core.urlresolvers import reverse
-import requests
 import responses
+from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from .hook_test_case import HookTestCase
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from .hook_test_case import HookTestCase
 
 
 class ApiHookTestCase(HookTestCase):

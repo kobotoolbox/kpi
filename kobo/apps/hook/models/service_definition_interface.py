@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
-from abc import ABCMeta, abstractmethod
 import json
 import os
 import re
+from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
-from rest_framework import status
 
-from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from kpi.utils.log import logging
 from .hook import Hook
 from .hook_log import HookLog
-from kpi.utils.log import logging
+from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
 
 
 class ServiceDefinitionInterface(object):

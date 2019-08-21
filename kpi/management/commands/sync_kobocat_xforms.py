@@ -1,32 +1,35 @@
-import StringIO
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import datetime
 import io
 import json
+import StringIO
 import re
-import requests
-import xlwt
 from collections import defaultdict
 from optparse import make_option
-from pyxform import xls2json_backends
 
+import requests
+import xlwt
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
+from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
-from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...deployment_backends.kc_access.shadow_models import ShadowModel, \
-    ReadOnlyKobocatXForm, KobocatUserObjectPermission
-from ...models import Asset, ObjectPermission
-from .import_survey_drafts_from_dkobo import _set_auto_field_update
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
-
+from .import_survey_drafts_from_dkobo import _set_auto_field_update
+from ...deployment_backends.kc_access.shadow_models import ShadowModel, \
+    ReadOnlyKobocatXForm, KobocatUserObjectPermission
+from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from ...models import Asset, ObjectPermission
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -59,7 +62,9 @@ class SyncKCXFormsWarning(Exception):
 
 
 def _add_contents_to_sheet(sheet, contents):
-    ''' Copied from dkobo/koboform/pyxform_utils.py '''
+    """
+    Copied from dkobo/koboform/pyxform_utils.py
+    """
     cols = []
     for row in contents:
         for key in row.keys():
@@ -75,7 +80,9 @@ def _add_contents_to_sheet(sheet, contents):
 
 
 def _convert_dict_to_xls(ss_dict):
-    ''' Copied from dkobo/koboform/pyxform_utils.py '''
+    """
+    Copied from dkobo/koboform/pyxform_utils.py
+    """
     workbook = xlwt.Workbook()
     for sheet_name in ss_dict.keys():
         # pyxform.xls2json_backends adds "_header" items for each sheet.....
@@ -92,10 +99,10 @@ def _convert_dict_to_xls(ss_dict):
 
 
 def _xlsform_to_kpi_content_schema(xlsform):
-    '''
+    """
     parses xlsform structure into json representation
     of spreadsheet structure.
-    '''
+    """
     content = xls_to_dicts(xlsform)
     # Remove the __version__ calculate question
     content['survey'] = [
@@ -111,7 +118,7 @@ def _xlsform_to_kpi_content_schema(xlsform):
 
 
 def _kc_forms_api_request(token, xform_pk, xlsform=False):
-    ''' Returns a `Response` object '''
+    """ Returns a `Response` object """
     url = '{}/api/v1/forms/{}'.format(
         settings.KOBOCAT_INTERNAL_URL, xform_pk)
     if xlsform:
@@ -179,8 +186,10 @@ def _get_kc_backend_response(xform):
 
 
 def _sync_form_content(asset, xform, changes):
-    ''' Returns `True` and appends to `changes` if it modifies `asset`; does
-    not save anything '''
+    """
+    Returns `True` and appends to `changes` if it modifies `asset`; does
+    not save anything
+    """
     if not asset.has_deployment:
         # A brand-new asset
         asset.content = _xform_to_asset_content(xform)
@@ -229,9 +238,11 @@ def _sync_form_content(asset, xform, changes):
 
 
 def _sync_form_metadata(asset, xform, changes):
-    ''' Returns `True` and appends to `changes` if it modifies `asset`. If
+    """
+    Returns `True` and appends to `changes` if it modifies `asset`. If
     `asset` has no primary key, it will be saved to allow permissions to be
-    assigned to it '''
+    assigned to it
+    """
     user = xform.user
     if not asset.has_deployment:
         # A brand-new asset
@@ -297,7 +308,9 @@ def _sync_form_metadata(asset, xform, changes):
 
 
 def _sync_permissions(asset, xform):
-    # Returns a list of affected users' usernames
+    """
+    Returns a list of affected users' usernames
+    """
 
     if not settings.SYNC_KOBOCAT_PERMISSIONS:
         return []

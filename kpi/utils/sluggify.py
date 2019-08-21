@@ -1,5 +1,4 @@
 # coding: utf-8
-
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
@@ -30,12 +29,11 @@ DEFAULT_OPTS = {
 }
 
 
-
 def sluggify(_str, _opts):
-    '''
+    """
     this method is ported over from coffeescript:
     jsapp/xlform/src/model.utils.coffee
-    '''
+    """
     _initial = _str
     if _str == '':
         return ''
@@ -122,12 +120,12 @@ def is_valid_nodeName(_name):
 
 
 def _shorten_long_name(name, character_limit, join_with):
-    '''
+    """
     This takes the beginning and the ending of the string and concatenates it to
     meet the length requirements.
     Example:
         "beginning_of_the_" + "_end_of_the_long_question"
-    '''
+    """
     if len(name) > character_limit:
         _half_length = int(character_limit / 2)
         _last_half_start_n = len(name) - _half_length

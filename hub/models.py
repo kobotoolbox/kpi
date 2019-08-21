@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError, ValidationError
@@ -17,6 +21,7 @@ from kpi.models.object_permission import get_anonymous_user
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
     body = MarkupField()
+
     def __str__(self):
         return self.slug
 
@@ -105,6 +110,7 @@ class PerUserSetting(models.Model):
     def __str__(self):
         return self.name
 
+
 class FormBuilderPreference(models.Model):
     KPI = 'K'
     DKOBO = 'D'
@@ -118,6 +124,7 @@ class FormBuilderPreference(models.Model):
         choices=BUILDER_CHOICES,
         default=KPI,
     )
+
     def __unicode__(self):
         choices_dict = dict(self.BUILDER_CHOICES)
         choice_label = choices_dict[self.preferred_builder]
@@ -135,5 +142,6 @@ class ExtraUserDetail(models.Model):
 def create_extra_user_details(sender, instance, created, **kwargs):
     if created:
         ExtraUserDetail.objects.get_or_create(user=instance)
+
 
 post_save.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)

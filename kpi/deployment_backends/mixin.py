@@ -1,22 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-import json
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-from django.conf import settings
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
-import requests
-from requests.utils import quote
-from rest_framework import serializers
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route, list_route
-
-from .backends import DEPLOYMENT_BACKENDS
-from .kobocat_backend import KobocatDeploymentBackend
-from .mock_backend import MockDeploymentBackend
-from kpi.exceptions import BadAssetTypeException
 from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.exceptions import BadAssetTypeException
+from .backends import DEPLOYMENT_BACKENDS
 
 
 class DeployableMixin:

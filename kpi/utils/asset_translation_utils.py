@@ -1,4 +1,6 @@
-import json
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 TRANSLATIONS_EQUAL = 'equal'
 TRANSLATIONS_OUT_OF_ORDER = 'out_of_order'

@@ -1,9 +1,9 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-import re
 import json
-from collections import OrderedDict
+import re
 from copy import deepcopy
 
 import xlrd
@@ -16,6 +16,7 @@ from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_SHARE_ASSET, 
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
+from kpi.utils.future import OrderedDict
 
 # move this into a fixture file?
 # note: this is not a very robust example of a cascading select
@@ -124,7 +125,6 @@ class CreateAssetVersions(AssetsTestCase):
         self.assertEqual(surv_l_3, 2)
         self.assertEqual(_c1, _c3)
 
-
     def test_asset_can_be_anonymous(self):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
@@ -149,10 +149,10 @@ class AssetContentTests(AssetsTestCase):
         ]}
 
     def test_default_translation_first(self):
-        '''
+        """
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
-        '''
+        """
         def _check_content(content, expected_translations):
             self.assertListEqual(
                 content['translations'], expected_translations
@@ -208,10 +208,10 @@ class AssetContentTests(AssetsTestCase):
         )
 
     def test_rename_translation(self):
-        '''
+        """
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
-        '''
+        """
         self.asset = Asset.objects.create(content={'survey': [
             {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
         ],
@@ -225,10 +225,10 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
 
     def test_rename_translation_fail(self):
-        '''
+        """
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
-        '''
+        """
         self.asset = Asset.objects.create(content={'survey': [
             {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
         ],
@@ -712,8 +712,10 @@ class ShareAssetsTest(AssetsTestCase):
             PERM_CHANGE_ASSET, self.asset))
 
     def test_anonymous_as_baseline_for_authenticated(self):
-        ''' If the public can view an object, then all users should be able
-        to do the same. '''
+        """
+        If the public can view an object, then all users should be able
+        to do the same.
+        """
         # Neither anonymous nor `anotheruser` should have any permission yet
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertFalse(user_obj.has_perm(

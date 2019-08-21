@@ -1,3 +1,6 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 import requests
 from django.http import HttpRequest
 from django.test import LiveServerTestCase
@@ -55,7 +58,7 @@ class ConfigurationFileTestCase(LiveServerTestCase):
         self.assertEqual(response.content, sample_svg)
 
     def test_template_context_processor(self):
-        context = RequestContext(HttpRequest()) # NB: empty request
+        context = RequestContext(HttpRequest())  # NB: empty request
         template = Template(
             '{{{{ config.{logo} }}}}'.format(logo=self.cfg_file.LOGO)
         )

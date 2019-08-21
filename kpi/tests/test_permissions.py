@@ -1,17 +1,19 @@
-from django.contrib.auth.models import Permission
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
-from ..models.asset import Asset
-from ..models.collection import Collection
-from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
     PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, \
     PERM_SHARE_ASSET, PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, \
     PERM_DELETE_SUBMISSIONS, PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
     PERM_PARTIAL_SUBMISSIONS
 from kpi.exceptions import BadPermissionsException
+from ..models.asset import Asset
+from ..models.collection import Collection
+from ..models.object_permission import get_all_objects_for_user
 
 
 class BasePermissionsTestCase(TestCase):

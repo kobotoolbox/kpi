@@ -1,8 +1,11 @@
 # coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-import report_data
+from kobo.apps.reports import report_data
 
 
 class ReportsListSerializer(serializers.BaseSerializer):

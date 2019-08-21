@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-import unittest
-
-from django.test import TestCase
 from django.conf import settings
+from django.test import TestCase
 
 from kpi.utils.mongo_helper import MongoHelper
 
@@ -18,13 +17,13 @@ def get_instances_from_mongo():
 
 
 class FakeMongoDB(object):
-    '''
+    """
     A fake Mongo connection that supports one collection, `instances`, and one
     method on that collection, `find()`, which returns the fake query results
     provided to the constructor. Example:
         FakeMongoDB(static_results_list).instances.find(ignored_query) ->
             static_results_list
-    '''
+    """
     class FakeMongoCollection(object):
         def __init__(self, fake_query_results):
             self.fake_query_results = fake_query_results
@@ -37,10 +36,10 @@ class FakeMongoDB(object):
 
 
 class MongoBase64Decoding(TestCase):
-    '''
+    """
     MongoDB does not support dots in key names, so KC encodes them using
     Base64. Verify that KPI decodes these as expected when reading from MongoDB
-    '''
+    """
     def setUp(self):
         self.maxDiff = None
         self.original_mongo_db = settings.MONGO_DB

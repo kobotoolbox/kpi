@@ -1,16 +1,14 @@
 # coding: utf-8
-
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
-import re
+
 from copy import deepcopy
 
 from django.test import TestCase
 
-from kpi.utils.standardize_content import standardize_content
-from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
+from kpi.utils.sluggify import sluggify, sluggify_label
 
 
 class UtilsTestCase(TestCase):
@@ -147,7 +145,6 @@ class UtilsTestCase(TestCase):
         autovalue_choices_in_place(surv, destination_key='$autovalue')
         self.assertEqual(surv['choices'][0]['$autovalue'], 'D_E_F')
         self.assertEqual(surv['choices'][1]['$autovalue'], 'D_E_F_001')
-
 
     def test_autovalue_choices_arabic(self):
         surv = {

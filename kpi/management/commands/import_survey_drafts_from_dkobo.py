@@ -1,12 +1,16 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
+import re
 from StringIO import StringIO
 from optparse import make_option
-from pyxform.xls2json_backends import csv_to_dict
-import re
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import models
 from jsonfield import JSONField
+from pyxform.xls2json_backends import csv_to_dict
 from taggit.managers import TaggableManager
 
 from kpi.models import Asset
@@ -16,10 +20,10 @@ from kpi.utils.log import logging
 
 
 class SurveyDraft(models.Model):
-    '''
+    """
     SurveyDrafts belong to a user and contain the minimal representation of
     the draft survey of the user and of the question library.
-    '''
+    """
     class Meta:
         app_label = 'koboform'
 
@@ -171,7 +175,7 @@ class Command(BaseCommand):
             def print_str(string): pass
         else:
             # Output status messages
-            def print_str(string): print string
+            def print_str(string): print(string)
 
         users = User.objects.none()
         to_user = False

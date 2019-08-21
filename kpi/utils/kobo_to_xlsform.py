@@ -1,3 +1,6 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 '''
 Converts kobo-specific structures into xlsform-standard structures:
 This enables us to use the form-builder to open and save structures
@@ -7,14 +10,12 @@ Example structures: scoring, ranking
 '''
 import re
 
-from kpi.utils.autoname import autoname_fields__depr, autoname_fields
-from kpi.utils.autoname import autovalue_choices as autovalue_choices_fn
+from kpi.utils.autoname import autoname_fields__depr
 
-from xlsform_preprocessors.base_handlers import GroupHandler, BaseHandler
-
-from xlsform_preprocessors.kobomatrix_handler import KoboMatrixGroupHandler
-from xlsform_preprocessors.koboscore_handler import KoboScoreGroup
-from xlsform_preprocessors.koborank_handler import KoboRankGroup
+from .xlsform_preprocessors.base_handlers import BaseHandler
+from .xlsform_preprocessors.kobomatrix_handler import KoboMatrixGroupHandler
+from .xlsform_preprocessors.koboscore_handler import KoboScoreGroup
+from .xlsform_preprocessors.koborank_handler import KoboRankGroup
 
 KOBO_CUSTOM_TYPE_HANDLERS = {
     'begin score': KoboScoreGroup,
@@ -42,7 +43,7 @@ def _parse_contents_of_kobo_structures(ss_structure):
             result = current_handler.handle_row(row)
             if result is False:
                 current_handler = base_handler
-    return (base_handler.survey_contents, features_used)
+    return base_handler.survey_contents, features_used
 
 
 def _is_kobo_specific(sheet_name):

@@ -1,23 +1,26 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.core.management import call_command
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.forms.models import model_to_dict
-import os
-import json
-import glob
-import random
-# from django.utils import timezone
-from django.contrib.sites.models import Site
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import dateutil.parser
-
+import glob
+import json
+import os
+import random
 import re
-
-from kpi.models import Collection
-from kpi.models import Asset
-
-from pyxform.xls2json_backends import csv_to_dict
 from StringIO import StringIO
+
+# from django.utils import timezone
+
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
+from pyxform.xls2json_backends import csv_to_dict
+
+from kpi.models import Asset
+from kpi.models import Collection
+
 
 def _csv_to_dict(content):
     out_dict = {}
@@ -31,6 +34,7 @@ def _set_auto_field_update(kls, field_name, val):
     field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
     field.auto_now = val
     field.auto_now_add = val
+
 
 def _import_user_drafts(server, username, draft_id, fpath):
     try:
@@ -67,6 +71,7 @@ def _import_user_drafts(server, username, draft_id, fpath):
     _set_auto_field_update(Asset, "date_created", False)
     _set_auto_field_update(Asset, "date_modified", False)
     asset.save()
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

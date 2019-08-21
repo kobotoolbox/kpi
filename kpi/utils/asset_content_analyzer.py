@@ -1,7 +1,11 @@
-import re
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from collections import OrderedDict
 
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
+
 
 class AssetContentAnalyzer(object):
     def __init__(self, *args, **kwargs):

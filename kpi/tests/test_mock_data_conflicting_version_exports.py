@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import itertools
-import unittest
 from collections import defaultdict
 
 from django.contrib.auth.models import User
@@ -10,20 +10,19 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from kobo.apps.reports import report_data
-
-from kpi.models import Asset, ExportTask
 from kpi.constants import PERM_VIEW_SUBMISSIONS
+from kpi.models import Asset, ExportTask
 
 
 class ConflictingVersionsMockDataExports(TestCase):
-    '''
+    """
     When submissions contain multiple version fields, e.g. the `__version__`,
     `_version_`, and `_version__001` fields included in the
     `conflicting_versions` fixture, make sure that exports pick the NEWEST of
     the versions given by those fields for each submission. Contrast this to
     old behavior where only `__version__` was considered. See
     https://github.com/kobotoolbox/kpi/issues/1500
-    '''
+    """
     fixtures = ['test_data', 'conflicting_versions']
 
     def setUp(self):

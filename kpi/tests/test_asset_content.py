@@ -1,18 +1,15 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# 😬
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
+import inspect
+import json
+import string
+from collections import OrderedDict
+from copy import deepcopy
 
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
-from pprint import pprint
-from collections import OrderedDict
-
-# import pytest
-import json
-import string
-import inspect
-from copy import deepcopy
 
 
 def test_expand_twice():
@@ -97,6 +94,7 @@ def score_asset_content():
         ],
     }
 
+
 score_asset = _asset_constructor(score_asset_content)
 
 
@@ -116,6 +114,7 @@ def color_picker_asset_content():
             'id_string': 'colorpik',
         }
     }
+
 
 color_picker_asset = _asset_constructor(color_picker_asset_content)
 

@@ -1,13 +1,18 @@
-from django.http import HttpResponseRedirect
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from django.conf import settings
-from models import FormBuilderPreference
+from django.http import HttpResponseRedirect
+
 from hub.views import switch_builder
+from .models import FormBuilderPreference
 
 
 class OtherFormBuilderRedirectMiddleware(object):
-    '''
+    """
     If the user prefers to use another form builder, redirect to it
-    '''
+    """
     THIS_BUILDER = FormBuilderPreference.KPI
     PREFERENCE_TO_PREFIX = {
         FormBuilderPreference.KPI: settings.KPI_PREFIX,
@@ -29,9 +34,11 @@ class OtherFormBuilderRedirectMiddleware(object):
                 scheme, request.get_host(), preferred_prefix))
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        ''' Using process_view instead of process_request allows the resolver
+        """
+        Using process_view instead of process_request allows the resolver
         to run and return 404 when appropriate, instead of blindly returning
-        302 for all requests '''
+        302 for all requests
+        """
         if view_func == switch_builder:
             # Never redirect the view that changes form builder preference
             return

@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, PaginatedApiField
-from kpi.serializers.v1.object_permission import ObjectPermissionSerializer
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models import CollectionChildrenQuerySet

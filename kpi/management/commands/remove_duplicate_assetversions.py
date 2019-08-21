@@ -1,18 +1,23 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import json
 from collections import defaultdict
 from hashlib import md5
 from optparse import make_option
 
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
 from ...models import Asset, AssetVersion
 
 ROUGH_BATCH_MEM_LIMIT_MB = 100
 MAX_BATCH_SIZE = 100
 
+
 def find_original_and_duplicate_versions(version_pks, asset_pk):
-    '''
+    """
     Given a list of `AssetVersion` primary keys, returns a tuple of:
         * a list of the original `AssetVersion` primary keys;
         * a list of the duplicate primary keys;
@@ -31,7 +36,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
         for duplicates. They MUST all belong to the same `Asset`.
     :param asset_pk: the primary key of the `Asset` to which all versions
         belong. This is required as a safety check.
-    '''
+    """
     version_pks = sorted(version_pks)
     digests_to_first_version_pks = defaultdict(list)
 

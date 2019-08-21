@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 import constance
 from django.contrib.auth.decorators import login_required
 from django.db import transaction

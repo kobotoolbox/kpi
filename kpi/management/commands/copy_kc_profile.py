@@ -1,9 +1,15 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from optparse import make_option
-from django.core.management.base import BaseCommand, CommandError
+
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand, CommandError
 
 from hub.models import ExtraUserDetail
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
+
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (

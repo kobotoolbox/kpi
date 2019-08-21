@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import datetime
 
@@ -29,6 +31,7 @@ class InAppMessageFileContentView(PrivateStorageView):
     """
     model = InAppMessageFile
     model_file_field = 'content'
+
     def can_access_file(self, private_file):
         return private_file.request.user.is_authenticated()
 

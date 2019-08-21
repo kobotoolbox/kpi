@@ -1,5 +1,8 @@
-from django.utils.translation import ugettext_lazy as _
+# coding: utf-8
+from __future__ import absolute_import, unicode_literals
+
 from corsheaders.models import AbstractCorsModel
+from django.utils.translation import ugettext_lazy as _
 
 
 def _set_cors_field_options(name, bases, attrs):
@@ -14,10 +17,10 @@ def _set_cors_field_options(name, bases, attrs):
 
 
 class CorsModel(AbstractCorsModel):
-    '''
+    """
     A model with one field, `cors`, which specifies an allowed origin that must
     exactly match the `netloc` returned by `urlparse`
-    '''
+    """
 
     def __unicode__(self):
         return self.cors

@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import string
 import random
 alphabet = string.ascii_letters + string.digits

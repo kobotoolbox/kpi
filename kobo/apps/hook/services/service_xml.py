@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 from lxml import etree
-import requests
 
 from ..models.service_definition_interface import ServiceDefinitionInterface
 

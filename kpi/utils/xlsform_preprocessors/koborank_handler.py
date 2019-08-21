@@ -1,4 +1,8 @@
-from base_handlers import GroupHandler
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
+from .base_handlers import GroupHandler
 
 COLS = {
     'rank-cmessage': 'kobo--rank-constraint-message',
@@ -7,7 +11,7 @@ COLS = {
 
 
 class KoboRankGroup(GroupHandler):
-    '''
+    """
     Convert KoboRankGroup:
     #survey
     |     type    | name |    label     | kobo--rank-items |
@@ -40,7 +44,7 @@ class KoboRankGroup(GroupHandler):
     | needs     | food    | Food    |
     | needs     | water   | Water   |
     | needs     | shelter | Shelter |
-    '''
+    """
     name = 'Kobo rank group'
     description = '''Ask a user to rank a number of things.'''
 

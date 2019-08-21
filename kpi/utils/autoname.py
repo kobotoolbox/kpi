@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from copy import deepcopy
 from collections import OrderedDict
@@ -36,10 +37,10 @@ def _first_non_falsey_item(_list):
 
 
 def autoname_fields__depr(surv_content):
-    '''
+    """
     Note: this method is deprecated but kept around to link prior deployments
     which don't have any names saved.
-    '''
+    """
     surv_list = surv_content.get('survey')
     kuid_names = {}
     for surv_row in surv_list:

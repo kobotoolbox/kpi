@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from copy import deepcopy
 
 from formpack.utils.replace_aliases import replace_aliases

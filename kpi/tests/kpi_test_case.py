@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 """
 Created on Apr 6, 2015
 
 @author: esmail
 """
-from __future__ import absolute_import
-
 import re
 
 from django.core.urlresolvers import reverse
