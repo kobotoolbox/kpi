@@ -55,9 +55,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def make_identifier(username, id_string):
-        """ Uses `settings.KOBOCAT_URL` to construct an identifier from a
+        """
+        Uses `settings.KOBOCAT_URL` to construct an identifier from a
         username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers """
+        or know the full format of KC identifiers
+        """
         # No need to use the internal URL here; it will be substituted in when
         # appropriate
         return u'{}/{}/forms/{}'.format(
@@ -328,7 +330,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
 
     def delete(self):
-        """ WARNING! Deletes all submitted data! """
+        """
+        WARNING! Deletes all submitted data!
+        """
         url = self.external_to_internal_url(self.backend_response['url'])
         try:
             self._kobocat_request('DELETE', url)
@@ -345,11 +349,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Deletes submission through `KoBoCat` proxy
         :param pk: int
         :param user: User
-        :return: JSON
+        :return: dict
         """
-
         kc_url = self.get_submission_detail_url(pk)
         kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def delete_submissions(self, data, user):
+        """
+        Deletes submissions through `KoBoCat` proxy
+        :param user: User
+        :return: dict
+        """
+
+        kc_url = self.submission_list_url
+        kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -451,7 +467,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param submission_pk: int
         :param user: User
         :param params: dict
-        :return: JSON
+        :return: dict
         """
         url = '{detail_url}/enketo'.format(
             detail_url=self.get_submission_detail_url(submission_pk))
