@@ -24,14 +24,10 @@ import {MODAL_TYPES} from '../constants';
 
 import {
   t,
-  assign,
-  anonUsername,
-  validFileTypes
+  assign
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
-
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
 class FormSidebar extends Reflux.Component {
   constructor(props){

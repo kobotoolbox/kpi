@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import exceptions, viewsets, status, renderers
@@ -165,24 +166,28 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         assignments = request.data
 
-        # First delete all assignments before assigning new ones.
-        # If something fails later, this query should rollback
-        self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
+        # We don't want to lock tables, only queries to rollback in case
+        # one assignment fails.
+        with transaction.atomic():
 
-        for assignment in assignments:
-            context_ = dict(self.get_serializer_context())
-            if 'partial_permissions' in assignment:
-                context_.update({'partial_permissions': assignment['partial_permissions']})
-            serializer = AssetBulkInsertPermissionSerializer(
-                data=assignment,
-                context=context_
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save(asset=self.asset)
+            # First delete all assignments before assigning new ones.
+            # If something fails later, this query should rollback
+            self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
 
-        # returns asset permissions. Users who can change permissions can
-        # see all permissions.
-        return self.list(request, *args, **kwargs)
+            for assignment in assignments:
+                context_ = dict(self.get_serializer_context())
+                if 'partial_permissions' in assignment:
+                    context_.update({'partial_permissions': assignment['partial_permissions']})
+                serializer = AssetBulkInsertPermissionSerializer(
+                    data=assignment,
+                    context=context_
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save(asset=self.asset)
+
+            # returns asset permissions. Users who can change permissions can
+            # see all permissions.
+            return self.list(request, *args, **kwargs)
 
     @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
     def clone(self, request, *args, **kwargs):

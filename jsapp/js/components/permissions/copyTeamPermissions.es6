@@ -8,7 +8,6 @@ import Select from 'react-select';
 import alertify from 'alertifyjs';
 import stores from '../../stores';
 import actions from '../../actions';
-import mixins from '../../mixins';
 import { t, notify } from '../../utils';
 
 class CopyTeamPermissions extends React.Component {
@@ -52,7 +51,7 @@ class CopyTeamPermissions extends React.Component {
       return {
         value: this.state.sourceUid,
         label: this.state.sourceName
-      }
+      };
     } else {
       return false;
     }
@@ -98,7 +97,6 @@ class CopyTeamPermissions extends React.Component {
 
     const importButtonClasses = classNames(
       'mdl-button',
-      'mdl-js-button',
       'mdl-button--raised',
       isImportButtonEnabled ? 'mdl-button--colored' : 'mdl-button--disabled'
     );
@@ -116,23 +114,29 @@ class CopyTeamPermissions extends React.Component {
       }
     }
 
+    const rootButtonClasses = classNames(
+      'copy-team-permissions',
+      this.state.isCopyFormVisible ? 'copy-team-permissions--opened' : ''
+    );
+
     return (
-      <bem.FormView__cell>
-        <bem.FormModal__item
+      <bem.FormModal__item className={rootButtonClasses}>
+        <bem.Button
           m='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
           {t('Copy team from another project')}
-        </bem.FormModal__item>
+
+          <i className='k-icon k-icon-next'/>
+        </bem.Button>
 
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>
             <bem.FormModal__item>
-              {t(
-                'This will overwrite any existing sharing settings defined in this project.'
-              )}
+              {t('This will overwrite any existing sharing settings defined in this project.')}
             </bem.FormModal__item>
-            <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
+
+            <bem.FormModal__item m={['gray-row', 'flexed-row', 'copy-team-permissions']}>
               <Select
                 id='teamPermissions'
                 ref='sourceUid'
@@ -156,7 +160,7 @@ class CopyTeamPermissions extends React.Component {
             </bem.FormModal__item>
           </bem.FormView__cell>
         )}
-      </bem.FormView__cell>
+      </bem.FormModal__item>
     );
   }
 }

@@ -1,7 +1,5 @@
 import Reflux from 'reflux';
 import {Cookies} from 'react-cookie';
-import alertify from 'alertifyjs';
-
 import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
 import actions from './actions';
@@ -399,7 +397,7 @@ var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
     this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
-    this.listenTo(actions.misc.checkUsername.failed_, this.usernameDoesntExist);
+    this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
   },
   checkUsername (username) {
     if (username in this.checked) {

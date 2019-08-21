@@ -16,14 +16,13 @@ import searches from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
-import {MODAL_TYPES} from '../constants';
+import {MODAL_TYPES, ANON_USERNAME} from '../constants';
 
 import {
   t,
   assign,
   validFileTypes,
-  getAnonymousUserPermission,
-  anonUsername
+  getAnonymousUserPermission
 } from '../utils';
 
 
@@ -223,7 +222,7 @@ class LibrarySidebar extends Reflux.Component {
       if (discoverable) {
         permDeferred = actions.permissions.assignPerm({
           role: 'view',
-          username: anonUsername,
+          username: ANON_USERNAME,
           uid: collection.uid,
           kind: collection.kind,
           objectUrl: collection.url

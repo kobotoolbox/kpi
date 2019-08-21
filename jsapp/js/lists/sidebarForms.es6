@@ -10,7 +10,7 @@ import ui from '../ui';
 import searches from '../searches';
 import stores from '../stores';
 
-import {t, assign} from '../utils';
+import {t} from '../utils';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -19,7 +19,7 @@ class SidebarFormsList extends Reflux.Component {
       'Draft': false,
       'Deployed': false,
       'Archived': false
-    }
+    };
     this.state = {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
@@ -64,7 +64,7 @@ class SidebarFormsList extends Reflux.Component {
       this.setState({
         selectedCategories: selectedCategories,
       });
-    }.bind(this)
+    }.bind(this);
   }
   render () {
     var s = this.state;
@@ -81,7 +81,7 @@ class SidebarFormsList extends Reflux.Component {
       activeItems = 'searchResultsCategorizedResultsLists';
     }
 
-    if (s.searchState === 'loading' && s.searchString === false ) {
+    if (s.searchState === 'loading' && s.searchString === false) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -132,7 +132,7 @@ class SidebarFormsList extends Reflux.Component {
                     <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}
                                                key={`${category}-group`}>
                       {
-                        s[activeItems][category].map(this.renderMiniAssetRow)
+                        s[activeItems][category].map(this.renderMiniAssetRow.bind(this))
                       }
                     </bem.FormSidebar__grouping>
                   ];
@@ -148,7 +148,7 @@ class SidebarFormsList extends Reflux.Component {
       </bem.FormSidebar>
     );
   }
-};
+}
 
 SidebarFormsList.contextTypes = {
   router: PropTypes.object
