@@ -488,6 +488,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
+    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns only one occurrence.
+
+        :param pk: int. `Instance.id`
+        :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+        :param kwargs: dict. Filter params
+        :return: mixed. JSON or XML
+        """
+
+        if pk:
+            submissions = list(self.get_submissions(format_type, [int(pk)], **kwargs))
+            if len(submissions) > 0:
+                return submissions[0]
+            return None
+        else:
+            raise ValueError(_('Primary key must be provided'))
+
     def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
         """
         Retrieves submissions through Postgres or Mongo depending on `format_type`.
@@ -511,23 +529,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns only one occurrence.
-
-        :param pk: int. `Instance.id`
-        :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param kwargs: dict. Filter params
-        :return: mixed. JSON or XML
-        """
-
-        if pk:
-            submissions = list(self.get_submissions(format_type, [int(pk)], **kwargs))
-            if len(submissions) > 0:
-                return submissions[0]
-            return None
-        else:
-            raise ValueError(_('Primary key must be provided'))
+    def get_submissions_count(self, **kwargs):
+        pass
 
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
@@ -595,7 +598,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         kwargs['instances_ids'] = instances_ids
-        instances = MongoHelper.get_instances(self.mongo_userform_id, **kwargs)
+        instances, total_count = MongoHelper.get_instances(self.mongo_userform_id,
+                                                           **kwargs)
+
+        self.current_submissions_count = total_count
 
         return (
             MongoHelper.to_readable_dict(instance)
@@ -639,6 +645,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if len(instances_ids) > 0 or use_mongo:
             queryset = queryset.filter(id__in=instances_ids)
+
+        self.current_submissions_count = queryset.count()
 
         # Sort
         sort = params.get('sort') or sort

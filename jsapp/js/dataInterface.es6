@@ -476,65 +476,65 @@ var dataInterface;
         filter += '&count=1';
 
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/?${query}${s}${f}${filter}`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
         method: 'GET'
       });
     },
     getSubmission(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
         method: 'GET'
       });
     },
     patchSubmissions(uid, data) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/validation_statuses/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
         method: 'PATCH',
         data: {'payload': JSON.stringify(data)}
       });
     },
     bulkRemoveSubmissionsValidationStatus(uid, data) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/validation_statuses/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
         method: 'DELETE',
         data: {'payload': JSON.stringify(data)}
       });
     },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/validation_status/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
         method: 'PATCH',
         data: data
       });
     },
     removeSubmissionValidationStatus(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/validation_status/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
         method: 'DELETE'
       });
     },
     getSubmissionsQuery(uid, query='') {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/?${query}`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}`,
         method: 'GET'
       });
     },
     deleteSubmission(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}`,
         method: 'DELETE'
       });
     },
     bulkDeleteSubmissions(uid, data) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/bulk/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
         method: 'DELETE',
         data: {'payload': JSON.stringify(data)}
       });
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/assets/${uid}/submissions/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/edit/?return_url=false`,
         method: 'GET'
       });
     },
