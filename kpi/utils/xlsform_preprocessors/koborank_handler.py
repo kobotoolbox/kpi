@@ -52,9 +52,9 @@ class KoboRankGroup(GroupHandler):
         super(KoboRankGroup, self).begin(initial_row)
         self._previous_levels = []
 
-        begin_group = {u'type': u'begin_group',
-                       u'name': self.name,
-                       u'appearance': u'field-list'}
+        begin_group = {'type': 'begin_group',
+                       'name': self.name,
+                       'appearance': 'field-list'}
 
         if 'required' in initial_row:
             del initial_row['required']

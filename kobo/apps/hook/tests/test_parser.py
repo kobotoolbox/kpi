@@ -21,10 +21,10 @@ class ParserTestCase(HookTestCase):
         uuid = submissions[0].get("id")
         service_definition = ServiceDefinition(hook, uuid)
         expected_data = {
-            "group1/q3": u"¿Cómo está en el grupo uno la segunda vez?",
-            "group2/subgroup1/q4": u"¿Cómo está en el subgrupo uno la primera vez?",
-            "group2/subgroup1/q5": u"¿Cómo está en el subgrupo uno la segunda vez?",
-            "group2/subgroup1/q6": u"¿Cómo está en el subgrupo uno la tercera vez?",
+            "group1/q3": "¿Cómo está en el grupo uno la segunda vez?",
+            "group2/subgroup1/q4": "¿Cómo está en el subgrupo uno la primera vez?",
+            "group2/subgroup1/q5": "¿Cómo está en el subgrupo uno la segunda vez?",
+            "group2/subgroup1/q6": "¿Cómo está en el subgrupo uno la tercera vez?",
             "id": 1
         }
         self.assertEquals(service_definition._get_data(), expected_data)

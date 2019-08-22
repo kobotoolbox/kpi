@@ -133,13 +133,13 @@ class HookTestCase(KpiTestCase):
         v_uid = self.asset.latest_deployed_version.uid
         submission = {
             "__version__": v_uid,
-            "q1": u"¿Qué tal?",
-            "group1/q2": u"¿Cómo está en el grupo uno la primera vez?",
-            "group1/q3": u"¿Cómo está en el grupo uno la segunda vez?",
-            "group2/subgroup1/q4": u"¿Cómo está en el subgrupo uno la primera vez?",
-            "group2/subgroup1/q5": u"¿Cómo está en el subgrupo uno la segunda vez?",
-            "group2/subgroup1/q6": u"¿Cómo está en el subgrupo uno la tercera vez?",
-            "group2/subgroup11/q1": u"¿Cómo está en el subgrupo once?",
+            "q1": "¿Qué tal?",
+            "group1/q2": "¿Cómo está en el grupo uno la primera vez?",
+            "group1/q3": "¿Cómo está en el grupo uno la segunda vez?",
+            "group2/subgroup1/q4": "¿Cómo está en el subgrupo uno la primera vez?",
+            "group2/subgroup1/q5": "¿Cómo está en el subgrupo uno la segunda vez?",
+            "group2/subgroup1/q6": "¿Cómo está en el subgrupo uno la tercera vez?",
+            "group2/subgroup11/q1": "¿Cómo está en el subgrupo once?",
             "id": self._submission_pk
         }
         self.__inject_submission(self.asset, submission)

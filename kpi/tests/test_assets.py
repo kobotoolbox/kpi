@@ -20,33 +20,33 @@ from kpi.utils.future import OrderedDict
 
 # move this into a fixture file?
 # note: this is not a very robust example of a cascading select
-CASCADE_CONTENT = {u'survey': [{u'type': u'select_one',
-                                u'select_from_list_name': u'country',
-                                u'label': [u'country'],
-                                u'required': True},
-                               {u'type': u'select_one',
-                                u'select_from_list_name': u'region',
-                                u'label': [u'region'],
-                                u'choice_filter': u'country=${country}',
-                                u'required': True},
-                               {u'type': u'select_one',
-                                u'select_from_list_name': u'town',
-                                u'label': [u'region'],
-                                u'choice_filter': u'region=${region}',
-                                u'required': True}],
-                   u'choices': [{u'label': [u'France'],
-                                 u'list_name': u'country',
-                                 u'name': u'france'},
-                                {u'country': u'france',
-                                 u'label': [u'\xcele-de-France'],
-                                 u'list_name': u'region',
-                                 u'name': u'ile-de-france'},
-                                {u'region': u'ile-de-france',
-                                 u'label': [u'Paris'],
-                                 u'list_name': u'town',
-                                 u'name': u'paris'}],
-                   u'translated': [u'label'],
-                   u'translations': [None]}
+CASCADE_CONTENT = {'survey': [{'type': 'select_one',
+                                'select_from_list_name': 'country',
+                                'label': ['country'],
+                                'required': True},
+                               {'type': 'select_one',
+                                'select_from_list_name': 'region',
+                                'label': ['region'],
+                                'choice_filter': 'country=${country}',
+                                'required': True},
+                               {'type': 'select_one',
+                                'select_from_list_name': 'town',
+                                'label': ['region'],
+                                'choice_filter': 'region=${region}',
+                                'required': True}],
+                   'choices': [{'label': ['France'],
+                                 'list_name': 'country',
+                                 'name': 'france'},
+                                {'country': 'france',
+                                 'label': ['\xcele-de-France'],
+                                 'list_name': 'region',
+                                 'name': 'ile-de-france'},
+                                {'region': 'ile-de-france',
+                                 'label': ['Paris'],
+                                 'list_name': 'town',
+                                 'name': 'paris'}],
+                   'translated': ['label'],
+                   'translations': [None]}
 
 
 class AssetsTestCase(TestCase):
@@ -55,14 +55,14 @@ class AssetsTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.create(content={'survey': [
-            {u'type': u'text',
-             u'label': u'Question 1',
-             u'name': u'q1',
-             u'$kuid': u'abc'},
-            {u'type': u'text',
-             u'label': u'Question 2',
-             u'name': u'q2',
-             u'$kuid': u'def'},
+            {'type': 'text',
+             'label': 'Question 1',
+             'name': 'q1',
+             '$kuid': 'abc'},
+            {'type': 'text',
+             'label': 'Question 2',
+             'name': 'q2',
+             '$kuid': 'def'},
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
@@ -329,7 +329,7 @@ class AssetContentTests(AssetsTestCase):
         # the first two columns (type and name)
         xls_version_row = [
             cell.value for cell in survey_sheet.row(survey_sheet.nrows - 1)]
-        self.assertEqual(xls_version_row[:2], [u'calculate', u'__version__'])
+        self.assertEqual(xls_version_row[:2], ['calculate', '__version__'])
         # The next-to-last row should have the note question from `append`
         xls_note_row = [
             cell.value for cell in survey_sheet.row(survey_sheet.nrows - 2)]
@@ -441,25 +441,25 @@ class AssetScoreTestCase(TestCase):
 
     def test_score_can_be_exported(self):
         _matrix_score = {
-            u'survey': [
-                {u'kobo--score-choices': u'nb7ud55',
-                 u'label': [u'Los Angeles'],
-                 u'required': True,
-                 u'type': u'begin_score'},
-                {u'label': [u'Food'], u'type': u'score__row'},
-                {u'label': [u'Music'], u'type': u'score__row'},
-                {u'label': [u'Night life'], u'type': u'score__row'},
-                {u'label': [u'Housing'], u'type': u'score__row'},
-                {u'label': [u'Culture'], u'type': u'score__row'},
-                {u'type': u'end_score'}],
-            u'choices': [
-                {u'label': [u'Great'],
-                 u'list_name': u'nb7ud55'},
-                {u'label': [u'OK'],
-                 u'list_name': u'nb7ud55'},
-                {u'label': [u'Bad'],
-                 u'list_name': u'nb7ud55'}],
-            u'settings': {},
+            'survey': [
+                {'kobo--score-choices': 'nb7ud55',
+                 'label': ['Los Angeles'],
+                 'required': True,
+                 'type': 'begin_score'},
+                {'label': ['Food'], 'type': 'score__row'},
+                {'label': ['Music'], 'type': 'score__row'},
+                {'label': ['Night life'], 'type': 'score__row'},
+                {'label': ['Housing'], 'type': 'score__row'},
+                {'label': ['Culture'], 'type': 'score__row'},
+                {'type': 'end_score'}],
+            'choices': [
+                {'label': ['Great'],
+                 'list_name': 'nb7ud55'},
+                {'label': ['OK'],
+                 'list_name': 'nb7ud55'},
+                {'label': ['Bad'],
+                 'list_name': 'nb7ud55'}],
+            'settings': {},
         }
         a1 = Asset.objects.create(content=_matrix_score, asset_type='survey')
         _snapshot = a1.snapshot
@@ -479,7 +479,6 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         # asset.snapshot.xml generates a document that does not have any
         # "$kuid" or "<$kuid>x</$kuid>" elements
         _xml = asset.snapshot.xml
-
         # as is in every xform:
         self.assertTrue('<instance>' in _xml)
         # specific to this cascading select form:

@@ -233,8 +233,8 @@ class ObjectPermission(models.Model):
     def __unicode__(self):
         for required_field in ('user', 'permission'):
             if not hasattr(self, required_field):
-                return u'incomplete ObjectPermission'
-        return u'{}{} {} {}'.format(
+                return 'incomplete ObjectPermission'
+        return '{}{} {} {}'.format(
             'inherited ' if self.inherited else '',
             unicode(self.permission.codename),
             'denied from' if self.deny else 'granted to',

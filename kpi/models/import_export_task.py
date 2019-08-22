@@ -458,8 +458,8 @@ class ExportTask(ImportExportTask):
             version = 'latest version'
 
         filename_template = (
-            u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
-            u'.{ext}'.format(
+            '{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
+            '.{ext}'.format(
                 version=version,
                 date=utcnow(),
                 ext=extension
@@ -548,7 +548,7 @@ class ExportTask(ImportExportTask):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
             raise exceptions.PermissionDenied(
-                u'{user} cannot export {source}'.format(
+                '{user} cannot export {source}'.format(
                     user=self.user, source=source)
             )
 
@@ -590,7 +590,7 @@ class ExportTask(ImportExportTask):
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
-                    output_file.write((line + u"\r\n").encode('utf-8'))
+                    output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)
@@ -656,7 +656,7 @@ class ExportTask(ImportExportTask):
         stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
-                u'Stuck export {}: type {}, username {}, source {}, '
+                'Stuck export {}: type {}, username {}, source {}, '
                 'age {}'.format(
                     stuck_export.uid,
                     stuck_export.data.get('type'),

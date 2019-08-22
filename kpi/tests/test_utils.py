@@ -112,8 +112,8 @@ class UtilsTestCase(TestCase):
     def test_autovalue_choices(self):
         surv = {
             'survey': [
-                {u'type': 'select_multiple',
-                 u'select_from_list_name': 'xxx'},
+                {'type': 'select_multiple',
+                 'select_from_list_name': 'xxx'},
             ],
             'choices': [
                 {'list_name': 'xxx', 'label': 'A B C'},
@@ -149,17 +149,17 @@ class UtilsTestCase(TestCase):
     def test_autovalue_choices_arabic(self):
         surv = {
             'survey': [
-                {u'type': 'select_multiple',
-                 u'select_from_list_name': 'xxx'},
+                {'type': 'select_multiple',
+                 'select_from_list_name': 'xxx'},
             ],
             'choices': [
-                {'list_name': 'xxx', 'label': u'العربية'},
-                {'list_name': 'xxx', 'label': u'العربية'},
+                {'list_name': 'xxx', 'label': 'العربية'},
+                {'list_name': 'xxx', 'label': 'العربية'},
             ],
             'settings': {},
         }
         autovalue_choices_in_place(surv, '$autovalue')
         self.assertEqual(surv['choices'][0]['$autovalue'], 'العربية')
-        part1 = u'العربية'
+        part1 = 'العربية'
         part2 = '_001'
         self.assertEqual(surv['choices'][1]['$autovalue'], part1 + part2)

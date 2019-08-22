@@ -18,10 +18,10 @@ class AssetVersionTestCase(TestCase):
     def test_init_asset_version(self):
         av_count = AssetVersion.objects.count()
         _content = {
-                u'survey': [
-                    {u'type': u'note',
-                     u'label': u'Read me',
-                     u'name': u'n1'}
+                'survey': [
+                    {'type': 'note',
+                     'label': 'Read me',
+                     'name': 'n1'}
                 ],
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
@@ -32,20 +32,20 @@ class AssetVersionTestCase(TestCase):
             row.pop('$prev', None)
 
         self.assertEqual(_vc, {
-                u'survey': [
-                    {u'type': u'note',
-                     u'label': [u'Read me'],
-                     u'name': u'n1'},
+                'survey': [
+                    {'type': 'note',
+                     'label': ['Read me'],
+                     'name': 'n1'},
                 ],
-                u'schema': SCHEMA_VERSION,
-                u'translated': [u'label'],
-                u'translations': [None],
-                u'settings': {},
+                'schema': SCHEMA_VERSION,
+                'translated': ['label'],
+                'translations': [None],
+                'settings': {},
             })
         self.assertEqual(av_count + 1, AssetVersion.objects.count())
-        new_asset.content['survey'].append({u'type': u'note',
-                                            u'label': u'Read me 2',
-                                            u'name': u'n2'})
+        new_asset.content['survey'].append({'type': 'note',
+                                            'label': 'Read me 2',
+                                            'name': 'n2'})
         new_asset.save()
         self.assertEqual(av_count + 2, AssetVersion.objects.count())
 
@@ -89,10 +89,10 @@ class AssetVersionTestCase(TestCase):
 
     def test_version_content_hash(self):
         _content = {
-            u'survey': [
-                {u'type': u'note',
-                 u'label': u'Read me',
-                 u'name': u'n1'}
+            'survey': [
+                {'type': 'note',
+                 'label': 'Read me',
+                 'name': 'n1'}
             ],
         }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)

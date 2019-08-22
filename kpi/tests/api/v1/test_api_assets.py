@@ -241,19 +241,20 @@ class AssetExportTaskTest(BaseTestCase):
             content={'survey': [{"type": "text", "name": "q1"}]},
             owner=self.user,
             asset_type='survey',
-            name=u'тєѕт αѕѕєт'
+            name='тєѕт αѕѕєт'
         )
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
         v_uid = self.asset.latest_deployed_version.uid
         submission = {
             '__version__': v_uid,
-            'q1': u'¿Qué tal?'
+            'q1': '¿Qué tal?'
         }
         self.asset.deployment.mock_submissions([submission])
         settings.CELERY_TASK_ALWAYS_EAGER = True
 
-    def result_stored_locally(self, detail_response):
+    @staticmethod
+    def result_stored_locally(detail_response):
         """
         Return `True` if the result is stored locally, or `False` if it's
         housed externally (e.g. on Amazon S3)
@@ -279,15 +280,17 @@ class AssetExportTaskTest(BaseTestCase):
         # Get the result file
         if self.result_stored_locally(detail_response):
             result_response = self.client.get(detail_response.data['result'])
-            result_content = ''.join(result_response.streaming_content)
+            result_content = result_response.getvalue().decode('utf-8')
         else:
             result_response = requests.get(detail_response.data['result'])
-            result_content = result_response.content
+            result_response.encoding = 'utf-8'
+            result_content = result_response.text
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
             '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_index"\r\n',
             '"¿Qué tal?";"";"";"";"";"1"\r\n',
         ])
+
         self.assertEqual(result_content, expected_content)
         return detail_response
 

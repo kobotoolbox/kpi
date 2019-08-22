@@ -26,7 +26,7 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
         representation.
         """
         if value_type == xlrd.XL_CELL_BOOLEAN:
-            return u"TRUE" if value else u"FALSE"
+            return "TRUE" if value else "FALSE"
         elif value_type == xlrd.XL_CELL_NUMBER:
             #Try to display as an int if possible.
             int_value = int(value)

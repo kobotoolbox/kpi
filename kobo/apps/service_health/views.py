@@ -77,11 +77,11 @@ def service_health(request):
     kobocat_time = time.time() - t0
 
     output = (
-        u'{}\r\n\r\n'
-        u'Mongo: {} in {:.3} seconds\r\n'
-        u'Postgres: {} in {:.3} seconds\r\n'
-        u'Enketo [{}]: {} in {:.3} seconds\r\n'
-        u'KoBoCAT [{}]: {} in {:.3} seconds\r\n'
+        '{}\r\n\r\n'
+        'Mongo: {} in {:.3} seconds\r\n'
+        'Postgres: {} in {:.3} seconds\r\n'
+        'Enketo [{}]: {} in {:.3} seconds\r\n'
+        'KoBoCAT [{}]: {} in {:.3} seconds\r\n'
     ).format(
         'FAIL' if any_failure else 'OK',
         mongo_message, mongo_time,
@@ -92,10 +92,10 @@ def service_health(request):
 
     if kobocat_content:
         output += (
-            u'\r\n'
-            u'----BEGIN KOBOCAT RESPONSE----\r\n'
-            u'{}\r\n'
-            u'---- END KOBOCAT RESPONSE ----\r\n'
+            '\r\n'
+            '----BEGIN KOBOCAT RESPONSE----\r\n'
+            '{}\r\n'
+            '---- END KOBOCAT RESPONSE ----\r\n'
         ).format(
             kobocat_content
         )

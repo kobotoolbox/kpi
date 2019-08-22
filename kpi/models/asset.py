@@ -238,8 +238,8 @@ class FormpackXLSFormUtils(object):
     def _strip_empty_rows(self, content, vals=None):
         if vals is None:
             vals = {
-                u'survey': u'type',
-                u'choices': u'list_name',
+                'survey': 'type',
+                'choices': 'list_name',
             }
         for (sheet_name, required_key) in vals.iteritems():
             arr = content.get(sheet_name, [])
@@ -569,7 +569,7 @@ class Asset(ObjectPermissionMixin,
     }
 
     def __unicode__(self):
-        return u'{} ({})'.format(self.name, self.uid)
+        return '{} ({})'.format(self.name, self.uid)
 
     def adjust_content_on_save(self):
         """
@@ -1062,9 +1062,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             _label = include_note
             if len(_translations) > 0:
                 _label = [_label for t in _translations]
-            source['survey'].append({u'type': u'note',
-                                     u'name': u'prepended_note',
-                                     u'label': _label})
+            source['survey'].append({'type': 'note',
+                                     'name': 'prepended_note',
+                                     'label': _label})
 
         source_copy = copy.deepcopy(source)
         self._expand_kobo_qs(source_copy)
@@ -1078,9 +1078,10 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                            root_node_name=root_node_name,
                            id_string=id_string,
                            title=form_title)[0].to_xml(warnings=warnings)
+
             details.update({
-                u'status': u'success',
-                u'warnings': warnings,
+                'status': 'success',
+                'warnings': warnings,
             })
         except Exception as err:
             err_message = unicode(err)
@@ -1093,9 +1094,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             })
             xml = ''
             details.update({
-                u'status': u'failure',
-                u'error_type': type(err).__name__,
-                u'error': err_message,
-                u'warnings': warnings,
+                'status': 'failure',
+                'error_type': type(err).__name__,
+                'error': err_message,
+                'warnings': warnings,
             })
-        return (xml, details)
+        return xml, details

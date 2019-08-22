@@ -121,7 +121,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             return 'public'
         if request.user.is_superuser:
             return 'superuser'
-        raise Exception(u'{} has unexpected access to {}'.format(
+        raise Exception('{} has unexpected access to {}'.format(
             request.user.username, obj.uid))
 
     def get_permissions(self, obj):

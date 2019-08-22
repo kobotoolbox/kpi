@@ -123,7 +123,7 @@ def _kc_forms_api_request(token, xform_pk, xlsform=False):
         settings.KOBOCAT_INTERNAL_URL, xform_pk)
     if xlsform:
         url += '/form.xls'
-    headers = {u'Authorization':'Token ' + token.key}
+    headers = {'Authorization':'Token ' + token.key}
     return requests.get(url, headers=headers)
 
 
@@ -136,7 +136,7 @@ def _make_name_for_asset(asset, xform):
         # The user already has an asset with this name. Append
         # `xform.id_string` in parentheses for clarification
         if desired_name and len(desired_name.strip()):
-            desired_name = u'{} ({})'.format(
+            desired_name = '{} ({})'.format(
                 desired_name, xform.id_string)
         else:
             desired_name = xform.id_string
@@ -150,11 +150,11 @@ def _xform_to_asset_content(xform):
     response = _kc_forms_api_request(user.auth_token, xform.pk, xlsform=True)
     if response.status_code == 404:
         raise SyncKCXFormsWarning(
-            u'unable to load xls ({})'.format(response.status_code)
+            'unable to load xls ({})'.format(response.status_code)
         )
     elif response.status_code != 200:
         raise SyncKCXFormsError(
-            u'unable to load xls ({})'.format(response.status_code)
+            'unable to load xls ({})'.format(response.status_code)
         )
     # Convert the xlsform to KPI JSON
     xls_io = io.BytesIO(response.content)
@@ -261,7 +261,7 @@ def _sync_form_metadata(asset, xform, changes):
         affected_users = _sync_permissions(asset, xform)
         if affected_users:
             changes.append(
-                u'PERMISSIONS({})'.format('|'.join(affected_users)))
+                'PERMISSIONS({})'.format('|'.join(affected_users)))
         return True
 
     modified = False
@@ -302,7 +302,7 @@ def _sync_form_metadata(asset, xform, changes):
     affected_users = _sync_permissions(asset, xform)
     if affected_users:
         modified = True
-        changes.append(u'PERMISSIONS({})'.format('|'.join(affected_users)))
+        changes.append('PERMISSIONS({})'.format('|'.join(affected_users)))
 
     return modified
 
@@ -430,10 +430,10 @@ class Command(BaseCommand):
 
     def _print_str(self, string):
         if not self._quiet:
-            print string
+            print(string)
 
     def _print_tabular(self, *args):
-        self._print_str(u'\t'.join(map(lambda x: u'{}'.format(x), args)))
+        self._print_str('\t'.join(map(lambda x: '{}'.format(x), args)))
 
     def handle(self, *args, **options):
         if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
@@ -540,8 +540,8 @@ class Command(BaseCommand):
                         repr(e)
                     ]
                     self._print_tabular(*error_information)
-                    logging.exception(u'sync_kobocat_xforms: {}'.format(
-                        u', '.join(error_information)))
+                    logging.exception('sync_kobocat_xforms: {}'.format(
+                        ', '.join(error_information)))
 
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)

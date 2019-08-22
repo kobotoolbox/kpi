@@ -87,13 +87,13 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
     title = models.CharField(max_length=XFORM_TITLE_LENGTH)
     date_created = models.DateTimeField()
     date_modified = models.DateTimeField()
-    uuid = models.CharField(max_length=32, default=u'')
+    uuid = models.CharField(max_length=32, default='')
     last_submission_time = models.DateTimeField(blank=True, null=True)
     num_of_submissions = models.IntegerField(default=0)
 
     @property
     def hash(self):
-        return u'%s' % md5(self.xml.encode('utf8')).hexdigest()
+        return '%s' % md5(self.xml.encode('utf8')).hexdigest()
 
     @property
     def prefixed_hash(self):
@@ -101,7 +101,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
         Matches what's returned by the KC API
         """
 
-        return u"md5:%s" % self.hash
+        return "md5:%s" % self.hash
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
@@ -118,8 +118,8 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     date_modified = models.DateTimeField()
     deleted_at = models.DateTimeField(null=True, default=None)
     status = models.CharField(max_length=20,
-                              default=u'submitted_via_web')
-    uuid = models.CharField(max_length=249, default=u'')
+                              default='submitted_via_web')
+    uuid = models.CharField(max_length=249, default='')
 
 
 class KobocatUserProfile(ShadowModel):

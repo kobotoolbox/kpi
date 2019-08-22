@@ -129,8 +129,8 @@ def set_kc_require_auth(user_id, require_auth):
         try:
             profile = KobocatUserProfile.objects.get(user_id=user_id)
         except ProgrammingError as e:
-            raise ProgrammingError(u'set_kc_require_auth error accessing '
-                                   u'kobocat tables: {}'.format(repr(e)))
+            raise ProgrammingError('set_kc_require_auth error accessing '
+                                   'kobocat tables: {}'.format(repr(e)))
         else:
             if profile.require_auth != require_auth:
                 profile.require_auth = require_auth

@@ -128,7 +128,7 @@ class FormBuilderPreference(models.Model):
     def __unicode__(self):
         choices_dict = dict(self.BUILDER_CHOICES)
         choice_label = choices_dict[self.preferred_builder]
-        return u'{} prefers {}'.format(self.user, choice_label)
+        return '{} prefers {}'.format(self.user, choice_label)
 
 
 class ExtraUserDetail(models.Model):

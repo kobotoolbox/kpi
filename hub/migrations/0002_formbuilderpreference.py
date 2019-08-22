@@ -9,14 +9,14 @@ def south_forwards(apps, schema_editor):
     statement = "INSERT INTO south_migrationhistory (app_name, migration, " \
                 "applied) VALUES ('hub', '0002_formbuilderpreference', NOW());"
     # South may have never touched this database
-    if u'south_migrationhistory' in connection.introspection.table_names():
+    if 'south_migrationhistory' in connection.introspection.table_names():
         schema_editor.execute(statement, params=None)
 
 
 def south_backwards(apps, schema_editor):
     statement = "DELETE FROM south_migrationhistory WHERE app_name='hub' " \
                 "AND migration='0002_formbuilderpreference';"
-    if u'south_migrationhistory' in connection.introspection.table_names():
+    if 'south_migrationhistory' in connection.introspection.table_names():
         schema_editor.execute(statement, params=None)
 
 

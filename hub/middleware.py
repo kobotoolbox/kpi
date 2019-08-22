@@ -30,7 +30,7 @@ class OtherFormBuilderRedirectMiddleware(object):
                 scheme = request.scheme
             except Exception:
                 scheme = 'https' if request.is_secure() else 'http'
-            return HttpResponseRedirect(u'{}://{}{}'.format(
+            return HttpResponseRedirect('{}://{}{}'.format(
                 scheme, request.get_host(), preferred_prefix))
 
     def process_view(self, request, view_func, view_args, view_kwargs):

@@ -64,7 +64,7 @@ class Hook(models.Model):
         super(Hook, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return u"%s:%s - %s" % (self.asset, self.name, self.endpoint)
+        return "%s:%s - %s" % (self.asset, self.name, self.endpoint)
 
     def get_service_definition(self):
         mod = import_module("kobo.apps.hook.services.service_{}".format(self.export_type))

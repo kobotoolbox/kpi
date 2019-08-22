@@ -8,7 +8,7 @@ from ..models.service_definition_interface import ServiceDefinitionInterface
 
 
 class ServiceDefinition(ServiceDefinitionInterface):
-    id = u"json"
+    id = "json"
 
     def _parse_data(self, submission, fields):
         if len(fields) > 0:
