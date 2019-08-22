@@ -12,6 +12,7 @@ from django.test import TestCase
 from kobo.apps.reports import report_data
 from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.models import Asset, ExportTask
+from kpi.utils.future import unicode
 
 
 class ConflictingVersionsMockDataExports(TestCase):

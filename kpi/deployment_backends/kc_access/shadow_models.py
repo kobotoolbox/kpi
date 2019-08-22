@@ -6,7 +6,6 @@ from hashlib import md5
 
 from django.conf import settings
 from django.contrib.auth.models import User
-
 try:
     from django.contrib.contenttypes.fields import GenericForeignKey
 except ImportError:
@@ -18,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
+from kpi.utils.future import unicode
 
 
 class ReadOnlyModelError(ValueError):

@@ -21,6 +21,7 @@ from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions
 )
 from kpi.fields.kpi_uid import KpiUidField
+from kpi.utils.future import unicode
 
 
 def perm_parse(perm, obj=None):

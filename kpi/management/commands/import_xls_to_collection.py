@@ -8,6 +8,8 @@ import xlrd
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
+from kpi.utils.future import unicode
+
 
 def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     """
