@@ -101,6 +101,8 @@ export const ASSETS_TABLE_COLUMNS = new Map([
  * @prop {AssetsTableColumn} orderBy - Current order column, one of ASSETS_TABLE_COLUMNS.
  * @prop {boolean} isOrderAsc - Current order direction.
  * @prop {reorderCallback} onReorder - Called when the user clicks column header for reordering.
+ * @prop {number} [currentPage] - For displaying pagination.
+ * @prop {number} [totalPages] - For displaying pagination.
  */
 export class AssetsTable extends React.Component {
   constructor(props){
