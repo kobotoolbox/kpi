@@ -2,9 +2,8 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-from collections import OrderedDict
-
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
+from kpi.utils.future import OrderedDict
 
 
 class AssetContentAnalyzer(object):

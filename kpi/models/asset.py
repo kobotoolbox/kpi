@@ -6,7 +6,6 @@ from __future__ import (unicode_literals, print_function,
 import StringIO
 import copy
 import sys
-from collections import OrderedDict
 
 import jsonbfield.fields
 import six
@@ -51,7 +50,7 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from kpi.utils.future import unicode
+from kpi.utils.future import unicode, OrderedDict
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)

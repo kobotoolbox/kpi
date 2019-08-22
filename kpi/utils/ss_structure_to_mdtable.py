@@ -2,9 +2,7 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-from collections import OrderedDict
-
-from kpi.utils.future import unicode
+from kpi.utils.future import unicode, OrderedDict
 
 
 def _convert_sheets_to_lists(content):

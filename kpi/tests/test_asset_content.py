@@ -5,10 +5,10 @@ from __future__ import (unicode_literals, print_function,
 import inspect
 import json
 import string
-from collections import OrderedDict
 from copy import deepcopy
 
 from kpi.models import Asset
+from kpi.utils.future import OrderedDict
 from kpi.utils.sluggify import sluggify_label
 
 
