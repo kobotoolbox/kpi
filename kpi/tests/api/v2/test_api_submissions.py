@@ -253,7 +253,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
