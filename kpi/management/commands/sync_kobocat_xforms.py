@@ -5,7 +5,6 @@ from __future__ import (unicode_literals, print_function,
 import datetime
 import io
 import json
-import StringIO
 import re
 from collections import defaultdict
 from optparse import make_option
@@ -18,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
+from django.utils.six.moves import cStringIO as StringIO
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
@@ -92,7 +92,7 @@ def _convert_dict_to_xls(ss_dict):
                 continue
             cur_sheet = workbook.add_sheet(sheet_name)
             _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
-    string_io = StringIO.StringIO()
+    string_io = StringIO()
     workbook.save(string_io)
     string_io.seek(0)
     return string_io

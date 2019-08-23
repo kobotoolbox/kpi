@@ -9,6 +9,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
@@ -52,6 +53,7 @@ class CollectionManager(TreeManager, TaggableModelManager):
         return self.filter(tags=tag)
 
 
+@python_2_unicode_compatible
 class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
     parent = TreeForeignKey(
@@ -134,7 +136,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         """ Returns all children, both Assets and Collections """
         return CollectionChildrenQuerySet(self)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 

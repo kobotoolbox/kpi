@@ -7,12 +7,14 @@ from importlib import import_module
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from jsonbfield.fields import JSONField as JSONBField
 
 from kpi.fields import KpiUidField
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 
 
+@python_2_unicode_compatible
 class Hook(models.Model):
 
     # Export types
@@ -63,7 +65,7 @@ class Hook(models.Model):
         self.date_modified = timezone.now()
         super(Hook, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s:%s - %s" % (self.asset, self.name, self.endpoint)
 
     def get_service_definition(self):

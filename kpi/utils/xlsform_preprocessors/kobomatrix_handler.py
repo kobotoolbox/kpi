@@ -4,7 +4,9 @@ from __future__ import (unicode_literals, print_function,
 
 import re
 
+from django.utils.six import string_types
 from .base_handlers import GroupHandler
+
 
 SPAN_WRAP = '<span style="display:none">{}</span>'
 HEADER_WRAP = '**{}**'
@@ -204,7 +206,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                    'required': col.get('required', False),
                    }
             for key in ['relevant', 'constraint', 'required']:
-                if key in col and isinstance(col[key], basestring):
+                if key in col and isinstance(col[key], string_types):
                     _str = col[key]
                     for (key2, val) in mappings.items():
                         if key2 in _str:
@@ -224,7 +226,7 @@ class KoboMatrixGroupHandler(GroupHandler):
             self.finish()
             return False
         else:
-            _appearance_re = re.match('^w(\d+)$', row.get('appearance', ''))
+            _appearance_re = re.match(r'^w(\d+)$', row.get('appearance', ''))
             row['_column_width'] = 2 if not _appearance_re else int(_appearance_re.groups()[0])
             self._rows.append(row)
             return self

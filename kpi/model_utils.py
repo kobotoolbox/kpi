@@ -8,9 +8,8 @@ import re
 from collections import defaultdict
 
 from django.apps import apps
+from django.utils.six import text_type
 from taggit.models import Tag, TaggedItem
-
-from kpi.utils.future import unicode
 
 '''
 This circular import will bite you if you don't import kpi.models before
@@ -45,7 +44,7 @@ def _load_library_content(structure):
         # preserve the additional sheets of imported library (but not the library)
         row_tags = []
         for key, val in row.items():
-            if unicode(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
+            if text_type(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):
                 tag_name = re.match(TAG_RE, key).groups()[0]

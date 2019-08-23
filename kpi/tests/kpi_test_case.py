@@ -9,6 +9,7 @@ Created on Apr 6, 2015
 import re
 
 from django.core.urlresolvers import reverse
+from django.utils.six import string_types
 from rest_framework import status
 
 # FIXME: Remove the following line when the permissions API is in place.
@@ -71,7 +72,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
     def create_asset(self, name, content=None, owner=None,
                      owner_password=None, **kwargs):
         if owner and owner_password:
-            if isinstance(owner, basestring):
+            if isinstance(owner, string_types):
                 self.login(owner, owner_password)
             self.login(owner.username, owner_password)
 

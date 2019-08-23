@@ -2,7 +2,9 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-from kpi.utils.future import unicode, OrderedDict
+from django.utils.six import text_type
+
+from kpi.utils.future import OrderedDict
 
 
 def _convert_sheets_to_lists(content):
@@ -40,7 +42,7 @@ def ss_structure_to_mdtable(content):
     output = []
 
     def cell_to_str(cell):
-        return '' if cell is None else unicode(cell)
+        return '' if cell is None else text_type(cell)
 
     for (sheet_name, contents) in content.items():
         out_sheets[sheet_name] = output

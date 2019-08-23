@@ -5,17 +5,17 @@ from __future__ import (unicode_literals, print_function,
 import json
 import posixpath
 import re
-import urlparse
 
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import ugettext_lazy as _
+from django.utils.six import text_type
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.utils.future import unicode
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -125,7 +125,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(detail=unicode(e))
+            raise KobocatDeploymentException(detail=text_type(e))
 
         # If it's a no-content success, return immediately
         if response.status_code == expected_status_code == 204:
@@ -138,7 +138,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Unparseable KC API output
             # TODO: clarify that the user cannot correct this
             raise KobocatDeploymentException(
-                detail=unicode(e), response=response)
+                detail=text_type(e), response=response)
 
         # Check for failure
         if response.status_code != expected_status_code or (
@@ -211,7 +211,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             # Parse the provided identifier, which is expected to follow the
             # format http://kobocat_server/username/forms/id_string
-            parsed_identifier = urlparse.urlparse(identifier)
+            parsed_identifier = urlparse(identifier)
             server = '{}://{}'.format(
                 parsed_identifier.scheme, parsed_identifier.netloc)
             path_head, path_tail = posixpath.split(parsed_identifier.path)

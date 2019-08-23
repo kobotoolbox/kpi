@@ -7,11 +7,13 @@ import re
 import zipfile
 from io import BytesIO
 
+from django.utils.encoding import python_2_unicode_compatible
 from xlrd import open_workbook
 
 from kpi.exceptions import ImportAssetException
 
 
+@python_2_unicode_compatible
 class ImportFile(object):
     """
     iterates through a zipfile and rebuilds a hierarchy which can then be

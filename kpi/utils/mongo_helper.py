@@ -10,6 +10,7 @@ from bson import json_util, ObjectId
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
+from django.utils.six import string_types
 
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 
@@ -265,13 +266,13 @@ class MongoHelper(object):
         instances_ids = kwargs.get('instances_ids', [])
         permission_filters = kwargs.get('permission_filters')
 
-        if isinstance(query, basestring):
+        if isinstance(query, string_types):
             try:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
                 raise ValueError(_('Invalid `query` param'))
 
-        if isinstance(sort, basestring):
+        if isinstance(sort, string_types):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
@@ -287,7 +288,7 @@ class MongoHelper(object):
         except ValueError:
             raise ValueError(_('Invalid `start/limit` params'))
 
-        if isinstance(fields, basestring):
+        if isinstance(fields, string_types):
             try:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:

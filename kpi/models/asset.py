@@ -3,7 +3,6 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-import StringIO
 import copy
 import sys
 
@@ -15,6 +14,9 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import text_type
+from django.utils.six.moves import cStringIO as StringIO
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
@@ -50,7 +52,7 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from kpi.utils.future import unicode, OrderedDict
+from kpi.utils.future import OrderedDict
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -430,12 +432,13 @@ class XlsExportable(object):
                 sys.exc_info()[2]
             )
 
-        string_io = StringIO.StringIO()
+        string_io = StringIO()
         workbook.save(string_io)
         string_io.seek(0)
         return string_io
 
 
+@python_2_unicode_compatible
 class Asset(ObjectPermissionMixin,
             TagStringMixin,
             DeployableMixin,
@@ -568,7 +571,7 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
     def adjust_content_on_save(self):
@@ -598,7 +601,7 @@ class Asset(ObjectPermissionMixin,
                 settings['id_string'] = id_string
             if not _title:
                 _title = filename
-        if not self.asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
+        if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
 
@@ -1084,7 +1087,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 'warnings': warnings,
             })
         except Exception as err:
-            err_message = unicode(err)
+            err_message = text_type(err)
             logging.error('Failed to generate xform for asset', extra={
                 'src': source,
                 'id_string': id_string,

@@ -3,8 +3,10 @@ from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
 import xml.etree.ElementTree as ET
-import md5
+import hashlib
 import re
+
+from django.utils.six import string_types
 
 # an approximation of the max size.
 # actual max length will be 40 + len(join_with) + len("_001")
@@ -70,7 +72,7 @@ def sluggify(_str, _opts):
             _str = _str[0:opts['characterLimit']]
 
     if opts['validXmlTag']:
-        if re.search('^\d', _str):
+        if re.search(r'^\d', _str):
             _str = '_' + _str
 
     if opts['preventDuplicateUnderscores']:
@@ -83,9 +85,8 @@ def sluggify(_str, _opts):
         attempt_base = _str
         if len(attempt_base) == 0:
             # empty string because arabic / cyrillic characters
-            _str = 'h' + md5.md5(
-                                 _initial[0:7].encode('utf-8')
-                                 ).hexdigest()[0:7]
+            _str = 'h{}'.format(
+                hashlib.md5(_initial[0:7].encode('utf-8')).hexdigest()[0:7])
         attempt = attempt_base
         incremented = 0
         while attempt.lower() in names_lc:
@@ -107,8 +108,8 @@ def sluggify_label(label, **opts):
            }, **opts))
 
 
-def is_valid_nodeName(_name):
-    if not isinstance(_name, basestring):
+def is_valid_node_name(_name):
+    if not isinstance(_name, string_types):
         return False
     if _name == '':
         return False

@@ -2,23 +2,22 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-import StringIO
 import copy
 import json
 from hashlib import md5
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.utils.six.moves import cStringIO as StringIO
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
-from kpi.tests.base_test_case import BaseTestCase
 
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.models import AssetFile
 from kpi.models import AssetVersion
 from kpi.serializers.v2.asset import AssetListSerializer
-
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -380,7 +379,7 @@ class AssetFileTest(BaseTestCase):
             'file_type': 'map_layer',
             'name': 'Dinagat Islands',
             'content':
-                StringIO.StringIO(json.dumps(
+                StringIO(json.dumps(
                     {
                         "type": "Feature",
                         "geometry": {

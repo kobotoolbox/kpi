@@ -14,6 +14,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import string_types, text_type
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.deployment_backends.kc_access.utils import (
@@ -21,7 +23,6 @@ from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions
 )
 from kpi.fields.kpi_uid import KpiUidField
-from kpi.utils.future import unicode
 
 
 def perm_parse(perm, obj=None):
@@ -76,7 +77,7 @@ def get_objects_for_user(user, perms, klass=None):
     :param klass: may be a Model, Manager or QuerySet object. If not given
       this parameter will be computed based on given ``params``.
     """
-    if isinstance(perms, basestring):
+    if isinstance(perms, string_types):
         perms = [perms]
     ctype = None
     app_label = None
@@ -88,7 +89,8 @@ def get_objects_for_user(user, perms, klass=None):
             new_app_label, codename = perm.split('.', 1)
             if app_label is not None and app_label != new_app_label:
                 raise ValidationError("Given perms must have same app "
-                    "label (%s != %s)" % (app_label, new_app_label))
+                                      "label (%s != %s)" % (app_label,
+                                                            new_app_label))
             else:
                 app_label = new_app_label
         else:
@@ -198,6 +200,7 @@ class ObjectPermissionManager(models.Manager):
         )
 
 
+@python_2_unicode_compatible
 class ObjectPermission(models.Model):
     """ An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
@@ -223,23 +226,23 @@ class ObjectPermission(models.Model):
 
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',
-            'object_id', 'content_type')
+                           'object_id', 'content_type')
 
     def save(self, *args, **kwargs):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
-                'not match that of the object.')
+                                  'not match that of the object.')
         super(ObjectPermission, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         for required_field in ('user', 'permission'):
             if not hasattr(self, required_field):
                 return 'incomplete ObjectPermission'
         return '{}{} {} {}'.format(
             'inherited ' if self.inherited else '',
-            unicode(self.permission.codename),
+            text_type(self.permission.codename),  # TODO Test if cast is still needed
             'denied from' if self.deny else 'granted to',
-            unicode(self.user)
+            text_type(self.user)  # TODO Test if cast is still needed
         )
 
 

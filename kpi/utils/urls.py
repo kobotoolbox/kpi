@@ -2,8 +2,8 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-import urlparse
 from django.utils.encoding import uri_to_iri
+from django.utils.six.moves.urllib.parse import urlparse
 from rest_framework.compat import get_script_prefix, resolve
 
 
@@ -20,7 +20,7 @@ def absolute_resolve(url):
         raise TypeError
 
     if http_prefix:
-        path = urlparse.urlparse(url).path
+        path = urlparse(url).path
         prefix = get_script_prefix()
         if path.startswith(prefix):
             path = '/' + path[len(prefix):]

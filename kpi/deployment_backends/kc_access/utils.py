@@ -10,9 +10,12 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
+from django.utils.six import string_types
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
+
+
 from kpi.utils.log import logging
 from .shadow_models import (
     safe_kc_read,
@@ -178,7 +181,7 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
         logging.warning(
             '{} object missing KC_PERMISSIONS_MAP'.format(type(obj)))
         return []
-    if isinstance(kpi_codenames, basestring):
+    if isinstance(kpi_codenames, string_types):
         kpi_codenames = [kpi_codenames]
     # Map KPI codenames to KC
     kc_codenames = []
@@ -279,7 +282,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             '{} object missing KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS'.format(
                 type(obj)))
         return
-    if isinstance(kpi_codenames, basestring):
+    if isinstance(kpi_codenames, string_types):
         kpi_codenames = [kpi_codenames]
     # Find which KC `XForm` flags need to be switched
     xform_updates = {}

@@ -8,6 +8,7 @@ import json
 
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from formpack.utils.expand_content import expand_content
 from jsonbfield.fields import JSONField as JSONBField
 from reversion.models import Version
@@ -18,6 +19,7 @@ from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 
+@python_2_unicode_compatible
 class AssetVersion(models.Model):
     uid = KpiUidField(uid_prefix='v')
     asset = models.ForeignKey('Asset', related_name='asset_versions')
@@ -64,7 +66,8 @@ class AssetVersion(models.Model):
         _json_string = json.dumps(self.version_content, sort_keys=True)
         return hashlib.sha1(_json_string).hexdigest()
 
-    def __unicode__(self):
-        return '{}@{} T{}{}'.format(self.asset.uid, self.uid,
-                    self.date_modified.strftime('%Y-%m-%d %H:%M'),
-                    ' (deployed)' if self.deployed else '')
+    def __str__(self):
+        return '{}@{} T{}{}'.format(
+            self.asset.uid, self.uid,
+            self.date_modified.strftime('%Y-%m-%d %H:%M'),
+            ' (deployed)' if self.deployed else '')

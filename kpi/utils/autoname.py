@@ -7,9 +7,11 @@ import string
 import random
 from copy import deepcopy
 
+from django.utils.six import string_types
+
 from formpack.utils.json_hash import json_hash
 from kpi.utils.future import OrderedDict
-from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
+from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_node_name
 
 
 def _increment(name):
@@ -27,7 +29,7 @@ def _has_name(row):
 
 def _is_group_end(row):
     row_type = row['type']
-    return isinstance(row_type, basestring) and \
+    return isinstance(row_type, string_types) and \
         (row_type.startswith('end ') or row_type.startswith('end_'))
 
 
@@ -103,7 +105,7 @@ def autoname_fields_in_place(surv_content, destination_key):
     for row in filter(lambda r: _has_name(r), rows_needing_names):
         _name = row['name']
         _attempt_count = 0
-        while (not is_valid_nodeName(_name) or _name in other_names):
+        while not is_valid_node_name(_name) or _name in other_names:
             # this will be necessary for untangling skip logic
             row['$given_name'] = _name
             _name = sluggify_label(_name,

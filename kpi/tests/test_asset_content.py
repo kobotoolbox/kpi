@@ -7,6 +7,8 @@ import json
 import string
 from copy import deepcopy
 
+from django.utils.six import string_types
+
 from kpi.models import Asset
 from kpi.utils.future import OrderedDict
 from kpi.utils.sluggify import sluggify_label
@@ -150,7 +152,7 @@ def _is_lambda(v):
 
 def for_each_row(content, *args):
     sheet_names = ['survey', 'choices']
-    if isinstance(args[0], basestring):
+    if isinstance(args[0], string_types):
         _pass_sheet_name = False
         sheet_names = [args[0]]
         fn = args[1]

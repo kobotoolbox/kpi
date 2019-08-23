@@ -8,14 +8,12 @@ import json
 import os
 import random
 import re
-from StringIO import StringIO
-
-# from django.utils import timezone
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.utils.six.moves import cStringIO as StringIO
 from pyxform.xls2json_backends import csv_to_dict
 
 from kpi.models import Asset

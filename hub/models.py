@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
@@ -18,6 +19,7 @@ from markitup.fields import MarkupField
 from kpi.models.object_permission import get_anonymous_user
 
 
+@python_2_unicode_compatible
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
     body = MarkupField()
@@ -26,6 +28,7 @@ class SitewideMessage(models.Model):
         return self.slug
 
 
+@python_2_unicode_compatible
 class ConfigurationFile(models.Model):
     LOGO = 'logo'
     LOGO_SMALL = 'logo_small'
@@ -45,10 +48,10 @@ class ConfigurationFile(models.Model):
 
     @classmethod
     def redirect_view(cls, request, slug):
-        '''
+        """
         When using storage with URLs that expire (e.g. Amazon S3), this view
         allows for persistent URLs--which then redirect to the temporary URLs
-        '''
+        """
         obj = get_object_or_404(cls, slug=slug)
         return HttpResponseRedirect(obj.content.url)
 
@@ -57,6 +60,7 @@ class ConfigurationFile(models.Model):
         return reverse('configurationfile', kwargs={'slug': self.slug})
 
 
+@python_2_unicode_compatible
 class PerUserSetting(models.Model):
     """
     A configuration setting that has different values depending on whether not
@@ -111,6 +115,7 @@ class PerUserSetting(models.Model):
         return self.name
 
 
+@python_2_unicode_compatible
 class FormBuilderPreference(models.Model):
     KPI = 'K'
     DKOBO = 'D'
@@ -125,18 +130,19 @@ class FormBuilderPreference(models.Model):
         default=KPI,
     )
 
-    def __unicode__(self):
+    def __str__(self):
         choices_dict = dict(self.BUILDER_CHOICES)
         choice_label = choices_dict[self.preferred_builder]
         return '{} prefers {}'.format(self.user, choice_label)
 
 
+@python_2_unicode_compatible
 class ExtraUserDetail(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='extra_details')
     data = JSONField(default={})
 
-    def __unicode__(self):
-        return '{}\'s data: {}'.format(self.user.__unicode__(), repr(self.data))
+    def __str__(self):
+        return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):

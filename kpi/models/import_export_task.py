@@ -18,7 +18,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import Resolver404, resolve
 from django.db import models, transaction
-from django.utils.six.moves.urllib import parse as urlparse
+from django.utils.six.moves.urllib.parse import urlparse
 from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
@@ -70,7 +70,7 @@ def utcnow(*args, **kwargs):
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
-        item_path = urlparse.urlparse(item_path).path
+        item_path = urlparse(item_path).path
     try:
         match = resolve(item_path)
     except Resolver404:

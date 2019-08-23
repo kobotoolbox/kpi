@@ -8,6 +8,7 @@ import datetime
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
+from django.utils.encoding import python_2_unicode_compatible
 from jsonbfield.fields import JSONField
 from markdownx.models import MarkdownxField
 from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
@@ -19,6 +20,7 @@ EPOCH_BEGINNING = datetime.datetime.utcfromtimestamp(0)
 markdownify = import_string(MARKDOWNX_MARKDOWNIFY_FUNCTION)
 
 
+@python_2_unicode_compatible
 class InAppMessage(models.Model):
     """
     A message, composed in the Django admin interface, displayed to regular
@@ -53,6 +55,7 @@ class InAppMessage(models.Model):
         return result
 
 
+@python_2_unicode_compatible
 class InAppMessageFile(models.Model):
     """
     A file uploaded by the django-markdownx editor. It doesn't have a foreign
@@ -72,6 +75,7 @@ class InAppMessageFile(models.Model):
         return self.content.name
 
 
+@python_2_unicode_compatible
 class InAppMessageUserInteractions(models.Model):
     message = models.ForeignKey(InAppMessage)
     user = models.ForeignKey(settings.AUTH_USER_MODEL)

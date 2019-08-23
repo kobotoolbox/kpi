@@ -8,6 +8,7 @@ from optparse import make_option
 import time
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
+from django.utils.six.moves import range
 from reversion.models import Version
 
 from kpi.model_utils import disable_auto_field_update
@@ -40,7 +41,7 @@ def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
         _cur = _cur.filter(owner__username__in=filter_usernames)
     asset_ids = _cur.order_by('-date_modified').values_list('id', flat=True)
 
-    for _i in xrange(0, len(asset_ids)):
+    for _i in range(0, len(asset_ids)):
         _create_versions_for_asset_id(asset_ids[_i], _AssetVersion, _ReversionVersion)
         if _i % 1000 == 0:
             print('on {} with {} created'.format(_i, _AssetVersion.objects.count()))

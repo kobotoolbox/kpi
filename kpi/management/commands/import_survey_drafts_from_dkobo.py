@@ -3,12 +3,12 @@ from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
 import re
-from StringIO import StringIO
 from optparse import make_option
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import models
+from django.utils.six.moves import cStringIO as StringIO
 from jsonfield import JSONField
 from pyxform.xls2json_backends import csv_to_dict
 from taggit.managers import TaggableManager

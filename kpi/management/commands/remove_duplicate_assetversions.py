@@ -79,7 +79,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
 
         if not batch_size_guessed:
             batch_size = max(
-                1, ROUGH_BATCH_MEM_LIMIT_MB * 1024 * 1024 / len(serialized))
+                1, int(ROUGH_BATCH_MEM_LIMIT_MB * 1024 * 1024 / len(serialized)))
             batch_size = min(batch_size, MAX_BATCH_SIZE)
             batch_size_guessed = True
 

@@ -10,14 +10,16 @@ try:
     from django.contrib.contenttypes.fields import GenericForeignKey
 except ImportError:
     from django.contrib.contenttypes.generic import GenericForeignKey
+from django.core.exceptions import ValidationError
 from django.db import ProgrammingError
 from django.db import models
-from django.utils import six, timezone
+from django.utils import timezone
+from django.utils.six import text_type
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
-from kpi.utils.future import unicode
 
 
 class ReadOnlyModelError(ValueError):
@@ -156,6 +158,7 @@ class KobocatUserProfile(ShadowModel):
     metadata = JSONField(default={}, blank=True)
 
 
+@python_2_unicode_compatible
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -175,6 +178,7 @@ class KobocatContentType(ShadowModel):
         return self.model
 
 
+@python_2_unicode_compatible
 class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
@@ -191,11 +195,12 @@ class KobocatPermission(ShadowModel):
 
     def __str__(self):
         return "%s | %s | %s" % (
-            six.text_type(self.content_type.app_label),
-            six.text_type(self.content_type),
-            six.text_type(self.name))
+            text_type(self.content_type.app_label),
+            text_type(self.content_type),
+            text_type(self.name))
 
 
+@python_2_unicode_compatible
 class KobocatUserObjectPermission(ShadowModel):
     """
     For the _sole purpose_ of letting us manipulate KoBoCAT
@@ -222,7 +227,7 @@ class KobocatUserObjectPermission(ShadowModel):
         db_table = 'guardian_userobjectpermission'
         unique_together = ['user', 'permission', 'object_pk']
 
-    def __unicode__(self):
+    def __str__(self):
         # `unicode(self.content_object)` fails when the object's model
         # isn't known to this Django project. Let's use something more
         # benign instead.
@@ -231,10 +236,10 @@ class KobocatUserObjectPermission(ShadowModel):
             model=self.content_type.model,
             pk=self.object_pk)
         return '%s | %s | %s' % (
-            #unicode(self.content_object),
+            # unicode(self.content_object),
             content_object_str,
-            unicode(getattr(self, 'user', False) or self.group),
-            unicode(self.permission.codename))
+            text_type(getattr(self, 'user', False) or self.group),
+            text_type(self.permission.codename))
 
     def save(self, *args, **kwargs):
         content_type = KobocatContentType.objects.get_for_model(
