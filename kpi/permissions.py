@@ -120,7 +120,7 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
     Permissions for submissions
     """
 
-    MODEL_NAME = "submissions"  # Hardcode model_name to match permissions
+    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
     
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
@@ -128,7 +128,7 @@ class SubmissionsPermissions(AssetNestedObjectsPermissions):
         'HEAD': ['%(app_label)s.view_%(model_name)s'],
         'POST': ['%(app_label)s.add_%(model_name)s'],
         'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
+        'DELETE': ['%(app_label)s.change_%(model_name)s'],
     }
 
     action_map = {
