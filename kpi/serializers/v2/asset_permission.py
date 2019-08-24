@@ -40,10 +40,11 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
             'url',
             'user',
             'permission',
-            'partial_permissions'
+            'partial_permissions',
+            'label',
         )
 
-        read_only_fields = ('uid', )
+        read_only_fields = ('uid', 'label')
 
     def create(self, validated_data):
         user = validated_data['user']

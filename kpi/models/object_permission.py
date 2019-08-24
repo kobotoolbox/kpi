@@ -219,6 +219,10 @@ class ObjectPermission(models.Model):
     def kind(self):
         return 'objectpermission'
 
+    @property
+    def label(self):
+        return self.content_object.get_label_for_permission(self.permission)
+
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',
             'object_id', 'content_type')
