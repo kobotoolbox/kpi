@@ -95,7 +95,6 @@ class FormSummary extends React.Component {
             subsPerDay = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
           thisWeekSubs.forEach(function(s, i){
-            console.log(s);
             // As submission times are in UTC,
             // this will get the computer timezone difference with UTC
             // and adapt the submission date to reflect that in the chart.
