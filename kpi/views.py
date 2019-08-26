@@ -957,7 +957,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         filters = request.GET.dict()
         # remove `format` from filters, it's redundant.
         filters.pop('format', None)
-        # remove `force_limit` to be sure, users don't overload it.
+        # remove `force_limit` to be sure that users don't overload it.
         filters.pop('force_limit', None)
         submissions = deployment.get_submissions(format_type=format_type,
                                                  force_limit=True,
