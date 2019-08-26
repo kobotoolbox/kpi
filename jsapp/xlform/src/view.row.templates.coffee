@@ -242,11 +242,61 @@ module.exports = do ->
       </ul>
     </div>
     """
+  mandatorySettingSelector = (uniqueName, currentValue) ->
+    if currentValue is 'true' or currentValue is 'false'
+      modifier = currentValue
+    else
+      modifier = 'custom'
+
+    """
+    <div class="card__settings__fields__field">
+      <label>#{_t('Mandatory response')}:</label>
+      <span class="settings__input">
+        <div class="radio">
+          <label class="radio__row mandatory-setting__row mandatory-setting__row--true">
+            <input
+              class="radio__input js-mandatory-setting-radio"
+              type="radio"
+              name="#{uniqueName}"
+              value="true" #{if modifier is 'true' then 'checked' else ''}
+            >
+            <span class="radio__label">#{_t('Yes')}</span>
+          </label>
+          <label class="radio__row mandatory-setting__row mandatory-setting__row--false">
+            <input
+              class="radio__input js-mandatory-setting-radio"
+              type="radio"
+              name="#{uniqueName}"
+              value="false" #{if modifier is 'false' then 'checked' else ''}
+            >
+            <span class="radio__label">#{_t('No')}</span>
+          </label>
+          <label class="radio__row mandatory-setting__row mandatory-setting__row--custom">
+            <input
+              class="radio__input js-mandatory-setting-radio"
+              type="radio"
+              name="#{uniqueName}"
+              value="custom" #{if modifier is 'custom' then 'checked' else ''}
+            >
+            <span class="radio__label">#{_t('Custom logic')}</span>
+            <label class="text-box text-box--on-white">
+              <input
+                type="text"
+                class="text-box__input js-mandatory-setting-custom-text"
+                value="#{currentValue}"
+                placeholder="#{_t('Mandatory when this formula is true')}"
+              >
+            </label>
+          </label>
+        </div>
+      </span>
+    </div>
+    """
 
   paramsSettingsField = ->
     """
-    <div class="card__settings__fields__field">
-      <label>#{_t("Parameters")}:</label>
+    <div class="card__settings__fields__field params-view__settings-wrapper">
+      <label>#{_t('Parameters')}:</label>
       <span class="settings__input">
         <div class="params-view"></div>
       </span>
@@ -285,6 +335,7 @@ module.exports = do ->
 
   xlfRowView: xlfRowView
   expandChoiceList: expandChoiceList
+  mandatorySettingSelector: mandatorySettingSelector
   paramsSettingsField: paramsSettingsField
   paramsSimple: paramsSimple
   selectQuestionExpansion: selectQuestionExpansion
