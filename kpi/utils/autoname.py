@@ -7,7 +7,7 @@ import string
 import random
 from copy import deepcopy
 
-from django.utils.six import string_types
+from django.utils.six import string_types, iteritems
 
 from formpack.utils.json_hash import json_hash
 from kpi.utils.future import OrderedDict
@@ -190,7 +190,7 @@ def autovalue_choices_in_place(surv_content, destination_key):
             choices[_list_name] = []
         choices[_list_name].append(choice)
 
-    for (list_name, choice_list) in choices.iteritems():
+    for (list_name, choice_list) in iteritems(choices):
         previous_values = []
         for choice in choice_list:
             if choice_value_key in choice and choice[choice_value_key]:

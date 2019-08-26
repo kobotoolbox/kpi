@@ -5,8 +5,10 @@ from __future__ import (unicode_literals, print_function,
 from django.forms import model_to_dict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils.six import iteritems
 from rest_framework import viewsets, status, exceptions
 from rest_framework.response import Response
+
 from kpi.filters import KpiObjectPermissionsFilter, SearchFilter
 from kpi.models import Collection
 from kpi.model_utils import disable_auto_field_update
@@ -88,7 +90,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             'discoverable_when_public',
         ))
         changed_fields = set()
-        for k, v in serializer.validated_data.iteritems():
+        for k, v in iteritems(serializer.validated_data):
             if getattr(original_collection, k) != v:
                 changed_fields.add(k)
         if changed_fields.issubset(FIELDS_NOT_AFFECTING_MODIFICATION_DATE):

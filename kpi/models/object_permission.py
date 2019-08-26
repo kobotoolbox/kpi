@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import string_types, text_type
+from django.utils.six import string_types, text_type, iteritems
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.deployment_backends.kc_access.utils import (
@@ -498,7 +498,7 @@ class ObjectPermissionMixin(object):
                 pk_list.append(child.pk)
                 delete_pks_by_content_type[content_type] = pk_list
             delete_query = models.Q()
-            for content_type, pks in delete_pks_by_content_type.iteritems():
+            for content_type, pks in iteritems(delete_pks_by_content_type):
                 delete_query |= models.Q(
                     content_type=content_type,
                     object_id__in=pks
@@ -643,7 +643,7 @@ class ObjectPermissionMixin(object):
         implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
-            for src_perm, dest_perms in implied_perms_dict.iteritems():
+            for src_perm, dest_perms in iteritems(implied_perms_dict):
                 for dest_perm in dest_perms:
                     reverse_perms_dict[dest_perm].append(src_perm)
             implied_perms_dict = reverse_perms_dict
@@ -843,7 +843,7 @@ class ObjectPermissionMixin(object):
                 user_perm_dict[user_id] = sorted(perm_list)
             # Resolve user ids into actual user objects
             user_perm_dict = {User.objects.get(pk=key): value for (key, value)
-                              in user_perm_dict.iteritems()}
+                              in iteritems(user_perm_dict)}
             return user_perm_dict
         else:
             # Use a set to avoid duplicate users

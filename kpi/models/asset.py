@@ -15,7 +15,7 @@ from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import text_type
+from django.utils.six import text_type, iteritems
 from django.utils.six.moves import cStringIO as StringIO
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
@@ -243,7 +243,7 @@ class FormpackXLSFormUtils(object):
                 'survey': 'type',
                 'choices': 'list_name',
             }
-        for (sheet_name, required_key) in vals.iteritems():
+        for (sheet_name, required_key) in iteritems(vals):
             arr = content.get(sheet_name, [])
             arr[:] = [row for row in arr if required_key in row]
 
@@ -421,7 +421,7 @@ class XlsExportable(object):
             ss_dict = self.ordered_xlsform_content(**kwargs)
 
             workbook = xlwt.Workbook()
-            for (sheet_name, contents) in ss_dict.iteritems():
+            for (sheet_name, contents) in iteritems(ss_dict):
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
