@@ -9,9 +9,13 @@ from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
 from kobo.apps.hook.models.hook import Hook
-from kpi.deployment_backends.kc_access.shadow_models import KCUser, KCToken
-from kpi.model_utils import grant_default_model_level_perms
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatToken,
+    KobocatUser,
+)
+from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
 from kpi.models import Asset, Collection, ObjectPermission, TagUid
+from kpi.utils.permissions import grant_default_model_level_perms
 
 
 @receiver(post_save, sender=User)
@@ -33,12 +37,22 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def save_kobocat_user(sender, instance, **kwargs):
+def save_kobocat_user(sender, instance, created, raw, **kwargs):
     """
-    Sync Auth User table between KPI and KC
+    Sync auth_user table between KPI and KC, and, if the user is newly created,
+    grant all KoBoCAT model-level permissions for the content types listed in
+    `settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES`
     """
     if not settings.TESTING:
-        KCUser.sync(instance)
+        KobocatUser.sync(instance)
+        if created:
+            # FIXME: If this fails, the next attempt results in
+            #   IntegrityError: duplicate key value violates unique constraint
+            #   "auth_user_username_key"
+            # and decorating this function with `transaction.atomic` doesn't
+            # seem to help. We should roll back the KC user creation if
+            # assigning model-level permissions fails
+            grant_kc_model_level_perms(instance)
 
 
 @receiver(post_save, sender=Token)
@@ -47,7 +61,7 @@ def save_kobocat_token(sender, instance, **kwargs):
     Sync AuthToken table between KPI and KC
     """
     if not settings.TESTING:
-        KCToken.sync(instance)
+        KobocatToken.sync(instance)
 
 
 @receiver(post_delete, sender=Token)
@@ -56,7 +70,7 @@ def delete_kobocat_token(sender, instance, **kwargs):
     Delete corresponding record from KC AuthToken table
     """
     if not settings.TESTING:
-        KCToken.objects.filter(pk=instance.pk).delete()
+        KobocatToken.objects.filter(pk=instance.pk).delete()
 
 
 @receiver(post_save, sender=Tag)

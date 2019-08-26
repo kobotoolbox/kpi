@@ -18,7 +18,7 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
-from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
+from .kc_access.shadow_models import ReadOnlyKobocatInstance, ReadOnlyKobocatXForm
 from .kc_access.utils import instance_count, last_submission_time
 from ..exceptions import BadFormatException, KobocatDeploymentException
 
@@ -151,7 +151,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform_id(self):
         pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
-        xform = ReadOnlyXForm.objects.filter(pk=pk).only(
+        xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
             'user__username', 'id_string').first()
         if not (xform.user.username == self.asset.owner.username and
                 xform.id_string == self.xform_id_string):
@@ -610,7 +610,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             instances_ids = [instance.get('_id') for instance in
                              MongoHelper.get_instances(self.mongo_userform_id, **params)]
 
-        queryset = ReadOnlyInstance.objects.filter(
+        queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,
             deleted_at=None
         )
