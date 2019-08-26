@@ -203,12 +203,13 @@ class MongoHelper(object):
     def get_instances(cls, mongo_userform_id, hide_deleted=True, **kwargs):
 
         params = cls.validate_params(**kwargs)
-        start = params.get("start")
-        limit = params.get("limit")
-        sort = params.get("sort")
-        fields = params.get("fields")
-        query = params.get("query")
-        instances_ids = params.get("instances_ids")
+        start = params.get('start')
+        limit = params.get('limit')
+        sort = params.get('sort')
+        fields = params.get('fields')
+        query = params.get('query')
+        instances_ids = params.get('instances_ids')
+        force_limit = params.get('force_limit')
 
         # check if query contains and _id and if its a valid ObjectID
         if "_uuid" in query:
@@ -247,7 +248,8 @@ class MongoHelper(object):
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
 
-        cursor.skip(start).limit(limit)
+        if force_limit:
+            cursor.skip(start).limit(limit)
 
         if len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
@@ -269,13 +271,13 @@ class MongoHelper(object):
         :param kwargs: dict
         :return: dict
         """
-
-        start = kwargs.get("start", 0)
-        limit = kwargs.get("limit", cls.DEFAULT_LIMIT)
-        sort = kwargs.get("sort", {})
-        fields = kwargs.get("fields", [])
-        query = kwargs.get("query", {})
-        instances_ids = kwargs.get("instances_ids", [])
+        force_limit = kwargs.get('force_limit', False)
+        start = kwargs.get('start', 0)
+        limit = kwargs.get('limit', cls.DEFAULT_LIMIT)
+        sort = kwargs.get('sort', {})
+        fields = kwargs.get('fields', [])
+        query = kwargs.get('query', {})
+        instances_ids = kwargs.get('instances_ids', [])
 
         if isinstance(query, basestring):
             try:
@@ -289,15 +291,19 @@ class MongoHelper(object):
             except ValueError:
                 raise ValueError(_("Invalid `sort` param"))
 
-        try:
-            start = int(start)
-            limit = int(limit)
-            if limit > cls.DEFAULT_LIMIT:
-                limit = cls.DEFAULT_LIMIT
-            if start < 0 or limit < 0:
-                raise Exception()  # Try/Except will catch this exception and proper message
-        except ValueError:
-            raise ValueError(_("Invalid `start/limit` params"))
+        if force_limit:
+            try:
+                start = int(start)
+                limit = int(limit)
+                if limit > cls.DEFAULT_LIMIT:
+                    limit = cls.DEFAULT_LIMIT
+                if start < 0 or limit < 0:
+                    raise Exception()  # Try/Except will catch this exception and proper message
+            except ValueError:
+                raise ValueError(_("Invalid `start/limit` params"))
+        else:
+            start = 0
+            limit = None
 
         if isinstance(fields, basestring):
             try:
@@ -309,10 +315,11 @@ class MongoHelper(object):
             raise ValueError(_("Invalid `instances_ids` param"))
 
         return {
-            "query": query,
-            "start": start,
-            "limit": limit,
-            "fields": fields,
-            "sort": sort,
-            "instances_ids": instances_ids
+            'query': query,
+            'start': start,
+            'limit': limit,
+            'fields': fields,
+            'sort': sort,
+            'instances_ids': instances_ids,
+            'force_limit': force_limit
         }

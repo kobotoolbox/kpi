@@ -574,7 +574,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         ))
 
         # When using Mongo, data is already paginated, no need to do it with PostgreSQL too.
-        if not use_mongo:
+        if not use_mongo and params.get('force_limit') is True:
             offset = params.get("start")
             limit = offset + params.get("limit")
             queryset = queryset[offset:limit]
