@@ -248,7 +248,7 @@ class MongoHelper(object):
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
 
-        if force_limit:
+        if force_limit is True:
             cursor.skip(start).limit(limit)
 
         if len(sort) == 1:
@@ -291,7 +291,7 @@ class MongoHelper(object):
             except ValueError:
                 raise ValueError(_("Invalid `sort` param"))
 
-        if force_limit:
+        if force_limit is True:
             try:
                 start = int(start)
                 limit = int(limit)
