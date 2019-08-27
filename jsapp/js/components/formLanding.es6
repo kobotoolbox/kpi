@@ -267,7 +267,7 @@ export class FormLanding extends React.Component {
               {chosenMethod != 'iframe_url' && chosenMethod != 'android' &&
                this.state.deployment__links[chosenMethod] &&
                 <CopyToClipboard text={this.state.deployment__links[chosenMethod]}
-                  onCopy={() => notify('copied to clipboard')}
+                  onCopy={() => notify(t('copied to clipboard'))}
                   options={{format: 'text/plain'}}
                 >
                   <button className='copy mdl-button mdl-button--colored'>
@@ -292,7 +292,7 @@ export class FormLanding extends React.Component {
               {chosenMethod == 'iframe_url' &&
                 <CopyToClipboard
                   text={`<iframe src=${this.state.deployment__links[chosenMethod]} width="800" height="600"></iframe>`}
-                  onCopy={() => notify('copied to clipboard')}
+                  onCopy={() => notify(t('copied to clipboard'))}
                   options={{format: 'text/plain'}}
                 >
                   <button className='copy mdl-button mdl-button--colored'>

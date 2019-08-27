@@ -134,7 +134,7 @@ export class TranslationSettings extends React.Component {
       };
       dialog.set(opts).show();
     } else {
-      notify('Error: translation index mismatch. Cannot delete language.');
+      notify(t('Translation index mismatch. Cannot delete language.'), 'error');
     }
   }
   prepareTranslations(content) {
