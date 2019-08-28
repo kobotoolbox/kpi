@@ -907,19 +907,17 @@ export class DataTable extends React.Component {
         {Object.keys(selected).length > 0 &&
           <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
             {this.userCan('validate_submissions', this.props.asset) &&
-              <React.Fragment>
-                {VALIDATION_STATUSES_LIST.map((item, n) => {
-                  return (
-                    <bem.PopoverMenu__link
-                      onClick={this.onBulkUpdateStatus}
-                      data-value={item.value}
-                      key={n}
-                    >
-                      {t('Set status: ##status##').replace('##status##', item.label)}
-                    </bem.PopoverMenu__link>
-                  );
-                })}
-              </React.Fragment>
+              VALIDATION_STATUSES_LIST.map((item, n) => {
+                return (
+                  <bem.PopoverMenu__link
+                    onClick={this.onBulkUpdateStatus}
+                    data-value={item.value}
+                    key={n}
+                  >
+                    {t('Set status: ##status##').replace('##status##', item.label)}
+                  </bem.PopoverMenu__link>
+                );
+              })
             }
             {this.userCan('change_submissions', this.props.asset) &&
             <bem.PopoverMenu__link
