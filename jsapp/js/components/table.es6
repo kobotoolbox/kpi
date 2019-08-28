@@ -214,7 +214,7 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset)) {
+    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('change_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
@@ -906,21 +906,25 @@ export class DataTable extends React.Component {
 
         {Object.keys(selected).length > 0 &&
           <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
-            {VALIDATION_STATUSES_LIST.map((item, n) => {
-              return (
-                <bem.PopoverMenu__link
-                  onClick={this.onBulkUpdateStatus}
-                  data-value={item.value}
-                  key={n}
-                >
-                  {t('Set status: ##status##').replace('##status##', item.label)}
-                </bem.PopoverMenu__link>
-              );
-            })}
+            {this.userCan('validate_submissions', this.props.asset) &&
+              VALIDATION_STATUSES_LIST.map((item, n) => {
+                return (
+                  <bem.PopoverMenu__link
+                    onClick={this.onBulkUpdateStatus}
+                    data-value={item.value}
+                    key={n}
+                  >
+                    {t('Set status: ##status##').replace('##status##', item.label)}
+                  </bem.PopoverMenu__link>
+                );
+              })
+            }
+            {this.userCan('change_submissions', this.props.asset) &&
             <bem.PopoverMenu__link
               onClick={this.onBulkDelete}>
               {t('Delete selected')}
             </bem.PopoverMenu__link>
+            }
           </ui.PopoverMenu>
         }
       </bem.FormView__item>
