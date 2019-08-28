@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from django.utils.translation import ugettext_lazy as _
+
 
 class BaseDeploymentBackend(object):
 
@@ -14,6 +16,66 @@ class BaseDeploymentBackend(object):
 
     def delete(self):
         self.asset._deployment_data.clear()
+
+    @classmethod
+    def validate_submission_list_params(cls, **kwargs):
+        """
+        Ensure types of query and each param
+
+        :param query: dict
+        :param kwargs: dict
+        :return: dict
+        """
+
+        start = kwargs.get("start", 0)
+        limit = kwargs.get("limit")
+        sort = kwargs.get("sort", {})
+        fields = kwargs.get("fields", [])
+        query = kwargs.get("query", {})
+        instances_ids = kwargs.get("instances_ids", [])
+
+        if isinstance(query, basestring):
+            try:
+                query = json.loads(query, object_hook=json_util.object_hook)
+            except ValueError:
+                raise ValueError(_("Invalid `query` param"))
+
+        if isinstance(sort, basestring):
+            try:
+                sort = json.loads(sort, object_hook=json_util.object_hook)
+            except ValueError:
+                raise ValueError(_("Invalid `sort` param"))
+
+        try:
+            start = int(start)
+            if start < 0:
+                raise ValueError
+            if limit is not None:
+                limit = int(limit)
+                if limit < 0:
+                    raise ValueError
+        except ValueError:
+            raise ValueError(_("Invalid `start/limit` params"))
+
+        if isinstance(fields, basestring):
+            try:
+                fields = json.loads(fields, object_hook=json_util.object_hook)
+            except ValueError:
+                raise ValueError(_("Invalid `fields` params"))
+
+        if not isinstance(instances_ids, list):
+            raise ValueError(_("Invalid `instances_ids` param"))
+
+        params = {
+            "query": query,
+            "start": start,
+            "fields": fields,
+            "sort": sort,
+            "instances_ids": instances_ids
+        }
+        if limit:
+            params['limit'] = limit
+        return params
 
     @property
     def backend(self):
