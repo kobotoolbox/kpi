@@ -100,7 +100,7 @@ var dataInterface;
     },
     addExternalService(uid, data) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/`,
         method: 'POST',
         data: JSON.stringify(data),
         dataType: 'json',
