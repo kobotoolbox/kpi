@@ -19,6 +19,7 @@ import {
   log,
   stringToColor,
 } from '../utils';
+import {ROOT_URL} from './constants';
 
 export class AccountSettings extends React.Component {
   constructor(props){
@@ -532,7 +533,7 @@ export class ChangePassword extends React.Component {
                 onChange={this.currentPasswordChange}
               />
 
-              <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
+              <a href={`${ROOT_URL}/accounts/password/reset/`}>
                 {t('Forgot Password?')}
               </a>
             </bem.ChangePassword__item>
