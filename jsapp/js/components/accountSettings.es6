@@ -19,7 +19,7 @@ import {
   log,
   stringToColor,
 } from '../utils';
-import {ROOT_URL} from './constants';
+import {ROOT_URL} from 'js/constants';
 
 export class AccountSettings extends React.Component {
   constructor(props){
