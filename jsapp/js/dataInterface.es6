@@ -336,6 +336,22 @@ var dataInterface;
         return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
       }
     },
+    /**
+     * @param {object} data
+     * @param {string} [data.source]
+     * @param {string} [data.type]
+     * @param {boolean} [data.fields_from_all_versions]
+     * @param {string} [data.lang]
+     * @param {boolean} [data.hierarchy_in_labels]
+     * @param {string} [data.group_sep]
+     */
+    createExport (data) {
+      return $ajax({
+        url: `${ROOT_URL}/exports/`,
+        method: 'POST',
+        data: data
+      });
+    },
     getAssetExports (uid) {
       return $ajax({
         url: `${ROOT_URL}/exports/`,
