@@ -4,7 +4,6 @@ from __future__ import absolute_import, unicode_literals
 import re
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
 from rest_framework import status
 
 from .base_backend import BaseDeploymentBackend
@@ -170,6 +169,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             else:
                 submissions = [submission for submission in submissions
                                if submission.get('submitted_by') in submitted_by]
+
+        params = self.validate_submission_list_params(**kwargs)
+        # TODO: support other query parameters?
+        if 'limit' in params:
+            submissions = submissions[:params['limit']]
 
         return submissions
 

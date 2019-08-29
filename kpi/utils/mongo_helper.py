@@ -36,7 +36,6 @@ class MongoHelper(object):
 
     # Match KoBoCat's variables of ParsedInstance class
     USERFORM_ID = "_userform_id"
-    DEFAULT_LIMIT = 30000
     DEFAULT_BATCHSIZE = 1000
 
     @classmethod
@@ -66,17 +65,11 @@ class MongoHelper(object):
         return key
 
     @classmethod
-    def get_instances(cls, mongo_userform_id, hide_deleted=True, **kwargs):
-
-        params = cls.validate_params(**kwargs)
-        start = params.get('start')
-        limit = params.get('limit')
-        sort = params.get('sort')
-        fields = params.get('fields')
-        query = params.get('query')
-        instances_ids = params.get('instances_ids')
-        permission_filters = params.get('permission_filters')
-
+    def get_instances(
+            cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
+            sort=None, fields=None, query=None, instances_ids=None,
+            permission_filters=None
+    ):
         # check if query contains an _id and if its a valid ObjectID
         if '_uuid' in query:
             if ObjectId.is_valid(query.get('_uuid')):
@@ -121,8 +114,9 @@ class MongoHelper(object):
             fields_to_select = {cls.USERFORM_ID: 0}
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
-
-        cursor.skip(start).limit(limit)
+        cursor.skip(start)
+        if limit is not None:
+            cursor.limit(limit)
 
         if len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
@@ -246,66 +240,40 @@ class MongoHelper(object):
         return d
 
     @classmethod
-    def validate_params(cls, **kwargs):
+    def encode(cls, key):
         """
-        Ensure types of query and each param
+        Replace characters not allowed in Mongo keys with their base64-encoded
+        representations
 
-        :param query: dict
-        :param kwargs: dict
-        :return: dict
+        :param key: string
+        :return: string
         """
+        for pattern, repl in cls.ENCODING_SUBSTITUTIONS:
+            key = re.sub(pattern, repl, key)
+        return key
 
-        start = kwargs.get('start', 0)
-        limit = kwargs.get('limit', cls.DEFAULT_LIMIT)
-        sort = kwargs.get('sort', {})
-        fields = kwargs.get('fields', [])
-        query = kwargs.get('query', {})
-        instances_ids = kwargs.get('instances_ids', [])
-        permission_filters = kwargs.get('permission_filters')
+    @classmethod
+    def decode(cls, key):
+        """
+        Replace base64-encoded characters not allowed in Mongo keys with their
+        original representations
 
-        if isinstance(query, basestring):
-            try:
-                query = json.loads(query, object_hook=json_util.object_hook)
-            except ValueError:
-                raise ValueError(_('Invalid `query` param'))
+        :param key: string
+        :return: string
+        """
+        for pattern, repl in cls.DECODING_SUBSTITUTIONS:
+            key = re.sub(pattern, repl, key)
+        return key
 
-        if isinstance(sort, basestring):
-            try:
-                sort = json.loads(sort, object_hook=json_util.object_hook)
-            except ValueError:
-                raise ValueError(_('Invalid `sort` param'))
-
-        try:
-            start = int(start)
-            limit = int(limit)
-            if limit > cls.DEFAULT_LIMIT:
-                limit = cls.DEFAULT_LIMIT
-            if start < 0 or limit < 0:
-                raise Exception()  # Try/Except will catch this exception and proper message
-        except ValueError:
-            raise ValueError(_('Invalid `start/limit` params'))
-
-        if isinstance(fields, basestring):
-            try:
-                fields = json.loads(fields, object_hook=json_util.object_hook)
-            except ValueError:
-                raise ValueError(_('Invalid `fields` params'))
-
-        if not isinstance(instances_ids, list):
-            raise ValueError(_('Invalid `instances_ids` param'))
-
-        if not (isinstance(permission_filters, list) or permission_filters is None):
-            raise ValueError(_('Invalid `submitted_by` param'))
-
-        return {
-            'query': query,
-            'start': start,
-            'limit': limit,
-            'fields': fields,
-            'sort': sort,
-            'instances_ids': instances_ids,
-            'permission_filters': permission_filters
-        }
+    @classmethod
+    def is_attribute_invalid(cls, key):
+        """
+        Checks if an attribute can't be passed to Mongo as is.
+        :param key:
+        :return:
+        """
+        return key not in \
+               cls.KEY_WHITELIST and (key.startswith('$') or key.count('.') > 0)
 
     @classmethod
     def _is_attribute_encoded(cls, key):

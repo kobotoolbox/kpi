@@ -556,8 +556,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: generator<JSON>
         """
 
-        kwargs['instances_ids'] = instances_ids
-        instances = MongoHelper.get_instances(self.mongo_userform_id, **kwargs)
+        kwargs["instances_ids"] = instances_ids
+        params = self.validate_submission_list_params(**kwargs)
+
+        instances = MongoHelper.get_instances(self.mongo_userform_id, **params)
 
         return (
             MongoHelper.to_readable_dict(instance)
@@ -581,7 +583,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Because `kwargs`' values are for `Mongo`'s query engine
         # We still use MongoHelper to validate params.
-        params = MongoHelper.validate_params(**kwargs)
+        params = self.validate_submission_list_params(**kwargs)
 
         mongo_filters = ['query', 'permission_filters']
         use_mongo = any(mongo_filter in mongo_filters for mongo_filter in kwargs
