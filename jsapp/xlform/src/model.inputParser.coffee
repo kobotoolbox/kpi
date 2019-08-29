@@ -109,15 +109,13 @@ module.exports = do ->
   inputParser.parseArr = parseArr
 
   # pass baseSurvey whenever you import other asset into existing form
-  inputParser.parse = (originalObj, baseSurvey)->
-    # cloning received object to avoid errors happening because
-    # of messing around with original data
-    o = cloneDeep(originalObj)
-
+  inputParser.parse = (o, baseSurvey)->
     translations = o.translations
 
     nullified = utils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
+    # we edit the received object directly, which seems like BAD CODE™
+    # but in fact is required for the languages to work properly
     o.survey = nullified.survey;
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
