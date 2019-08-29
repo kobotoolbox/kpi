@@ -237,6 +237,10 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
+# Impose a limit on the number of records returned by the submission list
+# endpoint. This overrides any `?limit=` query parameter sent by a client
+SUBMISSION_LIST_LIMIT = 30000
+
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 
