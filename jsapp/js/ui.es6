@@ -1,3 +1,10 @@
+/**
+ * A collection of small and generic UI components. The main idea is to not
+ * invent a wheel every time, keep things DRY and consistent throughout the app.
+ *
+ * TODO: would be best to split those to separate files in `jsapp/js/components/generic` directory.
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';

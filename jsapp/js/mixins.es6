@@ -1,3 +1,16 @@
+/**
+ * Mixins to be used via react-mixin plugin. These extend components with the
+ * methods defined within the given mixin, using the component as `this`.
+ *
+ * NOTE: please try using mixins as less as possible - when needing a method
+ * from here, move it out to separete file (utils?), import here to avoid
+ * breaking the code and use the separete file instead of mixin.
+ *
+ * TODO: think about moving out of mixins, as they are deprecated in new React
+ * versions and considered harmful (see
+ * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ */
+
 import React from 'react';
 import alertify from 'alertifyjs';
 import {hashHistory} from 'react-router';
@@ -514,7 +527,7 @@ mixins.clickAssets = {
         let onok = (evt, val) => {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
-              notify(`${assetTypeLabel} ${t('deleted permanently')}`);
+              notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel));
               if (typeof callback === 'function') {
                 callback();
               }
@@ -528,12 +541,12 @@ mixins.clickAssets = {
           else
             msg = t('You are about to permanently delete this draft.');
         } else {
-          msg = `
-            ${t('You are about to permanently delete this form.')}
-            ${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}
-            ${renderCheckbox('dt2', t('All questions created for this form will be deleted.'))}
-            ${renderCheckbox('dt3', t('The form associated with this project will be deleted.'))}
-            ${renderCheckbox('dt4', t('I understand that if I delete this project I will not be able to recover it.'), true)}
+          msg = `${t('You are about to permanently delete this form.')}`;
+          if (asset.deployment__submission_count !== 0) {
+            msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`;
+          }
+          msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}
+            ${renderCheckbox('dt3', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;

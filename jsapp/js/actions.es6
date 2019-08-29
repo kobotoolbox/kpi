@@ -1,3 +1,14 @@
+/**
+ * A bundle file for all Reflux actions. This is the only place that React
+ * components should be talking to Backend.
+ *
+ * You can observe action result through Reflux callbacks in your component, or
+ * more preferably (where applicable) use the update eveont of one of the stores
+ * from `jsapp/js/stores.es6`
+ *
+ * TODO: Group and split actions to separate files. For a working example see `./actions/help`.
+ */
+
 import alertify from 'alertifyjs';
 import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
@@ -307,7 +318,7 @@ actions.resources.createImport.completed.listen(function(contents){
       notify(t('successfully uploaded file; processing may take a few minutes'));
       log('processing import ' + contents.uid, contents);
     } else {
-      notify(`unexpected import status ${contents.status}`, 'error');
+      notify(t('unexpected import status ##STATUS##').replace('##STATUS##', contents.status), 'error');
     }
   } else {
     notify(t('Error: import.status not available'));

@@ -4,6 +4,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import $ from 'jquery';
+import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
 import actions from '../actions';
@@ -25,6 +26,10 @@ import {
   notify,
   formatTimeDate
 } from '../utils';
+
+const NOT_ASSIGNED = 'validation_status_not_assigned';
+
+export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -70,7 +75,7 @@ export class DataTable extends React.Component {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
         } else if (f.id === '_validation_status.uid') {
-          filterQuery += `"${f.id}":"${f.value}"`;
+          (f.value === NOT_ASSIGNED) ? filterQuery += `"${f.id}":null` : filterQuery += `"${f.id}":"${f.value}"`;
         } else {
           filterQuery += `"${f.id}":{"$regex":"${f.value}","$options":"i"}`;
         }
@@ -249,7 +254,7 @@ export class DataTable extends React.Component {
       Header: '',
       accessor: 'sub-link',
       index: '__1',
-      id: '__SubmissionLinks',
+      id: SUBMISSION_LINKS_ID,
       minWidth: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
@@ -262,8 +267,12 @@ export class DataTable extends React.Component {
           </span>
 
           {userCanSeeEditIcon &&
-            <span onClick={this.launchEditSubmission} data-sid={row.original._id}
-                  className='table-link' data-tip={t('Edit')}>
+            <span
+              onClick={this.launchEditSubmission.bind(this)}
+              data-sid={row.original._id}
+              className='table-link'
+              data-tip={t('Edit')}
+            >
               <i className='k-icon k-icon-edit'/>
             </span>
           }
@@ -292,7 +301,7 @@ export class DataTable extends React.Component {
           <option value=''>Show All</option>
           {VALIDATION_STATUSES_LIST.map((item, n) => {
             return (
-              <option value={item.value} key={n}>{item.label}</option>
+              <option value={(item.value === null) ? NOT_ASSIGNED : item.value} key={n}>{item.label}</option>
             );
           })}
         </select>,
@@ -513,7 +522,7 @@ export class DataTable extends React.Component {
 
       selectedColumns = columns.filter((el) => {
         // always include edit/preview links column
-        if (el.id == '__SubmissionLinks')
+        if (el.id == SUBMISSION_LINKS_ID)
           return true;
 
         // include multi-select checkboxes if validation status is visible
@@ -690,20 +699,7 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission (evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0),
-        uid = this.props.asset.uid,
-        newWin = window.open('', '_blank');
-    const sid = el.getAttribute('data-sid');
-
-    dataInterface.getEnketoEditLink(uid, sid).done((editData) => {
-      this.setState({ promptRefresh: true });
-      if (editData.url) {
-        newWin.location = editData.url;
-      } else {
-        newWin.close();
-        notify(t('There was an error loading Enketo.'));
-      }
-    });
+    enketoHandler.editSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid);
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal)

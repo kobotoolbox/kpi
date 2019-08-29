@@ -81,16 +81,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
 
     # Assignable permissions that are stored in the database
     ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
-
-    # Names exposed in API.
-    # Useful for FE to display human readable name for permissions
-    # TODO Merge with `ASSIGNABLE_PERMISSIONS` and use .keys() wherever
-    # `ASSIGNABLE_PERMISSIONS` is used.
-    PERMISSIONS_NAMES = {
-        PERM_VIEW_COLLECTION: _('View collection'),
-        PERM_CHANGE_COLLECTION: _('Change collection')
-    }
-
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = (PERM_SHARE_COLLECTION, PERM_DELETE_COLLECTION)
