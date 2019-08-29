@@ -21,6 +21,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     INSTANCE_ID_FIELDNAME = "id"
 
+    def bulk_assign_mapped_perms(self):
+        pass
+
     def connect(self, active=False):
         self.store_data({
                 'backend': 'mock',

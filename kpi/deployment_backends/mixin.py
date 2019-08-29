@@ -37,6 +37,8 @@ class DeployableMixin:
         if self.can_be_deployed:
             if not self.has_deployment:
                 self.connect_deployment(backend=backend, active=active)
+                if self.has_deployment:  # Double-check, maybe overkill.
+                    self.deployment.bulk_assign_mapped_perms()
             else:
                 self.deployment.redeploy(active=active)
             self._mark_latest_version_as_deployed()
