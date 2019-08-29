@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, absolute_import
 
+from django.conf import settings
+from django.core.exceptions import SuspiciousOperation
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import renderers, viewsets, status
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
+
 
 from kpi.models import Asset
 from kpi.permissions import (
@@ -246,7 +249,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         # Remove `format` from filters. No need to use it
         filters.pop('format', None)
-
+        # Do not allow requests to retrieve more than `SUBMISSION_LIST_LIMIT`
+        # submissions at one time
+        try:
+            limit = int(filters.get('limit', settings.SUBMISSION_LIST_LIMIT))
+        except ValueError:
+            # Return HTTP 400
+            raise SuspiciousOperation(_('`limit` parameter must be an integer'))
+        filters['limit'] = min(limit, settings.SUBMISSION_LIST_LIMIT)
         permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
         # This should overwrite existing `permission_filters` param.
@@ -254,5 +264,4 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         filters.update({
             'permission_filters': permission_filters
         })
-
         return filters
