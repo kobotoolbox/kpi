@@ -5,7 +5,7 @@ from __future__ import (unicode_literals, print_function,
 from django.utils.six import string_types
 
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
-from kpi.utils.future import OrderedDict
+from formpack.utils.future import OrderedDict
 
 
 class AssetContentAnalyzer(object):

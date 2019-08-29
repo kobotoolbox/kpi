@@ -5,7 +5,7 @@ from __future__ import (unicode_literals, print_function,
 from rest_framework import serializers
 from rest_framework.pagination import LimitOffsetPagination
 
-from kpi.utils.future import OrderedDict
+from formpack.utils.future import OrderedDict
 
 
 class PaginatedApiField(serializers.ReadOnlyField):

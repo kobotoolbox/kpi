@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from rest_framework import serializers
 
 from formpack import FormPack
-from kpi.utils.future import OrderedDict
+from formpack.utils.future import OrderedDict
 from kpi.utils.log import logging
 
 

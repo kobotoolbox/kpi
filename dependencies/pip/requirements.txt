@@ -5,7 +5,7 @@
 #    make pip_compile
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@dc54b4184bfbc26dd1b9358d3ae19bca68fbe63f#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@1124a98c59aaf8ed25a1276042bece688a01553c#egg=formpack
 -e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
 amqp==2.4.0
 anyjson==0.3.3

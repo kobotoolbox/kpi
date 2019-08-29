@@ -10,7 +10,7 @@ from copy import deepcopy
 from django.utils.six import string_types, iteritems
 
 from formpack.utils.json_hash import json_hash
-from kpi.utils.future import OrderedDict
+from formpack.utils.future import OrderedDict
 from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_node_name
 
 

@@ -3,7 +3,7 @@
 
 # Formpack
 -e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
--e git+https://github.com/kobotoolbox/formpack.git@dc54b4184bfbc26dd1b9358d3ae19bca68fbe63f#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@1124a98c59aaf8ed25a1276042bece688a01553c#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
