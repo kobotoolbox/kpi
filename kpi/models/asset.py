@@ -624,6 +624,36 @@ class Asset(ObjectPermissionMixin,
         # not currently used, but this is how "to_clone_dict" should work
         return Asset.objects.create(**self.to_clone_dict(version_uid))
 
+    @property
+    def deployed_versions(self):
+        return self.asset_versions.filter(deployed=True).order_by(
+            '-date_modified')
+
+    def get_ancestors_or_none(self):
+        # ancestors are ordered from farthest to nearest
+        if self.parent is not None:
+            return self.parent.get_ancestors(include_self=True)
+        else:
+            return None
+
+    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
+        """
+        Returns the list of filters for a specific permission `perm`
+        and this specific asset.
+        :param user_id:
+        :param perm: see `constants.*_SUBMISSIONS`
+        :return:
+        """
+        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
+            raise BadPermissionsException(_('Only partial permissions for '
+                                            'submissions are supported'))
+
+        perms = self.get_partial_perms(user_id, with_filters=True)
+        if perms:
+            return perms.get(perm)
+        return None
+
+
     def get_label_for_permission(self, permission_or_codename):
         try:
             codename = permission_or_codename.codename
@@ -648,33 +678,6 @@ class Asset(ObjectPermissionMixin,
         )
         return label
 
-    @property
-    def deployed_versions(self):
-        return self.asset_versions.filter(deployed=True).order_by(
-            '-date_modified')
-
-    @property
-    def latest_deployed_version(self):
-        return self.deployed_versions.first()
-
-    @property
-    def latest_version(self):
-        versions = None
-        try:
-            versions = self.prefetched_latest_versions
-        except AttributeError:
-            versions = self.asset_versions.order_by('-date_modified')
-        try:
-            return versions[0]
-        except IndexError:
-            return None
-
-    def get_ancestors_or_none(self):
-        # ancestors are ordered from farthest to nearest
-        if self.parent is not None:
-            return self.parent.get_ancestors(include_self=True)
-        else:
-            return None
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
@@ -718,23 +721,6 @@ class Asset(ObjectPermissionMixin,
 
         return None
 
-    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
-        """
-        Returns the list of filters for a specific permission `perm`
-        and this specific asset.
-        :param user_id:
-        :param perm: see `constants.*_SUBMISSIONS`
-        :return:
-        """
-        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
-            raise BadPermissionsException(_('Only partial permissions for '
-                                            'submissions are supported'))
-
-        perms = self.get_partial_perms(user_id, with_filters=True)
-        if perms:
-            return perms.get(perm)
-        return None
-
     @property
     def has_active_hooks(self):
         """
@@ -743,6 +729,22 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
+    @property
+    def latest_deployed_version(self):
+        return self.deployed_versions.first()
+
+    @property
+    def latest_version(self):
+        versions = None
+        try:
+            versions = self.prefetched_latest_versions
+        except AttributeError:
+            versions = self.asset_versions.order_by('-date_modified')
+        try:
+            return versions[0]
+        except IndexError:
+            return None
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
@@ -860,20 +862,20 @@ class Asset(ObjectPermissionMixin,
         return flatten_content(self.content, in_place=False)
 
     @property
-    def version_id(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
-        # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
-            return latest_version.uid
-
-    @property
     def version__content_hash(self):
         # Avoid reading the propery `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
             return latest_version.content_hash
+
+    @property
+    def version_id(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.uid
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
