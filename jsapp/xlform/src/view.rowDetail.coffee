@@ -112,7 +112,7 @@ module.exports = do ->
     textbox: (cid, key, key_label = key, input_class = '') ->
       @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
 
-    checkbox: (cid, key, key_label = key, input_label = _t('Yes')) ->
+    checkbox: (cid, key, key_label = key, input_label = _t("Yes")) ->
       input_label = input_label
       @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
 
@@ -309,16 +309,16 @@ module.exports = do ->
       @$el.find('input.hxlTag').select2({
           tags:$hxl.dict,
           maximumSelectionSize: 1,
-          placeholder: _t('#tag'),
+          placeholder: _t("#tag"),
           tokenSeparators: ['+',',', ':'],
-          formatSelectionTooBig: _t('Only one HXL tag allowed per question. ')
+          formatSelectionTooBig: _t("Only one HXL tag allowed per question. ")
           createSearchChoice: @_hxlTagCleanup
         })
       @$el.find('input.hxlAttrs').select2({
           tags:[],
           tokenSeparators: ['+',',', ':'],
-          formatNoMatches: _t('Type attributes for this tag'),
-          placeholder: _t('Attributes'),
+          formatNoMatches: _t("Type attributes for this tag"),
+          placeholder: _t("Attributes"),
           createSearchChoice: @_hxlAttrCleanup
           allowClear: 1
         })
@@ -394,12 +394,10 @@ module.exports = do ->
     afterRender: ->
       @listenForCheckboxChange()
 
+  # handled by mandatorySettingSelector
   viewRowDetail.DetailViewMixins.required =
-    html: ->
-      @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
-    afterRender: ->
-      @listenForCheckboxChange()
+    html: -> false
+    insertInDOM: -> return
 
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->

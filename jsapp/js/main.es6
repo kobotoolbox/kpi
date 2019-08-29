@@ -1,3 +1,7 @@
+/**
+ * The Project Management app bundle file.
+ */
+
 import RunRoutes, {routes} from './app';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader'

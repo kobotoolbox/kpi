@@ -1,6 +1,7 @@
 _ = require 'underscore'
 cloneDeep = require('lodash.clonedeep')
 $aliases = require './model.aliases'
+$configs = require './model.configs'
 utils = require '../../js/utils'
 
 module.exports = do ->
@@ -95,21 +96,32 @@ module.exports = do ->
 
     _curGrp().export().__rows
 
+  # normalizes required value - truthy values become `true` and falsy values become `false`
+  normalizeRequiredValues = (survey) ->
+    normalizedSurvey = cloneDeep(survey)
+    for row in normalizedSurvey
+      if row.required in $configs.truthyValues
+        row.required = true
+      else if row.required in $configs.falsyValues or row.required in [undefined, '']
+        row.required = false
+    return normalizedSurvey
+
   inputParser.parseArr = parseArr
 
   # pass baseSurvey whenever you import other asset into existing form
-  inputParser.parse = (originalObj, baseSurvey)->
-    # cloning received object to avoid errors happening because
-    # of messing around with original data
-    o = cloneDeep(originalObj)
-
+  inputParser.parse = (o, baseSurvey)->
     translations = o.translations
 
     nullified = utils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
+    # we edit the received object directly, which seems like BAD CODE™
+    # but in fact is required for the languages to work properly
     o.survey = nullified.survey;
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
+
+    if o.survey
+      o.survey = normalizeRequiredValues(o.survey)
 
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey

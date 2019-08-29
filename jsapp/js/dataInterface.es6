@@ -1,3 +1,12 @@
+/**
+ * The only file that is making calls to Backend. You shouldn't use it directly,
+ * but through proper actions in `jsapp/js/actions.es6`.
+ *
+ * TODO: Instead of splitting this huge file it could be a good idead to move
+ * all the calls from here to appropriate actions and drop this file entirely.
+ * And make actions for calls that doesn't have them.
+ */
+
 import $ from 'jquery';
 import alertify from 'alertifyjs';
 import {
