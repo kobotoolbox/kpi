@@ -230,6 +230,10 @@
 
         &:not(.rt-status) {
           z-index: 2;
+
+          &:hover {
+            z-index: 3;
+          }
         }
       }
 

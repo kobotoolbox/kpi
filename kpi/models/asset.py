@@ -26,14 +26,30 @@ from taggit.utils import require_instance_manager
 
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
-from kpi.constants import ASSET_TYPES, ASSET_TYPE_BLOCK, \
-    ASSET_TYPE_QUESTION, ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE, \
-    PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
-    PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS, \
-    PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, PERM_SHARE_ASSET, \
-    PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, PERM_DELETE_SUBMISSIONS, \
-    PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, PERM_FROM_KC_ONLY, \
-    SUFFIX_SUBMISSIONS_PERMS
+from kpi.constants import (
+    ASSET_TYPES,
+    ASSET_TYPE_BLOCK,
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_QUESTION,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+    ASSET_TYPE_TEXT,
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_COLLECTION,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_ASSET,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_FROM_KC_ONLY,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_SHARE_ASSET,
+    PERM_SHARE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_COLLECTION,
+    PERM_VIEW_SUBMISSIONS,
+    SUFFIX_SUBMISSIONS_PERMS,
+)
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import BadPermissionsException
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
@@ -497,30 +513,30 @@ class Asset(ObjectPermissionMixin,
             (PERM_FROM_KC_ONLY, 'INTERNAL USE ONLY; DO NOT ASSIGN')
         )
 
-    # Assignable permissions that are stored in the database
-    ASSIGNABLE_PERMISSIONS = (
-        PERM_VIEW_ASSET,
-        PERM_CHANGE_ASSET,
-        PERM_ADD_SUBMISSIONS,
-        PERM_VIEW_SUBMISSIONS,
-        PERM_PARTIAL_SUBMISSIONS,
-        PERM_CHANGE_SUBMISSIONS,
-        PERM_VALIDATE_SUBMISSIONS,
-    )
+    # Labels for each `asset_type` as they should be presented to users
+    ASSET_TYPE_LABELS = {
+        ASSET_TYPE_SURVEY: _('form'),
+        ASSET_TYPE_TEMPLATE: _('template'),
+        ASSET_TYPE_BLOCK: _('block'),
+        ASSET_TYPE_QUESTION: _('question'),
+        ASSET_TYPE_TEXT: _('text'), # unused?
+        ASSET_TYPE_EMPTY: _('empty'), # unused?
+        #ASSET_TYPE_COLLECTION: _('collection'),
+    }
 
-    # Names exposed in API.
-    # Useful for FE to display human readable name for permissions
-    # TODO Merge with `ASSIGNABLE_PERMISSIONS` and use .keys() wherever
-    # `ASSIGNABLE_PERMISSIONS` is used.
-    PERMISSIONS_NAMES = {
-        PERM_VIEW_ASSET: _('View asset'),
-        PERM_CHANGE_ASSET: _('Change asset'),
+    # Assignable permissions that are stored in the database.
+    # The labels are templates used by `get_label_for_permission()`, which you
+    # should call instead of accessing this dictionary directly
+    ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
+        PERM_VIEW_ASSET: _('View ##asset_type_label##'),
+        PERM_CHANGE_ASSET: _('Change ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
-        PERM_PARTIAL_SUBMISSIONS: _('Partial View submissions'),
+        PERM_PARTIAL_SUBMISSIONS: _('View a filtered subset of submissions'),
         PERM_CHANGE_SUBMISSIONS: _('Change submissions'),
-        PERM_VALIDATE_SUBMISSIONS: _('Validate submissions')
+        PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
+    ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
 
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
@@ -613,28 +629,55 @@ class Asset(ObjectPermissionMixin,
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
 
-    @property
-    def latest_deployed_version(self):
-        return self.deployed_versions.first()
-
-    @property
-    def latest_version(self):
-        versions = None
-        try:
-            versions = self.prefetched_latest_versions
-        except AttributeError:
-            versions = self.asset_versions.order_by('-date_modified')
-        try:
-            return versions[0]
-        except IndexError:
-            return None
-
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
         if self.parent is not None:
             return self.parent.get_ancestors(include_self=True)
         else:
             return None
+
+    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
+        """
+        Returns the list of filters for a specific permission `perm`
+        and this specific asset.
+        :param user_id:
+        :param perm: see `constants.*_SUBMISSIONS`
+        :return:
+        """
+        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
+            raise BadPermissionsException(_('Only partial permissions for '
+                                            'submissions are supported'))
+
+        perms = self.get_partial_perms(user_id, with_filters=True)
+        if perms:
+            return perms.get(perm)
+        return None
+
+
+    def get_label_for_permission(self, permission_or_codename):
+        try:
+            codename = permission_or_codename.codename
+            permission = permission_or_codename
+        except AttributeError:
+            codename = permission_or_codename
+            permission = None
+        try:
+            label = self.ASSIGNABLE_PERMISSIONS_WITH_LABELS[codename]
+        except KeyError:
+            if not permission:
+                # Seems expensive. Cache it?
+                permission = Permission.objects.filter(
+                    content_type=ContentType.objects.get_for_model(self),
+                    codename=codename
+                )
+            label = permission.name
+        label = label.replace(
+            '##asset_type_label##',
+            # Raises TypeError if not coerced explicitly
+            six.text_type(self.ASSET_TYPE_LABELS[self.asset_type])
+        )
+        return label
+
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
@@ -678,23 +721,6 @@ class Asset(ObjectPermissionMixin,
 
         return None
 
-    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
-        """
-        Returns the list of filters for a specific permission `perm`
-        and this specific asset.
-        :param user_id:
-        :param perm: see `constants.*_SUBMISSIONS`
-        :return:
-        """
-        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
-            raise BadPermissionsException(_('Only partial permissions for '
-                                            'submissions are supported'))
-
-        perms = self.get_partial_perms(user_id, with_filters=True)
-        if perms:
-            return perms.get(perm)
-        return None
-
     @property
     def has_active_hooks(self):
         """
@@ -703,6 +729,22 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
+    @property
+    def latest_deployed_version(self):
+        return self.deployed_versions.first()
+
+    @property
+    def latest_version(self):
+        versions = None
+        try:
+            versions = self.prefetched_latest_versions
+        except AttributeError:
+            versions = self.asset_versions.order_by('-date_modified')
+        try:
+            return versions[0]
+        except IndexError:
+            return None
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
@@ -820,20 +862,20 @@ class Asset(ObjectPermissionMixin,
         return flatten_content(self.content, in_place=False)
 
     @property
-    def version_id(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
-        # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
-            return latest_version.uid
-
-    @property
     def version__content_hash(self):
         # Avoid reading the propery `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
             return latest_version.content_hash
+
+    @property
+    def version_id(self):
+        # Avoid reading the propery `self.latest_version` more than once, since
+        # it may execute a database query each time it's read
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.uid
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

@@ -1,3 +1,12 @@
+/**
+ * The only file that is making calls to Backend. You shouldn't use it directly,
+ * but through proper actions in `jsapp/js/actions.es6`.
+ *
+ * TODO: Instead of splitting this huge file it could be a good idead to move
+ * all the calls from here to appropriate actions and drop this file entirely.
+ * And make actions for calls that doesn't have them.
+ */
+
 import $ from 'jquery';
 import alertify from 'alertifyjs';
 import {
@@ -335,6 +344,22 @@ var dataInterface;
       } else {
         return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
       }
+    },
+    /**
+     * @param {object} data
+     * @param {string} [data.source]
+     * @param {string} [data.type]
+     * @param {boolean} [data.fields_from_all_versions]
+     * @param {string} [data.lang]
+     * @param {boolean} [data.hierarchy_in_labels]
+     * @param {string} [data.group_sep]
+     */
+    createExport (data) {
+      return $ajax({
+        url: `${ROOT_URL}/exports/`,
+        method: 'POST',
+        data: data
+      });
     },
     getAssetExports (uid) {
       return $ajax({

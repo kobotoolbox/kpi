@@ -18,9 +18,10 @@ import {
   formatTime,
 } from '../utils';
 import {
+  ROOT_URL,
   update_states,
   ASSET_TYPES
-} from '../constants';
+} from 'js/constants';
 
 const newFormMixins = [
     Reflux.ListenerMixin,
@@ -76,11 +77,7 @@ export class ProjectDownloads extends React.Component {
     }.bind(this), 5000);
 
     if (this.state.type.indexOf('_legacy') < 0) {
-      let url = this.props.asset.deployment__data_download_links[
-        this.state.type
-      ];
       if (['xls', 'csv', 'spss_labels'].includes(this.state.type)) {
-        url = `${dataInterface.rootUrl}/exports/`; // TODO: have the backend pass the URL in the asset
         let postData = {
           source: this.props.asset.url,
           type: this.state.type,
@@ -94,12 +91,10 @@ export class ProjectDownloads extends React.Component {
             group_sep: this.state.groupSep
           });
         }
-        $.ajax({
-          method: 'POST',
-          url: url,
-          data: postData
-        }).done((data) => {
-          $.ajax({url: data.url}).then((taskData) => {
+        dataInterface.createExport(postData).done((data) => {
+          // TODO: have the backend pass this URL in the asset, so there is no
+          // need to requestExports first
+          $.ajax({url: data.url}).then(() => {
             // this.checkForFastExport(data.url);
             this.getExports();
           }).fail((taskFail) => {
@@ -111,6 +106,7 @@ export class ProjectDownloads extends React.Component {
           log('export creation failed', failData);
         });
       } else {
+        const url = this.props.asset.deployment__data_download_links[this.state.type];
         redirectTo(url);
       }
     }
