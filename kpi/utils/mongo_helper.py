@@ -240,7 +240,9 @@ class MongoHelper(object):
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
 
-        cursor.skip(start).limit(limit)
+        cursor.skip(start)
+        if limit is not None:
+            cursor.limit(limit)
 
         if len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
