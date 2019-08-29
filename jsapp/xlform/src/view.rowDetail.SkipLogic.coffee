@@ -23,15 +23,15 @@ module.exports = do ->
       tempId = _.uniqueId("skiplogic_expr")
       @$el.html("""
         <p>
-          #{_t('This question will only be displayed if the following conditions apply')}
+          #{_t("This question will only be displayed if the following conditions apply")}
         </p>
         <div class="skiplogic__criterialist"></div>
         <p class="skiplogic__addnew">
-          <button class="skiplogic__addcriterion">+ #{_t('Add another condition')}</button>
+          <button class="skiplogic__addcriterion">+ #{_t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
-          <option value="and">#{_t('Question should match all of these criteria')}</option>
-          <option value="or">#{_t('Question should match any of these criteria')}</option>
+          <option value="and">#{_t("Question should match all of these criteria")}</option>
+          <option value="or">#{_t("Question should match any of these criteria")}</option>
         </select>
       """)
 
@@ -335,7 +335,7 @@ module.exports = do ->
         # add placeholder message/option
         options.unshift({
           value: PLACEHOLDER_VALUE
-          text: _t('Select question from list')
+          text: _t("Select question from list")
         })
 
         model.set('options', options)

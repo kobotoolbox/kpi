@@ -266,7 +266,7 @@ class SearchCollectionList extends Reflux.Component {
                             <bem.Loading__inner>
                               {t('Let\'s get started by creating your first project. Click the New button to create a new form.')}
                               <div className='pro-tip'>
-                              {t('Advanced users: You also drag and drop XLSForms here and they will be uploaded and converted to projects.')}
+                              {t('Advanced users: You can also drag and drop XLSForms here and they will be uploaded and converted to projects.')}
                               </div>
                             </bem.Loading__inner>
                           </bem.Loading>

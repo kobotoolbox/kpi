@@ -46,8 +46,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     >                   "contradictory": [
     >                       "http://kpi/api/v2/permissions/partial_submissions/"
     >                   ],
-    >                   "name": "Change data",
-    >                   "description": "Can modify submitted data for asset"
+    >                   "name": "Can modify submitted data for asset"
     >                },
     >                ...
     >               {
@@ -55,8 +54,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     >                   "codename": "add_submissions",
     >                   "implied": [],
     >                   "contradictory": [],
-    >                   "name": "View collection",
-    >                   "description": "Can view collection"
+    >                   "name": "Can view collection"
     >                }
     >           ]
     >        }
@@ -82,8 +80,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     >                   "contradictory": [
     >                       "http://kpi/api/v2/permissions/partial_submissions/"
     >                   ],
-    >                   "name": "Change data",
-    >                   "description": "Can modify submitted data for asset"
+    >                   "name": "Can modify submitted data for asset"
     >                }
 
 

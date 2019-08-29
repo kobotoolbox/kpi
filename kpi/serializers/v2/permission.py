@@ -20,7 +20,6 @@ class PermissionSerializer(serializers.ModelSerializer):
     implied = serializers.SerializerMethodField()
     contradictory = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
 
     class Meta:
         model = Permission
@@ -30,11 +29,10 @@ class PermissionSerializer(serializers.ModelSerializer):
             'implied',
             'contradictory',
             'name',
-            'description'
         )
 
         read_only_fields = ('url', 'codename', 'implied', 'contradictory',
-                            'name', 'description')
+                            'name')
 
     def __init__(self, instance=None, data=empty, **kwargs):
         # Init dicts for later purpose (see below)
@@ -62,7 +60,7 @@ class PermissionSerializer(serializers.ModelSerializer):
             return contradictory_permissions.get(permission.codename, [])
         return []
 
-    def get_description(self, permission):
+    def get_name(self, permission):
         return _(permission.name)
 
     def get_implied(self, permission):
@@ -74,14 +72,6 @@ class PermissionSerializer(serializers.ModelSerializer):
         if implied_permissions:
             return implied_permissions.get(permission.codename, [])
         return []
-
-    def get_name(self, permission):
-        name = Asset.PERMISSIONS_NAMES.get(permission.codename,
-                                           Collection.PERMISSIONS_NAMES.get(
-                                               permission.codename))
-        if not name:
-            name = permission.codename.replace('_', ' ').capitalize()
-        return name
 
     @staticmethod
     def __get_key(app_label, model_name):

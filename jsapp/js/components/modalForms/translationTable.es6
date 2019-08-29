@@ -1,12 +1,13 @@
 import React from 'react';
 import ReactTable from 'react-table';
 import TextareaAutosize from 'react-autosize-textarea';
+import LanguageForm from 'js/components/modalForms/languageForm';
 import alertify from 'alertifyjs';
 import bem from 'js/bem';
 import actions from 'js/actions';
 import stores from 'js/stores';
 import {MODAL_TYPES} from 'js/constants';
-import {t} from 'utils';
+import {t, getLangString} from 'utils';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -20,11 +21,14 @@ export class TranslationTable extends React.Component {
     this.state = {
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
       isSaveChangesButtonPending: false,
-      tableData: []
+      tableData: [],
+      showLanguageForm: false,
+      langString: props.langString
     };
     stores.translations.setTranslationTableUnsaved(false);
     const {translated, survey, choices, translations} = props.asset.content;
     const langIndex = props.langIndex;
+    const editableColTitle = (langIndex == 0) ? t('updated text') : t('translation');
 
     // add each translatable property for survey items to translation table
     survey.forEach((row) => {
@@ -64,7 +68,24 @@ export class TranslationTable extends React.Component {
         minWidth: 130,
         Cell: (cellInfo) => {return cellInfo.original.original;}
       }, {
-        Header: t('##lang## translation').replace('##lang##', translations[langIndex]),
+        Header: () => {
+          return (
+            <React.Fragment>
+              <bem.FormView__iconButton
+                onClick={this.toggleRenameLanguageForm.bind(this)}
+                className='right-tooltip form-view__icon-button-edit'
+                >
+                  {this.state.showLanguageForm &&
+                    <i className='k-icon-close' />
+                  }
+                  {!this.state.showLanguageForm &&
+                    <i className='k-icon-edit' />
+                  }
+              </bem.FormView__iconButton>
+              {t('##lang## ' + editableColTitle).replace('##lang##', translations[langIndex])}
+            </React.Fragment>
+          )
+        },
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {
@@ -106,6 +127,11 @@ export class TranslationTable extends React.Component {
       isSaveChangesButtonPending: false
     });
     stores.translations.setTranslationTableUnsaved(false);
+  }
+
+  toggleRenameLanguageForm(evt) {
+    evt.stopPropagation();
+    this.setState({showLanguageForm : !this.state.showLanguageForm})
   }
 
   saveChanges() {
@@ -163,9 +189,54 @@ export class TranslationTable extends React.Component {
     });
   }
 
+  onLanguageChange(lang, index) {
+    let content = this.props.asset.content,
+        langString = getLangString(lang);
+
+    content.translations[index] = langString;
+    this.setState({ langString: langString });
+
+    if (index === 0) {
+      content.settings.default_language = langString;
+    }
+
+    this.updateHeader(content);
+  }
+
+  updateHeader(content) {
+    actions.resources.updateAsset(
+      this.props.asset.uid,
+      {content: JSON.stringify(content)},
+      // reload asset on failure
+      {onFailed: () => {
+        actions.resources.loadAsset({id: this.props.asset.uid});
+        alertify.error('failed to update translations');
+      }}
+    );
+  }
+
+  getAllLanguages() {
+    return this.props.asset.content.translations;
+  }
+
   render () {
     return (
       <bem.FormModal m='translation-table'>
+        {this.state.showLanguageForm &&
+          <bem.FormModal>
+            <bem.FormModal__item>
+              <bem.FormView__cell m='update-language-form'>
+                <LanguageForm
+                  langString={this.state.langString}
+                  langIndex={this.props.langIndex}
+                  onLanguageChange={this.onLanguageChange.bind(this)}
+                  existingLanguages={this.getAllLanguages()}
+                  isDefault={this.props.langIndex === 0}
+                />
+              </bem.FormView__cell>
+            </bem.FormModal__item>
+          </bem.FormModal>
+        }
         <div className='translation-table-container'>
           <ReactTable
             data={this.state.tableData}

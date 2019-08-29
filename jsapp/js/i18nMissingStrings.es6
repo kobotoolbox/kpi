@@ -1,9 +1,11 @@
-// This file is a workaround to keep a record of strings that don't get extracted by gettext.
-// It is not loaded or invoked by the app.
+/**
+ * This file is a workaround to keep a record of strings that should be
+ * translated, but don't get extracted by gettext.
+ *
+ * NOTE: It is not loaded or invoked by the app.
+ */
 
-import {
-  t,
-} from './utils';
+import {t} from './utils';
 
 // strings for zxcvbn 4.4.2 package
 // copied from https://github.com/dropbox/zxcvbn/blob/master/src/feedback.coffee
