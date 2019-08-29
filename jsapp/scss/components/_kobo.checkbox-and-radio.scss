@@ -32,7 +32,8 @@
 
   .radio__label,
   .checkbox__label {
-    max-width: calc(100% - 28px);
+    // it's 28px plus whitespace between inline-blocks
+    max-width: calc(100% - 32px);
     color: $black;
     font-size: 14px;
   }
