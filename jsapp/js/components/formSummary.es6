@@ -319,6 +319,9 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+    let permAccess = false;
+
+    (this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state)) ? permAccess = true : '';
 
     if (!this.state.permissions) {
       return (
@@ -331,7 +334,7 @@ class FormSummary extends React.Component {
       );
     }
 
-    if (!this.userCan('view_submissions', this.state)) {
+    if (!permAccess) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
