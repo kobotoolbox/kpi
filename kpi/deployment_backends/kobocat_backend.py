@@ -19,7 +19,11 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import ReadOnlyKobocatInstance, ReadOnlyKobocatXForm
-from .kc_access.utils import instance_count, last_submission_time
+from .kc_access.utils import (
+    assign_applicable_kc_permissions,
+    instance_count,
+    last_submission_time
+)
 from ..exceptions import BadFormatException, KobocatDeploymentException
 
 
@@ -30,6 +34,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
 
     INSTANCE_ID_FIELDNAME = '_id'
+
+    def bulk_assign_mapped_perms(self):
+        """
+        Bulk assign all `kc` permissions related to `kpi` permissions.
+        Useful to assign permissions retroactively upon deployment.
+        Beware: it only adds permissions, it does not remove or sync permissions.
+        """
+        users_with_perms = self.asset.get_users_with_perms(attach_perms=True)
+
+        # if only the owner has permissions, no need to go further
+        if len(users_with_perms) == 1 and \
+                users_with_perms.keys()[0].id == self.asset.owner_id:
+            return
+
+        for user, perms in users_with_perms.items():
+            if user.id == self.asset.owner_id:
+                continue
+            assign_applicable_kc_permissions(self.asset, user, perms)
 
     @staticmethod
     def make_identifier(username, id_string):
@@ -575,10 +597,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :return: generator<JSON>
         """
 
-        kwargs['instances_ids'] = instances_ids
-        instances, total_count = MongoHelper.get_instances(self.mongo_userform_id,
-                                                           **kwargs)
+        kwargs["instances_ids"] = instances_ids
+        params = self.validate_submission_list_params(**kwargs)
 
+        instances, total_count = MongoHelper.get_instances(self.mongo_userform_id, **params)
         self.current_submissions_count = total_count
 
         return (
@@ -603,7 +625,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Because `kwargs`' values are for `Mongo`'s query engine
         # We still use MongoHelper to validate params.
-        params = MongoHelper.validate_params(**kwargs)
+        params = self.validate_submission_list_params(**kwargs)
 
         mongo_filters = ['query', 'permission_filters']
         use_mongo = any(mongo_filter in mongo_filters for mongo_filter in kwargs
