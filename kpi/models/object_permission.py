@@ -58,7 +58,7 @@ def get_all_objects_for_user(user, klass):
     ).values_list('object_id', flat=True))
 
 
-def get_objects_for_user(user, perms, klass=None):
+def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -73,6 +73,8 @@ def get_objects_for_user(user, perms, klass=None):
       the same or ``ValidationError`` exception will be raised.
     :param klass: may be a Model, Manager or QuerySet object. If not given
       this parameter will be computed based on given ``params``.
+    :param all_perms_required: If False, users should have at least one
+      of the `perms`
     """
     if isinstance(perms, basestring):
         perms = [perms]
@@ -132,7 +134,7 @@ def get_objects_for_user(user, perms, klass=None):
         .filter(permission__codename__in=codenames)
         .filter(deny=False))
 
-    if len(codenames) > 1:
+    if len(codenames) > 1 and all_perms_required:
         counts = user_obj_perms_queryset.values('object_id').annotate(
             object_pk_count=models.Count('object_id'))
         user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
