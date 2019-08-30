@@ -51,7 +51,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                     "color": "#0000ff",
                     "label": "On Hold"
                 },
-                "submitted_by": ""
+                "_submitted_by": ""
             },
             {
                 "__version__": v_uid,
@@ -65,7 +65,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                     "color": "#0000ff",
                     "label": "On Hold"
                 },
-                "submitted_by": "someuser"
+                "_submitted_by": "someuser"
             }
         ]
         self.asset.deployment.mock_submissions(self.submissions)
