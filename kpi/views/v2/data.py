@@ -2,14 +2,12 @@
 from __future__ import unicode_literals, absolute_import
 
 from django.conf import settings
-from django.core.exceptions import SuspiciousOperation
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import renderers, viewsets
+from rest_framework import exceptions, renderers, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
 
 from kpi.models import Asset
 from kpi.permissions import (
@@ -244,11 +242,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         filters.pop('format', None)
         # Do not allow requests to retrieve more than `SUBMISSION_LIST_LIMIT`
         # submissions at one time
+        limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
         try:
-            limit = int(filters.get('limit', settings.SUBMISSION_LIST_LIMIT))
+            limit = int(limit)
         except ValueError:
-            # Return HTTP 400
-            raise SuspiciousOperation(_('`limit` parameter must be an integer'))
+            raise exceptions.ValidationError(
+                {'limit': _('A valid integer is required')}
+            )
         filters['limit'] = min(limit, settings.SUBMISSION_LIST_LIMIT)
         permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
