@@ -3,8 +3,9 @@
 
 import json
 
-from bson import json_util
+from bson import json_util, ObjectId
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import exceptions
 
 
 class BaseDeploymentBackend(object):
@@ -39,40 +40,61 @@ class BaseDeploymentBackend(object):
         instances_ids = kwargs.get('instances_ids', [])
         permission_filters = kwargs.get('permission_filters')
 
+        # I've copied these `ValidationError` messages verbatim from DRF where
+        # possible. TODO: Should this validation be in (or called directly by)
+        # the view code? Does DRF have a validator for GET params?
+
         if isinstance(query, basestring):
             try:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
-                raise ValueError(_("Invalid `query` param"))
+                raise exceptions.ValidationError(
+                    {'query': _('Value must be valid JSON.')}
+                )
 
         if isinstance(sort, basestring):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
-                raise ValueError(_("Invalid `sort` param"))
+                raise exceptions.ValidationError(
+                    {'sort': _('Value must be valid JSON.')}
+                )
 
         try:
             start = int(start)
             if start < 0:
                 raise ValueError
+        except ValueError:
+            raise exceptions.ValidationError(
+                {'start': _('A positive integer is required.')}
+            )
+        try:
             if limit is not None:
                 limit = int(limit)
                 if limit < 0:
                     raise ValueError
         except ValueError:
-            raise ValueError(_("Invalid `start/limit` params"))
+            raise exceptions.ValidationError(
+                {'limit': _('A positive integer is required.')}
+            )
 
         if isinstance(fields, basestring):
             try:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:
-                raise ValueError(_("Invalid `fields` params"))
+                raise exceptions.ValidationError(
+                    {'fields': _('Value must be valid JSON.')}
+                )
 
         if not isinstance(instances_ids, list):
-            raise ValueError(_("Invalid `instances_ids` param"))
+            raise exceptions.ValidationError(
+                {'instances_ids': _('Value must be a list.')}
+            )
 
         if not (isinstance(permission_filters, list) or permission_filters is None):
-            raise ValueError(_('Invalid `submitted_by` param'))
+            # This error should not be returned as `ValidationError` to user.
+            # We want to return a 500.
+            raise ValueError(_('Invalid `permission_filters` param'))
 
         params = {
             'query': query,
