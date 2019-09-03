@@ -5,7 +5,7 @@ import base64
 import json
 import re
 
-from bson import json_util, ObjectId
+from bson import ObjectId
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _

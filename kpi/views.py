@@ -960,6 +960,12 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet):
         # Do not allow requests to retrieve more than `SUBMISSION_LIST_LIMIT`
         # submissions at one time
         limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
+        try:
+            limit = int(limit)
+        except ValueError:
+            raise exceptions.ValidationError(
+                {'limit': _('A valid integer is required')}
+            )
         filters['limit'] = min(limit, settings.SUBMISSION_LIST_LIMIT)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
         return Response(list(submissions))
