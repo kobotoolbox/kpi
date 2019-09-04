@@ -569,6 +569,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
+    def _calculated_submission_count(self, **kwargs):
+        return MongoHelper.get_count(self.mongo_userform_id, **kwargs)
+
     def __get_submissions_in_json(self, instances_ids=[], **kwargs):
         """
         Retrieves instances directly from Mongo.

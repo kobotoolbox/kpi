@@ -209,3 +209,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             "has_kpi_hooks": has_active_hooks,
         })
+
+    def _calculated_submission_count(self, **kwargs):
+        kwargs.update({
+            'start': 0,
+            'limit': None,
+        })
+        instances = self.get_submissions(**kwargs)
+        return len(instances)
