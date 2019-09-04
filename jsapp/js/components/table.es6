@@ -892,7 +892,9 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        {!this.state.selectAll &&
+        { // TODO: re-enable after dealing with
+          // https://github.com/kobotoolbox/kpi/issues/2389
+          false && !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
           <span>
