@@ -577,9 +577,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         url = self.submission_list_url
         data = data.copy()  # Need to get a copy to update the dict
 
-        if method == 'DELETE':
-            data['reset'] = True
-
         # `PATCH` KC even if kpi receives `DELETE`
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
