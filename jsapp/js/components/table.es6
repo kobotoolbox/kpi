@@ -783,9 +783,9 @@ export class DataTable extends React.Component {
       }
       selectedCount = this.state.resultsTotal;
     } else {
-      data.submissions_ids = Object.keys(this.state.selectedRows);
+      data.submission_ids = Object.keys(this.state.selectedRows);
       data['validation_status.uid'] = val;
-      selectedCount = data.submissions_ids.length;
+      selectedCount = data.submission_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
@@ -831,8 +831,8 @@ export class DataTable extends React.Component {
       }
       selectedCount = this.state.resultsTotal;
     } else {
-      data.submissions_ids = Object.keys(this.state.selectedRows);
-      selectedCount = data.submissions_ids.length;
+      data.submission_ids = Object.keys(this.state.selectedRows);
+      selectedCount = data.submission_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
