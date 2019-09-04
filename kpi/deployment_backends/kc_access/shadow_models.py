@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from hashlib import md5
 
-from django.db import models, IntegrityError
+from django.db import models
 from django.conf import settings
 from django.db import ProgrammingError
 from django.utils.translation import ugettext_lazy as _
