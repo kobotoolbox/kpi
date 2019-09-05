@@ -492,7 +492,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Returns submission if `pk` exists otherwise `None`
 
-
         Args:
             pk (int). Primary key. Must be a positive integer
             format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
