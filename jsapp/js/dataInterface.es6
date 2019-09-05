@@ -301,21 +301,6 @@ var dataInterface;
         }
       });
     },
-    assignPerm (creds) {
-      // Do we already have these URLs stored somewhere?
-      var objectUrl = creds.objectUrl || `${ROOT_URL}/${creds.kind}s/${creds.uid}/`;
-      var userUrl = `${ROOT_URL}/api/v2/users/${creds.username}/`;
-      var codename = creds.role.includes('_submissions') ? creds.role : `${creds.role}_${creds.kind}`;
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/${assetUid}/permissions/`,
-        method: 'POST',
-        data: {
-          'user': userUrl,
-          'permission': codename,
-          'content_object': objectUrl
-        }
-      });
-    },
     assignPublicPerm (params) {
       params.username = 'AnonymousUser';
       return dataInterface(params);

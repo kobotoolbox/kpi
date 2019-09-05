@@ -8,14 +8,13 @@ import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import classNames from 'classnames';
+import permConfig from './permConfig';
 import {
   t,
-  notify
+  notify,
+  buildUserUrl
 } from 'js/utils';
-import {
-  ASSET_KINDS,
-  PERMISSIONS_CODENAMES
-} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 /**
  * Form for adding/changing user permissions for collections.
@@ -74,19 +73,19 @@ class UserCollectionPermissionsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
-    this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
+    this.listenTo(actions.permissions.assignCollectionPermission.completed, this.onAssignCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.assignCollectionPermission.failed, this.onAssignCollectionPermissionFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onAssignPermCompleted() {
+  onAssignCollectionPermissionCompleted() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(true);
     }
   }
 
-  onAssignPermFailed() {
+  onAssignCollectionPermissionFailed() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(false);
@@ -238,14 +237,12 @@ class UserCollectionPermissionsEditor extends React.Component {
       this.setState({isSubmitPending: true});
     }
     if (permToSet) {
-      actions.permissions.assignPerm({
-        username: this.state.username,
-        uid: this.props.uid,
-        kind: ASSET_KINDS.get('collection'),
-        objectUrl: this.props.objectUrl,
-        // OLD api appends part of permission codename based on asset kind
-        role: permToSet.replace('_collection', '')
-      });
+      actions.permissions.assignCollectionPermission(
+        this.props.uid, {
+          user: buildUserUrl(this.state.username),
+          permission: permConfig.getPermissionByCodename(permToSet).url
+        }
+      );
       this.setState({isSubmitPending: true});
     }
 

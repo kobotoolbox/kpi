@@ -17,7 +17,6 @@ const permissionsActions = Reflux.createActions({
   assignCollectionPermission: {children: ['completed', 'failed']},
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
-  assignPerm: {children: ['completed', 'failed']},
   removePerm: {children: ['completed', 'failed']},
   copyPermissionsFrom: {children: ['completed', 'failed']},
   assignPublicPerm: {children: ['completed', 'failed']},
@@ -122,15 +121,6 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
 /**
 Old actions
  */
-
-permissionsActions.assignPerm.listen(function(creds){
-  dataInterface.assignPerm(creds)
-    .done(permissionsActions.assignPerm.completed)
-    .fail(permissionsActions.assignPerm.failed);
-});
-permissionsActions.assignPerm.failed.listen(function(){
-  notify(t('failed to update permissions'), 'error');
-});
 
 // copies permissions from one asset to other
 permissionsActions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {

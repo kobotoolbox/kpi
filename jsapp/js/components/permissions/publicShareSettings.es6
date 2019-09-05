@@ -5,7 +5,11 @@ import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import {t} from 'js/utils';
+import permConfig from 'js/components/permissions/permConfig';
+import {
+  t,
+  buildUserUrl
+} from 'js/utils';
 import {
   ROOT_URL,
   ANON_USERNAME
@@ -25,13 +29,12 @@ class PublicShareSettings extends React.Component {
         content_object_uid: this.props.uid
       });
     } else {
-      actions.permissions.assignPerm({
-        username: ANON_USERNAME,
-        uid: this.props.uid,
-        kind: this.props.kind,
-        objectUrl: this.props.objectUrl,
-        role: permRole === 'view_asset' ? 'view' : permRole
-      });
+      actions.permissions.assignCollectionPermission(
+        this.props.uid, {
+          user: buildUserUrl(ANON_USERNAME),
+          permission: permConfig.getPermissionByCodename(permRole).url
+        }
+      );
     }
   }
   render () {

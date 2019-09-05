@@ -244,9 +244,6 @@ actions.misc = Reflux.createActions({
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
 // `actions.resources` to separate file (circular dependency issue)
-permissionsActions.assignPerm.completed.listen(function(val){
-  actions.resources.loadAsset({url: val.content_object});
-});
 permissionsActions.copyPermissionsFrom.completed.listen(function(sourceUid, targetUid) {
   actions.resources.loadAsset({id: targetUid});
 });
