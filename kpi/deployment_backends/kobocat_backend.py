@@ -598,6 +598,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         params = self.validate_submission_list_params(**kwargs)
 
         instances, total_count = MongoHelper.get_instances(self.mongo_userform_id, **params)
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
 
         return (
@@ -643,6 +644,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if len(instance_ids) > 0 or use_mongo:
             queryset = queryset.filter(id__in=instance_ids)
 
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = queryset.count()
 
         # Sort

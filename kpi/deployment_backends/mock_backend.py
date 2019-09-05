@@ -173,6 +173,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions
                                if submission.get('_submitted_by') in submitted_by]
 
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = len(submissions)
 
         params = self.validate_submission_list_params(**kwargs)
