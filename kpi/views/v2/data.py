@@ -4,8 +4,7 @@ from __future__ import unicode_literals, absolute_import
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import renderers, viewsets
-from rest_framework.exceptions import ValidationError
+from rest_framework import renderers, serializers, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
@@ -168,7 +167,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Returns the deployment for the asset specified by the request
         """
         if not self.asset.has_deployment:
-            raise ValidationError(
+            raise serializers.ValidationError(
                 _('The specified asset has not been deployed'))
         return self.asset.deployment
 
@@ -197,8 +196,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
         # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
-        # `retrieve()` don't need Django Queryset, we only need pass.
-        pass
+        # `retrieve()` don't need Django Queryset, we only need return `None`.
+        return None
 
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
@@ -278,7 +277,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                             strict=True,
                                             cutoff=settings.SUBMISSION_LIST_LIMIT)
         except ValueError:
-            raise ValidationError(
+            raise serializers.ValidationError(
                 {'limit': _('A positive integer is required')}
             )
         permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)

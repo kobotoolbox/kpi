@@ -11,7 +11,7 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
@@ -621,12 +621,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kwargs['instance_ids'] = instance_ids
 
         if 'fields' in kwargs:
-            raise ValueError(_('`Fields` param is not supported with XML format'))
+            raise serializers.ValidationError({
+                'fields': _('This is not supported in `XML` format')
+            })
 
         # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
         # See. https://stackoverflow.com/a/867578
         if 'sort' in kwargs:
-            raise ValueError(_('`sort` param is not supported with XML format'))
+            raise serializers.ValidationError({
+                'sort': _('This param is not supported in `XML` format')
+            })
 
         # Because `kwargs`' values are for `Mongo`'s query engine
         # We still use MongoHelper to validate params.
