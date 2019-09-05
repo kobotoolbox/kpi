@@ -12,7 +12,9 @@ import {
 const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
   getAssetPermissions: {children: ['completed', 'failed']},
+  getCollectionPermissions: {children: ['completed', 'failed']},
   bulkSetAssetPermissions: {children: ['completed', 'failed']},
+  assignCollectionPermission: {children: ['completed', 'failed']},
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
   assignPerm: {children: ['completed', 'failed']},
@@ -38,6 +40,12 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
     .fail(permissionsActions.getAssetPermissions.failed);
 });
 
+permissionsActions.getCollectionPermissions.listen((uid) => {
+  dataInterface.getCollectionPermissions(uid)
+    .done(permissionsActions.getCollectionPermissions.completed)
+    .fail(permissionsActions.getCollectionPermissions.failed);
+});
+
 /**
  * For bulk setting permissions - wipes all current permissions, sets given ones
  *
@@ -57,7 +65,25 @@ permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
 });
 
 /**
- * For adding single permission
+ * For adding single collection permission
+ *
+ * @param {string} uid - collection uid
+ * @param {Object} perm - permission to add
+ */
+permissionsActions.assignCollectionPermission.listen((uid, perm) => {
+  dataInterface.assignCollectionPermission(uid, perm)
+    .done(() => {
+      permissionsActions.getCollectionPermissions(uid);
+      permissionsActions.assignCollectionPermission.completed();
+    })
+    .fail(() => {
+      permissionsActions.getCollectionPermissions(uid);
+      permissionsActions.assignCollectionPermission.failed();
+    });
+});
+
+/**
+ * For adding single asset permission
  *
  * @param {string} assetUid
  * @param {Object} perm - permission to add
