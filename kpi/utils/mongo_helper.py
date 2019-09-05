@@ -67,7 +67,7 @@ class MongoHelper(object):
     @classmethod
     def get_instances(
             cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
-            sort=None, fields=None, query=None, instances_ids=None,
+            sort=None, fields=None, query=None, instance_ids=None,
             permission_filters=None
     ):
         # check if query contains an _id and if its a valid ObjectID
@@ -77,9 +77,9 @@ class MongoHelper(object):
             else:
                 raise ValidationError(_('Invalid _uuid specified'))
 
-        if len(instances_ids) > 0:
+        if len(instance_ids) > 0:
             query.update({
-                '_id': {'$in': instances_ids}
+                '_id': {'$in': instance_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})

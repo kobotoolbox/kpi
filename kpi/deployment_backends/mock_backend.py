@@ -143,26 +143,26 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
+    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instance_ids=[], **kwargs):
         """
         Returns a list of json representation of instances.
 
         :param format_type: str. xml or json
-        :param instances_ids: list. Ids of instances to retrieve
+        :param instance_ids: list. Ids of instances to retrieve
         :return: list
         """
         submissions = self.asset._deployment_data.get("submissions", [])
         permission_filters = kwargs.get('permission_filters')
 
-        if len(instances_ids) > 0:
+        if len(instance_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 # ugly way to find matches, but it avoids to load each xml in memory.
-                pattern = "|".join(instances_ids)
+                pattern = "|".join(instance_ids)
                 submissions = [submission for submission in submissions
                                if re.search(r"<id>({})<\/id>".format(pattern), submission)]
             else:
                 submissions = [submission for submission in submissions if submission.get("id") in
-                               map(int, instances_ids)]
+                               map(int, instance_ids)]
 
         if permission_filters:
             submitted_by = [k.get('_submitted_by') for k in permission_filters]
@@ -173,6 +173,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions
                                if submission.get('_submitted_by') in submitted_by]
 
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = len(submissions)
 
         params = self.validate_submission_list_params(**kwargs)

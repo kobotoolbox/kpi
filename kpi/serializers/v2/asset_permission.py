@@ -113,9 +113,11 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
             )
 
         request = self.context['request']
-        if isinstance(request.data, dict): # for a single assignment
+        partial_permissions = None
+
+        if isinstance(request.data, dict):  # for a single assignment
             partial_permissions = request.data.get('partial_permissions')
-        elif self.context.get('partial_permissions'): # injected during bulk assignment
+        elif self.context.get('partial_permissions'):  # injected during bulk assignment
             partial_permissions = self.context.get('partial_permissions')
 
         if not partial_permissions:
