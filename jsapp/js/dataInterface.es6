@@ -84,8 +84,18 @@ var dataInterface;
       return $.getJSON(`${ROOT_URL}/collections/?all_public=true`);
     },
     createAssetSnapshot (data) {
+      // Temporary fix
+      // ToDo when PR#2378 is merged, remove logic and
+      // use `${ROOT_URL}/api/v2/asset_snapshots/` directly
+      let v2Prefix = '/api/v2',
+          url = `${ROOT_URL}/asset_snapshots/`;
+
+      if ('asset' in data && data['asset'].indexOf(`${ROOT_URL}${v2Prefix}`) === 0) {
+        url = `${ROOT_URL}${v2Prefix}/asset_snapshots/`
+      }
+
       return $ajax({
-        url: `${ROOT_URL}/asset_snapshots/`,
+        url: url,
         method: 'POST',
         data: data
       });
@@ -169,8 +179,18 @@ var dataInterface;
       });
     },
     createTemporaryAssetSnapshot ({source}) {
+      // Temporary fix
+      // ToDo when PR#2378 is merged, remove logic and
+      // use `${ROOT_URL}/api/v2/asset_snapshots/` directly
+      let v2Prefix = '/api/v2',
+          url = `${ROOT_URL}/asset_snapshots/`;
+
+      if ('asset' in source && source['asset'].indexOf(`${ROOT_URL}${v2Prefix}`) === 0) {
+        url = `${ROOT_URL}${v2Prefix}/asset_snapshots/`
+      }
+
       return $ajax({
-        url: `${ROOT_URL}/asset_snapshots/`,
+        url: url,
         method: 'POST',
         data: {
           source: source

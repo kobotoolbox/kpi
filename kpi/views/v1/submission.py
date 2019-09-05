@@ -143,7 +143,7 @@ class SubmissionViewSet(DataViewSet):
     > **Payload**
     >
     >        {
-    >           "submissions_ids": [{integer}],
+    >           "submission_ids": [{integer}],
     >           "validation_status.uid": <validation_status>
     >        }
 

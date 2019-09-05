@@ -116,7 +116,9 @@ export class DataTable extends React.Component {
             tableData: results
           });
         } else {
-          this.setState({error: t('Error: could not load data.'), loading: false});
+          this.setState({error: t('This project has no submitted data. ' +
+                                  'Please collect some and try again.'),
+                         loading: false});
         }
       }
     }).fail((error)=>{
@@ -795,9 +797,9 @@ export class DataTable extends React.Component {
       }
       selectedCount = this.state.resultsTotal;
     } else {
-      data.submissions_ids = Object.keys(this.state.selectedRows);
+      data.submission_ids = Object.keys(this.state.selectedRows);
       data['validation_status.uid'] = val;
-      selectedCount = data.submissions_ids.length;
+      selectedCount = data.submission_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
@@ -843,8 +845,8 @@ export class DataTable extends React.Component {
       }
       selectedCount = this.state.resultsTotal;
     } else {
-      data.submissions_ids = Object.keys(this.state.selectedRows);
-      selectedCount = data.submissions_ids.length;
+      data.submission_ids = Object.keys(this.state.selectedRows);
+      selectedCount = data.submission_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
@@ -901,7 +903,9 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        {!this.state.selectAll &&
+        { // TODO: re-enable after dealing with
+          // https://github.com/kobotoolbox/kpi/issues/2389
+          false && !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
           <span>
