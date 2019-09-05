@@ -116,7 +116,9 @@ export class DataTable extends React.Component {
           // TODO: debounce the queries and then enable this notification
           alertify.warning(t('The query did not return any results.'));
         } else {
-          this.setState({error: t('Error: could not load data.'), loading: false});
+          this.setState({error: t('This project has no submitted data. ' +
+                                  'Please collect some and try again.'),
+                         loading: false});
         }
       }
     }).fail((error)=>{
@@ -219,7 +221,7 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset)) {
+    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('change_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
@@ -783,9 +785,9 @@ export class DataTable extends React.Component {
       }
       selectedCount = this.state.resultsTotal;
     } else {
-      data.submissions_ids = Object.keys(this.state.selectedRows);
+      data.submission_ids = Object.keys(this.state.selectedRows);
       data['validation_status.uid'] = val;
-      selectedCount = data.submissions_ids.length;
+      selectedCount = data.submission_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
@@ -793,14 +795,17 @@ export class DataTable extends React.Component {
       title: t('Update status of selected submissions'),
       message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        apiFn(this.props.asset.uid, data).done((res) => {
+      onok: () => {
+        apiFn(this.props.asset.uid, data).done(() => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
+          dialog.destroy();
+        }).fail((jqxhr) => {
           console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
+          dialog.destroy();
         });
+        // keep the dialog open
+        return false;
       },
       oncancel: dialog.destroy
     };
@@ -812,6 +817,49 @@ export class DataTable extends React.Component {
   clearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
   }
+  onBulkDelete() {
+    const apiFn = dataInterface.bulkDeleteSubmissions;
+    const data = {};
+    let selectedCount;
+
+    if (this.state.selectAll) {
+      if (this.state.fetchState.filtered.length) {
+        data.query = {};
+        this.state.fetchState.filtered.map((filteredItem) => {
+          data.query[filteredItem.id] = filteredItem.value;
+        });
+      } else {
+        data.confirm = true;
+      }
+      selectedCount = this.state.resultsTotal;
+    } else {
+      data.submission_ids = Object.keys(this.state.selectedRows);
+      selectedCount = data.submission_ids.length;
+    }
+
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Delete selected submissions'),
+      message: t('You have selected ## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##', selectedCount),
+      labels: {ok: t('Delete selected'), cancel: t('Cancel')},
+      onok: () => {
+        apiFn(this.props.asset.uid, data).done(() => {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
+          dialog.destroy();
+        }).fail((jqxhr) => {
+          console.error(jqxhr);
+          alertify.error(t('Failed to delete submissions.'));
+          dialog.destroy();
+        });
+        // keep the dialog open
+        return false;
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
   bulkSelectUI() {
     if (!this.state.tableData.length) {
       return false;
@@ -822,32 +870,62 @@ export class DataTable extends React.Component {
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
           res1 = (currentPage * pageSize) + 1,
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
+          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
           selected = this.state.selectedRows,
           maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-          //
+    let selectedCount = Object.keys(selected).length;
+    if (this.state.selectAll) {
+      selectedCount = resultsTotal;
+    }
+    const selectedLabel = t('## selected').replace('##', selectedCount);
+
     return (
       <bem.FormView__item m='table-meta'>
-        {showingResults}
-        {this.state.selectAll ?
+        <span>{showingResults}</span>
+
+        {this.state.selectAll &&
           <span>
-            {t('All ## selected. ').replace('##', resultsTotal)}
             <a className='select-all' onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
-        :
+        }
+
+        { // TODO: re-enable after dealing with
+          // https://github.com/kobotoolbox/kpi/issues/2389
+          false && !this.state.selectAll &&
+          Object.keys(selected).length === maxPageRes &&
+          resultsTotal > pageSize &&
           <span>
-            {Object.keys(selected).length > 0 &&
-              t('## selected. ').replace('##', Object.keys(selected).length)
-            }
-            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
-              <a className='select-all' onClick={this.bulkSelectAll}>
-                {t('Select all ##').replace('##', resultsTotal)}
-              </a>
-            }
+            <a className='select-all' onClick={this.bulkSelectAll}>
+              {t('Select all ##').replace('##', resultsTotal)}
+            </a>
           </span>
+        }
+
+        {Object.keys(selected).length > 0 &&
+          <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
+            {this.userCan('validate_submissions', this.props.asset) &&
+              VALIDATION_STATUSES_LIST.map((item, n) => {
+                return (
+                  <bem.PopoverMenu__link
+                    onClick={this.onBulkUpdateStatus}
+                    data-value={item.value}
+                    key={n}
+                  >
+                    {t('Set status: ##status##').replace('##status##', item.label)}
+                  </bem.PopoverMenu__link>
+                );
+              })
+            }
+            {this.userCan('change_submissions', this.props.asset) &&
+            <bem.PopoverMenu__link
+              onClick={this.onBulkDelete}>
+              {t('Delete selected')}
+            </bem.PopoverMenu__link>
+            }
+          </ui.PopoverMenu>
         }
       </bem.FormView__item>
     );
@@ -895,21 +973,6 @@ export class DataTable extends React.Component {
                     data-tip={t('Print')}>
               <i className='k-icon-print' />
             </button>
-
-            {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
-                <bem.PopoverMenu__heading>
-                  {t('Updated status to:')}
-                </bem.PopoverMenu__heading>
-                {VALIDATION_STATUSES_LIST.map((item, n) => {
-                  return (
-                    <bem.PopoverMenu__link onClick={this.onBulkUpdateStatus} data-value={item.value} key={n}>
-                      {item.label}
-                      </bem.PopoverMenu__link>
-                  );
-                })}
-              </ui.PopoverMenu>
-            }
 
             <button
               className='mdl-button mdl-button--icon report-button__expand right-tooltip'
