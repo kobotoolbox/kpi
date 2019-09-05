@@ -36,7 +36,7 @@ class BaseDeploymentBackend(object):
         sort = kwargs.get('sort', {})
         fields = kwargs.get('fields', [])
         query = kwargs.get('query', {})
-        instances_ids = kwargs.get('instances_ids', [])
+        instance_ids = kwargs.get('instance_ids', [])
         permission_filters = kwargs.get('permission_filters')
 
         # I've copied these `ValidationError` messages verbatim from DRF where
@@ -85,9 +85,9 @@ class BaseDeploymentBackend(object):
                     {'fields': _('Value must be valid JSON.')}
                 )
 
-        if not isinstance(instances_ids, list):
+        if not isinstance(instance_ids, list):
             raise exceptions.ValidationError(
-                {'instances_ids': _('Value must be a list.')}
+                {'instance_ids': _('Value must be a list.')}
             )
 
         if not (isinstance(permission_filters, list) or permission_filters is None):
@@ -100,7 +100,7 @@ class BaseDeploymentBackend(object):
             'start': start,
             'fields': fields,
             'sort': sort,
-            'instances_ids': instances_ids,
+            'instance_ids': instance_ids,
             'permission_filters': permission_filters
         }
 

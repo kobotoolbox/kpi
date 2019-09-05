@@ -193,7 +193,7 @@ const assetWithMultipleUsers = {
     },
     {
       'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pETvxGayAJwvPaCnt5biVD/',
-      'user': '/api/v2/users/oliver/',
+      'user': '/api/v2/users/olivier/',
       'permission': '/api/v2/permissions/view_asset/'
     },
     {
@@ -258,7 +258,7 @@ const assetWithPartial = {
         {
           'url': '/api/v2/permissions/view_submissions/',
           'filters': [
-            {'_submitted_by': {'$in': ['john', 'oliver']}}
+            {'_submitted_by': {'$in': ['john', 'olivier']}}
           ]
         },
       ]

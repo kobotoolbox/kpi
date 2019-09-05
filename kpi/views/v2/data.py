@@ -4,7 +4,7 @@ from __future__ import unicode_literals, absolute_import
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import exceptions, renderers, viewsets
+from rest_framework import exceptions, renderers, serializers, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -144,7 +144,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > **Payload**
     >
     >        {
-    >           "submissions_ids": [{integer}],
+    >           "submission_ids": [{integer}],
     >           "validation_status.uid": <validation_status>
     >        }
 
@@ -167,6 +167,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             raise serializers.ValidationError(
                 _('The specified asset has not been deployed'))
         return self.asset.deployment
+
+    @list_route(methods=['DELETE'], renderer_classes=[renderers.JSONRenderer])
+    def bulk(self, request, *args, **kwargs):
+        deployment = self._get_deployment()
+        json_response = deployment.delete_submissions(request.data,
+                                                      request.user)
+        return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
         deployment = self._get_deployment()

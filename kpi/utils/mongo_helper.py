@@ -66,11 +66,11 @@ class MongoHelper(object):
 
     @classmethod
     def get_count(
-            cls, mongo_userform_id, hide_deleted=True, query=None, instances_ids=None,
+            cls, mongo_userform_id, hide_deleted=True, query=None, instance_ids=None,
             permission_filters=None):
         cursor = cls._get_cursor(mongo_userform_id, hide_deleted=hide_deleted,
                                  fields={'_id': 1}, query=query,
-                                 instances_ids=instances_ids,
+                                 instance_ids=instance_ids,
                                  permission_filters=permission_filters)
 
         return cursor.count()
@@ -78,12 +78,12 @@ class MongoHelper(object):
     @classmethod
     def get_instances(
             cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
-            sort=None, fields=None, query=None, instances_ids=None,
+            sort=None, fields=None, query=None, instance_ids=None,
             permission_filters=None
     ):
         cursor = cls._get_cursor(mongo_userform_id, hide_deleted=hide_deleted,
                                  fields=fields, query=query,
-                                 instances_ids=instances_ids,
+                                 instance_ids=instance_ids,
                                  permission_filters=permission_filters)
 
         cursor.skip(start)
@@ -249,7 +249,7 @@ class MongoHelper(object):
 
     @classmethod
     def _get_cursor(cls, mongo_userform_id, hide_deleted=True, fields=None,
-                   query=None, instances_ids=None, permission_filters=None):
+                   query=None, instance_ids=None, permission_filters=None):
         # check if query contains an _id and if its a valid ObjectID
         if '_uuid' in query:
             if ObjectId.is_valid(query.get('_uuid')):
@@ -257,9 +257,9 @@ class MongoHelper(object):
             else:
                 raise ValidationError(_('Invalid _uuid specified'))
 
-        if len(instances_ids) > 0:
+        if len(instance_ids) > 0:
             query.update({
-                '_id': {'$in': instances_ids}
+                '_id': {'$in': instance_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
