@@ -6,6 +6,7 @@ import json
 from bson import json_util, ObjectId
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions
+from rest_framework.pagination import _positive_int as positive_int
 
 
 class BaseDeploymentBackend(object):
@@ -61,18 +62,14 @@ class BaseDeploymentBackend(object):
                 )
 
         try:
-            start = int(start)
-            if start < 0:
-                raise ValueError
+            start = positive_int(start)
         except ValueError:
             raise exceptions.ValidationError(
                 {'start': _('A positive integer is required.')}
             )
         try:
             if limit is not None:
-                limit = int(limit)
-                if limit < 0:
-                    raise ValueError
+                limit = positive_int(limit, strict=True)
         except ValueError:
             raise exceptions.ValidationError(
                 {'limit': _('A positive integer is required.')}
