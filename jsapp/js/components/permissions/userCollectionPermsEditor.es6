@@ -73,19 +73,21 @@ class UserCollectionPermissionsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.assignCollectionPermission.completed, this.onAssignCollectionPermissionCompleted);
-    this.listenTo(actions.permissions.assignCollectionPermission.failed, this.onAssignCollectionPermissionFailed);
+    this.listenTo(actions.permissions.assignCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.assignCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
+    this.listenTo(actions.permissions.removeCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.removeCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onAssignCollectionPermissionCompleted() {
+  onChangeCollectionPermissionCompleted() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(true);
     }
   }
 
-  onAssignCollectionPermissionFailed() {
+  onChangeCollectionPermissionFailed() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(false);
@@ -230,10 +232,7 @@ class UserCollectionPermissionsEditor extends React.Component {
     }
 
     if (permToRemove) {
-      actions.permissions.removePerm({
-        permission_url: permToRemove,
-        content_object_uid: this.props.uid
-      });
+      actions.permissions.removeCollectionPermission(this.props.uid, permToRemove);
       this.setState({isSubmitPending: true});
     }
     if (permToSet) {

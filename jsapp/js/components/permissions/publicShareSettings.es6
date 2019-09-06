@@ -22,18 +22,22 @@ class PublicShareSettings extends React.Component {
   }
   togglePerms(permRole) {
     var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permRole;})[0];
+    let actionFn;
 
     if (permission) {
-      actions.permissions.removePerm({
-        permission_url: permission.url,
-        content_object_uid: this.props.uid
-      });
-    } else {
-      let actionFnName = 'assignAssetPermission';
       if (this.props.kind === 'collection') {
-        actionFnName = 'assignCollectionPermission';
+        actionFn = actions.permissions.removeCollectionPermission;
+      } else {
+        actionFn = actions.permissions.removeAssetPermission;
       }
-      actions.permissions[actionFnName](
+      actionFn(this.props.uid, permission.url);
+    } else {
+      if (this.props.kind === 'collection') {
+        actionFn = actions.permissions.assignCollectionPermission;
+      } else {
+        actionFn = actions.permissions.assignAssetPermission;
+      }
+      actionFn(
         this.props.uid, {
           user: buildUserUrl(ANON_USERNAME),
           permission: permConfig.getPermissionByCodename(permRole).url

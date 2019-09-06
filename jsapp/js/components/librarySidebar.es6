@@ -237,10 +237,7 @@ class LibrarySidebar extends Reflux.Component {
           }
         );
       } else if (publicPerm) {
-        permDeferred = actions.permissions.removePerm({
-          permission_url: publicPerm.url,
-          content_object_uid: collection.uid
-        });
+        permDeferred = actions.permissions.removeCollectionPermission(collection.uid, publicPerm.url);
       }
 
       // STEP 2: handle `discoverable_when_public` change

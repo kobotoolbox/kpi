@@ -275,23 +275,13 @@ var dataInterface;
       });
     },
 
-    removeAssetPermission(perm) {
-      return $ajax({
-        url: perm,
-        method: 'DELETE'
-      });
-    },
-
-    /*
-     * permissions (old endpoints)
-     */
-
-    removePerm (permUrl) {
+    removePermission (permUrl) {
       return $ajax({
         method: 'DELETE',
         url: permUrl
       });
     },
+
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${targetUid}/permissions/`,
@@ -300,10 +290,6 @@ var dataInterface;
           clone_from: sourceUid
         }
       });
-    },
-    assignPublicPerm (params) {
-      params.username = 'AnonymousUser';
-      return dataInterface(params);
     },
     setCollectionDiscoverability (uid, discoverable) {
       dataInterface.patchCollection(uid, {
