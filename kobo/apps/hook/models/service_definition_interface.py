@@ -8,9 +8,12 @@ import re
 
 import constance
 import requests
-from rest_framework import status
 
-from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from ..constants import (
+    HOOK_LOG_SUCCESS,
+    HOOK_LOG_FAILED,
+    KOBO_INTERNAL_ERROR_STATUS_CODE,
+)
 from .hook import Hook
 from .hook_log import HookLog
 from kpi.utils.log import logging
@@ -31,11 +34,16 @@ class ServiceDefinitionInterface(object):
         """
         try:
             submission = self._hook.asset.deployment.get_submission(
+<<<<<<< HEAD
                 self._instance_id, self._hook.asset.owner.id,
                 self._hook.export_type)
+=======
+                self._instance_id, self._hook.export_type)
+>>>>>>> 2319-update-data-api-call
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
-            logging.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
+            logging.error("service_json.ServiceDefinition._get_data "
+                          "- Hook #{} - Data #{} - {}".format(
                 self._hook.uid, self._instance_id, str(e)), exc_info=True)
         return None
 
@@ -79,7 +87,8 @@ class ServiceDefinitionInterface(object):
                 request_kwargs = self._prepare_request_kwargs()
 
                 # Add custom headers
-                request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
+                request_kwargs.get("headers").update(
+                    self._hook.settings.get("custom_headers", {}))
 
                 # Add user agent
                 public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME"))\
@@ -112,7 +121,8 @@ class ServiceDefinitionInterface(object):
                 self.save_log(status_code, text)
 
             except Exception as e:
-                logging.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
+                logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - Data #{} - {}".format(
                     self._hook.uid, self._instance_id, str(e)), exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,

@@ -192,6 +192,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions
                                if submission.get('_submitted_by') in submitted_by]
 
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
+        self.current_submissions_count = len(submissions)
+
         params = self.validate_submission_list_params(**kwargs)
         # TODO: support other query parameters?
         if 'limit' in params:
@@ -201,14 +204,31 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def get_submission(self, pk, requesting_user_id,
                        format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        if pk:
-            submissions = list(self.get_submissions(requesting_user_id,
-                                                    format_type, [pk], **kwargs))
-            if len(submissions) > 0:
-                return submissions[0]
-            return None
-        else:
-            raise ValueError("Primary key must be provided")
+        """
+        Returns submission if `pk` exists otherwise `None`
+
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [pk],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
+        return None
 
     def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(submission_pk, user.id,
@@ -233,15 +253,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         })
 
     def _calculated_submission_count(self, **kwargs):
-
-        kwargs.update({
-            'start': 0,
-            'limit': None,
-        })
-        # Because `BaseDeploymentBackend.calculated_submission_count()` doesn't
-        # provide `requesting_user_id` but `permission_filters`.
-        # Only `MockBackend` needs it at this moment. We force
-        # anonymous user to ensure that it has no permissions.
-
-        instances = self.get_submissions(settings.ANONYMOUS_USER_ID, **kwargs)
+        requesting_user_id = kwargs.pop('requesting_user_id')
+        instances = self.get_submissions(requesting_user_id, **kwargs)
         return len(instances)
