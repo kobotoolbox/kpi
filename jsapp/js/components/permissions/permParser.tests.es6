@@ -1,9 +1,11 @@
 import permParser from './permParser';
 import permConfig from './permConfig';
 import endpoints from './permissionsMocks';
+import constants from 'js/constants';
 
 // bootstraping
 permConfig.onGetConfigCompleted(endpoints.permissions);
+constants.ROOT_URL = '';
 
 describe('permParser', () => {
   describe('parseBackendData', () => {
@@ -194,6 +196,57 @@ describe('permParser', () => {
           'user': '/api/v2/users/olivier/',
           'permission': '/api/v2/permissions/view_asset/'
         },
+      ]);
+    });
+
+    it('should not omit partial permissions', () => {
+      const userWithPermsList = permParser.parseBackendData(
+        endpoints.assetWithPartial.results,
+        endpoints.assetWithPartial.results[0].user
+      );
+      const parsed = permParser.parseUserWithPermsList(userWithPermsList);
+
+      chai.expect(parsed).to.deep.equal([
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/add_submissions/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/change_asset/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/change_submissions/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/validate_submissions/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/view_asset/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/view_submissions/'
+        },
+        {
+          'user': '/api/v2/users/leszek/',
+          'permission': '/api/v2/permissions/view_asset/'
+        },
+        {
+          'user': '/api/v2/users/leszek/',
+          'permission': '/api/v2/permissions/partial_submissions/',
+          'partial_permissions': [
+            {
+              url: '/api/v2/permissions/view_submissions/',
+              filters: [
+                {'_submitted_by': {'$in': ['john', 'olivier']}}
+              ]
+            }
+          ]
+        }
       ]);
     });
   });

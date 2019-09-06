@@ -195,10 +195,14 @@ function parseUserWithPermsList(data) {
   const output = [];
   data.forEach((item) => {
     item.permissions.forEach((itemPerm) => {
-      output.push({
+      const outputPerm = {
         user: item.user.url,
-        permission: itemPerm.permission
-      });
+        permission: itemPerm.permission,
+      };
+      if (itemPerm.partial_permissions) {
+        outputPerm.partial_permissions = itemPerm.partial_permissions;
+      }
+      output.push(outputPerm);
     });
   });
   return output;
