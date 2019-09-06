@@ -3,7 +3,7 @@ from __future__ import unicode_literals, absolute_import
 
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -48,12 +48,12 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         instance_id = request.data.get("instance_id")
         if instance_id is None:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'instance_id': _('This field is required.')})
 
-        instance = None
         try:
-            instance = self.asset.deployment.get_submission(instance_id)
+            instance = self.asset.deployment.get_submission(instance_id,
+                                                            request.user.id)
         except ValueError:
             raise Http404
 
@@ -67,7 +67,8 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             response_status_code = status.HTTP_202_ACCEPTED
             response = {
                 "detail": _(
-                    "We got and saved your data, but may not have fully processed it. You should not try to resubmit.")
+                    "We got and saved your data, but may not have fully "
+                    "processed it. You should not try to resubmit.")
             }
         else:
             # call_services() refused to launch any task because this
@@ -75,7 +76,8 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             response_status_code = status.HTTP_409_CONFLICT
             response = {
                 "detail": _(
-                    "Your data for instance {} has been already submitted.".format(instance_id))
+                    "Your data for instance {} has been already "
+                    "submitted.".format(instance_id))
             }
 
         return Response(response, status=response_status_code)

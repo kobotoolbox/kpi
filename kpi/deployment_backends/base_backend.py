@@ -109,13 +109,20 @@ class BaseDeploymentBackend(object):
 
         return params
 
-    def calculated_submission_count(self, **kwargs):
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+
+        # Add extra filters to narrow down results in case requesting user has
+        # only partial permissions
+        kwargs.update({
+            'permission_filters': self.asset.get_filters_for_partial_perm(
+                requesting_user_id),
+            'requesting_user_id': requesting_user_id,  # For unittests
+        })
         params = self.validate_submission_list_params(**kwargs)
         # Remove useless property for count
-        params.pop('fields', None)
-        params.pop('start', None)
-        params.pop('start', None)
-        params.pop('sort', None)
+        for useless_property in ['fields', 'start', 'limit', 'sort']:
+            params.pop(useless_property, None)
+
         return self._calculated_submission_count(**params)
 
     @property

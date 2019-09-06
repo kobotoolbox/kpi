@@ -194,14 +194,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        submissions = deployment.get_submissions(request.user.id,
+                                                 format_type=format_type,
+                                                 **filters)
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submission = deployment.get_submission(pk, format_type=format_type, **filters)
+        submission = deployment.get_submission(pk,
+                                               request.user.id,
+                                               format_type=format_type,
+                                               **filters)
         if not submission:
             raise Http404
         return Response(submission)
@@ -257,11 +262,5 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 {'limit': _('A valid integer is required')}
             )
         filters['limit'] = min(limit, settings.SUBMISSION_LIST_LIMIT)
-        permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
-        # This should overwrite existing `permission_filters` param.
-        # We don't want users to bypass their partial permissions filters.
-        filters.update({
-            'permission_filters': permission_filters
-        })
         return filters

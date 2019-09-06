@@ -488,18 +488,33 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instance_ids=[], **kwargs):
+    def get_submissions(self, requesting_user_id,
+                        format_type=INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids=[], **kwargs):
         """
         Retrieves submissions through Postgres or Mongo depending on `format_type`.
         It can be filtered on instances ids.
 
-        :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param instance_ids: list. Ids of instances to retrieve
-        :param kwargs: dict. Filter parameters for Mongo query. See
-            https://docs.mongodb.com/manual/reference/operator/query/
-        :return: list: mixed
+        Args:
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            instance_ids (list): Instance ids to retrieve
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instances' XML as string
+                - `None` if no results
         """
-        submissions = []
+
+        # Add extra filters to narrow down results in case requesting user has
+        # only partial permissions
+        kwargs.update({
+            'permission_filters': self.asset.get_filters_for_partial_perm(
+                requesting_user_id)
+        })
 
         if format_type == INSTANCE_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(instance_ids, **kwargs)
@@ -511,18 +526,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
         """
-        Returns only one occurrence.
-
-        :param pk: int. `Instance.id`
-        :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param kwargs: dict. Filter params
-        :return: mixed. JSON or XML
+        Returns submission if `pk` exists otherwise `None`
+        Args:
+            pk (int): Primary key. Must be a positive integer
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
         """
 
         if pk:
-            submissions = list(self.get_submissions(format_type, [int(pk)], **kwargs))
+            submissions = list(self.get_submissions(requesting_user_id,
+                                                    format_type, [int(pk)],
+                                                    **kwargs))
             if len(submissions) > 0:
                 return submissions[0]
             return None

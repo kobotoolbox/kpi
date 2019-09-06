@@ -30,7 +30,9 @@ class ServiceDefinitionInterface(object):
         Retrieves data from deployment backend of the asset.
         """
         try:
-            submission = self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
+            submission = self._hook.asset.deployment.get_submission(
+                self._instance_id, self._hook.asset.owner.id,
+                self._hook.export_type)
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
             logging.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(

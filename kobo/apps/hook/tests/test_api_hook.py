@@ -55,7 +55,7 @@ class ApiHookTestCase(HookTestCase):
                       content_type="application/json")
         hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
 
-        submissions = self.asset.deployment.get_submissions()
+        submissions = self.asset.deployment.get_submissions(self.asset.owner.id)
         data = {"instance_id": submissions[0].get("id")}
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
