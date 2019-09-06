@@ -166,12 +166,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
 
         submissions = self.asset._deployment_data.get("submissions", [])
-
-        # Add extra filters to narrow down results in case requesting user has
-        # only partial permissions.
-        permission_filters = kwargs.get('permission_filters',
-                                        self.asset.get_filters_for_partial_perm(
-                                            requesting_user_id))
+        kwargs['instance_ids'] = instance_ids
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      format_type=format_type,
+                                                      **kwargs)
+        permission_filters = params['permission_filters']
 
         if len(instance_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
@@ -181,7 +180,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                                if re.search(r"<id>({})<\/id>".format(pattern), submission)]
             else:
                 submissions = [submission for submission in submissions
-                               if submission.get("id") in map(int, instance_ids)]
+                               if submission.get('id') in map(int, instance_ids)]
 
         if permission_filters:
             submitted_by = [k.get('_submitted_by') for k in permission_filters]
@@ -195,7 +194,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = len(submissions)
 
-        params = self.validate_submission_list_params(**kwargs)
         # TODO: support other query parameters?
         if 'limit' in params:
             submissions = submissions[:params['limit']]

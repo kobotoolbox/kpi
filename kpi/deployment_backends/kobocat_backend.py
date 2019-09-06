@@ -539,7 +539,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         kwargs['instance_ids'] = instance_ids
         params = self.validate_submission_list_params(requesting_user_id,
-                                                      format_type,
+                                                      format_type=format_type,
                                                       **kwargs)
 
         if format_type == INSTANCE_FORMAT_TYPE_JSON:
@@ -612,7 +612,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Retrieves instances directly from Mongo.
 
-        :param kwargs: dict. Filter params
+        :param params: dict. Filter params
         :return: generator<JSON>
         """
 
@@ -630,16 +630,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Retrieves instances directly from Postgres.
 
-        :param kwargs: dict. Filter params
+        :param params: dict. Filter params
         :return: list<XML>
         """
 
         mongo_filters = ['query', 'permission_filters']
         use_mongo = any(mongo_filter in mongo_filters for mongo_filter in params
                         if params.get(mongo_filter) is not None)
-
-        print('USE MONGO')
-        print(use_mongo)
 
         if use_mongo:
             # We use Mongo to retrieve matching instances.
