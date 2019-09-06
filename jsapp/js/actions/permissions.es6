@@ -3,6 +3,8 @@
  */
 
 import Reflux from 'reflux';
+import RefluxPromise from 'js/libs/reflux-promise';
+Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
 import {
   t,
