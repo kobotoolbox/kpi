@@ -29,7 +29,11 @@ class PublicShareSettings extends React.Component {
         content_object_uid: this.props.uid
       });
     } else {
-      actions.permissions.assignCollectionPermission(
+      let actionFnName = 'assignAssetPermission';
+      if (this.props.kind === 'collection') {
+        actionFnName = 'assignCollectionPermission';
+      }
+      actions.permissions[actionFnName](
         this.props.uid, {
           user: buildUserUrl(ANON_USERNAME),
           permission: permConfig.getPermissionByCodename(permRole).url

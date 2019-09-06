@@ -244,10 +244,15 @@ actions.misc = Reflux.createActions({
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
 // `actions.resources` to separate file (circular dependency issue)
+permissionsActions.assignAssetPermission.completed.listen(function(uid){
+  // needed to update publicShareSettings after enabling link sharing
+  actions.resources.loadAsset({id: uid});
+});
 permissionsActions.copyPermissionsFrom.completed.listen(function(sourceUid, targetUid) {
   actions.resources.loadAsset({id: targetUid});
 });
 permissionsActions.removePerm.completed.listen(function(uid){
+  // needed to update publicShareSettings after disabling link sharing
   actions.resources.loadAsset({id: uid});
 });
 permissionsActions.setCollectionDiscoverability.completed.listen(function(val){

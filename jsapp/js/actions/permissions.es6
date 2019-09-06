@@ -75,11 +75,11 @@ permissionsActions.assignCollectionPermission.listen((uid, perm) => {
   dataInterface.assignCollectionPermission(uid, perm)
     .done(() => {
       permissionsActions.getCollectionPermissions(uid);
-      permissionsActions.assignCollectionPermission.completed();
+      permissionsActions.assignCollectionPermission.completed(uid);
     })
     .fail(() => {
       permissionsActions.getCollectionPermissions(uid);
-      permissionsActions.assignCollectionPermission.failed();
+      permissionsActions.assignCollectionPermission.failed(uid);
     });
 });
 
@@ -93,11 +93,11 @@ permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
   dataInterface.assignAssetPermission(assetUid, perm)
     .done(() => {
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.assignAssetPermission.completed();
+      permissionsActions.assignAssetPermission.completed(assetUid);
     })
     .fail(() => {
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.assignAssetPermission.failed();
+      permissionsActions.assignAssetPermission.failed(assetUid);
     });
 });
 
