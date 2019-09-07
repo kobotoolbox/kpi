@@ -82,9 +82,7 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/data/downloads`:
           return this.renderProjectDownloads();
         case `/forms/${this.state.uid}/settings`:
-          if (deployment__identifier != '')
-            iframeUrl = deployment__identifier+'/form_settings';
-          return this.renderSettingsEditor(iframeUrl);
+          return this.renderSettingsEditor();
         case `/forms/${this.state.uid}/settings/media`:
           iframeUrl = deployment__identifier+'/form_settings';
           break;
@@ -114,7 +112,7 @@ export class FormSubScreens extends React.Component {
         </DocumentTitle>
       );
   }
-  renderSettingsEditor(iframeUrl) {
+  renderSettingsEditor() {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -122,7 +120,6 @@ export class FormSubScreens extends React.Component {
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
               formAsset={this.state}
-              iframeUrl={iframeUrl}
             />
           </bem.FormView>
         </DocumentTitle>
