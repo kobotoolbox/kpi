@@ -41,9 +41,7 @@ export class FormSubScreens extends React.Component {
     }
   }
   render () {
-    let permAccess = false;
-
-    (this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state)) ? permAccess = true : '';
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
 
     if (!this.state.permissions)
       return false;
