@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 import re
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
@@ -143,16 +144,33 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instance_ids=[], **kwargs):
+    def get_submissions(self, requesting_user_id,
+                        format_type=INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids=[], **kwargs):
         """
-        Returns a list of json representation of instances.
+        Retrieves submissions on `format_type`.
+        It can be filtered on instances ids.
 
-        :param format_type: str. xml or json
-        :param instance_ids: list. Ids of instances to retrieve
-        :return: list
+        Args:
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            instance_ids (list): Instance ids to retrieve
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instances' XML as string
+                - `None` if no results
         """
+
         submissions = self.asset._deployment_data.get("submissions", [])
-        permission_filters = kwargs.get('permission_filters')
+        kwargs['instance_ids'] = instance_ids
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      format_type=format_type,
+                                                      **kwargs)
+        permission_filters = params['permission_filters']
 
         if len(instance_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
@@ -161,8 +179,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions
                                if re.search(r"<id>({})<\/id>".format(pattern), submission)]
             else:
-                submissions = [submission for submission in submissions if submission.get("id") in
-                               map(int, instance_ids)]
+                submissions = [submission for submission in submissions
+                               if submission.get('id') in map(int, instance_ids)]
 
         if permission_filters:
             submitted_by = [k.get('_submitted_by') for k in permission_filters]
@@ -173,24 +191,46 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions
                                if submission.get('_submitted_by') in submitted_by]
 
-        params = self.validate_submission_list_params(**kwargs)
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
+        self.current_submissions_count = len(submissions)
+
         # TODO: support other query parameters?
         if 'limit' in params:
             submissions = submissions[:params['limit']]
 
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        if pk:
-            submissions = list(self.get_submissions(format_type, [pk], **kwargs))
-            if len(submissions) > 0:
-                return submissions[0]
-            return None
-        else:
-            raise ValueError("Primary key must be provided")
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns submission if `pk` exists otherwise `None`
+
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [pk],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
+        return None
 
     def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(submission_pk, INSTANCE_FORMAT_TYPE_JSON)
+        submission = self.get_submission(submission_pk, user.id,
+                                         INSTANCE_FORMAT_TYPE_JSON)
         return {
             "data": submission.get("_validation_status")
         }
@@ -211,9 +251,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         })
 
     def _calculated_submission_count(self, **kwargs):
-        kwargs.update({
-            'start': 0,
-            'limit': None,
-        })
-        instances = self.get_submissions(**kwargs)
+        requesting_user_id = kwargs.pop('requesting_user_id')
+        instances = self.get_submissions(requesting_user_id, **kwargs)
         return len(instances)

@@ -569,9 +569,7 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        permission_filters = source.get_filters_for_partial_perm(self.user.id)
-        submission_stream = source.deployment.get_submissions(
-            permission_filters=permission_filters)
+        submission_stream = source.deployment.get_submissions(self.user.id)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)

@@ -262,9 +262,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             request = self.context['request']
             user = request.user
             if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
-                permission_filters = obj.get_filters_for_partial_perm(user.id)
                 return obj.deployment.calculated_submission_count(
-                    permission_filters=permission_filters)
+                    requesting_user_id=user.id)
         except KeyError:
             return 0
 

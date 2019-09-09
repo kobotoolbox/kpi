@@ -68,12 +68,16 @@ class MongoHelper(object):
     def get_count(
             cls, mongo_userform_id, hide_deleted=True, query=None, instance_ids=None,
             permission_filters=None):
-        cursor = cls._get_cursor(mongo_userform_id, hide_deleted=hide_deleted,
-                                 fields={'_id': 1}, query=query,
-                                 instance_ids=instance_ids,
-                                 permission_filters=permission_filters)
 
-        return cursor.count()
+        _, total_count = cls._get_cursor_and_count(
+            mongo_userform_id,
+            hide_deleted=hide_deleted,
+            fields={'_id': 1},
+            query=query,
+            instance_ids=instance_ids,
+            permission_filters=permission_filters)
+
+        return total_count
 
     @classmethod
     def get_instances(
@@ -81,10 +85,13 @@ class MongoHelper(object):
             sort=None, fields=None, query=None, instance_ids=None,
             permission_filters=None
     ):
-        cursor = cls._get_cursor(mongo_userform_id, hide_deleted=hide_deleted,
-                                 fields=fields, query=query,
-                                 instance_ids=instance_ids,
-                                 permission_filters=permission_filters)
+        cursor, total_count = cls._get_cursor_and_count(
+            mongo_userform_id,
+            hide_deleted=hide_deleted,
+            fields=fields,
+            query=query,
+            instance_ids=instance_ids,
+            permission_filters=permission_filters)
 
         cursor.skip(start)
         if limit is not None:
@@ -99,7 +106,7 @@ class MongoHelper(object):
         # set batch size
         cursor.batch_size = cls.DEFAULT_BATCHSIZE
 
-        return cursor
+        return cursor, total_count
 
     @classmethod
     def is_attribute_invalid(cls, key):
@@ -248,8 +255,9 @@ class MongoHelper(object):
                cls.KEY_WHITELIST and (key.startswith('$') or key.count('.') > 0)
 
     @classmethod
-    def _get_cursor(cls, mongo_userform_id, hide_deleted=True, fields=None,
-                   query=None, instance_ids=None, permission_filters=None):
+    def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
+                              fields=None, query=None, instance_ids=None,
+                              permission_filters=None):
         # check if query contains an _id and if its a valid ObjectID
         if '_uuid' in query:
             if ObjectId.is_valid(query.get('_uuid')):
@@ -293,7 +301,8 @@ class MongoHelper(object):
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
 
-        return settings.MONGO_DB.instances.find(query, fields_to_select)
+        cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
+        return cursor, cursor.count()
 
     @classmethod
     def _is_attribute_encoded(cls, key):

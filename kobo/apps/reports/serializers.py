@@ -24,10 +24,7 @@ class ReportsDetailSerializer(serializers.BaseSerializer):
             vnames = None
 
         split_by = request.query_params.get('split_by', None)
-
-        permission_filters = obj.get_filters_for_partial_perm(request.user.id)
-        submission_stream = obj.deployment.get_submissions(
-            permission_filters=permission_filters)
+        submission_stream = obj.deployment.get_submissions(request.user.id)
         _list = report_data.data_by_identifiers(obj, vnames, split_by=split_by,
                                                 submission_stream=submission_stream)
 

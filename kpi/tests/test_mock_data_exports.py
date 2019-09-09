@@ -205,7 +205,8 @@ class MockDataExports(TestCase):
         self.asset.deployment.mock_submissions(self.submissions)
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
-            submission_stream=self.asset.deployment.get_submissions()
+            submission_stream=self.asset.deployment.get_submissions(
+                self.asset.owner.id)
         )
 
     def run_csv_export_test(self, expected_lines, export_options=None, user=None):
@@ -300,18 +301,6 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
-    def test_csv_export_english_labels_partial_submissions(self):
-        export_options = {
-            'lang': 'English',
-        }
-        expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
-            '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
-        ]
-        self.run_csv_export_test(expected_lines, export_options,
-                                 user=self.anotheruser)
-
     def test_csv_export_spanish_labels(self):
         export_options = {
             'lang': 'Spanish',
@@ -324,18 +313,6 @@ class MockDataExports(TestCase):
             '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
-
-    def test_csv_export_spanish_labels_partial_submissions(self):
-        export_options = {
-            'lang': 'Spanish',
-        }
-        expected_lines = [
-            '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
-            '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
-        ]
-        self.run_csv_export_test(expected_lines, export_options,
-                                 user=self.anotheruser)
 
     def test_csv_export_english_labels_no_hxl(self):
         export_options = {
@@ -350,18 +327,6 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(expected_lines, export_options)
         
-    def test_csv_export_english_labels_no_hxl_partial_submissions(self):
-        export_options = {
-            'lang': 'English',
-            'tag_cols_for_header': [],
-        }
-        expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
-        ]
-        self.run_csv_export_test(expected_lines, export_options,
-                                 user=self.anotheruser)
-
     def test_csv_export_english_labels_group_sep(self):
         # Check `group_sep` by looking at the `select_multiple` question
         export_options = {
@@ -377,20 +342,6 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
-    def test_csv_export_english_labels_group_sep_partial_submissions(self):
-        # Check `group_sep` by looking at the `select_multiple` question
-        export_options = {
-            'lang': 'English',
-            'group_sep': '%',
-        }
-        expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?%Spherical";"What kind of symmetry do you have?%Radial";"What kind of symmetry do you have?%Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
-            '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
-        ]
-        self.run_csv_export_test(expected_lines, export_options,
-                                 user=self.anotheruser)
-
     def test_csv_export_hierarchy_in_labels(self):
         export_options = {'hierarchy_in_labels': 'true'}
         expected_lines = [
@@ -401,16 +352,6 @@ class MockDataExports(TestCase):
             '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
-
-    def test_csv_export_hierarchy_in_labels_partial_submissions(self):
-        export_options = {'hierarchy_in_labels': 'true'}
-        expected_lines = [
-            '"start";"end";"Características externas/¿Qué tipo de simetría tiene?";"Características externas/¿Qué tipo de simetría tiene?/Esférico";"Características externas/¿Qué tipo de simetría tiene?/Radial";"Características externas/¿Qué tipo de simetría tiene?/Bilateral";"Características externas/¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
-            '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
-        ]
-        self.run_csv_export_test(expected_lines, export_options,
-                                 user=self.anotheruser)
 
     def test_xls_export_english_labels(self):
         export_options = {'lang': 'English'}

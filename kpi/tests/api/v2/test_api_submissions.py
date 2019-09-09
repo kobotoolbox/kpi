@@ -114,7 +114,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_list_submissions_owner(self):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submissions)
+        self.assertEqual(response.data.get('results'), self.submissions)
+        self.assertEqual(response.data.get('count'), len(self.submissions))
 
     def test_list_submissions_owner_with_params(self):
         """
@@ -143,27 +144,31 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             content={'survey': [{'name': 'q', 'type': 'integer'}]},
         )
         asset.deploy(backend='mock', active=True)
+        asset.deployment.set_namespace(self.URL_NAMESPACE)
+        latest_version_uid = asset.latest_deployed_version.uid
         submissions = [
             {
-                '__version__': asset.latest_deployed_version.uid,
+                '__version__': latest_version_uid,
                 'q': i,
             } for i in range(limit + excess)
         ]
         asset.deployment.mock_submissions(submissions)
+
         # Server-wide limit should apply if no limit specified
         response = self.client.get(
             asset.deployment.submission_list_url, {'format': 'json'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), limit)
+        self.assertEqual(len(response.data['results']), limit)
         # Limit specified in query parameters should not be able to exceed
         # server-wide limit
         response = self.client.get(
             asset.deployment.submission_list_url,
             {'limit': limit + excess, 'format': 'json'}
         )
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), limit)
+        self.assertEqual(len(response.data['results']), limit)
 
     def test_list_submissions_not_shared_other(self):
         self._log_in_as_another_user()
@@ -175,7 +180,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submissions)
+        self.assertEqual(response.data.get('results'), self.submissions)
+        self.assertEqual(response.data.get('count'), len(self.submissions))
 
     def test_list_submissions_with_partial_permissions(self):
         self._log_in_as_another_user()
@@ -192,7 +198,9 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertTrue(self.asset.deployment.submission_count == 2)
         # User `anotheruser` should only see submissions where `submitted_by`
         # is filled up and equals to `someuser`
-        self.assertTrue(len(response.data) == 1)
+        self.assertTrue(response.data.get('count') == 1)
+        submission = response.data.get('results')[0]
+        self.assertTrue(submission.get('_submitted_by') == self.someuser.username)
 
     def test_list_submissions_anonymous(self):
         self.client.logout()

@@ -1,13 +1,27 @@
 # -*- coding: utf-8 -*-
-from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+
+from django.conf import settings
+from rest_framework.serializers import SerializerMethodField
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    PageNumberPagination,
+)
 from rest_framework.reverse import reverse_lazy
+
+
+class DataPagination(LimitOffsetPagination):
+    """
+    Pagination class for submissions.
+    """
+    default_limit = settings.SUBMISSION_LIST_LIMIT
+    offset_query_param = 'start'
+    max_limit = settings.SUBMISSION_LIST_LIMIT
 
 
 class Paginated(LimitOffsetPagination):
 
     """ Adds 'root' to the wrapping response object. """
-    root = serializers.SerializerMethodField('get_parent_url', read_only=True)
+    root = SerializerMethodField('get_parent_url', read_only=True)
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
