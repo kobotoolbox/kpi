@@ -20,8 +20,8 @@ class PublicShareSettings extends React.Component {
     super(props);
     autoBind(this);
   }
-  togglePerms(permRole) {
-    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permRole;})[0];
+  togglePerms(permCodename) {
+    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permCodename;})[0];
     let actionFn;
 
     if (permission) {
@@ -40,7 +40,7 @@ class PublicShareSettings extends React.Component {
       actionFn(
         this.props.uid, {
           user: buildUserUrl(ANON_USERNAME),
-          permission: permConfig.getPermissionByCodename(permRole).url
+          permission: permConfig.getPermissionByCodename(permCodename).url
         }
       );
     }
