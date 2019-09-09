@@ -618,6 +618,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         instances, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
+
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
 

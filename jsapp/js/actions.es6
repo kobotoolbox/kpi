@@ -244,16 +244,30 @@ actions.misc = Reflux.createActions({
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
 // `actions.resources` to separate file (circular dependency issue)
-permissionsActions.assignPerm.completed.listen(function(val){
-  actions.resources.loadAsset({url: val.content_object});
+permissionsActions.assignAssetPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
 });
-permissionsActions.copyPermissionsFrom.completed.listen(function(sourceUid, targetUid) {
-  actions.resources.loadAsset({id: targetUid});
+permissionsActions.removeAssetPermission.failed.listen(() => {
+  notify(t('Failed to remove permissions'), 'error');
 });
-permissionsActions.removePerm.completed.listen(function(uid){
+permissionsActions.assignCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.removeCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.assignAssetPermission.completed.listen((uid) => {
+  // needed to update publicShareSettings after enabling link sharing
   actions.resources.loadAsset({id: uid});
 });
-permissionsActions.setCollectionDiscoverability.completed.listen(function(val){
+permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) => {
+  actions.resources.loadAsset({id: targetUid});
+});
+permissionsActions.removeAssetPermission.completed.listen((uid) => {
+  // needed to update publicShareSettings after disabling link sharing
+  actions.resources.loadAsset({id: uid});
+});
+permissionsActions.setCollectionDiscoverability.completed.listen((val) => {
   actions.resources.loadAsset({url: val.url});
 });
 

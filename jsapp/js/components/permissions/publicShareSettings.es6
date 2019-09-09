@@ -5,7 +5,11 @@ import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import {t} from 'js/utils';
+import permConfig from 'js/components/permissions/permConfig';
+import {
+  t,
+  buildUserUrl
+} from 'js/utils';
 import {
   ROOT_URL,
   ANON_USERNAME
@@ -16,22 +20,29 @@ class PublicShareSettings extends React.Component {
     super(props);
     autoBind(this);
   }
-  togglePerms(permRole) {
-    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permRole;})[0];
+  togglePerms(permCodename) {
+    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permCodename;})[0];
+    let actionFn;
 
     if (permission) {
-      actions.permissions.removePerm({
-        permission_url: permission.url,
-        content_object_uid: this.props.uid
-      });
+      if (this.props.kind === 'collection') {
+        actionFn = actions.permissions.removeCollectionPermission;
+      } else {
+        actionFn = actions.permissions.removeAssetPermission;
+      }
+      actionFn(this.props.uid, permission.url);
     } else {
-      actions.permissions.assignPerm({
-        username: ANON_USERNAME,
-        uid: this.props.uid,
-        kind: this.props.kind,
-        objectUrl: this.props.objectUrl,
-        role: permRole === 'view_asset' ? 'view' : permRole
-      });
+      if (this.props.kind === 'collection') {
+        actionFn = actions.permissions.assignCollectionPermission;
+      } else {
+        actionFn = actions.permissions.assignAssetPermission;
+      }
+      actionFn(
+        this.props.uid, {
+          user: buildUserUrl(ANON_USERNAME),
+          permission: permConfig.getPermissionByCodename(permCodename).url
+        }
+      );
     }
   }
   render () {
