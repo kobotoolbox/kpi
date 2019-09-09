@@ -157,7 +157,7 @@ $z-form-view-fullscreen: 101;
   &.historyExpanded .form-view__cell--history-label,
   &.historyExpanded .form-view__cell--history-table {
     transition: 0.2s max-height;
-    max-height: 1250px;
+    max-height: 99999px;
   }
 
   &.historyExpanded .form-view__cell--history-table + .form-view__cell {
