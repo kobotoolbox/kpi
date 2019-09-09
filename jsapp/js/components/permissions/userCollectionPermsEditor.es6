@@ -8,14 +8,13 @@ import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
 import classNames from 'classnames';
+import permConfig from './permConfig';
 import {
   t,
-  notify
+  notify,
+  buildUserUrl
 } from 'js/utils';
-import {
-  ASSET_KINDS,
-  PERMISSIONS_CODENAMES
-} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 /**
  * Form for adding/changing user permissions for collections.
@@ -74,19 +73,21 @@ class UserCollectionPermissionsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
-    this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
+    this.listenTo(actions.permissions.assignCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.assignCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
+    this.listenTo(actions.permissions.removeCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.removeCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onAssignPermCompleted() {
+  onChangeCollectionPermissionCompleted() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(true);
     }
   }
 
-  onAssignPermFailed() {
+  onChangeCollectionPermissionFailed() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(false);
@@ -231,21 +232,16 @@ class UserCollectionPermissionsEditor extends React.Component {
     }
 
     if (permToRemove) {
-      actions.permissions.removePerm({
-        permission_url: permToRemove,
-        content_object_uid: this.props.uid
-      });
+      actions.permissions.removeCollectionPermission(this.props.uid, permToRemove);
       this.setState({isSubmitPending: true});
     }
     if (permToSet) {
-      actions.permissions.assignPerm({
-        username: this.state.username,
-        uid: this.props.uid,
-        kind: ASSET_KINDS.get('collection'),
-        objectUrl: this.props.objectUrl,
-        // OLD api appends part of permission codename based on asset kind
-        role: permToSet.replace('_collection', '')
-      });
+      actions.permissions.assignCollectionPermission(
+        this.props.uid, {
+          user: buildUserUrl(this.state.username),
+          permission: permConfig.getPermissionByCodename(permToSet).url
+        }
+      );
       this.setState({isSubmitPending: true});
     }
 
