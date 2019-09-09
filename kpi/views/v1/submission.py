@@ -150,4 +150,10 @@ class SubmissionViewSet(DataViewSet):
 
     ### CURRENT ENDPOINT
     """
-    pass
+
+    def list(self, request, *args, **kwargs):
+        format_type = kwargs.get('format', request.GET.get('format', 'json'))
+        deployment = self._get_deployment()
+        filters = self._filter_mongo_query(request)
+        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        return Response(list(submissions))

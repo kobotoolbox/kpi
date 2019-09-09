@@ -84,37 +84,37 @@ export class DataTable extends React.Component {
       });
       filterQuery += '}';
       dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
-        if (data.count) {
-          this.setState({resultsTotal: data.count});
-        }
+        this.setState({resultsTotal: data.count});
       });
     } else {
       this.setState({resultsTotal: this.props.asset.deployment__submission_count});
     }
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      if (data && data.length > 0) {
+      let results = data.results;
+
+      if (results && results.length > 0) {
         if (this.state.submissionPager == 'next') {
-          this.submissionModalProcessing(data[0]._id, data);
+          this.submissionModalProcessing(results[0]._id, results);
         }
         if (this.state.submissionPager == 'prev') {
-          this.submissionModalProcessing(data[data.length - 1]._id, data);
+          this.submissionModalProcessing(results[results.length - 1]._id, results);
         }
         this.setState({
           loading: false,
           selectedRows: {},
           selectAll: false,
-          tableData: data,
+          tableData: results,
           submissionPager: false
         });
-        this._prepColumns(data);
+        this._prepColumns(results);
       } else {
         if (filterQuery.length) {
           this.setState({
-            loading: false
+            loading: false,
+            selectedRows: {},
+            tableData: results
           });
-          // TODO: debounce the queries and then enable this notification
-          alertify.warning(t('The query did not return any results.'));
         } else {
           this.setState({error: t('This project has no submitted data. ' +
                                   'Please collect some and try again.'),
@@ -759,10 +759,22 @@ export class DataTable extends React.Component {
       }
     });
 
-    this.setState({
-      selectedRows: s,
-      selectAll: false
-    });
+    // If the entirety of the results has been selected, selectAll should be true
+    // Useful when the # of results is smaller than the page size.
+    var scount = Object.keys(s).length;
+
+    if (scount == this.state.resultsTotal) {
+      this.setState({
+        selectedRows: s,
+        selectAll: true
+      });
+    } else {
+      this.setState({
+        selectedRows: s,
+        selectAll: false
+      });
+    }
+
   }
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
@@ -840,7 +852,7 @@ export class DataTable extends React.Component {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Delete selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##', selectedCount),
+      message: t('You have selected ##count## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##count##', selectedCount),
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
       onok: () => {
         apiFn(this.props.asset.uid, data).done(() => {
@@ -868,7 +880,7 @@ export class DataTable extends React.Component {
     const { pageSize, currentPage, resultsTotal } = this.state;
 
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
-          res1 = (currentPage * pageSize) + 1,
+          res1 = (resultsTotal === 0) ? 0 : (currentPage * pageSize) + 1,
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
           showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
           selected = this.state.selectedRows,
@@ -878,13 +890,12 @@ export class DataTable extends React.Component {
     if (this.state.selectAll) {
       selectedCount = resultsTotal;
     }
-    const selectedLabel = t('## selected').replace('##', selectedCount);
+    const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
 
     return (
       <bem.FormView__item m='table-meta'>
         <span>{showingResults}</span>
-
-        {this.state.selectAll &&
+        {selectedCount > 1 &&
           <span>
             <a className='select-all' onClick={this.clearSelection}>
               {t('Clear selection')}
@@ -899,7 +910,7 @@ export class DataTable extends React.Component {
           resultsTotal > pageSize &&
           <span>
             <a className='select-all' onClick={this.bulkSelectAll}>
-              {t('Select all ##').replace('##', resultsTotal)}
+              {t('Select all ##count##').replace('##count##', resultsTotal)}
             </a>
           </span>
         }
@@ -997,7 +1008,7 @@ export class DataTable extends React.Component {
           columns={selectedColumns || columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={1}
+          minRows={0}
           className={tableClasses}
           pages={pages}
           manual
@@ -1011,7 +1022,7 @@ export class DataTable extends React.Component {
               {t('Loading...')}
             </span>
           }
-          noDataText={t('No rows found')} // TODO: fix display
+          noDataText={t('Your filters returned no submissions.')} 
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}

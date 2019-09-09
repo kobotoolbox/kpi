@@ -114,6 +114,9 @@ class MongoHelper(object):
             fields_to_select = {cls.USERFORM_ID: 0}
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
+
+        total_count = cursor.count()
+
         cursor.skip(start)
         if limit is not None:
             cursor.limit(limit)
@@ -127,7 +130,7 @@ class MongoHelper(object):
         # set batch size
         cursor.batch_size = cls.DEFAULT_BATCHSIZE
 
-        return cursor
+        return cursor, total_count
 
     @classmethod
     def is_attribute_invalid(cls, key):

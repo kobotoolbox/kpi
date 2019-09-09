@@ -36,6 +36,7 @@ class SharingForm extends React.Component {
   componentDidMount () {
     this.listenTo(stores.asset, this.onAssetChange);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onGetAssetPermissionsCompleted);
+    this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onGetCollectionPermissionsCompleted);
 
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
@@ -43,6 +44,18 @@ class SharingForm extends React.Component {
   }
 
   onGetAssetPermissionsCompleted(response) {
+    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+    let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
+      return perm.user !== buildUserUrl(this.state.asset.owner);
+    });
+
+    this.setState({
+      permissions: parsedPerms,
+      nonOwnerPerms: nonOwnerPerms
+    });
+  }
+
+  onGetCollectionPermissionsCompleted(response) {
     const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
     let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);

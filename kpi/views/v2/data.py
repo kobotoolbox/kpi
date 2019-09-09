@@ -4,12 +4,14 @@ from __future__ import unicode_literals, absolute_import
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import exceptions, renderers, serializers, viewsets
+from rest_framework import renderers, serializers, viewsets
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import Asset
+from kpi.paginators import DataPagination
 from kpi.permissions import (
     EditSubmissionPermission,
     SubmissionPermission,
@@ -20,7 +22,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.ViewSet):
+                  viewsets.GenericViewSet):
     """
     ## List of submissions for a specific asset
 
@@ -158,6 +160,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                         SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
+    pagination_class = DataPagination
 
     def _get_deployment(self):
         """
@@ -190,20 +193,39 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                            params=request.GET)
         return Response(**json_response)
 
+    def get_queryset(self):
+        # This method is needed when pagination is activated and renderer is
+        # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
+        # `retrieve()` don't need Django Queryset, we only need return `None`.
+        return None
+
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         submissions = deployment.get_submissions(format_type=format_type, **filters)
+        # Create a dummy list to let the Paginator do all the calculation
+        # for pagination because it does not need the list of real objects.
+        # It avoids to retrieve all the objects from MongoDB
+        dummy_submissions_list = [None] * deployment.current_submissions_count
+        page = self.paginate_queryset(dummy_submissions_list)
+        if page is not None:
+            return self.get_paginated_response(submissions)
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submission = deployment.get_submission(pk, format_type=format_type, **filters)
-        if not submission:
+        try:
+            submission = deployment.get_submission(positive_int(pk),
+                                                   format_type=format_type,
+                                                   **filters)
+        except ValueError:
             raise Http404
+        else:
+            if not submission:
+                raise Http404
         return Response(submission)
 
     @detail_route(methods=['GET', 'PATCH', 'DELETE'],
@@ -251,12 +273,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # submissions at one time
         limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
         try:
-            limit = int(limit)
+            filters['limit'] = positive_int(limit,
+                                            strict=True,
+                                            cutoff=settings.SUBMISSION_LIST_LIMIT)
         except ValueError:
-            raise exceptions.ValidationError(
-                {'limit': _('A valid integer is required')}
+            raise serializers.ValidationError(
+                {'limit': _('A positive integer is required')}
             )
-        filters['limit'] = min(limit, settings.SUBMISSION_LIST_LIMIT)
         permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
         # This should overwrite existing `permission_filters` param.

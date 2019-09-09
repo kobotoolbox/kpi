@@ -56,6 +56,12 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # data should be str, but in case it's a dict, return as XML.
         # e.g. It happens with 404
         if isinstance(data, dict):
+            # FIXME ValidationError in XML are not rendered correctly
+            # because `dicttoxml` doesn't support
+            # `rest_framework.exceptions.ErrorDetail` type.
+
+            # FIXME new `v2` list endpoint enters this block
+            # Submissions are wrapped in `<item>` nodes.
             return dicttoxml(data, attr_type=False)
 
         if renderer_context.get("view").action == "list":

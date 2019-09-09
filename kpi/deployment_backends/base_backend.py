@@ -6,6 +6,7 @@ import json
 from bson import json_util, ObjectId
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions
+from rest_framework.pagination import _positive_int as positive_int
 
 
 class BaseDeploymentBackend(object):
@@ -14,6 +15,8 @@ class BaseDeploymentBackend(object):
 
     def __init__(self, asset):
         self.asset = asset
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
+        self.current_submissions_count = 0
 
     def store_data(self, vals=None):
         self.asset._deployment_data.update(vals)
@@ -60,18 +63,14 @@ class BaseDeploymentBackend(object):
                 )
 
         try:
-            start = int(start)
-            if start < 0:
-                raise ValueError
+            start = positive_int(start)
         except ValueError:
             raise exceptions.ValidationError(
                 {'start': _('A positive integer is required.')}
             )
         try:
             if limit is not None:
-                limit = int(limit)
-                if limit < 0:
-                    raise ValueError
+                limit = positive_int(limit, strict=True)
         except ValueError:
             raise exceptions.ValidationError(
                 {'limit': _('A positive integer is required.')}

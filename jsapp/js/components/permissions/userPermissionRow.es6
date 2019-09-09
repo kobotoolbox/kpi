@@ -41,45 +41,37 @@ class UserPermissionRow extends React.Component {
 
   removePermissions() {
     const dialog = alertify.dialog('confirm');
-
-    let okCallback;
-    if (this.props.kind === ASSET_KINDS.get('asset')) {
-      okCallback = this.removeAssetPermission;
-    } else if (this.props.kind === ASSET_KINDS.get('collection')) {
-      okCallback = this.removeCollectionPermissions;
-    }
-
     const opts = {
       title: t('Remove permissions?'),
       message: t('This action will remove all permissions for user ##username##').replace('##username##', `<strong>${this.props.user.name}</strong>`),
       labels: {ok: t('Remove'), cancel: t('Cancel')},
-      onok: okCallback,
+      onok: this.removeAllPermissions,
       oncancel: dialog.destroy
     };
     dialog.set(opts).show();
   }
 
-  removeAssetPermission() {
-    this.setState({isBeingDeleted: true});
-    // we remove "view_asset" permission, as it is the most basic one, so removing it
-    // will in fact remove all permissions
-    const userViewAssetPerm = this.props.permissions.find((perm) => {
-      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-    });
-    actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
-  }
+  /**
+   * Note: we remove "view_asset"/"view_collection" permission, as it is
+   * the most basic one, so removing it will in fact remove all permissions
+   */
+  removeAllPermissions() {
+    let actionFn;
+    let targetPermUrl;
+    if (this.props.kind === ASSET_KINDS.get('asset')) {
+      actionFn = actions.permissions.removeAssetPermission;
+      targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
+    } else if (this.props.kind === ASSET_KINDS.get('collection')) {
+      actionFn = actions.permissions.removeCollectionPermission;
+      targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
+    }
 
-  removeCollectionPermissions() {
     this.setState({isBeingDeleted: true});
-    // we remove "view_collection" permission, as it is the most basic one, so removing it
-    // will in fact remove all permissions
-    const userViewCollectionPerm = this.props.permissions.find((perm) => {
-      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
+
+    const userViewAssetPerm = this.props.permissions.find((perm) => {
+      return perm.permission === targetPermUrl;
     });
-    actions.permissions.removePerm({
-      permission_url: userViewCollectionPerm.url,
-      content_object_uid: this.props.uid
-    });
+    actionFn(this.props.uid, userViewAssetPerm.url);
   }
 
   onPermissionsEditorSubmitEnd(isSuccess) {
