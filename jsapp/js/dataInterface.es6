@@ -84,20 +84,19 @@ var dataInterface;
       return $.getJSON(`${ROOT_URL}/api/v2/collections/?all_public=true`);
     },
     createAssetSnapshot (data) {
-      // Temporary fix
-      // ToDo when PR#2378 is merged, remove logic and
-      // use `${ROOT_URL}/api/v2/asset_snapshots/` directly
-      let v2Prefix = '/api/v2',
-          url = `${ROOT_URL}/asset_snapshots/`;
-
-      if ('asset' in data && data['asset'].indexOf(`${ROOT_URL}${v2Prefix}`) === 0) {
-        url = `${ROOT_URL}${v2Prefix}/asset_snapshots/`
-      }
-
       return $ajax({
-        url: url,
+        url: `${ROOT_URL}/api/v2/asset_snapshots/`,
         method: 'POST',
         data: data
+      });
+    },
+    createTemporaryAssetSnapshot ({source}) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/asset_snapshots/`,
+        method: 'POST',
+        data: {
+          source: source
+        }
       });
     },
 
@@ -176,25 +175,6 @@ var dataInterface;
 
       return $ajax({
         url: `${ROOT_URL}/reports/${data.uid}/${identifierString}`,
-      });
-    },
-    createTemporaryAssetSnapshot ({source}) {
-      // Temporary fix
-      // ToDo when PR#2378 is merged, remove logic and
-      // use `${ROOT_URL}/api/v2/asset_snapshots/` directly
-      let v2Prefix = '/api/v2',
-          url = `${ROOT_URL}/asset_snapshots/`;
-
-      if ('asset' in source && source['asset'].indexOf(`${ROOT_URL}${v2Prefix}`) === 0) {
-        url = `${ROOT_URL}${v2Prefix}/asset_snapshots/`
-      }
-
-      return $ajax({
-        url: url,
-        method: 'POST',
-        data: {
-          source: source
-        }
       });
     },
     cloneAsset ({uid, name, version_id, new_asset_type}) {
