@@ -3,8 +3,8 @@
 from __future__ import absolute_import, unicode_literals
 import re
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.utils.six import text_type
 from rest_framework import status
 
 from .base_backend import BaseDeploymentBackend
@@ -19,8 +19,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     # TODO. Stop using protected property `_deployment_data`.
     """
-
-    INSTANCE_ID_FIELDNAME = "id"
 
     def bulk_assign_mapped_perms(self):
         pass
@@ -174,19 +172,25 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         if len(instance_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
+                instance_ids = [text_type(instance_id) for instance_id in instance_ids]
                 # ugly way to find matches, but it avoids to load each xml in memory.
-                pattern = "|".join(instance_ids)
+                pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
+                    instance_ids='|'.join(instance_ids),
+                    id_field=self.INSTANCE_ID_FIELDNAME
+                )
                 submissions = [submission for submission in submissions
-                               if re.search(r"<id>({})<\/id>".format(pattern), submission)]
+                               if re.search(pattern, submission)]
             else:
+                instance_ids = [int(instance_id) for instance_id in instance_ids]
                 submissions = [submission for submission in submissions
-                               if submission.get('id') in map(int, instance_ids)]
+                               if submission.get(self.INSTANCE_ID_FIELDNAME)
+                               in instance_ids]
 
         if permission_filters:
             submitted_by = [k.get('_submitted_by') for k in permission_filters]
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 # TODO handle `submitted_by` too.
-                pass
+                raise NotImplementedError
             else:
                 submissions = [submission for submission in submissions
                                if submission.get('_submitted_by') in submitted_by]
@@ -199,34 +203,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submissions = submissions[:params['limit']]
 
         return submissions
-
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns submission if `pk` exists otherwise `None`
-
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
-        """
-
-        submissions = list(self.get_submissions(requesting_user_id,
-                                                format_type, [pk],
-                                                **kwargs))
-        try:
-            return submissions[0]
-        except IndexError:
-            pass
-        return None
 
     def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(submission_pk, user.id,
@@ -250,7 +226,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             "has_kpi_hooks": has_active_hooks,
         })
 
-    def _calculated_submission_count(self, **kwargs):
-        requesting_user_id = kwargs.pop('requesting_user_id')
-        instances = self.get_submissions(requesting_user_id, **kwargs)
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      count=True,
+                                                      **kwargs)
+        instances = self.get_submissions(requesting_user_id, **params)
         return len(instances)

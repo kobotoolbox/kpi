@@ -15,6 +15,8 @@ class BaseDeploymentBackend(object):
 
     # TODO. Stop using protected property `_deployment_data`.
 
+    INSTANCE_ID_FIELDNAME = '_id'
+
     def __init__(self, asset):
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
@@ -148,14 +150,7 @@ class BaseDeploymentBackend(object):
         return params
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
-
-        params = self.validate_submission_list_params(requesting_user_id,
-                                                      count=True,
-                                                      **kwargs)
-        if self.__class__.__name__ == 'MockDeploymentBackend':
-            params['requesting_user_id'] = requesting_user_id
-
-        return self._calculated_submission_count(**params)
+        raise NotImplementedError('This method should be implemented in subclasses')
 
     @property
     def backend(self):
@@ -189,3 +184,30 @@ class BaseDeploymentBackend(object):
     def mongo_userform_id(self):
         return None
 
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns submission if `pk` exists otherwise `None`
+
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [int(pk)],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
+        return None

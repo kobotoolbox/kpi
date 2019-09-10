@@ -709,9 +709,9 @@ export class DataTable extends React.Component {
 
     if (params.type !== MODAL_TYPES.TABLE_COLUMNS && !params.sid) {
       let fetchInstance = this.state.fetchInstance;
-      if (params.page == 'next')
+      if (params.page === 'next')
         page = this.state.currentPage + 1;
-      if (params.page == 'prev')
+      if (params.page === 'prev')
         page = this.state.currentPage - 1;
 
       fetchInstance.setState({ page: page });
@@ -732,7 +732,7 @@ export class DataTable extends React.Component {
     this.setState({ promptRefresh: false });
   }
   bulkUpdateChange(sid, isChecked) {
-    var selectedRows = this.state.selectedRows;
+    let selectedRows = this.state.selectedRows;
 
     if (isChecked) {
       selectedRows[sid] = true;
@@ -746,7 +746,7 @@ export class DataTable extends React.Component {
     });
   }
   bulkSelectAllRows(isChecked) {
-    var s = this.state.selectedRows;
+    let s = this.state.selectedRows;
 
     this.state.tableData.forEach(function(r) {
       if (isChecked) {
@@ -758,9 +758,9 @@ export class DataTable extends React.Component {
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
-    var scount = Object.keys(s).length;
+    let scount = Object.keys(s).length;
 
-    if (scount == this.state.resultsTotal) {
+    if (scount === this.state.resultsTotal) {
       this.setState({
         selectedRows: s,
         selectAll: true

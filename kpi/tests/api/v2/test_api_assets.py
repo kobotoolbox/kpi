@@ -325,14 +325,14 @@ class AssetsDetailApiTests(BaseTestCase):
                 "__version__": self.asset.latest_deployed_version.uid,
                 "q1": "a1",
                 "q2": "a2",
-                "id": 1,
+                "_id": 1,
                 "_submitted_by": ""
             },
             {
                 "__version__": self.asset.latest_deployed_version.uid,
                 "q1": "a3",
                 "q2": "a4",
-                "id": 2,
+                "_id": 2,
                 "_submitted_by": anotheruser.username
             }
         ]

@@ -33,8 +33,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     "self.asset._deployment_data" JSONField.
     """
 
-    INSTANCE_ID_FIELDNAME = '_id'
-
     def bulk_assign_mapped_perms(self):
         """
         Bulk assign all `kc` permissions related to `kpi` permissions.
@@ -488,34 +486,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns submission if `pk` exists otherwise `None`
-
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
-        """
-
-        submissions = list(self.get_submissions(requesting_user_id,
-                                                format_type, [int(pk)],
-                                                **kwargs))
-        try:
-            return submissions[0]
-        except IndexError:
-            pass
-        return None
-
     def get_submissions(self, requesting_user_id,
                         format_type=INSTANCE_FORMAT_TYPE_JSON,
                         instance_ids=[], **kwargs):
@@ -605,8 +575,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def _calculated_submission_count(self, **kwargs):
-        return MongoHelper.get_count(self.mongo_userform_id, **kwargs)
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      count=True,
+                                                      **kwargs)
+        return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def __get_submissions_in_json(self, **params):
         """
@@ -642,11 +615,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if use_mongo:
             # We use Mongo to retrieve matching instances.
             # Get only their ids and pass them to PostgreSQL.
-            params['fields'] = ['_id']
-            # Force `sort` by `_id` for Mongo (see fixme above)
-            params['sort'] = {'_id': 1}
-            instance_ids = [instance.get('_id') for instance in
-                            MongoHelper.get_instances(self.mongo_userform_id, **params)]
+            params['fields'] = [self.INSTANCE_ID_FIELDNAME]
+            # Force `sort` by `_id` for Mongo
+            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+            params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
+            instances, _ = MongoHelper.get_instances(self.mongo_userform_id,
+                                                     **params)
+            instance_ids = [instance.get(self.INSTANCE_ID_FIELDNAME) for instance in
+                            instances]
 
         queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,
@@ -659,7 +635,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = queryset.count()
 
-        # Force Sort by id (see `BaseDeploymentBackend`:L53)
+        # Force Sort by id
+        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
         queryset = queryset.order_by('id')
 
         # When using Mongo, data is already paginated, no need to do it with PostgreSQL too.
