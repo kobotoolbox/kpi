@@ -55,7 +55,7 @@ const permissions = {
         '/api/v2/permissions/validate_submissions/'
       ],
       'name': '',
-      'description': 'Can make partial actions onsubmitted data for asset for specific users'
+      'description': 'Can make partial actions on submitted data for asset for specific users'
     },
     {
       'url': '/api/v2/permissions/validate_submissions/',

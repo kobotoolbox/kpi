@@ -499,7 +499,7 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on'
+            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on '
                                          'submitted data for asset '
                                          'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
