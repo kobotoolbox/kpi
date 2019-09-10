@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const BundleTracker = require('webpack-bundle-tracker');
-const StyleLintPlugin = require('stylelint-webpack-plugin');
 var merge = require('lodash.merge');
 
 // HACK: we needed to define this postcss-loader because of a problem with
@@ -24,10 +23,13 @@ var defaultOptions = {
   module: {
     rules: [
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         loader: 'eslint-loader',
+        options: {
+          quiet: true
+        }
       },
       {
         test: /\.(js|jsx|es6)$/,
@@ -35,8 +37,8 @@ var defaultOptions = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["env","react"],
-            plugins: ["add-module-exports", "react-hot-loader/babel"]
+            presets: ['env', 'react'],
+            plugins: ['add-module-exports', 'react-hot-loader/babel']
           }
         }
       },
@@ -56,7 +58,7 @@ var defaultOptions = {
       },
       {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
-        use : {
+        use: {
           loader: 'file-loader',
           options: {
             name: '[name].[ext]'
@@ -75,15 +77,9 @@ var defaultOptions = {
     }
   },
   plugins: [
-    new StyleLintPlugin({
-      failOnError: false,
-      emitErrors: true,
-      syntax: 'scss',
-      files: './jsapp/**/*.scss'
-    }),
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
   ]
-}
+};
 
 module.exports = function (options) {
   options = merge(defaultOptions, options || {});

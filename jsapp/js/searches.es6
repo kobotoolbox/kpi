@@ -1,8 +1,10 @@
-/*
- the 'searches' modules provides a combination of
- Reflux.actions and Reflux.stores which trigger and store
- searches in different contexts.
-*/
+/**
+ * This module provides a combination of Reflux actions and stores that trigger
+ * and keep searches data in different contexts. Most of the times it should be
+ * your de facto way of getting a lists of assets, as to use global search
+ * context everywhere.
+ */
+
 import _ from 'underscore';
 import Reflux from 'reflux';
 import $ from 'jquery';

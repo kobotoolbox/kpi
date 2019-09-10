@@ -351,12 +351,14 @@ module.exports = do ->
 
   configs.truthyValues = [
     "yes",
+    "YES",
     "true",
     "true()",
     "TRUE",
   ]
   configs.falsyValues = [
     "no",
+    "NO",
     "false",
     "false()",
     "FALSE",

@@ -1,3 +1,7 @@
+/**
+ * A list of all shareable constants for the application.
+ */
+
 import {t} from './utils';
 
 const HOOK_LOG_STATUSES = {

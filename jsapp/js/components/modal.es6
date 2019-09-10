@@ -1,9 +1,27 @@
+/**
+ * Custom modal component for displaying complex modals.
+ *
+ * It allows for displaying single modal at a time, as there is only single
+ * modal element with adjustable title content.
+ *
+ * To display a modal, you need to use `pageState` store with `showModal` method:
+ *
+ * ```
+ * stores.pageState.showModal({
+ *   type: MODAL_TYPES.NEW_FORM
+ * });
+ * ```
+ *
+ * Each modal type uses different props, you can add them in the above object.
+ *
+ * There are also two other important methods: `hideModal` and `switchModal`.
+ */
+
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
@@ -264,7 +282,11 @@ class Modal extends React.Component {
               />
             }
             { this.props.params.type == MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
-              <TranslationTable asset={this.props.params.asset} langIndex={this.props.params.langIndex} />
+              <TranslationTable
+                asset={this.props.params.asset}
+                langString={this.props.params.langString}
+                langIndex={this.props.params.langIndex}
+              />
             }
         </ui.Modal.Body>
       </ui.Modal>

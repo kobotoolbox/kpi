@@ -78,8 +78,8 @@ class FormSummary extends React.Component {
     }
   }
   prepSubmissions(assetid) {
-    var wkStart = this.state.chartPeriod == 'week' ? moment().subtract(6, 'days') : moment().subtract(30, 'days');
-    var lastWeekStart = this.state.chartPeriod == 'week' ? moment().subtract(13, 'days') : moment().subtract(60, 'days');
+    var wkStart = this.state.chartPeriod == 'week' ? moment().startOf('days').subtract(6, 'days') : moment().startOf('days').subtract(30, 'days');
+    var lastWeekStart = this.state.chartPeriod == 'week' ? moment().startOf('days').subtract(13, 'days') : moment().startOf('days').subtract(60, 'days');
 
     const query = `query={"_submission_time": {"$gte":"${wkStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
     dataInterface.getSubmissionsQuery(assetid, query).done((thisWeekSubs) => {
@@ -95,8 +95,12 @@ class FormSummary extends React.Component {
             subsPerDay = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
           thisWeekSubs.forEach(function(s, i){
-            var d = moment(s._submission_time);
-            var diff = d.diff(wkStart, 'days');
+            // As submission times are in UTC,
+            // this will get the computer timezone difference with UTC
+            // and adapt the submission date to reflect that in the chart.
+            var d = new Date(s._submission_time);
+            var timezoneToday = moment(d.valueOf() - (d.getTimezoneOffset() * 60 * 1000));
+            var diff = timezoneToday.diff(wkStart, 'days');
             subsPerDay[diff] += 1;
           });
 
@@ -163,10 +167,10 @@ class FormSummary extends React.Component {
               <span className='subs-graph-number'>{this.state.subsCurrentPeriod}</span>
               <bem.FormView__label>
                 {this.state.chartPeriod=='week' &&
-                  `${t('Today')} - ${formatDate(moment().subtract(6, 'days'))}`
+                  `${formatDate(moment().subtract(6, 'days'))} - ${formatDate(moment())}`
                 }
                 {this.state.chartPeriod!='week' &&
-                  `${t('Today')} - ${formatDate(moment().subtract(30, 'days'))}`
+                  `${formatDate(moment().subtract(30, 'days'))} - ${formatDate(moment())}`
                 }
               </bem.FormView__label>
             </bem.FormView__cell>
@@ -174,10 +178,10 @@ class FormSummary extends React.Component {
               <span className='subs-graph-number'>{this.state.subsPreviousPeriod}</span>
               <bem.FormView__label>
                 {this.state.chartPeriod=='week' &&
-                  `${formatDate(moment().subtract(7, 'days'))} - ${formatDate(moment().subtract(13, 'days'))}`
+                  `${formatDate(moment().subtract(13, 'days'))} - ${formatDate(moment().subtract(7, 'days'))}`
                 }
                 {this.state.chartPeriod!='week' &&
-                  `${formatDate(moment().subtract(31, 'days'))} - ${formatDate(moment().subtract(60, 'days'))}`
+                  `${formatDate(moment().subtract(60, 'days'))} - ${formatDate(moment().subtract(31, 'days'))}`
                 }
               </bem.FormView__label>
             </bem.FormView__cell>

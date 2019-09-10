@@ -10,7 +10,7 @@
   height: 40px;
   min-height: 40px;
   line-height: 40px;
-  padding: 0px 24px;
+  padding: 0 24px;
   margin: 0;
   border: none;
   border-radius: 2px;
@@ -23,6 +23,10 @@
   outline: none;
   cursor: pointer;
   color: $cool-gray;
+
+  &[data-tip] {
+    overflow: visible;
+  }
 
   &::-moz-focus-inner {
     border: 0;
@@ -43,6 +47,7 @@
 
   &.mdl-button--colored.mdl-button--danger {
     color: $cool-red;
+
     &:hover {
       color: darken($cool-red, 20%);
     }
@@ -50,6 +55,7 @@
 
   &.mdl-button--colored.mdl-button--warning {
     color: $cool-orange;
+
     &:hover {
       color: darken($cool-orange, 20%);
     }
@@ -70,31 +76,31 @@ input.mdl-button[type="submit"] {
 
   &.mdl-button--colored {
     background: $cool-blue;
-    color: #FFF;
+    color: $white;
 
     &:hover {
       background-color: darken($cool-blue, 5%);
-      color: #FFF;
+      color: $white;
     }
   }
 
   &.mdl-button--colored.mdl-button--danger {
     background: $cool-red;
-    color: #FFF;
+    color: $white;
 
     &:hover {
       background-color: darken($cool-red, 5%);
-      color: #FFF;
+      color: $white;
     }
   }
 
   &.mdl-button--colored.mdl-button--warning {
     background: $cool-orange;
-    color: #FFF;
+    color: $white;
 
     &:hover {
       background-color: darken($cool-orange, 5%);
-      color: #FFF;
+      color: $white;
     }
   }
 }
@@ -113,7 +119,7 @@ input.mdl-button[type="submit"] {
 
 // Tab buttons
 .mdl-button--tab {
-  color: #FFF;
+  color: $white;
   opacity: 0.7;
   border-radius: 0;
   border-bottom: 2px solid transparent;
@@ -121,11 +127,11 @@ input.mdl-button[type="submit"] {
   transition: opacity 0.2s;
   height: 50px;
   line-height: 50px;
-  padding: 0px 32px;
+  padding: 0 32px;
 
   &:hover {
     opacity: 1;
-    color: #FFF;
+    color: $white;
     transition: opacity 0.2s;
   }
 
@@ -147,7 +153,7 @@ input.mdl-button[type="submit"] {
     pointer-events: none;
   }
 
-  &--raised {
+  &.mdl-button--raised {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
@@ -157,7 +163,7 @@ input.mdl-button[type="submit"] {
     }
   }
 
-  &--colored {
+  &.mdl-button--colored {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
@@ -168,6 +174,6 @@ input.mdl-button[type="submit"] {
 
 @media screen and (max-width: 767px) {
   .mdl-button {
-    padding: 0px 12px;
+    padding: 0 12px;
   }
 }

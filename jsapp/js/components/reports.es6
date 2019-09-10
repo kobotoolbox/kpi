@@ -735,7 +735,7 @@ class Reports extends React.Component {
       showCustomReportModal: false,
       currentCustomReport: false,
       currentQuestionGraph: false,
-      groupBy: []
+      groupBy: ''
     };
     autoBind(this);
   }
@@ -758,24 +758,30 @@ class Reports extends React.Component {
     stores.allAssets.whenLoaded(uid, (asset)=>{
       let rowsByKuid = {};
       let rowsByIdentifier = {};
-      let names = [],
-          groupBy = [],
+      let groupBy = '',
           reportStyles = asset.report_styles,
           reportCustom = asset.report_custom;
 
-      if (!this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined)
-        groupBy = reportStyles.default.groupDataBy;
-
-      if (this.state.currentCustomReport && this.state.currentCustomReport.reportStyle.groupDataBy)
+      if (
+        this.state.currentCustomReport &&
+        this.state.currentCustomReport.reportStyle &&
+        this.state.currentCustomReport.reportStyle.groupDataBy
+      ) {
         groupBy = this.state.currentCustomReport.reportStyle.groupDataBy;
+      } else if (reportStyles.default.groupDataBy !== undefined) {
+        groupBy = reportStyles.default.groupDataBy;
+      }
 
       // TODO: improve the defaults below
-      if (reportStyles.default.report_type === undefined)
+      if (reportStyles.default.report_type === undefined) {
         reportStyles.default.report_type = 'vertical';
-      if (reportStyles.default.translationIndex === undefined)
+      }
+      if (reportStyles.default.translationIndex === undefined) {
         reportStyles.default.translationIndex = 0;
-      if (reportStyles.default.groupDataBy === undefined)
+      }
+      if (reportStyles.default.groupDataBy === undefined) {
         reportStyles.default.groupDataBy = '';
+      }
 
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
@@ -787,7 +793,7 @@ class Reports extends React.Component {
           rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, identifiers: names, group_by: groupBy}).done((data)=> {
+        dataInterface.getReportData({uid: uid, identifiers: [], group_by: groupBy}).done((data)=> {
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
@@ -815,9 +821,9 @@ class Reports extends React.Component {
             error: false
           });
         }).fail((err)=> {
-          if (groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
+          if (groupBy && groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
             // reset default report groupBy if it fails and notify user
-            reportStyles.default.groupDataBy = [];
+            reportStyles.default.groupDataBy = '';
             this.setState({
               reportStyles: reportStyles
             });
@@ -841,7 +847,7 @@ class Reports extends React.Component {
         rowsByIdentifier = this.state.rowsByIdentifier,
         customReport = this.state.currentCustomReport;
 
-    var groupBy = [];
+    var groupBy = '';
 
     if (!customReport && this.state.reportStyles.default.groupDataBy !== undefined)
       groupBy = this.state.reportStyles.default.groupDataBy;

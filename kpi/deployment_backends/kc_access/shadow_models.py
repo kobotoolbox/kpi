@@ -28,6 +28,14 @@ class ShadowModel(models.Model):
     class Meta:
         managed = False
         abstract = True
+        # TODO find out why it raises a warning when user logs in.
+        # ```
+        #   RuntimeWarning: Model '...' was already registered.
+        #   Reloading models is not advised as it can lead to inconsistencies,
+        #   most notably with related models
+        # ```
+        # Maybe because `SHADOW_MODEL_APP_LABEL` is not declared in `INSTALLED_APP`
+        # It's just used for `DefaultDatabaseRouter` conditions.
         app_label = SHADOW_MODEL_APP_LABEL
 
     @staticmethod
