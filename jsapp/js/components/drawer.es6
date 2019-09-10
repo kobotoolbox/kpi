@@ -146,7 +146,7 @@ class Drawer extends Reflux.Component {
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' />
+          <DrawerLink label={t('Forms')} linkto='/forms' ki-icon='projects' />
           <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' />
         </bem.KDrawer__primaryIcons>
 

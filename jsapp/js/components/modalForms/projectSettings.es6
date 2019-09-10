@@ -128,7 +128,7 @@ class ProjectSettings extends React.Component {
   getBaseTitle() {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
-        return t('Create project');
+        return t('Create form');
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return t('Replace form');
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
@@ -144,7 +144,7 @@ class ProjectSettings extends React.Component {
       case this.STEPS.CHOOSE_TEMPLATE: return t('Choose template');
       case this.STEPS.UPLOAD_FILE: return t('Upload XLSForm');
       case this.STEPS.IMPORT_URL: return t('Import XLSForm');
-      case this.STEPS.PROJECT_DETAILS: return t('Project details');
+      case this.STEPS.PROJECT_DETAILS: return t('Form details');
       default: return '';
     }
   }
@@ -788,7 +788,7 @@ class ProjectSettings extends React.Component {
               </label>
               <input type='text'
                 id='name'
-                placeholder={t('Enter title of project here')}
+                placeholder={t('Enter title of form here')}
                 value={this.state.name}
                 onChange={this.onNameChange}
               />
@@ -868,7 +868,7 @@ class ProjectSettings extends React.Component {
                 disabled={this.state.isSubmitPending}
               >
                 {this.state.isSubmitPending && t('Please wait…')}
-                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create form')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
             </bem.Modal__footer>
