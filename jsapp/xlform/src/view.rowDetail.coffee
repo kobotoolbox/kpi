@@ -202,14 +202,14 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins.guidance_hint =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Guidance hint"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Hint"), 'text'
     afterRender: ->
       @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.constraint_message =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Error Message"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Constraint Message"), 'text'
     insertInDOM: (rowView)->
       @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
     afterRender: ->
@@ -272,7 +272,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Data column name"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Name"), 'text'
     afterRender: ->
       @listenForInputChange(transformFn: (value)=>
         value_chars = value.split('')
