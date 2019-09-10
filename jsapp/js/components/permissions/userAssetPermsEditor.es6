@@ -336,7 +336,9 @@ class UserAssetPermsEditor extends React.Component {
     };
   }
 
-  submit() {
+  submit(evt) {
+    evt.preventDefault();
+
     if (!this.isSubmitEnabled()) {
       return;
     }
@@ -358,6 +360,8 @@ class UserAssetPermsEditor extends React.Component {
       // if nothing changes but user submits, just notify parent we're good
       this.notifyParentAboutSubmitEnd(true);
     }
+
+    return false;
   }
 
   render() {
