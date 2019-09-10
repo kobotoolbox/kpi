@@ -205,7 +205,9 @@ class UserCollectionPermissionsEditor extends React.Component {
     );
   }
 
-  submit() {
+  submit(evt) {
+    evt.preventDefault();
+
     if (!this.isSubmitEnabled()) {
       return;
     }
@@ -254,6 +256,8 @@ class UserCollectionPermissionsEditor extends React.Component {
     ) {
       this.props.onSubmitEnd(true);
     }
+
+    return false;
   }
 
   render() {
