@@ -282,7 +282,7 @@ module.exports = do ->
         @model.set 'value', value
         @model.deduplicate @model.getSurvey()
       )
-      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || $modelUtils.sluggifyLabel @model._parent.getValue('label'))
+      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || '')
       update_view()
 
       @model._parent.get('label').on 'change:value', update_view
