@@ -299,7 +299,7 @@ export default assign({
       evt.preventDefault();
     }
 
-    if (this.state.settings__style) {
+    if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
 
