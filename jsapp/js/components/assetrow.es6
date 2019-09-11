@@ -329,15 +329,6 @@ class AssetRow extends React.Component {
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
-              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit && isDeployable &&
-                <bem.PopoverMenu__link
-                    m={'deploy'}
-                    data-action={'deploy'}
-                    data-asset-type={this.props.kind}>
-                  <i className='k-icon-deploy' />
-                  {t('Deploy this project')}
-                </bem.PopoverMenu__link>
-              }
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
                 <bem.PopoverMenu__link
                       m={'unarchive'}

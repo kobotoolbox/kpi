@@ -197,7 +197,7 @@ class SearchCollectionList extends Reflux.Component {
     let display;
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       display = 'grouped';
-      docTitle = t('Projects');
+      docTitle = t('Forms');
     } else {
       display = 'regular';
       docTitle = t('Library');
