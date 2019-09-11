@@ -378,13 +378,13 @@ export class FormLanding extends React.Component {
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
               <i className='k-icon-share'/>
-              {t('Share this project')}
+              {t('Share this form')}
             </bem.PopoverMenu__link>
           }
 
           <bem.PopoverMenu__link onClick={this.saveCloneAs}>
             <i className='k-icon-clone'/>
-            {t('Clone this project')}
+            {t('Clone this form')}
           </bem.PopoverMenu__link>
 
           <bem.PopoverMenu__link
