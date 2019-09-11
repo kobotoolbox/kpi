@@ -15,11 +15,11 @@ import {
   t,
   assign,
   currentLang,
-  LANGUAGE_COOKIE_NAME,
   stringToColor,
 } from '../utils';
 import searches from '../searches';
 import {ListSearch} from '../components/list';
+import {NAME_MAX_LENGTH} from 'js/constants';
 
 let typingTimer;
 
@@ -275,6 +275,7 @@ class MainHeader extends Reflux.Component {
                 <bem.FormTitle__name m={formTitleNameMods}>
                   <input
                     type='text'
+                    maxLength={NAME_MAX_LENGTH}
                     name='title'
                     placeholder={t('Project title')}
                     value={this.state.asset.name ? this.state.asset.name : ''}
