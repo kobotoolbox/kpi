@@ -806,53 +806,6 @@ class ProjectSettings extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item>
-            <label className='long'>
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {/*t('This information will be used to help you filter results on the project list page.')*/}
-            </label>
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='sector'>
-            <label htmlFor='sector'>
-              {t('Sector')}
-            </label>
-            <Select
-              id='sector'
-              value={this.state.sector}
-              onChange={this.onSectorChange}
-              options={sectors}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='country'>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-            <Select
-              id='country'
-              value={this.state.country}
-              onChange={this.onCountryChange}
-              options={countries}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='metadata-share'>
-            <Checkbox
-              checked={this.state['share-metadata']}
-              onChange={this.onShareMetadataChange}
-              label={t('Help KoboToolbox improve this product by sharing the sector and country where this form will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the form name or description listed above.')}
-            />
-          </bem.FormModal__item>
-
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
             <bem.Modal__footer>
               {/* Don't allow going back if asset already exist */}
@@ -876,42 +829,12 @@ class ProjectSettings extends React.Component {
 
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
-                    onClick={this.unarchiveProject}
-                  >
-                    {t('Unarchive Form')}
-                  </button>
-                }
-
-                {!this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
-                    onClick={this.archiveProject}
-                  >
-                    {t('Archive Form')}
-                  </button>
-                }
-              </bem.FormModal__item>
-
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() ? t('Unarchive form to resume accepting submissions.') : t('Archive form to stop accepting submissions.')}
-              </bem.FormModal__item>
-            </bem.FormModal__item>
-          }
-
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-            <bem.FormModal__item>
               <button
                 type='button'
                 className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
                 onClick={this.deleteProject}
               >
-                {t('Delete Form and Data')}
+                {t('Delete Form')}
               </button>
             </bem.FormModal__item>
           }
