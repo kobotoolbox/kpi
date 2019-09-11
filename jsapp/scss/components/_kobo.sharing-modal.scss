@@ -119,10 +119,8 @@ $s-gray-row-spacing: 10px;
 }
 
 .user-permissions-editor {
-  &.user-permissions-editor--new {
-    .user-permissions-editor__row--username {
-      width: calc(100% - 32px);
-    }
+  .react-tagsinput-input {
+    background-color: $white;
   }
 
   .user-permissions-editor__row {
@@ -130,9 +128,25 @@ $s-gray-row-spacing: 10px;
       margin-bottom: 10px;
     }
 
-    &.user-permissions-editor__row--group {
-      border: 1px solid $divider-color;
-      padding: 10px;
+    &.user-permissions-editor__row--username {
+      width: calc(100% - 32px);
+    }
+  }
+
+  .user-permissions-editor__sub-row {
+    padding-left: 30px;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10px;
+      width: 15px;
+      height: 15px;
+      border-left: 1px solid $cool-lightgray;
+      border-bottom: 1px solid $cool-lightgray;
+      border-radius: 2px;
     }
   }
 }

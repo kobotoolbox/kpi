@@ -268,15 +268,10 @@ class UserCollectionPermissionsEditor extends React.Component {
       formModifiers.push('pending');
     }
 
-    const formClassNames = classNames(
-      'user-permissions-editor',
-      isNew ? 'user-permissions-editor--new' : ''
-    );
-
     return (
       <bem.FormModal__form
         m={formModifiers}
-        className={formClassNames}
+        className='user-permissions-editor'
         onSubmit={this.submit}
       >
         {isNew &&
