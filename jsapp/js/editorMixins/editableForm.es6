@@ -24,6 +24,7 @@ import {
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
+  NAME_MAX_LENGTH
 } from '../constants';
 import ui from '../ui';
 import bem from '../bem';
@@ -662,6 +663,7 @@ export default assign({
               }
               <input
                 type='text'
+                maxLength={NAME_MAX_LENGTH}
                 onChange={this.nameChange}
                 value={this.state.name}
                 title={this.state.name}
