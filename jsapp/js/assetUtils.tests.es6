@@ -2,7 +2,7 @@ import {surveyWithGroups} from 'js/assetUtils.mocks';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 
 describe('getSurveyFlatPaths', () => {
-  it('should return a list of all rows paths', () => {
+  it('should return a list of paths for all questions', () => {
     const test = getSurveyFlatPaths(surveyWithGroups);
     const target = {
       Your_place: 'Your_place',
