@@ -1,38 +1,35 @@
+import {QUESTION_TYPES} from 'js/constants';
+
 /**
- * @param {string} questionName
  * @param {object} survey
- * @returns {string} a full path including all group names
+ * @returns {object} a pair of quesion names and their full paths
  */
-export function getQuestionPath(questionName, survey) {
-  const groups = {};
-  let currentGroup = null;
+export function getSurveyFlatPaths(survey) {
+  const output = {};
+  const openedGroups = [];
 
-  survey.forEach((surveyItem) => {
-    if (surveyItem.type === 'end_group') {
-      currentGroup = null;
+  survey.forEach((row) => {
+    if (row.type === 'begin_group' || row.type === 'begin_repeat') {
+      openedGroups.push(row.name || row.$autoname);
+    }
+    if (row.type === 'end_group' || row.type === 'end_repeat') {
+      openedGroups.pop();
     }
 
-    if (currentGroup !== null) {
-      groups[currentGroup].push(surveyItem.name || surveyItem.$autoname);
-    }
+    if (QUESTION_TYPES.has(row.type)) {
+      const rowName = row.name || row.$autoname;
+      let groupsPath = '';
+      if (openedGroups.length >= 1) {
+        groupsPath = openedGroups.join('/') + '/';
+      }
 
-    if (surveyItem.type === 'begin_group') {
-      currentGroup = surveyItem.name;
-      groups[currentGroup] = [];
-    }
-  });
-
-  let path = questionName;
-
-  Object.keys(groups).forEach((group) => {
-    if(groups[group].includes(path)) {
-      path = `${group}/${path}`;
+      output[rowName] = `${groupsPath}${rowName}`;
     }
   });
 
-  return path;
+  return output;
 }
 
 export default {
-  getQuestionPath
+  getSurveyFlatPaths
 };

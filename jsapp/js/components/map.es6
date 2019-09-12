@@ -25,7 +25,7 @@ import {
   notify,
   checkLatLng
 } from '../utils';
-import {getQuestionPath} from 'js/assetUtils'
+import {getSurveyFlatPaths} from 'js/assetUtils';
 
 import MapSettings from './mapSettings';
 
@@ -614,7 +614,8 @@ export class FormMap extends React.Component {
   }
 
   nameOfFieldInGroup(fieldName) {
-    return getQuestionPath(fieldName, this.props.asset.content.survey);
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
+    return flatPaths[fieldName];
   }
 
   render () {
