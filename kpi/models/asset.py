@@ -537,6 +537,19 @@ class Asset(ObjectPermissionMixin,
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
+    ASSIGNABLE_PERMISSIONS_BY_TYPE = {
+        ASSET_TYPE_SURVEY: ASSIGNABLE_PERMISSIONS, # all of them
+        ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_BLOCK: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_QUESTION: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_TEXT: (), # unused?
+        ASSET_TYPE_EMPTY: (), # unused?
+        #ASSET_TYPE_COLLECTION: # tbd
+    }
+    # wip garbage hack
+    @property
+    def assignable_permissions(self):
+        return self.ASSIGNABLE_PERMISSIONS_BY_TYPE[self.asset_type]
 
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
