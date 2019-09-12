@@ -28,7 +28,7 @@ class AssetsListApiTests(test_api_assets.AssetsListApiTests):
     URL_NAMESPACE = None
 
     def test_asset_list_matches_detail(self):
-        detail_response = self.test_create_asset()
+        detail_response = self.create_asset()
         list_response = self.client.get(self.list_url)
         self.assertEqual(list_response.status_code, status.HTTP_200_OK,
                          msg=list_response.data)
