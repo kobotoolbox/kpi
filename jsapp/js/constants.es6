@@ -41,8 +41,8 @@ new Set([
 // TODO remove after collection is merged with asset
 // // https://github.com/kobotoolbox/kpi/issues/2332
 const COLLECTION_PERMISSIONS = {};
-COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View Collection');
-COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit Collection');
+COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View collection');
+COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit collection');
 
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
