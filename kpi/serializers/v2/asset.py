@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
+from kpi.constants import PERM_PARTIAL_SUBMISSIONS
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
     PaginatedApiField
 from kpi.models import Asset, AssetVersion, Collection
@@ -258,6 +259,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployment__submission_count(self, obj):
         if not obj.has_deployment:
             return 0
+
+        try:
+            request = self.context['request']
+            user = request.user
+            if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
+                return obj.deployment.calculated_submission_count(
+                    requesting_user_id=user.id)
+        except KeyError:
+            return 0
+
         return obj.deployment.submission_count
 
     def get_assignable_permissions(self, asset):

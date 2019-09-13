@@ -477,7 +477,7 @@ var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='', count=false) {
+    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
@@ -485,8 +485,6 @@ var dataInterface;
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
       if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
-      if (count)
-        filter += '&count=1';
 
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,

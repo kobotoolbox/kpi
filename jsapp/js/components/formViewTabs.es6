@@ -53,7 +53,7 @@ class FormViewTabs extends Reflux.Component {
 
     return (
       <bem.FormView__toptabs>
-        { a.deployment__identifier != undefined && a.has_deployment && this.userCan('view_submissions', a) &&
+        { a.deployment__identifier != undefined && a.has_deployment && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
           <Link
             to={`/forms/${this.state.assetid}/summary`}
             className='form-view__tab'
@@ -70,7 +70,7 @@ class FormViewTabs extends Reflux.Component {
         <bem.FormView__tab className='is-edge' m='summary'>
           {t('Summary')}
         </bem.FormView__tab>
-        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) &&
+        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
           <Link
             to={`/forms/${this.state.assetid}/data`}
             className='form-view__tab'

@@ -16,3 +16,6 @@ TESTING = True
 
 if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
     PRIVATE_STORAGE_S3_REVERSE_PROXY = False
+
+# Decrease prod value to speed-up tests
+SUBMISSION_LIST_LIMIT = 100

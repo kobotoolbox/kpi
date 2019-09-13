@@ -133,8 +133,9 @@ class FormSummary extends React.Component {
     const fq = ['_id', 'end'];
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
-      if (data.length)
-        this.setState({lastSubmission: data[0]['end']});
+      let results = data.results;
+      if (data.count)
+        this.setState({lastSubmission: results[0]['end']});
       else
         this.setState({lastSubmission: false});
     });
@@ -319,6 +320,7 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
 
     if (!this.state.permissions) {
       return (
@@ -331,7 +333,7 @@ class FormSummary extends React.Component {
       );
     }
 
-    if (!this.userCan('view_submissions', this.state)) {
+    if (!permAccess) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
