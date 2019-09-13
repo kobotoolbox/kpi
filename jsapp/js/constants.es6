@@ -50,6 +50,12 @@ const HOOK_LOG_STATUSES = {
   FAILED: 0
 };
 
+const KEY_CODES = new Map([
+  ['TAB', 9],
+  ['ENTER', 13],
+  ['SPACE', 32]
+]);
+
 const MODAL_TYPES = {
   SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
@@ -150,5 +156,6 @@ export default {
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES,
   ASSET_KINDS: ASSET_KINDS,
+  KEY_CODES: KEY_CODES,
   HOOK_LOG_STATUSES: HOOK_LOG_STATUSES
 };

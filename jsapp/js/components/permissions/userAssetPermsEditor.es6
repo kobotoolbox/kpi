@@ -17,7 +17,10 @@ import {
   notify,
   buildUserUrl
 } from 'js/utils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {
+  KEY_CODES,
+  PERMISSIONS_CODENAMES
+} from 'js/constants';
 
 /**
  * Form for adding/changing user permissions for surveys.
@@ -467,7 +470,7 @@ class UserAssetPermsEditor extends React.Component {
                   value={this.state.submissionsViewPartialUsers}
                   onChange={this.onSubmissionsViewPartialUsersChange}
                   addOnBlur
-                  addKeys={[9, 13, 32]}
+                  addKeys={[KEY_CODES.get('ENTER'), KEY_CODES.get('SPACE'), KEY_CODES.get('TAB')]}
                   inputProps={submissionsViewPartialUsersInputProps}
                   onlyUnique
                 />
