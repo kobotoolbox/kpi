@@ -75,6 +75,7 @@ class SharingForm extends React.Component {
       this.setState({
         asset: asset,
         kind: asset.kind,
+        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions),
         public_permissions: asset.permissions.filter(function(perm){return perm.user__username === ANON_USERNAME;}),
         related_users: stores.asset.relatedUsers[uid]
       });
@@ -90,6 +91,14 @@ class SharingForm extends React.Component {
         permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
       });
     }
+  }
+
+  getAssignablePermsMap(backendPerms) {
+    const assignablePerms = new Map();
+    backendPerms.forEach((backendPerm) => {
+      assignablePerms.set(backendPerm.url, backendPerm.label);
+    });
+    return assignablePerms;
   }
 
   toggleAddUserEditor() {
@@ -138,6 +147,7 @@ class SharingForm extends React.Component {
               key={`perm.${uid}.${perm.user.name}`}
               uid={uid}
               nonOwnerPerms={this.state.nonOwnerPerms}
+              assignablePerms={this.state.assignablePerms}
               kind={kind}
               {...perm}
             />;
@@ -165,15 +175,15 @@ class SharingForm extends React.Component {
               {kind === ASSET_KINDS.get('asset') &&
                 <UserAssetPermsEditor
                   uid={uid}
+                  assignablePerms={this.state.assignablePerms}
                   nonOwnerPerms={this.state.nonOwnerPerms}
-                  objectUrl={objectUrl}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }
               {kind === ASSET_KINDS.get('collection') &&
                 <UserCollectionPermsEditor
                   uid={uid}
-                  objectUrl={objectUrl}
+                  assignablePerms={this.state.assignablePerms}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }
