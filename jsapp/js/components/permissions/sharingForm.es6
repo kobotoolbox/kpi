@@ -80,16 +80,27 @@ class SharingForm extends React.Component {
       });
     }
 
+    // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
     if (asset.kind === ASSET_KINDS.get('asset')) {
+      this.setState({
+        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
+      });
       // we need to fetch permissions after asset has loaded,
       // as we need the owner username to parse permissions
       actions.permissions.getAssetPermissions(uid);
     } else if (asset.kind === ASSET_KINDS.get('collection')) {
-      // TODO: collections works on old api, let's fix it later!
       this.setState({
         permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
       });
     }
+  }
+
+  getAssignablePermsMap(backendPerms) {
+    const assignablePerms = new Map();
+    backendPerms.forEach((backendPerm) => {
+      assignablePerms.set(backendPerm.url, backendPerm.label);
+    });
+    return assignablePerms;
   }
 
   toggleAddUserEditor() {
@@ -138,6 +149,7 @@ class SharingForm extends React.Component {
               key={`perm.${uid}.${perm.user.name}`}
               uid={uid}
               nonOwnerPerms={this.state.nonOwnerPerms}
+              assignablePerms={this.state.assignablePerms}
               kind={kind}
               {...perm}
             />;
@@ -162,18 +174,19 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
+              {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
               {kind === ASSET_KINDS.get('asset') &&
                 <UserAssetPermsEditor
                   uid={uid}
+                  assignablePerms={this.state.assignablePerms}
                   nonOwnerPerms={this.state.nonOwnerPerms}
-                  objectUrl={objectUrl}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }
               {kind === ASSET_KINDS.get('collection') &&
                 <UserCollectionPermsEditor
                   uid={uid}
-                  objectUrl={objectUrl}
+                  assignablePerms={this.state.assignablePerms}
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }

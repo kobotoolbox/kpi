@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -12,8 +13,10 @@ import {
   stringToColor,
 } from 'js/utils';
 import {
+  KEY_CODES,
   ASSET_KINDS,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
+  COLLECTION_PERMISSIONS
 } from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
 import UserCollectionPermsEditor from './userCollectionPermsEditor';
@@ -100,14 +103,25 @@ class UserPermissionRow extends React.Component {
             });
           }
 
+          let permName = '???';
+          // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
+          if (this.props.kind === ASSET_KINDS.get('asset')) {
+            if (this.props.assignablePerms.has(perm.permission)) {
+              permName = this.props.assignablePerms.get(perm.permission);
+            }
+          }
+          if (this.props.kind === ASSET_KINDS.get('collection')) {
+            permName = COLLECTION_PERMISSIONS[permConfig.getPermission(perm.permission).codename];
+          }
+
           return <bem.UserRow__perm
             title={perm.description}
-            key={perm.name}
+            key={permName}
           >
-            {perm.name}
+            {permName}
 
             {permUsers.length > 0 &&
-              ' (' + permUsers.join(', ') + ')'
+              String.fromCharCode(KEY_CODES.NBSP) + '(' + permUsers.join(', ') + ')'
             }
           </bem.UserRow__perm>;
         })}
@@ -166,20 +180,22 @@ class UserPermissionRow extends React.Component {
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
+            {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
             {this.props.kind === ASSET_KINDS.get('asset') &&
               <UserAssetPermsEditor
+                uid={this.props.uid}
                 username={this.props.user.name}
                 permissions={this.props.permissions}
-                uid={this.props.uid}
+                assignablePerms={this.props.assignablePerms}
                 nonOwnerPerms={this.props.nonOwnerPerms}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
             }
             {this.props.kind === ASSET_KINDS.get('collection') &&
               <UserCollectionPermsEditor
+                uid={this.props.uid}
                 username={this.props.user.name}
                 permissions={this.props.permissions}
-                uid={this.props.uid}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
             }
