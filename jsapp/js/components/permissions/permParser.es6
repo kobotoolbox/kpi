@@ -30,8 +30,6 @@ import {
 /**
  * @typedef {Object} UserPerm
  * @property {string} url - Url of given permission instance (permission x user).
- * @property {string} name - Permission name.
- * @property {string} description - Permission user-friendly description.
  * @property {string} permission - Url of given permission type.
  */
 
@@ -229,11 +227,8 @@ function parseBackendData(data, ownerUrl) {
     if (!groupedData[item.user]) {
       groupedData[item.user] = [];
     }
-    const permDef = permConfig.getPermission(item.permission);
     groupedData[item.user].push({
       url: item.url,
-      name: permDef.name || permDef.codename, // fallback to codename if empty string
-      description: permDef.description,
       permission: item.permission,
       partial_permissions: item.partial_permissions ? item.partial_permissions : undefined
     });
@@ -282,8 +277,6 @@ function parseOldBackendData(data, ownerUrl) {
     const permDef = permConfig.getPermissionByCodename(item.permission);
     groupedData[item.user].push({
       url: item.url,
-      name: permDef.name || permDef.codename, // fallback to codename if empty string
-      description: permDef.description,
       permission: permDef.url
     });
   });
