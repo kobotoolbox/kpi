@@ -7,6 +7,7 @@ import actions from '../actions';
 import stores from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {t} from '../utils';
+import {KEY_CODES} from 'js/constants';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
 
@@ -86,7 +87,7 @@ class HelpBubble extends React.Component {
     }
 
     const escHandler = (evt) => {
-      if (evt.keyCode === 27 || evt.key === 'Escape') {
+      if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
         this.close();
       }
     }

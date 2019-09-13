@@ -50,6 +50,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
+    assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
@@ -110,6 +111,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
+                  'assignable_permissions',
                   'permissions',
                   'settings',)
         extra_kwargs = {
@@ -268,6 +270,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return 0
 
         return obj.deployment.submission_count
+
+    def get_assignable_permissions(self, asset):
+        return [
+            {
+                'url': reverse('permission-detail',
+                               kwargs={'codename': codename},
+                               request=self.context.get('request')),
+                'label': asset.get_label_for_permission(codename),
+            }
+        for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
     def get_permissions(self, obj):
         context = self.context

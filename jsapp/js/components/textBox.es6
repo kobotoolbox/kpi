@@ -5,7 +5,7 @@
  * - type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
  * - value <string>: required
  * - onChange <function>: required
- * - errors <string[]> or <string>
+ * - errors <string[]> or <string> or <boolean>: for visual error indication and displaying error messages
  * - label <string>
  * - placeholder <string>
  * - description <string>
@@ -55,7 +55,7 @@ class TextBox extends React.Component {
     } else if (typeof this.props.errors === 'string' && this.props.errors.length > 0) {
       errors.push(this.props.errors);
     }
-    if (errors.length > 0) {
+    if (errors.length > 0 || this.props.errors === true) {
       modifiers.push('error');
     }
 

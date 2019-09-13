@@ -499,7 +499,7 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on'
+            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on '
                                          'submitted data for asset '
                                          'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
@@ -532,11 +532,21 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET: _('Change ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
-        PERM_PARTIAL_SUBMISSIONS: _('View a filtered subset of submissions'),
-        PERM_CHANGE_SUBMISSIONS: _('Change submissions'),
+        PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
+        PERM_CHANGE_SUBMISSIONS: _('Change and delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
+    # Depending on our `asset_type`, only some permissions might be applicable
+    ASSIGNABLE_PERMISSIONS_BY_TYPE = {
+        ASSET_TYPE_SURVEY: ASSIGNABLE_PERMISSIONS, # all of them
+        ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_BLOCK: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_QUESTION: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_TEXT: (), # unused?
+        ASSET_TYPE_EMPTY: (), # unused?
+        #ASSET_TYPE_COLLECTION: # tbd
+    }
 
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
