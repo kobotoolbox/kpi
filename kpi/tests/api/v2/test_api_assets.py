@@ -143,9 +143,7 @@ class AssetVersionApiTests(BaseTestCase):
 class AssetsDetailApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
-    def __init__(self, *args, **kwargs):
-        self.URL_NAMESPACE = ROUTER_URL_NAMESPACE
-        return super(AssetsDetailApiTests, self).__init__(*args, **kwargs)
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
@@ -306,19 +304,19 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.assertListEqual(
             response.data['assignable_permissions'],
             [
-                {'label': u'View form',
+                {'label': 'View form',
                  'url': 'http://testserver/api/v2/permissions/view_asset/'},
-                {'label': u'Add submissions',
+                {'label': 'Add submissions',
                  'url': 'http://testserver/api/v2/permissions/add_submissions/'},
-                {'label': u'View submissions',
+                {'label': 'View submissions',
                  'url': 'http://testserver/api/v2/permissions/view_submissions/'},
-                {'label': u'Change submissions',
+                {'label': 'Change and delete submissions',
                  'url': 'http://testserver/api/v2/permissions/change_submissions/'},
-                {'label': u'View a filtered subset of submissions',
+                {'label': 'View submissions only from specific users',
                  'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
-                {'label': u'Validate submissions',
+                {'label': 'Validate submissions',
                  'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
-                {'label': u'Change form',
+                {'label': 'Change form',
                  'url': 'http://testserver/api/v2/permissions/change_asset/'}
             ]
         )
@@ -330,9 +328,9 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.assertListEqual(
             response.data['assignable_permissions'],
             [
-                {'label': u'View question',
+                {'label': 'View question',
                  'url': 'http://testserver/api/v2/permissions/view_asset/'},
-                {'label': u'Change question',
+                {'label': 'Change question',
                  'url': 'http://testserver/api/v2/permissions/change_asset/'}
             ]
         )

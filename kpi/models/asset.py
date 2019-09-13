@@ -532,7 +532,7 @@ class Asset(ObjectPermissionMixin,
         PERM_CHANGE_ASSET: _('Change ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
-        PERM_PARTIAL_SUBMISSIONS: _('View a filtered subset of submissions'),
+        PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
         PERM_CHANGE_SUBMISSIONS: _('Change and delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }

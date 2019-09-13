@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import json
+import unittest
 
 import requests
 from django.conf import settings
@@ -51,6 +52,11 @@ class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
 
 class AssetsDetailApiTests(test_api_assets.AssetsDetailApiTests):
     URL_NAMESPACE = None
+
+    @unittest.skip(reason='`assignable_permissions` property only exists in '
+                          'v2 endpoint')
+    def test_assignable_permissions(self):
+        pass
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
