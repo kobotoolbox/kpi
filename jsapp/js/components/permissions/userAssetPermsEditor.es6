@@ -322,8 +322,10 @@ class UserAssetPermsEditor extends React.Component {
       this.state.submissionsEdit ||
       this.state.submissionsValidate
     );
+    const isPartialValid = this.state.submissionsViewPartial ? this.state.submissionsViewPartialUsers.length !== 0 : true;
     return (
       isAnyCheckboxChecked &&
+      isPartialValid &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       !this.state.isAddingPartialUsernames &&
