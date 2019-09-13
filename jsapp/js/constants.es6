@@ -39,6 +39,7 @@ new Set([
 ]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
 
 // TODO remove after collection is merged with asset
+// // https://github.com/kobotoolbox/kpi/issues/2332
 const COLLECTION_PERMISSIONS = {};
 COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View Collection');
 COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit Collection');

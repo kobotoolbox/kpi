@@ -1,3 +1,5 @@
+// TODO remove all this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
+
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';

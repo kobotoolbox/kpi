@@ -80,6 +80,7 @@ class SharingForm extends React.Component {
       });
     }
 
+    // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
     if (asset.kind === ASSET_KINDS.get('asset')) {
       this.setState({
         assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
@@ -88,7 +89,6 @@ class SharingForm extends React.Component {
       // as we need the owner username to parse permissions
       actions.permissions.getAssetPermissions(uid);
     } else if (asset.kind === ASSET_KINDS.get('collection')) {
-      // TODO: collections works on old api, let's fix it later!
       this.setState({
         permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
       });
@@ -174,6 +174,7 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
+              {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
               {kind === ASSET_KINDS.get('asset') &&
                 <UserAssetPermsEditor
                   uid={uid}

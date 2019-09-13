@@ -103,7 +103,7 @@ class UserPermissionRow extends React.Component {
           }
 
           let permName = '???';
-          // TODO after collection is meged with asset simplify this
+          // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
           if (this.props.kind === ASSET_KINDS.get('asset')) {
             if (this.props.assignablePerms.has(perm.permission)) {
               permName = this.props.assignablePerms.get(perm.permission);
@@ -112,7 +112,6 @@ class UserPermissionRow extends React.Component {
           if (this.props.kind === ASSET_KINDS.get('collection')) {
             permName = COLLECTION_PERMISSIONS[permConfig.getPermission(perm.permission).codename];
           }
-          // ENDTODO
 
           return <bem.UserRow__perm
             title={perm.description}
@@ -180,6 +179,7 @@ class UserPermissionRow extends React.Component {
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
+            {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
             {this.props.kind === ASSET_KINDS.get('asset') &&
               <UserAssetPermsEditor
                 uid={this.props.uid}
