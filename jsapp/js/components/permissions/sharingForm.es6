@@ -75,13 +75,15 @@ class SharingForm extends React.Component {
       this.setState({
         asset: asset,
         kind: asset.kind,
-        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions),
         public_permissions: asset.permissions.filter(function(perm){return perm.user__username === ANON_USERNAME;}),
         related_users: stores.asset.relatedUsers[uid]
       });
     }
 
     if (asset.kind === ASSET_KINDS.get('asset')) {
+      this.setState({
+        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
+      });
       // we need to fetch permissions after asset has loaded,
       // as we need the owner username to parse permissions
       actions.permissions.getAssetPermissions(uid);

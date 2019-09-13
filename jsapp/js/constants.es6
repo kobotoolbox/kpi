@@ -38,6 +38,11 @@ new Set([
   'change_collection'
 ]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
 
+// TODO remove after collection is merged with asset
+const COLLECTION_PERMISSIONS = {};
+COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View Collection');
+COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit Collection');
+
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
@@ -135,6 +140,7 @@ export default {
   ROOT_URL: ROOT_URL,
   ANON_USERNAME: ANON_USERNAME,
   PERMISSIONS_CODENAMES: PERMISSIONS_CODENAMES,
+  COLLECTION_PERMISSIONS: COLLECTION_PERMISSIONS,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,

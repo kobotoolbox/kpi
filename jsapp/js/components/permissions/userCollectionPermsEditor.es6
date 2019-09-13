@@ -7,14 +7,16 @@ import TextBox from 'js/components/textBox';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import classNames from 'classnames';
 import permConfig from './permConfig';
 import {
   t,
   notify,
   buildUserUrl
 } from 'js/utils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {
+  PERMISSIONS_CODENAMES,
+  COLLECTION_PERMISSIONS
+} from 'js/constants';
 
 /**
  * Form for adding/changing user permissions for collections.
@@ -292,13 +294,13 @@ class UserCollectionPermissionsEditor extends React.Component {
             checked={this.state.collectionView}
             disabled={this.state.collectionViewDisabled}
             onChange={this.onCheckboxChange.bind(this, 'collectionView')}
-            label={t('View Collection')}
+            label={COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')]}
           />
 
           <Checkbox
             checked={this.state.collectionEdit}
             onChange={this.onCheckboxChange.bind(this, 'collectionEdit')}
-            label={t('Edit Collection')}
+            label={COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')]}
           />
         </div>
 
