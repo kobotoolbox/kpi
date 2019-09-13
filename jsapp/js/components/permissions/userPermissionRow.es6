@@ -13,6 +13,7 @@ import {
   stringToColor,
 } from 'js/utils';
 import {
+  KEY_CODES,
   ASSET_KINDS,
   PERMISSIONS_CODENAMES,
   COLLECTION_PERMISSIONS
