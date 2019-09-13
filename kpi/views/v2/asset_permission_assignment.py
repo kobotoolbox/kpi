@@ -11,29 +11,25 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import CLONE_ARG_NAME, PERM_SHARE_COLLECTION, \
-    PERM_VIEW_COLLECTION
-from kpi.models.collection import Collection
+from kpi.constants import CLONE_ARG_NAME, PERM_VIEW_ASSET, PERM_SHARE_ASSET
+from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
-from kpi.permissions import CollectionNestedObjectPermission
-from kpi.serializers.v2.collection_permission import CollectionPermissionSerializer, \
-    CollectionBulkInsertPermissionSerializer
+from kpi.permissions import AssetNestedObjectPermission
+from kpi.serializers.v2.asset_permission_assignment import AssetPermissionAssignmentSerializer, \
+    AssetBulkInsertPermissionSerializer
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
-from kpi.utils.viewset_mixins import CollectionNestedObjectViewsetMixin
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
-class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedViewSetMixin,
-                                  CreateModelMixin, RetrieveModelMixin,
-                                  DestroyModelMixin, ListModelMixin,
-                                  viewsets.GenericViewSet):
-    
-    # TODO Refactor AssetPermissionViewSet & CollectionPermissionViewSet tox
-    # use same core.
-
+class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
+                                       NestedViewSetMixin,
+                                       CreateModelMixin, RetrieveModelMixin,
+                                       DestroyModelMixin, ListModelMixin,
+                                       viewsets.GenericViewSet):
     """
-    ## Permissions of an collection
+    ## Permission assignments of an asset
 
-    This endpoint shows assignments on an collection. An assignment implies:
+    This endpoint shows assignments on an asset. An assignment implies:
 
     - a `Permission` object
     - a `User` object
@@ -46,26 +42,26 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
     - Anonymous users see only owner's permissions
 
 
-    `uid` - is the unique identifier of a specific collection
+    `uid` - is the unique identifier of a specific asset
 
     **Retrieve assignments**
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/collections/<code>{uid}</code>/permissions/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permissions/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/collections/cSAvYreNzVEkrWg5Gdcvg/permissions/
+    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/
 
 
     **Assign a permission**
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/collections/<code>{uid}</code>/permissions/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/collections/cSAvYreNzVEkrWg5Gdcvg/permissions/ \\
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/ \\
     >            -H 'Content-Type: application/json' \\
     >            -d '<payload>'  # Payload is sent as the string
 
@@ -77,33 +73,50 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
     >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
     >        }
 
+    > _Payload to assign partial permissions_
+    >
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "permission": "https://[kpi]/api/v2/permissions/{partial_permission_codename}/",
+    >           "partial_permissions": [
+    >               {
+    >                   "url": "https://[kpi]/api/v2/permissions/{codename}/",
+    >                   "filters": [
+    >                       {"_submitted_by": {"$in": ["{username}", "{username}"]}}
+    >                   ]
+    >              },
+    >           ]
+    >        }
+
     N.B.:
 
-    - Implied permissions will be also assigned. (e.g. `change_collection` will add `view_collection` too)
+    - Only submissions support partial (`view`) permissions so far.
+    - Filters use Mongo Query Engine to narrow down results.
+    - Implied permissions will be also assigned. (e.g. `change_asset` will add `view_asset` too)
 
 
 
     **Remove a permission**
 
     <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/collections/<code>{uid}</code>/permissions/{permission_uid}/
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
     </pre>
 
     > Example
     >
-    >       curl -X DELETE https://[kpi]/api/v2/collections/cSAvYreNzVEkrWg5Gdcvg/permissions/pG6AeSjCwNtpWazQAX76Ap/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/pG6AeSjCwNtpWazQAX76Ap/
 
 
     **Assign all permissions at once**
 
     <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/collections/<code>{uid}</code>/permissions/bulk/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/bulk/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/collections/cSAvYreNzVEkrWg5Gdcvg/permissions/bulk/
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/bulk/
 
     > _Payload to assign all permissions at once_
     >
@@ -117,21 +130,21 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
     >        },...]
 
 
-    **Clone permissions from another collection**
+    **Clone permissions from another asset**
 
     <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
     <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/collections/<code>{uid}</code>/permissions/clone/
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permissions/clone/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi]/api/v2/collections/cSAvYreNzVEkrWg5Gdcvg/permissions/clone/
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/clone/
 
-    > _Payload to clone permissions from another collection_
+    > _Payload to clone permissions from another asset_
     >
     >        {
-    >           "clone_from": "{source_collection_uid}"
+    >           "clone_from": "{source_asset_uid}"
     >        }
 
     ### CURRENT ENDPOINT
@@ -139,14 +152,14 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
 
     model = ObjectPermission
     lookup_field = "uid"
-    serializer_class = CollectionPermissionSerializer
-    permission_classes = (CollectionNestedObjectPermission,)
+    serializer_class = AssetPermissionAssignmentSerializer
+    permission_classes = (AssetNestedObjectPermission,)
 
     @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
                 url_path='bulk')
     def bulk_assignments(self, request, *args, **kwargs):
         """
-        Assigns all permissions at once for the same collection.
+        Assigns all permissions at once for the same asset.
 
         :param request:
         :return: JSON
@@ -160,32 +173,33 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
 
             # First delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
-            self.collection.permissions.exclude(
-                user__username=self.collection.owner.username).delete()
+            self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
-                serializer = CollectionBulkInsertPermissionSerializer(
+                if 'partial_permissions' in assignment:
+                    context_.update({'partial_permissions': assignment['partial_permissions']})
+                serializer = AssetBulkInsertPermissionSerializer(
                     data=assignment,
                     context=context_
                 )
                 serializer.is_valid(raise_exception=True)
-                serializer.save(collection=self.collection)
+                serializer.save(asset=self.asset)
 
-            # returns collection permissions. Users who can change permissions can
+            # returns asset permissions. Users who can change permissions can
             # see all permissions.
             return self.list(request, *args, **kwargs)
 
     @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
     def clone(self, request, *args, **kwargs):
 
-        source_collection_uid = self.request.data[CLONE_ARG_NAME]
-        source_collection = get_object_or_404(Collection, uid=source_collection_uid)
+        source_asset_uid = self.request.data[CLONE_ARG_NAME]
+        source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
 
-        if user.has_perm(PERM_SHARE_COLLECTION, self.collection) and \
-                user.has_perm(PERM_VIEW_COLLECTION, source_collection):
-            if not self.collection.copy_permissions_from(source_collection):
+        if user.has_perm(PERM_SHARE_ASSET, self.asset) and \
+                user.has_perm(PERM_VIEW_ASSET, source_asset):
+            if not self.asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
                 response = {'detail': _("Source and destination objects don't "
                                         "seem to have the same type")}
@@ -193,36 +207,37 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
         else:
             raise exceptions.PermissionDenied()
 
-        # returns collection permissions. Users who can change permissions can
+        # returns asset permissions. Users who can change permissions can
         # see all permissions.
         return self.list(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()
         user = object_permission.user
-        if user.pk == self.collection.owner_id:
+        if user.pk == self.asset.owner_id:
             return Response({
                 'detail': _("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)
 
         codename = object_permission.permission.codename
-        self.collection.remove_perm(user, codename)
+        self.asset.remove_perm(user, codename)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_context(self):
         """
         Extra context provided to the serializer class.
-        Inject collection_uid to avoid extra queries to DB inside the serializer.
+        Inject asset_uid to avoid extra queries to DB inside the serializer.
         """
-        context_ = super(CollectionPermissionViewSet, self).get_serializer_context()
+
+        context_ = super(AssetPermissionAssignmentViewSet, self).get_serializer_context()
         context_.update({
-            'collection_uid': self.collection.uid
+            'asset_uid': self.asset.uid
         })
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper.get_assignments_queryset(self.collection,
+        return ObjectPermissionHelper.get_assignments_queryset(self.asset,
                                                                self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(collection=self.collection)
+        serializer.save(asset=self.asset)

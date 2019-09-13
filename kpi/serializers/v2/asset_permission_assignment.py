@@ -17,7 +17,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.utils.urls import absolute_resolve
 
 
-class AssetPermissionSerializer(serializers.ModelSerializer):
+class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
     user = RelativePrefixHyperlinkedRelatedField(
@@ -79,7 +79,7 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
 
     def get_url(self, object_permission):
         asset_uid = self.context.get('asset_uid')
-        return reverse('asset-permission-detail',
+        return reverse('asset-permission-assignment-detail',
                        args=(asset_uid, object_permission.uid),
                        request=self.context.get('request', None))
 
@@ -175,7 +175,8 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         """
         Doesn't display 'partial_permissions' attribute if it's `None`.
         """
-        repr_ = super(AssetPermissionSerializer, self).to_representation(instance)
+        repr_ = super(AssetPermissionAssignmentSerializer, self).\
+            to_representation(instance)
         for k, v in repr_.items():
             if k == 'partial_permissions' and v is None:
                 del repr_[k]
@@ -218,7 +219,7 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
                        request=self.context.get('request', None))
 
 
-class AssetBulkInsertPermissionSerializer(AssetPermissionSerializer):
+class AssetBulkInsertPermissionSerializer(AssetPermissionAssignmentSerializer):
 
     class Meta:
         model = ObjectPermission

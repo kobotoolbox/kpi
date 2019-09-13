@@ -213,21 +213,21 @@ var dataInterface;
 
     getAssetPermissions(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
         method: 'GET'
       });
     },
 
     getCollectionPermissions(uid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/collections/${uid}/permission-assignments/`,
         method: 'GET'
       });
     },
 
     bulkSetAssetPermissions(assetUid, perms) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/bulk/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
         method: 'POST',
         data: JSON.stringify(perms),
         dataType: 'json',
@@ -237,7 +237,7 @@ var dataInterface;
 
     assignAssetPermission(assetUid, perm) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
         method: 'POST',
         data: JSON.stringify(perm),
         dataType: 'json',
@@ -247,7 +247,7 @@ var dataInterface;
 
     assignCollectionPermission(uid, perm) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/collections/${uid}/permission-assignments/`,
         method: 'POST',
         data: JSON.stringify(perm),
         dataType: 'json',
@@ -264,7 +264,7 @@ var dataInterface;
 
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${targetUid}/permissions/`,
+        url: `${ROOT_URL}/api/v2/assets/${targetUid}/permission-assignments/`,
         method: 'PATCH',
         data: {
           clone_from: sourceUid
