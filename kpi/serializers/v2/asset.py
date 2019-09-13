@@ -268,7 +268,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                request=self.context.get('request')),
                 'label': asset.get_label_for_permission(codename),
             }
-        for codename in asset.assignable_permissions]
+        for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
     def get_permissions(self, obj):
         context = self.context

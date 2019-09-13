@@ -9,24 +9,19 @@ from hashlib import md5
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
-from kpi.tests.base_test_case import BaseTestCase
 
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.models import AssetFile
 from kpi.models import AssetVersion
 from kpi.serializers.v2.asset import AssetListSerializer
-
+from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
-
-
-class AssetsListApiTests(BaseTestCase):
+class AssetsListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -46,28 +41,19 @@ class AssetsListApiTests(BaseTestCase):
         """
         Ensure we can create a new asset
         """
-        data = {
-            'content': '{}',
-            'asset_type': 'survey',
-        }
-        response = self.client.post(self.list_url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                         msg=response.data)
-        sa = Asset.objects.order_by('date_created').last()
-        self.assertEqual(sa.content, EMPTY_SURVEY)
-        return response
+        self.create_asset()
 
     def test_delete_asset(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
-        creation_response = self.test_create_asset()
+        creation_response = self.create_asset()
         asset_url = creation_response.data['url']
         response = self.client.delete(asset_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=response.data)
 
     def test_asset_list_matches_detail(self):
-        detail_response = self.test_create_asset()
+        detail_response = self.create_asset()
         list_response = self.client.get(self.list_url)
         self.assertEqual(list_response.status_code, status.HTTP_200_OK,
                          msg=list_response.data)
@@ -91,7 +77,7 @@ class AssetsListApiTests(BaseTestCase):
 
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
-        creation_response = self.test_create_asset()
+        creation_response = self.create_asset()
 
         another_user_asset = another_user.assets.last()
         another_user_asset.save()
@@ -154,10 +140,12 @@ class AssetVersionApiTests(BaseTestCase):
         self.assertEqual(resp2.data['detail'], 'Not found.')
 
 
-class AssetsDetailApiTests(BaseTestCase):
+class AssetsDetailApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+    def __init__(self, *args, **kwargs):
+        self.URL_NAMESPACE = ROUTER_URL_NAMESPACE
+        return super(AssetsDetailApiTests, self).__init__(*args, **kwargs)
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
@@ -213,7 +201,7 @@ class AssetsDetailApiTests(BaseTestCase):
                                     })
         self.assertEqual(response.status_code, 201)
         new_asset = Asset.objects.get(uid=response.data.get('uid'))
-        self.assertEqual(new_asset.content, EMPTY_SURVEY)
+        self.assertEqual(new_asset.content, self.EMPTY_SURVEY)
         self.assertEqual(new_asset.name, 'clones_name')
 
     def test_can_clone_version_of_asset(self):
@@ -310,6 +298,44 @@ class AssetsDetailApiTests(BaseTestCase):
                          self.asset.version_id)
         self.assertEqual(response.data['version__content_hash'],
                          self.asset.latest_version.content_hash)
+
+    def test_assignable_permissions(self):
+        self.assertEqual(self.asset.asset_type, 'survey')
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertListEqual(
+            response.data['assignable_permissions'],
+            [
+                {'label': u'View form',
+                 'url': 'http://testserver/api/v2/permissions/view_asset/'},
+                {'label': u'Add submissions',
+                 'url': 'http://testserver/api/v2/permissions/add_submissions/'},
+                {'label': u'View submissions',
+                 'url': 'http://testserver/api/v2/permissions/view_submissions/'},
+                {'label': u'Change submissions',
+                 'url': 'http://testserver/api/v2/permissions/change_submissions/'},
+                {'label': u'View a filtered subset of submissions',
+                 'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
+                {'label': u'Validate submissions',
+                 'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
+                {'label': u'Change form',
+                 'url': 'http://testserver/api/v2/permissions/change_asset/'}
+            ]
+        )
+
+        new_question_response = self.create_asset(asset_type='question')
+        question_asset_url = new_question_response.data['url']
+        response = self.client.get(question_asset_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertListEqual(
+            response.data['assignable_permissions'],
+            [
+                {'label': u'View question',
+                 'url': 'http://testserver/api/v2/permissions/view_asset/'},
+                {'label': u'Change question',
+                 'url': 'http://testserver/api/v2/permissions/change_asset/'}
+            ]
+        )
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
