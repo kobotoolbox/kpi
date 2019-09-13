@@ -29,9 +29,9 @@ const PERMISSIONS_CODENAMES = new Map();
 new Set([
   'view_asset',
   'change_asset',
-  'partial_submissions',
   'add_submissions',
   'view_submissions',
+  'partial_submissions',
   'change_submissions',
   'validate_submissions',
   'view_collection',
