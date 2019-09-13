@@ -17,7 +17,7 @@ from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 from .ancestor_collections import AncestorCollectionsSerializer
 from .asset_version import AssetVersionListSerializer
-from .asset_permission import AssetPermissionSerializer
+from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
@@ -287,14 +287,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         queryset = ObjectPermissionHelper.get_assignments_queryset(obj,
                                                                    request.user)
         # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionSerializer serializer to avoid extra queries to DB
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
         # within the serializer to retrieve the asset object.
         context.update({'asset': obj})
         context.update({'asset_uid': obj.uid})
 
-        return AssetPermissionSerializer(queryset.all(),
-                                         many=True, read_only=True,
-                                         context=context).data
+        return AssetPermissionAssignmentSerializer(queryset.all(),
+                                                   many=True, read_only=True,
+                                                   context=context).data
 
     def _content(self, obj):
         return json.dumps(obj.content)

@@ -11,7 +11,7 @@ from kpi.models.collection import Collection
 from kpi.models.object_permission import ObjectPermission
 
 
-class CollectionPermissionSerializer(serializers.ModelSerializer):
+class CollectionPermissionAssignmentSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
     user = RelativePrefixHyperlinkedRelatedField(
@@ -48,7 +48,7 @@ class CollectionPermissionSerializer(serializers.ModelSerializer):
 
     def get_url(self, object_permission):
         collection_uid = self.context.get('collection_uid')
-        return reverse('collection-permission-detail',
+        return reverse('collection-permission-assignment-detail',
                        args=(collection_uid, object_permission.uid),
                        request=self.context.get('request', None))
 
@@ -85,7 +85,7 @@ class CollectionPermissionSerializer(serializers.ModelSerializer):
                        request=self.context.get('request', None))
 
 
-class CollectionBulkInsertPermissionSerializer(CollectionPermissionSerializer):
+class CollectionBulkInsertPermissionSerializer(CollectionPermissionAssignmentSerializer):
 
     class Meta:
         model = ObjectPermission

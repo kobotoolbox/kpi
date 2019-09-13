@@ -519,8 +519,8 @@ class Asset(ObjectPermissionMixin,
         ASSET_TYPE_TEMPLATE: _('template'),
         ASSET_TYPE_BLOCK: _('block'),
         ASSET_TYPE_QUESTION: _('question'),
-        ASSET_TYPE_TEXT: _('text'), # unused?
-        ASSET_TYPE_EMPTY: _('empty'), # unused?
+        ASSET_TYPE_TEXT: _('text'),  # unused?
+        ASSET_TYPE_EMPTY: _('empty'),  # unused?
         #ASSET_TYPE_COLLECTION: _('collection'),
     }
 
@@ -543,8 +543,8 @@ class Asset(ObjectPermissionMixin,
         ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
         ASSET_TYPE_BLOCK: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
         ASSET_TYPE_QUESTION: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
-        ASSET_TYPE_TEXT: (), # unused?
-        ASSET_TYPE_EMPTY: (), # unused?
+        ASSET_TYPE_TEXT: (),  # unused?
+        ASSET_TYPE_EMPTY: (),  # unused?
         #ASSET_TYPE_COLLECTION: # tbd
     }
 
@@ -663,7 +663,6 @@ class Asset(ObjectPermissionMixin,
             return perms.get(perm)
         return None
 
-
     def get_label_for_permission(self, permission_or_codename):
         try:
             codename = permission_or_codename.codename
@@ -687,7 +686,6 @@ class Asset(ObjectPermissionMixin,
             six.text_type(self.ASSET_TYPE_LABELS[self.asset_type])
         )
         return label
-
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
