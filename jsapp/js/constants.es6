@@ -53,6 +53,7 @@ const HOOK_LOG_STATUSES = {
 const KEY_CODES = new Map([
   ['TAB', 9],
   ['ENTER', 13],
+  ['ESC', 27],
   ['SPACE', 32],
   ['NBSP', 160], // non-breakable space
 ]);
