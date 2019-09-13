@@ -120,7 +120,7 @@ class UserPermissionRow extends React.Component {
             {permName}
 
             {permUsers.length > 0 &&
-              String.fromCharCode(160) + '(' + permUsers.join(', ') + ')'
+              String.fromCharCode(KEY_CODES.NBSP) + '(' + permUsers.join(', ') + ')'
             }
           </bem.UserRow__perm>;
         })}
