@@ -10,12 +10,14 @@ import actions from 'js/actions';
 import bem from 'js/bem';
 import classNames from 'classnames';
 import permParser from './permParser';
+import permConfig from './permConfig';
 import {
   assign,
   t,
   notify,
   buildUserUrl
 } from 'js/utils';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 /**
  * Form for adding/changing user permissions for surveys.
@@ -299,6 +301,14 @@ class UserAssetPermsEditor extends React.Component {
     });
   }
 
+  getLabel(permCodename) {
+    return this.props.assignablePerms.get(permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get(permCodename)).url);
+  }
+
+  isAssignable(permCodename) {
+    return this.props.assignablePerms.has(permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get(permCodename)).url);
+  }
+
   /**
    * Blocks submitting non-ready form.
    */
@@ -403,18 +413,22 @@ class UserAssetPermsEditor extends React.Component {
         }
 
         <div className='user-permissions-editor__row'>
-          <Checkbox
-            checked={this.state.formView}
-            disabled={this.state.formViewDisabled}
-            onChange={this.onCheckboxChange.bind(this, 'formView')}
-            label={t('View Form')}
-          />
+          {this.isAssignable('view_asset') &&
+            <Checkbox
+              checked={this.state.formView}
+              disabled={this.state.formViewDisabled}
+              onChange={this.onCheckboxChange.bind(this, 'formView')}
+              label={this.getLabel('view_asset')}
+            />
+          }
 
-          <Checkbox
-            checked={this.state.formEdit}
-            onChange={this.onCheckboxChange.bind(this, 'formEdit')}
-            label={t('Edit Form')}
-          />
+          {this.isAssignable('change_asset') &&
+            <Checkbox
+              checked={this.state.formEdit}
+              onChange={this.onCheckboxChange.bind(this, 'formEdit')}
+              label={this.getLabel('change_asset')}
+            />
+          }
 
           <div className={classNames(
             this.state.submissionsView === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
