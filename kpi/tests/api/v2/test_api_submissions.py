@@ -43,7 +43,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 "__version__": v_uid,
                 "q1": "a1",
                 "q2": "a2",
-                "id": 1,
+                "_id": 1,
                 "_validation_status": {
                     "by_whom": "someuser",
                     "timestamp": 1547839938,
@@ -57,7 +57,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 "__version__": v_uid,
                 "q1": "a3",
                 "q2": "a4",
-                "id": 2,
+                "_id": 2,
                 "_validation_status": {
                     "by_whom": "someuser",
                     "timestamp": 1547839938,
@@ -144,27 +144,31 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             content={'survey': [{'name': 'q', 'type': 'integer'}]},
         )
         asset.deploy(backend='mock', active=True)
+        asset.deployment.set_namespace(self.URL_NAMESPACE)
+        latest_version_uid = asset.latest_deployed_version.uid
         submissions = [
             {
-                '__version__': asset.latest_deployed_version.uid,
+                '__version__': latest_version_uid,
                 'q': i,
             } for i in range(limit + excess)
         ]
         asset.deployment.mock_submissions(submissions)
+
         # Server-wide limit should apply if no limit specified
         response = self.client.get(
             asset.deployment.submission_list_url, {'format': 'json'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), limit)
+        self.assertEqual(len(response.data['results']), limit)
         # Limit specified in query parameters should not be able to exceed
         # server-wide limit
         response = self.client.get(
             asset.deployment.submission_list_url,
             {'limit': limit + excess, 'format': 'json'}
         )
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), limit)
+        self.assertEqual(len(response.data['results']), limit)
 
     def test_list_submissions_not_shared_other(self):
         self._log_in_as_another_user()
@@ -213,7 +217,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
 
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -222,7 +227,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_retrieve_submission_not_shared_other(self):
         self._log_in_as_another_user()
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -230,7 +236,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._share_with_another_user()
         self._log_in_as_another_user()
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
@@ -245,19 +252,22 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         # Try first submission submitted by unknown
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Try second submission submitted by someuser
         submission = self.submissions[1]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_submission_owner(self):
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -267,7 +277,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_delete_submission_anonymous(self):
         self.client.logout()
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -277,7 +288,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_delete_submission_not_shared_other(self):
         self._log_in_as_another_user()
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -288,7 +300,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._share_with_another_user()
         self._log_in_as_another_user()
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get("id"))
+        url = self.asset.deployment.get_submission_detail_url(submission.get(
+            self.asset.deployment.INSTANCE_ID_FIELDNAME))
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
@@ -312,7 +325,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.submission = self.submissions[0]
         self.submission_url = reverse(self._get_endpoint('submission-edit'), kwargs={
             "parent_lookup_asset": self.asset.uid,
-            "pk": self.submission.get("id")
+            "pk": self.submission.get(self.asset.deployment.INSTANCE_ID_FIELDNAME)
         })
 
     def test_get_edit_link_submission_owner(self):
@@ -320,7 +333,8 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         expected_response = {
-            "url": "http://server.mock/enketo/{}".format(self.submission.get("id"))
+            "url": "http://server.mock/enketo/{}".format(self.submission.get(
+                self.asset.deployment.INSTANCE_ID_FIELDNAME))
         }
         self.assertEqual(response.data, expected_response)
 
@@ -355,7 +369,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         super(SubmissionValidationStatusApiTests, self).setUp()
         self.submission = self.submissions[0]
         self.validation_status_url = self.asset.deployment.get_submission_validation_status_url(
-            self.submission.get("id"))
+            self.submission.get(self.asset.deployment.INSTANCE_ID_FIELDNAME))
 
     def test_submission_validation_status_owner(self):
         response = self.client.get(self.validation_status_url, {"format": "json"})

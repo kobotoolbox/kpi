@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import re
 
 from django.core.urlresolvers import reverse
+from django.utils.six import text_type
 from rest_framework import status
 
 from .base_backend import BaseDeploymentBackend
@@ -18,8 +19,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     # TODO. Stop using protected property `_deployment_data`.
     """
-
-    INSTANCE_ID_FIELDNAME = "id"
 
     def bulk_assign_mapped_perms(self):
         pass
@@ -143,32 +142,55 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instance_ids=[], **kwargs):
+    def get_submissions(self, requesting_user_id,
+                        format_type=INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids=[], **kwargs):
         """
-        Returns a list of json representation of instances.
+        Retrieves submissions on `format_type`.
+        It can be filtered on instances ids.
 
-        :param format_type: str. xml or json
-        :param instance_ids: list. Ids of instances to retrieve
-        :return: list
+        Args:
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            instance_ids (list): Instance ids to retrieve
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instances' XML as string
+                - `None` if no results
         """
+
         submissions = self.asset._deployment_data.get("submissions", [])
-        permission_filters = kwargs.get('permission_filters')
+        kwargs['instance_ids'] = instance_ids
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      format_type=format_type,
+                                                      **kwargs)
+        permission_filters = params['permission_filters']
 
         if len(instance_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
+                instance_ids = [text_type(instance_id) for instance_id in instance_ids]
                 # ugly way to find matches, but it avoids to load each xml in memory.
-                pattern = "|".join(instance_ids)
+                pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
+                    instance_ids='|'.join(instance_ids),
+                    id_field=self.INSTANCE_ID_FIELDNAME
+                )
                 submissions = [submission for submission in submissions
-                               if re.search(r"<id>({})<\/id>".format(pattern), submission)]
+                               if re.search(pattern, submission)]
             else:
-                submissions = [submission for submission in submissions if submission.get("id") in
-                               map(int, instance_ids)]
+                instance_ids = [int(instance_id) for instance_id in instance_ids]
+                submissions = [submission for submission in submissions
+                               if submission.get(self.INSTANCE_ID_FIELDNAME)
+                               in instance_ids]
 
         if permission_filters:
             submitted_by = [k.get('_submitted_by') for k in permission_filters]
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 # TODO handle `submitted_by` too.
-                pass
+                raise NotImplementedError
             else:
                 submissions = [submission for submission in submissions
                                if submission.get('_submitted_by') in submitted_by]
@@ -176,24 +198,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = len(submissions)
 
-        params = self.validate_submission_list_params(**kwargs)
         # TODO: support other query parameters?
         if 'limit' in params:
             submissions = submissions[:params['limit']]
 
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        if pk:
-            submissions = list(self.get_submissions(format_type, [pk], **kwargs))
-            if len(submissions) > 0:
-                return submissions[0]
-            return None
-        else:
-            raise ValueError("Primary key must be provided")
-
     def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(submission_pk, INSTANCE_FORMAT_TYPE_JSON)
+        submission = self.get_submission(submission_pk, user.id,
+                                         INSTANCE_FORMAT_TYPE_JSON)
         return {
             "data": submission.get("_validation_status")
         }
@@ -212,3 +225,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             "has_kpi_hooks": has_active_hooks,
         })
+
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      count=True,
+                                                      **kwargs)
+        instances = self.get_submissions(requesting_user_id, **params)
+        return len(instances)

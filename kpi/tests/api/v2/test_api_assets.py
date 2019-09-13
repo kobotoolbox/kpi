@@ -11,7 +11,13 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+)
+
 from kpi.models import Asset
 from kpi.models import AssetFile
 from kpi.models import AssetVersion
@@ -296,6 +302,42 @@ class AssetsDetailApiTests(BaseAssetTestCase):
                          self.asset.version_id)
         self.assertEqual(response.data['version__content_hash'],
                          self.asset.latest_version.content_hash)
+
+    def test_submission_count(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.deploy(backend='mock', active=True)
+        submissions = [
+            {
+                "__version__": self.asset.latest_deployed_version.uid,
+                "q1": "a1",
+                "q2": "a2",
+                "_id": 1,
+                "_submitted_by": ""
+            },
+            {
+                "__version__": self.asset.latest_deployed_version.uid,
+                "q1": "a3",
+                "q2": "a4",
+                "_id": 2,
+                "_submitted_by": anotheruser.username
+            }
+        ]
+
+        self.asset.deployment.mock_submissions(submissions)
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': anotheruser.username
+            }]
+        }
+        self.asset.assign_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.data['deployment__submission_count'], 2)
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.data['deployment__submission_count'], 1)
 
     def test_assignable_permissions(self):
         self.assertEqual(self.asset.asset_type, 'survey')

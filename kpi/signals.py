@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django_digest.models import PartialDigest
 from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
@@ -12,6 +13,7 @@ from kobo.apps.hook.models.hook import Hook
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatToken,
     KobocatUser,
+    KobocatDigestPartial
 )
 from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
 from kpi.models import Asset, Collection, ObjectPermission, TagUid
@@ -54,6 +56,13 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
             # assigning model-level permissions fails
             grant_kc_model_level_perms(instance)
 
+            # Force PartialDigest to be sync'ed on creation
+            partial_digests = PartialDigest.objects.filter(user_id=instance.pk)
+            for partial_digest in partial_digests:
+                # `KobocatUser` should exist at this point.
+                # We don't need to validate `KobocatUser`'s existence.
+                KobocatDigestPartial.sync(partial_digest, validate_user=False)
+
 
 @receiver(post_save, sender=Token)
 def save_kobocat_token(sender, instance, **kwargs):
@@ -70,7 +79,31 @@ def delete_kobocat_token(sender, instance, **kwargs):
     Delete corresponding record from KC AuthToken table
     """
     if not settings.TESTING:
-        KobocatToken.objects.filter(pk=instance.pk).delete()
+        try:
+            KobocatToken.objects.get(pk=instance.pk).delete()
+        except KobocatToken.DoesNotExist:
+            pass
+
+
+@receiver(post_save, sender=PartialDigest)
+def save_kobocat_partial_digest(sender, instance, **kwargs):
+    """
+    Sync PartialDigest table between KPI and KC
+    """
+    if not settings.TESTING:
+        KobocatDigestPartial.sync(instance)
+
+
+@receiver(post_delete, sender=PartialDigest)
+def delete_kobocat_partial_digest(sender, instance, **kwargs):
+    """
+    Delete corresponding record from KC PartialDigest table
+    """
+    if not settings.TESTING:
+        try:
+            KobocatDigestPartial.objects.get(pk=instance.pk).delete()
+        except KobocatDigestPartial.DoesNotExist:
+            pass
 
 
 @receiver(post_save, sender=Tag)

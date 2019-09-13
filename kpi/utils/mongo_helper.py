@@ -65,57 +65,33 @@ class MongoHelper(object):
         return key
 
     @classmethod
+    def get_count(
+            cls, mongo_userform_id, hide_deleted=True, query=None, instance_ids=None,
+            permission_filters=None):
+
+        _, total_count = cls._get_cursor_and_count(
+            mongo_userform_id,
+            hide_deleted=hide_deleted,
+            fields={'_id': 1},
+            query=query,
+            instance_ids=instance_ids,
+            permission_filters=permission_filters)
+
+        return total_count
+
+    @classmethod
     def get_instances(
             cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
             sort=None, fields=None, query=None, instance_ids=None,
             permission_filters=None
     ):
-        # check if query contains an _id and if its a valid ObjectID
-        if '_uuid' in query:
-            if ObjectId.is_valid(query.get('_uuid')):
-                query['_uuid'] = ObjectId(query.get('_uuid'))
-            else:
-                raise ValidationError(_('Invalid _uuid specified'))
-
-        if len(instance_ids) > 0:
-            query.update({
-                '_id': {'$in': instance_ids}
-            })
-
-        query.update({cls.USERFORM_ID: mongo_userform_id})
-
-        # Narrow down query
-        if permission_filters is not None:
-            permission_filters_query = {'$or': []}
-            for permission_filter in permission_filters:
-                permission_filters_query['$or'].append(permission_filter)
-
-            query = {'$and': [query, permission_filters_query]}
-
-        if hide_deleted:
-            # display only active elements
-            deleted_at_query = {
-                '$or': [{'_deleted_at': {'$exists': False}},
-                        {'_deleted_at': None}]}
-            # join existing query with deleted_at_query on an $and
-            query = {'$and': [query, deleted_at_query]}
-
-        query = cls.to_safe_dict(query, reading=True)
-
-        if len(fields) > 0:
-            # Retrieve only specified fields from Mongo. Remove
-            # `cls.USERFORM_ID` from those fields in case users try to add it.
-            if cls.USERFORM_ID in fields:
-                fields.remove(cls.USERFORM_ID)
-            fields_to_select = dict(
-                [(cls.encode(field), 1) for field in fields])
-        else:
-            # Retrieve all fields except `cls.USERFORM_ID`
-            fields_to_select = {cls.USERFORM_ID: 0}
-
-        cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
-
-        total_count = cursor.count()
+        cursor, total_count = cls._get_cursor_and_count(
+            mongo_userform_id,
+            hide_deleted=hide_deleted,
+            fields=fields,
+            query=query,
+            instance_ids=instance_ids,
+            permission_filters=permission_filters)
 
         cursor.skip(start)
         if limit is not None:
@@ -277,6 +253,56 @@ class MongoHelper(object):
         """
         return key not in \
                cls.KEY_WHITELIST and (key.startswith('$') or key.count('.') > 0)
+
+    @classmethod
+    def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
+                              fields=None, query=None, instance_ids=None,
+                              permission_filters=None):
+        # check if query contains an _id and if its a valid ObjectID
+        if '_uuid' in query:
+            if ObjectId.is_valid(query.get('_uuid')):
+                query['_uuid'] = ObjectId(query.get('_uuid'))
+            else:
+                raise ValidationError(_('Invalid _uuid specified'))
+
+        if len(instance_ids) > 0:
+            query.update({
+                '_id': {'$in': instance_ids}
+            })
+
+        query.update({cls.USERFORM_ID: mongo_userform_id})
+
+        # Narrow down query
+        if permission_filters is not None:
+            permission_filters_query = {'$or': []}
+            for permission_filter in permission_filters:
+                permission_filters_query['$or'].append(permission_filter)
+
+            query = {'$and': [query, permission_filters_query]}
+
+        if hide_deleted:
+            # display only active elements
+            deleted_at_query = {
+                '$or': [{'_deleted_at': {'$exists': False}},
+                        {'_deleted_at': None}]}
+            # join existing query with deleted_at_query on an $and
+            query = {'$and': [query, deleted_at_query]}
+
+        query = cls.to_safe_dict(query, reading=True)
+
+        if len(fields) > 0:
+            # Retrieve only specified fields from Mongo. Remove
+            # `cls.USERFORM_ID` from those fields in case users try to add it.
+            if cls.USERFORM_ID in fields:
+                fields.remove(cls.USERFORM_ID)
+            fields_to_select = dict(
+                [(cls.encode(field), 1) for field in fields])
+        else:
+            # Retrieve all fields except `cls.USERFORM_ID`
+            fields_to_select = {cls.USERFORM_ID: 0}
+
+        cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
+        return cursor, cursor.count()
 
     @classmethod
     def _is_attribute_encoded(cls, key):

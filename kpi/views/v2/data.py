@@ -203,7 +203,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        submissions = deployment.get_submissions(request.user.id,
+                                                 format_type=format_type,
+                                                 **filters)
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
         # It avoids to retrieve all the objects from MongoDB
@@ -211,6 +213,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         page = self.paginate_queryset(dummy_submissions_list)
         if page is not None:
             return self.get_paginated_response(submissions)
+
         return Response(list(submissions))
 
     def retrieve(self, request, pk, *args, **kwargs):
@@ -219,6 +222,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         filters = self._filter_mongo_query(request)
         try:
             submission = deployment.get_submission(positive_int(pk),
+                                                   request.user.id,
                                                    format_type=format_type,
                                                    **filters)
         except ValueError:
@@ -280,11 +284,5 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             raise serializers.ValidationError(
                 {'limit': _('A positive integer is required')}
             )
-        permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
 
-        # This should overwrite existing `permission_filters` param.
-        # We don't want users to bypass their partial permissions filters.
-        filters.update({
-            'permission_filters': permission_filters
-        })
         return filters

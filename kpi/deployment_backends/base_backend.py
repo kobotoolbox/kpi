@@ -5,13 +5,17 @@ import json
 
 from bson import json_util, ObjectId
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import exceptions
+from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
+
+from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
 
 
 class BaseDeploymentBackend(object):
 
     # TODO. Stop using protected property `_deployment_data`.
+
+    INSTANCE_ID_FIELDNAME = '_id'
 
     def __init__(self, asset):
         self.asset = asset
@@ -24,15 +28,43 @@ class BaseDeploymentBackend(object):
     def delete(self):
         self.asset._deployment_data.clear()
 
-    @classmethod
-    def validate_submission_list_params(cls, **kwargs):
+    def validate_submission_list_params(self,
+                                        requesting_user_id,
+                                        format_type=INSTANCE_FORMAT_TYPE_JSON,
+                                        count=False,
+                                        **kwargs):
         """
-        Ensure types of query and each param
+        Ensure types of query and each param.
 
-        :param query: dict
-        :param kwargs: dict
-        :return: dict
+        Args:
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            count (bool): If `True`, ignores `start`, `limit`, `fields` & `sort`
+            kwargs (dict): Can contain
+                - start
+                - limit
+                - sort
+                - fields
+                - query
+                - instance_ids
+
+
+        Returns:
+            dict
         """
+
+        if count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
+            if 'sort' in kwargs:
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
+                # See. https://stackoverflow.com/a/867578
+                raise serializers.ValidationError({
+                    'sort': _('This param is not supported in `XML` format')
+                })
+
+            if 'fields' in kwargs:
+                raise serializers.ValidationError({
+                    'fields': _('This is not supported in `XML` format')
+                })
 
         start = kwargs.get('start', 0)
         limit = kwargs.get('limit')
@@ -40,7 +72,6 @@ class BaseDeploymentBackend(object):
         fields = kwargs.get('fields', [])
         query = kwargs.get('query', {})
         instance_ids = kwargs.get('instance_ids', [])
-        permission_filters = kwargs.get('permission_filters')
 
         # I've copied these `ValidationError` messages verbatim from DRF where
         # possible. TODO: Should this validation be in (or called directly by)
@@ -50,29 +81,49 @@ class BaseDeploymentBackend(object):
             try:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
-                raise exceptions.ValidationError(
+                raise serializers.ValidationError(
                     {'query': _('Value must be valid JSON.')}
                 )
+
+        if not isinstance(instance_ids, list):
+            raise serializers.ValidationError(
+                {'instance_ids': _('Value must be a list.')}
+            )
+
+        # This error should not be returned as `ValidationError` to user.
+        # We want to return a 500.
+        try:
+            permission_filters = self.asset.get_filters_for_partial_perm(
+                requesting_user_id)
+        except ValueError:
+            raise ValueError(_('Invalid `requesting_user_id` param'))
+
+        if count:
+            return {
+                'query': query,
+                'instance_ids': instance_ids,
+                'permission_filters': permission_filters
+            }
 
         if isinstance(sort, basestring):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
-                raise exceptions.ValidationError(
+                raise serializers.ValidationError(
                     {'sort': _('Value must be valid JSON.')}
                 )
 
         try:
             start = positive_int(start)
         except ValueError:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'start': _('A positive integer is required.')}
             )
         try:
             if limit is not None:
                 limit = positive_int(limit, strict=True)
         except ValueError:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'limit': _('A positive integer is required.')}
             )
 
@@ -80,19 +131,9 @@ class BaseDeploymentBackend(object):
             try:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:
-                raise exceptions.ValidationError(
+                raise serializers.ValidationError(
                     {'fields': _('Value must be valid JSON.')}
                 )
-
-        if not isinstance(instance_ids, list):
-            raise exceptions.ValidationError(
-                {'instance_ids': _('Value must be a list.')}
-            )
-
-        if not (isinstance(permission_filters, list) or permission_filters is None):
-            # This error should not be returned as `ValidationError` to user.
-            # We want to return a 500.
-            raise ValueError(_('Invalid `permission_filters` param'))
 
         params = {
             'query': query,
@@ -107,6 +148,9 @@ class BaseDeploymentBackend(object):
             params['limit'] = limit
 
         return params
+
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        raise NotImplementedError('This method should be implemented in subclasses')
 
     @property
     def backend(self):
@@ -138,4 +182,32 @@ class BaseDeploymentBackend(object):
 
     @property
     def mongo_userform_id(self):
+        return None
+
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns submission if `pk` exists otherwise `None`
+
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [int(pk)],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
         return None

@@ -298,7 +298,7 @@ class KobocatUser(ShadowModel):
 class KobocatToken(ShadowModel):
 
     key = models.CharField(_("Key"), max_length=40, primary_key=True)
-    user = models.OneToOneField(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
+    user = models.OneToOneField(KobocatUser,
                                 related_name='auth_token',
                                 on_delete=models.CASCADE, verbose_name=_("User"))
     created = models.DateTimeField(_("Created"), auto_now_add=True)
@@ -313,9 +313,58 @@ class KobocatToken(ShadowModel):
             # Thus, we can retrieve tokens from users' id. 
             kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KobocatToken.DoesNotExist:
-            kc_auth_token = cls(pk=auth_token.pk, user=auth_token.user)
+            kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
 
         kc_auth_token.save()
+
+
+class KobocatDigestPartial(ShadowModel):
+
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
+    login = models.CharField(max_length=128, db_index=True)
+    partial_digest = models.CharField(max_length=100)
+    confirmed = models.BooleanField(default=True)
+
+    class Meta(ShadowModel.Meta):
+        db_table = "django_digest_partialdigest"
+
+    @classmethod
+    def sync(cls, digest_partial, validate_user=True):
+        """`
+        Sync `django_digest_partialdigest` table between `kpi` and `kc``
+
+        A race condition occurs when users are created.
+        `DigestPartial` post-signal is (often) triggered before `User`
+        post-signal.  Because of that, user doesn't exist in `kc` database
+        when `KobocatDigestPartial` is saved.
+
+        `validate_user` is useful to verify whether foreign key exists to avoid
+        getting an `IntegrityError` on save.
+
+        Args:
+            digest_partial (DigestPartial)
+            validate_user (bool)
+        """
+        try:
+            if validate_user:
+                # Race condition. `User` post signal can be triggered after
+                # `DigestPartial` post signal.
+                KobocatUser.objects.get(pk=digest_partial.user_id)
+
+            try:
+                kc_digest_partial = cls.objects.get(pk=digest_partial.pk)
+                assert kc_digest_partial.user_id == digest_partial.user_id
+            except KobocatDigestPartial.DoesNotExist:
+                kc_digest_partial = cls(pk=digest_partial.pk,
+                                        user_id=digest_partial.user_id)
+
+            kc_digest_partial.login = digest_partial.login
+            kc_digest_partial.partial_digest = digest_partial.partial_digest
+            kc_digest_partial.confirmed = kc_digest_partial.confirmed
+            kc_digest_partial.save()
+
+        except KobocatUser.DoesNotExist:
+            pass
 
 
 def safe_kc_read(func):
