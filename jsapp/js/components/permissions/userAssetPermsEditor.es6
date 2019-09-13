@@ -16,6 +16,7 @@ import {
   notify,
   buildUserUrl
 } from 'js/utils';
+import {KEY_CODES} from 'js/constants'
 
 /**
  * Form for adding/changing user permissions for surveys.
@@ -378,15 +379,10 @@ class UserAssetPermsEditor extends React.Component {
       formModifiers.push('pending');
     }
 
-    const formClassNames = classNames(
-      'user-permissions-editor',
-      isNew ? 'user-permissions-editor--new' : ''
-    );
-
     return (
       <bem.FormModal__form
         m={formModifiers}
-        className={formClassNames}
+        className='user-permissions-editor'
         onSubmit={this.submit}
       >
         {isNew &&
@@ -416,38 +412,34 @@ class UserAssetPermsEditor extends React.Component {
             label={t('Edit Form')}
           />
 
-          <div className={classNames(
-            this.state.submissionsView === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
-          )}>
-            <Checkbox
-              checked={this.state.submissionsView}
-              disabled={this.state.submissionsViewDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'submissionsView')}
-              label={t('View Submissions')}
-            />
+          <Checkbox
+            checked={this.state.submissionsView}
+            disabled={this.state.submissionsViewDisabled}
+            onChange={this.onCheckboxChange.bind(this, 'submissionsView')}
+            label={t('View Submissions')}
+          />
 
-            {this.state.submissionsView === true &&
-              <div>
-                <Checkbox
-                  checked={this.state.submissionsViewPartial}
-                  disabled={this.state.submissionsViewPartialDisabled}
-                  onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
-                  label={t('Restrict to submissions made by certain users')}
+          {this.state.submissionsView === true &&
+            <div className='user-permissions-editor__sub-row'>
+              <Checkbox
+                checked={this.state.submissionsViewPartial}
+                disabled={this.state.submissionsViewPartialDisabled}
+                onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
+                label={t('Restrict to submissions made by certain users')}
+              />
+
+              {this.state.submissionsViewPartial === true &&
+                <TagsInput
+                  value={this.state.submissionsViewPartialUsers}
+                  onChange={this.onSubmissionsViewPartialUsersChange}
+                  addOnBlur
+                  addKeys={[KEY_CODES.get('ENTER'), KEY_CODES.get('SPACE'), KEY_CODES.get('TAB')]}
+                  inputProps={submissionsViewPartialUsersInputProps}
+                  onlyUnique
                 />
-
-                {this.state.submissionsViewPartial === true &&
-                  <TagsInput
-                    value={this.state.submissionsViewPartialUsers}
-                    onChange={this.onSubmissionsViewPartialUsersChange}
-                    addOnBlur
-                    addKeys={[9, 13, 32]}
-                    inputProps={submissionsViewPartialUsersInputProps}
-                    onlyUnique
-                  />
-                }
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
 
           <Checkbox
             checked={this.state.submissionsAdd}
