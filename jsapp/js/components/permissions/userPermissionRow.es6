@@ -120,8 +120,13 @@ class UserPermissionRow extends React.Component {
           >
             {permName}
 
-            {permUsers.length > 0 &&
+            { // KEY_CODES.NBSP doesn't work for me in Chrome or FF, but it's
+              // okay because (for now) we're not including this username list
+              // anyway
+              /*
+              permUsers.length > 0 &&
               String.fromCharCode(KEY_CODES.NBSP) + '(' + permUsers.join(', ') + ')'
+              */
             }
           </bem.UserRow__perm>;
         })}
