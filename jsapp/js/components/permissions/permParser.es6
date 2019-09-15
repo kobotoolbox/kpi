@@ -211,17 +211,18 @@ function parseUserWithPermsList(data) {
  *
  * @param {Object} data - Permissions array (results property from endpoint response).
  * @param {string} ownerUrl - Asset owner url (used as identifier).
+ * @param {boolean} includeAnon - Whether to include permissions assigned to the anonymous user.
  *
  * @returns {UserWithPerms[]} An ordered list of users with all their permissions.
  */
-function parseBackendData(data, ownerUrl) {
+function parseBackendData(data, ownerUrl, includeAnon = false) {
   const output = [];
 
   const groupedData = {};
   data.forEach((item) => {
     // anonymous user permissions are our inner way of handling public sharing
     // so we don't want to display them
-    if (getUsernameFromUrl(item.user) === ANON_USERNAME) {
+    if (getUsernameFromUrl(item.user) === ANON_USERNAME && !includeAnon) {
       return;
     }
     if (!groupedData[item.user]) {
@@ -274,7 +275,7 @@ function parseOldBackendData(data, ownerUrl) {
     if (!groupedData[item.user]) {
       groupedData[item.user] = [];
     }
-    const permDef = permConfig.getPermissionByCodename(item.permission);
+    const permDef = permConfig.getPermission(item.permission);
     groupedData[item.user].push({
       url: item.url,
       permission: permDef.url

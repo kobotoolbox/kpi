@@ -45,13 +45,18 @@ class SharingForm extends React.Component {
 
   onGetAssetPermissionsCompleted(response) {
     const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
-    let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
+    const anonUserUrl = buildUserUrl(ANON_USERNAME);
+    const publicPerms = response.results.filter((assignment) => {
+      return assignment.user === anonUserUrl;
+    });
+    const nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);
     });
 
     this.setState({
       permissions: parsedPerms,
-      nonOwnerPerms: nonOwnerPerms
+      nonOwnerPerms: nonOwnerPerms,
+      publicPerms: publicPerms
     });
   }
 
@@ -74,9 +79,7 @@ class SharingForm extends React.Component {
     if (asset) {
       this.setState({
         asset: asset,
-        kind: asset.kind,
-        public_permissions: asset.permissions.filter(function(perm){return perm.user__username === ANON_USERNAME;}),
-        related_users: stores.asset.relatedUsers[uid]
+        kind: asset.kind
       });
     }
 
@@ -204,7 +207,7 @@ class SharingForm extends React.Component {
               <h2>{t('Share publicly by link')}</h2>
 
               <PublicShareSettings
-                publicPerms={this.state.public_permissions}
+                publicPerms={this.state.publicPerms}
                 uid={uid}
                 kind={kind}
                 objectUrl={objectUrl}
