@@ -218,6 +218,12 @@ class FormpackXLSFormUtils(object):
                 'namespaces', 
                 'Read Me - Form template created by OpenClinica Form Designer'
             ]
+            settingsRemainingKeyOrder = []
+            for settingsKey in settings.keys():
+                if settingsKey not in settingsKeyOrder:
+                    settingsRemainingKeyOrder.append(settingsKey)
+
+            settingsKeyOrder = settingsKeyOrder + settingsRemainingKeyOrder
             content['settings'] = OrderedDict(sorted(settings.items(), key=lambda i:settingsKeyOrder.index(i[0])))
 
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
