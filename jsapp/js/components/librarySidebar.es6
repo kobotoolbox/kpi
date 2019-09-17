@@ -113,7 +113,7 @@ class LibrarySidebar extends Reflux.Component {
     let dialog = alertify.dialog('prompt');
     let opts = {
       title: t('Create collection'),
-      message: t('Please enter the name of your new Collection. Collections can help you better organize your library, and it is possible to share each collection with different people.'),
+      message: t('Please enter the name of your new Collection. Collections can help you better organize your library.'),
       labels: {ok: t('Create collection'), cancel: t('Cancel')},
       onok: (evt, val) => {
         dataInterface.createCollection({
@@ -333,24 +333,6 @@ class LibrarySidebar extends Reflux.Component {
                       { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
                         <ui.PopoverMenu type='collectionSidebarPublic-menu'
                             triggerLabel={<i className='k-icon-more' />}>
-                          { collection.access_type === 'owned' && collection.discoverable_when_public &&
-                            <bem.PopoverMenu__link
-                                m={'make-private'}
-                                onClick={this.setCollectionDiscoverability(false, collection)}
-                                >
-                              <i className='k-icon-globe' />
-                              {t('Make Private')}
-                            </bem.PopoverMenu__link>
-                          }
-                          { collection.access_type === 'owned' && !collection.discoverable_when_public &&
-                            <bem.PopoverMenu__link
-                                m={'make-public'}
-                                onClick={this.setCollectionDiscoverability(true, collection)}
-                                >
-                              <i className='k-icon-globe' />
-                              {t('Make Public')}
-                            </bem.PopoverMenu__link>
-                          }
                           { collection.access_type !== 'subscribed' &&
                             <bem.PopoverMenu__link
                                 m={'share'}
@@ -401,16 +383,6 @@ class LibrarySidebar extends Reflux.Component {
                   );
               })}
             </bem.FormSidebar__grouping>
-            <bem.FormSidebar__label
-              key='public'
-              m={{selected: this.state.publicCollectionsVisible}}
-              onClick={this.clickShowPublicCollections}>
-              <i className='k-icon-globe' />
-              {t('Public Collections')}
-              <bem.FormSidebar__labelCount>
-                {this.state.sidebarPublicCollections.length}
-              </bem.FormSidebar__labelCount>
-            </bem.FormSidebar__label>
             <bem.FormSidebar__grouping m={[this.state.publicCollectionsVisible ? 'visible' : 'collapsed']}>
               {this.state.sidebarPublicCollections.map((collection)=>{
                 return (

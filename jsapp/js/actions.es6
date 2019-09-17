@@ -1,3 +1,14 @@
+/**
+ * A bundle file for all Reflux actions. This is the only place that React
+ * components should be talking to Backend.
+ *
+ * You can observe action result through Reflux callbacks in your component, or
+ * more preferably (where applicable) use the update eveont of one of the stores
+ * from `jsapp/js/stores.es6`
+ *
+ * TODO: Group and split actions to separate files. For a working example see `./actions/help`.
+ */
+
 import alertify from 'alertifyjs';
 import {dataInterface} from './dataInterface';
 import helpActions from './actions/help';
@@ -322,7 +333,7 @@ actions.resources.createImport.completed.listen(function(contents){
       notify(t('successfully uploaded file; processing may take a few minutes'));
       log('processing import ' + contents.uid, contents);
     } else {
-      notify(`unexpected import status ${contents.status}`, 'error');
+      notify(t('unexpected import status ##STATUS##').replace('##STATUS##', contents.status), 'error');
     }
   } else {
     notify(t('Error: import.status not available'));
@@ -343,7 +354,7 @@ actions.resources.listTags.listen(function(data){
 
 actions.resources.listTags.completed.listen(function(results){
   if (results.next && window.Raven) {
-    Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
+    Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many labels');
   }
 });
 

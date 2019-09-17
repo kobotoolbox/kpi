@@ -57,11 +57,6 @@ export class FormLanding extends React.Component {
             <bem.FormView__cell m='version'>
               {dvcount > 0 ? `v${dvcount}` : ''}
             </bem.FormView__cell>
-            {undeployedVersion && userCanEdit &&
-              <bem.FormView__cell m='undeployed'>
-                &nbsp;{undeployedVersion}
-              </bem.FormView__cell>
-            }
             <bem.FormView__cell m='date'>
               {t('Last Modified')}&nbsp;:&nbsp;
               {formatTime(this.state.date_modified)}&nbsp;-&nbsp;
@@ -70,29 +65,6 @@ export class FormLanding extends React.Component {
                 {t('questions')}
                 </span>
             </bem.FormView__cell>
-          </bem.FormView__cell>
-          <bem.FormView__cell m='buttons'>
-            {userCanEdit && this.state.has_deployment && this.state.deployment__active &&
-              <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.deployAsset}>
-                  {t('redeploy')}
-              </a>
-            }
-            {userCanEdit && !this.state.has_deployment && !this.state.deployment__active &&
-              <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.deployAsset}>
-                  {t('deploy')}
-              </a>
-            }
-            {userCanEdit && this.state.has_deployment && !this.state.deployment__active &&
-              <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
-                onClick={this.callUnarchiveAsset}>
-                  {t('unarchive')}
-              </a>
-            }
           </bem.FormView__cell>
         </bem.FormView__cell>
       );
@@ -264,9 +236,15 @@ export class FormLanding extends React.Component {
               </ui.PopoverMenu>
             </bem.FormView__cell>
             <bem.FormView__cell>
-              {chosenMethod != 'iframe_url' && chosenMethod != 'android' && this.state.deployment__links[chosenMethod] &&
-                <CopyToClipboard text={this.state.deployment__links[chosenMethod]} onCopy={() => notify('copied to clipboard')}>
-                  <button className='copy mdl-button mdl-button--colored'>{t('Copy')}</button>
+              {chosenMethod != 'iframe_url' && chosenMethod != 'android' &&
+               this.state.deployment__links[chosenMethod] &&
+                <CopyToClipboard text={this.state.deployment__links[chosenMethod]}
+                  onCopy={() => notify(t('copied to clipboard'))}
+                  options={{format: 'text/plain'}}
+                >
+                  <button className='copy mdl-button mdl-button--colored'>
+                    {t('Copy')}
+                  </button>
                 </CopyToClipboard>
               }
               {chosenMethod != 'iframe_url' && chosenMethod != 'android' &&
@@ -286,8 +264,12 @@ export class FormLanding extends React.Component {
               {chosenMethod == 'iframe_url' &&
                 <CopyToClipboard
                   text={`<iframe src=${this.state.deployment__links[chosenMethod]} width="800" height="600"></iframe>`}
-                  onCopy={() => notify('copied to clipboard')}>
-                  <button className='copy mdl-button mdl-button--colored'>{t('Copy')}</button>
+                  onCopy={() => notify(t('copied to clipboard'))}
+                  options={{format: 'text/plain'}}
+                >
+                  <button className='copy mdl-button mdl-button--colored'>
+                    {t('Copy')}
+                  </button>
                 </CopyToClipboard>
               }
             </bem.FormView__cell>
@@ -396,13 +378,13 @@ export class FormLanding extends React.Component {
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
               <i className='k-icon-share'/>
-              {t('Share this project')}
+              {t('Share this form')}
             </bem.PopoverMenu__link>
           }
 
           <bem.PopoverMenu__link onClick={this.saveCloneAs}>
             <i className='k-icon-clone'/>
-            {t('Clone this project')}
+            {t('Clone this form')}
           </bem.PopoverMenu__link>
 
           <bem.PopoverMenu__link
@@ -492,12 +474,6 @@ export class FormLanding extends React.Component {
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.isFormRedeploymentNeeded() &&
-                <bem.FormView__cell m='warning'>
-                  <i className='k-icon-alert' />
-                  {t('If you want to make these changes public, you must deploy this form.')}
-                </bem.FormView__cell>
-              }
               {this.renderFormInfo(userCanEdit)}
               {this.renderLanguages(userCanEdit)}
             </bem.FormView__cell>

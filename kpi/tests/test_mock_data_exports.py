@@ -550,3 +550,34 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(
             expected_lines, {'fields_from_all_versions': 'false'})
+
+    def test_export_exceeding_api_submission_limit(self):
+        """
+        Make sure the limit on count of submissions returned by the API does
+        not apply to exports
+        """
+        limit = settings.SUBMISSION_LIST_LIMIT
+        excess = 10
+        asset = Asset.objects.create(
+            name='Lots of submissions',
+            owner=self.asset.owner,
+            content={'survey': [{'name': 'q', 'type': 'integer'}]},
+        )
+        asset.deploy(backend='mock', active=True)
+        submissions = [
+            {
+                '__version__': asset.latest_deployed_version.uid,
+                'q': i,
+            } for i in range(limit + excess)
+        ]
+        asset.deployment.mock_submissions(submissions)
+        export_task = ExportTask()
+        export_task.user = self.user
+        export_task.data = {
+            'source': reverse('asset-detail', args=[asset.uid]),
+            'type': 'csv'
+        }
+        messages = defaultdict(list)
+        export_task._run_task(messages)
+        # Don't forget to add one for the header row!
+        self.assertEqual(len(list(export_task.result)), limit + excess + 1)

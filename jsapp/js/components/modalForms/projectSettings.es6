@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -12,7 +11,6 @@ import Checkbox from 'js/components/checkbox';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from 'js/stores';
-import {session} from 'js/stores';
 import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
@@ -50,14 +48,14 @@ class ProjectSettings extends React.Component {
       UPLOAD_FILE: 'upload-file',
       IMPORT_URL: 'import-url',
       PROJECT_DETAILS: 'project-details'
-    }
+    };
 
     this.unlisteners = [];
 
     const formAsset = this.props.formAsset;
 
     this.state = {
-      isSessionLoaded: !!session.currentAccount,
+      isSessionLoaded: !!stores.session.currentAccount,
       isSubmitPending: false,
       formAsset: formAsset,
       // project details
@@ -94,7 +92,7 @@ class ProjectSettings extends React.Component {
 
   componentDidMount() {
     this.setInitialStep();
-    this.listenTo(session, (session) => {
+    this.listenTo(stores.session, () => {
       this.setState({
         isSessionLoaded: true,
       });
@@ -107,7 +105,7 @@ class ProjectSettings extends React.Component {
       actions.resources.setDeploymentActive.failed.listen(this.onSetDeploymentActiveFailed.bind(this)),
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
       hashHistory.listen(this.onRouteChange.bind(this))
-    )
+    );
   }
 
   componentWillUnmount() {
@@ -130,7 +128,7 @@ class ProjectSettings extends React.Component {
   getBaseTitle() {
     switch (this.props.context) {
       case PROJECT_SETTINGS_CONTEXTS.NEW:
-        return t('Create project');
+        return t('Create form');
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return t('Replace form');
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
@@ -146,7 +144,7 @@ class ProjectSettings extends React.Component {
       case this.STEPS.CHOOSE_TEMPLATE: return t('Choose template');
       case this.STEPS.UPLOAD_FILE: return t('Upload XLSForm');
       case this.STEPS.IMPORT_URL: return t('Import XLSForm');
-      case this.STEPS.PROJECT_DETAILS: return t('Project details');
+      case this.STEPS.PROJECT_DETAILS: return t('Form details');
       default: return '';
     }
   }
@@ -292,7 +290,7 @@ class ProjectSettings extends React.Component {
 
     let targetUid;
     if (this.state.formAsset) {
-      targetUid = this.state.formAsset.uid
+      targetUid = this.state.formAsset.uid;
     } else if (this.context.router && this.context.router.params.assetid) {
       targetUid = this.context.router.params.assetid;
     }
@@ -357,7 +355,7 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onUpdateAssetFailed(response) {
+  onUpdateAssetFailed() {
     if (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE ||
       this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW
@@ -533,7 +531,7 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  onFileDrop(files, rejectedFiles, evt) {
+  onFileDrop(files) {
     if (files.length >= 1) {
       this.setState({isUploadFilePending: true});
 
@@ -586,7 +584,7 @@ class ProjectSettings extends React.Component {
         },
         () => {
           this.setState({isUploadFilePending: false});
-          alertify.error(t('Could not import XLSForm!'))
+          alertify.error(t('Could not import XLSForm!'));
         }
       );
     }
@@ -598,7 +596,7 @@ class ProjectSettings extends React.Component {
     // simple non-empty name validation
     if (!this.state.name.trim()) {
       alertify.error(t('Please enter a title for your project!'));
-      return
+      return;
     }
 
     this.setState({isSubmitPending: true});
@@ -620,7 +618,7 @@ class ProjectSettings extends React.Component {
         <i className='k-icon-template' />
         {t('Use a template')}
       </button>
-    )
+    );
   }
 
   renderStepFormSource() {
@@ -755,8 +753,8 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = session.currentAccount.available_sectors;
-    const countries = session.currentAccount.available_countries;
+    const sectors = stores.session.environment.available_sectors;
+    const countries = stores.session.environment.available_countries;
 
     return (
       <bem.FormModal__form
@@ -790,7 +788,7 @@ class ProjectSettings extends React.Component {
               </label>
               <input type='text'
                 id='name'
-                placeholder={t('Enter title of project here')}
+                placeholder={t('Enter title of form here')}
                 value={this.state.name}
                 onChange={this.onNameChange}
               />
@@ -805,53 +803,6 @@ class ProjectSettings extends React.Component {
               onChange={this.onDescriptionChange}
               value={this.state.description}
               placeholder={t('Enter short description here')}
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item>
-            <label className='long'>
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {/*t('This information will be used to help you filter results on the project list page.')*/}
-            </label>
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='sector'>
-            <label htmlFor='sector'>
-              {t('Sector')}
-            </label>
-            <Select
-              id='sector'
-              value={this.state.sector}
-              onChange={this.onSectorChange}
-              options={sectors}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item  m='country'>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-            <Select
-              id='country'
-              value={this.state.country}
-              onChange={this.onCountryChange}
-              options={countries}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='metadata-share'>
-            <Checkbox
-              checked={this.state['share-metadata']}
-              onChange={this.onShareMetadataChange}
-              label={t('Help KoboToolbox improve this product by sharing the sector and country where this form will be deployed.') + ' ' + t('All the information is submitted anonymously, and will not include the form name or description listed above.')}
             />
           </bem.FormModal__item>
 
@@ -870,40 +821,10 @@ class ProjectSettings extends React.Component {
                 disabled={this.state.isSubmitPending}
               >
                 {this.state.isSubmitPending && t('Please wait…')}
-                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create form')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
               </bem.Modal__footerButton>
             </bem.Modal__footer>
-          }
-
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-            <bem.FormModal__item>
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
-                    onClick={this.unarchiveProject}
-                  >
-                    {t('Unarchive Form')}
-                  </button>
-                }
-
-                {!this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
-                    onClick={this.archiveProject}
-                  >
-                    {t('Archive Form')}
-                  </button>
-                }
-              </bem.FormModal__item>
-
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() ? t('Unarchive form to resume accepting submissions.') : t('Archive form to stop accepting submissions.')}
-              </bem.FormModal__item>
-            </bem.FormModal__item>
           }
 
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
@@ -913,15 +834,9 @@ class ProjectSettings extends React.Component {
                 className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
                 onClick={this.deleteProject}
               >
-                {t('Delete Form and Data')}
+                {t('Delete Form')}
               </button>
             </bem.FormModal__item>
-          }
-
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
           }
         </bem.FormModal__item>
       </bem.FormModal__form>
@@ -935,7 +850,7 @@ class ProjectSettings extends React.Component {
         this.state.isApplyTemplatePending ||
         this.state.isImportFromURLPending ||
         this.state.isUploadFilePending
-      )
+      );
       return (
         <bem.Modal__footerButton
           m='back'
@@ -945,7 +860,7 @@ class ProjectSettings extends React.Component {
         >
           {t('Back')}
         </bem.Modal__footerButton>
-      )
+      );
     } else {
       return false;
     }
@@ -977,7 +892,7 @@ class ProjectSettings extends React.Component {
         throw new Error(`Unknown step: ${this.state.currentStep}!`);
     }
   }
-};
+}
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);

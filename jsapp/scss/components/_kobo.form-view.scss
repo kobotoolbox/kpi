@@ -23,7 +23,7 @@ $z-form-view-fullscreen: 101;
   width: 100%;
   height: calc(100% - 48px);
   overflow-y: auto;
-  background: #F8F8F8;
+  background: $cool-whitegray;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -95,7 +95,7 @@ $z-form-view-fullscreen: 101;
 
   a.form-view__link--close {
     position: absolute;
-    right: 0px;
+    right: 0;
     top: 5px;
   }
 }
@@ -140,7 +140,7 @@ $z-form-view-fullscreen: 101;
   margin-right: 44px;
 
   + .form-view__row {
-    margin-top: 0px;
+    margin-top: 0;
   }
 
   &.historyHidden {
@@ -149,7 +149,7 @@ $z-form-view-fullscreen: 101;
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
-    max-height: 0px;
+    max-height: 0;
     overflow: hidden;
     transition: 0.2s max-height;
   }
@@ -166,27 +166,27 @@ $z-form-view-fullscreen: 101;
 }
 
 .form-view__cell {
-  &--box {
+  &.form-view__cell--box {
     @include box-shadow;
 
-    background-color: #FFF;
+    background-color: $white;
   }
 
-  &--columns {
+  &.form-view__cell--columns {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
-  &--bordertop {
+  &.form-view__cell--bordertop {
     border-top: 1px solid $cool-lightgray;
   }
 
-  &--padding {
+  &.form-view__cell--padding {
     padding: 20px;
   }
 
-  &--label {
+  &.form-view__cell--label {
     font-size: 14px;
     color: $black;
     font-weight: 500;
@@ -199,19 +199,19 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--first {
+  &.form-view__cell--first {
     position: relative;
 
     .form-view__group {
       position: absolute;
-      right: 0px;
+      right: 0;
       top: -12px;
       min-width: 200px;
       text-align: right;
     }
   }
 
-  &--buttons {
+  &.form-view__cell--buttons {
     a.mdl-button {
       text-transform: uppercase;
       padding-left: 30px;
@@ -219,28 +219,30 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--version {
+  &.form-view__cell--version {
     font-weight: 600;
     display: inline-block;
   }
 
-  &--undeployed {
+  &.form-view__cell--undeployed {
     display: inline-block;
   }
 
-  &--date {
+  &.form-view__cell--date {
     font-weight: normal;
     opacity: 0.8;
     display: inline-block;
     margin-left: 6px;
   }
 
-  &--translation-list {
+  &.form-view__cell--translation-list {
     ul {
       list-style: none;
       display: inline;
+
       li {
         display: inline;
+
         &:not(:last-child)::after {
           content: ', ';
         }
@@ -248,7 +250,7 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--thin-label {
+  &.form-view__cell--thin-label {
     color: $cool-gray;
     opacity: 0.6;
     font-size: 12px;
@@ -256,7 +258,7 @@ $z-form-view-fullscreen: 101;
     margin-bottom: 10px;
   }
 
-  &--centered {
+  &.form-view__cell--centered {
     text-align: center;
 
     button {
@@ -264,23 +266,24 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--deployed {
+  &.form-view__cell--deployed {
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    background-color: #daf6f9;
+    color: $white;
+    background-color: $warm-green;
     border-radius: 2px;
   }
 
-  &--warning {
+  &.form-view__cell--warning {
     margin: 10px 20px;
-    margin-top: 0px;
-    border-top: 15px solid #FFF;
+    margin-top: 0;
+    border-top: 15px solid $white;
     padding: 10px;
-    background: #F8F8F8;
+    background: $cool-whitegray;
 
     i {
-      color: #FFB775;
+      color: $cool-orange;
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
@@ -293,54 +296,11 @@ $z-form-view-fullscreen: 101;
       width: calc(100% - 48px);
     }
   }
-
-  &--collect-row {
-    position: relative;
-    padding: 24px;
-    padding-right: 100px;
-
-    a.collect-link {
-      display: block;
-      margin-bottom: 10px;
-      color: $black;
-      font-weight: 500;
-    }
-
-    &:hover {
-      background: #F2F2F3;
-    }
-
-    a.copy {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      padding: 0px 12px;
-      cursor: pointer;
-      display: none;
-      text-transform: uppercase;
-    }
-
-    &:hover a.copy {
-      display: block;
-    }
-
-    + .form-view__cell--collect-row {
-      border-top: 1px solid $cool-lightgray;
-    }
-
-    code {
-      display: block;
-      background: #F8F8F8;
-      padding: 10px;
-      margin-top: 15px;
-      border: 1px solid $cool-lightgray;
-      font-size: 0.9em;
-    }
-  }
 }
 
 .form-view__icon-button {
   @extend .mdl-button, .mdl-button--icon;
+
   overflow: visible;
   padding: 0;
 }
@@ -349,7 +309,7 @@ $z-form-view-fullscreen: 101;
 .form-view__link {
   font-size: 36px;
   line-height: 18px;
-  padding: 0px 5px;
+  padding: 0 5px;
   color: $cool-gray;
   cursor: pointer;
   vertical-align: middle;
@@ -358,14 +318,15 @@ $z-form-view-fullscreen: 101;
     color: $cool-blue;
   }
 
-  &--disabled, &--disabled:hover {
+  &--disabled,
+  &--disabled:hover {
     color: lighten($cool-gray, 15%);
   }
 }
 
 @keyframes recent {
   0% {
-    background-color: #FFF;
+    background-color: $white;
   }
 
   10% {
@@ -401,7 +362,7 @@ $z-form-view-fullscreen: 101;
   }
 
   &--items {
-    padding: 0px;
+    padding: 0;
     border-top: 1px solid $divider-color;
     display: flex;
     align-items: center;
@@ -449,10 +410,6 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--headings {
-    font-weight: 600;
-  }
-
   &--deployments {
     .form-view__group--items:hover {
       background: $hover-asset-row;
@@ -471,23 +428,8 @@ $z-form-view-fullscreen: 101;
 
 .form-view--form-settings,
 .form-view--settings-sharing {
-  background: #FFF;
+  background: $white;
   padding: 40px;
-}
-
-.form-view.form-view--form-settings {
-  .form-modal__form {
-    height: 100%;
-
-    .form-modal__item--wrapper {
-      height: calc(100% - 70px);
-      overflow: auto;
-
-      .form-view__cell--iframe {
-        height: 820px;
-      }
-    }
-  }
 }
 
 .form-view.form-view--form-settings-sharing {
@@ -502,7 +444,7 @@ $z-form-view-fullscreen: 101;
 .form-view.form-view--form-data-downloads {
   .form-modal__item {
     &:last-child {
-      margin-bottom: 0px;
+      margin-bottom: 0;
     }
 
     &--export-type,
@@ -544,7 +486,7 @@ $z-form-view-fullscreen: 101;
     }
 
     .form-view__group--headings {
-      padding: 8px 0px;
+      padding: 8px 0;
 
       .form-view__label--type {
         text-transform: none;
@@ -584,10 +526,10 @@ $z-form-view-fullscreen: 101;
 .form-view__cell--collect-meta {
   pre {
     display: block;
-    margin: 10px 0px;
+    margin: 10px 0;
     padding: 10px;
     border: 1px solid $divider-color;
-    background: #F8F8F8;
+    background: $cool-whitegray;
     font-size: 13px;
     white-space: normal;
   }
@@ -604,7 +546,7 @@ $z-form-view-fullscreen: 101;
     }
 
     i {
-      margin: 0px 6px;
+      margin: 0 6px;
       font-size: 18px;
       display: inline-block;
     }
@@ -613,7 +555,7 @@ $z-form-view-fullscreen: 101;
   code {
     padding: 4px;
     border: 1px solid $divider-color;
-    background: #F8F8F8;
+    background: $cool-whitegray;
     margin-left: 5px;
     margin-right: 5px;
   }
@@ -637,7 +579,7 @@ $z-form-view-fullscreen: 101;
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width: 50px;
-    padding-top: 0px;
+    padding-top: 0;
 
     a.form-view__tab {
       padding: 3px;
@@ -667,7 +609,8 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  .form-view__sidetabs + .form-view, .form-view__sidetabs + .report-view {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view {
     width: calc(100% - 50px);
     overflow-x: hidden;
   }
@@ -678,7 +621,7 @@ $z-form-view-fullscreen: 101;
 
     a.form-view__link {
       font-size: 32px;
-      padding: 0px 3px;
+      padding: 0 3px;
     }
   }
 
@@ -702,6 +645,6 @@ $z-form-view-fullscreen: 101;
 
   .form-view__cell--date {
     display: block;
-    margin-left: 0px;
+    margin-left: 0;
   }
 }

@@ -117,7 +117,7 @@ module.exports = do ->
     textbox: (cid, key, key_label = key, input_class = '') ->
       @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
 
-    checkbox: (cid, key, key_label = key, input_label = _t('Yes')) ->
+    checkbox: (cid, key, key_label = key, input_label = _t("Yes")) ->
       input_label = input_label
       @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
 
@@ -202,14 +202,14 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins.guidance_hint =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Guidance hint"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Hint"), 'text'
     afterRender: ->
       @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.constraint_message =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Error Message"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Constraint Message"), 'text'
     insertInDOM: (rowView)->
       @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
     afterRender: ->
@@ -272,7 +272,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Data column name"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Name"), 'text'
     afterRender: ->
       @listenForInputChange(transformFn: (value)=>
         value_chars = value.split('')
@@ -282,7 +282,7 @@ module.exports = do ->
         @model.set 'value', value
         @model.deduplicate @model.getSurvey()
       )
-      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || $modelUtils.sluggifyLabel @model._parent.getValue('label'))
+      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || '')
       update_view()
 
       @model._parent.get('label').on 'change:value', update_view
@@ -322,16 +322,16 @@ module.exports = do ->
       @$el.find('input.hxlTag').select2({
           tags:$hxl.dict,
           maximumSelectionSize: 1,
-          placeholder: _t('#tag'),
+          placeholder: _t("#tag"),
           tokenSeparators: ['+',',', ':'],
-          formatSelectionTooBig: _t('Only one HXL tag allowed per question. ')
+          formatSelectionTooBig: _t("Only one HXL tag allowed per question. ")
           createSearchChoice: @_hxlTagCleanup
         })
       @$el.find('input.hxlAttrs').select2({
           tags:[],
           tokenSeparators: ['+',',', ':'],
-          formatNoMatches: _t('Type attributes for this tag'),
-          placeholder: _t('Attributes'),
+          formatNoMatches: _t("Type attributes for this tag"),
+          placeholder: _t("Attributes"),
           createSearchChoice: @_hxlAttrCleanup
           allowClear: 1
         })
@@ -407,8 +407,9 @@ module.exports = do ->
     afterRender: ->
       @listenForCheckboxChange()
 
+  # handled by mandatorySettingSelector
   viewRowDetail.DetailViewMixins.required =
-    getOptions: () -> 
+    getOptions: () ->
       options = [
         {
           label: 'Always',
@@ -433,7 +434,7 @@ module.exports = do ->
       $el = $(el)
       $input = $('<input/>', {class:'text', type: 'text', style: 'width: auto; margin-left: 5px;'})
       changing = false
-      
+
       reflectValueInEl = ()=>
         if !changing
           modelValue = @model.get('value')
@@ -441,14 +442,14 @@ module.exports = do ->
             willSelectedEl = @$("input[type=radio][name=#{@model.key}][id='option_Never']")
           else if modelValue == 'yes'
             willSelectedEl = @$("input[type=radio][name=#{@model.key}][value=#{modelValue}]")
-          else 
+          else
             willSelectedEl = @$("input[type=radio][name=#{@model.key}][id='option_Conditional']")
             @$('#label_Conditional').append $input
             @listenForInputChange el: $input
-          
+
           $willSelectedEl = $(willSelectedEl)
           $willSelectedEl.prop('checked', true)
-      
+
       @model.on 'change:value', reflectValueInEl
       reflectValueInEl()
 
@@ -555,11 +556,11 @@ module.exports = do ->
           $select.val('null')
         else
           $select.val(modelValue)
-        
+
         $select.change () =>
           if $select.val() == 'null'
             @model.set 'value', ''
           else
             @model.set 'value', $select.val()
-  
+
   viewRowDetail

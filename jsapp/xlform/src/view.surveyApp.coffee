@@ -436,19 +436,20 @@ module.exports = do ->
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
               return
-            item = ui.item.prev()
+            prevItem = ui.item.prev()
+            prevItemPosition = @getItemPosition(prevItem)
             if @ngScope.handleItem
               @ngScope.handleItem({
-                  position: @getItemPosition(item) - 1,
+                  position: prevItemPosition - 1
                   itemData: ui.item.data()
                 })
             else
-              @ngScope.add_item @getItemPosition(item) - 1
+              @ngScope.add_item @getItemPosition(prevItem) - 1
             ui.sender.sortable('cancel')
         })
       group_rows = @formEditorEl.find('.group__rows')
-      group_rows.each (index) ->
-        $(@).sortable({
+      group_rows.each (index) =>
+        $(group_rows[index]).sortable({
           cancel: 'button, .btn--addrow, .well, ul.list-view, li.editor-message, .editableform, .row-extras, .js-cancel-sort, .js-cancel-group-sort' + index
           cursor: "move"
           distance: 5
@@ -460,6 +461,22 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          receive: (evt, ui) =>
+            if ui.sender.hasClass('group__rows')
+              return
+            prevItem = ui.item.prev()
+            if @ngScope.handleItem
+              uiItemParentWithId = $(ui.item).parents('[data-row-id]')[0]
+              if uiItemParentWithId
+                groupId = uiItemParentWithId.dataset.rowId
+              @ngScope.handleItem({
+                  position: @getItemPosition(prevItem),
+                  itemData: ui.item.data(),
+                  groupId: groupId
+                })
+            else
+              @ngScope.add_item(@getItemPosition(prevItem))
+            ui.sender.sortable('cancel')
         })
         $(@).attr('data-sortable-index', index)
 
@@ -684,13 +701,13 @@ module.exports = do ->
       $header = $et.parents('.card__header')
       card_hover_text = do ->
         if buttonName is 'settings'
-          _t('[button triggers] Settings')
+          _t("[button triggers] Settings")
         else if buttonName is 'delete'
-          _t('[button triggers] Delete Question')
+          _t("[button triggers] Delete Question")
         else if buttonName is 'duplicate'
-          _t('[button triggers] Duplicate Question')
+          _t("[button triggers] Duplicate Question")
         else if buttonName is 'add-to-library'
-          _t('[button triggers] Add Question to Library')
+          _t("[button triggers] Add Question to Library")
 
       $header.find('.card__header--shade').eq(0).children('span').eq(0)
         .attr('data-card-hover-text', card_hover_text)

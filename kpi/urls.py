@@ -10,6 +10,7 @@ from kpi.views import (
     AssetVersionViewSet,
     AssetSnapshotViewSet,
     AssetFileViewSet,
+    HookSignalViewSet,
     SubmissionViewSet,
     UserViewSet,
     CurrentUserViewSet,
@@ -46,6 +47,11 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
+asset_routes.register(r'hook-signal',
+                      HookSignalViewSet,
+                      base_name='hook-signal',
+                      parents_query_lookups=['asset'],
+                      )
 asset_routes.register(r'submissions',
                       SubmissionViewSet,
                       base_name='submission',
@@ -58,9 +64,9 @@ asset_routes.register(r'files',
                       )
 
 hook_routes = asset_routes.register(r'hooks',
-                      HookViewSet,
-                      base_name='hook',
-                      parents_query_lookups=['asset'],
+                                    HookViewSet,
+                                    base_name='hook',
+                                    parents_query_lookups=['asset'],
                       )
 
 hook_routes.register(r'logs',

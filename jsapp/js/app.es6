@@ -1,3 +1,9 @@
+/**
+ * The React application used in `jsapp/js/main.es6` bundle file.
+ *
+ * TODO: move routes configuration to separate file for clarity.
+ */
+
 import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;

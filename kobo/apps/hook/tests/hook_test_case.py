@@ -172,4 +172,6 @@ class HookTestCase(KpiTestCase):
 
     def __inject_submission(self, asset, submission):
         self._submission_pk += 1
-        asset.deployment.mock_submissions([submission])
+        submissions = asset.deployment.get_submissions()
+        submissions.append(submission)
+        asset.deployment.mock_submissions(submissions)

@@ -109,14 +109,21 @@ class FormViewTabs extends Reflux.Component {
       ];
     }
 
-    if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
-       sideTabs = [
-          {label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`},
-          {label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`},
-          {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
-          {label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`},
-          {label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'},
-        ];
+    if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
+      sideTabs = [];
+
+      sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
+
+      if (this.state.asset.deployment__active) {
+        sideTabs.push({label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
+      }
+
+      sideTabs.push({label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`});
+
+      if (this.state.asset.deployment__active) {
+        sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
+        sideTabs.push({label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'});
+      }
     }
 
     if (sideTabs.length > 0) {
