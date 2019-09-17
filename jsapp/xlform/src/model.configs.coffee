@@ -128,13 +128,13 @@ module.exports = do ->
         _hideUnlessChanged: true
     image:
       label:
-        value: "Point and shoot! Use the camera to take a photo"
+        value: "Upload an image file"
     video:
       label:
-        value: "Use the camera to record a video"
+        value: "Upload a video file"
     audio:
       label:
-        value: "Use the camera's microphone to record a sound"
+        value: "Upload an audio file"
     file:
       label:
         value: "Upload a file"
