@@ -11,7 +11,7 @@ module.exports = do ->
       grouping: "r1"
       id: "select_one"
     ,
-      label: _t("Select Many")
+      label: _t("Select Multiple")
       faClass: "list-ul"
       grouping: "r1"
       id: "select_multiple"
@@ -21,7 +21,7 @@ module.exports = do ->
       grouping: "r1"
       id: "text"
     ,
-      label: _t("Number")
+      label: _t("Integer")
       faClass: "lato-integer"
       grouping: "r1"
       id: "integer"
@@ -33,29 +33,29 @@ module.exports = do ->
       grouping: "r2"
       id: "decimal"
     ,
+      label: _t("Calculate")
+      faClass: "lato-calculate"
+      grouping: "r2"
+      id: "calculate"
+    ,
       label: _t("Date")
       faClass: "calendar"
       grouping: "r2"
       id: "date"
     ,
-      label: _t("Time")
-      faClass: "clock-o"
+      label: _t("Note")
+      faClass: "bars"
       grouping: "r2"
-      id: "time"
-    ,
-      label: _t("Date & time")
-      faClass: "calendar clock-over"
-      grouping: "r2"
-      id: "datetime"
+      id: "note"
     ,
 
     # r3
-      label: _t("Point")
-      faClass: "map-marker"
+      label: _t("File")
+      faClass: "file"
       grouping: "r3"
-      id: "geopoint"
+      id: "file"
     ,
-      label: _t("Photo")
+      label: _t("Image")
       faClass: "picture-o"
       grouping: "r3"
       id: "image"
@@ -72,21 +72,6 @@ module.exports = do ->
     ,
 
     # r4
-      label: _t("Line")
-      faClass: "share-alt"
-      grouping: "r4"
-      id: "geotrace"
-    ,
-      label: _t("Note")
-      faClass: "bars"
-      grouping: "r4"
-      id: "note"
-    ,
-      label: _t("Barcode / QR Code")
-      faClass: "qrcode"
-      grouping: "r4"
-      id: "barcode"
-    ,
       label: _t("Acknowledge")
       faClass: "check-square-o"
       grouping: "r4"
@@ -94,43 +79,8 @@ module.exports = do ->
     ,
 
     # r5
-      label: _t("Area")
-      faClass: "square"
-      grouping: "r5"
-      id: "geoshape"
-    ,
-      label: _t("Rating")
-      faClass: "server"
-      grouping: "r5"
-      id: "score"
-    ,
-      label: _t("Question Matrix")
-      faClass: "table"
-      grouping: "r5"
-      id: "kobomatrix"
-    ,
-      label: _t("Ranking")
-      faClass: "sort-amount-desc"
-      grouping: "r5"
-      id: "rank"
-    ,
 
     # r6
-      label: _t("Calculate")
-      faClass: "lato-calculate"
-      grouping: "r6"
-      id: "calculate"
-    ,
-      label: _t("File")
-      faClass: "file"
-      grouping: "r6"
-      id: "file"
-    ,
-      label: _t("Range")
-      faClass: "lato-range"
-      grouping: "r6"
-      id: "range"
-    ,
     ]
 
   class QtypeIcon extends Backbone.Model
