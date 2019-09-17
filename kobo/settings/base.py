@@ -196,11 +196,23 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 # NOTE: this should be set to False for major deployments. This can take a long time
 SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'True'
 
+
+ANONYMOUS_USER_ID = -1
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
+# DATABASES = {
+#     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+#     'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+# }
+
 DATABASES = {
-    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
-    'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'onadata',
+        'USER': 'onadata',
+        'PASSWORD': 'onadata',
+        'HOST': '127.0.0.1'
+    }
 }
 
 DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
@@ -336,9 +348,9 @@ GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://localhost:8000')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
-                                      'http://kobocat/')
+                                      'http://localhost:8000')
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
 else:
@@ -377,7 +389,7 @@ HAYSTACK_SIGNAL_MODELS = (
 HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 
 # Enketo settings copied from dkobo.
-ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
+ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'http://localhost:8000')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
