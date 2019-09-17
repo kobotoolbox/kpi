@@ -88,6 +88,7 @@ class UserPermissionRow extends React.Component {
   }
 
   renderPermissions(permissions) {
+    const maxParentheticalUsernames = 3;
     return (
       <bem.UserRow__perms>
         {permissions.map((perm) => {
@@ -114,15 +115,30 @@ class UserPermissionRow extends React.Component {
             permName = COLLECTION_PERMISSIONS[permConfig.getPermission(perm.permission).codename];
           }
 
+          // Hopefully this is friendly to translators of RTL languages
+          let permNameTemplate;
+          if (permUsers.length === 0) {
+            permNameTemplate = '##permission_name##';
+          } else if (permUsers.length <= maxParentheticalUsernames) {
+            permNameTemplate = t('##permission_name## (##username_list##)');
+          } else if (permUsers.length === maxParentheticalUsernames + 1) {
+            permNameTemplate = t('##permission_name## (##username_list## and 1 other)');
+          } else {
+            permNameTemplate = t('##permission_name## (##username_list## and ' +
+                                 '##hidden_username_count## others)');
+          }
+          let friendlyPermName = (
+            permNameTemplate.replace('##permission_name##', permName)
+                            .replace('##username_list##', permUsers.slice(0, maxParentheticalUsernames).join(', '))
+                            .replace('##hidden_username_count##', permUsers.length - maxParentheticalUsernames)
+          );
+
+
           return <bem.UserRow__perm
             title={perm.description}
             key={permName}
           >
-            {permName}
-
-            {permUsers.length > 0 &&
-              String.fromCharCode(KEY_CODES.NBSP) + '(' + permUsers.join(', ') + ')'
-            }
+            {friendlyPermName}
           </bem.UserRow__perm>;
         })}
       </bem.UserRow__perms>

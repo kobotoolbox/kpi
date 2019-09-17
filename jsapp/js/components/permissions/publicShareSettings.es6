@@ -12,16 +12,21 @@ import {
 } from 'js/utils';
 import {
   ROOT_URL,
-  ANON_USERNAME
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 
 class PublicShareSettings extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
+    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
+    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url;
   }
   togglePerms(permCodename) {
-    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permCodename;})[0];
+    var permission = this.props.publicPerms.filter((perm) => {
+      return perm.permission === permConfig.getPermissionByCodename(permCodename).url;
+    })[0];
     let actionFn;
 
     if (permission) {
@@ -46,11 +51,11 @@ class PublicShareSettings extends React.Component {
     }
   }
   render () {
-    var uid = this.props.uid;
-    var url = `${ROOT_URL}/#/forms/${uid}`;
+    const uid = this.props.uid;
+    const url = `${ROOT_URL}/#/forms/${uid}`;
 
-    var anonCanView = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_asset';})[0];
-    var anonCanViewData = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_submissions';})[0];
+    const anonCanView = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewPermUrl;})[0];
+    const anonCanViewData = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewDataPermUrl;})[0];
 
     return (
       <bem.FormModal__item m='permissions'>
