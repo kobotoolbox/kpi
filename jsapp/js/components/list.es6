@@ -104,8 +104,8 @@ class ListTagFilter extends React.Component {
           name='tags'
           isMulti
           isLoading={!this.state.tagsLoaded}
-          loadingMessage={() => {return t('Tags are loading...')}}
-          placeholder={t('Search Tags')}
+          loadingMessage={() => {return t('Labels are loading...')}}
+          placeholder={t('Search Labels')}
           noOptionsMessage={() => {return t('No results found')}}
           options={this.state.availableTags}
           onChange={this.onTagsChange}

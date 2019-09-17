@@ -260,7 +260,7 @@ class AssetRow extends React.Component {
               <bem.AssetRow__actionIcon
                   m='tagsToggle'
                   onClick={this.clickTagsToggle}
-                  data-tip= {t('Tags')}
+                  data-tip= {t('Labels')}
                   >
                 <i className='k-icon-tag' />
               </bem.AssetRow__actionIcon>
