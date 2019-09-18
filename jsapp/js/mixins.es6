@@ -684,11 +684,9 @@ mixins.permissions = {
     }
 
     const userPerms = asset.permissions.filter((perm) => {
-      // return perm.user__username === currentUsername;
       return perm.user === buildUserUrl(currentUsername);
     });
     return userPerms.some((perm) => {
-      // return perm.permission === permName;
       return perm.permission === permConfig.getPermissionByCodename(permName).url;
     });
   }
