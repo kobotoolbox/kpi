@@ -677,14 +677,20 @@ mixins.permissions = {
 
     // if permission is granted publicly, then grant it to current user
     const anonAccess = asset.permissions.some((perm) => {
-      return perm.user === buildUserUrl(ANON_USERNAME) && perm.permission === permConfig.getPermissionByCodename(permName).url;
+      return (
+        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
     });
     if (anonAccess) {
       return true;
     }
 
     return asset.permissions.some((perm) => {
-      return perm.user === buildUserUrl(currentUsername) && perm.permission === permConfig.getPermissionByCodename(permName).url;;
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
     });
   }
 };
