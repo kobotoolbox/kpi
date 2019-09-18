@@ -266,6 +266,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if obj.owner_id == user.id:
                 return obj.deployment.submission_count
 
+            # `has_perm` benefits from internal calls which use
+            # `django_cache_request`. It won't hit DB multiple times
             if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
                 return obj.deployment.submission_count
 

@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
+from django.utils.six import string_types
 from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
@@ -56,7 +57,6 @@ def get_all_objects_for_user(user, klass):
     Return all objects of type klass to which user has been assigned any
     permission.
     """
-    # FIXME use `__get_all_object_permissions()`
     return klass.objects.filter(pk__in=ObjectPermission.objects.filter(
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
@@ -151,6 +151,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     return objects
 
 
+@cache_for_request
 def get_anonymous_user():
     """ Return a real User in the database to represent AnonymousUser. """
     try:
@@ -353,23 +354,25 @@ class ObjectPermissionMixin(object):
         fresh_self.recalculate_descendants_perms()
 
     def _filter_anonymous_perms(self, unfiltered_set):
-        """ Restrict a set of tuples in the format (user_id, permission_id) to
+        """
+        Restrict a set of tuples in the format (user_id, permission_id) to
         only those permissions that apply to the content_type of this object
-        and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS. """
-        content_type = ContentType.objects.get_for_model(type(self))
+        and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS.
+        """
+        content_type = ContentType.objects.get_for_model(self)
         # Translate settings.ALLOWED_ANONYMOUS_PERMISSIONS to primary keys
         codenames = set()
         for perm in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
             app_label, codename = perm_parse(perm)
             if app_label == content_type.app_label:
                 codenames.add(codename)
-        allowed_permissions = Permission.objects.filter(
-            content_type=content_type, codename__in=codenames
+        allowed_permission_ids = Permission.objects.filter(
+            content_type_id=content_type.pk, codename__in=codenames
         ).values_list('pk', flat=True)
         filtered_set = copy.copy(unfiltered_set)
         for user_id, permission_id in unfiltered_set:
             if user_id == settings.ANONYMOUS_USER_ID:
-                if permission_id not in allowed_permissions:
+                if permission_id not in allowed_permission_ids:
                     filtered_set.remove((user_id, permission_id))
         return filtered_set
 
@@ -423,7 +426,7 @@ class ObjectPermissionMixin(object):
         ):
             # Everyone with change_ should also get share_
             change_permissions = self.__get_permissions_for_content_type(
-                content_type, 'change_')
+                content_type.pk, 'change_')
 
             for cp_pk, cp_codename in change_permissions:
                 share_permission_codename = re.sub(
@@ -436,7 +439,7 @@ class ObjectPermissionMixin(object):
                     # `*_submissions` in addition to `*_asset`
                     continue
                 sp_pk, sp_codename = self.__get_permissions_for_content_type(
-                    content_type,
+                    content_type.pk,
                     share_permission_codename,
                     startswith=False,
                     first=True)
@@ -449,7 +452,7 @@ class ObjectPermissionMixin(object):
                 codename is None or codename.startswith('delete_')
         ):
             delete_permissions = self.__get_permissions_for_content_type(
-                content_type, 'delete_')
+                content_type.pk, 'delete_')
             for dp_pk, dp_codename in delete_permissions:
                 if (codename is not None and
                         dp_codename != codename
@@ -962,18 +965,41 @@ class ObjectPermissionMixin(object):
 
     @staticmethod
     @cache_for_request
-    def __get_all_object_permissions(content_type, object_id):
+    def __get_all_object_permissions(content_type_id, object_id):
         """
-        Retrieves all object permissions and build an dict with objects id as keys.
-        Useful to retrieve permissions (thanks to `@cache_for_request`)
-        for several objects in a row without fetching data from data again & again
-        FIXME Correct doctstring
-        :param object_id:
-        :return: dict
+        Retrieves all object permissions and build an dict with user ids as keys.
+        Useful to retrieve permissions for several users in a row without
+        hitting DB again & again (thanks to `@cache_for_request`)
+
+        Because `django_cache_request` creates its keys based on method's arguments,
+        it's important to minimize its number to hit the cache as much as possible.
+        This method should be called when object permissions for a specific object
+        are needed several times in a row (within the same request).
+
+        It will hit the DB once for this object. If object permissions are needed
+        for an another user, in subsequent calls, they can be easily retrieve
+        by the returned dict keys.
+
+        Args:
+            content_type_id (int): ContentType's pk
+            object_id (int): Object's pk
+
+        Returns:
+            dict: {
+                '<user_id>': [
+                    (permission_id, permission_codename, deny),
+                    (permission_id, permission_codename, deny),
+                    ...
+                ],
+                '<user_id>': [
+                    (permission_id, permission_codename, deny),
+                    (permission_id, permission_codename, deny),
+                    ...
+                ]
+            }
         """
-        # FIXME content_type is missing
         records = ObjectPermission.objects. \
-            filter(content_type=content_type, object_id=object_id).\
+            filter(content_type_id=content_type_id, object_id=object_id).\
             values('user_id',
                    'permission_id',
                    'permission__codename',
@@ -990,18 +1016,41 @@ class ObjectPermissionMixin(object):
 
     @staticmethod
     @cache_for_request
-    def __get_all_user_permissions(content_type, user_id):
+    def __get_all_user_permissions(content_type_id, user_id):
         """
-        Retrieves all object permissions and build an dict with objects id as keys.
+        Retrieves all object permissions and build an dict with object ids as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
         for several objects in a row without fetching data from data again & again
-        FIXME Correct doctstring
-        :param user_id:
-        :return: dict
+
+        Because `django_cache_request` creates its keys based on method's arguments,
+        it's important to minimize its number to hit the cache as much as possible.
+        This method should be called when object permissions for a specific user
+        are needed several times in a row (within the same request).
+
+        It will hit the DB once for this user. If object permissions are needed
+        for an another object (i.e. `Asset`, `Collection`), in subsequent calls,
+        they can be easily retrieve by the returned dict keys.
+
+        Args:
+            content_type_id (int): ContentType's pk
+            user_id (int): User's pk
+
+        Returns:
+            dict: {
+                '<object_id>': [
+                    (permission_id, permission_codename, deny),
+                    (permission_id, permission_codename, deny),
+                    ...
+                ],
+                '<object_id>': [
+                    (permission_id, permission_codename, deny),
+                    (permission_id, permission_codename, deny),
+                    ...
+                ]
+            }
         """
-        # FIXME content_type is missing
         records = ObjectPermission.objects. \
-            filter(content_type=content_type, user=user_id).\
+            filter(content_type_id=content_type_id, user=user_id).\
             values('object_id',
                    'permission_id',
                    'permission__codename',
@@ -1018,56 +1067,85 @@ class ObjectPermissionMixin(object):
         return object_permissions_per_object
 
     def __get_object_permissions(self, is_denied, user=None, codename=None):
-        # FIXME Explain how work this method
+        """
+        Returns a set of user ids and object permission ids related to
+        object `self`.
+
+        Args:
+            is_denied (bool): If `True`, returns denied permissions
+            user (User)
+            codename (str)
+
+        Returns:
+            set: [(User's pk, Permission's pk)]
+        """
+
+        def build_dict(user_id_, object_permissions_):
+            perms_ = []
+            if object_permissions_:
+                for permission_id, codename_, deny in object_permissions_:
+                    if (deny is not is_denied or
+                            codename is not None and
+                            codename != codename_):
+                        continue
+                    perms_.append((user_id_, permission_id))
+            return perms_
+
+        perms = []
+        
+        # If User is not none, retrieve all permissions for this user
+        # grouped by object ids, otherwise, retrieve all permissions for this object
+        # grouped by user ids.
         if user is not None:
             user_id = user.pk if not user.is_anonymous() \
                 else settings.ANONYMOUS_USER_ID
-            all_permissions = self.__get_all_user_permissions(
-                content_type=ContentType.objects.get_for_model(self),
+            all_object_permissions = self.__get_all_user_permissions(
+                content_type_id=ContentType.objects.get_for_model(self).pk,
                 user_id=user_id)
-            group_by_user = False
+            perms = build_dict(user_id, all_object_permissions.get(self.pk))
         else:
-            all_permissions = self.__get_all_object_permissions(
-                content_type=ContentType.objects.get_for_model(self),
+            all_object_permissions = self.__get_all_object_permissions(
+                content_type_id=ContentType.objects.get_for_model(self).pk,
                 object_id=self.pk)
-            group_by_user = True
-
-        perms = []
-
-        for key_id, permissions in all_permissions.items():
-            if group_by_user is False and self.pk != key_id:
-                continue
-
-            for permission_id, codename_, deny in permissions:
-                if (deny is not is_denied or
-                        codename is not None and
-                        codename != codename_):
-                    continue
-                user_id = key_id if group_by_user else user_id
-                perms.append((user_id, permission_id))
+            for user_id, object_permissions in all_object_permissions.items():
+                perms += build_dict(user_id, object_permissions)
 
         return set(perms)
 
     @staticmethod
     @cache_for_request
-    def __get_permissions_for_content_type(content_type, permission_codename,
+    def __get_permissions_for_content_type(content_type_id, codenames,
                                            startswith=True, first=False):
         """
-        Gets permissions for specific content_type and permission's codename
+        Gets permissions for specific content type and permission's codename
         This method is cached per request because it can be called several times
         in a row in the same request.
-        :param content_type: ContentType
-        :param permission_codename: str
-        :param startswith: bool. Optional. Default is True
-        :param first: bool. Optional. Default is False
-        :return: list<tuple> | <tuple>
-        FIXME Correct doctstring
+
+        Args:
+            content_type_id (int): ContentType primary key
+            codenames (mixed): Can be a list or a string
+            startswith (bool): If `True`, search for records that start with
+                `codenames`. Otherwise it must be equal.
+                Default is `True`
+            first (bool): If `True`, returns only the first occurrence.
+                Default is `False`
+
+        Returns:
+            mixed: If `first` is `True` returns a tuple.
+                   Otherwise a list of tuples
+                   The tuple consists of permission's pk and its codename.
         """
-        filters = {"content_type": content_type}
+        filters = {'content_type_id': content_type_id}
+        if isinstance(codenames, string_types):
+            codenames = [codenames]
+
         if startswith:
-            filters.update({"codename__startswith": permission_codename})
+            if len(codenames) > 1:
+                raise NotImplementedError('Can search for only one codename '
+                                          'when `startswith` is `True`')
+            filters.update({'codename__startswith': codenames[0]})
         else:
-            filters.update({"codename": permission_codename})
+            filters.update({'codename__in': codenames})
 
         permissions = Permission.objects.filter(**filters).values_list('pk',
                                                                        'codename')
