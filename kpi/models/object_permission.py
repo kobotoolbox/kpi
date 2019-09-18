@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
+from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.deployment_backends.kc_access.utils import (
@@ -20,6 +21,7 @@ from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions
 )
 from kpi.fields.kpi_uid import KpiUidField
+from kpi.utils.cache import void_cache_for_request
 
 
 def perm_parse(perm, obj=None):
@@ -44,14 +46,17 @@ def get_models_with_object_permissions():
     """
     models = []
     for model in apps.get_models():
-      if issubclass(model, ObjectPermissionMixin):
-        models.append(model)
+        if issubclass(model, ObjectPermissionMixin):
+            models.append(model)
     return models
 
 
 def get_all_objects_for_user(user, klass):
-    """ Return all objects of type klass to which user has been assigned any
-    permission. """
+    """
+    Return all objects of type klass to which user has been assigned any
+    permission.
+    """
+    # FIXME use `__get_all_object_permissions()`
     return klass.objects.filter(pk__in=ObjectPermission.objects.filter(
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
@@ -115,7 +120,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
         queryset = _get_queryset(klass)
         if ctype.model_class() != queryset.model:
             raise ValidationError("Content type for given perms and "
-                "klass differs")
+                                  "klass differs")
 
     # At this point, we should have both ctype and queryset and they should
     # match which means: ctype.model_class() == queryset.model
@@ -226,14 +231,22 @@ class ObjectPermission(models.Model):
         return self.content_object.get_label_for_permission(self.permission)
 
     class Meta:
-        unique_together = ('user', 'permission', 'deny', 'inherited',
+        unique_together = (
+            'user', 'permission', 'deny', 'inherited',
             'object_id', 'content_type')
 
+    @void_cache_for_request(keys=('__get_all_object_permissions',
+                                  '__get_all_user_permissions',))
     def save(self, *args, **kwargs):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
-                'not match that of the object.')
+                                  'not match that of the object.')
         super(ObjectPermission, self).save(*args, **kwargs)
+
+    @void_cache_for_request(keys=('__get_all_object_permissions',
+                                  '__get_all_user_permissions',))
+    def delete(self, *args, **kwargs):
+        super(self, ObjectPermission).delete(*args, **kwargs)
 
     def __unicode__(self):
         for required_field in ('user', 'permission'):
@@ -343,7 +356,7 @@ class ObjectPermissionMixin(object):
         """ Restrict a set of tuples in the format (user_id, permission_id) to
         only those permissions that apply to the content_type of this object
         and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS. """
-        content_type = ContentType.objects.get_for_model(self)
+        content_type = ContentType.objects.get_for_model(type(self))
         # Translate settings.ALLOWED_ANONYMOUS_PERMISSIONS to primary keys
         codenames = set()
         for perm in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
@@ -374,14 +387,14 @@ class ObjectPermissionMixin(object):
         if codename is not None:
             # share_ requires loading change_ from the database
             if codename.startswith('share_'):
-                kwargs['permission__codename'] = re.sub(
+                kwargs['codename'] = re.sub(
                     '^share_', 'change_', codename, 1)
             else:
-                kwargs['permission__codename'] = codename
-        grant_perms = set(ObjectPermission.objects.filter_for_object(self,
-            deny=False, **kwargs).values_list('user_id', 'permission_id'))
-        deny_perms = set(ObjectPermission.objects.filter_for_object(self,
-            deny=True, **kwargs).values_list('user_id', 'permission_id'))
+                kwargs['codename'] = codename
+
+        grant_perms = self.__get_object_permissions(is_denied=False, **kwargs)
+        deny_perms = self.__get_object_permissions(is_denied=True, **kwargs)
+
         effective_perms = grant_perms.difference(deny_perms)
         # Sometimes only the explicitly assigned permissions are wanted,
         # e.g. when calculating inherited permissions
@@ -398,7 +411,7 @@ class ObjectPermissionMixin(object):
         # Add on the calculated permissions
         content_type = ContentType.objects.get_for_model(self)
         if codename in self.CALCULATED_PERMISSIONS:
-            # A sepecific query for a calculated permission should not return
+            # A specific query for a calculated permission should not return
             # any explicitly assigned permissions, e.g. share_ should not
             # include change_
             effective_perms_copy = effective_perms
@@ -409,13 +422,12 @@ class ObjectPermissionMixin(object):
                 codename is None or codename.startswith('share_')
         ):
             # Everyone with change_ should also get share_
-            change_permissions = Permission.objects.filter(
-                content_type=content_type,
-                codename__startswith='change_'
-            )
-            for change_permission in change_permissions:
+            change_permissions = self.__get_permissions_for_content_type(
+                content_type, 'change_')
+
+            for cp_pk, cp_codename in change_permissions:
                 share_permission_codename = re.sub(
-                    '^change_', 'share_', change_permission.codename, 1)
+                    '^change_', 'share_', cp_codename, 1)
                 if (codename is not None and
                         share_permission_codename != codename
                 ):
@@ -423,31 +435,30 @@ class ObjectPermissionMixin(object):
                     # doesn't match exactly. Necessary because `Asset` has
                     # `*_submissions` in addition to `*_asset`
                     continue
-                share_permission = Permission.objects.get(
-                    content_type=content_type,
-                    codename=share_permission_codename
-                )
+                sp_pk, sp_codename = self.__get_permissions_for_content_type(
+                    content_type,
+                    share_permission_codename,
+                    startswith=False,
+                    first=True)
                 for user_id, permission_id in effective_perms_copy:
-                    if permission_id == change_permission.pk:
-                        effective_perms.add((user_id, share_permission.pk))
+                    if permission_id == cp_pk:
+                        effective_perms.add((user_id, sp_pk))
         # The owner has the delete_ permission
         if self.owner is not None and (
                 user is None or user.pk == self.owner.pk) and (
                 codename is None or codename.startswith('delete_')
         ):
-            delete_permissions = Permission.objects.filter(
-                content_type=content_type,
-                codename__startswith='delete_'
-            )
-            for delete_permission in delete_permissions:
+            delete_permissions = self.__get_permissions_for_content_type(
+                content_type, 'delete_')
+            for dp_pk, dp_codename in delete_permissions:
                 if (codename is not None and
-                        delete_permission.codename != codename
+                        dp_codename != codename
                 ):
                     # If the caller specified `codename`, skip anything that
                     # doesn't match exactly. Necessary because `Asset` has
                     # `delete_submissions` in addition to `delete_asset`
                     continue
-                effective_perms.add((self.owner.pk, delete_permission.pk))
+                effective_perms.add((self.owner.pk, dp_pk))
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
         if user is None or user.pk == settings.ANONYMOUS_USER_ID:
@@ -948,3 +959,114 @@ class ObjectPermissionMixin(object):
         # Class is not an abstract class. Just pass.
         # Let the dev implement within the classes that inherit from this mixin
         pass
+
+    @staticmethod
+    @cache_for_request
+    def __get_all_object_permissions(object_id):
+        """
+        Retrieves all object permissions and build an dict with objects id as keys.
+        Useful to retrieve permissions (thanks to `@cache_for_request`)
+        for several objects in a row without fetching data from data again & again
+        FIXME Correct doctstring
+        :param object_id:
+        :return: dict
+        """
+        # FIXME content_type is missing
+        records = ObjectPermission.objects. \
+            filter(object_id=object_id).values('user_id',
+                                               'permission_id',
+                                               'permission__codename',
+                                               'deny')
+        object_permissions_per_user = defaultdict(list)
+        for record in records:
+            object_permissions_per_user[record['user_id']].append((
+                record['permission_id'],
+                record['permission__codename'],
+                record['deny'],
+            ))
+
+        return object_permissions_per_user
+
+    @staticmethod
+    @cache_for_request
+    def __get_all_user_permissions(user_id):
+        """
+        Retrieves all object permissions and build an dict with objects id as keys.
+        Useful to retrieve permissions (thanks to `@cache_for_request`)
+        for several objects in a row without fetching data from data again & again
+        FIXME Correct doctstring
+        :param user_id:
+        :return: dict
+        """
+        # FIXME content_type is missing
+        records = ObjectPermission.objects. \
+            filter(user=user_id).values('object_id',
+                                        'permission_id',
+                                        'permission__codename',
+                                        'deny')
+
+        object_permissions_per_object = defaultdict(list)
+        for record in records:
+            object_permissions_per_object[record['object_id']].append((
+                record['permission_id'],
+                record['permission__codename'],
+                record['deny'],
+            ))
+
+        return object_permissions_per_object
+
+    def __get_object_permissions(self, is_denied, user=None, codename=None):
+        # FIXME Explain how work this method
+        if user is not None:
+            user_id = user.pk if not user.is_anonymous() \
+                else settings.ANONYMOUS_USER_ID
+            all_permissions = self.__get_all_user_permissions(user_id=user_id)
+            group_by_user = False
+        else:
+            all_permissions = self.__get_all_object_permissions(
+                object_id=self.pk)
+            group_by_user = True
+
+        perms = []
+
+        for key_id, permissions in all_permissions.items():
+            if group_by_user is False and self.pk != key_id:
+                continue
+
+            for permission_id, codename_, deny in permissions:
+                if (deny is not is_denied or
+                        codename is not None and
+                        codename != codename_):
+                    continue
+                user_id = key_id if group_by_user else user_id
+                perms.append((user_id, permission_id))
+
+        return set(perms)
+
+    @staticmethod
+    @cache_for_request
+    def __get_permissions_for_content_type(content_type, permission_codename,
+                                           startswith=True, first=False):
+        """
+        Gets permissions for specific content_type and permission's codename
+        This method is cached per request because it can be called several times
+        in a row in the same request.
+        :param content_type: ContentType
+        :param permission_codename: str
+        :param startswith: bool. Optional. Default is True
+        :param first: bool. Optional. Default is False
+        :return: list<tuple> | <tuple>
+        FIXME Correct doctstring
+        """
+        filters = {"content_type": content_type}
+        if startswith:
+            filters.update({"codename__startswith": permission_codename})
+        else:
+            filters.update({"codename": permission_codename})
+
+        permissions = Permission.objects.filter(**filters).values_list('pk',
+                                                                       'codename')
+        if first:
+            return permissions[0]
+        else:
+            return permissions

@@ -2,7 +2,6 @@
 from __future__ import absolute_import, unicode_literals
 
 from kpi.constants import PERM_SHARE_SUBMISSIONS
-from kpi.models import ObjectPermission
 
 
 class ObjectPermissionHelper(object):
@@ -35,11 +34,12 @@ class ObjectPermissionHelper(object):
     def get_assignments_queryset(cls, affected_object, user):
 
         # `affected_object.permissions` is a `GenericRelation(ObjectPermission)`
-        queryset = affected_object.permissions.all()
+        queryset = affected_object.permissions. \
+            select_related('permission',
+                           'user').prefetch_related('content_object').all()
 
         # Filtering is done in `get_queryset` instead of FilteredBackend class
         # because it's specific to `ObjectPermission`.
-
         if not user or user.is_anonymous():
             queryset = queryset.filter(user_id=affected_object.owner.pk)
         elif not cls.user_can_share(affected_object, user):

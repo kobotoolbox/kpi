@@ -80,3 +80,6 @@ pyasn1
 
 # Force new version of redis
 redis==3.2.0
+
+# Cache-Request
+django-request-cache==1.0.0 # DO NOT UPGRADE UNTIL Django upgrade 1.10+
