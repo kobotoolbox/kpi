@@ -683,11 +683,8 @@ mixins.permissions = {
       return true;
     }
 
-    const userPerms = asset.permissions.filter((perm) => {
-      return perm.user === buildUserUrl(currentUsername);
-    });
-    return userPerms.some((perm) => {
-      return perm.permission === permConfig.getPermissionByCodename(permName).url;
+    return asset.permissions.some((perm) => {
+      return perm.user === buildUserUrl(currentUsername) && perm.permission === permConfig.getPermissionByCodename(permName).url;;
     });
   }
 };
