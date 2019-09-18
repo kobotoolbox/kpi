@@ -665,6 +665,9 @@ class Asset(ObjectPermissionMixin,
             return perms.get(perm)
         return None
 
+    def get_grant_permissions(self):
+        return self.permissions.filter(deny=False)
+
     def get_label_for_permission(self, permission_or_codename):
         try:
             codename = permission_or_codename.codename

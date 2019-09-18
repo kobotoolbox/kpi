@@ -49,7 +49,8 @@ class AssetSerializer(AssetSerializerV2):
                   'permissions',
                   'settings',)
 
-    permissions = ObjectPermissionNestedSerializer(many=True, read_only=True)
+    permissions = ObjectPermissionNestedSerializer(
+        many=True, read_only=True, source='get_grant_permissions')
     
 
 class AssetListSerializer(AssetSerializer):
