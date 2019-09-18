@@ -962,7 +962,7 @@ class ObjectPermissionMixin(object):
 
     @staticmethod
     @cache_for_request
-    def __get_all_object_permissions(object_id):
+    def __get_all_object_permissions(content_type, object_id):
         """
         Retrieves all object permissions and build an dict with objects id as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
@@ -973,10 +973,11 @@ class ObjectPermissionMixin(object):
         """
         # FIXME content_type is missing
         records = ObjectPermission.objects. \
-            filter(object_id=object_id).values('user_id',
-                                               'permission_id',
-                                               'permission__codename',
-                                               'deny')
+            filter(content_type=content_type, object_id=object_id).\
+            values('user_id',
+                   'permission_id',
+                   'permission__codename',
+                   'deny')
         object_permissions_per_user = defaultdict(list)
         for record in records:
             object_permissions_per_user[record['user_id']].append((
@@ -989,7 +990,7 @@ class ObjectPermissionMixin(object):
 
     @staticmethod
     @cache_for_request
-    def __get_all_user_permissions(user_id):
+    def __get_all_user_permissions(content_type, user_id):
         """
         Retrieves all object permissions and build an dict with objects id as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
@@ -1000,10 +1001,11 @@ class ObjectPermissionMixin(object):
         """
         # FIXME content_type is missing
         records = ObjectPermission.objects. \
-            filter(user=user_id).values('object_id',
-                                        'permission_id',
-                                        'permission__codename',
-                                        'deny')
+            filter(content_type=content_type, user=user_id).\
+            values('object_id',
+                   'permission_id',
+                   'permission__codename',
+                   'deny')
 
         object_permissions_per_object = defaultdict(list)
         for record in records:
@@ -1020,10 +1022,13 @@ class ObjectPermissionMixin(object):
         if user is not None:
             user_id = user.pk if not user.is_anonymous() \
                 else settings.ANONYMOUS_USER_ID
-            all_permissions = self.__get_all_user_permissions(user_id=user_id)
+            all_permissions = self.__get_all_user_permissions(
+                content_type=ContentType.objects.get_for_model(self),
+                user_id=user_id)
             group_by_user = False
         else:
             all_permissions = self.__get_all_object_permissions(
+                content_type=ContentType.objects.get_for_model(self),
                 object_id=self.pk)
             group_by_user = True
 
