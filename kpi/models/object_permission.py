@@ -428,9 +428,9 @@ class ObjectPermissionMixin(object):
             change_permissions = self.__get_permissions_for_content_type(
                 content_type.pk, 'change_')
 
-            for cp_pk, cp_codename in change_permissions:
+            for change_perm_pk, change_perm_codename in change_permissions:
                 share_permission_codename = re.sub(
-                    '^change_', 'share_', cp_codename, 1)
+                    '^change_', 'share_', change_perm_codename, 1)
                 if (codename is not None and
                         share_permission_codename != codename
                 ):
@@ -438,14 +438,14 @@ class ObjectPermissionMixin(object):
                     # doesn't match exactly. Necessary because `Asset` has
                     # `*_submissions` in addition to `*_asset`
                     continue
-                sp_pk, sp_codename = self.__get_permissions_for_content_type(
+                share_perm_pk, _ = self.__get_permissions_for_content_type(
                     content_type.pk,
                     share_permission_codename,
                     startswith=False,
                     first=True)
                 for user_id, permission_id in effective_perms_copy:
-                    if permission_id == cp_pk:
-                        effective_perms.add((user_id, sp_pk))
+                    if permission_id == change_perm_pk:
+                        effective_perms.add((user_id, share_perm_pk))
         # The owner has the delete_ permission
         if self.owner is not None and (
                 user is None or user.pk == self.owner.pk) and (
@@ -453,15 +453,15 @@ class ObjectPermissionMixin(object):
         ):
             delete_permissions = self.__get_permissions_for_content_type(
                 content_type.pk, 'delete_')
-            for dp_pk, dp_codename in delete_permissions:
+            for delete_perm_pk, delete_perm_codename in delete_permissions:
                 if (codename is not None and
-                        dp_codename != codename
+                        delete_perm_codename != codename
                 ):
                     # If the caller specified `codename`, skip anything that
                     # doesn't match exactly. Necessary because `Asset` has
                     # `delete_submissions` in addition to `delete_asset`
                     continue
-                effective_perms.add((self.owner.pk, dp_pk))
+                effective_perms.add((self.owner.pk, delete_perm_pk))
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
         if user is None or user.pk == settings.ANONYMOUS_USER_ID:
