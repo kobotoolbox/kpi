@@ -164,6 +164,9 @@ class AssetViewSet(AssetViewSetV2):
         else:
             return AssetSerializer
 
+    def get_serializer_context(self):
+        return super(AssetViewSetV2, self).get_serializer_context()
+
     @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def permissions(self, request, uid):
         target_asset = self.get_object()

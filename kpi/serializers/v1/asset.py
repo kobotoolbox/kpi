@@ -49,12 +49,37 @@ class AssetSerializer(AssetSerializerV2):
                   'permissions',
                   'settings',)
 
+    # Restricting permissions with `get_grant_permissions` add extra queries
+    # TODO optimize this
     permissions = ObjectPermissionNestedSerializer(
         many=True, read_only=True, source='get_grant_permissions')
     
 
 class AssetListSerializer(AssetSerializer):
-    pass
+
+    class Meta(AssetSerializer.Meta):
+        fields = ('url',
+                  'date_modified',
+                  'date_created',
+                  'owner',
+                  'summary',
+                  'owner__username',
+                  'parent',
+                  'uid',
+                  'tag_string',
+                  'settings',
+                  'kind',
+                  'name',
+                  'asset_type',
+                  'version_id',
+                  'has_deployment',
+                  'deployed_version_id',
+                  'deployment__identifier',
+                  'deployment__active',
+                  'deployment__submission_count',
+                  'permissions',
+                  'downloads',
+                  )
 
 
 class AssetUrlListSerializer(AssetSerializer):
