@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from kpi.serializers.v2.asset import AssetSerializer as AssetSerializerV2
+from rest_framework import serializers
 
+from kpi.serializers.v2.asset import AssetSerializer as AssetSerializerV2
 from .object_permission import ObjectPermissionNestedSerializer
 
 
@@ -49,11 +50,16 @@ class AssetSerializer(AssetSerializerV2):
                   'permissions',
                   'settings',)
 
-    # Restricting permissions with `get_grant_permissions` add extra queries
-    # TODO optimize this
-    permissions = ObjectPermissionNestedSerializer(
-        many=True, read_only=True, source='get_grant_permissions')
-    
+    permissions = serializers.SerializerMethodField()
+
+    def get_permissions(self, asset):
+        # Filter in Python, not with the ORM's `filter()`, to avoid an extra
+        # query per asset
+        return ObjectPermissionNestedSerializer(
+            (p for p in asset.permissions.all() if not p.deny),
+            context=self.context, many=True, read_only=True
+        ).data
+
 
 class AssetListSerializer(AssetSerializer):
 
