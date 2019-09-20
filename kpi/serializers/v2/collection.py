@@ -127,8 +127,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     def get_permissions(self, obj):
         context = self.context
         request = self.context.get('request')
-        queryset = ObjectPermissionHelper.get_assignments_queryset(obj,
-                                                                   request.user)
+        queryset = ObjectPermissionHelper.get_user_permission_assignments_queryset(obj,
+                                                                        request.user)
         # Need to pass `collection` and `collection_uid` to context of
         # `CollectionPermissionAssignmentSerializer` serializer to avoid extra queries to DB
         # within the serializer to retrieve the asset object.
