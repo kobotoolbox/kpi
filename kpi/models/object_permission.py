@@ -395,8 +395,8 @@ class ObjectPermissionMixin(object):
             else:
                 kwargs['codename'] = codename
 
-        grant_perms = self.__get_object_permissions(is_denied=False, **kwargs)
-        deny_perms = self.__get_object_permissions(is_denied=True, **kwargs)
+        grant_perms = self.__get_object_permissions(deny=False, **kwargs)
+        deny_perms = self.__get_object_permissions(deny=True, **kwargs)
 
         effective_perms = grant_perms.difference(deny_perms)
         # Sometimes only the explicitly assigned permissions are wanted,
@@ -426,7 +426,7 @@ class ObjectPermissionMixin(object):
         ):
             # Everyone with change_ should also get share_
             change_permissions = self.__get_permissions_for_content_type(
-                content_type.pk, 'change_')
+                content_type.pk, codename__startswith='change_')
 
             for change_perm_pk, change_perm_codename in change_permissions:
                 share_permission_codename = re.sub(
@@ -440,9 +440,7 @@ class ObjectPermissionMixin(object):
                     continue
                 share_perm_pk, _ = self.__get_permissions_for_content_type(
                     content_type.pk,
-                    share_permission_codename,
-                    startswith=False,
-                    first=True)
+                    codename=share_permission_codename)[0]
                 for user_id, permission_id in effective_perms_copy:
                     if permission_id == change_perm_pk:
                         effective_perms.add((user_id, share_perm_pk))
@@ -452,7 +450,7 @@ class ObjectPermissionMixin(object):
                 codename is None or codename.startswith('delete_')
         ):
             delete_permissions = self.__get_permissions_for_content_type(
-                content_type.pk, 'delete_')
+                content_type.pk, codename__startswith='delete_')
             for delete_perm_pk, delete_perm_codename in delete_permissions:
                 if (codename is not None and
                         delete_perm_codename != codename
@@ -967,7 +965,7 @@ class ObjectPermissionMixin(object):
     @cache_for_request
     def __get_all_object_permissions(content_type_id, object_id):
         """
-        Retrieves all object permissions and build an dict with user ids as keys.
+        Retrieves all object permissions and builds an dict with user ids as keys.
         Useful to retrieve permissions for several users in a row without
         hitting DB again & again (thanks to `@cache_for_request`)
 
@@ -977,7 +975,7 @@ class ObjectPermissionMixin(object):
         are needed several times in a row (within the same request).
 
         It will hit the DB once for this object. If object permissions are needed
-        for an another user, in subsequent calls, they can be easily retrieve
+        for an another user, in subsequent calls, they can be easily retrieved
         by the returned dict keys.
 
         Args:
@@ -999,7 +997,7 @@ class ObjectPermissionMixin(object):
             }
         """
         records = ObjectPermission.objects. \
-            filter(content_type_id=content_type_id, object_id=object_id).\
+            filter(content_type_id=content_type_id, object_id=object_id). \
             values('user_id',
                    'permission_id',
                    'permission__codename',
@@ -1018,18 +1016,18 @@ class ObjectPermissionMixin(object):
     @cache_for_request
     def __get_all_user_permissions(content_type_id, user_id):
         """
-        Retrieves all object permissions and build an dict with object ids as keys.
+        Retrieves all object permissions and builds an dict with object ids as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
         for several objects in a row without fetching data from data again & again
 
         Because `django_cache_request` creates its keys based on method's arguments,
-        it's important to minimize its number to hit the cache as much as possible.
+        it's important to minimize their number to hit the cache as much as possible.
         This method should be called when object permissions for a specific user
         are needed several times in a row (within the same request).
 
         It will hit the DB once for this user. If object permissions are needed
         for an another object (i.e. `Asset`, `Collection`), in subsequent calls,
-        they can be easily retrieve by the returned dict keys.
+        they can be easily retrieved by the returned dict keys.
 
         Args:
             content_type_id (int): ContentType's pk
@@ -1050,7 +1048,7 @@ class ObjectPermissionMixin(object):
             }
         """
         records = ObjectPermission.objects. \
-            filter(content_type_id=content_type_id, user=user_id).\
+            filter(content_type_id=content_type_id, user=user_id). \
             values('object_id',
                    'permission_id',
                    'permission__codename',
@@ -1066,7 +1064,7 @@ class ObjectPermissionMixin(object):
 
         return object_permissions_per_object
 
-    def __get_object_permissions(self, is_denied, user=None, codename=None):
+    def __get_object_permissions(self, deny, user=None, codename=None):
         """
         Returns a set of user ids and object permission ids related to
         object `self`.
@@ -1083,8 +1081,8 @@ class ObjectPermissionMixin(object):
         def build_dict(user_id_, object_permissions_):
             perms_ = []
             if object_permissions_:
-                for permission_id, codename_, deny in object_permissions_:
-                    if (deny is not is_denied or
+                for permission_id, codename_, deny_ in object_permissions_:
+                    if (deny_ is not deny or
                             codename is not None and
                             codename != codename_):
                         continue
@@ -1114,8 +1112,9 @@ class ObjectPermissionMixin(object):
 
     @staticmethod
     @cache_for_request
-    def __get_permissions_for_content_type(content_type_id, codenames,
-                                           startswith=True, first=False):
+    def __get_permissions_for_content_type(content_type_id,
+                                           codename=None,
+                                           codename__startswith=None):
         """
         Gets permissions for specific content type and permission's codename
         This method is cached per request because it can be called several times
@@ -1123,12 +1122,8 @@ class ObjectPermissionMixin(object):
 
         Args:
             content_type_id (int): ContentType primary key
-            codenames (mixed): Can be a list or a string
-            startswith (bool): If `True`, search for records that start with
-                `codenames`. Otherwise it must be equal.
-                Default is `True`
-            first (bool): If `True`, returns only the first occurrence.
-                Default is `False`
+            codename (str)
+            codename__startswith (str)
 
         Returns:
             mixed: If `first` is `True` returns a tuple.
@@ -1136,20 +1131,13 @@ class ObjectPermissionMixin(object):
                    The tuple consists of permission's pk and its codename.
         """
         filters = {'content_type_id': content_type_id}
-        if isinstance(codenames, string_types):
-            codenames = [codenames]
+        if codename is not None:
+            filters['codename'] = codename
 
-        if startswith:
-            if len(codenames) > 1:
-                raise NotImplementedError('Can search for only one codename '
-                                          'when `startswith` is `True`')
-            filters.update({'codename__startswith': codenames[0]})
-        else:
-            filters.update({'codename__in': codenames})
+        if codename__startswith is not None:
+            filters['codename__startswith'] = codename__startswith
 
-        permissions = Permission.objects.filter(**filters).values_list('pk',
-                                                                       'codename')
-        if first:
-            return permissions[0]
-        else:
-            return permissions
+        permissions = Permission.objects.filter(**filters). \
+            values_list('pk', 'codename')
+
+        return permissions

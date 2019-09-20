@@ -298,8 +298,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
         # within the serializer to retrieve the asset object.
-        context.update({'asset': obj})
-        context.update({'asset_uid': obj.uid})
+        context['asset'] = obj
+        context['asset_uid'] = obj.uid
 
         return AssetPermissionAssignmentSerializer(queryset.all(),
                                                    many=True, read_only=True,
@@ -349,34 +349,37 @@ class AssetListSerializer(AssetSerializer):
             # Quite redundant with `ObjectPermissionHelper.get_assignments_queryset`
             assignments = self.context[
                 'object_permissions_per_object'].get(obj.pk)
-            context = self.context
-            request = self.context.get('request')
-            user_assignments = []
-            filtered_user_ids = None
-            user = request.user
-
-            if not user or user.is_anonymous():
-                filtered_user_ids = [obj.owner_id]
-            elif not ObjectPermissionHelper.user_can_share(obj, user):
-                # Display only users' permissions if they are not allowed to modify
-                # others' permissions
-                filtered_user_ids = [obj.owner_id, user.pk]
-
-            for assignment in assignments:
-                if (filtered_user_ids is None or
-                        assignment.user_id in filtered_user_ids):
-                    user_assignments.append(assignment)
-
-            context.update({'asset': obj})
-            context.update({'asset_uid': obj.uid})
-
-            return AssetPermissionAssignmentSerializer(user_assignments,
-                                                       many=True, read_only=True,
-                                                       context=context).data
         except KeyError:
-            pass
+            return super(AssetListSerializer, self).get_permissions(obj)
 
-        return super(AssetListSerializer, self).get_permissions(obj)
+        context = self.context
+        request = self.context.get('request')
+
+        user_assignments = []
+        filtered_user_ids = None
+        user = request.user
+
+        if not user or user.is_anonymous():
+            filtered_user_ids = [obj.owner_id]
+        elif not ObjectPermissionHelper.user_can_share(obj, user):
+            # Display only users' permissions if they are not allowed to modify
+            # others' permissions
+            filtered_user_ids = [obj.owner_id, user.pk]
+
+        for assignment in assignments:
+            if (filtered_user_ids is None or
+                    assignment.user_id in filtered_user_ids):
+                user_assignments.append(assignment)
+
+        # Need to pass `asset` and `asset_uid` to context of
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
+        # within the serializer to retrieve the asset object.
+        context['asset'] = obj
+        context['asset_uid'] = obj.uid
+
+        return AssetPermissionAssignmentSerializer(user_assignments,
+                                                   many=True, read_only=True,
+                                                   context=context).data
 
 
 class AssetUrlListSerializer(AssetSerializer):

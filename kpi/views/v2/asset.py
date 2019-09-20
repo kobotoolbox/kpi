@@ -218,7 +218,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         context_ = super(AssetViewSet, self).get_serializer_context()
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
-            # to retrieve object permissions. We make a big one at beginning
+            # to retrieve object permissions, we make a big one at beginning
             # to build an dict key-ed by asset ids.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
@@ -235,9 +235,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             for op in object_permissions:
                 object_permissions_per_object[op.object_id].append(op)
 
-            context_.update({
-                'object_permissions_per_object': object_permissions_per_object
-            })
+            context_['object_permissions_per_object'] = object_permissions_per_object
 
         return context_
 
