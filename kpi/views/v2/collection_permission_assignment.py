@@ -222,8 +222,9 @@ class CollectionPermissionAssignmentViewSet(CollectionNestedObjectViewsetMixin,
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper.get_user_permission_assignments_queryset(self.collection,
-                                                                    self.request.user)
+        return ObjectPermissionHelper. \
+            get_user_permission_assignments_queryset(self.collection,
+                                                     self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(collection=self.collection)
