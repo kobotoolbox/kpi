@@ -175,7 +175,22 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         """
         Doesn't display 'partial_permissions' attribute if it's `None`.
         """
-        repr_ = super(AssetPermissionAssignmentSerializer, self).\
+        try:
+            # Each time we try to access `instance.label`, `instance.content_object`
+            # is needed. Django can't find it from objects cache even if it already
+            # exists. Because of `GenericForeignKey`, `select_related` can't be
+            # used to load it within the same queryset. So Django hits DB each
+            # time a label is shown. `prefetch_related` helps, but not that much.
+            # It still needs to load object from DB at least once.
+            # It means, when listing assets, it would add as many extra queries
+            # as assets. `content_object`, in that case, is the parent asset and
+            # we can access it through the context. Let's use it.
+            asset = self.context['asset']
+            setattr(instance, 'content_object', asset)
+        except KeyError:
+            pass
+
+        repr_ = super(AssetPermissionAssignmentSerializer, self). \
             to_representation(instance)
         for k, v in repr_.items():
             if k == 'partial_permissions' and v is None:

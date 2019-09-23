@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS
+from kpi.constants import PERM_PARTIAL_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
     PaginatedApiField
 from kpi.models import Asset, AssetVersion, Collection
@@ -263,13 +263,21 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         try:
             request = self.context['request']
             user = request.user
+            if obj.owner_id == user.id:
+                return obj.deployment.submission_count
+
+            # `has_perm` benefits from internal calls which use
+            # `django_cache_request`. It won't hit DB multiple times
+            if obj.has_perm(user, PERM_VIEW_SUBMISSIONS):
+                return obj.deployment.submission_count
+
             if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
                 return obj.deployment.calculated_submission_count(
                     requesting_user_id=user.id)
         except KeyError:
-            return 0
+            pass
 
-        return obj.deployment.submission_count
+        return 0
 
     def get_assignable_permissions(self, asset):
         return [
@@ -279,18 +287,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                request=self.context.get('request')),
                 'label': asset.get_label_for_permission(codename),
             }
-        for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
+            for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
     def get_permissions(self, obj):
         context = self.context
         request = self.context.get('request')
-        queryset = ObjectPermissionHelper.get_assignments_queryset(obj,
-                                                                   request.user)
+
+        queryset = ObjectPermissionHelper. \
+            get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
         # within the serializer to retrieve the asset object.
-        context.update({'asset': obj})
-        context.update({'asset_uid': obj.uid})
+        context['asset'] = obj
+        context['asset_uid'] = obj.uid
 
         return AssetPermissionAssignmentSerializer(queryset.all(),
                                                    many=True, read_only=True,
@@ -333,6 +342,31 @@ class AssetListSerializer(AssetSerializer):
                   'permissions',
                   'downloads',
                   )
+
+    def get_permissions(self, obj):
+        try:
+            asset_permission_assignments = self.context[
+                'object_permissions_per_object'].get(obj.pk)
+        except KeyError:
+            return super(AssetListSerializer, self).get_permissions(obj)
+
+        context = self.context
+        request = self.context.get('request')
+
+        # Need to pass `asset` and `asset_uid` to context of
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
+        # within the serializer to retrieve the asset object.
+        context['asset'] = obj
+        context['asset_uid'] = obj.uid
+
+        user_assignments = ObjectPermissionHelper. \
+            get_user_permission_assignments(obj,
+                                            request.user,
+                                            asset_permission_assignments)
+
+        return AssetPermissionAssignmentSerializer(user_assignments,
+                                                   many=True, read_only=True,
+                                                   context=context).data
 
 
 class AssetUrlListSerializer(AssetSerializer):

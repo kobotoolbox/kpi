@@ -236,8 +236,9 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper.get_assignments_queryset(self.asset,
-                                                               self.request.user)
+        return ObjectPermissionHelper. \
+            get_user_permission_assignments_queryset(self.asset,
+                                                     self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)
