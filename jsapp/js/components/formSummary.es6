@@ -84,7 +84,7 @@ class FormSummary extends React.Component {
 
     const query = `query={"_submission_time": {"$gte":"${wkStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
     dataInterface.getSubmissionsQuery(assetid, query).done((thisWeekSubs) => {
-      var subsCurrentPeriod = thisWeekSubs.length;
+      var subsCurrentPeriod = thisWeekSubs.results.length;
 
       const q2 = `query={"_submission_time": {"$gte":"${lastWeekStart.toISOString()}"}}&fields=["_id"]`;
       dataInterface.getSubmissionsQuery(assetid, q2).done((d) => {
@@ -95,7 +95,7 @@ class FormSummary extends React.Component {
           else
             subsPerDay = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-          thisWeekSubs.forEach(function(s, i){
+          thisWeekSubs.results.forEach(function(s, i) {
             // As submission times are in UTC,
             // this will get the computer timezone difference with UTC
             // and adapt the submission date to reflect that in the chart.
@@ -122,7 +122,7 @@ class FormSummary extends React.Component {
         }
 
         this.setState({
-          subsPreviousPeriod: d.length - subsCurrentPeriod,
+          subsPreviousPeriod: d.results.length - subsCurrentPeriod,
           subsCurrentPeriod: subsCurrentPeriod,
           chartVisible: subsCurrentPeriod ? true : false
         });
@@ -134,8 +134,9 @@ class FormSummary extends React.Component {
     const fq = ['_id', 'end'];
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
-      if (data.length)
-        this.setState({lastSubmission: data[0]['end']});
+      let results = data.results;
+      if (data.count)
+        this.setState({lastSubmission: results[0]['end']});
       else
         this.setState({lastSubmission: false});
     });
@@ -320,6 +321,7 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
 
     if (!this.state.permissions) {
       return (
@@ -332,7 +334,7 @@ class FormSummary extends React.Component {
       );
     }
 
-    if (!this.userCan('view_submissions', this.state)) {
+    if (!permAccess) {
       return (
         <bem.Loading>
           <bem.Loading__inner>

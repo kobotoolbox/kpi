@@ -12,37 +12,28 @@
  */
 
 import React from 'react';
-import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {Link, hashHistory} from 'react-router';
-import DocumentTitle from 'react-document-title';
-import classNames from 'classnames';
+import {hashHistory} from 'react-router';
 
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
+  ANON_USERNAME
 } from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
-import bem from './bem';
 import actions from './actions';
-import ui from './ui';
 import $ from 'jquery';
-
+import permConfig from 'js/components/permissions/permConfig';
 import {
-  anonUsername,
-  formatTime,
-  currentLang,
   log,
   t,
   assign,
   notify,
-  stringToColor,
-  escapeHtml
+  escapeHtml,
+  buildUserUrl
 } from './utils';
-
-import icons from '../xlform/src/view.icons';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -678,36 +669,6 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  removePerm (permName, permObject, content_object_uid) {
-    actions.permissions.removePerm({
-      permission_url: permObject.url,
-      content_object_uid: content_object_uid
-    });
-  },
-  // PM: temporarily disabled
-  // removeCollectionPublicPerm (collection, publicPerm) {
-  //   return (evt) => {
-  //     evt.preventDefault();
-  //     if (collection.discoverable_when_public) {
-  //       actions.permissions.setCollectionDiscoverability(
-  //         collection.uid, false
-  //       );
-  //     }
-  //     actions.permissions.removePerm({
-  //       permission_url: publicPerm.url,
-  //       content_object_uid: collection.uid
-  //     });
-  //   };
-  // },
-  setPerm (permName, props) {
-    actions.permissions.assignPerm({
-      username: props.username,
-      uid: props.uid,
-      kind: props.kind,
-      objectUrl: props.objectUrl,
-      role: permName
-    });
-  },
   userCan (permName, asset) {
     if (!asset.permissions) {
       return false;
@@ -722,18 +683,23 @@ mixins.permissions = {
       return true;
     }
 
-    // TODO: should super user always have access to all UI?
-    // if (stores.session.currentAccount.is_superuser)
-    //   return true;
-
     // if permission is granted publicly, then grant it to current user
-    const anonAccess = asset.permissions.some((perm) => {return perm.user__username === 'AnonymousUser' && perm.permission === permName;});
+    const anonAccess = asset.permissions.some((perm) => {
+      return (
+        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
+    });
     if (anonAccess) {
       return true;
     }
 
-    const userPerms = asset.permissions.filter((perm) => {return perm.user__username === currentUsername;});
-    return userPerms.some((p) => {return p.permission === permName;});
+    return asset.permissions.some((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
+    });
   }
 };
 

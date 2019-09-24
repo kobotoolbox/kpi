@@ -3,7 +3,10 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 
+from dicttoxml import dicttoxml
+from django.utils.six import text_type
 from rest_framework import renderers
+from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 
@@ -51,6 +54,20 @@ class XFormRenderer(XMLRenderer):
 class SubmissionXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
+
+        # data should be str, but in case it's a dict, return as XML.
+        # e.g. It happens with 404
+        if isinstance(data, dict):
+            # Force cast `ErrorDetail` as `six.text_type` because `dicttoxml`
+            # does not recognize this type and treat each character as xml node.
+            for k, v in data.items():
+                if isinstance(v, ErrorDetail):
+                    data[k] = text_type(v)
+
+            # FIXME new `v2` list endpoint enters this block
+            # Submissions are wrapped in `<item>` nodes.
+            return dicttoxml(data, attr_type=False)
+
         if renderer_context.get("view").action == "list":
             return "<root>{}</root>".format("".join(data))
         else:

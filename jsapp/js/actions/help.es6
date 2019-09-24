@@ -2,12 +2,12 @@
  * help related actions
  */
 
+import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import {
   t,
   notify
 } from '../utils';
-const Reflux = require('reflux');
 
 const helpActions = Reflux.createActions({
   getInAppMessages: {

@@ -36,6 +36,7 @@ class Checkbox extends React.Component {
             id={this.props.id}
             onChange={this.onChange}
             checked={this.props.checked}
+            disabled={this.props.disabled}
           />
 
           {this.props.label &&

@@ -35,7 +35,7 @@ $.ajaxSetup({
     }
 });
 
-if (document.head.querySelector('meta[name=kpi-root-url]')) {
+if (document.head.querySelector('meta[name=kpi-root-path]')) {
 
   render(<RunRoutes routes={routes} />, el);
 
@@ -46,7 +46,7 @@ if (document.head.querySelector('meta[name=kpi-root-url]')) {
     });
   }
 } else {
-  console.error('no kpi-root-url meta tag set. skipping react-router init');
+  console.error('no kpi-root-path meta tag set. skipping react-router init');
 }
 
 document.addEventListener('DOMContentLoaded', (evt) => {

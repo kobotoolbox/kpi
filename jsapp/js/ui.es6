@@ -10,6 +10,7 @@ import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
 import {getAssetDisplayName} from 'js/assetUtils';
+import {KEY_CODES} from 'js/constants';
 import bem from './bem';
 import {t, assign} from './utils';
 import classNames from 'classnames';
@@ -63,7 +64,7 @@ class Modal extends React.Component {
     document.removeEventListener('keydown', this.escFunction);
   }
   escFunction (evt) {
-    if (evt.keyCode === 27 || evt.key === 'Escape') {
+    if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
       this.props.onClose.call(evt);
     }
   }

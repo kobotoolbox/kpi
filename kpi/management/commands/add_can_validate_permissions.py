@@ -4,6 +4,7 @@ import sys
 from django.core.management.base import BaseCommand
 
 from ...models import Asset
+from kpi.constants import PERM_VALIDATE_SUBMISSIONS
 
 
 class Command(BaseCommand):
@@ -38,8 +39,8 @@ class Command(BaseCommand):
             last_id = None
             for asset in assets:
                 owner = asset.owner
-                if not owner.has_perm('validate_submissions', asset):
-                    asset.assign_perm(owner, 'validate_submissions')
+                if not owner.has_perm(PERM_VALIDATE_SUBMISSIONS, asset):
+                    asset.assign_perm(owner, PERM_VALIDATE_SUBMISSIONS)
                 self._write_to_stdout()
                 last_id = asset.id
             # important to empty assets list to make the GC free some memory

@@ -5,7 +5,7 @@
  * - type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
  * - value <string>: required
  * - onChange <function>: required
- * - errors <string[]> or <string>
+ * - errors <string[]> or <string> or <boolean>: for visual error indication and displaying error messages
  * - label <string>
  * - placeholder <string>
  * - description <string>
@@ -34,6 +34,18 @@ class TextBox extends React.Component {
     this.props.onChange(evt.currentTarget.value);
   }
 
+  onBlur(evt) {
+    if (typeof this.props.onBlur === 'function') {
+      this.props.onBlur(evt.currentTarget.value);
+    }
+  }
+
+  onKeyPress(evt) {
+    if (typeof this.props.onKeyPress === 'function') {
+      this.props.onKeyPress(evt.key, evt);
+    }
+  }
+
   render() {
     let modifiers = [];
 
@@ -43,7 +55,7 @@ class TextBox extends React.Component {
     } else if (typeof this.props.errors === 'string' && this.props.errors.length > 0) {
       errors.push(this.props.errors);
     }
-    if (errors.length > 0) {
+    if (errors.length > 0 || this.props.errors === true) {
       modifiers.push('error');
     }
 
@@ -67,6 +79,8 @@ class TextBox extends React.Component {
           value={this.props.value}
           placeholder={this.props.placeholder}
           onChange={this.onChange}
+          onBlur={this.onBlur}
+          onKeyPress={this.onKeyPress}
         />
 
         {this.props.description &&

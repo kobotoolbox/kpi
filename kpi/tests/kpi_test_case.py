@@ -1,26 +1,28 @@
-'''
+# -*- coding: utf-8 -*-
+"""
 Created on Apr 6, 2015
 
 @author: esmail
-'''
+"""
+from __future__ import absolute_import
 
 import re
 
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 
+# FIXME: Remove the following line when the permissions API is in place.
+from .base_test_case import BaseTestCase
+from .test_permissions import BasePermissionsTestCase
 from ..models.asset import Asset
 from ..models.collection import Collection
-# FIXME: Remove the following line when the permissions API is in place.
-from .test_permissions import BasePermissionsTestCase
+from ..models.object_permission import ObjectPermission
 
 
-class KpiTestCase(APITestCase, BasePermissionsTestCase):
-
-    '''
+class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
+    """
     A base `APITestCase` with helper functions for KPI testing.
-    '''
+    """
 
     fixtures = ['test_data']
 
@@ -30,23 +32,25 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         :py:class:`BasePermissionsTestCase` over the rest of the calls in this class.
         '''
 
-        kwargs= dict()
+        kwargs = dict()
         if username and password:
-            kwargs= {'username': username, 'password': password}
+            kwargs = {'username': username, 'password': password}
         self.assertEqual(self.client.login(**kwargs), expect_success)
 
     def _url_to_uid(self, url):
         return re.match(r'.+/(.+)/.*$', url).groups()[0]
 
     def url_to_obj(self, url):
-        uid= re.match(r'.+/(.+)/.*$', url).groups()[0]
+        uid = re.match(r'.+/(.+)/.*$', url).groups()[0]
         if uid.startswith('c'):
-            klass= Collection
+            klass = Collection
         elif uid.startswith('a'):
-            klass= Asset
+            klass = Asset
+        elif uid.startswith('p'):
+            klass = ObjectPermission
         else:
             raise NotImplementedError()
-        obj= klass.objects.get(uid=uid)
+        obj = klass.objects.get(uid=uid)
         return obj
 
     def create_collection(self, name, owner=None, owner_password=None,
@@ -55,13 +59,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         kwargs.update({'name': name})
-        response= self.client.post(reverse('collection-list'), kwargs)
+        response = self.client.post(reverse(self._get_endpoint('collection-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
             self.client.logout()
 
-        collection= self.url_to_obj(response.data['url'])
+        collection = self.url_to_obj(response.data['url'])
         return collection
 
     def create_asset(self, name, content=None, owner=None,
@@ -80,7 +84,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             "asset_type": kwargs.get("asset_type", "survey")
         })
 
-        response = self.client.post(reverse('asset-list'), kwargs)
+        response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
@@ -94,32 +98,32 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url= reverse('collection-detail',
-                            kwargs={'uid': parent_collection.uid})
-        parent_detail_response= self.client.get(parent_url)
+        parent_url = reverse(self._get_endpoint('collection-detail'),
+                             kwargs={'uid': parent_collection.uid})
+        parent_detail_response = self.client.get(parent_url)
         self.assertEqual(
             parent_detail_response.status_code, status.HTTP_200_OK)
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
-                           kwargs={'uid': child.uid})
-        child_detail_response= self.client.get(child_url)
+        child_view_name = child._meta.model_name + '-detail'
+        child_url = reverse(self._get_endpoint(child_view_name),
+                            kwargs={'uid': child.uid})
+        child_detail_response = self.client.get(child_url)
         self.assertEqual(child_detail_response.status_code, status.HTTP_200_OK)
 
         if owner and owner_password:
             self.client.logout()
 
-        parent_data= parent_detail_response.data
-        child_data= child_detail_response.data
+        parent_data = parent_detail_response.data
+        child_data = child_detail_response.data
         self.assertIn(parent_url, child_data['parent'])
 
-        child_field= 'children'
-        child_found= False
+        child_field = 'children'
+        child_found = False
         # TODO: Request next page of children if child was not found on first
         # page
         for child in parent_data[child_field]['results']:
             if child['url'].endswith(child_url):
-                child_found= True
+                child_found = True
                 break
         self.assertTrue(child_found)
 
@@ -128,13 +132,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url= reverse('collection-detail',
-                            kwargs={'uid': parent_collection.uid})
+        parent_url = reverse(self._get_endpoint('collection-detail'),
+                             kwargs={'uid': parent_collection.uid})
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
-                           kwargs={'uid': child.uid})
-        response= self.client.patch(child_url, {'parent': parent_url})
+        child_view_name = child._meta.model_name + '-detail'
+        child_url = reverse(self._get_endpoint(child_view_name),
+                            kwargs={'uid': child.uid})
+        response = self.client.patch(child_url, {'parent': parent_url})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assert_child_of(child, parent_collection, owner, owner_password)
 
@@ -156,17 +160,18 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         '''
         # FIXME: Do this through the API once the interface has stabilized.
         self._test_add_perm(obj, perm_name_prefix, other_user)
-#         self.client.login(username=owner.username, owner_password='pass')
-#         perm_url= reverse('asset-permission',
-#                           kwargs={'uid': self.admin_asset.uid})
-#         response= self.client.get(perm_url)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         permissions= response.data['results']
-#         self.assertNotIn('view_asset', permissions[self.someuser['username']])
-#         permissions[self.someuser['username']].append('view_asset')
-#         response= self.client.patch(data=permissions)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.client.logout()
+
+    #         self.client.login(username=owner.username, owner_password='pass')
+    #         perm_url= reverse('asset-permission',
+    #                           kwargs={'uid': self.admin_asset.uid})
+    #         response= self.client.get(perm_url)
+    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #         permissions= response.data['results']
+    #         self.assertNotIn(PERM_VIEW_ASSET, permissions[self.someuser['username']])
+    #         permissions[self.someuser['username']].append(PERM_VIEW_ASSET)
+    #         response= self.client.patch(data=permissions)
+    #         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #         self.client.logout()
 
     def remove_perm(self, obj, owner, owner_password, other_user,
                     other_user_password, perm_name_prefix):
@@ -189,51 +194,51 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         :type perm_name_prefix: str
         '''
         # FIXME: Do this through the API once the interface has stabilized.
-        #self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
+        # self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
         # jnm: _test_add_and_remove expects the permission to not have been
         # assigned yet and fails when it has.
         self._test_remove_perm(obj, perm_name_prefix, other_user)
 
     def assert_object_in_object_list(self, obj, user=None, password=None,
                                      in_list=True, msg=None):
-        view_name= obj._meta.model_name + '-list'
-        url= reverse(view_name)
+        view_name = obj._meta.model_name + '-list'
+        url = reverse(self._get_endpoint(view_name))
 
         if user and password:
             self.login(user.username, password)
-        response= self.client.get(url)
+        response = self.client.get(url)
         if user and password:
             self.client.logout()
 
         if response.status_code == status.HTTP_403_FORBIDDEN:
-            uid_found= False
+            uid_found = False
         else:
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            uid_found= False
+            uid_found = False
             for rslt in response.data['results']:
-                uid= self._url_to_uid(rslt['url'])
+                uid = self._url_to_uid(rslt['url'])
                 if uid == obj.uid:
-                    uid_found= True
+                    uid_found = True
                     break
 
         if msg is None:
-            in_list_string= in_list and 'not ' or ''
-            msg= 'Object "{}" {}found in list.'.format(obj, in_list_string)
+            in_list_string = in_list and 'not ' or ''
+            msg = 'Object "{}" {}found in list.'.format(obj, in_list_string)
         self.assertEqual(uid_found, in_list, msg=msg)
 
     def assert_detail_viewable(self, obj, user=None, password=None,
                                viewable=True, msg=None):
-        view_name= obj._meta.model_name + '-detail'
-        url= reverse(view_name, kwargs={'uid': obj.uid})
+        view_name = obj._meta.model_name + '-detail'
+        url = reverse(self._get_endpoint(view_name), kwargs={'uid': obj.uid})
 
         if user and password:
             self.login(user.username, password)
-        response= self.client.get(url)
+        response = self.client.get(url)
         if user and password:
             self.client.logout()
 
-        viewable_string= viewable and 'not ' or ''
-        msg= msg or 'Object "{}" {}detail viewable.'.format(obj, viewable_string)
+        viewable_string = viewable and 'not ' or ''
+        msg = msg or 'Object "{}" {}detail viewable.'.format(obj, viewable_string)
         if viewable:
             self.assertEqual(response.status_code, status.HTTP_200_OK, msg=msg)
         else:

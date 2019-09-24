@@ -20,6 +20,7 @@ boto
 boto3
 celery>=4.0,<5.0
 celery[redis]
+dicttoxml
 dj-static
 dj-database-url
 django-braces
@@ -45,6 +46,7 @@ django-storages
 django-private-storage
 djangorestframework
 djangorestframework-xml
+django-redis-sessions
 drf-extensions
 gunicorn
 jsonfield
@@ -78,3 +80,6 @@ pyasn1
 
 # Force new version of redis
 redis==3.2.0
+
+# Cache-Request
+django-request-cache==1.0.0 # DO NOT UPGRADE UNTIL Django upgrade 1.10+

@@ -13,7 +13,6 @@ from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
 from rest_framework.authtoken.models import Token
@@ -22,9 +21,10 @@ from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from ...deployment_backends.kc_access.shadow_models import ShadowModel, \
-    ReadOnlyXForm, UserObjectPermission
+    ReadOnlyKobocatXForm, KobocatUserObjectPermission
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
+from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 
 
@@ -36,8 +36,8 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.iteritems()}
 # Optimization
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
-    content_type=ASSET_CT, codename='from_kc_only')
-XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyXForm)
+    content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
+XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
 # Replace codenames with Permission PKs, remembering the codenames
 KPI_CODENAMES = {}
 for kc_codename, kpi_codename in PERMISSIONS_MAP.items():
@@ -303,7 +303,7 @@ def _sync_permissions(asset, xform):
         return []
 
     # Get all applicable KC permissions set for this xform
-    xform_user_perms = UserObjectPermission.objects.filter(
+    xform_user_perms = KobocatUserObjectPermission.objects.filter(
         permission_id__in=PERMISSIONS_MAP.keys(),
         content_type=XFORM_CT,
         object_pk=xform.pk
@@ -346,7 +346,7 @@ def _sync_permissions(asset, xform):
         # resolving them
         implied_perms = set()
         for p in expected_perms:
-            implied_perms.update(asset._get_implied_perms(KPI_CODENAMES[p]))
+            implied_perms.update(Asset.get_implied_perms(KPI_CODENAMES[p]))
         # Only consider relevant implied permissions
         implied_perms.intersection_update(KPI_CODENAMES.values())
         # Convert from permission codenames back to PKs
@@ -430,8 +430,9 @@ class Command(BaseCommand):
             )
         self._quiet = options.get('quiet')
         users = User.objects.all()
-        # Do a basic query just to make sure the ReadOnlyXForm model is loaded
-        if not ReadOnlyXForm.objects.exists():
+        # Do a basic query just to make sure the ReadOnlyKobocatXForm model is
+        # loaded
+        if not ReadOnlyKobocatXForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?

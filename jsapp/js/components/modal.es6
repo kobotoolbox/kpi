@@ -31,18 +31,18 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES
 } from '../constants';
-import ProjectSettings from '../components/modalForms/projectSettings';
-import LibraryNewItemForm from '../components/modalForms/libraryNewItemForm';
-import {LibraryTemplateForm} from '../components/modalForms/libraryTemplateForm';
-import {LibraryCollectionForm} from '../components/modalForms/libraryCollectionForm';
-import {AssetTagsForm} from '../components/modalForms/assetTagsForm';
-import LibraryUploadForm from '../components/modalForms/libraryUploadForm';
-import SharingForm from '../components/modalForms/sharingForm';
-import Submission from '../components/modalForms/submission';
-import TableColumnFilter from '../components/modalForms/tableColumnFilter';
-import TranslationSettings from '../components/modalForms/translationSettings';
-import TranslationTable from '../components/modalForms/translationTable';
-import RESTServicesForm from '../components/RESTServices/RESTServicesForm';
+import {AssetTagsForm} from './modalForms/assetTagsForm';
+import {LibraryCollectionForm} from './modalForms/libraryCollectionForm';
+import {LibraryTemplateForm} from './modalForms/libraryTemplateForm';
+import LibraryNewItemForm from './modalForms/libraryNewItemForm';
+import LibraryUploadForm from './modalForms/libraryUploadForm';
+import ProjectSettings from './modalForms/projectSettings';
+import RESTServicesForm from './RESTServices/RESTServicesForm';
+import SharingForm from './permissions/sharingForm';
+import Submission from './modalForms/submission';
+import TableColumnFilter from './modalForms/tableColumnFilter';
+import TranslationSettings from './modalForms/translationSettings';
+import TranslationTable from './modalForms/translationTable';
 
 class Modal extends React.Component {
   constructor(props) {

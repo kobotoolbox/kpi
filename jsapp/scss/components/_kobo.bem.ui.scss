@@ -351,8 +351,29 @@ $mdl-layout-width: 1440px;
   width: 100%;
 }
 
-.popover-menu--bulkUpdate-menu .popover-menu__toggle {
-  @extend .mdl-button, .mdl-button--colored;
+.popover-menu--bulkUpdate-menu {
+  vertical-align: top;
+
+  .popover-menu__toggle {
+    vertical-align: inherit;
+    color: $cool-blue;
+
+    &:hover {
+      color: lighten($cool-blue, 10%);
+    }
+
+    &::after {
+      content: "\2304";
+      font-size: 33px;
+      line-height: 34px;
+      display: inline-block;
+      vertical-align: top;
+    }
+  }
+
+  .popover-menu__content {
+    line-height: 20px;
+  }
 }
 
 .popover-menu--question-language {

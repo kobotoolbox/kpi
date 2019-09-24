@@ -182,31 +182,12 @@ stores.snapshots = Reflux.createStore({
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
-    this.relatedUsers = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
   },
 
-  noteRelatedUsers: function (data) {
-    // this preserves usernames in the store so that the list does not
-    // reorder or drop users depending on subsequent server responses
-    if (!this.relatedUsers[data.uid]) {
-      this.relatedUsers[data.uid] = [];
-    }
-
-    var relatedUsers = this.relatedUsers[data.uid];
-    data.permissions.forEach(function (perm) {
-      var username = perm.user.match(/\/users\/(.*)\//)[1];
-      var isOwnerOrAnon = username === data.owner__username || username === 'AnonymousUser';
-      if (!isOwnerOrAnon && relatedUsers.indexOf(username) === -1) {
-        relatedUsers.push(username);
-      }
-    });
-  },
-
   onUpdateAssetCompleted: function (resp/*, req, jqhr*/){
     this.data[resp.uid] = assetParserUtils.parsed(resp);
-    this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
   onLoadAssetCompleted: function (resp/*, req, jqxhr*/) {
@@ -214,7 +195,6 @@ var assetStore = Reflux.createStore({
       throw new Error('no uid found in response');
     }
     this.data[resp.uid] = assetParserUtils.parsed(resp);
-    this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
 });
@@ -424,7 +404,7 @@ var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
     this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
-    this.listenTo(actions.misc.checkUsername.failed_, this.usernameDoesntExist);
+    this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
   },
   checkUsername (username) {
     if (username in this.checked) {

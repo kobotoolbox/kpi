@@ -32,6 +32,7 @@ cssselect==1.0.3          # via pyquery
 cyordereddict==1.0.0
 decorator==4.3.2          # via ipython, traitlets
 defusedxml==0.5.0         # via djangorestframework-xml
+dicttoxml==1.7.4
 dj-database-url==0.4.1
 dj-static==0.0.6
 django-braces==1.13.0
@@ -49,12 +50,15 @@ django-mptt==0.8.7
 django-oauth-toolkit==0.10.0
 django-picklefield==1.0.0  # via django-constance
 django-private-storage==2.1.2
+django-redis-sessions==0.6.1
 django-registration-redux==1.3
+django-request-cache==1.0.0
 django-reversion==2.0.8
 django-ses==0.8.9
 django-storages==1.6.5
 django-taggit==0.22.0
 django-toolbelt==0.0.1
+django-userforeignkey==0.3.0  # via django-request-cache
 django-webpack-loader==0.3.0
 django==1.8.19
 djangorestframework-xml==1.4.0
@@ -91,8 +95,8 @@ path.py==11.5.0
 pathlib2==2.3.3           # via importlib-metadata, ipython, pickleshare, pytest
 pbr==4.0.2                # via mock
 pexpect==4.6.0            # via ipython
-pillow==5.4.1             # via django-markdownx
 pickleshare==0.7.5        # via ipython
+pillow==5.4.1             # via django-markdownx
 pluggy==0.9.0             # via pytest
 prompt-toolkit==1.0.15    # via ipython
 psycopg2==2.7.7           # via django-jsonbfield, django-toolbelt
@@ -137,6 +141,6 @@ werkzeug==0.14.1
 whitenoise==3.3.1
 whoosh==2.7.4
 xlrd==1.1.0
-xlsxwriter==1.0.4
+xlsxwriter==1.1.2
 xlwt==1.3.0
 zipp==0.3.3               # via importlib-metadata

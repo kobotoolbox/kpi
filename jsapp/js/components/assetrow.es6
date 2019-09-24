@@ -9,7 +9,10 @@ import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
-import {ASSET_TYPES} from '../constants';
+import {
+  KEY_CODES,
+  ASSET_TYPES
+} from 'js/constants';
 import TagInput from '../components/tagInput';
 import {
   formatTime,
@@ -47,7 +50,7 @@ class AssetRow extends React.Component {
     this.setState({isTagsInputVisible: isTagsInputVisible});
   }
   escFunction (evt) {
-    if (evt.keyCode === 27 && this.state.isTagsInputVisible) {
+    if (evt.keyCode === KEY_CODES.ESC && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }

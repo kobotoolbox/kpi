@@ -21,7 +21,6 @@ import {
   hashHistory,
   Router
 } from 'react-router';
-
 import moment from 'moment';
 import actions from './actions';
 import stores from './stores';
@@ -78,13 +77,6 @@ class App extends React.Component {
   }
   componentDidMount () {
     actions.misc.getServerEnvironment();
-
-    // TODO: this operation should be removed after March 1, 2019
-    // To avoid issues with localStorage limits, delete user.history from browser's localStorage
-    // user.history was an unusued store, it was removed in https://github.com/kobotoolbox/kpi/pull/1878
-    if (localStorage && localStorage['user.history']) {
-      localStorage.removeItem('user.history');
-    }
   }
   _handleShortcuts(action) {
     switch (action) {
@@ -201,7 +193,7 @@ class FormJson extends React.Component {
         </ui.Panel>
       );
   }
-};
+}
 
 reactMixin(FormJson.prototype, Reflux.ListenerMixin);
 
@@ -245,7 +237,7 @@ class FormXform extends React.Component {
         );
     }
   }
-};
+}
 
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
@@ -262,7 +254,7 @@ class FormNotFound extends React.Component {
         </ui.Panel>
       );
   }
-};
+}
 
 class SectionNotFound extends React.Component {
   render () {
@@ -273,7 +265,7 @@ class SectionNotFound extends React.Component {
         </ui.Panel>
       );
   }
-};
+}
 
 export var routes = (
   <Route name='home' path='/' component={App}>
@@ -357,8 +349,8 @@ export var routes = (
 );
 
 /* Send a pageview to Google Analytics for every change in routes */
-hashHistory.listen(function(loc) {
-  if (typeof ga == 'function') {
+hashHistory.listen(function() {
+  if (typeof ga === 'function') {
     ga('send', 'pageview', window.location.hash);
   }
 });
@@ -366,7 +358,7 @@ hashHistory.listen(function(loc) {
 class RunRoutes extends React.Component {
   componentDidMount(){
     // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
-    this.router.componentWillReceiveProps = function(){}
+    this.router.componentWillReceiveProps = function(){};
   }
 
   render() {

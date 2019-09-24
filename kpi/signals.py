@@ -1,20 +1,32 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django.contrib.auth.models import User
+from django_digest.models import PartialDigest
+from rest_framework.authtoken.models import Token
+from taggit.models import Tag
 
 from kobo.apps.hook.models.hook import Hook
-from taggit.models import Tag
-from .models import TagUid
-from .model_utils import grant_default_model_level_perms
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatToken,
+    KobocatUser,
+    KobocatDigestPartial
+)
+from kpi.deployment_backends.kc_access.utils import grant_kc_model_level_perms
+from kpi.models import Asset, Collection, ObjectPermission, TagUid
+from kpi.utils.permissions import grant_default_model_level_perms
+
 
 @receiver(post_save, sender=User)
 def default_permissions_post_save(sender, instance, created, raw, **kwargs):
-    '''
+    """
     Users must have both model-level and object-level permissions to satisfy
     DRF, so assign the newly-created user all available collection and asset
     permissions at the model level
-    '''
+    """
     if raw:
         # `raw` means we can't touch (so make sure your fixtures include
         # all necessary permissions!)
@@ -25,9 +37,78 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
         return
     grant_default_model_level_perms(instance)
 
+
+@receiver(post_save, sender=User)
+def save_kobocat_user(sender, instance, created, raw, **kwargs):
+    """
+    Sync auth_user table between KPI and KC, and, if the user is newly created,
+    grant all KoBoCAT model-level permissions for the content types listed in
+    `settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES`
+    """
+    if not settings.TESTING:
+        KobocatUser.sync(instance)
+        if created:
+            # FIXME: If this fails, the next attempt results in
+            #   IntegrityError: duplicate key value violates unique constraint
+            #   "auth_user_username_key"
+            # and decorating this function with `transaction.atomic` doesn't
+            # seem to help. We should roll back the KC user creation if
+            # assigning model-level permissions fails
+            grant_kc_model_level_perms(instance)
+
+            # Force PartialDigest to be sync'ed on creation
+            partial_digests = PartialDigest.objects.filter(user_id=instance.pk)
+            for partial_digest in partial_digests:
+                # `KobocatUser` should exist at this point.
+                # We don't need to validate `KobocatUser`'s existence.
+                KobocatDigestPartial.sync(partial_digest, validate_user=False)
+
+
+@receiver(post_save, sender=Token)
+def save_kobocat_token(sender, instance, **kwargs):
+    """
+    Sync AuthToken table between KPI and KC
+    """
+    if not settings.TESTING:
+        KobocatToken.sync(instance)
+
+
+@receiver(post_delete, sender=Token)
+def delete_kobocat_token(sender, instance, **kwargs):
+    """
+    Delete corresponding record from KC AuthToken table
+    """
+    if not settings.TESTING:
+        try:
+            KobocatToken.objects.get(pk=instance.pk).delete()
+        except KobocatToken.DoesNotExist:
+            pass
+
+
+@receiver(post_save, sender=PartialDigest)
+def save_kobocat_partial_digest(sender, instance, **kwargs):
+    """
+    Sync PartialDigest table between KPI and KC
+    """
+    if not settings.TESTING:
+        KobocatDigestPartial.sync(instance)
+
+
+@receiver(post_delete, sender=PartialDigest)
+def delete_kobocat_partial_digest(sender, instance, **kwargs):
+    """
+    Delete corresponding record from KC PartialDigest table
+    """
+    if not settings.TESTING:
+        try:
+            KobocatDigestPartial.objects.get(pk=instance.pk).delete()
+        except KobocatDigestPartial.DoesNotExist:
+            pass
+
+
 @receiver(post_save, sender=Tag)
 def tag_uid_post_save(sender, instance, created, raw, **kwargs):
-    ''' Make sure we have a TagUid object for each newly-created Tag '''
+    """ Make sure we have a TagUid object for each newly-created Tag """
     if raw or not created:
         return
     TagUid.objects.get_or_create(tag=instance)
@@ -41,3 +122,17 @@ def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     asset = instance.asset
     if asset.has_deployment:
         asset.deployment.set_has_kpi_hooks()
+
+
+@receiver(post_delete, sender=Collection)
+def post_delete_collection(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted
+
+
+@receiver(post_delete, sender=Asset)
+def post_delete_asset(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted

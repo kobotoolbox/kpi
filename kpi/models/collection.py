@@ -1,24 +1,29 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from itertools import chain
 
 import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django.dispatch import receiver
-from mptt.models import MPTTModel, TreeForeignKey
+from django.utils.translation import ugettext_lazy as _
 from mptt.managers import TreeManager
+from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
-from asset import (
+from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
+    PERM_DELETE_COLLECTION, PERM_SHARE_COLLECTION
+from kpi.fields import KpiUidField
+from kpi.haystack_utils import update_object_in_search_index
+from .asset import (
     Asset,
     TaggableModelManager,
     KpiTaggableManager,
     TagStringMixin,
 )
-from object_permission import ObjectPermission, ObjectPermissionMixin
-from ..haystack_utils import update_object_in_search_index
-from ..fields import KpiUidField
+from .object_permission import ObjectPermission, ObjectPermissionMixin
 
 
 class CollectionManager(TreeManager, TaggableModelManager):
@@ -69,25 +74,25 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         permissions = (
             # change_, add_, and delete_collection are provided automatically
             # by Django
-            ('view_collection', 'Can view collection'),
-            ('share_collection',
+            (PERM_VIEW_COLLECTION, 'Can view collection'),
+            (PERM_SHARE_COLLECTION,
              "Can change this collection's sharing settings"),
         )
 
     # Assignable permissions that are stored in the database
-    ASSIGNABLE_PERMISSIONS = ('view_collection', 'change_collection')
+    ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
-    CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
+    CALCULATED_PERMISSIONS = (PERM_SHARE_COLLECTION, PERM_DELETE_COLLECTION)
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
-        'change_collection': ('view_collection',),
+        PERM_CHANGE_COLLECTION: (PERM_VIEW_COLLECTION,),
     }
 
     def delete_with_deferred_indexing(self):
-        ''' Defer Haystack indexing, delete all child assets, then delete
-        myself. Should be faster than `delete()` for large collections '''
+        """ Defer Haystack indexing, delete all child assets, then delete
+        myself. Should be faster than `delete()` for large collections """
         # Get the Haystack index for assets
         asset_index = haystack.connections['default'].get_unified_index(
             ).get_index(Asset)
@@ -115,25 +120,18 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             return None
 
     def get_mixed_children(self):
-        ''' Returns all children, both Assets and Collections '''
+        """ Returns all children, both Assets and Collections """
         return CollectionChildrenQuerySet(self)
 
     def __unicode__(self):
         return self.name
 
 
-@receiver(models.signals.post_delete, sender=Collection)
-def post_delete_collection(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted
-
-
 class CollectionChildrenQuerySet(object):
-    ''' A pseudo-QuerySet containing mixed-model children of a collection.
+    """ A pseudo-QuerySet containing mixed-model children of a collection.
     Collections are always listed before assets.  Derived from
     http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
-    '''
+    """
     def __init__(self, collection):
         self.collection = collection
         self.child_collections = collection.get_children()
@@ -162,7 +160,7 @@ class CollectionChildrenQuerySet(object):
         assets = qs.child_assets
 
         if isinstance(k, slice):
-            ''' Colletions first, then Assets '''
+            """ Colletions first, then Assets """
             collections_start = 0
             assets_start = 0
             collections_count = None
@@ -255,10 +253,11 @@ class CollectionChildrenQuerySet(object):
 
 
 class UserCollectionSubscription(models.Model):
-    ''' Record a user's subscription to a publicly-discoverable collection,
-    i.e. one that has `discoverable_when_public = True` '''
+    """ Record a user's subscription to a publicly-discoverable collection,
+    i.e. one that has `discoverable_when_public = True` """
     collection = models.ForeignKey(Collection)
     user = models.ForeignKey('auth.User')
     uid = KpiUidField(uid_prefix='b')
+
     class Meta:
         unique_together = ('collection', 'user')

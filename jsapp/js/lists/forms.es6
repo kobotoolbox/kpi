@@ -5,17 +5,7 @@ import Reflux from 'reflux';
 
 import searches from '../searches';
 import mixins from '../mixins';
-import stores from '../stores';
-import bem from '../bem';
-import ui from '../ui';
 import SearchCollectionList from '../components/searchcollectionlist';
-
-import {
-  ListSearchSummary,
-} from '../components/list';
-import {
-  t,
-} from '../utils';
 
 class FormsSearchableList extends React.Component {
   constructor(props) {
@@ -39,7 +29,7 @@ class FormsSearchableList extends React.Component {
         searchContext={this.state.searchContext} />
       );
   }
-};
+}
 
 FormsSearchableList.contextTypes = {
   router: PropTypes.object
