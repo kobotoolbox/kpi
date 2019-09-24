@@ -5,7 +5,7 @@ import base64
 import json
 import re
 
-from bson import json_util, ObjectId
+from bson import ObjectId
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
@@ -36,7 +36,6 @@ class MongoHelper(object):
 
     # Match KoBoCat's variables of ParsedInstance class
     USERFORM_ID = "_userform_id"
-    DEFAULT_LIMIT = 30000
     DEFAULT_BATCHSIZE = 1000
 
     @classmethod
@@ -200,16 +199,10 @@ class MongoHelper(object):
         return False
 
     @classmethod
-    def get_instances(cls, mongo_userform_id, hide_deleted=True, **kwargs):
-
-        params = cls.validate_params(**kwargs)
-        start = params.get("start")
-        limit = params.get("limit")
-        sort = params.get("sort")
-        fields = params.get("fields")
-        query = params.get("query")
-        instances_ids = params.get("instances_ids")
-
+    def get_instances(
+            cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
+            sort=None, fields=None, query=None, instances_ids=None,
+    ):
         # check if query contains and _id and if its a valid ObjectID
         if "_uuid" in query:
             if ObjectId.is_valid(query.get("_uuid")):
@@ -247,7 +240,9 @@ class MongoHelper(object):
 
         cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
 
-        cursor.skip(start).limit(limit)
+        cursor.skip(start)
+        if limit is not None:
+            cursor.limit(limit)
 
         if len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
@@ -259,60 +254,3 @@ class MongoHelper(object):
         cursor.batch_size = cls.DEFAULT_BATCHSIZE
 
         return cursor
-
-    @classmethod
-    def validate_params(cls, **kwargs):
-        """
-        Ensure types of query and each param
-
-        :param query: dict
-        :param kwargs: dict
-        :return: dict
-        """
-
-        start = kwargs.get("start", 0)
-        limit = kwargs.get("limit", cls.DEFAULT_LIMIT)
-        sort = kwargs.get("sort", {})
-        fields = kwargs.get("fields", [])
-        query = kwargs.get("query", {})
-        instances_ids = kwargs.get("instances_ids", [])
-
-        if isinstance(query, basestring):
-            try:
-                query = json.loads(query, object_hook=json_util.object_hook)
-            except ValueError:
-                raise ValueError(_("Invalid `query` param"))
-
-        if isinstance(sort, basestring):
-            try:
-                sort = json.loads(sort, object_hook=json_util.object_hook)
-            except ValueError:
-                raise ValueError(_("Invalid `sort` param"))
-
-        try:
-            start = int(start)
-            limit = int(limit)
-            if limit > cls.DEFAULT_LIMIT:
-                limit = cls.DEFAULT_LIMIT
-            if start < 0 or limit < 0:
-                raise Exception()  # Try/Except will catch this exception and proper message
-        except ValueError:
-            raise ValueError(_("Invalid `start/limit` params"))
-
-        if isinstance(fields, basestring):
-            try:
-                fields = json.loads(fields, object_hook=json_util.object_hook)
-            except ValueError:
-                raise ValueError(_("Invalid `fields` params"))
-
-        if not isinstance(instances_ids, list):
-            raise ValueError(_("Invalid `instances_ids` param"))
-
-        return {
-            "query": query,
-            "start": start,
-            "limit": limit,
-            "fields": fields,
-            "sort": sort,
-            "instances_ids": instances_ids
-        }

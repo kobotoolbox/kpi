@@ -24,7 +24,7 @@ $z-form-view-fullscreen: 101;
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $cool-whitesilver;
+  background: $cool-whitegray;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -65,8 +65,10 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  & + .form-view.form-view--table {
-    overflow: hidden;
+  a.form-view__link--close {
+    position: absolute;
+    right: 0;
+    top: 5px;
   }
 
   a.form-view__tab {
@@ -154,7 +156,6 @@ $z-form-view-fullscreen: 101;
 
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
-    padding: 0;
     max-height: 0;
     overflow: hidden;
     transition: 0.2s max-height;
@@ -230,9 +231,20 @@ $z-form-view-fullscreen: 101;
     padding-bottom: 20px;
   }
 
+  &.form-view__cell--first {
+    position: relative;
+
+    .form-view__group {
+      position: absolute;
+      right: 0;
+      top: -12px;
+      min-width: 200px;
+      text-align: right;
+    }
+  }
+
   &.form-view__cell--buttons {
     text-align: right;
-
     a.mdl-button {
       text-transform: uppercase;
       padding-left: 30px;
@@ -299,7 +311,8 @@ $z-form-view-fullscreen: 101;
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    background-color: #daf6f9;
+    color: $white;
+    background-color: $warm-green;
     border-radius: 2px;
   }
 
@@ -331,10 +344,10 @@ $z-form-view-fullscreen: 101;
     margin-top: 0;
     border-top: 15px solid $white;
     padding: 10px;
-    background: $cool-whitesilver;
+    background: $cool-whitegray;
 
     i {
-      color: #ffb775;
+      color: $cool-orange;
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
@@ -345,50 +358,6 @@ $z-form-view-fullscreen: 101;
       vertical-align: middle;
       display: inline-block;
       width: calc(100% - 48px);
-    }
-  }
-
-  &.form-view__cell--collect-row {
-    position: relative;
-    padding: 24px;
-    padding-right: 100px;
-
-    a.collect-link {
-      display: block;
-      margin-bottom: 10px;
-      color: $black;
-      font-weight: 500;
-    }
-
-    &:hover {
-      background: #f2f2f3;
-    }
-
-    a.copy {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      padding: 0 12px;
-      cursor: pointer;
-      display: none;
-      text-transform: uppercase;
-    }
-
-    &:hover a.copy {
-      display: block;
-    }
-
-    + .form-view__cell--collect-row {
-      border-top: 1px solid $cool-lightgray;
-    }
-
-    code {
-      display: block;
-      background: $cool-whitesilver;
-      padding: 10px;
-      margin-top: 15px;
-      border: 1px solid $cool-lightgray;
-      font-size: 0.9em;
     }
   }
 }
@@ -414,7 +383,8 @@ $z-form-view-fullscreen: 101;
     color: $cool-blue;
   }
 
-  &--disabled, &--disabled:hover {
+  &--disabled,
+  &--disabled:hover {
     color: lighten($cool-gray, 15%);
   }
 }
@@ -531,21 +501,6 @@ $z-form-view-fullscreen: 101;
   padding: 40px;
 }
 
-.form-view.form-view--form-settings {
-  .form-modal__form {
-    height: 100%;
-
-    .form-modal__item--wrapper {
-      height: calc(100% - 70px);
-      overflow: auto;
-
-      .form-view__cell--iframe {
-        height: 820px;
-      }
-    }
-  }
-}
-
 .form-view.form-view--form-settings-sharing {
   .form-modal {
     background: white;
@@ -643,7 +598,7 @@ $z-form-view-fullscreen: 101;
     margin: 10px 0;
     padding: 10px;
     border: 1px solid $divider-color;
-    background: $cool-whitesilver;
+    background: $cool-whitegray;
     font-size: 13px;
     white-space: normal;
   }
@@ -669,7 +624,7 @@ $z-form-view-fullscreen: 101;
   code {
     padding: 4px;
     border: 1px solid $divider-color;
-    background: $cool-whitesilver;
+    background: $cool-whitegray;
     margin-left: 5px;
     margin-right: 5px;
   }

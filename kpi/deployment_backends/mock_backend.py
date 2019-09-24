@@ -152,6 +152,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 submissions = [submission for submission in submissions if submission.get("id") in
                                map(int, instances_ids)]
 
+        params = self.validate_submission_list_params(**kwargs)
+        # TODO: support other query parameters?
+        if 'limit' in params:
+            submissions = submissions[:params['limit']]
+
         return submissions
 
     def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):

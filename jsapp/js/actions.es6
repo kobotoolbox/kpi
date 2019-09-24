@@ -327,7 +327,7 @@ actions.resources.createImport.completed.listen(function(contents){
       notify(t('successfully uploaded file; processing may take a few minutes'));
       log('processing import ' + contents.uid, contents);
     } else {
-      notify(`unexpected import status ${contents.status}`, 'error');
+      notify(t('unexpected import status ##STATUS##').replace('##STATUS##', contents.status), 'error');
     }
   } else {
     notify(t('Error: import.status not available'));

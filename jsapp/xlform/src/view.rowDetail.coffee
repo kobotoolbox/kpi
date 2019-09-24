@@ -394,12 +394,10 @@ module.exports = do ->
     afterRender: ->
       @listenForCheckboxChange()
 
+  # handled by mandatorySettingSelector
   viewRowDetail.DetailViewMixins.required =
-    html: ->
-      @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
-    afterRender: ->
-      @listenForCheckboxChange()
+    html: -> false
+    insertInDOM: -> return
 
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->

@@ -539,8 +539,8 @@ mixins.clickAssets = {
         let msg, onshow;
         let onok = (evt, val) => {
           actions.resources.deleteAsset({uid: uid}, {
-            onComplete: () => {
-              notify(`${assetTypeLabel} ${t('deleted permanently')}`);
+            onComplete: ()=> {
+              notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel));
               if (typeof callback === 'function') {
                 callback();
               }

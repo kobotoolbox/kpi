@@ -60,8 +60,13 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
-// TRANSLATIONS HACK (Part 2/2):
-// this function reverses nullifying default language - use it just before saving
+
+/**
+ * This function reverses what `nullifyTranslations` did to the form data.
+ * @param {string} surveyDataJSON
+ * @param {object} assetContent
+ * @return {string} fixed surveyDataJSON
+ */
 export function unnullifyTranslations(surveyDataJSON, assetContent) {
   let surveyData = JSON.parse(surveyDataJSON);
 
@@ -70,6 +75,7 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
      translatedProps = assetContent.translated;
   }
 
+  // TRANSLATIONS HACK (Part 2/2):
   // set default_language
   let defaultLang = assetContent.translations_0;
   if (!defaultLang) {
@@ -106,6 +112,23 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
   return JSON.stringify(surveyData);
 }
 
+/**
+ * @typedef NullifiedTranslations
+ * @property {object} survey - Modified survey.
+ * @property {Array<string|null>} translations - Modified translations.
+ * @property {Array<string|null>} translations_0 - The original default language name.
+ */
+
+/**
+ * A function that adjust the translations data to the Form Builder code.
+ * Requires the sibling `unnullifyTranslations` function to be called before
+ * saving the form.
+ * @param {Array<string|null>} [translations]
+ * @param {Array<string>} translatedProps
+ * @param {object} survey
+ * @param {object} baseSurvey
+ * @return {NullifiedTranslations}
+ */
 export function nullifyTranslations(translations, translatedProps, survey, baseSurvey) {
   const data = {
     survey: clonedeep(survey),

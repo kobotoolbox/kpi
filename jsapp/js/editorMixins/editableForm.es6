@@ -299,7 +299,7 @@ export default assign({
       evt.preventDefault();
     }
 
-    if (this.state.settings__style) {
+    if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
 
@@ -842,7 +842,7 @@ export default assign({
                 onChange={this.onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
-                menuPlacement='auto'
+                menuPlacement='bottom'
               />
             </bem.FormBuilderAside__row>
 
