@@ -49,6 +49,7 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
+    SESSION_COOKIE_AGE = 10*60 # Session age is 10 minutes
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
@@ -100,6 +101,8 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'bossoidc',
+    'djangooidc',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -176,6 +179,7 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
+    'bossoidc.backend.OpenIdConnectBackend',
     'kpi.backends.ObjectPermissionBackend',
 )
 
@@ -698,3 +702,12 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+KEYCLOAK_AUTH_URI = "https://auth.openclinica-dev.io/auth/realms/cust2-aws-dev"
+KEYCLOAK_CLIENT_ID = "formdesigner"
+KEYCLOAK_CLIENT_SECRET = "a144e597-d9fd-4fa4-8535-dc3595a72ea1"
+# PUBLIC_URI = "http://cust2.kobo.local"
+PUBLIC_URI = "https://cust2.formdesigner.openclinica-dev.io/"
+ 
+from bossoidc.settings import *
+configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI, client_secret=KEYCLOAK_CLIENT_SECRET)
