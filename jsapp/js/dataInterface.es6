@@ -78,6 +78,20 @@ var dataInterface;
       });
       return d.promise();
     },
+    keycloakLogout: ()=> {
+      var d = new $.Deferred();
+      console.log('keycloakLogout start');
+      $ajax({ url: `${rootUrl}/openid/logout` }).done(function(args) {
+        d.resolve();
+      }).fail(function (resp, etype, emessage) {
+        if (resp.status === 200) {
+          d.resolve();
+        } else {
+          d.fail('keycloak logout failed');
+        }
+      });
+      return d.promise();
+    },
     patchProfile (data) {
       return $ajax({
         url: `${rootUrl}/me/`,

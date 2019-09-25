@@ -647,13 +647,19 @@ actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
 // reload so a new csrf token is issued
 actions.auth.logout.completed.listen(function(){
   window.setTimeout(function(){
-    window.location.replace('', '');
-  }, 1);
+    window.location.replace('');
+  }, 1000);
 });
 
 actions.auth.logout.listen(function(){
-  dataInterface.logout().done(actions.auth.logout.completed).fail(function(){
-    console.error('logout failed for some reason. what should happen now?');
+  dataInterface.logout()
+    .done(dataInterface.keycloakLogout()
+      .done(actions.auth.logout.completed)
+      .fail(function(){
+        console.error('keycloak logout failed for some reason. what should happen now?');
+      }))
+    .fail(function(){
+      console.error('logout failed for some reason. what should happen now?');
   });
 });
 actions.auth.verifyLogin.listen(function(){
