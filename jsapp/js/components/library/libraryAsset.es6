@@ -11,7 +11,7 @@ import actions from 'js/actions';
 import {t} from 'js/utils';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
-import AssetContentSummary from './AssetContentSummary';
+import AssetContentSummary from './assetContentSummary';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 class LibraryAsset extends React.Component {
