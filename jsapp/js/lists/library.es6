@@ -7,9 +7,7 @@ import Reflux from 'reflux';
 
 import searches from '../searches';
 import mixins from '../mixins';
-import stores from '../stores';
 import bem from '../bem';
-import ui from '../ui';
 import {dataInterface} from '../dataInterface';
 import SearchCollectionList from '../components/searchcollectionlist';
 import {
@@ -26,7 +24,7 @@ class LibrarySearchableList extends React.Component {
       BY_QUESTION: 'asset_type:question',
       BY_BLOCK: 'asset_type:block',
       BY_TEMPLATE: 'asset_type:template'
-    }
+    };
     this.TYPE_FILTER_DEFAULT = this.TYPE_FILTER.ALL;
 
     this.state = {
@@ -38,14 +36,14 @@ class LibrarySearchableList extends React.Component {
     };
     autoBind(this);
   }
-  queryCollections () {
-    dataInterface.listCollections().then((collections)=>{
+  queryCollections() {
+    dataInterface.listCollections().then((collections) => {
       this.setState({
         sidebarCollections: collections.results,
       });
     });
   }
-  componentDidMount () {
+  componentDidMount() {
     this.searchDefault();
     this.queryCollections();
   }
@@ -59,7 +57,7 @@ class LibrarySearchableList extends React.Component {
     });
     this.searchDefault();
   }
-  render () {
+  render() {
     const typeFilterOptions = [
       {value: this.TYPE_FILTER.ALL, label: t('Show All')},
       {value: this.TYPE_FILTER.BY_QUESTION, label: t('Question')},
@@ -95,7 +93,7 @@ class LibrarySearchableList extends React.Component {
       </bem.Library>
       );
   }
-};
+}
 
 LibrarySearchableList.contextTypes = {
   router: PropTypes.object
