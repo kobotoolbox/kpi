@@ -51,12 +51,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     <span class='label label-danger'>TODO</span> Complete documentation
 
-    <span class='label label-danger'>WARNING</span>
-    Do not use the `permissions` array returned by this endpoint, as it will be
-    changed or removed in an upcoming release. Instead, use
-    <b>/api/v2/assets/<code>{uid}</code>/permission-assignments/</b> to retrieve the list
-    of permission assignments for a particular asset.
-
     ## List of asset endpoints
 
     Lists the asset endpoints accessible to requesting user, for anonymous access
