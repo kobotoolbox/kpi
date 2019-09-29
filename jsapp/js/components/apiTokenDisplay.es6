@@ -6,7 +6,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import actions from 'js/actions';
 import {t} from 'js/utils';
-import TextBox from 'js/compontents/textBox';
+import TextBox from 'js/components/textBox';
 
 class ApiTokenDisplay extends React.Component {
   constructor(props) {
@@ -16,6 +16,7 @@ class ApiTokenDisplay extends React.Component {
       token: this.HIDDEN_VAL,
       isLoadingToken: false
     };
+    this.unlisteners = [];
     autoBind(this);
   }
 
