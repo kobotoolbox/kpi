@@ -63,6 +63,12 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getApiToken: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
@@ -644,6 +650,17 @@ actions.auth.getEnvironment.listen(function(){
 });
 actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
+});
+
+actions.auth.getApiToken.listen(() => {
+  dataInterface.apiToken()
+    .done((response) => {
+      actions.auth.getApiToken.completed(response.token);
+    })
+    .fail(actions.auth.getApiToken.failed);
+});
+actions.auth.getApiToken.failed.listen(() => {
+  notify(t('failed to load API token'), 'error');
 });
 
 actions.resources.loadAsset.listen(function(params){

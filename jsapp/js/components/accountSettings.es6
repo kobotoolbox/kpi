@@ -11,6 +11,7 @@ import stores from '../stores';
 import Select from 'react-select';
 import TextBox from './textBox';
 import Checkbox from './checkbox';
+import ApiTokenDisplay from './apiTokenDisplay';
 import ui from '../ui';
 import $ from 'jquery';
 import {
@@ -245,6 +246,10 @@ export class AccountSettings extends React.Component {
                 >
                   {t('Modify Password')}
                 </a>
+              </bem.AccountSettings__item>
+
+              <bem.AccountSettings__item>
+                <ApiTokenDisplay/>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item>
