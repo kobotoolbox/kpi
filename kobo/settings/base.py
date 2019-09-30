@@ -49,7 +49,7 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
-    SESSION_COOKIE_AGE = 10*60 # Session age is 10 minutes
+    SESSION_COOKIE_AGE = 1*60 # Session age is 1 minutes
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
@@ -179,8 +179,8 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'bossoidc.backend.OpenIdConnectBackend',
     'kpi.backends.ObjectPermissionBackend',
+    'bossoidc.backend.OpenIdConnectBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
