@@ -358,6 +358,23 @@ export default class RESTServicesForm extends React.Component {
     )
   }
 
+  renderCustomWrapper() {
+    return(
+      <bem.FormModal__item m='http-headers'>
+        <label>
+          {t('Add custom wrapper around JSON submission (SUBMISSION will be replaced by JSON)')}
+        </label>
+
+        //Issue 2423: What to do with input value after submission 
+        <input
+          type='text'
+          placeholder={t('%SUBMISSION%')}
+        />
+
+      </bem.FormModal__item>
+    )
+  }
+
   /*
    * handle fields
    */
@@ -497,6 +514,7 @@ export default class RESTServicesForm extends React.Component {
             }
 
             {this.renderCustomHeaders()}
+            {this.renderCustomWrapper()}
           </bem.FormModal__item>
 
           <bem.Modal__footer>
