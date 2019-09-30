@@ -332,8 +332,22 @@ const QUESTION_TYPES = new Map([
   ]
 ]);
 
+const META_QUESTION_TYPES = new Map();
+new Set([
+  'start',
+  'end',
+  'today',
+  'username',
+  'simserial',
+  'subscriberid',
+  'deviceid',
+  'phonenumber',
+  'audit'
+]).forEach((codename) => {META_QUESTION_TYPES.set(codename, codename);});
+
 export default {
   ROOT_URL: ROOT_URL,
+  META_QUESTION_TYPES: META_QUESTION_TYPES,
   ANON_USERNAME: ANON_USERNAME,
   PERMISSIONS_CODENAMES: PERMISSIONS_CODENAMES,
   COLLECTION_PERMISSIONS: COLLECTION_PERMISSIONS,

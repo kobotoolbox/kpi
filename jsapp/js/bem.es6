@@ -43,6 +43,7 @@ bem.FormBuilder__row = bem.FormBuilder.__('row');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
+bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
 bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
 bem.FormBuilderMeta__row = bem.FormBuilderMeta.__('row');
 
