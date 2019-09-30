@@ -4,14 +4,14 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
+import bem from 'js/bem';
 import actions from 'js/actions';
 import {t} from 'js/utils';
-import TextBox from 'js/components/textBox';
 
 class ApiTokenDisplay extends React.Component {
   constructor(props) {
     super(props);
-    this.HIDDEN_VAL = '*'.repeat(8);
+    this.HIDDEN_VAL = '*'.repeat(40);
     this.state = {
       token: this.HIDDEN_VAL,
       isLoadingToken: false
@@ -47,23 +47,32 @@ class ApiTokenDisplay extends React.Component {
     actions.auth.getApiToken();
   }
 
+  onInputFocus(evt) {
+    evt.currentTarget.select();
+  }
+
   render() {
     return (
-      <div>
-        <TextBox
-          label={t('API token')}
+      <bem.FormModal__item m='api-token'>
+        <label>{t('API token')}</label>
+
+        <input
+          type='text'
           value={this.state.token}
+          onFocus={this.onInputFocus}
           readOnly
         />
 
-        <button
-          onClick={this.showApiToken}
-          disabled={this.state.token !== this.HIDDEN_VAL}
-          className='mdl-button mdl-button--icon'
-        >
-          <i className='k-icon k-icon-view'/>
-        </button>
-      </div>
+        {this.state.token === this.HIDDEN_VAL &&
+          <button
+            onClick={this.showApiToken}
+            disabled={this.state.isLoadingToken}
+            className='mdl-button mdl-button--icon'
+          >
+            <i className='k-icon k-icon-view'/>
+          </button>
+        }
+      </bem.FormModal__item>
     );
   }
 }

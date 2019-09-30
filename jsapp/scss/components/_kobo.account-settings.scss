@@ -22,6 +22,12 @@
       overflow: auto;
     }
 
+    .form-modal__item--api-token {
+      input {
+        width: 50%;
+      }
+    }
+
     .form-modal__item--username {
       min-height: 40px;
 

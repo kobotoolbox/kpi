@@ -248,9 +248,7 @@ export class AccountSettings extends React.Component {
                 </a>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item>
-                <ApiTokenDisplay/>
-              </bem.AccountSettings__item>
+              <ApiTokenDisplay/>
 
               <bem.AccountSettings__item>
                 <TextBox
