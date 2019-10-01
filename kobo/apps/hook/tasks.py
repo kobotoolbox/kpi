@@ -12,6 +12,7 @@ from django.template.loader import get_template
 from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
 
+from kpi.utils.lock import lock
 from kpi.utils.log import logging
 from .constants import HOOK_LOG_FAILED
 from .models import Hook, HookLog
@@ -59,6 +60,7 @@ def retry_all_task(hooklogs_ids):
 
 
 @shared_task
+@lock('failure_reports', timeout=600)
 def failures_reports():
     """
     Notifies owners' assets by email of hooks failures.

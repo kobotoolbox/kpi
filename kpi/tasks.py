@@ -5,9 +5,11 @@ from celery import shared_task
 from django.core.management import call_command
 
 from kpi.models import ImportTask, ExportTask
+from kpi.utils.lock import lock
 
 
 @shared_task
+@lock(key='update_search_index', timeout=3600)
 def update_search_index():
     call_command('update_index', using=['default',], remove=True)
 
@@ -25,6 +27,7 @@ def export_in_background(export_task_uid):
 
 
 @shared_task
+@lock(key='sync_kobocat_xforms', timeout=3600 * 24)
 def sync_kobocat_xforms(username=None, quiet=True):
     call_command('sync_kobocat_xforms', username=username, quiet=quiet)
 
@@ -32,3 +35,22 @@ def sync_kobocat_xforms(username=None, quiet=True):
 @shared_task
 def import_survey_drafts_from_dkobo(**kwargs):
     call_command('import_survey_drafts_from_dkobo', **kwargs)
+
+
+@shared_task
+@lock(key='clean_orphans', timeout=60)
+def clean_orphans():
+    #ToDo Create Management command
+    pass
+
+
+@shared_task
+@lock(key='delete_asset_snapshots', timeout=60)
+def delete_asset_snapshots():
+    call_command('delete_asset_snapshots')
+
+
+@shared_task
+@lock(key='delete_import_tasks', timeout=60)
+def delete_import_tasks():
+    call_command('delete_import_tasks')
