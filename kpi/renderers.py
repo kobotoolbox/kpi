@@ -79,7 +79,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         if not geo_question_name:
             # No geo question specified; use the first one in the latest
             # version of the form
-            latest_version = pack.versions.values()[-1]
+            latest_version = next(reversed(pack.versions.values()))
             first_section = next(iter(latest_version.sections.values()))
             geo_questions = (field for field in first_section.fields.values()
                              if field.data_type in GEO_QUESTION_TYPES)
