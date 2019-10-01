@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 INSTANCE_FORMAT_TYPE_XML = "xml"
 INSTANCE_FORMAT_TYPE_JSON = "json"
 
+GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
+
 ASSET_TYPE_TEXT = 'text'
 ASSET_TYPE_EMPTY = 'empty'
 ASSET_TYPE_QUESTION = 'question'

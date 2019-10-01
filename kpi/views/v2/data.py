@@ -10,6 +10,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -17,7 +18,7 @@ from kpi.permissions import (
     SubmissionPermission,
     SubmissionValidationStatusPermission,
 )
-from kpi.renderers import SubmissionXMLRenderer
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -30,9 +31,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/
     </pre>
 
-    By default, JSON format is used but XML format can be used too.
+    By default, JSON format is used, but XML and GeoJSON are also available:
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.geojson
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.json
     </pre>
 
@@ -40,12 +43,28 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=geojson
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=json
     </pre>
 
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
+
+    ## About the GeoJSON format
+
+    Requesting the `geojson` format returns a `FeatureCollection` where each
+    submission is a `Feature`. If your form has multiple geographic questions,
+    use the `geo_question_name` query parameter to determine which question's
+    responses populate the `geometry` for each `Feature`; otherwise, the first
+    geographic question is used.  All question/response pairs are included in
+    the `properties` of each `Feature`, but _repeating groups are omitted_.
+
+    Question types are mapped to GeoJSON geometry types as follows:
+
+    * `geopoint` to `Point`;
+    * `geotrace` to `LineString`;
+    * `geoshape` to `Polygon`.
 
     ## CRUD
 
@@ -157,6 +176,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
+                        SubmissionGeoJsonRenderer,
                         SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
@@ -203,6 +223,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
+
+        if format_type == 'geojson':
+            # For GeoJSON, get the submissions as JSON and let
+            # `SubmissionGeoJsonRenderer` handle the rest
+            return Response(
+                deployment.get_submissions(
+                    requesting_user_id=request.user,
+                    format_type=INSTANCE_FORMAT_TYPE_JSON,
+                    **filters
+                )
+            )
+
         submissions = deployment.get_submissions(request.user.id,
                                                  format_type=format_type,
                                                  **filters)
