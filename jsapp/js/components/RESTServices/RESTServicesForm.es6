@@ -374,7 +374,7 @@ export default class RESTServicesForm extends React.Component {
     return(
       <bem.FormModal__item m='http-headers'>
         <label>
-          {t('Add custom wrapper around JSON submission (SUBMISSION will be replaced by JSON)')}
+          {t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)')}
         </label>
         <input
           type='text'
@@ -382,7 +382,7 @@ export default class RESTServicesForm extends React.Component {
           id='chatInput'
         />
 
-        <p>Preview:</p>
+        <p>Example:</p>
 
         <label id="printChatInput"> {t('"fields": {')}</label>
         <label>{t('     %SUBMISSION%')}</label>
