@@ -111,6 +111,17 @@ export default class RESTServicesForm extends React.Component {
    * helpers
    */
 
+  amIBeingCalled(){
+    console.log('am i being called');
+  }
+
+  updatePreview() {
+    console.log('updatePreview called');
+    document.getElementById("chatInput").onkeyup = function() {
+      document.getElementById("printChatInput").innerHTML = '"' + document.getElementById("chatInput").innerHTML + '": {';
+    }
+  }
+
   getEmptyHeaderRow() {
     return {name: '', value: ''};
   }
@@ -359,18 +370,24 @@ export default class RESTServicesForm extends React.Component {
   }
 
   renderCustomWrapper() {
+
     return(
       <bem.FormModal__item m='http-headers'>
         <label>
           {t('Add custom wrapper around JSON submission (SUBMISSION will be replaced by JSON)')}
         </label>
-
-        //Issue 2423: What to do with input value after submission 
         <input
           type='text'
-          placeholder={t('%SUBMISSION%')}
+          placeholder={t('Add field')}
+          id='chatInput'
         />
 
+        <p>Preview:</p>
+
+        <label id="printChatInput"> {t('"fields": {')}</label>
+        <label>{t('     %SUBMISSION%')}</label>
+        <label>{t('}')}</label>
+        {/*TODO: Get live updating? Maybe not useful. {this.updatePreview()}*/}
       </bem.FormModal__item>
     )
   }
@@ -515,6 +532,7 @@ export default class RESTServicesForm extends React.Component {
 
             {this.renderCustomHeaders()}
             {this.renderCustomWrapper()}
+
           </bem.FormModal__item>
 
           <bem.Modal__footer>
@@ -526,7 +544,9 @@ export default class RESTServicesForm extends React.Component {
               { isEditingExistingHook ? t('Save') : t('Create') }
             </bem.Modal__footerButton>
           </bem.Modal__footer>
+          
         </bem.FormModal__form>
+
       );
     }
   }
