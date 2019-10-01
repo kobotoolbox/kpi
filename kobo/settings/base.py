@@ -442,9 +442,27 @@ CELERY_BEAT_SCHEDULE = {
     #    'schedule': timedelta(hours=12)
     #},
     # Schedule every day at midnight UTC. Can be customized in admin section
-    "send-hooks-failures-reports": {
-        "task": "kobo.apps.hook.tasks.failures_reports",
-        "schedule": crontab(hour=0, minute=0),
+    'send-hooks-failures-reports': {
+        'task': 'kobo.apps.hook.tasks.failures_reports',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kpi_queue'}
+    },
+    # Schedule every Saturday at 4:00 AM UTC. Can be customized in admin section
+    'clean-orphans': {
+        'task': 'kpi.tasks.clean_orphans',
+        'schedule': crontab(hour=4, minute=0, day_of_week=6),
+        'options': {'queue': 'kpi_queue'}
+    },
+    # Schedule every Friday at 4:00 AM UTC. Can be customized in admin section
+    'delete-asset-snapshots': {
+        'task': 'kpi.tasks.delete_asset_snapshots',
+        'schedule': crontab(hour=4, minute=0, day_of_week=5),
+        'options': {'queue': 'kpi_queue'}
+    },
+    # Schedule every Friday at 5:00 AM UTC. Can be customized in admin section
+    'delete-import-tasks': {
+        'task': 'kpi.tasks.delete_import_tasks',
+        'schedule': crontab(hour=5, minute=0, day_of_week=5),
         'options': {'queue': 'kpi_queue'}
     },
 }
@@ -711,6 +729,8 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 
 SESSION_ENGINE = "redis_sessions.session"
-SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+SESSION_REDIS = RedisHelper.session_config(default="redis://redis_cache:6380/2")
+
+LOCK_REDIS = RedisHelper.lock_config(default="redis://redis_cache:6380/3")
 
 TESTING = False

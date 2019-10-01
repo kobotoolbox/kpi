@@ -3,18 +3,19 @@ from __future__ import absolute_import
 
 import time
 
-from celery import shared_task
 import constance
+from celery import shared_task
 from django.conf import settings
-from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template import Context
 from django.template.loader import get_template
 from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
 
+from kpi.utils.lock import lock
+from kpi.utils.log import logging
 from .constants import HOOK_LOG_FAILED
 from .models import Hook, HookLog
-from kpi.utils.log import logging
 
 
 @shared_task(bind=True)
@@ -59,6 +60,7 @@ def retry_all_task(hooklogs_ids):
 
 
 @shared_task
+@lock('failure_reports', timeout=600)
 def failures_reports():
     """
     Notifies owners' assets by email of hooks failures.

@@ -12,7 +12,7 @@ from kpi.models import AssetSnapshot
 
 class Command(DeleteBaseCommand):
 
-    help = "Deletes assets snapshots"
+    help = "Deletes asset snapshots"
 
     def _prepare_delete_queryset(self, **options):
         days = options["days"]

@@ -9,7 +9,6 @@ from django.db import transaction, connection
 
 class DeleteBaseCommand(BaseCommand):
 
-
     def __init__(self, stdout=None, stderr=None, no_color=False):
         super(DeleteBaseCommand, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
         self._model = None
