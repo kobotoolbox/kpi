@@ -123,7 +123,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 CSP_FRAME_ANCESTORS = ['https://*.openclinica-dev.io']
-CSP_STYLE_SRC = ['self' 'unsafe-inline']
+CSP_STYLE_SRC = ["'self' 'unsafe-inline'"]
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
