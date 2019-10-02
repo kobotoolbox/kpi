@@ -445,25 +445,29 @@ CELERY_BEAT_SCHEDULE = {
     'send-hooks-failures-reports': {
         'task': 'kobo.apps.hook.tasks.failures_reports',
         'schedule': crontab(hour=0, minute=0),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
+        'enabled': False,
     },
     # Schedule every Saturday at 4:00 AM UTC. Can be customized in admin section
     'remove-s3-orphans': {
         'task': 'kpi.tasks.remove_s3_orphans',
         'schedule': crontab(hour=4, minute=0, day_of_week=6),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
+        'enabled': False,
     },
     # Schedule every Friday at 4:00 AM UTC. Can be customized in admin section
-    'delete-asset-snapshots': {
+    'remove-asset-snapshots': {
         'task': 'kpi.tasks.remove_asset_snapshots',
         'schedule': crontab(hour=4, minute=0, day_of_week=5),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
+        'enabled': False,
     },
     # Schedule every Friday at 5:00 AM UTC. Can be customized in admin section
-    'delete-import-tasks': {
+    'remove-import-tasks': {
         'task': 'kpi.tasks.remove_import_tasks',
         'schedule': crontab(hour=5, minute=0, day_of_week=5),
-        'options': {'queue': 'kpi_queue'}
+        'options': {'queue': 'kpi_queue'},
+        'enabled': False,
     },
 }
 
