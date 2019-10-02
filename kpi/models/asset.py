@@ -531,11 +531,11 @@ class Asset(ObjectPermissionMixin,
     # should call instead of accessing this dictionary directly
     ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
         PERM_VIEW_ASSET: _('View ##asset_type_label##'),
-        PERM_CHANGE_ASSET: _('Change ##asset_type_label##'),
+        PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
-        PERM_CHANGE_SUBMISSIONS: _('Change and delete submissions'),
+        PERM_CHANGE_SUBMISSIONS: _('Edit and delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
