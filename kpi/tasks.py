@@ -38,19 +38,19 @@ def import_survey_drafts_from_dkobo(**kwargs):
 
 
 @shared_task
-@lock(key='clean_orphans', timeout=60)
-def clean_orphans():
+@lock(key='remove_s3_orphans', timeout=60)
+def remove_s3_orphans():
     #ToDo Create Management command
     pass
 
 
 @shared_task
-@lock(key='delete_asset_snapshots', timeout=60)
-def delete_asset_snapshots():
-    call_command('delete_asset_snapshots')
+@lock(key='remove_asset_snapshots', timeout=60)
+def remove_asset_snapshots():
+    call_command('remove_asset_snapshots')
 
 
 @shared_task
-@lock(key='delete_import_tasks', timeout=60)
-def delete_import_tasks():
-    call_command('delete_import_tasks')
+@lock(key='remove_import_tasks', timeout=60)
+def remove_import_tasks():
+    call_command('remove_import_tasks')

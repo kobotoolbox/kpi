@@ -451,20 +451,20 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_queue'}
     },
     # Schedule every Saturday at 4:00 AM UTC. Can be customized in admin section
-    'clean-orphans': {
-        'task': 'kpi.tasks.clean_orphans',
+    'remove-s3-orphans': {
+        'task': 'kpi.tasks.remove_s3_orphans',
         'schedule': crontab(hour=4, minute=0, day_of_week=6),
         'options': {'queue': 'kpi_queue'}
     },
     # Schedule every Friday at 4:00 AM UTC. Can be customized in admin section
     'delete-asset-snapshots': {
-        'task': 'kpi.tasks.delete_asset_snapshots',
+        'task': 'kpi.tasks.remove_asset_snapshots',
         'schedule': crontab(hour=4, minute=0, day_of_week=5),
         'options': {'queue': 'kpi_queue'}
     },
     # Schedule every Friday at 5:00 AM UTC. Can be customized in admin section
     'delete-import-tasks': {
-        'task': 'kpi.tasks.delete_import_tasks',
+        'task': 'kpi.tasks.remove_import_tasks',
         'schedule': crontab(hour=5, minute=0, day_of_week=5),
         'options': {'queue': 'kpi_queue'}
     },

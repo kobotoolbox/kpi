@@ -7,14 +7,14 @@ from django.core.management.base import BaseCommand
 from django.db import transaction, connection
 
 
-class DeleteBaseCommand(BaseCommand):
+class RemoveBaseCommand(BaseCommand):
 
     def __init__(self, stdout=None, stderr=None, no_color=False):
-        super(DeleteBaseCommand, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
+        super(RemoveBaseCommand, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
         self._model = None
 
     def add_arguments(self, parser):
-        super(DeleteBaseCommand, self).add_arguments(parser)
+        super(RemoveBaseCommand, self).add_arguments(parser)
         parser.add_argument(
             "--days",
             default=90,

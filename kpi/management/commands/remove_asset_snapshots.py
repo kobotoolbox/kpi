@@ -6,13 +6,13 @@ from datetime import timedelta
 from django.db.models import Max
 from django.utils import timezone
 
-from .delete_base_command import DeleteBaseCommand
+from .remove_base_command import RemoveBaseCommand
 from kpi.models import AssetSnapshot
 
 
-class Command(DeleteBaseCommand):
+class Command(RemoveBaseCommand):
 
-    help = "Deletes asset snapshots"
+    help = "Removes asset snapshots"
 
     def _prepare_delete_queryset(self, **options):
         days = options["days"]
