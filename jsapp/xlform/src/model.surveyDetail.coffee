@@ -6,16 +6,26 @@ module.exports = do ->
   #     start time, deviceid, (etc.)
   class SurveyDetail extends base.BaseModel
     idAttribute: "name"
+
     toJSON: ()->
       if @get("value")
-        nameSlashType = @get("name")
-        name: nameSlashType
-        type: nameSlashType
+        out = {}
+
+        out.name = @get("name")
+        # type is same as name
+        out.type = out.name
+
+        appearance = @get("appearance")
+        if appearance
+          out.appearance = appearance
+
+        return out
       else
-        false
+        return false
 
   class SurveyDetails extends base.BaseCollection
     model: SurveyDetail
+
     loadSchema: (schema)->
       # throw new Error("Schema must be a Backbone.Collection")  unless schema instanceof Backbone.Collection
       for item in schema.models
@@ -24,12 +34,14 @@ module.exports = do ->
 
       # we could prevent future changes to the schema...
       @add = @loadSchema = ()-> throw new Error("New survey details must be added to the schema")
-      @
+      return @
+
     importDefaults: ()->
       for item in @_schema.models
         relevantDetail = @get(item.get("name"))
         relevantDetail.set("value", item.get("default"))
-      ``
+      return
+
     importDetail: (detail)->
       # For now, every detail which is presented is given a boolean value set to true
       if (dtobj = @get(detail.type))
