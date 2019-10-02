@@ -116,12 +116,13 @@ MIDDLEWARE_CLASSES = (
     # needed. See https://code.djangoproject.com/ticket/21649
     #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
 )
 
-X_FRAME_OPTIONS = 'ALLOW-FROM https://cust2.build.openclinica-dev.io/'
+CSP_FRAME_ANCESTORS = 'https://*.openclinica-dev.io'
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
