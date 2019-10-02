@@ -51,6 +51,17 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
+
+    ## Pagination
+    Two parameters can be used to control pagination.
+
+    * `start`: Index (zero-based) from which the results start
+    * `limit`: Number of results per page <span class='label label-info'>Maximum results per page is **30000**</span>
+
+    > Example: The first ten results
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?start=0&limit=10
+
     ## About the GeoJSON format
 
     Requesting the `geojson` format returns a `FeatureCollection` where each
@@ -149,9 +160,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     where `<validation_status>` is a string and can be one of these values:
 
-        - `validation_status_approved`
-        - `validation_status_not_approved`
-        - `validation_status_on_hold`
+        * `validation_status_approved`
+        * `validation_status_not_approved`
+        * `validation_status_on_hold`
 
     Bulk update
     <pre class="prettyprint">
