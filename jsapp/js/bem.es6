@@ -270,6 +270,7 @@ bem.collectionFilter = BEM('collection-filter');
 
 bem.TextBox = BEM('text-box', '<label>');
 bem.TextBox__label = bem.TextBox.__('label');
+bem.TextBox__labelLink = bem.TextBox.__('label-link', '<a>');
 bem.TextBox__input = bem.TextBox.__('input', '<input>');
 bem.TextBox__description = bem.TextBox.__('description');
 bem.TextBox__error = bem.TextBox.__('error');
