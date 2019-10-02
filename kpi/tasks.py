@@ -40,8 +40,7 @@ def import_survey_drafts_from_dkobo(**kwargs):
 @shared_task
 @lock(key='remove_s3_orphans', timeout=60)
 def remove_s3_orphans():
-    #ToDo Create Management command
-    pass
+    call_command('remove_s3_orphans')
 
 
 @shared_task
