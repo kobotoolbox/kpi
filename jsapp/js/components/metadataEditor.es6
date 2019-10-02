@@ -34,9 +34,9 @@ export default class MetadataEditor extends React.Component {
       metaProperties: []
     };
     META_QUESTION_TYPES.forEach((metaType) => {
-      const typeDetail = this.getSurveyDetail(metaType);
-      if (typeDetail) {
-        newState.metaProperties.push(assign({}, typeDetail.attributes));
+      const detail = this.getSurveyDetail(metaType);
+      if (detail) {
+        newState.metaProperties.push(assign({}, detail.attributes));
       }
     });
     this.setState(newState);
@@ -63,7 +63,21 @@ export default class MetadataEditor extends React.Component {
   }
 
   onAuditAppearanceChange(newVal) {
-    console.debug(newVal);
+    this.getSurveyDetail(META_QUESTION_TYPES.get('audit')).set('appearance', newVal);
+    this.rebuildState();
+    if (typeof this.props.onChange === 'function') {
+      this.props.onChange();
+    }
+  }
+
+  isAuditEnabled() {
+    const metaProp = this.getMetaProperty(META_QUESTION_TYPES.get('audit'));
+    return metaProp.value === true;
+  }
+
+  getAuditAppearance() {
+    const metaProp = this.getMetaProperty(META_QUESTION_TYPES.get('audit'));
+    return metaProp.appearance;
   }
 
   render() {
@@ -117,13 +131,15 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
-        <bem.FormBuilderMeta__row>
-          <TextBox
-            label={t('Audit settings')}
-            value={this.state.auditAppearance}
-            onChange={this.onAuditAppearanceChange}
-          />
-        </bem.FormBuilderMeta__row>
+        {this.isAuditEnabled() &&
+          <bem.FormBuilderMeta__row>
+            <TextBox
+              label={t('Audit settings')}
+              value={this.getAuditAppearance()}
+              onChange={this.onAuditAppearanceChange}
+            />
+          </bem.FormBuilderMeta__row>
+        }
 
       </bem.FormBuilderMeta>
     );
