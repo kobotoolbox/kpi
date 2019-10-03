@@ -31,7 +31,7 @@ class BaseDeploymentBackend(object):
     def validate_submission_list_params(self,
                                         requesting_user_id,
                                         format_type=INSTANCE_FORMAT_TYPE_JSON,
-                                        count=False,
+                                        validate_count=False,
                                         **kwargs):
         """
         Ensure types of query and each param.
@@ -39,7 +39,7 @@ class BaseDeploymentBackend(object):
         Args:
             requesting_user_id (int)
             format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            count (bool): If `True`, ignores `start`, `limit`, `fields` & `sort`
+            validate_count (bool): If `True`, ignores `start`, `limit`, `fields` & `sort`
             kwargs (dict): Can contain
                 - start
                 - limit
@@ -53,7 +53,13 @@ class BaseDeploymentBackend(object):
             dict
         """
 
-        if count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
+        if 'count' in kwargs:
+            raise serializers.ValidationError({
+                'count': _('This param is not implemented. Use `count` property '
+                           'of the response instead.')
+            })
+
+        if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
                 # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
                 # See. https://stackoverflow.com/a/867578
@@ -98,7 +104,7 @@ class BaseDeploymentBackend(object):
         except ValueError:
             raise ValueError(_('Invalid `requesting_user_id` param'))
 
-        if count:
+        if validate_count:
             return {
                 'query': query,
                 'instance_ids': instance_ids,

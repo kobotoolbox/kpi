@@ -51,16 +51,35 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
-
     ## Pagination
     Two parameters can be used to control pagination.
 
     * `start`: Index (zero-based) from which the results start
-    * `limit`: Number of results per page <span class='label label-info'>Maximum results per page is **30000**</span>
+    * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **30000**</span>
 
     > Example: The first ten results
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?start=0&limit=10
+
+    ## Query submitted data
+    Provides a list of submitted data for a specific form. Use `query`
+    parameter to apply form data specific, see
+    <a href="http://docs.mongodb.org/manual/reference/operator/query/">
+    http://docs.mongodb.org/manual/reference/operator/query/</a>.
+
+    For more details see
+    <a href="https://github.com/SEL-Columbia/formhub/wiki/Formhub-Access-Points-(API)#api-parameters">API Parameters</a>.
+    <span class='label label-warning'>API parameter `count` is not implemented</span>
+
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":"value"}</b>
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":{"op": "value"}}"</b>
+    </pre>
+    > Example
+    >
+    >       curl -X GET 'https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?query={"__version__": "vWvkKzNE8xCtfApJvabfjG"}'
+    >       curl -X GET 'https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?query={"_submission_time": {"$gt": "2019-09-01T01:02:03"}}'
 
     ## About the GeoJSON format
 
@@ -160,9 +179,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     where `<validation_status>` is a string and can be one of these values:
 
-        * `validation_status_approved`
-        * `validation_status_not_approved`
-        * `validation_status_on_hold`
+    * `validation_status_approved`
+    * `validation_status_not_approved`
+    * `validation_status_on_hold`
 
     Bulk update
     <pre class="prettyprint">
