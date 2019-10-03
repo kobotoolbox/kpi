@@ -65,7 +65,9 @@ export default class RESTServicesForm extends React.Component {
       subsetFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
-      ]
+      ],
+      customWrapper: '',
+      customWrapperError: null
     };
     autoBind(this);
   }
@@ -83,7 +85,8 @@ export default class RESTServicesForm extends React.Component {
             subsetFields: data.subset_fields || [],
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
-            customHeaders: this.headersObjToArr(data.settings.custom_headers)
+            customHeaders: this.headersObjToArr(data.settings.custom_headers),
+            customWrapper: data.customWrapper
           };
 
           if (stateUpdate.customHeaders.length === 0) {
@@ -111,14 +114,10 @@ export default class RESTServicesForm extends React.Component {
    * helpers
    */
 
-  amIBeingCalled(){
-    console.log('am i being called');
-  }
-
   updatePreview() {
     console.log('updatePreview called');
     document.getElementById("chatInput").onkeyup = function() {
-      document.getElementById("printChatInput").innerHTML = '"' + document.getElementById("chatInput").innerHTML + '": {';
+      document.getElementById("printChatInput").innerHTML = '"' + document.getElementById("chatInput").value + '": {';
     }
   }
 
@@ -195,6 +194,13 @@ export default class RESTServicesForm extends React.Component {
     this.setState({customHeaders: newCustomHeaders});
   }
 
+  handleCustomWrapperChange(wrapper) {
+    this.setState({
+      customWrapper: wrapper,
+      customWrapperError: null
+    });
+  }
+
   /*
    * submitting form
    */
@@ -215,7 +221,8 @@ export default class RESTServicesForm extends React.Component {
       auth_level: authLevel,
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
-      }
+      },
+      customWrapper: this.state.customWrapper
     };
 
     if (this.state.authUsername) {
@@ -370,7 +377,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   renderCustomWrapper() {
-
+    console.log('value: ' + this.state.customWrapper);
     return(
       <bem.FormModal__item m='http-headers'>
         <label>
@@ -378,8 +385,11 @@ export default class RESTServicesForm extends React.Component {
         </label>
         <input
           type='text'
-          placeholder={t('Add field')}
+          placeholder={t('Add Custom Wrapper')}
           id='chatInput'
+          value={this.state.customWrapper.toString}
+          errors={this.state.customWrapperError}
+          onChange={this.handleCustomWrapperChange.bind(this)}
         />
 
         <p>Example:</p>
