@@ -143,12 +143,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/edit/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/edit/?return_url=false
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/?return_url=false
 
 
     ### Validation statuses
