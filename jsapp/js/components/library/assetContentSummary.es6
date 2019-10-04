@@ -1,3 +1,6 @@
+// TODO: use `getSurveyFlatPaths` from `jsapp/js/assetUtils.es6` after
+// commit 4b94fa97370ee1ec4bf82913d2872022ad9bce94 is merged
+
 import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
