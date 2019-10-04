@@ -708,10 +708,10 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
-KEYCLOAK_AUTH_URI = "https://auth.openclinica-dev.io/auth/realms/cust2-aws-dev"
-KEYCLOAK_CLIENT_ID = "formdesigner"
-KEYCLOAK_CLIENT_SECRET = "a144e597-d9fd-4fa4-8535-dc3595a72ea1"
-PUBLIC_URI = "http://cust2.kobo.local"
+KEYCLOAK_AUTH_URI = os.environ.get('KEYCLOAK_AUTH_URI', '')
+KEYCLOAK_CLIENT_ID = os.environ.get('KEYCLOAK_CLIENT_ID', '')
+KEYCLOAK_CLIENT_SECRET = os.environ.get('KEYCLOAK_CLIENT_SECRET', '')
+PUBLIC_URI = os.environ.get('PUBLIC_URI', '')
 
 if KEYCLOAK_AUTH_URI != '' and KEYCLOAK_CLIENT_ID != '' and KEYCLOAK_CLIENT_SECRET != '' and PUBLIC_URI != '':
     from bossoidc.settings import *
