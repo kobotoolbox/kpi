@@ -4,8 +4,11 @@ from __future__ import (unicode_literals, print_function,
 
 import copy
 import json
+from collections import defaultdict
 from hashlib import md5
 
+
+from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -27,7 +30,11 @@ from kpi.exceptions import BadAssetTypeException
 from kpi.filters import KpiObjectPermissionsFilter, SearchFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import Asset
-from kpi.models.object_permission import get_anonymous_user, get_objects_for_user
+from kpi.models.object_permission import (
+    ObjectPermission,
+    get_anonymous_user,
+    get_objects_for_user
+)
 from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
     get_perm_name
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
@@ -197,6 +204,35 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # This is called to retrieve an individual record. How much do we
             # have to care about optimizations for that?
             return queryset
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+
+        context_ = super(AssetViewSet, self).get_serializer_context()
+        if self.action == 'list':
+            # To avoid making a triple join-query for each asset in the list
+            # to retrieve object permissions, we make a big one at beginning
+            # to build an dict key-ed by asset ids.
+            # The serializer will be able to pick what it needs from that dict
+            # and narrow down data according to users' permissions.
+            queryset = super(AssetViewSet, self).get_queryset()
+            asset_content_type = ContentType.objects.get_for_model(Asset)
+            asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
+            object_permissions = ObjectPermission.objects.\
+                filter(content_type_id=asset_content_type.pk,
+                       object_id__in=asset_ids).\
+                select_related('user', 'permission')
+
+            object_permissions_per_object = defaultdict(list)
+
+            for op in object_permissions:
+                object_permissions_per_object[op.object_id].append(op)
+
+            context_['object_permissions_per_object'] = object_permissions_per_object
+
+        return context_
 
     def _get_clone_serializer(self, current_asset=None):
         """

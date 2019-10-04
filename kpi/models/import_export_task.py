@@ -4,15 +4,15 @@ from __future__ import (unicode_literals, print_function,
 
 import base64
 import datetime
-import dateutil.parser
 import posixpath
-import pytz
 import re
 import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import splitext
 
+import dateutil.parser
+import pytz
 import requests
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -33,9 +33,8 @@ import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
-from kpi.constants import PERM_VIEW_SUBMISSIONS
+from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 from kpi.utils.log import logging
-from ..deployment_backends.mock_backend import MockDeploymentBackend
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
     remove_string_prefix
@@ -367,7 +366,7 @@ class ExportTask(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
-    * `type`: required; `xls` or `csv`
+    * `type`: required; `xls`, `csv`, or `spss_labels`
     * `source`: required; URL of a deployed `Asset`
     * `lang`: optional; the name of the translation to be used for headers and
               response values. Specify `_xml` to use question and choice names
@@ -544,7 +543,10 @@ class ExportTask(ImportExportTask):
             raise NotImplementedError(
                 'only an `Asset` may be exported at this time')
 
-        if not source.has_perm(self.user, PERM_VIEW_SUBMISSIONS):
+        source_perms = source.get_perms(self.user)
+
+        if (PERM_VIEW_SUBMISSIONS not in source_perms and
+                PERM_PARTIAL_SUBMISSIONS not in source_perms):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
             raise exceptions.PermissionDenied(
@@ -563,12 +565,7 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        if isinstance(source.deployment, MockDeploymentBackend):
-            # Currently used only for unit testing (`MockDeploymentBackend`)
-            # TODO: Have the KC backend also implement `_get_submissions()`?
-            submission_stream = source.deployment.get_submissions()
-        else:
-            submission_stream = None
+        submission_stream = source.deployment.get_submissions(self.user.id)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)

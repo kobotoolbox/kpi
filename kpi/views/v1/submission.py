@@ -135,7 +135,7 @@ class SubmissionViewSet(DataViewSet):
     > **Payload**
     >
     >        {
-    >           "submissions_ids": [{integer}],
+    >           "submission_ids": [{integer}],
     >           "validation_status.uid": <validation_status>
     >        }
 
@@ -147,5 +147,7 @@ class SubmissionViewSet(DataViewSet):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submissions = deployment.get_submissions(format_type=format_type, **filters)
+        submissions = deployment.get_submissions(request.user.id,
+                                                 format_type=format_type,
+                                                 **filters)
         return Response(list(submissions))

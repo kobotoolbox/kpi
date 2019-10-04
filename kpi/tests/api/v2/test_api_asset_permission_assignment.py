@@ -48,7 +48,7 @@ class BaseApiAssetPermissionTestCase(KpiTestCase):
             kwargs={'codename': PERM_CHANGE_ASSET})
 
         self.asset_permissions_list_url = reverse(
-            self._get_endpoint('asset-permission-list'),
+            self._get_endpoint('asset-permission-assignment-list'),
             kwargs={'parent_lookup_asset': self.asset.uid}
         )
 

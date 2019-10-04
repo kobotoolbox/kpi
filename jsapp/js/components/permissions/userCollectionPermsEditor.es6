@@ -1,3 +1,5 @@
+// TODO remove all this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
+
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -7,14 +9,15 @@ import TextBox from 'js/components/textBox';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import classNames from 'classnames';
+import permConfig from './permConfig';
 import {
   t,
-  notify
+  notify,
+  buildUserUrl
 } from 'js/utils';
 import {
-  ASSET_KINDS,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
+  COLLECTION_PERMISSIONS
 } from 'js/constants';
 
 /**
@@ -74,19 +77,21 @@ class UserCollectionPermissionsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermCompleted);
-    this.listenTo(actions.permissions.assignPerm.failed, this.onAssignPermFailed);
+    this.listenTo(actions.permissions.assignCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.assignCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
+    this.listenTo(actions.permissions.removeCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
+    this.listenTo(actions.permissions.removeCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onAssignPermCompleted() {
+  onChangeCollectionPermissionCompleted() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(true);
     }
   }
 
-  onAssignPermFailed() {
+  onChangeCollectionPermissionFailed() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(false);
@@ -204,7 +209,9 @@ class UserCollectionPermissionsEditor extends React.Component {
     );
   }
 
-  submit() {
+  submit(evt) {
+    evt.preventDefault();
+
     if (!this.isSubmitEnabled()) {
       return;
     }
@@ -231,21 +238,16 @@ class UserCollectionPermissionsEditor extends React.Component {
     }
 
     if (permToRemove) {
-      actions.permissions.removePerm({
-        permission_url: permToRemove,
-        content_object_uid: this.props.uid
-      });
+      actions.permissions.removeCollectionPermission(this.props.uid, permToRemove);
       this.setState({isSubmitPending: true});
     }
     if (permToSet) {
-      actions.permissions.assignPerm({
-        username: this.state.username,
-        uid: this.props.uid,
-        kind: ASSET_KINDS.get('collection'),
-        objectUrl: this.props.objectUrl,
-        // OLD api appends part of permission codename based on asset kind
-        role: permToSet.replace('_collection', '')
-      });
+      actions.permissions.assignCollectionPermission(
+        this.props.uid, {
+          user: buildUserUrl(this.state.username),
+          permission: permConfig.getPermissionByCodename(permToSet).url
+        }
+      );
       this.setState({isSubmitPending: true});
     }
 
@@ -258,6 +260,8 @@ class UserCollectionPermissionsEditor extends React.Component {
     ) {
       this.props.onSubmitEnd(true);
     }
+
+    return false;
   }
 
   render() {
@@ -268,15 +272,10 @@ class UserCollectionPermissionsEditor extends React.Component {
       formModifiers.push('pending');
     }
 
-    const formClassNames = classNames(
-      'user-permissions-editor',
-      isNew ? 'user-permissions-editor--new' : ''
-    );
-
     return (
       <bem.FormModal__form
         m={formModifiers}
-        className={formClassNames}
+        className='user-permissions-editor'
         onSubmit={this.submit}
       >
         {isNew &&
@@ -297,13 +296,13 @@ class UserCollectionPermissionsEditor extends React.Component {
             checked={this.state.collectionView}
             disabled={this.state.collectionViewDisabled}
             onChange={this.onCheckboxChange.bind(this, 'collectionView')}
-            label={t('View Collection')}
+            label={COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')]}
           />
 
           <Checkbox
             checked={this.state.collectionEdit}
             onChange={this.onCheckboxChange.bind(this, 'collectionEdit')}
-            label={t('Edit Collection')}
+            label={COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')]}
           />
         </div>
 

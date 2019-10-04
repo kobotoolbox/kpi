@@ -10,11 +10,11 @@ from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
-from kpi.views.v2.asset_permission import AssetPermissionViewSet
+from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.collection import CollectionViewSet
-from kpi.views.v2.collection_permission import CollectionPermissionViewSet
+from kpi.views.v2.collection_permission_assignment import CollectionPermissionAssignmentViewSet
 from kpi.views.v2.data import DataViewSet
 
 from kpi.views.v2.permission import PermissionViewSet
@@ -32,9 +32,9 @@ asset_routes.register(r'files',
                       parents_query_lookups=['asset'],
                       )
 
-asset_routes.register(r'permissions',
-                      AssetPermissionViewSet,
-                      base_name='asset-permission',
+asset_routes.register(r'permission-assignments',
+                      AssetPermissionAssignmentViewSet,
+                      base_name='asset-permission-assignment',
                       parents_query_lookups=['asset'],
                       )
 
@@ -72,9 +72,9 @@ router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
 
 collection_routes = router_api_v2.register(r'collections', CollectionViewSet,
                                            base_name='collection')
-collection_routes.register(r'permissions',
-                           CollectionPermissionViewSet,
-                           base_name='collection-permission',
+collection_routes.register(r'permission-assignments',
+                           CollectionPermissionAssignmentViewSet,
+                           base_name='collection-permission-assignment',
                            parents_query_lookups=['collection'],
                            )
 

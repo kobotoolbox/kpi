@@ -13,7 +13,11 @@ import requests
 from kpi.utils.log import logging
 from .hook import Hook
 from .hook_log import HookLog
-from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from ..constants import (
+    HOOK_LOG_SUCCESS,
+    HOOK_LOG_FAILED,
+    KOBO_INTERNAL_ERROR_STATUS_CODE,
+)
 
 
 class ServiceDefinitionInterface(object):
@@ -30,11 +34,16 @@ class ServiceDefinitionInterface(object):
         Retrieves data from deployment backend of the asset.
         """
         try:
-            submission = self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
+            submission = self._hook.asset.deployment.get_submission(
+                self._instance_id, self._hook.asset.owner.id,
+                self._hook.export_type)
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
-            logging.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
-                self._hook.uid, self._instance_id, str(e)), exc_info=True)
+            logging.error("service_json.ServiceDefinition._get_data "
+                          "- Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                              self._instance_id,
+                                                              str(e)),
+                          exc_info=True)
         return None
 
     @abstractmethod
@@ -77,10 +86,11 @@ class ServiceDefinitionInterface(object):
                 request_kwargs = self._prepare_request_kwargs()
 
                 # Add custom headers
-                request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
+                request_kwargs.get("headers").update(
+                    self._hook.settings.get("custom_headers", {}))
 
                 # Add user agent
-                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME"))\
+                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME")) \
                     if os.getenv("PUBLIC_DOMAIN_NAME") else ""
                 request_kwargs.get("headers").update({
                     "User-Agent": "KoBoToolbox external service {}#{}".format(
@@ -110,8 +120,11 @@ class ServiceDefinitionInterface(object):
                 self.save_log(status_code, text)
 
             except Exception as e:
-                logging.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
-                    self._hook.uid, self._instance_id, str(e)), exc_info=True)
+                logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                                self._instance_id,
+                                                                str(e)),
+                              exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")
@@ -153,7 +166,7 @@ class ServiceDefinitionInterface(object):
         # In case of failure, it should be HTML (or plaintext), we can remove tags
         try:
             json.loads(message)
-        except ValueError as e:
+        except ValueError:
             message = re.sub(r"<[^>]*>", " ", message).strip()
 
         log.message = message

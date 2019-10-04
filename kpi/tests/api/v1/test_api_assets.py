@@ -3,6 +3,7 @@ from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
 import json
+import unittest
 
 import requests
 from django.conf import settings
@@ -29,7 +30,7 @@ class AssetsListApiTests(test_api_assets.AssetsListApiTests):
     URL_NAMESPACE = None
 
     def test_asset_list_matches_detail(self):
-        detail_response = self.test_create_asset()
+        detail_response = self.create_asset()
         list_response = self.client.get(self.list_url)
         self.assertEqual(list_response.status_code, status.HTTP_200_OK,
                          msg=list_response.data)
@@ -52,6 +53,11 @@ class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
 
 class AssetsDetailApiTests(test_api_assets.AssetsDetailApiTests):
     URL_NAMESPACE = None
+
+    @unittest.skip(reason='`assignable_permissions` property only exists in '
+                          'v2 endpoint')
+    def test_assignable_permissions(self):
+        pass
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

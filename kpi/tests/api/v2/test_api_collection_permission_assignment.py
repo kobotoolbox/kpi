@@ -48,7 +48,7 @@ class BaseApiCollectionPermissionTestCase(KpiTestCase):
             kwargs={'codename': PERM_CHANGE_COLLECTION})
 
         self.collection_permissions_list_url = reverse(
-            self._get_endpoint('collection-permission-list'),
+            self._get_endpoint('collection-permission-assignment-list'),
             kwargs={'parent_lookup_collection': self.collection.uid}
         )
 

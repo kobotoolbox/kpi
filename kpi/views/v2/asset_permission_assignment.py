@@ -16,18 +16,19 @@ from kpi.constants import CLONE_ARG_NAME, PERM_VIEW_ASSET, PERM_SHARE_ASSET
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetNestedObjectPermission
-from kpi.serializers.v2.asset_permission import AssetPermissionSerializer, \
+from kpi.serializers.v2.asset_permission_assignment import AssetPermissionAssignmentSerializer, \
     AssetBulkInsertPermissionSerializer
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
-class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                             CreateModelMixin, RetrieveModelMixin,
-                             DestroyModelMixin, ListModelMixin,
-                             viewsets.GenericViewSet):
+class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
+                                       NestedViewSetMixin,
+                                       CreateModelMixin, RetrieveModelMixin,
+                                       DestroyModelMixin, ListModelMixin,
+                                       viewsets.GenericViewSet):
     """
-    ## Permissions of an asset
+    ## Permission assignments of an asset
 
     This endpoint shows assignments on an asset. An assignment implies:
 
@@ -152,7 +153,7 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     model = ObjectPermission
     lookup_field = "uid"
-    serializer_class = AssetPermissionSerializer
+    serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetNestedObjectPermission,)
 
     @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
@@ -229,15 +230,16 @@ class AssetPermissionViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Inject asset_uid to avoid extra queries to DB inside the serializer.
         """
 
-        context_ = super(AssetPermissionViewSet, self).get_serializer_context()
+        context_ = super(AssetPermissionAssignmentViewSet, self).get_serializer_context()
         context_.update({
             'asset_uid': self.asset.uid
         })
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper.get_assignments_queryset(self.asset,
-                                                               self.request.user)
+        return ObjectPermissionHelper. \
+            get_user_permission_assignments_queryset(self.asset,
+                                                     self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)

@@ -9,7 +9,7 @@ class DefaultDatabaseRouter(object):
 
     def db_for_read(self, model, **hints):
         """
-        Reads go to a randomly-chosen replica.
+        Reads go to `kc` when `model` is a ShadowModel
         """
         if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
             return "kobocat"
@@ -17,7 +17,7 @@ class DefaultDatabaseRouter(object):
 
     def db_for_write(self, model, **hints):
         """
-        Writes always go to primary.
+        Writes go to `kc` when `model` is a ShadowModel
         """
         if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
             return "kobocat"
@@ -38,10 +38,21 @@ class DefaultDatabaseRouter(object):
         return True
 
 
-class TestingDatabaseRouter(DefaultDatabaseRouter):
+class SingleDatabaseRouter(DefaultDatabaseRouter):
 
     def db_for_read(self, model, **hints):
-        return "default"
+        """
+        Reads always go to `default`
+        """
+        return 'default'
 
     def db_for_write(self, model, **hints):
-        return "default"
+        """
+        Writes always go to default
+        """
+        return 'default'
+
+
+class TestingDatabaseRouter(SingleDatabaseRouter):
+
+    pass

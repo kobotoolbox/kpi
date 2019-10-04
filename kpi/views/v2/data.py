@@ -2,13 +2,16 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
+from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import renderers, viewsets, status
+from rest_framework import renderers, serializers, viewsets
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -16,7 +19,7 @@ from kpi.permissions import (
     SubmissionPermission,
     SubmissionValidationStatusPermission,
 )
-from kpi.renderers import SubmissionXMLRenderer
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -29,9 +32,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/
     </pre>
 
-    By default, JSON format is used but XML format can be used too.
+    By default, JSON format is used, but XML and GeoJSON are also available:
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.geojson
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.json
     </pre>
 
@@ -39,12 +44,28 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=geojson
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=json
     </pre>
 
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
+
+    ## About the GeoJSON format
+
+    Requesting the `geojson` format returns a `FeatureCollection` where each
+    submission is a `Feature`. If your form has multiple geographic questions,
+    use the `geo_question_name` query parameter to determine which question's
+    responses populate the `geometry` for each `Feature`; otherwise, the first
+    geographic question is used.  All question/response pairs are included in
+    the `properties` of each `Feature`, but _repeating groups are omitted_.
+
+    Question types are mapped to GeoJSON geometry types as follows:
+
+    * `geopoint` to `Point`;
+    * `geotrace` to `LineString`;
+    * `geoshape` to `Polygon`.
 
     ## CRUD
 
@@ -145,7 +166,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > **Payload**
     >
     >        {
-    >           "submissions_ids": [{integer}],
+    >           "submission_ids": [{integer}],
     >           "validation_status.uid": <validation_status>
     >        }
 
@@ -156,6 +177,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
+                        SubmissionGeoJsonRenderer,
                         SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
@@ -192,11 +214,31 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                            params=request.GET)
         return Response(**json_response)
 
+    def get_queryset(self):
+        # This method is needed when pagination is activated and renderer is
+        # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
+        # `retrieve()` don't need Django Queryset, we only need return `None`.
+        return None
+
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submissions = deployment.get_submissions(format_type=format_type, **filters)
+
+        if format_type == 'geojson':
+            # For GeoJSON, get the submissions as JSON and let
+            # `SubmissionGeoJsonRenderer` handle the rest
+            return Response(
+                deployment.get_submissions(
+                    requesting_user_id=request.user,
+                    format_type=INSTANCE_FORMAT_TYPE_JSON,
+                    **filters
+                )
+            )
+
+        submissions = deployment.get_submissions(request.user.id,
+                                                 format_type=format_type,
+                                                 **filters)
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
         # It avoids to retrieve all the objects from MongoDB
@@ -211,9 +253,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        submission = deployment.get_submission(pk, format_type=format_type, **filters)
-        if not submission:
+        try:
+            submission = deployment.get_submission(positive_int(pk),
+                                                   request.user.id,
+                                                   format_type=format_type,
+                                                   **filters)
+        except ValueError:
             raise Http404
+        else:
+            if not submission:
+                raise Http404
         return Response(submission)
 
     @detail_route(methods=['GET', 'PATCH', 'DELETE'],
@@ -257,13 +306,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         # Remove `format` from filters. No need to use it
         filters.pop('format', None)
-
-        permission_filters = self.asset.get_filters_for_partial_perm(request.user.id)
-
-        # This should overwrite existing `permission_filters` param.
-        # We don't want users to bypass their partial permissions filters.
-        filters.update({
-            'permission_filters': permission_filters
-        })
+        # Do not allow requests to retrieve more than `SUBMISSION_LIST_LIMIT`
+        # submissions at one time
+        limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
+        try:
+            filters['limit'] = positive_int(limit,
+                                            strict=True,
+                                            cutoff=settings.SUBMISSION_LIST_LIMIT)
+        except ValueError:
+            raise serializers.ValidationError(
+                {'limit': _('A positive integer is required')}
+            )
 
         return filters

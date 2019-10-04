@@ -253,8 +253,7 @@ def grant_kc_model_level_perms(user):
 
     KobocatUserPermission.objects.bulk_create([
         KobocatUserPermission(user=user, permission=p)
-            for p in permissions_to_assign
-            if p.pk not in existing_user_perm_pks
+        for p in permissions_to_assign if p.pk not in existing_user_perm_pks
     ])
 
 

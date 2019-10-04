@@ -101,7 +101,8 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         if not _userform_id.startswith(asset.owner.username):
             raise Exception('asset has unexpected `mongo_userform_id`')
 
-        submission_stream = asset.deployment.get_submissions()
+        submission_stream = asset.deployment.get_submissions(
+            requesting_user_id=asset.owner.id)
 
     submission_stream = (
         _infer_version_id(submission) for submission in submission_stream

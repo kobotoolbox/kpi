@@ -29,20 +29,34 @@ const PERMISSIONS_CODENAMES = new Map();
 new Set([
   'view_asset',
   'change_asset',
-  'partial_submissions',
   'add_submissions',
   'view_submissions',
+  'partial_submissions',
   'change_submissions',
   'validate_submissions',
   'view_collection',
   'change_collection'
 ]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
 
+// TODO remove after collection is merged with asset
+// // https://github.com/kobotoolbox/kpi/issues/2332
+const COLLECTION_PERMISSIONS = {};
+COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View collection');
+COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit collection');
+
 const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0
 };
+
+const KEY_CODES = new Map([
+  ['TAB', 9],
+  ['ENTER', 13],
+  ['ESC', 27],
+  ['SPACE', 32],
+  ['NBSP', 160], // non-breakable space
+]);
 
 const MODAL_TYPES = {
   SHARING: 'sharing',
@@ -135,6 +149,7 @@ export default {
   ROOT_URL: ROOT_URL,
   ANON_USERNAME: ANON_USERNAME,
   PERMISSIONS_CODENAMES: PERMISSIONS_CODENAMES,
+  COLLECTION_PERMISSIONS: COLLECTION_PERMISSIONS,
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
   VALIDATION_STATUSES: VALIDATION_STATUSES,
@@ -143,5 +158,6 @@ export default {
   MODAL_TYPES: MODAL_TYPES,
   ASSET_TYPES: ASSET_TYPES,
   ASSET_KINDS: ASSET_KINDS,
+  KEY_CODES: KEY_CODES,
   HOOK_LOG_STATUSES: HOOK_LOG_STATUSES
 };

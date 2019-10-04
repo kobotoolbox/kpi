@@ -118,6 +118,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
+    'django_userforeignkey.middleware.UserForeignKeyMiddleware',
+    'django_request_cache.middleware.RequestCacheMiddleware',
 )
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
@@ -202,11 +204,6 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-# @TODO add `KC_DATABASE_URL` and `KPI_DATABASE_URL`:
-#  - `kobo-install` templates
-#  - `kobo-docker` templates
-#  - `kobo-deployments` templates`
-
 kobocat_database_url = os.getenv("KC_DATABASE_URL", "sqlite:///%s/db.sqlite3" % BASE_DIR)
 
 DATABASES = {
@@ -214,7 +211,12 @@ DATABASES = {
     'kobocat': dj_database_url.parse(kobocat_database_url)
 }
 
-DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
+USE_SAME_DATABASE = DATABASES['default'] == DATABASES['kobocat']
+
+DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
+if USE_SAME_DATABASE is True:
+    DATABASE_ROUTERS = ['kpi.db_routers.SingleDatabaseRouter']
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -240,6 +242,10 @@ USE_L10N = True
 USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
+
+# Impose a limit on the number of records returned by the submission list
+# endpoint. This overrides any `?limit=` query parameter sent by a client
+SUBMISSION_LIST_LIMIT = 30000
 
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10

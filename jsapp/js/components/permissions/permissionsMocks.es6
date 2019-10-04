@@ -55,7 +55,7 @@ const permissions = {
         '/api/v2/permissions/validate_submissions/'
       ],
       'name': '',
-      'description': 'Can make partial actions onsubmitted data for asset for specific users'
+      'description': 'Can make partial actions on submitted data for asset for specific users'
     },
     {
       'url': '/api/v2/permissions/validate_submissions/',
@@ -111,154 +111,154 @@ const permissions = {
   ]
 };
 
-// /api/v2/assets/<uid>/permissions/
+// /api/v2/assets/<uid>/permission-assignments/
 const assetWithAnonymousUser = {
   'count': 7,
   'next': null,
   'previous': null,
   'results': [
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pTi9qyEax49ZA5RP9KnNHB/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pTi9qyEax49ZA5RP9KnNHB/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/add_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pATUgtDW6v44QG4dDDpnEV/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pATUgtDW6v44QG4dDDpnEV/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/change_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pUUcqTtQ6FgEDfHUiQbS24/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pUUcqTtQ6FgEDfHUiQbS24/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/change_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p5BjfEz9JDQtQTzkT7fHA5/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/p5BjfEz9JDQtQTzkT7fHA5/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/validate_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pBjfyz5Zxj95866GtEtsR2/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pBjfyz5Zxj95866GtEtsR2/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pQGiudmuLvN6iHEdH8dJAs/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pQGiudmuLvN6iHEdH8dJAs/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pV9kCoWAQT9QUeV2EsTLqj/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pV9kCoWAQT9QUeV2EsTLqj/',
       'user': '/api/v2/users/AnonymousUser/',
       'permission': '/api/v2/permissions/view_asset/'
     }
   ]
 };
 
-// /api/v2/assets/<uid>/permissions/
+// /api/v2/assets/<uid>/permission-assignments/
 const assetWithMultipleUsers = {
   'count': 9,
   'next': null,
   'previous': null,
   'results': [
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pTi9qyEax49ZA5RP9KnNHB/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pTi9qyEax49ZA5RP9KnNHB/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/add_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pATUgtDW6v44QG4dDDpnEV/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pATUgtDW6v44QG4dDDpnEV/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/change_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pUUcqTtQ6FgEDfHUiQbS24/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pUUcqTtQ6FgEDfHUiQbS24/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/change_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p5BjfEz9JDQtQTzkT7fHA5/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/p5BjfEz9JDQtQTzkT7fHA5/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/validate_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pBjfyz5Zxj95866GtEtsR2/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pBjfyz5Zxj95866GtEtsR2/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pQGiudmuLvN6iHEdH8dJAs/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pQGiudmuLvN6iHEdH8dJAs/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pETvxGayAJwvPaCnt5biVD/',
-      'user': '/api/v2/users/oliver/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pETvxGayAJwvPaCnt5biVD/',
+      'user': '/api/v2/users/olivier/',
       'permission': '/api/v2/permissions/view_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p6KekjhZabd7ao9MBQwN7X/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/p6KekjhZabd7ao9MBQwN7X/',
       'user': '/api/v2/users/john/',
       'permission': '/api/v2/permissions/view_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pxp7BPnP9fohF5ZoH5Uwfa/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pxp7BPnP9fohF5ZoH5Uwfa/',
       'user': '/api/v2/users/john/',
       'permission': '/api/v2/permissions/view_asset/'
     }
   ]
 };
 
-// /api/v2/assets/<uid>/permissions/
+// /api/v2/assets/<uid>/permission-assignments/
 const assetWithPartial = {
   'count': 8,
   'next': null,
   'previous': null,
   'results': [
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pTi9qyEax49ZA5RP9KnNHB/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pTi9qyEax49ZA5RP9KnNHB/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/add_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pATUgtDW6v44QG4dDDpnEV/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pATUgtDW6v44QG4dDDpnEV/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/change_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pUUcqTtQ6FgEDfHUiQbS24/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pUUcqTtQ6FgEDfHUiQbS24/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/change_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p5BjfEz9JDQtQTzkT7fHA5/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/p5BjfEz9JDQtQTzkT7fHA5/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/validate_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pBjfyz5Zxj95866GtEtsR2/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pBjfyz5Zxj95866GtEtsR2/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pQGiudmuLvN6iHEdH8dJAs/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pQGiudmuLvN6iHEdH8dJAs/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_submissions/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/p6KekjhZabd7ao9MBQwN7X/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/p6KekjhZabd7ao9MBQwN7X/',
       'user': '/api/v2/users/leszek/',
       'permission': '/api/v2/permissions/view_asset/'
     },
     {
-      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permissions/pxp7BPnP9fohF5ZoH5Uwfa/',
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pxp7BPnP9fohF5ZoH5Uwfa/',
       'user': '/api/v2/users/leszek/',
       'permission': '/api/v2/permissions/partial_submissions/',
       'partial_permissions': [
         {
           'url': '/api/v2/permissions/view_submissions/',
           'filters': [
-            {'_submitted_by': {'$in': ['john', 'oliver']}}
+            {'_submitted_by': {'$in': ['john', 'olivier']}}
           ]
         },
       ]

@@ -72,13 +72,6 @@ class App extends React.Component {
   }
   componentDidMount () {
     actions.misc.getServerEnvironment();
-
-    // TODO: this operation should be removed after March 1, 2019
-    // To avoid issues with localStorage limits, delete user.history from browser's localStorage
-    // user.history was an unusued store, it was removed in https://github.com/kobotoolbox/kpi/pull/1878
-    if (localStorage && localStorage['user.history']) {
-      localStorage.removeItem('user.history');
-    }
   }
   _handleShortcuts(action) {
     switch (action) {

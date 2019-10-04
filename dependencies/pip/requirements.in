@@ -2,8 +2,10 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # Formpack
+# NB: jnm fork of `geojson-rewind` should not be necessary after upgrading to
+# Python 3
 -e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
--e git+https://github.com/kobotoolbox/formpack.git@1124a98c59aaf8ed25a1276042bece688a01553c#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@eae87edbcb4ca2b05130e26c99ac81e3437d03c9#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -81,3 +83,6 @@ pyasn1
 
 # Force new version of redis
 redis==3.2.0
+
+# Cache-Request
+django-request-cache==1.0.0 # DO NOT UPGRADE UNTIL Django upgrade 1.10+

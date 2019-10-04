@@ -17,22 +17,23 @@ from kpi.constants import CLONE_ARG_NAME, PERM_SHARE_COLLECTION, \
 from kpi.models.collection import Collection
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import CollectionNestedObjectPermission
-from kpi.serializers.v2.collection_permission import CollectionPermissionSerializer, \
+from kpi.serializers.v2.collection_permission_assignment import CollectionPermissionAssignmentSerializer, \
     CollectionBulkInsertPermissionSerializer
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import CollectionNestedObjectViewsetMixin
 
 
-class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedViewSetMixin,
-                                  CreateModelMixin, RetrieveModelMixin,
-                                  DestroyModelMixin, ListModelMixin,
-                                  viewsets.GenericViewSet):
+class CollectionPermissionAssignmentViewSet(CollectionNestedObjectViewsetMixin,
+                                           NestedViewSetMixin,
+                                           CreateModelMixin, RetrieveModelMixin,
+                                           DestroyModelMixin, ListModelMixin,
+                                           viewsets.GenericViewSet):
     
-    # TODO Refactor AssetPermissionViewSet & CollectionPermissionViewSet tox
+    # TODO Refactor AssetPermissionAssignmentViewSet & CollectionPermissionAssignmentViewSet tox
     # use same core.
 
     """
-    ## Permissions of an collection
+    ## Permission assignments of an collection
 
     This endpoint shows assignments on an collection. An assignment implies:
 
@@ -140,7 +141,7 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
 
     model = ObjectPermission
     lookup_field = "uid"
-    serializer_class = CollectionPermissionSerializer
+    serializer_class = CollectionPermissionAssignmentSerializer
     permission_classes = (CollectionNestedObjectPermission,)
 
     @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
@@ -215,15 +216,16 @@ class CollectionPermissionViewSet(CollectionNestedObjectViewsetMixin, NestedView
         Extra context provided to the serializer class.
         Inject collection_uid to avoid extra queries to DB inside the serializer.
         """
-        context_ = super(CollectionPermissionViewSet, self).get_serializer_context()
+        context_ = super(CollectionPermissionAssignmentViewSet, self).get_serializer_context()
         context_.update({
             'collection_uid': self.collection.uid
         })
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper.get_assignments_queryset(self.collection,
-                                                               self.request.user)
+        return ObjectPermissionHelper. \
+            get_user_permission_assignments_queryset(self.collection,
+                                                     self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(collection=self.collection)

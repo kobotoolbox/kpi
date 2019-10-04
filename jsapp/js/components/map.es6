@@ -245,17 +245,18 @@ export class FormMap extends React.Component {
 
     // TODO: handle forms with over 5000 results
     dataInterface.getSubmissions(this.props.asset.uid, 5000, 0, sort, fq).done((data) => {
+      let results = data.results;
       if (selectedQuestion) {
-        data.forEach(function(row, i) {
+        results.forEach(function(row, i) {
           if (row[selectedQuestion]) {
             var coordsArray = row[selectedQuestion].split(' ');
-            data[i]._geolocation[0] = coordsArray[0];
-            data[i]._geolocation[1] = coordsArray[1];
+            results[i]._geolocation[0] = coordsArray[0];
+            results[i]._geolocation[1] = coordsArray[1];
           }
         });
       }
 
-      this.setState({submissions: data});
+      this.setState({submissions: results});
       this.buildMarkers(map);
       this.buildHeatMap(map);
     }).fail((error)=>{

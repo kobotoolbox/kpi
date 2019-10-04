@@ -10,12 +10,17 @@ import actions from 'js/actions';
 import bem from 'js/bem';
 import classNames from 'classnames';
 import permParser from './permParser';
+import permConfig from './permConfig';
 import {
   assign,
   t,
   notify,
   buildUserUrl
 } from 'js/utils';
+import {
+  KEY_CODES,
+  PERMISSIONS_CODENAMES
+} from 'js/constants';
 
 /**
  * Form for adding/changing user permissions for surveys.
@@ -299,6 +304,14 @@ class UserAssetPermsEditor extends React.Component {
     });
   }
 
+  getLabel(permCodename) {
+    return this.props.assignablePerms.get(permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get(permCodename)).url);
+  }
+
+  isAssignable(permCodename) {
+    return this.props.assignablePerms.has(permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get(permCodename)).url);
+  }
+
   /**
    * Blocks submitting non-ready form.
    */
@@ -312,8 +325,10 @@ class UserAssetPermsEditor extends React.Component {
       this.state.submissionsEdit ||
       this.state.submissionsValidate
     );
+    const isPartialValid = this.state.submissionsViewPartial ? this.state.submissionsViewPartialUsers.length !== 0 : true;
     return (
       isAnyCheckboxChecked &&
+      isPartialValid &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       !this.state.isAddingPartialUsernames &&
@@ -322,21 +337,29 @@ class UserAssetPermsEditor extends React.Component {
     );
   }
 
+  /**
+   * Returns only the properties for assignable permissions
+   */
   getFormData() {
-    return {
+    const output = {
       username: this.state.username,
-      formView: this.state.formView,
-      formEdit: this.state.formEdit,
-      submissionsView: this.state.submissionsView,
-      submissionsViewPartial: this.state.submissionsViewPartial,
-      submissionsViewPartialUsers: this.state.submissionsViewPartialUsers,
-      submissionsAdd: this.state.submissionsAdd,
-      submissionsEdit: this.state.submissionsEdit,
-      submissionsValidate: this.state.submissionsValidate
     };
+    if (this.isAssignable('view_asset')) {output.formView = this.state.formView;}
+    if (this.isAssignable('change_asset')) {output.formEdit = this.state.formEdit;}
+    if (this.isAssignable('add_submissions')) {output.submissionsAdd = this.state.submissionsAdd;}
+    if (this.isAssignable('view_submissions')) {output.submissionsView = this.state.submissionsView;}
+    if (this.isAssignable('partial_submissions')) {
+      output.submissionsViewPartial = this.state.submissionsViewPartial;
+      output.submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
+    }
+    if (this.isAssignable('change_submissions')) {output.submissionsEdit = this.state.submissionsEdit;}
+    if (this.isAssignable('validate_submissions')) {output.submissionsValidate = this.state.submissionsValidate;}
+    return output;
   }
 
-  submit() {
+  submit(evt) {
+    evt.preventDefault();
+
     if (!this.isSubmitEnabled()) {
       return;
     }
@@ -358,6 +381,8 @@ class UserAssetPermsEditor extends React.Component {
       // if nothing changes but user submits, just notify parent we're good
       this.notifyParentAboutSubmitEnd(true);
     }
+
+    return false;
   }
 
   render() {
@@ -369,20 +394,24 @@ class UserAssetPermsEditor extends React.Component {
       onBlur: this.onSubmissionsViewPartialUsersInputBlur
     };
 
+    let submissionsViewPartialUsersClassName = 'react-tagsinput';
+    if (
+      this.state.submissionsViewPartial &&
+      this.state.submissionsViewPartialUsers.length === 0 &&
+      !this.state.isAddingPartialUsernames
+    ) {
+      submissionsViewPartialUsersClassName += ' react-tagsinput-invalid';
+    }
+
     const formModifiers = [];
     if (this.state.isSubmitPending) {
       formModifiers.push('pending');
     }
 
-    const formClassNames = classNames(
-      'user-permissions-editor',
-      isNew ? 'user-permissions-editor--new' : ''
-    );
-
     return (
       <bem.FormModal__form
         m={formModifiers}
-        className={formClassNames}
+        className='user-permissions-editor'
         onSubmit={this.submit}
       >
         {isNew &&
@@ -394,76 +423,86 @@ class UserAssetPermsEditor extends React.Component {
               onChange={this.onUsernameChange}
               onBlur={this.onUsernameChangeEnd}
               onKeyPress={this.onUsernameKeyPress}
+              errors={this.state.username.length === 0}
             />
           </div>
         }
 
         <div className='user-permissions-editor__row'>
-          <Checkbox
-            checked={this.state.formView}
-            disabled={this.state.formViewDisabled}
-            onChange={this.onCheckboxChange.bind(this, 'formView')}
-            label={t('View Form')}
-          />
+          {this.isAssignable('view_asset') &&
+            <Checkbox
+              checked={this.state.formView}
+              disabled={this.state.formViewDisabled}
+              onChange={this.onCheckboxChange.bind(this, 'formView')}
+              label={this.getLabel('view_asset')}
+            />
+          }
 
-          <Checkbox
-            checked={this.state.formEdit}
-            onChange={this.onCheckboxChange.bind(this, 'formEdit')}
-            label={t('Edit Form')}
-          />
+          {this.isAssignable('change_asset') &&
+            <Checkbox
+              checked={this.state.formEdit}
+              onChange={this.onCheckboxChange.bind(this, 'formEdit')}
+              label={this.getLabel('change_asset')}
+            />
+          }
 
-          <div className={classNames(
-            this.state.submissionsView === true ? 'user-permissions-editor__row user-permissions-editor__row--group' : ''
-          )}>
+          {this.isAssignable('view_submissions') &&
             <Checkbox
               checked={this.state.submissionsView}
               disabled={this.state.submissionsViewDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsView')}
-              label={t('View Submissions')}
+              label={this.getLabel('view_submissions')}
             />
+          }
 
-            {this.state.submissionsView === true &&
-              <div>
-                <Checkbox
-                  checked={this.state.submissionsViewPartial}
-                  disabled={this.state.submissionsViewPartialDisabled}
-                  onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
-                  label={t('Restrict to submissions made by certain users')}
+          {this.isAssignable('partial_submissions') && this.state.submissionsView === true &&
+            <div className='user-permissions-editor__sub-row'>
+              <Checkbox
+                checked={this.state.submissionsViewPartial}
+                disabled={this.state.submissionsViewPartialDisabled}
+                onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
+                label={this.getLabel('partial_submissions')}
+              />
+
+              {this.state.submissionsViewPartial === true &&
+                <TagsInput
+                  className={submissionsViewPartialUsersClassName}
+                  value={this.state.submissionsViewPartialUsers}
+                  onChange={this.onSubmissionsViewPartialUsersChange}
+                  addOnBlur
+                  addKeys={[KEY_CODES.get('ENTER'), KEY_CODES.get('SPACE'), KEY_CODES.get('TAB')]}
+                  inputProps={submissionsViewPartialUsersInputProps}
+                  onlyUnique
                 />
+              }
+            </div>
+          }
 
-                {this.state.submissionsViewPartial === true &&
-                  <TagsInput
-                    value={this.state.submissionsViewPartialUsers}
-                    onChange={this.onSubmissionsViewPartialUsersChange}
-                    addOnBlur
-                    addKeys={[9, 13, 32]}
-                    inputProps={submissionsViewPartialUsersInputProps}
-                    onlyUnique
-                  />
-                }
-              </div>
-            }
-          </div>
+          {this.isAssignable('add_submissions') &&
+            <Checkbox
+              checked={this.state.submissionsAdd}
+              onChange={this.onCheckboxChange.bind(this, 'submissionsAdd')}
+              label={this.getLabel('add_submissions')}
+            />
+          }
 
-          <Checkbox
-            checked={this.state.submissionsAdd}
-            onChange={this.onCheckboxChange.bind(this, 'submissionsAdd')}
-            label={t('Add Submissions')}
-          />
+          {this.isAssignable('change_submissions') &&
+            <Checkbox
+              checked={this.state.submissionsEdit}
+              disabled={this.state.submissionsEditDisabled}
+              onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
+              label={this.getLabel('change_submissions')}
+            />
+          }
 
-          <Checkbox
-            checked={this.state.submissionsEdit}
-            disabled={this.state.submissionsEditDisabled}
-            onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
-            label={t('Change Submissions')}
-          />
-
-          <Checkbox
-            checked={this.state.submissionsValidate}
-            disabled={this.state.submissionsValidateDisabled}
-            onChange={this.onCheckboxChange.bind(this, 'submissionsValidate')}
-            label={t('Validate Submissions')}
-          />
+          {this.isAssignable('validate_submissions') &&
+            <Checkbox
+              checked={this.state.submissionsValidate}
+              disabled={this.state.submissionsValidateDisabled}
+              onChange={this.onCheckboxChange.bind(this, 'submissionsValidate')}
+              label={this.getLabel('validate_submissions')}
+            />
+          }
         </div>
 
         <div className='user-permissions-editor__row'>

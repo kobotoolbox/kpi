@@ -94,11 +94,11 @@ class FormSummary extends React.Component {
           else
             subsPerDay = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-          thisWeekSubs.forEach(function(s, i) {
+          thisWeekSubs.results.forEach(function(s, i) {
             // As submission times are in UTC,
             // this will get the computer timezone difference with UTC
             // and adapt the submission date to reflect that in the chart.
-            var d = moment(s._submission_time);
+            var d = new Date(s._submission_time);
             var timezoneToday = moment(d.valueOf() - (d.getTimezoneOffset() * 60 * 1000));
             var diff = timezoneToday.diff(wkStart, 'days');
             subsPerDay[diff] += 1;
@@ -133,8 +133,9 @@ class FormSummary extends React.Component {
     const fq = ['_id', 'end'];
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
-      if (data.length)
-        this.setState({lastSubmission: data[0]['end']});
+      let results = data.results;
+      if (data.count)
+        this.setState({lastSubmission: results[0]['end']});
       else
         this.setState({lastSubmission: false});
     });
@@ -319,6 +320,7 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
 
     if (!this.state.permissions) {
       return (
@@ -331,7 +333,7 @@ class FormSummary extends React.Component {
       );
     }
 
-    if (!this.userCan('view_submissions', this.state)) {
+    if (!permAccess) {
       return (
         <bem.Loading>
           <bem.Loading__inner>

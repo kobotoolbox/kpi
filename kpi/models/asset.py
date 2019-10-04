@@ -9,7 +9,9 @@ import sys
 import jsonbfield.fields
 import six
 import xlwt
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
@@ -503,7 +505,7 @@ class Asset(ObjectPermissionMixin,
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
-            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on'
+            (PERM_PARTIAL_SUBMISSIONS, _('Can make partial actions on '
                                          'submitted data for asset '
                                          'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
@@ -523,8 +525,8 @@ class Asset(ObjectPermissionMixin,
         ASSET_TYPE_TEMPLATE: _('template'),
         ASSET_TYPE_BLOCK: _('block'),
         ASSET_TYPE_QUESTION: _('question'),
-        ASSET_TYPE_TEXT: _('text'), # unused?
-        ASSET_TYPE_EMPTY: _('empty'), # unused?
+        ASSET_TYPE_TEXT: _('text'),  # unused?
+        ASSET_TYPE_EMPTY: _('empty'),  # unused?
         #ASSET_TYPE_COLLECTION: _('collection'),
     }
 
@@ -533,14 +535,24 @@ class Asset(ObjectPermissionMixin,
     # should call instead of accessing this dictionary directly
     ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
         PERM_VIEW_ASSET: _('View ##asset_type_label##'),
-        PERM_CHANGE_ASSET: _('Change ##asset_type_label##'),
+        PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
-        PERM_PARTIAL_SUBMISSIONS: _('View a filtered subset of submissions'),
-        PERM_CHANGE_SUBMISSIONS: _('Change submissions'),
+        PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
+        PERM_CHANGE_SUBMISSIONS: _('Edit and delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
+    # Depending on our `asset_type`, only some permissions might be applicable
+    ASSIGNABLE_PERMISSIONS_BY_TYPE = {
+        ASSET_TYPE_SURVEY: ASSIGNABLE_PERMISSIONS, # all of them
+        ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_BLOCK: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_QUESTION: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_TEXT: (),  # unused?
+        ASSET_TYPE_EMPTY: (),  # unused?
+        #ASSET_TYPE_COLLECTION: # tbd
+    }
 
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
@@ -657,7 +669,6 @@ class Asset(ObjectPermissionMixin,
             return perms.get(perm)
         return None
 
-
     def get_label_for_permission(self, permission_or_codename):
         try:
             codename = permission_or_codename.codename
@@ -681,7 +692,6 @@ class Asset(ObjectPermissionMixin,
             six.text_type(self.ASSET_TYPE_LABELS[self.asset_type])
         )
         return label
-
 
     def get_partial_perms(self, user_id, with_filters=False):
         """

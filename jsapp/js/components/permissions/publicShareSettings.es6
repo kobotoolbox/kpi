@@ -5,41 +5,57 @@ import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
 import actions from 'js/actions';
 import bem from 'js/bem';
-import {t} from 'js/utils';
+import permConfig from 'js/components/permissions/permConfig';
+import {
+  t,
+  buildUserUrl
+} from 'js/utils';
 import {
   ROOT_URL,
-  ANON_USERNAME
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 
 class PublicShareSettings extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
+    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
+    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url;
   }
-  togglePerms(permRole) {
-    var permission = this.props.publicPerms.filter(function(perm){return perm.permission === permRole;})[0];
+  togglePerms(permCodename) {
+    var permission = this.props.publicPerms.filter((perm) => {
+      return perm.permission === permConfig.getPermissionByCodename(permCodename).url;
+    })[0];
+    let actionFn;
 
     if (permission) {
-      actions.permissions.removePerm({
-        permission_url: permission.url,
-        content_object_uid: this.props.uid
-      });
+      if (this.props.kind === 'collection') {
+        actionFn = actions.permissions.removeCollectionPermission;
+      } else {
+        actionFn = actions.permissions.removeAssetPermission;
+      }
+      actionFn(this.props.uid, permission.url);
     } else {
-      actions.permissions.assignPerm({
-        username: ANON_USERNAME,
-        uid: this.props.uid,
-        kind: this.props.kind,
-        objectUrl: this.props.objectUrl,
-        role: permRole === 'view_asset' ? 'view' : permRole
-      });
+      if (this.props.kind === 'collection') {
+        actionFn = actions.permissions.assignCollectionPermission;
+      } else {
+        actionFn = actions.permissions.assignAssetPermission;
+      }
+      actionFn(
+        this.props.uid, {
+          user: buildUserUrl(ANON_USERNAME),
+          permission: permConfig.getPermissionByCodename(permCodename).url
+        }
+      );
     }
   }
   render () {
-    var uid = this.props.uid;
-    var url = `${ROOT_URL}/#/forms/${uid}`;
+    const uid = this.props.uid;
+    const url = `${ROOT_URL}/#/forms/${uid}`;
 
-    var anonCanView = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_asset';})[0];
-    var anonCanViewData = this.props.publicPerms.filter(function(perm){return perm.permission === 'view_submissions';})[0];
+    const anonCanView = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewPermUrl;})[0];
+    const anonCanViewData = this.props.publicPerms.filter((perm) => {return perm.permission === this.anonCanViewDataPermUrl;})[0];
 
     return (
       <bem.FormModal__item m='permissions'>

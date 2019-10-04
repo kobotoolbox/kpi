@@ -18,7 +18,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.utils.urls import absolute_resolve
 
 
-class AssetPermissionSerializer(serializers.ModelSerializer):
+class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
     url = serializers.SerializerMethodField()
     user = RelativePrefixHyperlinkedRelatedField(
@@ -80,7 +80,7 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
 
     def get_url(self, object_permission):
         asset_uid = self.context.get('asset_uid')
-        return reverse('asset-permission-detail',
+        return reverse('asset-permission-assignment-detail',
                        args=(asset_uid, object_permission.uid),
                        request=self.context.get('request', None))
 
@@ -114,9 +114,11 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
             )
 
         request = self.context['request']
-        if isinstance(request.data, dict): # for a single assignment
+        partial_permissions = None
+
+        if isinstance(request.data, dict):  # for a single assignment
             partial_permissions = request.data.get('partial_permissions')
-        elif self.context.get('partial_permissions'): # injected during bulk assignment
+        elif self.context.get('partial_permissions'):  # injected during bulk assignment
             partial_permissions = self.context.get('partial_permissions')
 
         if not partial_permissions:
@@ -174,7 +176,23 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
         """
         Doesn't display 'partial_permissions' attribute if it's `None`.
         """
-        repr_ = super(AssetPermissionSerializer, self).to_representation(instance)
+        try:
+            # Each time we try to access `instance.label`, `instance.content_object`
+            # is needed. Django can't find it from objects cache even if it already
+            # exists. Because of `GenericForeignKey`, `select_related` can't be
+            # used to load it within the same queryset. So Django hits DB each
+            # time a label is shown. `prefetch_related` helps, but not that much.
+            # It still needs to load object from DB at least once.
+            # It means, when listing assets, it would add as many extra queries
+            # as assets. `content_object`, in that case, is the parent asset and
+            # we can access it through the context. Let's use it.
+            asset = self.context['asset']
+            setattr(instance, 'content_object', asset)
+        except KeyError:
+            pass
+
+        repr_ = super(AssetPermissionAssignmentSerializer, self). \
+            to_representation(instance)
         for k, v in repr_.items():
             if k == 'partial_permissions' and v is None:
                 del repr_[k]
@@ -217,7 +235,7 @@ class AssetPermissionSerializer(serializers.ModelSerializer):
                        request=self.context.get('request', None))
 
 
-class AssetBulkInsertPermissionSerializer(AssetPermissionSerializer):
+class AssetBulkInsertPermissionSerializer(AssetPermissionAssignmentSerializer):
 
     class Meta:
         model = ObjectPermission

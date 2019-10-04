@@ -30,8 +30,6 @@ import {
 /**
  * @typedef {Object} UserPerm
  * @property {string} url - Url of given permission instance (permission x user).
- * @property {string} name - Permission name.
- * @property {string} description - Permission user-friendly description.
  * @property {string} permission - Url of given permission type.
  */
 
@@ -195,10 +193,14 @@ function parseUserWithPermsList(data) {
   const output = [];
   data.forEach((item) => {
     item.permissions.forEach((itemPerm) => {
-      output.push({
+      const outputPerm = {
         user: item.user.url,
-        permission: itemPerm.permission
-      });
+        permission: itemPerm.permission,
+      };
+      if (itemPerm.partial_permissions) {
+        outputPerm.partial_permissions = itemPerm.partial_permissions;
+      }
+      output.push(outputPerm);
     });
   });
   return output;
@@ -209,27 +211,25 @@ function parseUserWithPermsList(data) {
  *
  * @param {Object} data - Permissions array (results property from endpoint response).
  * @param {string} ownerUrl - Asset owner url (used as identifier).
+ * @param {boolean} includeAnon - Whether to include permissions assigned to the anonymous user.
  *
  * @returns {UserWithPerms[]} An ordered list of users with all their permissions.
  */
-function parseBackendData(data, ownerUrl) {
+function parseBackendData(data, ownerUrl, includeAnon = false) {
   const output = [];
 
   const groupedData = {};
   data.forEach((item) => {
     // anonymous user permissions are our inner way of handling public sharing
     // so we don't want to display them
-    if (getUsernameFromUrl(item.user) === ANON_USERNAME) {
+    if (getUsernameFromUrl(item.user) === ANON_USERNAME && !includeAnon) {
       return;
     }
     if (!groupedData[item.user]) {
       groupedData[item.user] = [];
     }
-    const permDef = permConfig.getPermission(item.permission);
     groupedData[item.user].push({
       url: item.url,
-      name: permDef.name || permDef.codename, // fallback to codename if empty string
-      description: permDef.description,
       permission: item.permission,
       partial_permissions: item.partial_permissions ? item.partial_permissions : undefined
     });
@@ -275,11 +275,9 @@ function parseOldBackendData(data, ownerUrl) {
     if (!groupedData[item.user]) {
       groupedData[item.user] = [];
     }
-    const permDef = permConfig.getPermissionByCodename(item.permission);
+    const permDef = permConfig.getPermission(item.permission);
     groupedData[item.user].push({
       url: item.url,
-      name: permDef.name || permDef.codename, // fallback to codename if empty string
-      description: permDef.description,
       permission: permDef.url
     });
   });
