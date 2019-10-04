@@ -368,7 +368,7 @@ def _sync_permissions(asset, xform):
             zip(KPI_CODENAMES.values(), KPI_CODENAMES.keys())
         )
         expected_perms.update(
-            map(lambda codename: kpi_codenames_to_pks[codename], implied_perms)
+            [kpi_codenames_to_pks[codename] for codename in implied_perms]
         )
         user_obj = User.objects.get(pk=user)
         all_kpi_perms = current_kpi_perms[user]
@@ -434,7 +434,7 @@ class Command(BaseCommand):
             print(string)
 
     def _print_tabular(self, *args):
-        self._print_str('\t'.join(map(lambda x: '{}'.format(x), args)))
+        self._print_str('\t'.join(['{}'.format(x) for x in args]))
 
     def handle(self, *args, **options):
         if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:

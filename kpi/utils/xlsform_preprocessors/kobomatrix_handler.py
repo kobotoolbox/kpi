@@ -3,6 +3,7 @@ from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
 import re
+from functools import reduce
 
 from django.utils.six import string_types
 from .base_handlers import GroupHandler

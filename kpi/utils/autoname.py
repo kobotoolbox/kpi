@@ -99,10 +99,9 @@ def autoname_fields_in_place(surv_content, destination_key):
 
     # rows_needing_names is all rows needing a valid and unique name
     # end_group, etc. do not need valid names
-    rows_needing_names = filter(lambda r: not _is_group_end(r), surv_list)
-
+    rows_needing_names = [r for r in surv_list if not _is_group_end(r)]
     # cycle through existing names ane ensure that names are valid and unique
-    for row in filter(lambda r: _has_name(r), rows_needing_names):
+    for row in [r for r in rows_needing_names if _has_name(r)]:
         _name = row['name']
         _attempt_count = 0
         while not is_valid_node_name(_name) or _name in other_names:
@@ -125,7 +124,7 @@ def autoname_fields_in_place(surv_content, destination_key):
             _attempt_count += 1
         _assign_row_to_name(row, _name)
 
-    for row in filter(lambda r: not _has_name(r), rows_needing_names):
+    for row in [r for r in rows_needing_names if not _has_name(r)]:
         if 'label' in row:
             if isinstance(row['label'], list):
                 # in this case, label is a list of translations.

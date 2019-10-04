@@ -44,7 +44,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # if only the owner has permissions, no need to go further
         if len(users_with_perms) == 1 and \
-                users_with_perms.keys()[0].id == self.asset.owner_id:
+                list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
         for user, perms in users_with_perms.items():

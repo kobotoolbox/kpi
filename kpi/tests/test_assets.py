@@ -304,7 +304,7 @@ class AssetContentTests(AssetsTestCase):
             },
         )
         self.assertTrue(isinstance(_c, OrderedDict))
-        self.assertTrue(_c.keys(), ['survey', 'settings'])
+        self.assertTrue(list(_c.keys()), ['survey', 'settings'])
         self.assertTrue(isinstance(_c['survey'][0], OrderedDict))
         self.assertEqual(_c['settings'][0]['asdf'], 'jkl')
         self.assertEqual(_c['survey'][-1]['type'], 'note')
@@ -333,7 +333,7 @@ class AssetContentTests(AssetsTestCase):
         # The next-to-last row should have the note question from `append`
         xls_note_row = [
             cell.value for cell in survey_sheet.row(survey_sheet.nrows - 2)]
-        expected_note_row = append['survey'][0].values()
+        expected_note_row = list(append['survey'][0].values())
         # Slice the result to discard any extraneous empty cells
         self.assertEqual(
             xls_note_row[:len(expected_note_row)], expected_note_row)

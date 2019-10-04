@@ -6,6 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 from django.http import Http404
 from rest_framework import exceptions, permissions
+from six import add_metaclass
 
 from kpi.models.asset import Asset
 from kpi.models.collection import Collection
@@ -38,13 +39,12 @@ def get_perm_name(perm_name_prefix, model_instance):
     return perm_name
 
 
+@add_metaclass(ABCMeta)
 class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
     """
     Main abstract class for Asset/Collection and related objects permissions
     Common methods are property are defined within this class.
     """
-
-    __metaclass__ = ABCMeta
 
     @property
     def perms_map(self):

@@ -60,7 +60,7 @@ class AssetContentAnalyzer(object):
             'default_translation': self.default_translation,
             'geo': geo,
             'labels': labels[0:5],
-            'columns': filter(lambda k: not k.startswith('$'), keys.keys()),
+            'columns': [k for k in keys.keys() if not k.startswith('$')],
         }
         if len(naming_conflicts) > 0:
             summary['naming_conflicts'] = naming_conflicts

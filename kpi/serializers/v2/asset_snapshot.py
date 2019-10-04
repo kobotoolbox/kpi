@@ -100,7 +100,6 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             raise serializers.ValidationError('Specify an asset and/or a source')
 
         if not snapshot.xml:
-            print('NOT SNAPSHOT XML')
             raise serializers.ValidationError(snapshot.details)
         return snapshot
 

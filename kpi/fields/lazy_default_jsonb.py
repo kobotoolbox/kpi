@@ -2,6 +2,8 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
+from collections import Callable
+
 from django.core.exceptions import FieldError
 from jsonbfield.fields import JSONField as JSONBField
 
@@ -29,7 +31,7 @@ class LazyDefaultJSONBField(JSONBField):
         super(LazyDefaultJSONBField, self).__init__(*args, **kwargs)
 
     def _get_lazy_default(self):
-        if callable(self.lazy_default):
+        if isinstance(self.lazy_default, Callable):
             return self.lazy_default()
         else:
             return self.lazy_default

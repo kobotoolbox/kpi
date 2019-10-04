@@ -6,11 +6,12 @@ import inspect
 import json
 import string
 from copy import deepcopy
+from functools import reduce
 
 from django.utils.six import string_types
 
-from kpi.models import Asset
 from formpack.utils.future import OrderedDict
+from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 
 
@@ -362,12 +363,12 @@ def test_score_to_xlsform_structure():
     a1._xlsform_structure(content, ordered=True)
 
     # ensure 'schema' sheet is removed
-    assert content.keys() == ['survey', 'choices', 'settings']
+    assert list(content.keys()) == ['survey', 'choices', 'settings']
 
     _rows = content['survey']
     for row in _rows:
-        assert row.keys() == ['type', 'name', 'label', 'appearance',
-                              'required']
+        assert list(row.keys()) == ['type', 'name', 'label', 'appearance',
+                                    'required']
 
     def _drws(n):
         return dict(_rows[n])
@@ -711,13 +712,13 @@ def test_xpath_fields_in_kobomatrix_are_preserved():
 
 
 def test_kobomatrix_missing_or_empty_names():
-    '''
+    """
     Test a mixture of survey elements containing:
         * An `$autoname` but no `name`;
         * An `$autoname` and an empty `name`;
         * An `$autovalue` and an empty `name`;
         * An `$autovalue` and no `name`.
-    '''
+    """
     content = {
         'survey': [
             {'type': 'begin_kobomatrix', 'kobo--matrix_list': 'matrix_qt2dy33',

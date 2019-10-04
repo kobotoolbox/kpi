@@ -99,7 +99,7 @@ class MongoHelper(object):
 
         if len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
-            sort_key = sort.keys()[0]
+            sort_key = list(sort.keys())[0]
             sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
             cursor.sort(sort_key, sort_dir)
 

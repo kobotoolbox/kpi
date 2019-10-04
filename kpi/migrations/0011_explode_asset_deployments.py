@@ -51,10 +51,10 @@ def explode_assets(apps, schema_editor):
     except ContentType.DoesNotExist:
         pass
 
-    print '  migrated {} assets'.format(assets_done)
-    print '  !!! Only the most recent deployment of each asset has been'
-    print '  !!! retained. Use the command `./manage.py sync_kobocat_xforms`'
-    print '  !!! to create new assets for any orphaned KC forms.'
+    print('  migrated {} assets'.format(assets_done))
+    print('  !!! Only the most recent deployment of each asset has been')
+    print('  !!! retained. Use the command `./manage.py sync_kobocat_xforms`')
+    print('  !!! to create new assets for any orphaned KC forms.')
 
 
 def do_nothing(*args, **kwargs):

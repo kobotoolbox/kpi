@@ -37,7 +37,7 @@ def _set_auto_field_update(kls, field_name, val):
 def _import_user_drafts(server, username, draft_id, fpath):
     try:
         owner = User.objects.get(username=username)
-    except User.DoesNotExist, e:
+    except User.DoesNotExist as e:
         owner = User.objects.create(username=username, password='password', email='%s@kobo.org' % username)
         owner.set_password('password')
         owner.save()

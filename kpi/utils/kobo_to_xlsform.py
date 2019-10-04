@@ -84,8 +84,8 @@ def to_xlsform_structure(surv,
                 # this issue is taken care of in 'standardize_content(...)'
                 # but keeping it around just in case.
                 _srt = survey_row['type']
-                survey_row['type'] = '{} {}'.format(_srt.keys()[0],
-                                                    _srt.values()[0])
+                survey_row['type'] = '{} {}'.format(list(_srt.keys())[0],
+                                                    list(_srt.values())[0])
 
         # this is also done in asset.save()
         remove_empty_expressions_in_place(surv)
