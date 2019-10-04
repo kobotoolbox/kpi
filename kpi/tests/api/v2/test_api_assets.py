@@ -352,13 +352,13 @@ class AssetsDetailApiTests(BaseAssetTestCase):
                  'url': 'http://testserver/api/v2/permissions/add_submissions/'},
                 {'label': 'View submissions',
                  'url': 'http://testserver/api/v2/permissions/view_submissions/'},
-                {'label': 'Change and delete submissions',
+                {'label': 'Edit and delete submissions',
                  'url': 'http://testserver/api/v2/permissions/change_submissions/'},
                 {'label': 'View submissions only from specific users',
                  'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
                 {'label': 'Validate submissions',
                  'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
-                {'label': 'Change form',
+                {'label': 'Edit form',
                  'url': 'http://testserver/api/v2/permissions/change_asset/'}
             ]
         )
@@ -372,7 +372,7 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             [
                 {'label': 'View question',
                  'url': 'http://testserver/api/v2/permissions/view_asset/'},
-                {'label': 'Change question',
+                {'label': 'Edit question',
                  'url': 'http://testserver/api/v2/permissions/change_asset/'}
             ]
         )
