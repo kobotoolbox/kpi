@@ -434,17 +434,13 @@ module.exports = do ->
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
           receive: (evt, ui) =>
-            if ui.sender.hasClass('group__rows')
-              # we don't handle moving groups in this function
-              return
-
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
               prevItemPosition = @getItemPosition(ui.item.prev())
               @ngScope.handleItem({
-                  position: prevItemPosition - 1
-                  itemUid: itemUid
-                })
+                position: prevItemPosition - 1
+                itemUid: itemUid
+              })
               # element has a custom handler, so we need to stop sortable
               # instance from its default reaction
               ui.sender.sortable('cancel')
@@ -467,20 +463,16 @@ module.exports = do ->
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
           receive: (evt, ui) =>
-            if ui.sender.hasClass('group__rows')
-              # we don't handle moving groups in this function
-              return
-
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
               uiItemParentWithId = $(ui.item).parents('[data-row-id]')[0]
               if uiItemParentWithId
                 groupId = uiItemParentWithId.dataset.rowId
               @ngScope.handleItem({
-                  position: @getItemPosition(ui.item.prev()),
-                  itemUid: itemUid,
-                  groupId: groupId
-                })
+                position: @getItemPosition(ui.item.prev()),
+                itemUid: itemUid,
+                groupId: groupId
+              })
               # element has a custom handler, so we need to stop sortable
               # instance from its default reaction
               ui.sender.sortable('cancel')
