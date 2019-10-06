@@ -438,13 +438,15 @@ module.exports = do ->
               return
             prevItem = ui.item.prev()
             prevItemPosition = @getItemPosition(prevItem)
-            if @ngScope.handleItem
+            itemUid = ui.item.data().uid
+            if @ngScope.handleItem and itemUid
               @ngScope.handleItem({
                   position: prevItemPosition - 1
-                  itemData: ui.item.data()
+                  itemUid: itemUid
                 })
             else
-              @ngScope.add_item @getItemPosition(prevItem) - 1
+              console.log('receive', ui)
+              @ngScope.add_item(prevItemPosition - 1)
             ui.sender.sortable('cancel')
         })
       group_rows = @formEditorEl.find('.group__rows')
@@ -465,17 +467,20 @@ module.exports = do ->
             if ui.sender.hasClass('group__rows')
               return
             prevItem = ui.item.prev()
-            if @ngScope.handleItem
+            prevItemPosition = @getItemPosition(prevItem)
+            itemUid = ui.item.data().uid
+            if @ngScope.handleItem and itemUid
               uiItemParentWithId = $(ui.item).parents('[data-row-id]')[0]
               if uiItemParentWithId
                 groupId = uiItemParentWithId.dataset.rowId
               @ngScope.handleItem({
-                  position: @getItemPosition(prevItem),
-                  itemData: ui.item.data(),
+                  position: prevItemPosition,
+                  itemUid: itemUid,
                   groupId: groupId
                 })
             else
-              @ngScope.add_item(@getItemPosition(prevItem))
+              console.log('receive', ui)
+              @ngScope.add_item(prevItemPosition)
             ui.sender.sortable('cancel')
         })
         $(@).attr('data-sortable-index', index)
