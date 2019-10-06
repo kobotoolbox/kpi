@@ -435,19 +435,22 @@ module.exports = do ->
           deactivate: sortable_activate_deactivate
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
+              # we don't handle moving groups in this function
               return
-            prevItem = ui.item.prev()
-            prevItemPosition = @getItemPosition(prevItem)
+
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
+              prevItemPosition = @getItemPosition(ui.item.prev())
               @ngScope.handleItem({
                   position: prevItemPosition - 1
                   itemUid: itemUid
                 })
-            else
-              console.log('receive', ui)
-              @ngScope.add_item(prevItemPosition - 1)
-            ui.sender.sortable('cancel')
+              # element has a custom handler, so we need to stop sortable
+              # instance from its default reaction
+              ui.sender.sortable('cancel')
+
+            # default action is handled by surveyRowSortableStop
+            return
         })
       group_rows = @formEditorEl.find('.group__rows')
       group_rows.each (index) =>
@@ -465,23 +468,25 @@ module.exports = do ->
           deactivate: sortable_activate_deactivate
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
+              # we don't handle moving groups in this function
               return
-            prevItem = ui.item.prev()
-            prevItemPosition = @getItemPosition(prevItem)
+
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
               uiItemParentWithId = $(ui.item).parents('[data-row-id]')[0]
               if uiItemParentWithId
                 groupId = uiItemParentWithId.dataset.rowId
               @ngScope.handleItem({
-                  position: prevItemPosition,
+                  position: @getItemPosition(ui.item.prev()),
                   itemUid: itemUid,
                   groupId: groupId
                 })
-            else
-              console.log('receive', ui)
-              @ngScope.add_item(prevItemPosition)
-            ui.sender.sortable('cancel')
+              # element has a custom handler, so we need to stop sortable
+              # instance from its default reaction
+              ui.sender.sortable('cancel')
+
+            # default action is handled by surveyRowSortableStop
+            return
         })
         $(@).attr('data-sortable-index', index)
 
