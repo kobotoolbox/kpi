@@ -194,10 +194,9 @@ export default class RESTServicesForm extends React.Component {
     this.setState({customHeaders: newCustomHeaders});
   }
 
-  handleCustomWrapperChange(wrapper) {
+  handleCustomWrapperChange(evt) {
     this.setState({
-      customWrapper: wrapper,
-      customWrapperError: null
+      customWrapper: evt
     });
   }
 
@@ -231,7 +230,6 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.authPassword) {
       data.settings.password = this.state.authPassword;
     }
-
     return data;
   }
 
@@ -377,7 +375,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   renderCustomWrapper() {
-    console.log('value: ' + this.state.customWrapper);
+    console.log('value: ' + this.state.customWrapper + "name: " + this.state.name);
     return(
       <bem.FormModal__item m='http-headers'>
         <label>
@@ -387,7 +385,7 @@ export default class RESTServicesForm extends React.Component {
           type='text'
           placeholder={t('Add Custom Wrapper')}
           id='chatInput'
-          value={this.state.customWrapper.toString}
+          value={this.state.customWrapper}
           errors={this.state.customWrapperError}
           onChange={this.handleCustomWrapperChange.bind(this)}
         />
@@ -541,7 +539,18 @@ export default class RESTServicesForm extends React.Component {
             }
 
             {this.renderCustomHeaders()}
-            {this.renderCustomWrapper()}
+            {/*this.renderCustomWrapper() Doesn't work. Rendering like below works though.*/}
+
+            <bem.FormModal__item>
+              <TextBox
+                label={t('Custom Wrapper')}
+                type='text'
+                placeholder={t('Add Custom  Wrapper')}
+                value={this.state.customWrapper}
+                errors={this.state.customWrapperError}
+                onChange={this.handleCustomWrapperChange.bind(this)}
+              />
+           </bem.FormModal__item>
 
           </bem.FormModal__item>
 
