@@ -43,10 +43,10 @@ class SharingForm extends React.Component {
     }
   }
 
-  onGetAssetPermissionsCompleted(response) {
-    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+  onGetAssetPermissionsCompleted(permissionAssignments) {
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
     const anonUserUrl = buildUserUrl(ANON_USERNAME);
-    const publicPerms = response.results.filter((assignment) => {
+    const publicPerms = permissionAssignments.filter((assignment) => {
       return assignment.user === anonUserUrl;
     });
     const nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
@@ -60,8 +60,8 @@ class SharingForm extends React.Component {
     });
   }
 
-  onGetCollectionPermissionsCompleted(response) {
-    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+  onGetCollectionPermissionsCompleted(permissionAssignments) {
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
     let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);
     });
