@@ -66,8 +66,7 @@ export default class RESTServicesForm extends React.Component {
       customHeaders: [
         this.getEmptyHeaderRow()
       ],
-      customWrapper: '',
-      customWrapperError: null
+      payload_template: '',
     };
     autoBind(this);
   }
@@ -86,7 +85,7 @@ export default class RESTServicesForm extends React.Component {
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers),
-            customWrapper: data.customWrapper
+            payload_template: data.payload_template
           };
 
           if (stateUpdate.customHeaders.length === 0) {
@@ -113,13 +112,6 @@ export default class RESTServicesForm extends React.Component {
   /*
    * helpers
    */
-
-  updatePreview() {
-    console.log('updatePreview called');
-    document.getElementById("chatInput").onkeyup = function() {
-      document.getElementById("printChatInput").innerHTML = '"' + document.getElementById("chatInput").value + '": {';
-    }
-  }
 
   getEmptyHeaderRow() {
     return {name: '', value: ''};
@@ -196,7 +188,7 @@ export default class RESTServicesForm extends React.Component {
 
   handleCustomWrapperChange(evt) {
     this.setState({
-      customWrapper: evt
+      payload_template: evt
     });
   }
 
@@ -221,7 +213,7 @@ export default class RESTServicesForm extends React.Component {
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
       },
-      customWrapper: this.state.customWrapper
+      payload_template: this.state.payload_template
     };
 
     if (this.state.authUsername) {
@@ -230,6 +222,7 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.authPassword) {
       data.settings.password = this.state.authPassword;
     }
+    console.log('payload_template: ' + data.payload_template); 
     return data;
   }
 
@@ -374,32 +367,6 @@ export default class RESTServicesForm extends React.Component {
     )
   }
 
-  renderCustomWrapper() {
-    console.log('value: ' + this.state.customWrapper + "name: " + this.state.name);
-    return(
-      <bem.FormModal__item m='http-headers'>
-        <label>
-          {t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)')}
-        </label>
-        <input
-          type='text'
-          placeholder={t('Add Custom Wrapper')}
-          id='chatInput'
-          value={this.state.customWrapper}
-          errors={this.state.customWrapperError}
-          onChange={this.handleCustomWrapperChange.bind(this)}
-        />
-
-        <p>Example:</p>
-
-        <label id="printChatInput"> {t('"fields": {')}</label>
-        <label>{t('     %SUBMISSION%')}</label>
-        <label>{t('}')}</label>
-        {/*TODO: Get live updating? Maybe not useful. {this.updatePreview()}*/}
-      </bem.FormModal__item>
-    )
-  }
-
   /*
    * handle fields
    */
@@ -539,18 +506,18 @@ export default class RESTServicesForm extends React.Component {
             }
 
             {this.renderCustomHeaders()}
-            {/*this.renderCustomWrapper() Doesn't work. Rendering like below works though.*/}
 
             <bem.FormModal__item>
               <TextBox
-                label={t('Custom Wrapper')}
+                label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)')}
                 type='text'
-                placeholder={t('Add Custom  Wrapper')}
-                value={this.state.customWrapper}
-                errors={this.state.customWrapperError}
+                placeholder={t('Add Custom Wrapper')}
+                value={this.state.payload_template}
+                // Not sure if needed: errors={this.state.customWrapperError}
                 onChange={this.handleCustomWrapperChange.bind(this)}
               />
            </bem.FormModal__item>
+           {console.log('state: ' + this.state.name + " " + this.state.endpoint + " " + this.state.payload_template)}
 
           </bem.FormModal__item>
 
