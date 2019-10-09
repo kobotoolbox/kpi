@@ -1,22 +1,27 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import json
+
 import constance
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.hook.models.hook import Hook
 
 
 class HookSerializer(serializers.ModelSerializer):
+
+    payload_template = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Hook
         fields = ('url', 'logs_url', 'asset', 'uid', 'name', 'endpoint', 'active',
                   'export_type', 'auth_level', 'success_count', 'failed_count',
                   'pending_count', 'settings', 'date_modified', 'email_notification',
-                  'subset_fields')
+                  'subset_fields', 'payload_template')
 
         read_only_fields = ('url', 'asset', 'uid', 'date_modified', 'success_count',
                             'failed_count', 'pending_count')
@@ -44,3 +49,26 @@ class HookSerializer(serializers.ModelSerializer):
                 value.startswith('http:'):
             raise serializers.ValidationError(_('Unsecured endpoint is not allowed'))
         return value
+
+    def validate_payload_template(self, value):
+        """
+        Check if `payload_template` is valid JSON
+        """
+        if value:
+            try:
+                json.loads(value.replace(SUBMISSION_PLACEHOLDER, '{}'))
+            except ValueError:
+                raise serializers.ValidationError(_('Invalid JSON'))
+        return value
+
+    def validate(self, attrs):
+        export_type = attrs['export_type']
+        payload_template = attrs['payload_template']
+
+        # `payload_template` cannot be used with `xml`
+        if payload_template and export_type == 'xml':
+            raise serializers.ValidationError({
+                'payload_template': _('Cannot use add custom wrapper with `XML` submission')
+            })
+
+        return super(HookSerializer, self).validate(attrs)

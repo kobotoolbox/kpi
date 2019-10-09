@@ -507,16 +507,19 @@ export default class RESTServicesForm extends React.Component {
 
             {this.renderCustomHeaders()}
 
-            <bem.FormModal__item>
-              <TextBox
-                label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)')}
-                type='text'
-                placeholder={t('Add Custom Wrapper')}
-                value={this.state.payload_template}
-                // Not sure if needed: errors={this.state.customWrapperError}
-                onChange={this.handleCustomWrapperChange.bind(this)}
-              />
-           </bem.FormModal__item>
+            {this.state.type === 'json' &&
+              <bem.FormModal__item>
+                <TextBox
+                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)')
+                    .replace('%SUBMISSION%', stores.session.environment.submission_placeholder)}
+                  type='text'
+                  placeholder={t('Add Custom Wrapper')}
+                  value={this.state.payload_template}
+                  // Not sure if needed: errors={this.state.customWrapperError}
+                  onChange={this.handleCustomWrapperChange.bind(this)}
+                />
+              </bem.FormModal__item>
+            }
            {console.log('state: ' + this.state.name + " " + this.state.endpoint + " " + this.state.payload_template)}
 
           </bem.FormModal__item>
