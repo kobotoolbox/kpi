@@ -56,8 +56,7 @@ permissionsActions.getCollectionPermissions.listen((uid) => {
 permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
   dataInterface.bulkSetAssetPermissions(assetUid, perm)
     .done((permissionAssignments) => {
-      permissionsActions.getAssetPermissions.completed(permissionAssignments);
-      permissionsActions.bulkSetAssetPermissions.completed();
+      permissionsActions.bulkSetAssetPermissions.completed(permissionAssignments);
     })
     .fail(() => {
       permissionsActions.getAssetPermissions(assetUid);
