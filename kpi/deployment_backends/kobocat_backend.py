@@ -577,7 +577,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
         params = self.validate_submission_list_params(requesting_user_id,
-                                                      count=True,
+                                                      validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
