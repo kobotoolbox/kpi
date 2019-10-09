@@ -349,6 +349,9 @@ RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat/')
+
+KPI_URL = os.environ.get('KPI_URL', 'http://kpi/')
+
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
 else:
