@@ -62,13 +62,15 @@ class HookSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        export_type = attrs['export_type']
-        payload_template = attrs['payload_template']
-
-        # `payload_template` cannot be used with `xml`
-        if payload_template and export_type == 'xml':
-            raise serializers.ValidationError({
-                'payload_template': _('Cannot use add custom wrapper with `XML` submission')
-            })
+        try:
+            payload_template = attrs['payload_template']
+            export_type = attrs['export_type']
+            # `payload_template` cannot be used with `xml`
+            if payload_template and export_type == 'xml':
+                raise serializers.ValidationError({
+                    'payload_template': _('Cannot use add custom wrapper with `XML` submission')
+                })
+        except KeyError:
+            pass
 
         return super(HookSerializer, self).validate(attrs)
