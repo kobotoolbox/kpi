@@ -3,6 +3,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import alertify from 'alertifyjs';
+import TextareaAutosize from 'react-autosize-textarea';
 import bem from '../../bem';
 import {dataInterface} from '../../dataInterface';
 import actions from '../../actions';
@@ -66,7 +67,7 @@ export default class RESTServicesForm extends React.Component {
       customHeaders: [
         this.getEmptyHeaderRow()
       ],
-      payload_template: '',
+      payloadTemplate: '',
     };
     autoBind(this);
   }
@@ -85,7 +86,7 @@ export default class RESTServicesForm extends React.Component {
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers),
-            payload_template: data.payload_template
+            payloadTemplate: data.payload_template
           };
 
           if (stateUpdate.customHeaders.length === 0) {
@@ -100,7 +101,7 @@ export default class RESTServicesForm extends React.Component {
 
           this.setState(stateUpdate);
         })
-        .fail((data) => {
+        .fail(() => {
           this.setState({isSubmitPending: false});
           alertify.error(t('Could not load REST Service'));
         });
@@ -131,7 +132,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   headersArrToObj(headersArr) {
-    const headersObj = {}
+    const headersObj = {};
     for (const header of headersArr) {
       if (header.name) {
         headersObj[header.name] = header.value;
@@ -188,7 +189,7 @@ export default class RESTServicesForm extends React.Component {
 
   handleCustomWrapperChange(evt) {
     this.setState({
-      payload_template: evt
+      payloadTemplate: evt.target.value
     });
   }
 
@@ -213,7 +214,7 @@ export default class RESTServicesForm extends React.Component {
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
       },
-      payload_template: this.state.payload_template
+      payload_template: this.state.payloadTemplate
     };
 
     if (this.state.authUsername) {
@@ -222,7 +223,6 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.authPassword) {
       data.settings.password = this.state.authPassword;
     }
-    console.log('payload_template: ' + data.payload_template); 
     return data;
   }
 
@@ -364,7 +364,7 @@ export default class RESTServicesForm extends React.Component {
           {t('Add header')}
         </button>
       </bem.FormModal__item>
-    )
+    );
   }
 
   /*
@@ -393,7 +393,7 @@ export default class RESTServicesForm extends React.Component {
           inputProps={inputProps}
         />
       </bem.FormModal__item>
-    )
+    );
   }
 
   /*
@@ -413,6 +413,11 @@ export default class RESTServicesForm extends React.Component {
         </bem.Loading>
       );
     } else {
+      let submissionPlaceholder = '%SUBMISSION%';
+      if (stores.session.environment && stores.session.environment.submission_placeholder) {
+        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      }
+
       return (
         <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
           <bem.FormModal__item m='wrapper'>
@@ -507,21 +512,21 @@ export default class RESTServicesForm extends React.Component {
 
             {this.renderCustomHeaders()}
 
-            {this.state.type === 'json' &&
+            {this.state.type === EXPORT_TYPES.json.value &&
               <bem.FormModal__item>
-                <TextBox
-                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)')
-                    .replace('%SUBMISSION%', stores.session.environment.submission_placeholder)}
-                  type='text'
+                <label htmlFor='customWrapperInput'>
+                  {t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
+                </label>
+
+                <TextareaAutosize
+                  className='textarea-code'
+                  id='customWrapperInput'
                   placeholder={t('Add Custom Wrapper')}
-                  value={this.state.payload_template}
-                  // Not sure if needed: errors={this.state.customWrapperError}
+                  value={this.state.payloadTemplate}
                   onChange={this.handleCustomWrapperChange.bind(this)}
                 />
               </bem.FormModal__item>
             }
-           {console.log('state: ' + this.state.name + " " + this.state.endpoint + " " + this.state.payload_template)}
-
           </bem.FormModal__item>
 
           <bem.Modal__footer>
@@ -533,10 +538,8 @@ export default class RESTServicesForm extends React.Component {
               { isEditingExistingHook ? t('Save') : t('Create') }
             </bem.Modal__footerButton>
           </bem.Modal__footer>
-          
         </bem.FormModal__form>
-
       );
     }
   }
-};
+}

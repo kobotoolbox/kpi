@@ -295,15 +295,12 @@ export default class RESTServiceLogs extends React.Component {
             }
 
             return (
-              <bem.ServiceRow key={n} >
+              <bem.ServiceRow
+                m='clickable'
+                onClick={this.openSubmissionModal.bind(this, log)}
+                key={n}
+              >
                 <bem.ServiceRow__column m='submission'>
-                  <bem.ServiceRow__actionButton
-                    onClick={this.openSubmissionModal.bind(this, log)}
-                    data-tip={t('Open submission')}
-                  >
-                    <i className='k-icon-view' />
-                  </bem.ServiceRow__actionButton>
-
                   {log.instance_id}
                 </bem.ServiceRow__column>
 
