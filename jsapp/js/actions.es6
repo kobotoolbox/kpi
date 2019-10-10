@@ -370,10 +370,7 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
     console.log('crossStorage gotCurrentUser', res);
     if (!res || res == '') {
       console.log('app will logout');
-      window.setTimeout(function(){
-        console.log('logout');
-        window.location.replace('', '');
-      }, 1);
+      actions.auth.logout();
     } else {
       dataInterface.patchAsset(uid, values)
         .done((asset) => {
