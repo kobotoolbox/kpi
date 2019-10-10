@@ -12,6 +12,7 @@ shouldn't incur a penalty:
     in sys.modules and nothing else. (https://stackoverflow.com/a/4177780)
 """
 
+
 def grant_default_model_level_perms(user):
     """
     Gives `user` unrestricted model-level access to Collections and Assets.
