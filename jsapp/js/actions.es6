@@ -17,6 +17,7 @@ import {
   t,
   notify,
   replaceSupportEmail,
+  getCrossStorageClient,
 } from './utils';
 
 var Reflux = require('reflux');
@@ -359,20 +360,38 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
-  dataInterface.patchAsset(uid, values)
-    .done((asset) => {
-      actions.resources.updateAsset.completed(asset, uid, values);
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(asset, uid, values);
-      }
-      notify(t('successfully updated'));
-    })
-    .fail(function(resp){
-      actions.resources.updateAsset.failed(resp);
-      if (params.onFailed) {
-        params.onFailed(resp);
-      }
-    });
+  var crossStorage = getCrossStorageClient();
+  crossStorage.onConnect()
+  .then(function() {
+    console.log('crossStorage connected');
+    return crossStorage.get('currentUser');
+  })
+  .then(function(res) {
+    console.log('crossStorage gotCurrentUser', res);
+    if (!res || res == '') {
+      console.log('app will logout');
+      window.setTimeout(function(){
+        console.log('logout');
+        window.location.replace('', '');
+      }, 1);
+    } else {
+      dataInterface.patchAsset(uid, values)
+        .done((asset) => {
+          actions.resources.updateAsset.completed(asset, uid, values);
+          if (typeof params.onComplete === 'function') {
+            params.onComplete(asset, uid, values);
+          }
+          notify(t('successfully updated'));
+        })
+        .fail(function(resp){
+          actions.resources.updateAsset.failed(resp);
+          if (params.onFailed) {
+            params.onFailed(resp);
+          }
+        });
+    }
+  });
+
 });
 
 actions.resources.deployAsset.listen(function(asset, redeployment, params={}){
@@ -647,18 +666,12 @@ actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
 // reload so a new csrf token is issued
 actions.auth.logout.completed.listen(function(){
   window.setTimeout(function(){
-    window.location.replace('');
-  }, 1000);
+    window.location.replace('', '');
+  }, 1);
 });
 
 actions.auth.logout.listen(function(){
-  dataInterface.logout()
-    .done(dataInterface.keycloakLogout()
-      .done(actions.auth.logout.completed)
-      .fail(function(){
-        console.error('keycloak logout failed for some reason. what should happen now?');
-      }))
-    .fail(function(){
+  dataInterface.logout().done(actions.auth.logout.completed).fail(function(){
       console.error('logout failed for some reason. what should happen now?');
   });
 });

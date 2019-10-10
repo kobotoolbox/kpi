@@ -10,6 +10,7 @@ import 'babel-polyfill'; // required to support Array.prototypes.includes in IE1
 import {Cookies} from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
+import { initCrossStorageClient } from './utils';
 
 require('../scss/main.scss');
 
@@ -34,6 +35,8 @@ $.ajaxSetup({
         }
     }
 });
+
+initCrossStorageClient();
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
 

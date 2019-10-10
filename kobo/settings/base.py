@@ -49,7 +49,7 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
-    SESSION_COOKIE_AGE = 1*60 # Session age is 1 minutes
+    SESSION_COOKIE_AGE = 60*60 # Session age is 1 hour
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
@@ -125,6 +125,7 @@ MIDDLEWARE_CLASSES = (
 CSP_FRAME_ANCESTORS = "https://*.openclinica-dev.io"
 CSP_STYLE_SRC = "'self' 'unsafe-inline'"
 CSP_CONNECT_SRC = "'self' https://*.openclinica-dev.io"
+CSP_FRAME_SRC = "'self' https://*.openclinica-dev.io"
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
