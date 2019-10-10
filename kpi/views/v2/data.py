@@ -10,6 +10,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -17,7 +18,7 @@ from kpi.permissions import (
     SubmissionPermission,
     SubmissionValidationStatusPermission,
 )
-from kpi.renderers import SubmissionXMLRenderer
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -30,9 +31,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/
     </pre>
 
-    By default, JSON format is used but XML format can be used too.
+    By default, JSON format is used, but XML and GeoJSON are also available:
+
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.geojson
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data.json
     </pre>
 
@@ -40,6 +43,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=xml
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=geojson
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?format=json
     </pre>
 
@@ -47,19 +51,64 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
+    ## Pagination
+    Two parameters can be used to control pagination.
+
+    * `start`: Index (zero-based) from which the results start
+    * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **30000**</span>
+
+    > Example: The first ten results
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?start=0&limit=10
+
+    ## Query submitted data
+    Provides a list of submitted data for a specific form. Use `query`
+    parameter to apply form data specific, see
+    <a href="http://docs.mongodb.org/manual/reference/operator/query/">
+    http://docs.mongodb.org/manual/reference/operator/query/</a>.
+
+    For more details see
+    <a href="https://github.com/SEL-Columbia/formhub/wiki/Formhub-Access-Points-(API)#api-parameters">API Parameters</a>.
+    <span class='label label-warning'>API parameter `count` is not implemented</span>
+
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":"value"}</b>
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/?query={"field":{"op": "value"}}"</b>
+    </pre>
+    > Example
+    >
+    >       curl -X GET 'https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?query={"__version__": "vWvkKzNE8xCtfApJvabfjG"}'
+    >       curl -X GET 'https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/?query={"_submission_time": {"$gt": "2019-09-01T01:02:03"}}'
+
+    ## About the GeoJSON format
+
+    Requesting the `geojson` format returns a `FeatureCollection` where each
+    submission is a `Feature`. If your form has multiple geographic questions,
+    use the `geo_question_name` query parameter to determine which question's
+    responses populate the `geometry` for each `Feature`; otherwise, the first
+    geographic question is used.  All question/response pairs are included in
+    the `properties` of each `Feature`, but _repeating groups are omitted_.
+
+    Question types are mapped to GeoJSON geometry types as follows:
+
+    * `geopoint` to `Point`;
+    * `geotrace` to `LineString`;
+    * `geoshape` to `Polygon`.
+
     ## CRUD
 
     * `uid` - is the unique identifier of a specific asset
     * `id` - is the unique identifier of a specific submission
 
-    **It's not allowed to create submissions with `kpi`'s API**
+    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submissions` endpoint**
 
-    Retrieves current submission
+    Retrieves a specific submission
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/
     </pre>
 
-    It's also possible to specify the format.
+    It is also possible to specify the format.
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>.xml
@@ -90,16 +139,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     Update current submission
 
-    _It's not possible to update a submission directly with `kpi`'s API.
-    Instead, it returns the link where the instance can be opened for edition._
+    _It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submissions` endpoint. 
+    Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/edit/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/edit/?return_url=false
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/?return_url=false
 
 
     ### Validation statuses
@@ -130,9 +179,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     where `<validation_status>` is a string and can be one of these values:
 
-        - `validation_status_approved`
-        - `validation_status_not_approved`
-        - `validation_status_on_hold`
+    * `validation_status_approved`
+    * `validation_status_not_approved`
+    * `validation_status_on_hold`
 
     Bulk update
     <pre class="prettyprint">
@@ -157,6 +206,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     parent_model = Asset
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
+                        SubmissionGeoJsonRenderer,
                         SubmissionXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
@@ -203,6 +253,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
+
+        if format_type == 'geojson':
+            # For GeoJSON, get the submissions as JSON and let
+            # `SubmissionGeoJsonRenderer` handle the rest
+            return Response(
+                deployment.get_submissions(
+                    requesting_user_id=request.user,
+                    format_type=INSTANCE_FORMAT_TYPE_JSON,
+                    **filters
+                )
+            )
+
         submissions = deployment.get_submissions(request.user.id,
                                                  format_type=format_type,
                                                  **filters)

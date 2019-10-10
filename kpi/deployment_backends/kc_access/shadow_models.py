@@ -120,40 +120,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     uuid = models.CharField(max_length=249, default=u'')
 
 
-class KobocatUserProfile(ShadowModel):
-    """
-    From onadata/apps/main/models/user_profile.py
-    Not read-only because we need write access to `require_auth`
-    """
-    class Meta(ShadowModel.Meta):
-        db_table = 'main_userprofile'
-        verbose_name = 'user profile'
-        verbose_name_plural = 'user profiles'
-
-    # This field is required.
-    user = models.OneToOneField(User, related_name='profile')
-
-    # Other fields here
-    name = models.CharField(max_length=255, blank=True)
-    city = models.CharField(max_length=255, blank=True)
-    country = models.CharField(max_length=2, blank=True)
-    organization = models.CharField(max_length=255, blank=True)
-    home_page = models.CharField(max_length=255, blank=True)
-    twitter = models.CharField(max_length=255, blank=True)
-    description = models.CharField(max_length=255, blank=True)
-    require_auth = models.BooleanField(
-        default=False,
-        verbose_name=_(
-            "Require authentication to see forms and submit data"
-        )
-    )
-    address = models.CharField(max_length=255, blank=True)
-    phonenumber = models.CharField(max_length=30, blank=True)
-    created_by = models.ForeignKey(User, null=True, blank=True)
-    num_of_submissions = models.IntegerField(default=0)
-    metadata = JSONField(default={}, blank=True)
-
-
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -192,6 +158,45 @@ class KobocatPermission(ShadowModel):
             six.text_type(self.content_type.app_label),
             six.text_type(self.content_type),
             six.text_type(self.name))
+
+
+class KobocatUser(ShadowModel):
+
+    username = models.CharField(_("username"), max_length=30)
+    password = models.CharField(_("password"), max_length=128)
+    last_login = models.DateTimeField(_("last login"), blank=True, null=True)
+    is_superuser = models.BooleanField(_('superuser status'), default=False)
+    first_name = models.CharField(_('first name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    email = models.EmailField(_('email address'), blank=True)
+    is_staff = models.BooleanField(_('staff status'), default=False)
+    is_active = models.BooleanField(_('active'), default=True)
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = "auth_user"
+
+    @classmethod
+    def sync(cls, auth_user):
+        # NB: `KobocatUserObjectPermission` (and probably other things) depend
+        # upon PKs being synchronized between KPI and KoBoCAT
+        try:
+            kc_auth_user = cls.objects.get(pk=auth_user.pk)
+            assert kc_auth_user.username == auth_user.username
+        except KobocatUser.DoesNotExist:
+            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
+
+        kc_auth_user.password = auth_user.password
+        kc_auth_user.last_login = auth_user.last_login
+        kc_auth_user.is_superuser = auth_user.is_superuser
+        kc_auth_user.first_name = auth_user.first_name
+        kc_auth_user.last_name = auth_user.last_name
+        kc_auth_user.email = auth_user.email
+        kc_auth_user.is_staff = auth_user.is_staff
+        kc_auth_user.is_active = auth_user.is_active
+        kc_auth_user.date_joined = auth_user.date_joined
+
+        kc_auth_user.save()
 
 
 class KobocatUserObjectPermission(ShadowModel):
@@ -256,43 +261,38 @@ class KobocatUserPermission(ShadowModel):
         db_table = 'auth_user_user_permissions'
 
 
-class KobocatUser(ShadowModel):
-
-    username = models.CharField(_("username"), max_length=30)
-    password = models.CharField(_("password"), max_length=128)
-    last_login = models.DateTimeField(_("last login"), blank=True, null=True)
-    is_superuser = models.BooleanField(_('superuser status'), default=False)
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
-    email = models.EmailField(_('email address'), blank=True)
-    is_staff = models.BooleanField(_('staff status'), default=False)
-    is_active = models.BooleanField(_('active'), default=True)
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
-
+class KobocatUserProfile(ShadowModel):
+    """
+    From onadata/apps/main/models/user_profile.py
+    Not read-only because we need write access to `require_auth`
+    """
     class Meta(ShadowModel.Meta):
-        db_table = "auth_user"
+        db_table = 'main_userprofile'
+        verbose_name = 'user profile'
+        verbose_name_plural = 'user profiles'
 
-    @classmethod
-    def sync(cls, auth_user):
-        # NB: `KobocatUserObjectPermission` (and probably other things) depend
-        # upon PKs being synchronized between KPI and KoBoCAT
-        try:
-            kc_auth_user = cls.objects.get(pk=auth_user.pk)
-            assert kc_auth_user.username == auth_user.username
-        except KobocatUser.DoesNotExist:
-            kc_auth_user = cls(pk=auth_user.pk, username=auth_user.username)
+    # This field is required.
+    user = models.OneToOneField(KobocatUser, related_name='profile')
 
-        kc_auth_user.password = auth_user.password
-        kc_auth_user.last_login = auth_user.last_login
-        kc_auth_user.is_superuser = auth_user.is_superuser
-        kc_auth_user.first_name = auth_user.first_name
-        kc_auth_user.last_name = auth_user.last_name
-        kc_auth_user.email = auth_user.email
-        kc_auth_user.is_staff = auth_user.is_staff
-        kc_auth_user.is_active = auth_user.is_active
-        kc_auth_user.date_joined = auth_user.date_joined
-
-        kc_auth_user.save()
+    # Other fields here
+    name = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=255, blank=True)
+    country = models.CharField(max_length=2, blank=True)
+    organization = models.CharField(max_length=255, blank=True)
+    home_page = models.CharField(max_length=255, blank=True)
+    twitter = models.CharField(max_length=255, blank=True)
+    description = models.CharField(max_length=255, blank=True)
+    require_auth = models.BooleanField(
+        default=False,
+        verbose_name=_(
+            "Require authentication to see forms and submit data"
+        )
+    )
+    address = models.CharField(max_length=255, blank=True)
+    phonenumber = models.CharField(max_length=30, blank=True)
+    created_by = models.ForeignKey(User, null=True, blank=True)
+    num_of_submissions = models.IntegerField(default=0)
+    metadata = JSONField(default={}, blank=True)
 
 
 class KobocatToken(ShadowModel):

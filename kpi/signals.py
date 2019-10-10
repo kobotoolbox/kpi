@@ -46,7 +46,9 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
     `settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES`
     """
     if not settings.TESTING:
-        KobocatUser.sync(instance)
+        if not settings.USE_SAME_DATABASE:
+            KobocatUser.sync(instance)
+
         if created:
             # FIXME: If this fails, the next attempt results in
             #   IntegrityError: duplicate key value violates unique constraint
@@ -56,12 +58,13 @@ def save_kobocat_user(sender, instance, created, raw, **kwargs):
             # assigning model-level permissions fails
             grant_kc_model_level_perms(instance)
 
-            # Force PartialDigest to be sync'ed on creation
-            partial_digests = PartialDigest.objects.filter(user_id=instance.pk)
-            for partial_digest in partial_digests:
-                # `KobocatUser` should exist at this point.
-                # We don't need to validate `KobocatUser`'s existence.
-                KobocatDigestPartial.sync(partial_digest, validate_user=False)
+            if not settings.USE_SAME_DATABASE:
+                # Force PartialDigest to be sync'ed on creation
+                partial_digests = PartialDigest.objects.filter(user_id=instance.pk)
+                for partial_digest in partial_digests:
+                    # `KobocatUser` should exist at this point.
+                    # We don't need to validate `KobocatUser`'s existence.
+                    KobocatDigestPartial.sync(partial_digest, validate_user=False)
 
 
 @receiver(post_save, sender=Token)
@@ -69,7 +72,7 @@ def save_kobocat_token(sender, instance, **kwargs):
     """
     Sync AuthToken table between KPI and KC
     """
-    if not settings.TESTING:
+    if not settings.TESTING and not settings.USE_SAME_DATABASE:
         KobocatToken.sync(instance)
 
 
@@ -78,7 +81,7 @@ def delete_kobocat_token(sender, instance, **kwargs):
     """
     Delete corresponding record from KC AuthToken table
     """
-    if not settings.TESTING:
+    if not settings.TESTING and not settings.USE_SAME_DATABASE:
         try:
             KobocatToken.objects.get(pk=instance.pk).delete()
         except KobocatToken.DoesNotExist:
@@ -90,7 +93,7 @@ def save_kobocat_partial_digest(sender, instance, **kwargs):
     """
     Sync PartialDigest table between KPI and KC
     """
-    if not settings.TESTING:
+    if not settings.TESTING and not settings.USE_SAME_DATABASE:
         KobocatDigestPartial.sync(instance)
 
 
@@ -99,7 +102,7 @@ def delete_kobocat_partial_digest(sender, instance, **kwargs):
     """
     Delete corresponding record from KC PartialDigest table
     """
-    if not settings.TESTING:
+    if not settings.TESTING and not settings.USE_SAME_DATABASE:
         try:
             KobocatDigestPartial.objects.get(pk=instance.pk).delete()
         except KobocatDigestPartial.DoesNotExist:
