@@ -340,7 +340,6 @@ class ProjectSettings extends React.Component {
     if (this.state.previousStep) {
       this.displayStep(this.state.previousStep);
     }
-    console.log('step: ' + this.state.previousStep);
   }
 
   /*
@@ -566,10 +565,8 @@ class ProjectSettings extends React.Component {
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
               }).fail(() => {
-                console.log('uploading pending in fail, before setting: ' + this.state.isUploadFilePending);
                 this.setState({isUploadFilePending: false});
                 alertify.error(t('Failed to reload project after upload!'));
-                console.log('uploading pending in fail, after setting: ' + this.state.isUploadFilePending);
               });
             },
             (response) => {
@@ -583,21 +580,15 @@ class ProjectSettings extends React.Component {
                 errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
               }
               alertify.error(errLines.join('<br/>'));
-              console.log('uploading pending in response: ' + this.state.isUploadFilePending);
             }
           );
         },
         () => {
-          console.log('uploading pending in otherwise, before setting: ' + this.state.isUploadFilePending);
           this.setState({isUploadFilePending: false});
-          console.log('uploading pending in otherwise, after setting: ' + this.state.isUploadFilePending);
           alertify.error(t('Could not import XLSForm!'));
         }
       );
     }
-    //this.setState({isUploadFilePending: false});
-    console.log('uploading pending end: ' + this.state.isUploadFilePending);
-
   }
 
   handleSubmit(evt) {
@@ -716,7 +707,6 @@ class ProjectSettings extends React.Component {
             {this.renderLoading(t('Uploading file…'))}
           </div>
         }
-        {console.log('hello')}
 
         <bem.Modal__footer>
           {this.renderBackButton()}
