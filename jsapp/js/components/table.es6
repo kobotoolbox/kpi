@@ -854,7 +854,7 @@ export class DataTable extends React.Component {
       selectedCount = data.submission_ids.length;
     }
     let msg, onshow;
-    msg = t('You are about to permaently delete ##count## data entries.').replace('##count##', this.state.resultsTotal);
+    msg = t('You are about to permaently delete ##count## data entries.').replace('##count##', selectedCount);
     msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
     msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
     const dialog = alertify.dialog('confirm');
