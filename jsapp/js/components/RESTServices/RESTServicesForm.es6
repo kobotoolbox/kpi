@@ -476,8 +476,6 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            {this.renderFieldsSelector()}
-
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
                 <TextBox
@@ -495,6 +493,8 @@ export default class RESTServicesForm extends React.Component {
                 />
               </bem.FormModal__item>
             }
+
+            {this.renderFieldsSelector()}
 
             {this.renderCustomHeaders()}
           </bem.FormModal__item>
