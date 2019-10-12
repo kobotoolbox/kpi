@@ -572,6 +572,7 @@ class ProjectSettings extends React.Component {
               });
             },
             (response) => {
+              this.setState({isUploadFilePending: false});
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (files[0].name) {
