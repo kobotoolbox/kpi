@@ -31,7 +31,6 @@ class LibraryAssetsList extends React.Component {
     return (
       <bem.Library>
         <SearchCollectionList
-          showDefault
           searchContext={this.state.searchContext}
         />
 

@@ -81,7 +81,6 @@ class LibrarySearchableList extends React.Component {
         </bem.Library__typeFilter>
 
         <SearchCollectionList
-          showDefault
           searchContext={this.state.searchContext}
         />
 
