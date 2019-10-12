@@ -24,20 +24,13 @@ import {
 import {
   t,
   notify,
-  formatTimeDate
+  formatTimeDate,
+  renderCheckbox
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
 export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
-
-const renderCheckbox = (id, label, isImportant) => {
-  let additionalClass = '';
-  if (isImportant) {
-    additionalClass += 'alertify-toggle-important';
-  }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-};
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -817,7 +810,6 @@ export class DataTable extends React.Component {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           dialog.destroy();
         }).fail((jqxhr) => {
-          console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
           dialog.destroy();
         });
@@ -861,9 +853,6 @@ export class DataTable extends React.Component {
     onshow = (evt) => {
       let ok_button = dialog.elements.buttons.primary.firstChild;
       let $els = $('.alertify-toggle input');
-      console.log('onshow: ' + ok_button.innerHTML);
-      console.log('els: ' + $els);
-      //console.log('dialog: ' + dialog.elements.checkboxes.primary.firstChild.innerHTML);
 
       ok_button.disabled = true;
 
@@ -888,7 +877,6 @@ export class DataTable extends React.Component {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           dialog.destroy();
         }).fail((jqxhr) => {
-          console.error(jqxhr);
           alertify.error(t('Failed to delete submissions.'));
           dialog.destroy();
         });
@@ -932,8 +920,7 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        { // TODO: re-enable after dealing with
-          // https://github.com/kobotoolbox/kpi/issues/2389
+        { 
           !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
