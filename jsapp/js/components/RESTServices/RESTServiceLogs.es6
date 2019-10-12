@@ -275,11 +275,16 @@ export default class RESTServiceLogs extends React.Component {
           </bem.ServiceRow>
 
           {this.state.logs.map((log, n) => {
+            const rowProps = {
+              key: n
+            };
             let statusMod = '';
             let statusLabel = '';
             if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
               statusMod = 'success';
               statusLabel = t('Success');
+              rowProps.m = 'clickable';
+              rowProps.onClick = this.openSubmissionModal.bind(this, log);
             }
             if (log.status === HOOK_LOG_STATUSES.PENDING) {
               statusMod = 'pending';
@@ -295,11 +300,7 @@ export default class RESTServiceLogs extends React.Component {
             }
 
             return (
-              <bem.ServiceRow
-                m='clickable'
-                onClick={this.openSubmissionModal.bind(this, log)}
-                key={n}
-              >
+              <bem.ServiceRow {...rowProps}>
                 <bem.ServiceRow__column m='submission'>
                   {log.instance_id}
                 </bem.ServiceRow__column>
