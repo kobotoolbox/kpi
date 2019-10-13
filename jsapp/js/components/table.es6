@@ -810,6 +810,7 @@ export class DataTable extends React.Component {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           dialog.destroy();
         }).fail((jqxhr) => {
+          console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
           dialog.destroy();
         });
@@ -846,7 +847,7 @@ export class DataTable extends React.Component {
       selectedCount = data.submission_ids.length;
     }
     let msg, onshow;
-    msg = t('You are about to permaently delete ##count## data entries.').replace('##count##', selectedCount);
+    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
     msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
     msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
     const dialog = alertify.dialog('confirm');
@@ -877,6 +878,7 @@ export class DataTable extends React.Component {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
           dialog.destroy();
         }).fail((jqxhr) => {
+          console.error(jqxhr);
           alertify.error(t('Failed to delete submissions.'));
           dialog.destroy();
         });
@@ -920,7 +922,8 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        { 
+        { // TODO: re-enable after dealing with
+          // https://github.com/kobotoolbox/kpi/issues/2389
           !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
