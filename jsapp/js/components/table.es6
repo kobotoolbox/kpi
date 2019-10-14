@@ -24,7 +24,8 @@ import {
 import {
   t,
   notify,
-  formatTimeDate
+  formatTimeDate,
+  renderCheckbox
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
@@ -845,12 +846,33 @@ export class DataTable extends React.Component {
       data.submission_ids = Object.keys(this.state.selectedRows);
       selectedCount = data.submission_ids.length;
     }
-
+    let msg, onshow;
+    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
+    msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
+    msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
     const dialog = alertify.dialog('confirm');
+    onshow = (evt) => {
+      let ok_button = dialog.elements.buttons.primary.firstChild;
+      let $els = $('.alertify-toggle input');
+
+      ok_button.disabled = true;
+
+      $els.each(function() {$(this).prop('checked', false);});
+      $els.change(function() {
+        ok_button.disabled = false;
+        $els.each(function () {
+          if (!$(this).prop('checked')) {
+            ok_button.disabled = true;
+          }
+        });
+      });
+    };
+
     const opts = {
       title: t('Delete selected submissions'),
-      message: t('You have selected ##count## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##count##', selectedCount),
+      message: msg,
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
+      onshow: onshow,
       onok: () => {
         apiFn(this.props.asset.uid, data).done(() => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
@@ -900,9 +922,7 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        { // TODO: re-enable after dealing with
-          // https://github.com/kobotoolbox/kpi/issues/2389
-          false && !this.state.selectAll &&
+        { !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
           <span>
