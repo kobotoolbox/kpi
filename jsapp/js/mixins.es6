@@ -32,7 +32,8 @@ import {
   assign,
   notify,
   escapeHtml,
-  buildUserUrl
+  buildUserUrl,
+  renderCheckbox
 } from './utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
@@ -447,14 +448,6 @@ mixins.collectionList = {
   collectionsChanged (collections) {
     this.setState(collections);
   },
-};
-
-const renderCheckbox = (id, label, isImportant) => {
-  let additionalClass = '';
-  if (isImportant) {
-    additionalClass += 'alertify-toggle-important';
-  }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
 };
 
 mixins.clickAssets = {
