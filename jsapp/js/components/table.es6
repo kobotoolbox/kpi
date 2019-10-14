@@ -24,20 +24,13 @@ import {
 import {
   t,
   notify,
-  formatTimeDate
+  formatTimeDate,
+  renderCheckbox
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
 export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
-
-const renderCheckbox = (id, label, isImportant) => {
-  let additionalClass = '';
-  if (isImportant) {
-    additionalClass += 'alertify-toggle-important';
-  }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-};
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -854,16 +847,13 @@ export class DataTable extends React.Component {
       selectedCount = data.submission_ids.length;
     }
     let msg, onshow;
-    msg = t('You are about to permaently delete ##count## data entries.').replace('##count##', this.state.resultsTotal);
+    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
     msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
     msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
     const dialog = alertify.dialog('confirm');
     onshow = (evt) => {
       let ok_button = dialog.elements.buttons.primary.firstChild;
       let $els = $('.alertify-toggle input');
-      console.log('onshow: ' + ok_button.innerHTML);
-      console.log('els: ' + $els);
-      //console.log('dialog: ' + dialog.elements.checkboxes.primary.firstChild.innerHTML);
 
       ok_button.disabled = true;
 
@@ -932,9 +922,7 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        { // TODO: re-enable after dealing with
-          // https://github.com/kobotoolbox/kpi/issues/2389
-          !this.state.selectAll &&
+        { !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
           <span>
