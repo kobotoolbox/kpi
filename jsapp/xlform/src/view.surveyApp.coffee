@@ -29,15 +29,28 @@ module.exports = do ->
       survey.forEachRow(gatherId, includeGroups: true)
 
       _s = (i)-> JSON.stringify(i)
-      if _s(rIds) isnt _s(elIds)
-        Raven?.captureException new Error('Row model does not match view'), extra:
-          rIds: _s(rIds)
-          elIds: _s(elIds)
+      strRowIds = JSON.stringify(rIds)
+      strElIds = JSON.stringify(elIds)
+      if strRowIds isnt strElIds
+        err = new Error('Row model does not match view', )
 
-        false
+        console.error(err, strRowIds, strElIds)
+
+        Raven?.captureException(
+          err,
+          {
+            extra: {
+              rIds: strRowIds
+              elIds: strElIds
+            }
+          }
+        )
+
+        return false
       else
-        true
+        return true
     _.debounce(fn, 2500)
+    return
 
 
   class SurveyFragmentApp extends $baseView
