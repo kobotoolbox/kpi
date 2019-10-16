@@ -148,7 +148,9 @@ export default class RESTServicesList extends React.Component {
           <bem.FormView__cell m={['box']}>
             <bem.ServiceRow m='header'>
               <bem.ServiceRow__column m='name'>{t('Service Name')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='count'>{t('Count')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='count'>{t('Success')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='count'>{t('Pending')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='count'>{t('Failed')}</bem.ServiceRow__column>
               <bem.ServiceRow__column m='actions' />
             </bem.ServiceRow>
 
@@ -159,16 +161,22 @@ export default class RESTServicesList extends React.Component {
                   <bem.ServiceRow__column m='name'>
                     <a href={logsUrl}>{hook.name}</a>
                   </bem.ServiceRow__column>
+                  
+                  <bem.ServiceRow__column m='count'>
+                    <a href={logsUrl}>
+                      {hook.success_count}
+                    </a>
+                  </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='count'>
                     <a href={logsUrl}>
-                      {hook.success_count + hook.pending_count + hook.failed_count}
-                      <span
-                        className='count-information-wrapper'
-                        data-tip={`${t('Success')} ${hook.success_count} · ${t('Pending')} ${hook.pending_count} · ${t('Failed')} ${hook.failed_count}`}
-                      >
-                        <i className='k-icon-help'/>
-                      </span>
+                      {hook.pending_count}
+                    </a>
+                  </bem.ServiceRow__column>
+
+                  <bem.ServiceRow__column m='count'>
+                    <a href={logsUrl}>
+                      {hook.failed_count}
                     </a>
                   </bem.ServiceRow__column>
 
