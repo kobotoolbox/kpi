@@ -229,7 +229,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
         params = self.validate_submission_list_params(requesting_user_id,
-                                                      count=True,
+                                                      validate_count=True,
                                                       **kwargs)
         instances = self.get_submissions(requesting_user_id, **params)
         return len(instances)

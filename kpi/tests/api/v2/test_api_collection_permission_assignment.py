@@ -109,7 +109,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
         admin_perms = self.collection.get_perms(self.admin)
         anotheruser_perms = self.collection.get_perms(self.anotheruser)
-        results = permission_list_response.data.get('results')
+        results = permission_list_response.data
 
         # `anotheruser` can only see the owner's permissions `self.admin` and
         # `anotheruser`'s permissions. Should not see `someuser`s ones.
@@ -143,7 +143,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
         admin_perms = self.collection.get_perms(self.admin)
         someuser_perms = self.collection.get_perms(self.someuser)
         anotheruser_perms = self.collection.get_perms(self.anotheruser)
-        results = permission_list_response.data.get('results')
+        results = permission_list_response.data
 
         # As an editor of the collection. `someuser` should see all.
         expected_perms = []
@@ -178,7 +178,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
                                                    format='json')
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
         admin_perms = self.collection.get_perms(self.admin)
-        results = permission_list_response.data.get('results')
+        results = permission_list_response.data
 
         # As an editor of the collection. `someuser` should see all.
         expected_perms = []
@@ -235,7 +235,7 @@ class ApiBulkCollectionPermissionTestCase(BaseApiCollectionPermissionTestCase):
         permission_list_response = self.client.get(self.collection_permissions_list_url,
                                                    format='json')
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
-        total = permission_list_response.data.get('count')
+        total = len(permission_list_response.data)
         # Add number of permissions added with 'view_collection'
         total += len(Collection.get_implied_perms(PERM_VIEW_COLLECTION)) + 1
         # Add number of permissions added with 'change_collection'
@@ -248,4 +248,4 @@ class ApiBulkCollectionPermissionTestCase(BaseApiCollectionPermissionTestCase):
         ])
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('count'), total)
+        self.assertEqual(len(response.data), total)

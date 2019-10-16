@@ -155,6 +155,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     lookup_field = "uid"
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetNestedObjectPermission,)
+    pagination_class = None
 
     @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
                 url_path='bulk')

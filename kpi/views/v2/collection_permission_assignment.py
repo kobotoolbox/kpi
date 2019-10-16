@@ -143,6 +143,7 @@ class CollectionPermissionAssignmentViewSet(CollectionNestedObjectViewsetMixin,
     lookup_field = "uid"
     serializer_class = CollectionPermissionAssignmentSerializer
     permission_classes = (CollectionNestedObjectPermission,)
+    pagination_class = None
 
     @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
                 url_path='bulk')
