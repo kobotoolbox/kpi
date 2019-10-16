@@ -31,34 +31,34 @@ router_api_v1 = ExtendedDefaultRouter()
 asset_routes = router_api_v1.register(r'assets', AssetViewSet, base_name='asset')
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
-                      base_name='asset-version',
+                      basename='asset-version',
                       parents_query_lookups=['asset'],
                       )
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
-                      base_name='hook-signal',
+                      basename='hook-signal',
                       parents_query_lookups=['asset'],
                       )
 asset_routes.register(r'submissions',
                       SubmissionViewSet,
-                      base_name='submission',
+                      basename='submission',
                       parents_query_lookups=['asset'],
                       )
 asset_routes.register(r'files',
                       AssetFileViewSet,
-                      base_name='asset-file',
+                      basename='asset-file',
                       parents_query_lookups=['asset'],
                       )
 
 hook_routes = asset_routes.register(r'hooks',
                                     HookViewSet,
-                                    base_name='hook',
+                                    basename='hook',
                                     parents_query_lookups=['asset'],
                                     )
 
 hook_routes.register(r'logs',
                      HookLogViewSet,
-                     base_name='hook-log',
+                     basename='hook-log',
                      parents_query_lookups=['asset', 'hook'],
                      )
 

@@ -12,9 +12,7 @@ from __future__ import (division, print_function, absolute_import,
 import os
 
 from django.core.wsgi import get_wsgi_application
-from whitenoise.django import DjangoWhiteNoise
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kobo.settings.prod")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kobo.settings.prod')
 
 application = get_wsgi_application()
-application = DjangoWhiteNoise(application)

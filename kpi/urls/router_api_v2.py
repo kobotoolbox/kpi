@@ -28,53 +28,53 @@ asset_routes = router_api_v2.register(r'assets', AssetViewSet, base_name='asset'
 
 asset_routes.register(r'files',
                       AssetFileViewSet,
-                      base_name='asset-file',
+                      basename='asset-file',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'permission-assignments',
                       AssetPermissionAssignmentViewSet,
-                      base_name='asset-permission-assignment',
+                      basename='asset-permission-assignment',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
-                      base_name='asset-version',
+                      basename='asset-version',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'data',
                       DataViewSet,
-                      base_name='submission',
+                      basename='submission',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
-                      base_name='hook-signal',
+                      basename='hook-signal',
                       parents_query_lookups=['asset'],
                       )
 
 hook_routes = asset_routes.register(r'hooks',
                                     HookViewSet,
-                                    base_name='hook',
+                                    basename='hook',
                                     parents_query_lookups=['asset'],
                                     )
 
 hook_routes.register(r'logs',
                      HookLogViewSet,
-                     base_name='hook-log',
+                     basename='hook-log',
                      parents_query_lookups=['asset', 'hook'],
                      )
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
 
 collection_routes = router_api_v2.register(r'collections', CollectionViewSet,
-                                           base_name='collection')
+                                           basename='collection')
 collection_routes.register(r'permission-assignments',
                            CollectionPermissionAssignmentViewSet,
-                           base_name='collection-permission-assignment',
+                           basename='collection-permission-assignment',
                            parents_query_lookups=['collection'],
                            )
 
