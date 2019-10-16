@@ -4,12 +4,12 @@ from __future__ import (division, print_function, absolute_import,
 
 from .base import *
 
-# For tests, don't use Kobocat DB
+# For tests, don't use KoBoCat's DB
 DATABASES = {
-    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': dj_database_url.config(default='sqlite:///%s/db.sqlite3' % BASE_DIR),
 }
 
-DATABASE_ROUTERS = ["kpi.db_routers.TestingDatabaseRouter"]
+DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
 
 TESTING = True
 
@@ -18,3 +18,6 @@ if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
 
 # Decrease prod value to speed-up tests
 SUBMISSION_LIST_LIMIT = 100
+
+# http://whitenoise.evans.io/en/stable/django.html#whitenoise-makes-my-tests-run-slow
+WHITENOISE_AUTOREFRESH = True
