@@ -32,19 +32,19 @@ dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
-django-cors-headers<3 # 3.0.0 dropped support for Last Python2 support: 3.0.2
+django-cors-headers<3 # 3.0.0 dropped support for Python2 support
 django-debug-toolbar<2 # Last Python2 support: 1.11
 django-extensions
 django-jsonbfield
 django-oauth-toolkit<1.1.1 # Last Python2 support: 1.1.0
-django-registration-redux==1.3 # DO NOT UPGRADE TO 1.4 WITHOUT TESTING!
+django-registration-redux
 django-ses
 django-webpack-loader
 django-loginas<0.3.7 # Last Python2 support: 0.3.6
 django-markdownx
 django-markitup
 django-mptt
-django-reversion<3.0.2 # Migration issue with 3.0.2+
+django-reversion<3.0.2 # Migration issue with 3.0.2
 django-taggit
 django-storages
 django-private-storage

@@ -13,8 +13,10 @@ if [[ -z $DATABASE_URL ]]; then
     exit 1
 fi
 
-echo 'Synchronizing database.'
-python manage.py syncdb --noinput
+# ToDo Removed this comment when we're sure `syncdb` is not needed
+# Removed in Django 1.9 in favor of `python manage.py migrate`
+# echo 'Synchronizing database.'
+# python manage.py syncdb --noinput
 
 echo 'Running migrations.'
 python manage.py migrate --noinput
