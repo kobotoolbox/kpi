@@ -64,7 +64,7 @@ class KpiObjectPermissionsFilter(object):
         }
         permission = self.perm_format % kwargs
 
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
             # Avoid giving anonymous users special treatment when viewing
             # public objects

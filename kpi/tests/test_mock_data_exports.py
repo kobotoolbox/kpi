@@ -393,7 +393,7 @@ class MockDataExports(TestCase):
         self.assertFalse(messages)
         self.assertEqual(
             os.path.split(export_task.result.name)[-1],
-            'Identificaci\xf3n de animales - all versions - SPSS Labels - '
+            'Identificaci\xf3n_de_animales_-_all_versions_-_SPSS_Labels_-_'
             '{date:%Y-%m-%d-%H-%M-%S}.zip'.format(date=utcnow)
         )
         expected_file_names_and_content_lines = {

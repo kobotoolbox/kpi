@@ -93,7 +93,7 @@ class AssetsListApiTests(BaseAssetTestCase):
         ]
         versions_ids.sort()
         expected_hash = md5("".join(versions_ids)).hexdigest()
-        hash_url = reverse("asset-hash-list")
+        hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
 
@@ -114,6 +114,8 @@ class AssetVersionApiTests(BaseTestCase):
     def test_asset_version(self):
         self.assertEqual(Asset.objects.count(), 2)
         self.assertEqual(AssetVersion.objects.count(), 1)
+        print('self.version_list_url')
+        print(self.version_list_url)
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data['count'], 1)

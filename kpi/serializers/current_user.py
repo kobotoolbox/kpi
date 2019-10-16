@@ -71,7 +71,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return False
 
     def to_representation(self, obj):
-        if obj.is_anonymous():
+        if obj.is_anonymous:
             return {'message': 'user is not logged in'}
         rep = super(CurrentUserSerializer, self).to_representation(obj)
         if not rep['extra_details']:

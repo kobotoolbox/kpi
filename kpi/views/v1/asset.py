@@ -4,7 +4,7 @@ from __future__ import (unicode_literals, print_function,
 
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.constants import CLONE_ARG_NAME, PERM_SHARE_ASSET, PERM_VIEW_ASSET
@@ -168,7 +168,7 @@ class AssetViewSet(AssetViewSetV2):
     def get_serializer_context(self):
         return super(AssetViewSetV2, self).get_serializer_context()
 
-    @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True, methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def permissions(self, request, uid):
         target_asset = self.get_object()
         source_asset = get_object_or_404(Asset, uid=request.data.get(CLONE_ARG_NAME))

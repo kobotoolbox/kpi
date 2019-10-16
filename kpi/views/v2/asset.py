@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -358,7 +358,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @list_route(methods=["GET"], renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=["GET"],
+            renderer_classes=[renderers.JSONRenderer])
     def hash(self, request):
         """
         Creates an hash of `version_id` of all accessible assets by the user.
@@ -368,7 +369,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         :return: JSON
         """
         user = self.request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             raise exceptions.NotAuthenticated()
         else:
             accessible_assets = get_objects_for_user(
@@ -388,7 +389,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 "hash": hash
             })
 
-    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
         asset = self.get_object()
         return Response({
@@ -397,7 +398,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'data': asset.to_ss_structure(),
         })
 
-    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def valid_content(self, request, uid):
         asset = self.get_object()
         return Response({
@@ -406,23 +407,23 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'data': to_xlsform_structure(asset.content),
         })
 
-    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
         asset = self.get_object()
         return Response({'asset': asset, }, template_name='koboform.html')
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa.ordered_xlsform_content())
         return Response('<!doctype html>\n'
                         '<html><body><code><pre>' + md_table.strip())
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
 
-    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
         export = asset._snapshot(regenerate=True)
@@ -436,7 +437,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
-    @detail_route(
+    @action(detail=True, 
         methods=['get', 'post', 'patch'],
         permission_classes=[PostMappedToChangePermission]
     )
@@ -523,7 +524,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
         user = self.request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         serializer.save(owner=user)
 

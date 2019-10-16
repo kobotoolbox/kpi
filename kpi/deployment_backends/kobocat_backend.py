@@ -659,7 +659,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param user: User
         :return: requests.models.Response
         """
-        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
+        if not user.is_anonymous and user.pk != settings.ANONYMOUS_USER_ID:
             token, created = Token.objects.get_or_create(user=user)
             kc_request.headers['Authorization'] = 'Token %s' % token.key
         session = requests.Session()

@@ -79,7 +79,7 @@ class PerUserSetting(models.Model):
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
     def user_matches(self, user, ignore_invalid_queries=True):
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         manager = user._meta.model.objects
         queryset = manager.none()

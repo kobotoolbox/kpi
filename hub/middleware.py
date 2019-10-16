@@ -47,7 +47,7 @@ class OtherFormBuilderRedirectMiddleware(object):
             return
         preferred_builder = self.THIS_BUILDER
         if not settings.KPI_PREFIX or not settings.DKOBO_PREFIX \
-                or request.user.is_anonymous():
+                or request.user.is_anonymous:
             # Do not attempt to redirect if the necessary prefixes are not
             # configured or the user is anonymous
             return
@@ -65,6 +65,6 @@ class UsernameInResponseHeaderMiddleware(object):
             user = request.user
         except AttributeError:
             return response
-        if user.is_authenticated():
+        if user.is_authenticated:
             response['X-KoBoNaUt'] = request.user.username
         return response

@@ -69,8 +69,10 @@ LOGIN_REDIRECT_URL = '/'
 # apps both define templates for the same view, the first app listed receives
 # precedence
 INSTALLED_APPS = (
-    'django.contrib.auth',
+    # Always put `contenttypes` before `auth`; see
+    # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -121,6 +123,10 @@ MIDDLEWARE_CLASSES = (
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
 )
+
+if DEBUG is True:
+    MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware', )
+
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')

@@ -5,7 +5,6 @@ from __future__ import (unicode_literals, print_function,
 import copy
 import json
 from contextlib import contextmanager
-from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
@@ -31,12 +30,13 @@ def _disable_auto_field_update(kls, field_names):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--dryrun',
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--dryrun',
             action='store_true',
             dest='dryrun',
             default=False,
-            help='Print what would be done, but do not make any changes'),
+            help='Print what would be done, but do not make any changes'
         )
 
     def handle(self, *args, **options):

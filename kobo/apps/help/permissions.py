@@ -7,7 +7,7 @@ from rest_framework import permissions
 
 class InAppMessagePermissions(permissions.BasePermission):
     def has_permission(self, request, view):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # Deny access to anonymous users
             return False
         if request.user.is_superuser:

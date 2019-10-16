@@ -8,7 +8,6 @@ import constance
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
-from django.template import Context
 from django.template.loader import get_template
 from django.utils import translation, timezone
 from django_celery_beat.models import PeriodicTask
@@ -67,23 +66,28 @@ def failures_reports():
     """
     beat_schedule = settings.CELERY_BEAT_SCHEDULE.get("send-hooks-failures-reports")
     # Use `.first()` instead of `.get()`, because task can be duplicated in admin section
-    failures_reports_period_task = PeriodicTask.objects.filter(enabled=True, task=beat_schedule.get("task"))\
-        .order_by("-last_run_at").first()
+    failures_reports_period_task = PeriodicTask.objects.filter(
+        enabled=True,
+        task=beat_schedule.get("task")).order_by("-last_run_at").first()
 
     if failures_reports_period_task:
-        
+
         last_run_at = failures_reports_period_task.last_run_at
-        queryset = HookLog.objects.filter(hook__email_notification=True, status=HOOK_LOG_FAILED)
+        queryset = HookLog.objects.filter(hook__email_notification=True,
+                                          status=HOOK_LOG_FAILED)
         if last_run_at:
             queryset = queryset.filter(date_modified__gte=last_run_at)
-        queryset = queryset.order_by("hook__asset__name", "hook__uid", "-date_modified")
+        queryset = queryset.order_by('hook__asset__name',
+                                     'hook__uid',
+                                     '-date_modified')
 
         # PeriodicTask are updated every 3 minutes (default).
         # It means, if this task interval is less than 3 minutes, some data can be duplicated in emails.
         # Setting `beat-sync-every` to 1, makes PeriodicTask to be updated before running the task.
         # So, we need to update it manually.
         # see: http://docs.celeryproject.org/en/latest/userguide/configuration.html#beat-sync-every
-        PeriodicTask.objects.filter(task=beat_schedule.get("task")).update(last_run_at=timezone.now())
+        PeriodicTask.objects.filter(task=beat_schedule.get("task")). \
+            update(last_run_at=timezone.now())
 
         records = {}
         max_length = 0
@@ -137,8 +141,8 @@ def failures_reports():
             }
             # Localize templates
             translation.activate(record.get("language"))
-            text_content = plain_text_template.render(Context(variables))
-            html_content = html_template.render(Context(variables))
+            text_content = plain_text_template.render(variables)
+            html_content = html_template.render(variables)
 
             msg = EmailMultiAlternatives(translation.ugettext("REST Services Failure Report"), text_content,
                                          constance.config.SUPPORT_EMAIL,

@@ -771,7 +771,11 @@ class Asset(ObjectPermissionMixin,
             #   * we don't need them for list views.
             'content', 'report_styles'
         ).select_related(
-            'owner__username',
+            # We only need `username`, but `select_related('owner__username')`
+            # actually pulled in the entire `auth_user` table under Django 1.8.
+            # In Django 1.9+, "select_related() prohibits non-relational fields
+            # for nested relations."
+            'owner',
         ).prefetch_related(
             # We previously prefetched `permissions__content_object`, but that
             # actually pulled the entirety of each permission's linked asset

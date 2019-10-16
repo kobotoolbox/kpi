@@ -25,14 +25,14 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return ImportTaskSerializer
 
     def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             return ImportTask.objects.none()
         else:
             return ImportTask.objects.filter(
                         user=self.request.user).order_by('date_created')
 
     def create(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
         itask_data = {
             'library': request.POST.get('library') not in ['false', False],

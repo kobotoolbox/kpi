@@ -8,6 +8,11 @@ from django.core.management.base import BaseCommand
 from django.db import transaction, connection
 
 
+# TODO: Remove `delete_base_command` from the output of `./manage.py --help`
+# or print an informative message if someone tries to use it. Currently,
+# it just raises `AttributeError: 'module' object has no attribute 'Command'`
+
+
 class DeleteBaseCommand(BaseCommand):
 
     def __init__(self, stdout=None, stderr=None, no_color=False):

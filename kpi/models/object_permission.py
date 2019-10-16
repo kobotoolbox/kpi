@@ -132,7 +132,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
     # queries, and it's nice to be able to pass in request.user blindly.
-    if user.is_anonymous():
+    if user.is_anonymous:
         user = get_anonymous_user()
 
     # Now we should extract list of pk values for which we would filter queryset
@@ -1098,7 +1098,7 @@ class ObjectPermissionMixin(object):
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.
         if user is not None:
-            user_id = user.pk if not user.is_anonymous() \
+            user_id = user.pk if not user.is_anonymous \
                 else settings.ANONYMOUS_USER_ID
             all_object_permissions = self.__get_all_user_permissions(
                 content_type_id=ContentType.objects.get_for_model(self).pk,

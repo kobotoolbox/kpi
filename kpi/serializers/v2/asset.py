@@ -146,7 +146,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         if 'parent' in fields:
             # TODO: remove this restriction?

@@ -7,7 +7,7 @@ import copy
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from rest_framework import renderers
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -46,12 +46,12 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         else:
             user = self.request.user
             owned_snapshots = queryset.none()
-            if not user.is_anonymous():
+            if not user.is_anonymous:
                 owned_snapshots = queryset.filter(owner=user)
             return owned_snapshots | RelatedAssetPermissionsFilter(
                 ).filter_queryset(self.request, queryset, view=self)
 
-    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         """
         This route will render the XForm into syntax-highlighted HTML.
@@ -68,7 +68,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
                                                                  **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
-    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def preview(self, request, *args, **kwargs):
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':

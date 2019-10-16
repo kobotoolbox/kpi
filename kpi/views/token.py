@@ -17,7 +17,7 @@ class TokenView(APIView):
         Determine the user from `request`, allowing superusers to specify
         another user by passing the `username` query parameter
         """
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
         if 'username' in request.query_params:

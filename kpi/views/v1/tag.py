@@ -26,7 +26,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
 
         def _get_tags_on_items(content_type_name, avail_items):

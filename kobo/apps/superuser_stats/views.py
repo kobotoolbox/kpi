@@ -18,6 +18,7 @@ def _base_filename_to_full_filename(base_filename, username):
         base_filename
     ])
 
+
 @user_passes_test(lambda u: u.is_superuser)
 def user_report(request):
     base_filename = 'user-report_{}_{}_{}.csv'.format(

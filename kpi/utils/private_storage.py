@@ -19,7 +19,7 @@ def superuser_or_username_matches_prefix(private_file):
     (See https://github.com/edoburu/django-private-storage)
     """
     request = private_file.request
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return False
     if request.user.is_superuser:
         return True

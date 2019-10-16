@@ -2,9 +2,12 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
+from django.core.urlresolvers import (
+    get_script_prefix,
+    resolve
+)
 from django.utils.encoding import uri_to_iri
 from django.utils.six.moves.urllib.parse import urlparse
-from rest_framework.compat import get_script_prefix, resolve
 
 
 def absolute_resolve(url):

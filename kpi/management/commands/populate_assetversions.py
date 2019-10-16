@@ -3,9 +3,8 @@ from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
 import json
-from optparse import make_option
-
 import time
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.utils.six.moves import range
@@ -18,14 +17,15 @@ NULL_CHAR_REPR = '\\u0000'
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--users',
-                    action='store',
-                    dest='filter_users_str',
-                    default=False,
-                    help='Only migrate asset versions for a comma-delimited'
-                         ' list of users (quicker)'),
-                    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--users',
+            action='store',
+            dest='filter_users_str',
+            default=False,
+            help='Only migrate asset versions for a comma-delimited list of '
+                 'users (quicker)'
+        )
 
     def handle(self, *args, **options):
         kw = {}

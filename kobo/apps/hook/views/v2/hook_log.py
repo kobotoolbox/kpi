@@ -4,7 +4,7 @@ from __future__ import (division, print_function, absolute_import,
 
 from django.utils.translation import ugettext as _
 from rest_framework import viewsets, mixins, status
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -82,11 +82,14 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         hook_uid = self.get_parents_query_dict().get("hook")
         queryset = self.model.objects.filter(hook__uid=hook_uid,
                                              hook__asset__uid=self.asset_uid)
-        queryset = queryset.select_related("hook__asset__uid")
-
+        # Even though we only need 'uid', `select_related('hook__asset__uid')`
+        # actually pulled in the entire `kpi_asset` table under Django 1.8. In
+        # Django 1.9+, "select_related() prohibits non-relational fields for
+        # nested relations."
+        queryset = queryset.select_related('hook__asset')
         return queryset
 
-    @detail_route(methods=["PATCH"])
+    @action(detail=True, methods=["PATCH"])
     def retry(self, request, uid=None, *args, **kwargs):
         """
         Retries to send data to external service.

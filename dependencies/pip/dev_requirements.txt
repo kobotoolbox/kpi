@@ -4,7 +4,8 @@
 #
 #    make pip_compile
 #
--e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
+-e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
+-e git+https://github.com/jnm/django-haystack@3a3b04564e189c11fdc20a4be43e360b5396708c#egg=django_haystack
 -e git+https://github.com/kobotoolbox/formpack.git@eae87edbcb4ca2b05130e26c99ac81e3437d03c9#egg=formpack
 -e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
 amqp==2.4.0
@@ -12,7 +13,7 @@ anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.3.0       # via pytest
-attrs==19.1.0             # via pytest
+attrs==18.2.0             # via pytest
 backports.csv==1.0.7
 backports.os==0.1.1       # via path.py
 backports.shutil-get-terminal-size==1.0.0  # via ipython
@@ -41,9 +42,8 @@ django-braces==1.13.0
 django-celery-beat==1.1.1
 django-constance[database]==2.2.0
 django-cors-headers==2.4.0
-django-debug-toolbar==1.4
-django-extensions==1.6.7
-django-haystack==2.6.0
+django-debug-toolbar==1.11
+django-extensions==2.1.5
 django-jsonbfield==0.1.0
 django-loginas==0.2.3
 django-markdownx==2.0.28
@@ -54,7 +54,7 @@ django-picklefield==1.0.0  # via django-constance
 django-private-storage==2.1.2
 django-redis-sessions==0.6.1
 django-registration-redux==1.3
-django-request-cache==1.0.0
+django-request-cache==1.1.0
 django-reversion==2.0.8
 django-ses==0.8.9
 django-storages==1.6.5
@@ -62,11 +62,11 @@ django-taggit==0.22.0
 django-toolbelt==0.0.1
 django-userforeignkey==0.3.0  # via django-request-cache
 django-webpack-loader==0.3.0
-django==1.8.19
+django==1.11.20
 djangorestframework-xml==1.4.0
-djangorestframework==3.6.4
+djangorestframework==3.9.1
 docutils==0.14            # via botocore, statistics
-drf-extensions==0.3.1
+drf-extensions==0.4.0
 enum34==1.1.6             # via cryptography, traitlets
 fabric==2.4.0
 formencode==1.3.1         # via pyxform
@@ -99,12 +99,12 @@ pbr==4.0.2                # via mock
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
 pillow==5.4.1             # via django-markdownx
-pluggy==0.9.0             # via pytest
+pluggy==0.8.1             # via pytest
 prompt-toolkit==1.0.15    # via ipython
 psycopg2==2.7.7           # via django-jsonbfield, django-toolbelt
 ptyprocess==0.6.0         # via pexpect
 py-gfm==0.1.4
-py==1.8.0                 # via pytest
+py==1.7.0                 # via pytest
 pyasn1==0.1.9
 pycparser==2.14           # via cffi
 pygments==2.1.3
@@ -119,7 +119,7 @@ python-dateutil==2.7.5
 python-digest==1.7
 pytz==2018.9
 pyxform==0.13.1
-redis==3.2.0
+redis==3.2.0              # via celery, django-redis-sessions
 requests==2.21.0
 responses==0.9.0
 s3transfer==0.1.13        # via boto3
@@ -127,12 +127,13 @@ scandir==1.9.0            # via pathlib2
 shortuuid==0.4.3
 simplegeneric==0.8.1      # via ipython
 six==1.12.0
-sqlparse==0.1.19
+sqlparse==0.2.4
 static3==0.7.0
 statistics==1.0.3.5
 tabulate==0.8.2
 traceback2==1.4.0         # via unittest2
 traitlets==4.3.2          # via ipython
+typing==3.6.6             # via django-extensions
 unicodecsv==0.14.1
 unittest2==1.1.0          # via pyxform
 urllib3==1.24.1           # via botocore, requests
