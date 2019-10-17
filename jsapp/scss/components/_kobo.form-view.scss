@@ -439,11 +439,6 @@ $z-form-view-fullscreen: 101;
   }
 }
 
-
-    &.form-modal__form--pending {
-      pointer-events: none;
-      opacity: 0.8;
-    }
 .form-view.form-view--form-settings-sharing {
   .form-modal {
     background: white;
