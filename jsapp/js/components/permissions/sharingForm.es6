@@ -29,7 +29,7 @@ class SharingForm extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
-      allAssetsCount: null,
+      allAssetsCount: 0,
       isAddUserEditorVisible: false
     };
   }
@@ -227,10 +227,15 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
+        { kind !== 'collection' && this.state.allAssetsCount === 0 &&
+          <React.Fragment>
+            <bem.Modal__hr/>
+            {t('Waiting for all projects to load…')}
+          </React.Fragment>
+        }
         { kind !== 'collection' && this.state.allAssetsCount >= 2 &&
           <React.Fragment>
             <bem.Modal__hr/>
-
             <CopyTeamPermissions uid={uid}/>
           </React.Fragment>
         }
