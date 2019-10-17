@@ -243,6 +243,6 @@ class ApiHookTestCase(HookTestCase):
                                      return_response_only=True)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         expected_response = {
-            'payload_template': ['Can be used only with then JSON submission format']
+            'payload_template': ['Can be used only with JSON submission format']
         }
         self.assertEqual(response.data, expected_response)

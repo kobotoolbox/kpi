@@ -69,7 +69,7 @@ class HookSerializer(serializers.ModelSerializer):
             # `payload_template` can be used only with `json`
             if payload_template and export_type != Hook.JSON:
                 raise serializers.ValidationError({
-                    'payload_template': _('Can be used only with then JSON submission format')
+                    'payload_template': _('Can be used only with JSON submission format')
                 })
         except KeyError:
             pass
