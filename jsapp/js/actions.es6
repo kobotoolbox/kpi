@@ -751,16 +751,8 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
 actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((data) => {
-  const errorLines = [t('Failed saving REST Service')];
-  if (
-    data.responseJSON &&
-    data.responseJSON.payload_template &&
-    data.responseJSON.payload_template.length !== 0
-  ) {
-    errorLines.push(t('Custom wrapper:') + ' ' + data.responseJSON.payload_template[0]);
-  }
-  alertify.error(errorLines.join('<br/>'));
+actions.hooks.update.failed.listen(() => {
+  alertify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {

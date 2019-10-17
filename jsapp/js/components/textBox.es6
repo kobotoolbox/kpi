@@ -15,12 +15,14 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
+import TextareaAutosize from 'react-autosize-textarea';
 import bem from '../bem';
 
 class TextBox extends React.Component {
   constructor(props){
     super(props);
     this.AVAILABLE_TYPES = [
+      'text-multiline',
       'text',
       'email',
       'password',
@@ -66,6 +68,14 @@ class TextBox extends React.Component {
       throw new Error(`Unknown TextBox type: ${this.props.type}!`);
     }
 
+    const inputProps = {
+      value: this.props.value,
+      placeholder: this.props.placeholder,
+      onChange: this.onChange,
+      onBlur: this.onBlur,
+      onKeyPress: this.onKeyPress
+    };
+
     return (
       <bem.TextBox m={modifiers}>
         {this.props.label &&
@@ -74,14 +84,18 @@ class TextBox extends React.Component {
           </bem.TextBox__label>
         }
 
-        <bem.TextBox__input
-          type={type}
-          value={this.props.value}
-          placeholder={this.props.placeholder}
-          onChange={this.onChange}
-          onBlur={this.onBlur}
-          onKeyPress={this.onKeyPress}
-        />
+        {this.props.type === 'text-multiline' &&
+          <TextareaAutosize
+            className='text-box__input'
+            {...inputProps}
+          />
+        }
+        {this.props.type !== 'text-multiline' &&
+          <bem.TextBox__input
+            type={type}
+            {...inputProps}
+          />
+        }
 
         {this.props.description &&
           <bem.TextBox__description>

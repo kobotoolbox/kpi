@@ -3,7 +3,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import alertify from 'alertifyjs';
-import TextareaAutosize from 'react-autosize-textarea';
 import bem from '../../bem';
 import {dataInterface} from '../../dataInterface';
 import actions from '../../actions';
@@ -68,6 +67,7 @@ export default class RESTServicesForm extends React.Component {
         this.getEmptyHeaderRow()
       ],
       payloadTemplate: '',
+      payloadTemplateErrors: []
     };
     autoBind(this);
   }
@@ -187,9 +187,10 @@ export default class RESTServicesForm extends React.Component {
     this.setState({customHeaders: newCustomHeaders});
   }
 
-  handleCustomWrapperChange(evt) {
+  handleCustomWrapperChange(newVal) {
     this.setState({
-      payloadTemplate: evt.target.value
+      payloadTemplate: newVal,
+      payloadTemplateErrors: []
     });
   }
 
@@ -252,8 +253,19 @@ export default class RESTServicesForm extends React.Component {
         stores.pageState.hideModal();
         actions.resources.loadAsset({id: this.state.assetUid});
       },
-      onFail: () => {
-        this.setState({isSubmitPending: false});
+      onFail: (data) => {
+        let payloadTemplateErrors = [];
+        if (
+          data.responseJSON &&
+          data.responseJSON.payload_template &&
+          data.responseJSON.payload_template.length !== 0
+        ) {
+          payloadTemplateErrors = data.responseJSON.payload_template;
+        }
+        this.setState({
+          payloadTemplateErrors: payloadTemplateErrors,
+          isSubmitPending: false
+        });
       },
     };
 
@@ -513,16 +525,13 @@ export default class RESTServicesForm extends React.Component {
             {this.renderCustomHeaders()}
 
             {this.state.type === EXPORT_TYPES.json.value &&
-              <bem.FormModal__item>
-                <label htmlFor='customWrapperInput'>
-                  {t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
-                </label>
-
-                <TextareaAutosize
-                  className='textarea-code'
-                  id='customWrapperInput'
+              <bem.FormModal__item m='rest-custom-wrapper'>
+                <TextBox
+                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
+                  type='text-multiline'
                   placeholder={t('Add Custom Wrapper')}
                   value={this.state.payloadTemplate}
+                  errors={this.state.payloadTemplateErrors}
                   onChange={this.handleCustomWrapperChange.bind(this)}
                 />
               </bem.FormModal__item>
