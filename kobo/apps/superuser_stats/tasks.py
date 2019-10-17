@@ -17,7 +17,7 @@ def generate_user_report(output_filename):
         KobocatUserProfile,
         ReadOnlyKobocatXForm,
     )
-    from hub.models import ExtraUserDetail, FormBuilderPreference
+    from hub.models import ExtraUserDetail
 
     def format_date(d):
         if hasattr(d, 'strftime'):
@@ -75,11 +75,6 @@ def generate_user_report(output_filename):
         row.append(format_date(u.date_joined))
         row.append(format_date(u.last_login))
 
-        try:
-            row.append(u.formbuilderpreference.preferred_builder)
-        except FormBuilderPreference.DoesNotExist:
-            row.append('')
-
         return row
 
     CHUNK_SIZE = 1000
@@ -95,7 +90,6 @@ def generate_user_report(output_filename):
         'num_of_submissions',
         'date_joined',
         'last_login',
-        'preferred_builder',
     ]
 
     default_storage = get_storage_class()()

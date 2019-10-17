@@ -74,7 +74,7 @@ class PerUserSetting(models.Model):
                     'the queries in the list.')
     )
     name = models.CharField(max_length=255, unique=True,
-                            default='INTERCOM_APP_ID') # The only one for now!
+                            default='INTERCOM_APP_ID')  # The only one for now!
     value_when_matched = models.CharField(max_length=2048, blank=True)
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
@@ -113,27 +113,6 @@ class PerUserSetting(models.Model):
 
     def __str__(self):
         return self.name
-
-
-@python_2_unicode_compatible
-class FormBuilderPreference(models.Model):
-    KPI = 'K'
-    DKOBO = 'D'
-    BUILDER_CHOICES = (
-        (KPI, 'kpi'),
-        (DKOBO, 'dkobo')
-    )
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
-    preferred_builder = models.CharField(
-        max_length=1,
-        choices=BUILDER_CHOICES,
-        default=KPI,
-    )
-
-    def __str__(self):
-        choices_dict = dict(self.BUILDER_CHOICES)
-        choice_label = choices_dict[self.preferred_builder]
-        return '{} prefers {}'.format(self.user, choice_label)
 
 
 @python_2_unicode_compatible

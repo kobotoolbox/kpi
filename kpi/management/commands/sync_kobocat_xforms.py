@@ -22,7 +22,6 @@ from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
-from hub.models import FormBuilderPreference
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
@@ -413,13 +412,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--all-users',
-            action='store_true',
-            dest='all_users',
-            default=False,
-            help='Import even when the user does not prefer KPI'
-        )
-        parser.add_argument(
             '--username',
             action='store',
             dest='username',
@@ -458,14 +450,6 @@ class Command(BaseCommand):
         if options.get('username'):
             users = User.objects.filter(username=options.get('username'))
         self._print_str('%d users selected' % users.count())
-        # Only users who prefer KPI or all users?
-        if not options.get('all_users'):
-            users = users.filter(
-                models.Q(formbuilderpreference__preferred_builder=
-                    FormBuilderPreference.KPI) |
-                models.Q(formbuilderpreference=None) # KPI is the default now
-            )
-            self._print_str('%d of selected users prefer KPI' % users.count())
 
         # We'll be copying the date fields from KC, so don't auto-update them
         _set_auto_field_update(Asset, "date_created", False)

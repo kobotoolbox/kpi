@@ -13,10 +13,10 @@ class PerUserSettingTestCase(TestCase):
 
     def setUp(self):
         self.user_for_username_match = User.objects.create(
-            username = 'match_me')
+            username='match_me')
         self.user_for_email_match = User.objects.create(
             username='no_match_here',
-            email = 'foundme@matchthis.int',
+            email='foundme@matchthis.int',
         )
         self.non_matching_user = User.objects.create(username='leave_me_alone')
         self.setting = PerUserSetting.objects.create(
