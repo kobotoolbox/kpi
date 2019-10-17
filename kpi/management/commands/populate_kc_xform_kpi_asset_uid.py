@@ -12,22 +12,24 @@ from kpi.models.asset import Asset
 
 class Command(BaseCommand):
 
-    help = 'Populate `XForm`s `kpi_asset_uid` with their related `Asset`s `uid`'
+    help = 'Link KoBoCAT `XForm`s back to their corresponding KPI `Asset`s ' \
+           'by populating the `kpi_asset_uid` field'
 
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
         parser.add_argument(
-            '--rest-service',
+            '--rest-service-only',
             action='store_true',
             default=False,
-            help='Use only `Asset`s with REST Services.'
+            help='Modify only `XForm`s whose corresponding `Asset`s have ' \
+                 '`Hook`s (REST Services) enabled'
         )
 
         parser.add_argument(
             '--force',
             action='store_true',
             default=False,
-            help='Force populate even if it has already been done'
+            help='Rewrite `XForm.kpi_asset_uid` even if it already has a value'
         )
 
         parser.add_argument(
@@ -35,20 +37,20 @@ class Command(BaseCommand):
             action='store',
             dest='username',
             default=False,
-            help="Only populate user's `Asset`s"
+            help='Only modify `XForm`s whose corresponding `Asset`s belong ' \
+                 'to a specific user'
         )
 
     def handle(self, *args, **options):
 
-        rest_service = options['rest_service']
+        rest_service_only = options['rest_service_only']
         verbosity = options['verbosity']
         force = options['force']
         username = options['username']
 
         query = Asset.objects
-        if rest_service:
-            query = query.filter(id__in=Hook.objects.values_list('asset_id',
-                                                                 flat=True))
+        if rest_service_only:
+            query = query.exclude(hooks=None)
         if username:
             query = query.filter(owner__username=username)
 
@@ -63,20 +65,20 @@ class Command(BaseCommand):
                         # Avoid `Asset.save()` logic. Do not touch `modified_date`
                         Asset.objects.filter(pk=asset.id).update(
                             _deployment_data=asset._deployment_data)
+                    else:
+                        if verbosity >= 2:
+                            print('\nAsset #{}: Already populated'.format(asset.id))
                 except KobocatDeploymentException as e:
                     if verbosity >= 2:
                         print('\nERROR: Asset #{}: {}'.format(asset.id,
                                                               str(e)))
-                else:
-                    if verbosity >= 2:
-                        print('\nAsset #{}: Already populated'.format(asset.id))
             else:
                 if verbosity >= 3:
                     print('\nAsset #{}: No deployment found'.format(asset.id))
 
             cpt += 1
             if verbosity >= 1:
-                progress = '\rUpdating {cpt}/{total} records...'.format(
+                progress = '\rUpdated {cpt}/{total} records...'.format(
                     cpt=cpt,
                     total=total
                 )

@@ -65,10 +65,10 @@ class HookSerializer(serializers.ModelSerializer):
         try:
             payload_template = attrs['payload_template']
             export_type = attrs['export_type']
-            # `payload_template` cannot be used with `xml`
-            if payload_template and export_type == 'xml':
+            # `payload_template` can be used only with `json`
+            if payload_template and export_type != Hook.JSON:
                 raise serializers.ValidationError({
-                    'payload_template': _('Cannot use add custom wrapper with `XML` submission')
+                    'payload_template': _('Can be used only with then JSON submission format')
                 })
         except KeyError:
             pass

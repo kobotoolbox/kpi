@@ -319,27 +319,33 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def set_asset_uid(self, force=False):
         """
-        PATCH `kpi_asset_uid` field of survey.
-        It lets `kc` know which `Asset` is related to each `XForm`.
+        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by 
+        populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
         Useful when a form is created from the legacy upload form.
-
         Store results in self.asset._deployment_data
+
+        Returns:
+            bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
+                  during this call, otherwise `False`. 
         """
-        not_sync = (self.backend_response.get('kpi_asset_uid', None) is None
-                    or force)
-        if not_sync:
-            url = self.external_to_internal_url(self.backend_response['url'])
-            payload = {
-                'kpi_asset_uid': self.asset.uid
-            }
-            json_response = self._kobocat_request('PATCH', url, data=payload)
-            is_set = json_response['kpi_asset_uid'] == self.asset.uid
-            assert is_set
-            self.store_data({
-                'backend_response': json_response,
-            })
-            return True
-        return False
+        is_synchronized = not (
+            force or 
+            self.backend_response.get('kpi_asset_uid', None) is None
+        )
+        if is_synchronized:
+            return False
+
+        url = self.external_to_internal_url(self.backend_response['url'])
+        payload = {
+            'kpi_asset_uid': self.asset.uid
+        }
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        is_set = json_response['kpi_asset_uid'] == self.asset.uid
+        assert is_set
+        self.store_data({
+            'backend_response': json_response,
+        })
+        return True
 
     def set_has_kpi_hooks(self):
         """

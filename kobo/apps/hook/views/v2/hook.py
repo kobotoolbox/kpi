@@ -110,7 +110,7 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >               }
 
     * `payload_template` is a custom wrapper around `%SUBMISSION%` when sending data to remote server.
-       It cannot be used with `XML`.
+       It can be used only with JSON submission format.
 
     For example:
     >           "payload_template": '{"fields": %SUBMISSION%}'
