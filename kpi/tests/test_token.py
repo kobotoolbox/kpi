@@ -1,9 +1,14 @@
-from rest_framework.test import APITestCase
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-class UserListTests(APITestCase):
+from kpi.tests.base_test_case import BaseTestCase
+
+
+class UserListTests(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):

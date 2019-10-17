@@ -2,6 +2,10 @@
 from rest_framework import exceptions
 
 
+class BadPermissionsException(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 
@@ -14,7 +18,7 @@ class ImportAssetException(Exception):
     pass
 
 
-class KoboCatProfileException(Exception):
+class KobocatProfileException(Exception):
     pass
 
 

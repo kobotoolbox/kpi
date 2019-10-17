@@ -24,7 +24,8 @@ import {
 import {
   t,
   notify,
-  formatTimeDate
+  formatTimeDate,
+  renderCheckbox
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
@@ -83,40 +84,39 @@ export class DataTable extends React.Component {
           filterQuery += ',';
       });
       filterQuery += '}';
-      dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
-        if (data.count) {
-          this.setState({resultsTotal: data.count});
-        }
-      });
-    } else {
-      this.setState({resultsTotal: this.props.asset.deployment__submission_count});
     }
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      if (data && data.length > 0) {
+      let results = data.results;
+
+      if (results && results.length > 0) {
         if (this.state.submissionPager == 'next') {
-          this.submissionModalProcessing(data[0]._id, data);
+          this.submissionModalProcessing(results[0]._id, results);
         }
         if (this.state.submissionPager == 'prev') {
-          this.submissionModalProcessing(data[data.length - 1]._id, data);
+          this.submissionModalProcessing(results[results.length - 1]._id, results);
         }
         this.setState({
           loading: false,
           selectedRows: {},
           selectAll: false,
-          tableData: data,
-          submissionPager: false
+          tableData: results,
+          submissionPager: false,
+          resultsTotal: data.count
         });
-        this._prepColumns(data);
+        this._prepColumns(results);
       } else {
         if (filterQuery.length) {
           this.setState({
-            loading: false
+            loading: false,
+            selectedRows: {},
+            tableData: results,
+            resultsTotal: 0
           });
-          // TODO: debounce the queries and then enable this notification
-          alertify.warning(t('The query did not return any results.'));
         } else {
-          this.setState({error: t('Error: could not load data.'), loading: false});
+          this.setState({error: t('This project has no submitted data. ' +
+                                  'Please collect some and try again.'),
+                         loading: false});
         }
       }
     }).fail((error)=>{
@@ -219,7 +219,7 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset)) {
+    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('change_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
@@ -710,9 +710,9 @@ export class DataTable extends React.Component {
 
     if (params.type !== MODAL_TYPES.TABLE_COLUMNS && !params.sid) {
       let fetchInstance = this.state.fetchInstance;
-      if (params.page == 'next')
+      if (params.page === 'next')
         page = this.state.currentPage + 1;
-      if (params.page == 'prev')
+      if (params.page === 'prev')
         page = this.state.currentPage - 1;
 
       fetchInstance.setState({ page: page });
@@ -733,7 +733,7 @@ export class DataTable extends React.Component {
     this.setState({ promptRefresh: false });
   }
   bulkUpdateChange(sid, isChecked) {
-    var selectedRows = this.state.selectedRows;
+    let selectedRows = this.state.selectedRows;
 
     if (isChecked) {
       selectedRows[sid] = true;
@@ -747,7 +747,7 @@ export class DataTable extends React.Component {
     });
   }
   bulkSelectAllRows(isChecked) {
-    var s = this.state.selectedRows;
+    let s = this.state.selectedRows;
 
     this.state.tableData.forEach(function(r) {
       if (isChecked) {
@@ -757,10 +757,22 @@ export class DataTable extends React.Component {
       }
     });
 
-    this.setState({
-      selectedRows: s,
-      selectAll: false
-    });
+    // If the entirety of the results has been selected, selectAll should be true
+    // Useful when the # of results is smaller than the page size.
+    let scount = Object.keys(s).length;
+
+    if (scount === this.state.resultsTotal) {
+      this.setState({
+        selectedRows: s,
+        selectAll: true
+      });
+    } else {
+      this.setState({
+        selectedRows: s,
+        selectAll: false
+      });
+    }
+
   }
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
@@ -783,9 +795,9 @@ export class DataTable extends React.Component {
       }
       selectedCount = this.state.resultsTotal;
     } else {
-      data.submissions_ids = Object.keys(this.state.selectedRows);
+      data.submission_ids = Object.keys(this.state.selectedRows);
       data['validation_status.uid'] = val;
-      selectedCount = data.submissions_ids.length;
+      selectedCount = data.submission_ids.length;
     }
 
     const dialog = alertify.dialog('confirm');
@@ -793,14 +805,17 @@ export class DataTable extends React.Component {
       title: t('Update status of selected submissions'),
       message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        apiFn(this.props.asset.uid, data).done((res) => {
+      onok: () => {
+        apiFn(this.props.asset.uid, data).done(() => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
+          dialog.destroy();
+        }).fail((jqxhr) => {
           console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
+          dialog.destroy();
         });
+        // keep the dialog open
+        return false;
       },
       oncancel: dialog.destroy
     };
@@ -812,6 +827,70 @@ export class DataTable extends React.Component {
   clearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
   }
+  onBulkDelete() {
+    const apiFn = dataInterface.bulkDeleteSubmissions;
+    const data = {};
+    let selectedCount;
+
+    if (this.state.selectAll) {
+      if (this.state.fetchState.filtered.length) {
+        data.query = {};
+        this.state.fetchState.filtered.map((filteredItem) => {
+          data.query[filteredItem.id] = filteredItem.value;
+        });
+      } else {
+        data.confirm = true;
+      }
+      selectedCount = this.state.resultsTotal;
+    } else {
+      data.submission_ids = Object.keys(this.state.selectedRows);
+      selectedCount = data.submission_ids.length;
+    }
+    let msg, onshow;
+    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
+    msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
+    msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
+    const dialog = alertify.dialog('confirm');
+    onshow = (evt) => {
+      let ok_button = dialog.elements.buttons.primary.firstChild;
+      let $els = $('.alertify-toggle input');
+
+      ok_button.disabled = true;
+
+      $els.each(function() {$(this).prop('checked', false);});
+      $els.change(function() {
+        ok_button.disabled = false;
+        $els.each(function () {
+          if (!$(this).prop('checked')) {
+            ok_button.disabled = true;
+          }
+        });
+      });
+    };
+
+    const opts = {
+      title: t('Delete selected submissions'),
+      message: msg,
+      labels: {ok: t('Delete selected'), cancel: t('Cancel')},
+      onshow: onshow,
+      onok: () => {
+        apiFn(this.props.asset.uid, data).done(() => {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
+          dialog.destroy();
+        }).fail((jqxhr) => {
+          console.error(jqxhr);
+          alertify.error(t('Failed to delete submissions.'));
+          dialog.destroy();
+        });
+        // keep the dialog open
+        return false;
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
   bulkSelectUI() {
     if (!this.state.tableData.length) {
       return false;
@@ -820,34 +899,61 @@ export class DataTable extends React.Component {
     const { pageSize, currentPage, resultsTotal } = this.state;
 
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
-          res1 = (currentPage * pageSize) + 1,
+          res1 = (resultsTotal === 0) ? 0 : (currentPage * pageSize) + 1,
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
+          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
           selected = this.state.selectedRows,
           maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-          //
+    let selectedCount = Object.keys(selected).length;
+    if (this.state.selectAll) {
+      selectedCount = resultsTotal;
+    }
+    const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
+
     return (
       <bem.FormView__item m='table-meta'>
-        {showingResults}
-        {this.state.selectAll ?
+        <span>{showingResults}</span>
+        {selectedCount > 1 &&
           <span>
-            {t('All ## selected. ').replace('##', resultsTotal)}
             <a className='select-all' onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
-        :
+        }
+
+        { !this.state.selectAll &&
+          Object.keys(selected).length === maxPageRes &&
+          resultsTotal > pageSize &&
           <span>
-            {Object.keys(selected).length > 0 &&
-              t('## selected. ').replace('##', Object.keys(selected).length)
-            }
-            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
-              <a className='select-all' onClick={this.bulkSelectAll}>
-                {t('Select all ##').replace('##', resultsTotal)}
-              </a>
-            }
+            <a className='select-all' onClick={this.bulkSelectAll}>
+              {t('Select all ##count##').replace('##count##', resultsTotal)}
+            </a>
           </span>
+        }
+
+        {Object.keys(selected).length > 0 &&
+          <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
+            {this.userCan('validate_submissions', this.props.asset) &&
+              VALIDATION_STATUSES_LIST.map((item, n) => {
+                return (
+                  <bem.PopoverMenu__link
+                    onClick={this.onBulkUpdateStatus}
+                    data-value={item.value}
+                    key={n}
+                  >
+                    {t('Set status: ##status##').replace('##status##', item.label)}
+                  </bem.PopoverMenu__link>
+                );
+              })
+            }
+            {this.userCan('change_submissions', this.props.asset) &&
+            <bem.PopoverMenu__link
+              onClick={this.onBulkDelete}>
+              {t('Delete selected')}
+            </bem.PopoverMenu__link>
+            }
+          </ui.PopoverMenu>
         }
       </bem.FormView__item>
     );
@@ -896,21 +1002,6 @@ export class DataTable extends React.Component {
               <i className='k-icon-print' />
             </button>
 
-            {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
-                <bem.PopoverMenu__heading>
-                  {t('Updated status to:')}
-                </bem.PopoverMenu__heading>
-                {VALIDATION_STATUSES_LIST.map((item, n) => {
-                  return (
-                    <bem.PopoverMenu__link onClick={this.onBulkUpdateStatus} data-value={item.value} key={n}>
-                      {item.label}
-                      </bem.PopoverMenu__link>
-                  );
-                })}
-              </ui.PopoverMenu>
-            }
-
             <button
               className='mdl-button mdl-button--icon report-button__expand right-tooltip'
               onClick={this.toggleFullscreen}
@@ -934,7 +1025,7 @@ export class DataTable extends React.Component {
           columns={selectedColumns || columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
-          minRows={1}
+          minRows={0}
           className={tableClasses}
           pages={pages}
           manual
@@ -948,7 +1039,7 @@ export class DataTable extends React.Component {
               {t('Loading...')}
             </span>
           }
-          noDataText={t('No rows found')} // TODO: fix display
+          noDataText={t('Your filters returned no submissions.')} 
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}

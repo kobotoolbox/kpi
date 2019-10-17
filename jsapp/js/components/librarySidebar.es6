@@ -8,6 +8,7 @@ import { Link } from 'react-router';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
 
+import permConfig from 'js/components/permissions/permConfig';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import stores from '../stores';
@@ -16,14 +17,14 @@ import searches from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
-import {MODAL_TYPES} from '../constants';
+import {MODAL_TYPES, ANON_USERNAME, PERMISSIONS_CODENAMES} from '../constants';
 
 import {
   t,
   assign,
   validFileTypes,
   getAnonymousUserPermission,
-  anonUsername
+  buildUserUrl
 } from '../utils';
 
 
@@ -215,26 +216,31 @@ class LibrarySidebar extends Reflux.Component {
   isCollectionPublic(collection) {
     return typeof getAnonymousUserPermission(collection.permissions) !== 'undefined';
   }
+  /**
+   * NOTE: collection discoverability requires to set two things:
+   * 1) a permission for anonymous user,
+   * 2) `discoverable_when_public` boolean
+   * So we need to make two separate calls.
+   */
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
+
+      // STEP 1: handle `ANON_USERNAME` permission change
       var publicPerm = getAnonymousUserPermission(collection.permissions);
       var permDeferred = false;
       if (discoverable) {
-        permDeferred = actions.permissions.assignPerm({
-          role: 'view',
-          username: anonUsername,
-          uid: collection.uid,
-          kind: collection.kind,
-          objectUrl: collection.url
-        });
+        permDeferred = actions.permissions.assignCollectionPermission(
+          collection.uid, {
+            user: buildUserUrl(ANON_USERNAME),
+            permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url
+          }
+        );
+      } else if (publicPerm) {
+        permDeferred = actions.permissions.removeCollectionPermission(collection.uid, publicPerm.url);
       }
-      else if (publicPerm) {
-        permDeferred = actions.permissions.removePerm({
-          permission_url: publicPerm.url,
-          content_object_uid: collection.uid
-        });
-      }
+
+      // STEP 2: handle `discoverable_when_public` change
       let discovDeferred;
       if (permDeferred) {
         discovDeferred = permDeferred.then(() => {

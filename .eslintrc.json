@@ -30,6 +30,7 @@
     "no-case-declarations": 1,
     "no-confusing-arrow": 1,
     "no-console": 1,
+    "no-debugger": 1,
     "no-duplicate-imports": [1, { "includeExports": true }],
     "no-extend-native": 1,
     "no-extra-bind": 1,
@@ -84,7 +85,8 @@
     "expect": false,
     "window": false,
     "document": false,
-    "Parse": false
+    "Parse": false,
+    "chai": true
   },
   "plugins": [
     "react"

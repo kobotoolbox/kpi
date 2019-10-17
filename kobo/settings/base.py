@@ -1,22 +1,21 @@
 # coding: utf-8
 from __future__ import absolute_import
 
-from datetime import timedelta
 import multiprocessing
 import os
 import subprocess
+from datetime import timedelta
 
-from celery.schedules import crontab
+import dj_database_url
 import django.conf.locale
-from django.conf import global_settings
+from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import get_language_info
-import dj_database_url
 from pymongo import MongoClient
 
+from kpi.utils.redis_helper import RedisHelper
 from ..static_lists import EXTRA_LANG_INFO
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -116,6 +115,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
+    'django_userforeignkey.middleware.UserForeignKeyMiddleware',
+    'django_request_cache.middleware.RequestCacheMiddleware',
 )
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
@@ -198,12 +199,20 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
+
+kobocat_database_url = os.getenv("KC_DATABASE_URL", "sqlite:///%s/db.sqlite3" % BASE_DIR)
+
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
-    'kobocat': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'kobocat': dj_database_url.parse(kobocat_database_url)
 }
 
-DATABASE_ROUTERS = ["kpi.db_routers.DefaultDatabaseRouter"]
+USE_SAME_DATABASE = DATABASES['default'] == DATABASES['kobocat']
+
+DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
+if USE_SAME_DATABASE is True:
+    DATABASE_ROUTERS = ['kpi.db_routers.SingleDatabaseRouter']
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -284,7 +293,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.serializers.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -297,7 +306,8 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.JSONRenderer',
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
-    ]
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
 }
 
 TEMPLATES = [
@@ -339,6 +349,9 @@ RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat/')
+
+KPI_URL = os.environ.get('KPI_URL', 'http://kpi/')
+
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
 else:
@@ -698,3 +711,9 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+
+SESSION_ENGINE = "redis_sessions.session"
+SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+
+TESTING = False

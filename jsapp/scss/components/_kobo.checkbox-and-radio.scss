@@ -102,6 +102,11 @@
     &[disabled] {
       pointer-events: none;
       opacity: 0.5;
+
+      & + .radio__label,
+      & + .checkbox__label {
+        opacity: 0.5;
+      }
     }
   }
 }

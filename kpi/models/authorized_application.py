@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import datetime
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -42,8 +45,8 @@ class ApplicationTokenAuthentication(TokenAuthentication):
     model = AuthorizedApplication
 
     def authenticate_credentials(self, key):
-        ''' Mostly duplicated from TokenAuthentication, except that we return
-        an AnonymousUser '''
+        """ Mostly duplicated from TokenAuthentication, except that we return
+        an AnonymousUser """
         try:
             token = self.model.objects.get(key=key)
         except self.model.DoesNotExist:

@@ -12,6 +12,7 @@ from django.test import TestCase
 from kobo.apps.reports import report_data
 
 from kpi.models import Asset, ExportTask
+from kpi.constants import PERM_VIEW_SUBMISSIONS
 
 
 class ConflictingVersionsMockDataExports(TestCase):
@@ -30,8 +31,9 @@ class ConflictingVersionsMockDataExports(TestCase):
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.get(uid='axD3Wc8ZnfgLXBcURRt5fM')
         # To avoid cluttering the fixture, assign permissions here
-        self.asset.assign_perm(self.user, 'view_submissions')
-        self.submissions = self.asset.deployment.get_submissions()
+        self.asset.assign_perm(self.user, PERM_VIEW_SUBMISSIONS)
+        self.submissions = self.asset.deployment.get_submissions(
+            self.asset.owner.id)
         self.submission_id_field = '_id'
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,

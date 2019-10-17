@@ -10,7 +10,10 @@
  */
 
 import alertify from 'alertifyjs';
+import Reflux from 'reflux';
+import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
+import permissionsActions from './actions/permissions';
 import helpActions from './actions/help';
 import {
   log,
@@ -19,20 +22,20 @@ import {
   replaceSupportEmail,
 } from './utils';
 
-var Reflux = require('reflux');
-import RefluxPromise from './libs/reflux-promise';
+// Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
 
-const actions = {};
-
-actions.help = helpActions;
+const actions = {
+  permissions: permissionsActions,
+  help: helpActions
+};
 
 actions.navigation = Reflux.createActions([
-    'transitionStart',
-    'transitionEnd',
-    'routeUpdate',
-    'documentTitleUpdate'
-  ]);
+  'transitionStart',
+  'transitionEnd',
+  'routeUpdate',
+  'documentTitleUpdate'
+]);
 
 actions.auth = Reflux.createActions({
   verifyLogin: {
@@ -207,39 +210,6 @@ actions.resources = Reflux.createActions({
   notFound: {}
 });
 
-actions.permissions = Reflux.createActions({
-  assignPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  removePerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  copyPermissionsFrom: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  assignPublicPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  setCollectionDiscoverability: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-});
-
 actions.hooks = Reflux.createActions({
   getAll: {children: ['completed', 'failed']},
   add: {children: ['completed', 'failed']},
@@ -255,7 +225,7 @@ actions.misc = Reflux.createActions({
     asyncResult: true,
     children: [
       'completed',
-      'failed_'
+      'failed'
     ]
   },
   updateProfile: {
@@ -272,10 +242,39 @@ actions.misc = Reflux.createActions({
   },
 });
 
+// TODO move these callbacks to `actions/permissions.es6` after moving
+// `actions.resources` to separate file (circular dependency issue)
+permissionsActions.assignAssetPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.removeAssetPermission.failed.listen(() => {
+  notify(t('Failed to remove permissions'), 'error');
+});
+permissionsActions.assignCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.removeCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.assignAssetPermission.completed.listen((uid) => {
+  // needed to update publicShareSettings after enabling link sharing
+  actions.resources.loadAsset({id: uid});
+});
+permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) => {
+  actions.resources.loadAsset({id: targetUid});
+});
+permissionsActions.removeAssetPermission.completed.listen((uid) => {
+  // needed to update publicShareSettings after disabling link sharing
+  actions.resources.loadAsset({id: uid});
+});
+permissionsActions.setCollectionDiscoverability.completed.listen((val) => {
+  actions.resources.loadAsset({url: val.url});
+});
+
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)
     .done(actions.misc.checkUsername.completed)
-    .fail(actions.misc.checkUsername.failed_);
+    .fail(actions.misc.checkUsername.failed);
 });
 
 actions.misc.updateProfile.listen(function(data, callbacks={}){
@@ -519,7 +518,7 @@ actions.resources.createResource.listen(function(details){
       actions.resources.createResource.completed(asset);
     })
     .fail(function(...args){
-      actions.resources.createResource.failed(...args)
+      actions.resources.createResource.failed(...args);
     });
 });
 
@@ -595,54 +594,7 @@ actions.search.assets.listen(function(searchData, params={}){
     });
 });
 
-actions.permissions.assignPerm.listen(function(creds){
-  dataInterface.assignPerm(creds)
-    .done(actions.permissions.assignPerm.completed)
-    .fail(actions.permissions.assignPerm.failed);
-});
-actions.permissions.assignPerm.completed.listen(function(val){
-  actions.resources.loadAsset({url: val.content_object});
-});
-actions.permissions.assignPerm.failed.listen(function(){
-  notify(t('failed to update permissions'), 'error');
-});
 
-// copies permissions from one asset to other
-actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
-  dataInterface.copyPermissionsFrom(sourceUid, targetUid)
-    .done((response) => {
-      actions.resources.loadAsset({id: targetUid});
-      actions.permissions.copyPermissionsFrom.completed();
-    })
-    .fail(actions.permissions.copyPermissionsFrom.failed);
-});
-
-actions.permissions.removePerm.listen(function(details){
-  if (!details.content_object_uid) {
-    throw new Error('removePerm needs a content_object_uid parameter to be set');
-  }
-  dataInterface.removePerm(details.permission_url)
-    .done(function(resp){
-      actions.permissions.removePerm.completed(details.content_object_uid, resp);
-    })
-    .fail(actions.permissions.removePerm.failed);
-});
-
-actions.permissions.removePerm.completed.listen(function(uid){
-  actions.resources.loadAsset({id: uid});
-});
-actions.permissions.removePerm.failed.listen(function(){
-  notify(t('failed to remove permissions'), 'error');
-});
-
-actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
-  dataInterface.patchCollection(uid, {discoverable_when_public: discoverable})
-    .done(actions.permissions.setCollectionDiscoverability.completed)
-    .fail(actions.permissions.setCollectionDiscoverability.failed);
-});
-actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
-  actions.resources.loadAsset({url: val.url});
-});
 
 // reload so a new csrf token is issued
 actions.auth.logout.completed.listen(function(){
@@ -796,11 +748,19 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
       }
     });
 });
-actions.hooks.update.completed.listen((response) => {
+actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((response) => {
-  notify(t('Failed saving REST Service'), 'error');
+actions.hooks.update.failed.listen((data) => {
+  const errorLines = [t('Failed saving REST Service')];
+  if (
+    data.responseJSON &&
+    data.responseJSON.payload_template &&
+    data.responseJSON.payload_template.length !== 0
+  ) {
+    errorLines.push(t('Custom wrapper:') + ' ' + data.responseJSON.payload_template[0]);
+  }
+  alertify.error(errorLines.join('<br/>'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {

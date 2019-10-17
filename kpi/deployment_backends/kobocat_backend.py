@@ -2,31 +2,29 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-import cStringIO
 import json
-import re
-import requests
-import unicodecsv
-import urlparse
 import posixpath
+import re
+import urlparse
 
-from bson import json_util
+import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
-from pyxform.xls2json_backends import xls_to_dict
-from rest_framework import exceptions, status, serializers
-from rest_framework.request import Request
+from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 
-from ..exceptions import BadFormatException, KobocatDeploymentException
-from .base_backend import BaseDeploymentBackend
-from .kc_access.utils import instance_count, last_submission_time
-from .kc_access.shadow_models import ReadOnlyInstance, ReadOnlyXForm
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.log import logging
+from kpi.utils.mongo_helper import MongoHelper
+from .base_backend import BaseDeploymentBackend
+from .kc_access.shadow_models import ReadOnlyKobocatInstance, ReadOnlyKobocatXForm
+from .kc_access.utils import (
+    assign_applicable_kc_permissions,
+    instance_count,
+    last_submission_time
+)
+from ..exceptions import BadFormatException, KobocatDeploymentException
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -35,13 +33,31 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     "self.asset._deployment_data" JSONField.
     """
 
-    INSTANCE_ID_FIELDNAME = "_id"
+    def bulk_assign_mapped_perms(self):
+        """
+        Bulk assign all `kc` permissions related to `kpi` permissions.
+        Useful to assign permissions retroactively upon deployment.
+        Beware: it only adds permissions, it does not remove or sync permissions.
+        """
+        users_with_perms = self.asset.get_users_with_perms(attach_perms=True)
+
+        # if only the owner has permissions, no need to go further
+        if len(users_with_perms) == 1 and \
+                users_with_perms.keys()[0].id == self.asset.owner_id:
+            return
+
+        for user, perms in users_with_perms.items():
+            if user.id == self.asset.owner_id:
+                continue
+            assign_applicable_kc_permissions(self.asset, user, perms)
 
     @staticmethod
     def make_identifier(username, id_string):
-        ''' Uses `settings.KOBOCAT_URL` to construct an identifier from a
+        """
+        Uses `settings.KOBOCAT_URL` to construct an identifier from a
         username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers '''
+        or know the full format of KC identifiers
+        """
         # No need to use the internal URL here; it will be substituted in when
         # appropriate
         return u'{}/{}/forms/{}'.format(
@@ -52,9 +68,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def external_to_internal_url(url):
-        ''' Replace the value of `settings.KOBOCAT_URL` with that of
+        """
+        Replace the value of `settings.KOBOCAT_URL` with that of
         `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
-        `url` '''
+        `url`
+        """
         return re.sub(
             pattern=u'^{}'.format(re.escape(settings.KOBOCAT_URL)),
             repl=settings.KOBOCAT_INTERNAL_URL,
@@ -63,9 +81,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def internal_to_external_url(url):
-        ''' Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
+        """
+        Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
         `settings.KOBOCAT_URL` when it appears at the beginning of
-        `url` '''
+        `url`
+        """
         return re.sub(
             pattern=u'^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
             repl=settings.KOBOCAT_URL,
@@ -77,10 +97,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.asset._deployment_data['backend_response']
 
     def _kobocat_request(self, method, url, **kwargs):
-        '''
+        """
         Make a POST or PATCH request and return parsed JSON. Keyword arguments,
         e.g. `data` and `files`, are passed through to `requests.request()`.
-        '''
+        """
 
         expected_status_codes = {
             'POST': 201,
@@ -151,7 +171,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform_id(self):
         pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
-        xform = ReadOnlyXForm.objects.filter(pk=pk).only(
+        xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
             'user__username', 'id_string').first()
         if not (xform.user.username == self.asset.owner.username and
                 xform.id_string == self.xform_id_string):
@@ -163,10 +183,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
     def connect(self, identifier=None, active=False):
-        '''
+        """
         POST initial survey content to kobocat and create a new project.
         store results in self.asset._deployment_data.
-        '''
+        """
         # If no identifier was provided, construct one using
         # `settings.KOBOCAT_URL` and the uid of the asset
         if not identifier:
@@ -205,7 +225,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if path_head != '/':
                 raise Exception('The identifier is not properly formatted.')
 
-        url = self.external_to_internal_url(u'{}/api/v1/forms'.format(server))
+        url = self.external_to_internal_url('{}/api/v1/forms'.format(server))
         xls_io = self.asset.to_xls_io(
             versioned=True, append={
                 'settings': {
@@ -214,9 +234,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
             }
         )
+
+        # Payload contains `kpi_asset_uid` and `has_kpi_hook` for two reasons:
+        # - KC `XForm`'s `id_string` can be different than `Asset`'s `uid`, then
+        #   we can't rely on it to find its related `Asset`.
+        # - Removing, renaming `has_kpi_hook` will force PostgreSQL to rewrite every
+        #   records of `logger_xform`. It can be also used to filter queries as it's faster
+        #   to query a boolean than string.
+        # Don't forget to run Management Command `populate_kc_xform_kpi_asset_uid`
         payload = {
-            u"downloadable": active,
-            u"has_kpi_hook": self.asset.has_active_hooks
+            'downloadable': active,
+            'has_kpi_hook': self.asset.has_active_hooks,
+            'kpi_asset_uid': self.asset.uid
         }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         json_response = self._kobocat_request(
@@ -230,10 +259,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
 
     def redeploy(self, active=None):
-        '''
+        """
         Replace (overwrite) the deployment, keeping the same identifier, and
         optionally changing whether the deployment is active
-        '''
+        """
         if active is None:
             active = self.active
         url = self.external_to_internal_url(self.backend_response['url'])
@@ -247,9 +276,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
         )
         payload = {
-            u"downloadable": active,
-            u"title": self.asset.name,
-            u"has_kpi_hook": self.asset.has_active_hooks
+            'downloadable': active,
+            'title': self.asset.name,
+            'has_kpi_hook': self.asset.has_active_hooks
         }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         try:
@@ -267,17 +296,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 return self.connect(self.identifier, active)
             raise
 
+        self.set_asset_uid()
+
     def set_active(self, active):
-        '''
+        """
         PATCH active boolean of survey.
         store results in self.asset._deployment_data
-        '''
+        """
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
         url = self.external_to_internal_url(
             self.backend_response['url'])
         payload = {
-            u'downloadable': bool(active)
+            'downloadable': bool(active)
         }
         json_response = self._kobocat_request('PATCH', url, data=payload)
         assert(json_response['downloadable'] == bool(active))
@@ -285,6 +316,36 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'active': json_response['downloadable'],
             'backend_response': json_response,
         })
+
+    def set_asset_uid(self, force=False):
+        """
+        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
+        populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
+        Useful when a form is created from the legacy upload form.
+        Store results in self.asset._deployment_data
+
+        Returns:
+            bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
+                  during this call, otherwise `False`.
+        """
+        is_synchronized = not (
+            force or
+            self.backend_response.get('kpi_asset_uid', None) is None
+        )
+        if is_synchronized:
+            return False
+
+        url = self.external_to_internal_url(self.backend_response['url'])
+        payload = {
+            'kpi_asset_uid': self.asset.uid
+        }
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        is_set = json_response['kpi_asset_uid'] == self.asset.uid
+        assert is_set
+        self.store_data({
+            'backend_response': json_response,
+        })
+        return True
 
     def set_has_kpi_hooks(self):
         """
@@ -296,19 +357,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         has_active_hooks = self.asset.has_active_hooks
         url = self.external_to_internal_url(
-            self.backend_response["url"])
+            self.backend_response['url'])
         payload = {
-            u"has_kpi_hooks": has_active_hooks
+            'has_kpi_hooks': has_active_hooks,
+            'kpi_asset_uid': self.asset.uid
         }
-        json_response = self._kobocat_request("PATCH", url, data=payload)
-        assert(json_response["has_kpi_hooks"] == has_active_hooks)
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        assert(json_response['has_kpi_hooks'] == has_active_hooks)
         self.store_data({
-            "has_kpi_hooks": json_response.get("has_kpi_hooks"),
-            "backend_response": json_response,
+            'backend_response': json_response,
         })
 
     def delete(self):
-        ''' WARNING! Deletes all submitted data! '''
+        """
+        WARNING! Deletes all submitted data!
+        """
         url = self.external_to_internal_url(self.backend_response['url'])
         try:
             self._kobocat_request('DELETE', url)
@@ -325,11 +388,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Deletes submission through `KoBoCat` proxy
         :param pk: int
         :param user: User
-        :return: JSON
+        :return: dict
         """
-
         kc_url = self.get_submission_detail_url(pk)
         kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def delete_submissions(self, data, user):
+        """
+        Deletes submissions through `KoBoCat` proxy
+        :param user: User
+        :return: dict
+        """
+
+        kc_url = self.submission_list_url
+        kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -431,7 +506,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param submission_pk: int
         :param user: User
         :param params: dict
-        :return: JSON
+        :return: dict
         """
         url = '{detail_url}/enketo'.format(
             detail_url=self.get_submission_detail_url(submission_pk))
@@ -452,132 +527,163 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self, format_type=INSTANCE_FORMAT_TYPE_JSON, instances_ids=[], **kwargs):
+    def get_submissions(self, requesting_user_id,
+                        format_type=INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids=[], **kwargs):
         """
         Retrieves submissions through Postgres or Mongo depending on `format_type`.
         It can be filtered on instances ids.
 
-        :param format_type: str. INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param instances_ids: list. Ids of instances to retrieve
-        :param kwargs: dict. Filter parameters for Mongo query. See
-            https://docs.mongodb.com/manual/reference/operator/query/
-        :return: list: mixed
+        Args:
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            instance_ids (list): Instance ids to retrieve
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instances' XML as string
+                - `None` if no results
         """
-        submissions = []
+
+        kwargs['instance_ids'] = instance_ids
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      format_type=format_type,
+                                                      **kwargs)
 
         if format_type == INSTANCE_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(instances_ids, **kwargs)
+            submissions = self.__get_submissions_in_json(**params)
         elif format_type == INSTANCE_FORMAT_TYPE_XML:
-            submissions = self.__get_submissions_in_xml(instances_ids, **kwargs)
+            submissions = self.__get_submissions_in_xml(**params)
         else:
             raise BadFormatException(
                 "The format {} is not supported".format(format_type)
             )
         return submissions
 
-    def get_submission(self, pk, format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns only one occurrence.
-
-        :param pk: int. `Instance.id`
-        :param format_type: str.  INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-        :param kwargs: dict. Filter params
-        :return: mixed. JSON or XML
-        """
-
-        if pk:
-            submissions = list(self.get_submissions(format_type, [int(pk)], **kwargs))
-            if len(submissions) > 0:
-                return submissions[0]
-            return None
-        else:
-            raise ValueError(_("Primary key must be provided"))
-
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
-        kc_request = requests.Request(method="GET", url=url, data=params)
+        kc_request = requests.Request(method='GET', url=url, data=params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_status(self, submission_pk, data, user):
-        url = self.get_submission_validation_status_url(submission_pk)
-        kc_request = requests.Request(method="PATCH", url=url, json=data)
+    def set_validation_status(self, submission_pk, data, user, method):
+        """
+        Updates validation status from `kc` through proxy
+        If method is `DELETE`, it resets the status to `None`
+
+        Args:
+            submission_pk (int)
+            data (dict): data to update when `PATCH` is used.
+            user (User)
+            method (string): 'PATCH'|'DELETE'
+
+        Returns:
+            dict (a formatted dict to be passed to a Response object)
+        """
+        kc_request_params = {
+            'method': method,
+            'url': self.get_submission_validation_status_url(submission_pk)
+        }
+        if method == 'PATCH':
+            kc_request_params.update({
+                'json': data
+            })
+        kc_request = requests.Request(**kc_request_params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, data, user):
+    def set_validation_statuses(self, data, user, method):
+        """
+        Bulk update for validation status from `kc` through proxy
+        If method is `DELETE`, it resets statuses to `None`
+
+        Args:
+            data (dict): data to update when `PATCH` is used.
+            user (User)
+            method (string): 'PATCH'|'DELETE'
+
+        Returns:
+            dict (a formatted dict to be passed to a Response object)
+        """
         url = self.submission_list_url
-        kc_request = requests.Request(method="PATCH", url=url, json=data)
+        data = data.copy()  # Need to get a copy to update the dict
+
+        # `PATCH` KC even if kpi receives `DELETE`
+        kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def __get_submissions_in_json(self, instances_ids=[], **kwargs):
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      validate_count=True,
+                                                      **kwargs)
+        return MongoHelper.get_count(self.mongo_userform_id, **params)
+
+    def __get_submissions_in_json(self, **params):
         """
         Retrieves instances directly from Mongo.
 
-        :param instances_ids: list. Optional
-        :param kwargs: dict. Filter params
+        :param params: dict. Filter params
         :return: generator<JSON>
         """
 
-        kwargs["instances_ids"] = instances_ids
-        params = self.validate_submission_list_params(**kwargs)
-        instances = MongoHelper.get_instances(self.mongo_userform_id, **params)
+        instances, total_count = MongoHelper.get_instances(
+            self.mongo_userform_id, **params)
+
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
+        self.current_submissions_count = total_count
 
         return (
             MongoHelper.to_readable_dict(instance)
             for instance in instances
         )
 
-    def __get_submissions_in_xml(self, instances_ids=[], **kwargs):
+    def __get_submissions_in_xml(self, **params):
         """
         Retrieves instances directly from Postgres.
 
-        :param instances_ids: list. Optional
-        :param kwargs: dict. Filter params
+        :param params: dict. Filter params
         :return: list<XML>
         """
 
-        sort = {"id": 1}
-        kwargs["instances_ids"] = instances_ids
-        use_mongo = False
+        mongo_filters = ['query', 'permission_filters']
+        use_mongo = any(mongo_filter in mongo_filters for mongo_filter in params
+                        if params.get(mongo_filter) is not None)
 
-        if "fields" in kwargs:
-            raise ValueError(_("`Fields` param is not supported with XML format"))
-
-        # Because `kwargs`' values are for `Mongo`'s query engine
-        # We still use MongoHelper to validate params.
-        params = self.validate_submission_list_params(**kwargs)
-
-        if "query" in kwargs:
+        if use_mongo:
             # We use Mongo to retrieve matching instances.
             # Get only their ids and pass them to PostgreSQL.
-            params["fields"] = ["_id"]
-            instances_ids = [instance.get("_id") for instance in
-                             MongoHelper.get_instances(self.mongo_userform_id, **params)]
-            use_mongo = True
+            params['fields'] = [self.INSTANCE_ID_FIELDNAME]
+            # Force `sort` by `_id` for Mongo
+            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+            params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
+            instances, _ = MongoHelper.get_instances(self.mongo_userform_id,
+                                                     **params)
+            instance_ids = [instance.get(self.INSTANCE_ID_FIELDNAME) for instance in
+                            instances]
 
-        queryset = ReadOnlyInstance.objects.filter(
+        queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,
             deleted_at=None
         )
 
-        if len(instances_ids) > 0:
-            queryset = queryset.filter(id__in=instances_ids)
+        if len(instance_ids) > 0 or use_mongo:
+            queryset = queryset.filter(id__in=instance_ids)
 
-        # Sort
-        sort = params.get("sort") or sort
-        sort_key = sort.keys()[0]
-        sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
-        queryset = queryset.order_by("{direction}{field}".format(
-            direction="-" if sort_dir < 0 else "",
-            field=sort_key
-        ))
+        # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
+        self.current_submissions_count = queryset.count()
+
+        # Force Sort by id
+        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+        queryset = queryset.order_by('id')
 
         # When using Mongo, data is already paginated, no need to do it with PostgreSQL too.
         if not use_mongo:
-            offset = params.get("start")
-            limit = offset + params.get("limit")
+            offset = params.get('start')
+            limit = offset + params.get('limit')
             queryset = queryset[offset:limit]
 
         return (lazy_instance.xml for lazy_instance in queryset)

@@ -12,37 +12,29 @@
  */
 
 import React from 'react';
-import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {Link, hashHistory} from 'react-router';
-import DocumentTitle from 'react-document-title';
-import classNames from 'classnames';
+import {hashHistory} from 'react-router';
 
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
+  ANON_USERNAME
 } from './constants';
 import {dataInterface} from './dataInterface';
 import stores from './stores';
-import bem from './bem';
 import actions from './actions';
-import ui from './ui';
 import $ from 'jquery';
-
+import permConfig from 'js/components/permissions/permConfig';
 import {
-  anonUsername,
-  formatTime,
-  currentLang,
   log,
   t,
   assign,
   notify,
-  stringToColor,
-  escapeHtml
+  escapeHtml,
+  buildUserUrl,
+  renderCheckbox
 } from './utils';
-
-import icons from '../xlform/src/view.icons';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -214,11 +206,11 @@ mixins.dmix = {
   },
   _getAssetUid () {
     if (this.props.params) {
-      return this.props.params.assetid || this.props.params.uid
+      return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid
+      return this.props.uid;
     }
   },
   componentDidMount () {
@@ -387,7 +379,7 @@ mixins.droppable = {
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
-          } else if (importData.status === 'error')  {
+          } else if (importData.status === 'error') {
             const errLines = [];
             errLines.push(t('Import Failed!'));
             if (params.name) {
@@ -456,14 +448,6 @@ mixins.collectionList = {
     this.setState(collections);
   },
 };
-
-const renderCheckbox = (id, label, isImportant) => {
-  let additionalClass = '';
-  if (isImportant) {
-    additionalClass += 'alertify-toggle-important';
-  }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-}
 
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
@@ -670,58 +654,37 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  removePerm (permName, permObject, content_object_uid) {
-    actions.permissions.removePerm({
-      permission_url: permObject.url,
-      content_object_uid: content_object_uid
-    });
-  },
-  // PM: temporarily disabled
-  // removeCollectionPublicPerm (collection, publicPerm) {
-  //   return (evt) => {
-  //     evt.preventDefault();
-  //     if (collection.discoverable_when_public) {
-  //       actions.permissions.setCollectionDiscoverability(
-  //         collection.uid, false
-  //       );
-  //     }
-  //     actions.permissions.removePerm({
-  //       permission_url: publicPerm.url,
-  //       content_object_uid: collection.uid
-  //     });
-  //   };
-  // },
-  setPerm (permName, props) {
-    actions.permissions.assignPerm({
-      username: props.username,
-      uid: props.uid,
-      kind: props.kind,
-      objectUrl: props.objectUrl,
-      role: permName
-    });
-  },
   userCan (permName, asset) {
-    if (!asset.permissions)
+    if (!asset.permissions) {
       return false;
+    }
 
-    if (!stores.session.currentAccount)
+    if (!stores.session.currentAccount) {
       return false;
+    }
 
     const currentUsername = stores.session.currentAccount.username;
-    if (asset.owner__username === currentUsername)
+    if (asset.owner__username === currentUsername) {
       return true;
-
-    // TODO: should super user always have access to all UI?
-    // if (stores.session.currentAccount.is_superuser)
-    //   return true;
+    }
 
     // if permission is granted publicly, then grant it to current user
-    const anonAccess = asset.permissions.some(perm => perm.user__username === 'AnonymousUser' && perm.permission === permName);
-    if (anonAccess)
+    const anonAccess = asset.permissions.some((perm) => {
+      return (
+        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
+    });
+    if (anonAccess) {
       return true;
+    }
 
-    const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
-    return userPerms.some(p => p.permission === permName);
+    return asset.permissions.some((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
+    });
   }
 };
 
@@ -752,7 +715,7 @@ mixins.contextRouter = {
       return true;
 
     if (this.context.router.params.assetid == undefined)
-      return false
+      return false;
 
     var assetid = this.context.router.params.assetid;
     if (this.context.router.isActive(`/library/${assetid}/edit`))
@@ -760,7 +723,7 @@ mixins.contextRouter = {
 
     return this.context.router.isActive(`/forms/${assetid}/edit`);
   }
-}
+};
 
 /*
  * generates dialog when cloning an asset as new type
@@ -813,6 +776,6 @@ mixins.cloneAssetAsNewType = {
     };
     dialog.set(opts).show();
   }
-}
+};
 
 export default mixins;
