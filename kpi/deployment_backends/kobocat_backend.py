@@ -319,17 +319,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def set_asset_uid(self, force=False):
         """
-        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by 
+        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
         populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
         Useful when a form is created from the legacy upload form.
         Store results in self.asset._deployment_data
 
         Returns:
             bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
-                  during this call, otherwise `False`. 
+                  during this call, otherwise `False`.
         """
         is_synchronized = not (
-            force or 
+            force or
             self.backend_response.get('kpi_asset_uid', None) is None
         )
         if is_synchronized:
