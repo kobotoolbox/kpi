@@ -8,6 +8,7 @@ from django.http import HttpRequest
 from django.template import Template, RequestContext
 from rest_framework import status
 
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -40,6 +41,7 @@ class EnvironmentTests(BaseTestCase):
                 self.assertGreater(len(x), 5) and self.assertIn(
                     ('ar', 'العربيّة'), x
                 ),
+            'submission_placeholder': SUBMISSION_PLACEHOLDER,
         }
 
     def _check_response_dict(self, response_dict):
