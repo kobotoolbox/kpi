@@ -912,12 +912,6 @@ class ProjectSettings extends React.Component {
               </button>
             </bem.FormModal__item>
           }
-
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
-          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
