@@ -28,7 +28,7 @@ from kpi.views.v1 import (
 )
 
 router_api_v1 = ExtendedDefaultRouter()
-asset_routes = router_api_v1.register(r'assets', AssetViewSet, base_name='asset')
+asset_routes = router_api_v1.register(r'assets', AssetViewSet, basename='asset')
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       basename='asset-version',
@@ -69,7 +69,7 @@ router_api_v1.register(r'collections', CollectionViewSet)
 router_api_v1.register(r'users', UserViewSet)
 router_api_v1.register(r'tags', TagViewSet)
 router_api_v1.register(r'permissions', ObjectPermissionViewSet)
-router_api_v1.register(r'reports', ReportsViewSet, base_name='reports')
+router_api_v1.register(r'reports', ReportsViewSet, basename='reports')
 router_api_v1.register(r'imports', ImportTaskViewSet)
 router_api_v1.register(r'exports', ExportTaskViewSet)
 router_api_v1.register(r'sitewide_messages', SitewideMessageViewSet)
