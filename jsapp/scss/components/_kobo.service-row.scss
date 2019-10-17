@@ -57,28 +57,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
     flex: 1;
     line-height: 18px;
 
-    .count-information-wrapper {
-      display: inline-block;
-      vertical-align: bottom;
-      font-size: 36px;
 
-      &[data-tip]::before,
-      &[data-tip]::after {
-        // to align with action buttons
-        margin-top: 9px;
-      }
-
-      i {
-        color: inherit;
-        vertical-align: inherit;
-        line-height: inherit;
-
-        &::before {
-          vertical-align: inherit;
-          line-height: inherit;
-        }
-      }
-    }
   }
 
 
