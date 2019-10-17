@@ -14,7 +14,8 @@ from kobo.apps.hook.models.hook import Hook
 
 class HookSerializer(serializers.ModelSerializer):
 
-    payload_template = serializers.CharField(required=False, allow_blank=True)
+    payload_template = serializers.CharField(required=False, allow_blank=True,
+                                             allow_null=True)
 
     class Meta:
         model = Hook

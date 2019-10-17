@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='hook',
             name='payload_template',
-            field=models.TextField(null=True),
+            field=models.TextField(null=True, blank=True),
         ),
     ]
