@@ -32,6 +32,7 @@ class AssetActionButtons extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      ownedCollections: [],
       shouldHidePopover: false,
       isPopoverVisible: false
     };
