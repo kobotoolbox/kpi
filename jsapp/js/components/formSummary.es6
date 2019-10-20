@@ -8,6 +8,7 @@ import {dataInterface} from '../dataInterface';
 import stores from '../stores';
 import mixins from '../mixins';
 import bem from '../bem';
+import {AccessDeniedMessage} from 'js/ui';
 
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
@@ -332,16 +333,7 @@ class FormSummary extends React.Component {
     }
 
     if (!this.userCan('view_submissions', this.state)) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('Access Denied')}
-            </h3>
-            {t('You do not have permission to view this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<AccessDeniedMessage/>);
     }
 
     return (
