@@ -1,9 +1,10 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import DocumentTitle from 'react-document-title';
-import bem from '../bem';
-import RESTServicesList from './RESTServices/RESTServicesList'
-import RESTServiceLogs from './RESTServices/RESTServiceLogs'
+import stores from '../stores';
+import RESTServicesList from './RESTServices/RESTServicesList';
+import RESTServiceLogs from './RESTServices/RESTServiceLogs';
+import {AccessDeniedMessage} from 'js/ui';
 import {t} from '../utils';
 
 export default class RESTServices extends React.Component {
@@ -14,20 +15,26 @@ export default class RESTServices extends React.Component {
 
   render() {
     const docTitle = this.props.asset.name || t('Untitled');
-    if (this.props.hookUid) {
-      return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.FormView m={'form-settings'} className='rest-services'>
+    let isSelfOwned = (
+      stores.session.currentAccount &&
+      stores.session.currentAccount.username &&
+      stores.session.currentAccount.username === this.props.asset.owner__username
+    );
+
+    return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <React.Fragment>
+          {!isSelfOwned &&
+            <AccessDeniedMessage/>
+          }
+          {isSelfOwned && this.props.hookUid &&
             <RESTServiceLogs assetUid={this.props.asset.uid} hookUid={this.props.hookUid} />
-          </bem.FormView>
-        </DocumentTitle>
-      );
-    } else {
-      return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <RESTServicesList assetUid={this.props.asset.uid} />
-        </DocumentTitle>
-      );
-    }
+          }
+          {isSelfOwned && !this.props.hookUid &&
+            <RESTServicesList assetUid={this.props.asset.uid} />
+          }
+        </React.Fragment>
+      </DocumentTitle>
+    );
   }
-};
+}
