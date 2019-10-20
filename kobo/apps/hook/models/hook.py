@@ -49,7 +49,8 @@ class Hook(models.Model):
     date_modified = models.DateTimeField(default=timezone.now)
     email_notification = models.BooleanField(default=True)
     subset_fields = ArrayField(
-        models.CharField(max_length=500, blank=False),
+        models.CharField(max_length=500),
+        blank=True,
         default=[],
     )
 

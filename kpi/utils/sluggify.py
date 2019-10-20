@@ -8,6 +8,8 @@ import re
 
 from django.utils.six import string_types
 
+from kpi.utils.future import hashable_str
+
 # an approximation of the max size.
 # actual max length will be 40 + len(join_with) + len("_001")
 MAX_NAME_LENGTH = 40
@@ -86,7 +88,7 @@ def sluggify(_str, _opts):
         if len(attempt_base) == 0:
             # empty string because arabic / cyrillic characters
             _str = 'h{}'.format(
-                hashlib.md5(_initial[0:7].encode('utf-8')).hexdigest()[0:7])
+                hashlib.md5(hashable_str(_initial[0:7])).hexdigest()[0:7])
         attempt = attempt_base
         incremented = 0
         while attempt.lower() in names_lc:

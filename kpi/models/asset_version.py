@@ -15,6 +15,7 @@ from reversion.models import Version
 
 from kpi.fields import KpiUidField
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.future import hashable_str
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
@@ -64,7 +65,7 @@ class AssetVersion(models.Model):
         # used to determine changes in the content from version to version
         # not saved, only compared with other asset_versions
         _json_string = json.dumps(self.version_content, sort_keys=True)
-        return hashlib.sha1(_json_string).hexdigest()
+        return hashlib.sha1(hashable_str(_json_string)).hexdigest()
 
     def __str__(self):
         return '{}@{} T{}{}'.format(

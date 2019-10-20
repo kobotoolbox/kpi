@@ -731,7 +731,7 @@ class Asset(ObjectPermissionMixin,
             if with_filters:
                 return perms
             else:
-                return perms.keys()
+                return list(perms)
 
         return None
 

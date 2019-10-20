@@ -5,11 +5,11 @@
 # NB: jnm fork of `geojson-rewind` should not be necessary after upgrading to
 # Python 3
 -e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
--e git+https://github.com/kobotoolbox/formpack.git@eae87edbcb4ca2b05130e26c99ac81e3437d03c9#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@696cdb16534e43afe47ba424a178743551e11943#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
-python-digest==1.7
+-e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
 
 # TODO: Get Haystack from PyPI again once https://github.com/django-haystack/django-haystack/issues/1662 is fixed

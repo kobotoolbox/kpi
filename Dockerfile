@@ -32,9 +32,10 @@ RUN if ! diff "${KPI_SRC_DIR}/dependencies/apt_requirements.txt" /srv/tmp/base__
 
 COPY ./dependencies/pip/external_services.txt "${KPI_SRC_DIR}/dependencies/pip/"
 WORKDIR ${PIP_DIR}/
+
 # Only install if the current version of `dependencies/pip/external_services.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" /srv/tmp/base__external_services.txt; then \
-        pip-sync "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" 1>/dev/null \
+        pip-sync /srv/tmp/base_os_dependencies.txt "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" 1>/dev/null \
     ; fi
 
 

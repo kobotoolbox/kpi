@@ -137,7 +137,7 @@ def create_assets(kls, structure, **options):
 
 @contextlib.contextmanager
 def disable_auto_field_update(kls, field_name):
-    field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
     original_auto_now = field.auto_now
     original_auto_now_add = field.auto_now_add
     field.auto_now = False

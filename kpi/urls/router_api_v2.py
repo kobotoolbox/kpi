@@ -82,13 +82,13 @@ router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 
 # TODO migrate ViewSet below
-# router_api_v2.register(r'reports', ReportsViewSet, base_name='reports')
+# router_api_v2.register(r'reports', ReportsViewSet, basename='reports')
 # router_api_v2.register(r'imports', ImportTaskViewSet)
 # router_api_v2.register(r'exports', ExportTaskViewSet)
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
 #
 # router_api_v2.register(r'authorized_application/users',
 #                        AuthorizedApplicationUserViewSet,
-#                        base_name='authorized_applications')
+#                        basename='authorized_applications')
 # router_api_v2.register(r'authorized_application/one_time_authentication_keys',
 #                        OneTimeAuthenticationKeyViewSet)

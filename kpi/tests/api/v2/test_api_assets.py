@@ -24,6 +24,7 @@ from kpi.serializers.v2.asset import AssetListSerializer
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.future import to_str, hashable_str
 
 
 class AssetsListApiTests(BaseAssetTestCase):
@@ -92,7 +93,7 @@ class AssetsListApiTests(BaseAssetTestCase):
             another_user_asset.version_id
         ]
         versions_ids.sort()
-        expected_hash = md5("".join(versions_ids)).hexdigest()
+        expected_hash = md5(hashable_str(''.join(versions_ids))).hexdigest()
         hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
@@ -114,8 +115,6 @@ class AssetVersionApiTests(BaseTestCase):
     def test_asset_version(self):
         self.assertEqual(Asset.objects.count(), 2)
         self.assertEqual(AssetVersion.objects.count(), 1)
-        print('self.version_list_url')
-        print(self.version_list_url)
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data['count'], 1)
@@ -344,40 +343,53 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.assertEqual(self.asset.asset_type, 'survey')
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertListEqual(
+        expected_response = [
+            {'label': 'Add submissions',
+             'url': 'http://testserver/api/v2/permissions/add_submissions/'},
+            {'label': 'Edit and delete submissions',
+             'url': 'http://testserver/api/v2/permissions/change_submissions/'},
+            {'label': 'Edit form',
+             'url': 'http://testserver/api/v2/permissions/change_asset/'},
+            {'label': 'Validate submissions',
+             'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
+            {'label': 'View form',
+             'url': 'http://testserver/api/v2/permissions/view_asset/'},
+            {'label': 'View submissions',
+             'url': 'http://testserver/api/v2/permissions/view_submissions/'},
+            {'label': 'View submissions only from specific users',
+             'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
+        ]
+
+        assignable_permissions = sorted(
             response.data['assignable_permissions'],
-            [
-                {'label': 'View form',
-                 'url': 'http://testserver/api/v2/permissions/view_asset/'},
-                {'label': 'Add submissions',
-                 'url': 'http://testserver/api/v2/permissions/add_submissions/'},
-                {'label': 'View submissions',
-                 'url': 'http://testserver/api/v2/permissions/view_submissions/'},
-                {'label': 'Edit and delete submissions',
-                 'url': 'http://testserver/api/v2/permissions/change_submissions/'},
-                {'label': 'View submissions only from specific users',
-                 'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
-                {'label': 'Validate submissions',
-                 'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
-                {'label': 'Edit form',
-                 'url': 'http://testserver/api/v2/permissions/change_asset/'}
-            ]
+            key=lambda assignable_perm_: assignable_perm_['label']
         )
+        for index, assignable_perm in enumerate(assignable_permissions):
+            self.assertEqual(assignable_perm['url'],
+                             expected_response[index]['url'])
+            self.assertEqual(assignable_perm['label'],
+                             expected_response[index]['label'])
 
         new_question_response = self.create_asset(asset_type='question')
         question_asset_url = new_question_response.data['url']
         response = self.client.get(question_asset_url, format='json')
         response.encoding = 'utf-8'
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertListEqual(
+        expected_response = [
+            {'label': 'Edit question',
+             'url': 'http://testserver/api/v2/permissions/change_asset/'},
+            {'label': 'View question',
+             'url': 'http://testserver/api/v2/permissions/view_asset/'},
+        ]
+
+        assignable_permissions = sorted(
             response.data['assignable_permissions'],
-            [
-                {'label': 'View question',
-                 'url': 'http://testserver/api/v2/permissions/view_asset/'},
-                {'label': 'Edit question',
-                 'url': 'http://testserver/api/v2/permissions/change_asset/'}
-            ]
+            key=lambda assignable_perm_: assignable_perm_['label']
         )
+
+        for index, assignable_perm in enumerate(assignable_permissions):
+            self.assertEqual(assignable_perm['url'], expected_response[index]['url'])
+            self.assertEqual(assignable_perm['label'], expected_response[index]['label'])
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
@@ -440,7 +452,9 @@ class AssetFileTest(BaseTestCase):
 
     def get_asset_file_content(self, url):
         response = self.client.get(url)
-        return ''.join(response.streaming_content)
+        streaming_content = [to_str(chunk) for chunk in
+                             response.streaming_content]
+        return ''.join(streaming_content)
 
     @property
     def asset_file_payload(self):

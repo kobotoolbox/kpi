@@ -12,6 +12,6 @@ if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
 else
     echo 'Running `kpi` container with `runserver_plus` debugging application server.'
     cd "${KPI_SRC_DIR}"
-    pip-sync dependencies/pip/dev_requirements.txt
+    pip-sync /srv/tmp/base_os_dependencies.txt dependencies/pip/dev_requirements.txt
     exec python manage.py runserver_plus 0:8000
 fi

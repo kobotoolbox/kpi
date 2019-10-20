@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from hub.models import PerUserSetting
+from kpi.utils.future import to_str
 
 
 class PerUserSettingTestCase(TestCase):
@@ -66,12 +67,12 @@ class IntercomConfigurationTestCase(TestCase):
         self.assertTrue(self.client.login(username='someuser',
                                           password='someuser'))
         response = self.client.get(reverse('kpi-root'))
-        lines = [line.strip() for line in response.content.split('\n')]
+        lines = [line.strip() for line in to_str(response.content.decode()).split('\n')]
         self.assertTrue("window.IntercomAppId = 'arm&leg';" in lines)
 
     def test_no_intercom_for_non_matching_user(self):
         self.assertTrue(self.client.login(username='anotheruser',
                                           password='anotheruser'))
         response = self.client.get(reverse('kpi-root'))
-        lines = [line.strip() for line in response.content.split('\n')]
+        lines = [line.strip() for line in to_str(response.content).split('\n')]
         self.assertFalse("window.IntercomAppId = 'arm&leg';" in lines)

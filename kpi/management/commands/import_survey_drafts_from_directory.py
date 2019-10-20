@@ -29,7 +29,7 @@ def _csv_to_dict(content):
 
 
 def _set_auto_field_update(kls, field_name, val):
-    field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
     field.auto_now = val
     field.auto_now_add = val
 

@@ -16,7 +16,7 @@ def _disable_auto_field_update(kls, field_names):
     AUTO_ATTRS = ('auto_now', 'auto_now_add')
     previous_values = {}
     for field_name in field_names:
-        field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+        field = [f for f in kls._meta.fields if f.name == field_name][0]
         for attr in AUTO_ATTRS:
             previous_values[field_name] = previous_values.get(field_name, {})
             previous_values[field_name][attr] = getattr(field, attr)

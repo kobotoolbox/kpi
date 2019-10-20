@@ -20,6 +20,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
+from kpi.utils.future import hashable_str
 
 
 class ReadOnlyModelError(ValueError):
@@ -95,7 +96,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
 
     @property
     def hash(self):
-        return '%s' % md5(self.xml.encode('utf8')).hexdigest()
+        return '%s' % md5(hashable_str(self.xml)).hexdigest()
 
     @property
     def prefixed_hash(self):

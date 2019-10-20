@@ -76,6 +76,6 @@ router_api_v1.register(r'sitewide_messages', SitewideMessageViewSet)
 
 router_api_v1.register(r'authorized_application/users',
                        AuthorizedApplicationUserViewSet,
-                       base_name='authorized_applications')
+                       basename='authorized_applications')
 router_api_v1.register(r'authorized_application/one_time_authentication_keys',
                        OneTimeAuthenticationKeyViewSet)

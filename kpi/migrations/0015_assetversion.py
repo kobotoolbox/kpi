@@ -1,16 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from django.db import migrations, models
-from django.conf import settings
-
 import django.db.models.deletion
-from django.utils import timezone
-
 import jsonbfield.fields
 import jsonfield.fields
-import kpi.fields
+from django.conf import settings
+from django.db import migrations, models
+from django.utils import timezone
 
+import kpi.fields
 from kpi.management.commands.populate_assetversions import populate_assetversions
 
 

@@ -193,7 +193,8 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
         repr_ = super(AssetPermissionAssignmentSerializer, self). \
             to_representation(instance)
-        for k, v in repr_.items():
+        repr_copy = dict(repr_)
+        for k, v in repr_copy.items():
             if k == 'partial_permissions' and v is None:
                 del repr_[k]
 
