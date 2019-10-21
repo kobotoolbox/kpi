@@ -42,8 +42,8 @@ class ApiTokenDisplay extends React.Component {
     this.setState({isLoadingToken: false});
   }
 
-  showApiToken() {
-    this.setState({isLoadingToken: true});
+  toggleApiTokenVisibility() {
+    this.setState({isTokenVisible: !this.state.isTokenVisible});
     actions.auth.getApiToken();
   }
 
@@ -57,21 +57,21 @@ class ApiTokenDisplay extends React.Component {
         <label>{t('API token')}</label>
 
         <input
-          type='text'
+          type={this.state.isTokenVisible && !this.state.isLoadingToken ? 'text' : 'password'}
           value={this.state.token}
           onFocus={this.onInputFocus}
           readOnly
         />
 
-        {this.state.token === this.HIDDEN_VAL &&
-          <button
-            onClick={this.showApiToken}
-            disabled={this.state.isLoadingToken}
-            className='mdl-button mdl-button--icon'
-          >
-            <i className='k-icon k-icon-view'/>
-          </button>
-        }
+        <button
+          onClick={this.toggleApiTokenVisibility}
+          disabled={this.state.isLoadingToken}
+          className='mdl-button mdl-button--icon'
+        >
+          <i className={this.state.isTokenVisible ? 'k-icon k-icon-view-no'
+                                                  : 'k-icon k-icon-view'}
+          />
+        </button>
       </bem.FormModal__item>
     );
   }
