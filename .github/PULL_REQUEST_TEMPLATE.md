@@ -1,3 +1,5 @@
+# HELLO, FRIENDS! Please use `two-databases` as the base branch for all PRs. Thank you!
+
 ## Checklist
 
 1. [ ] If you've added code that should be tested, add tests
