@@ -15,9 +15,9 @@ module.exports = do ->
         # type is same as name
         out.type = out.name
 
-        appearance = @get("appearance")
-        if appearance
-          out.appearance = appearance
+        parameters = @get("parameters")
+        if parameters
+          out.parameters = parameters
 
         return out
       else
@@ -45,8 +45,8 @@ module.exports = do ->
     importDetail: (detail)->
       # For now, every detail which is presented is given a boolean value set to true
       if (dtobj = @get(detail.type))
-        if detail.appearance
-          dtobj.set("appearance", detail.appearance)
+        if detail.parameters
+          dtobj.set("parameters", detail.parameters)
         dtobj.set("value", true)
       else
         throw new Error("SurveyDetail `#{key}` not loaded from schema. [Aliases have not been implemented]")

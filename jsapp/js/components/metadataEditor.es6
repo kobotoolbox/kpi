@@ -21,8 +21,7 @@ export default class MetadataEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      metaProperties: [],
-      auditAppearance: null
+      metaProperties: []
     };
     autoBind(this);
   }
@@ -64,8 +63,8 @@ export default class MetadataEditor extends React.Component {
     }
   }
 
-  onAuditAppearanceChange(newVal) {
-    this.getSurveyDetail(META_QUESTION_TYPES.get('audit')).set('appearance', newVal);
+  onAuditParametersChange(newVal) {
+    this.getSurveyDetail(META_QUESTION_TYPES.get('audit')).set('parameters', newVal);
     this.rebuildState();
     if (typeof this.props.onChange === 'function') {
       this.props.onChange();
@@ -77,9 +76,9 @@ export default class MetadataEditor extends React.Component {
     return metaProp.value === true;
   }
 
-  getAuditAppearance() {
+  getAuditParameters() {
     const metaProp = this.getMetaProperty(META_QUESTION_TYPES.get('audit'));
-    return metaProp.appearance;
+    return metaProp.parameters;
   }
 
   renderAuditInputLabel() {
@@ -151,8 +150,8 @@ export default class MetadataEditor extends React.Component {
           <bem.FormBuilderMeta__row>
             <TextBox
               label={this.renderAuditInputLabel()}
-              value={this.getAuditAppearance()}
-              onChange={this.onAuditAppearanceChange}
+              value={this.getAuditParameters()}
+              onChange={this.onAuditParametersChange}
             />
           </bem.FormBuilderMeta__row>
         }
