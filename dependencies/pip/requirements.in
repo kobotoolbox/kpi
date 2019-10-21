@@ -55,7 +55,7 @@ oauthlib
 py-gfm
 pymongo
 python-dateutil
--e git+https://github.com/gushil/python-keycloak-client.git@5506119627270d88e685f8fd29b1f3c31f70c347#egg=python-keycloak-client
+-e git+https://github.com/gushil/python-keycloak-client.git@d0180624c704e77f7168119ec37371aaa38c1223#egg=python-keycloak-client
 pytz
 pyxform
 requests

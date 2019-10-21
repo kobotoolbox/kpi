@@ -9,7 +9,7 @@
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
 -e git+https://github.com/jhuapl-boss/drf-oidc-auth.git@a6083cc58740587b6f765ddd7643234762d9f3b8#egg=drf-oidc-auth
 -e git+https://github.com/kobotoolbox/formpack.git@eb7d723eb2b54dbfd56a1c32d72e0008bbb29149#egg=formpack
--e git+https://github.com/gushil/python-keycloak-client.git@5506119627270d88e685f8fd29b1f3c31f70c347#egg=python-keycloak-client
+-e git+https://github.com/gushil/python-keycloak-client.git@d0180624c704e77f7168119ec37371aaa38c1223#egg=python-keycloak-client
 alabaster==0.7.12         # via oic
 amqp==2.4.0
 anyjson==0.3.3
