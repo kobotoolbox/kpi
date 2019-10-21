@@ -11,6 +11,7 @@ from rest_framework.reverse import reverse
 from kpi.models import ImportTask
 from kpi.serializers import ImportTaskListSerializer, ImportTaskSerializer
 from kpi.tasks import import_in_background
+from kpi.utils.future import to_str
 
 
 class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
@@ -45,7 +46,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
             itask_data['base64Encoded'] = encoded_substr
         elif 'file' in request.data:
-            encoded_xls = base64.b64encode(request.data['file'].read())
+            encoded_xls = to_str(base64.b64encode(request.data['file'].read()))
             itask_data['base64Encoded'] = encoded_xls
             if 'filename' not in itask_data:
                 itask_data['filename'] = request.data['file'].name

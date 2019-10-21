@@ -37,7 +37,7 @@ class UtilsTestCase(TestCase):
             # arabic and cyrillic text
             [["أين السوق؟", ["_", "__001"]],  "__002"]
         ]
-        for (inps, expected) in inp_exps:
+        for inps, expected in inp_exps:
             inp = inps[0]
             if len(inps) > 1:
                 other_names = inps[1]

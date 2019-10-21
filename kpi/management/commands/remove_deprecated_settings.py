@@ -7,6 +7,7 @@ import json
 from contextlib import contextmanager
 
 from django.core.management.base import BaseCommand
+from django.utils.six import text_type
 
 from kpi.models import Asset
 
@@ -66,7 +67,7 @@ class Command(BaseCommand):
                                 asset.save()
                             except Exception as err:
                                 print('Error running migration:')
-                                print(err.message)
+                                print(text_type(err))
                                 import pdb
                                 pdb.set_trace()
                         else:

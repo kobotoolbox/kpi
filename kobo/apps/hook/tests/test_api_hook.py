@@ -43,6 +43,7 @@ class ApiHookTestCase(HookTestCase):
     def test_create_hook(self):
         self._create_hook()
 
+    @responses.activate
     def test_data_submission(self):
         # Create first hook
         first_hook = self._create_hook(name="dummy external service",
@@ -73,7 +74,7 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-        data = {"instance_id": 4}  # Instance doesn't belong to `self.asset`
+        data = {'instance_id': 4}  # Instance doesn't belong to `self.asset`
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

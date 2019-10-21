@@ -18,6 +18,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import Resolver404, resolve
 from django.db import models, transaction
+from django.utils.six import text_type
 from django.utils.six.moves.urllib.parse import urlparse
 from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
@@ -35,6 +36,7 @@ from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 from kpi.utils.log import logging
+from kpi.utils.future import to_str
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
     remove_string_prefix
@@ -141,7 +143,7 @@ class ImportExportTask(models.Model):
             self.status = self.COMPLETE
         except Exception as err:
             msgs['error_type'] = type(err).__name__
-            msgs['error'] = err.message
+            msgs['error'] = text_type(err)
             self.status = self.ERROR
             logging.error(
                 'Failed to run %s: %s' % (self._meta.model_name, repr(err)),
@@ -158,7 +160,7 @@ class ImportExportTask(models.Model):
         except TypeError as e:
             self.status = self.ERROR
             logging.error('Failed to save %s: %s' % (self._meta.model_name,
-                                                   repr(e)),
+                                                     repr(e)),
                           exc_info=True)
             self.save(update_fields=['status'])
 
@@ -200,7 +202,7 @@ class ImportTask(ImportExportTask):
             # multiple XLS files in a directory structure within a ZIP archive
             response = requests.get(self.data['single_xls_url'])
             response.raise_for_status()
-            encoded_xls = base64.b64encode(response.content)
+            encoded_xls = to_str(base64.b64encode(response.content))
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
@@ -230,7 +232,7 @@ class ImportTask(ImportExportTask):
         fif.remove_empty_collections()
 
         destination_collection = destination \
-                if (destination_kls == 'collection') else False
+            if destination_kls == 'collection' else False
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -694,7 +696,8 @@ def _b64_xls_to_dict(base64_encoded_upload):
 
 
 def _strip_header_keys(survey_dict):
-    for sheet_name, sheet in survey_dict.items():
+    survey_dict_copy = dict(survey_dict)
+    for sheet_name, sheet in survey_dict_copy.items():
         if re.search(r'_header$', sheet_name):
             del survey_dict[sheet_name]
     return survey_dict

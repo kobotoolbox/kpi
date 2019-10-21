@@ -54,14 +54,15 @@ def sluggify(_str, _opts):
         _str = _str.lower()
 
     if opts['underscores']:
-        _str = re.sub('\s', '_', _str)
+        _str = re.sub(r'\s', '_', _str)
         # .replace(/[_]+/g, "_") <- replaces duplicates?
 
     if opts['replaceNonWordCharacters']:
         if opts['nonWordCharsExceptions']:
-            regex = '\W^[%s]' % opts['nonWordCharsExceptions']
+            regex = r'[^a-zA-Z0-9_{}]'.format(opts['nonWordCharsExceptions'])
         else:
-            regex = '\W+'
+            regex = r'[^a-zA-Z0-9_]+'  # Cannot use `\W`. Different behaviour with Python 2 & 3
+
         _str = re.sub(regex, '_', _str)
         if _str != '_' and re.search('_$', _str):
             _str = re.sub('_$', '', _str)

@@ -223,12 +223,10 @@ def test_autoname_shortens_long_names():
         return [r['$autoname'] for r in content.get('survey', [])]
 
     LONG_NAME = ('four_score_and_seven_years_ago_our_fathers_brought_forth_on_'
-                 'this_contintent')
+                 'this_continent')
 
     # names are not shortened by default, because they were explicitly set
-    assert _name_to_autoname([
-        {'name': LONG_NAME}
-    ]) == [LONG_NAME]
+    assert _name_to_autoname([{'name': LONG_NAME}]) == [LONG_NAME]
 
     # if there is a name conflict we should throw a meaningful error
     # however, since this behavior is already present, it might be
@@ -240,22 +238,22 @@ def test_autoname_shortens_long_names():
     #     ])
 
     long_label = ('Four score and seven years ago, our fathers brought forth'
-                  ' on this contintent')
+                  ' on this continent')
     assert _name_to_autoname([
         {'label': long_label},
         {'label': long_label},
     ]) == [
-        'Four_score_and_seven_h_on_this_contintent',
-        'Four_score_and_seven_h_on_this_contintent_001',
+        'Four_score_and_seven_th_on_this_continent',
+        'Four_score_and_seven_th_on_this_continent_001',
     ]
 
     assert _name_to_autoname([{'label': x} for x in [
         "What is your favorite all-time place to go swimming?",
         "What is your favorite all-time place to go running?",
         "What is your favorite all-time place to go to relax?",
-    ]]) ==  ['What_is_your_favorit_place_to_go_swimming',
-             'What_is_your_favorit_place_to_go_running',
-             'What_is_your_favorit_place_to_go_to_relax']
+    ]]) == ['What_is_your_favorit_place_to_go_swimming',
+            'What_is_your_favorit_place_to_go_running',
+            'What_is_your_favorit_place_to_go_to_relax']
 
 
 def test_remove_empty_expressions():

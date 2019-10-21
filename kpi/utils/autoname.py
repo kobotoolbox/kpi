@@ -108,7 +108,7 @@ def autoname_fields_in_place(surv_content, destination_key):
             # this will be necessary for untangling skip logic
             row['$given_name'] = _name
             _name = sluggify_label(_name,
-                                   other_names=other_names.keys())
+                                   other_names=list(other_names.keys()))
             # We might be able to remove these next 4 lines because
             # sluggify_label shouldn't be returning an empty string
             # and these fields already have names (_has_name(r)==True).
@@ -135,7 +135,7 @@ def autoname_fields_in_place(surv_content, destination_key):
                 _label = row['label']
             if _label:
                 _name = sluggify_label(_label,
-                                       other_names=other_names.keys(),
+                                       other_names=list(other_names.keys()),
                                        characterLimit=40)
                 if _name not in ['', '_']:
                     _assign_row_to_name(row, _name)
@@ -146,16 +146,17 @@ def autoname_fields_in_place(surv_content, destination_key):
         _slug = row['type']
         if '$kuid' in row:
             _slug += ('_' + row['$kuid'])
-        _assign_row_to_name(row, sluggify_label(_slug,
-                                                other_names=other_names.keys(),
-                                                characterLimit=40,
-                                                ))
+        _assign_row_to_name(row, sluggify_label(
+            _slug,
+            other_names=list(other_names.keys()),
+            characterLimit=40,
+        ))
 
     return surv_list
 
 
 def sluggify_valid_xml__depr(name):
-    out = re.sub('\W+', '_', name.strip().lower())
+    out = re.sub(r'\W+', '_', name.strip().lower())
     if re.match(r'^\d', out):
         out = '_'+out
     return out
@@ -171,13 +172,13 @@ def autovalue_choices(surv_choices, in_place=False, destination_key='name'):
 
 
 def autovalue_choices_in_place(surv_content, destination_key):
-    '''
+    """
     choice names must have spaces removed because select-multiple
     results are presented in a space-delimited string.
 
     we have been ensuring that choice names are unique to
     avoid errors leading to submission of ambiguous responses.
-    '''
+    """
     surv_choices = surv_content.get('choices', [])
     choice_value_key = 'name'
     choices = OrderedDict()

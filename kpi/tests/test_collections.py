@@ -363,8 +363,8 @@ class ShareCollectionTests(TestCase):
             self.parent_coll.pk,
             self.child_coll.pk
         ]
-        self.assertItemsEqual(
-            someuser_objects.values_list('pk', flat=True),
+        self.assertListEqual(
+            list(someuser_objects.values_list('pk', flat=True)),
             someuser_expected
         )
         self.assertEqual(

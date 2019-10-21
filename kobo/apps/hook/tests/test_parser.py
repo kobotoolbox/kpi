@@ -8,6 +8,7 @@ import re
 from lxml import etree
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML
+from kpi.utils.future import to_str
 from .hook_test_case import HookTestCase
 
 
@@ -68,7 +69,7 @@ class ParserTestCase(HookTestCase):
         expected_xml = etree.tostring(expected_etree, pretty_print=True)
 
         def remove_whitespace(str_):
-            return re.sub(r'>\s+<', '><', str_)
+            return re.sub(r'>\s+<', '><', to_str(str_))
 
         self.assertEquals(remove_whitespace(service_definition._get_data()),
                           remove_whitespace(expected_xml))
