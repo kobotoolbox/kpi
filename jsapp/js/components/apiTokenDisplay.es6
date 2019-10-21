@@ -57,7 +57,7 @@ class ApiTokenDisplay extends React.Component {
         <label>{t('API token')}</label>
 
         <input
-          type={this.state.isTokenVisible ? 'text' : 'password'}
+          type={this.state.isTokenVisible && !this.state.isLoadingToken ? 'text' : 'password'}
           value={this.state.token}
           onFocus={this.onInputFocus}
           readOnly
