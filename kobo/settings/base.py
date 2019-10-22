@@ -714,7 +714,7 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 KEYCLOAK_AUTH_URI = "https://auth.openclinica-dev.io/auth/realms/cust1-aws-dev"
 KEYCLOAK_CLIENT_ID = "formdesigner"
 KEYCLOAK_CLIENT_SECRET = "client-secret"
-PUBLIC_URI_FOR_KEYCLOAK = "https://csut1.formdesigner.openclinica-dev.io"
+PUBLIC_URI_FOR_KEYCLOAK = "https://cust1.formdesigner.openclinica-dev.io"
 
 KEYCLOAK_MASTER_REALM = 'master'
 KEYCLOAK_ADMIN_CLIENT_ID = 'admin-cli'
