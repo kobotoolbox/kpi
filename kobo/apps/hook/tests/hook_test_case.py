@@ -70,7 +70,8 @@ class HookTestCase(KpiTestCase):
             }),
             'export_type': format_type,
             'active': kwargs.get('active', True),
-            'subset_fields': kwargs.get('subset_fields', [])
+            'subset_fields': kwargs.get('subset_fields', []),
+            'payload_template': kwargs.get('payload_template', None)
         }
 
         response = self.client.post(url, data, format='json')

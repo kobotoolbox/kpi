@@ -25,6 +25,10 @@ textarea {
   font-family: $font;
 }
 
+textarea.textarea-code {
+  font-family: monospace;
+}
+
 a {
   text-decoration: none;
 }

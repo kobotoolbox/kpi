@@ -24,6 +24,7 @@ import {
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
+  NAME_MAX_LENGTH
 } from '../constants';
 import ui from '../ui';
 import bem from '../bem';
@@ -299,7 +300,7 @@ export default assign({
       evt.preventDefault();
     }
 
-    if (this.state.settings__style) {
+    if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
 
@@ -662,6 +663,7 @@ export default assign({
               }
               <input
                 type='text'
+                maxLength={NAME_MAX_LENGTH}
                 onChange={this.nameChange}
                 value={this.state.name}
                 title={this.state.name}
@@ -842,7 +844,7 @@ export default assign({
                 onChange={this.onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
-                menuPlacement='auto'
+                menuPlacement='bottom'
               />
             </bem.FormBuilderAside__row>
 

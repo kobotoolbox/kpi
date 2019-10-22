@@ -8,7 +8,7 @@ from django.core.files.base import ContentFile
 from django.template import Template, RequestContext
 
 from hub.models import ConfigurationFile
-
+from kpi.utils.future import to_str
 
 sample_svg = '''<svg xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 420 666">
@@ -55,7 +55,7 @@ class ConfigurationFileTestCase(LiveServerTestCase):
         absolute_url = self.live_server_url + self.cfg_file.url
         response = requests.get(absolute_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, sample_svg)
+        self.assertEqual(to_str(response.content), sample_svg)
 
     def test_template_context_processor(self):
         context = RequestContext(HttpRequest())  # NB: empty request

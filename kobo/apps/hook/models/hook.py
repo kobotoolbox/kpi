@@ -53,6 +53,7 @@ class Hook(models.Model):
         blank=True,
         default=[],
     )
+    payload_template = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ["name"]

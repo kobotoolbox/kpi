@@ -5,7 +5,7 @@
 # NB: jnm fork of `geojson-rewind` should not be necessary after upgrading to
 # Python 3
 -e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
--e git+https://github.com/kobotoolbox/formpack.git@696cdb16534e43afe47ba424a178743551e11943#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@766a05c5e68dfdf52db86ce9d34028d75cd4df6e#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.

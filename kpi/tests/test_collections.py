@@ -2,6 +2,7 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
+from django.db import IntegrityError
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -30,7 +31,7 @@ class CreateCollectionTests(TestCase):
     def test_collections_cannot_be_anonymous(self):
         def _create_collection_with_no_owner():
             Collection.objects.create()
-        self.assertRaises(_create_collection_with_no_owner)
+        self.assertRaises(IntegrityError, _create_collection_with_no_owner)
 
     def test_collection_can_be_tagged(self):
         def _list_tag_names():

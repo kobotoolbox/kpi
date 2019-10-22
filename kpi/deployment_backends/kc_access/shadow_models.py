@@ -47,10 +47,10 @@ class ShadowModel(models.Model):
     @staticmethod
     def get_content_type_for_model(model):
         model_name_mapping = {
-            'readonlyxform': ('logger', 'xform'),
-            'readonlyinstance': ('logger', 'instance'),
-            'userprofile': ('main', 'userprofile'),
-            'userobjectpermission': ('guardian', 'userobjectpermission'),
+            'readonlykobocatxform': ('logger', 'xform'),
+            'readonlykobocatinstance': ('logger', 'instance'),
+            'kobocatuserprofile': ('main', 'userprofile'),
+            'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
         }
         try:
             app_label, model_name = model_name_mapping[model._meta.model_name]

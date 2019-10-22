@@ -339,16 +339,17 @@ class AssetContentTests(AssetsTestCase):
             xls_note_row[:len(expected_note_row)], expected_note_row)
 
         settings_sheet = workbook.sheet_by_name('settings')
-        # Next-to-last column should have `version` setting
-        xls_version_col = [
+        # Next-to-last column should have `asdf` setting
+        xls_asdf_col = [
             cell.value for cell in settings_sheet.col(settings_sheet.ncols - 2)
         ]
-        self.assertEqual(xls_version_col[0], 'version')
-        # Last column should have `asdf` setting from `append`
-        xls_asdf_col = [
+        self.assertEqual(xls_asdf_col, ['asdf', 'jkl'])
+
+        # Last column should have `version` setting from `append`
+        xls_version_col = [
             cell.value for cell in settings_sheet.col(settings_sheet.ncols - 1)
         ]
-        self.assertEqual(xls_asdf_col, ['asdf', 'jkl'])
+        self.assertEqual(xls_version_col[0], 'version')
 
 
 class AssetSettingsTests(AssetsTestCase):

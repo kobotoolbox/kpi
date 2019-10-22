@@ -2,20 +2,21 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
-import datetime
 import io
 import json
 import re
 from collections import defaultdict
 
+import datetime
 import requests
 import xlwt
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.db import models, transaction
+from django.db import transaction
 from django.utils.six import iteritems
 from django.utils.six.moves import cStringIO as StringIO
 from pyxform import xls2json_backends
@@ -25,8 +26,12 @@ from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
-from ...deployment_backends.kc_access.shadow_models import ShadowModel, \
-    ReadOnlyKobocatXForm, KobocatUserObjectPermission
+from ...deployment_backends.kc_access.shadow_models import (
+    ShadowModel,
+    ReadOnlyKobocatXForm,
+    KobocatUserObjectPermission,
+    KobocatPermission
+)
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from ...models import Asset, ObjectPermission
 
@@ -43,7 +48,7 @@ XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
 # Replace codenames with Permission PKs, remembering the codenames
 KPI_CODENAMES = {}
 for kc_codename, kpi_codename in PERMISSIONS_MAP.items():
-    kc_perm_pk = Permission.objects.get(
+    kc_perm_pk = KobocatPermission.objects.get(
         content_type=XFORM_CT, codename=kc_codename).pk
     kpi_perm_pk = Permission.objects.get(
         content_type=ASSET_CT, codename=kpi_codename).pk
@@ -91,6 +96,8 @@ def _convert_dict_to_xls(ss_dict):
                 continue
             cur_sheet = workbook.add_sheet(sheet_name)
             _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
+
+    # ToDo Check this code in Python3
     string_io = StringIO()
     workbook.save(string_io)
     string_io.seek(0)
@@ -113,7 +120,7 @@ def _xlsform_to_kpi_content_schema(xlsform):
     # a temporary fix to the problem of list_name alias
     # credit to @dorey
     return json.loads(re.sub('list name', 'list_name',
-                  json.dumps(content, indent=4)))
+                      json.dumps(content, indent=4)))
 
 
 def _kc_forms_api_request(token, xform_pk, xlsform=False):
@@ -426,6 +433,13 @@ class Command(BaseCommand):
             help='Do not output status messages'
         )
 
+        parser.add_argument(
+            '--populate-xform-kpi-asset-uid',
+            action='store_true',
+            dest='populate_xform_kpi_asset_uid',
+            default=False,
+            help='Populate XForm `kpi_asset_uid` field')
+
     def _print_str(self, string):
         if not self._quiet:
             print(string)
@@ -440,6 +454,8 @@ class Command(BaseCommand):
                 'configured before using this command'
             )
         self._quiet = options.get('quiet')
+        username = options.get('username')
+        populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
         users = User.objects.all()
         # Do a basic query just to make sure the ReadOnlyKobocatXForm model is
         # loaded
@@ -447,8 +463,8 @@ class Command(BaseCommand):
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
-        if options.get('username'):
-            users = User.objects.filter(username=options.get('username'))
+        if username:
+            users = User.objects.filter(username=username)
         self._print_str('%d users selected' % users.count())
 
         # We'll be copying the date fields from KC, so don't auto-update them
@@ -535,3 +551,6 @@ class Command(BaseCommand):
 
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)
+
+        if populate_xform_kpi_asset_uid:
+            call_command('populate_kc_xform_kpi_asset_uid', username=username)

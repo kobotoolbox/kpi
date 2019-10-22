@@ -235,9 +235,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
             }
         )
+
+        # Payload contains `kpi_asset_uid` and `has_kpi_hook` for two reasons:
+        # - KC `XForm`'s `id_string` can be different than `Asset`'s `uid`, then
+        #   we can't rely on it to find its related `Asset`.
+        # - Removing, renaming `has_kpi_hook` will force PostgreSQL to rewrite every
+        #   records of `logger_xform`. It can be also used to filter queries as it's faster
+        #   to query a boolean than string.
+        # Don't forget to run Management Command `populate_kc_xform_kpi_asset_uid`
         payload = {
-            "downloadable": active,
-            "has_kpi_hook": self.asset.has_active_hooks
+            'downloadable': active,
+            'has_kpi_hook': self.asset.has_active_hooks,
+            'kpi_asset_uid': self.asset.uid
         }
         files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
         json_response = self._kobocat_request(
@@ -268,9 +277,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             }
         )
         payload = {
-            "downloadable": active,
-            "title": self.asset.name,
-            "has_kpi_hook": self.asset.has_active_hooks
+            'downloadable': active,
+            'title': self.asset.name,
+            'has_kpi_hook': self.asset.has_active_hooks
         }
         files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
         try:
@@ -287,6 +296,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # is gone! Try a standard deployment instead
                 return self.connect(self.identifier, active)
             raise
+
+        self.set_asset_uid()
 
     def set_active(self, active):
         """
@@ -307,6 +318,36 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
         })
 
+    def set_asset_uid(self, force=False):
+        """
+        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
+        populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
+        Useful when a form is created from the legacy upload form.
+        Store results in self.asset._deployment_data
+
+        Returns:
+            bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
+                  during this call, otherwise `False`.
+        """
+        is_synchronized = not (
+            force or
+            self.backend_response.get('kpi_asset_uid', None) is None
+        )
+        if is_synchronized:
+            return False
+
+        url = self.external_to_internal_url(self.backend_response['url'])
+        payload = {
+            'kpi_asset_uid': self.asset.uid
+        }
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        is_set = json_response['kpi_asset_uid'] == self.asset.uid
+        assert is_set
+        self.store_data({
+            'backend_response': json_response,
+        })
+        return True
+
     def set_has_kpi_hooks(self):
         """
         PATCH `has_kpi_hooks` boolean of survey.
@@ -317,15 +358,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         has_active_hooks = self.asset.has_active_hooks
         url = self.external_to_internal_url(
-            self.backend_response["url"])
+            self.backend_response['url'])
         payload = {
-            "has_kpi_hooks": has_active_hooks
+            'has_kpi_hooks': has_active_hooks,
+            'kpi_asset_uid': self.asset.uid
         }
-        json_response = self._kobocat_request("PATCH", url, data=payload)
-        assert(json_response["has_kpi_hooks"] == has_active_hooks)
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        assert(json_response['has_kpi_hooks'] == has_active_hooks)
         self.store_data({
-            "has_kpi_hooks": json_response.get("has_kpi_hooks"),
-            "backend_response": json_response,
+            'backend_response': json_response,
         })
 
     def delete(self):

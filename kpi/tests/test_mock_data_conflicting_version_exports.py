@@ -13,6 +13,7 @@ from django.utils.six import text_type
 from kobo.apps.reports import report_data
 from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.models import Asset, ExportTask
+from kpi.utils.future import to_str
 
 
 class ConflictingVersionsMockDataExports(TestCase):
@@ -60,10 +61,13 @@ class ConflictingVersionsMockDataExports(TestCase):
 
     @staticmethod
     def _split_formpack_csv(line, sep=";", quote='"'):
-        return [field.strip(quote) for field in line.split(sep)]
+        return [field.strip(quote) for field in to_str(line).split(sep)]
 
     def test_csv_export(self):
-        ''' Ignores the order of the rows and columns '''
+        """
+        Ignores the order of the rows and columns
+        """
+
         export_task = ExportTask()
         export_task.user = self.user
         export_task.data = {

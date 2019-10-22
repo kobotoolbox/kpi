@@ -82,7 +82,8 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >                   ...
     >                   {string}: {string}
     >               }
-    >           }
+    >           },
+    >           "payload_template": {string}
     >        }
 
     where
@@ -108,6 +109,12 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >               "customer_headers": {
     >                   "Authorization" : "Token 1af538baa9045a84c0e889f672baf83ff24"
     >               }
+
+    * `payload_template` is a custom wrapper around `%SUBMISSION%` when sending data to remote server.
+       It can be used only with JSON submission format.
+
+    For example:
+    >           "payload_template": '{"fields": %SUBMISSION%}'
 
     #### Update an external service.
     <pre class="prettyprint">

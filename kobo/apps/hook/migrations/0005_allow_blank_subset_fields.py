@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hook', '0003_add_subset_fields_to_hook_model'),
+        ('hook', '0004_add_payload_template'),
     ]
 
     operations = [
