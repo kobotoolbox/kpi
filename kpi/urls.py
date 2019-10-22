@@ -35,7 +35,7 @@ from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
 from kobo.apps.hook.views import HookViewSet, HookLogViewSet
-from kobo.apps.oc_keycloak.views import openid as oc_openid
+from kobo.apps.oc_keycloak.views import openid as oc_openid, authz_cb as oc_login_cb, logout as oc_logout
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -115,6 +115,8 @@ urlpatterns = [
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'openid/openid/(?P<op_name>.+)$', oc_openid, name='oc_openid_with_op_name'),
+    url(r'openid/callback/login/?$', oc_login_cb, name='oc_openid_login_cb'),
+    url(r'openid/logout$', oc_logout, name='oc_logout'),
     url(r'openid/', include('djangooidc.urls')),
     url(
         r'^authorized_application/authenticate_user/$',
