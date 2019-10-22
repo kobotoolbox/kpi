@@ -84,6 +84,14 @@ module.exports = do ->
       asJson:
         type: "phonenumber"
         name: "phonenumber"
+    audit:
+      name: "audit"
+      label: "audit"
+      description: "Records the behavior of enumerators as they navigate through a form"
+      default: false
+      asJson:
+        type: "audit"
+        name: "audit"
 
   do ->
     class SurveyDetailSchemaItem extends Backbone.Model
