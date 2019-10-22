@@ -372,7 +372,7 @@ export class FormMap extends React.Component {
       }
     });
 
-    if (prepPoints.length >= 0) {
+    if (prepPoints.length >= 0) {//
       let markers;
       if (viewby) {
         markers = L.featureGroup(prepPoints);
@@ -401,8 +401,16 @@ export class FormMap extends React.Component {
 
       markers.on('click', this.launchSubmissionModal).addTo(map);
 
-      if (!viewby || !this.state.componentRefreshed)
+      if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
+        console.log('getBounds: ' + Object.values(markers.getBounds()));
         map.fitBounds(markers.getBounds());
+    }
+      if(prepPoints == 0)
+        // var fakeBounds = {LatLng(23.563987, 10.443099),LatLng(23.563987, 10.443099)};
+        // console.log('fakeBounds: ' + fakeBounds);
+        // console.log('fakeBounds content: ' + Object.values(fakeBounds));//
+        //console.log('getBounds: ' + Object.values(markers.getBounds()));
+        map.fitBounds([LatLng(-180,180),LatLng(-180,180)]);
 
       this.setState({
           markers: markers
