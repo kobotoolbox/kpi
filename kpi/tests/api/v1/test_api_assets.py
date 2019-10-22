@@ -12,6 +12,7 @@ from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
 from private_storage.storage.files import PrivateFileSystemStorage
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 from kpi.models import Asset
 from kpi.models import Collection
@@ -318,6 +319,23 @@ class AssetExportTaskTest(BaseTestCase):
             # uses query parameters in the URL for access control
             response = self.client.get(detail_response.data['result'])
             self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_with_token_auth_can_access_export(self):
+        detail_response = self.test_owner_can_create_export()
+        self.client.logout()
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token {}'.format(
+                Token.objects.get_or_create(user=self.user)[0].key
+            )
+        )
+        response = self.client.get(detail_response.data['url'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Get the result file
+        if self.result_stored_locally(detail_response):
+            result_response = self.client.get(detail_response.data['result'])
+        else:
+            result_response = requests.get(detail_response.data['result'])
+        self.assertEqual(result_response.status_code, status.HTTP_200_OK)
 
 
 class AssetFileTest(test_api_assets.AssetFileTest):
