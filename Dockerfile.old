@@ -1,11 +1,7 @@
-#FROM kobotoolbox/koboform_base:latest
-FROM nikolaik/python-nodejs:python3.8-nodejs12
+FROM kobotoolbox/koboform_base:latest
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
 
+# Note: Additional environment variables have been set in `Dockerfile.koboform_base`.
 ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
     BUILD_DIR=/srv/build \
@@ -14,107 +10,46 @@ ENV KPI_LOGS_DIR=/srv/logs \
     DJANGO_SETTINGS_MODULE=kobo.settings.prod \
     # The mountpoint of a volume shared with the `nginx` container. Static files will
     #   be copied there.
-    NGINX_STATIC_DIR=/srv/static \
-    KPI_SRC_DIR=/srv/src/kpi \
-    KPI_NODE_PATH=/srv/node_modules \
-    PIP_DIR=/srv/pip \
-    TMP_DIR=/srv/tmp
-
-
-# Install Dockerize.
-ENV DOCKERIZE_VERSION v0.6.1
-RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz -P /tmp \
-    && tar -C /usr/local/bin -xzvf /tmp/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && rm /tmp/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+    NGINX_STATIC_DIR=/srv/static
 
 
 ##########################################
-# Create build directories               #
-##########################################
-RUN mkdir -p "${BUILD_DIR}" && \
-    mkdir -p "${FONTS_DIR}" && \
-    mkdir -p "${NGINX_STATIC_DIR}" && \
-    mkdir -p "${KPI_SRC_DIR}" && \
-    mkdir -p "${KPI_NODE_PATH}" && \
-    mkdir -p "${PIP_DIR}" && \
-    mkdir -p "${TMP_DIR}"
-
-
-##########################################
-# Install `apt` packages.                #
+# Install any additional `apt` packages. #
 ##########################################
 
-RUN apt -qq update && \
-    apt -qq -y install \
-        default-jre-headless \
-        gdal-bin \
-        libproj-dev \
-        fontforge \
-        gettext \
-        ttfautohint \
-        postgresql-client \
-        locales \
-        vim && \
-    apt clean && \
-        rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+COPY ./dependencies/apt_requirements.txt "${KPI_SRC_DIR}/dependencies/"
+# Only install if the current version of `dependencies/apt_requirements.txt` differs from the one used in the base image.
+RUN if ! diff "${KPI_SRC_DIR}/dependencies/apt_requirements.txt" /srv/tmp/base__apt_requirements.txt; then \
+        apt-get update -qq && \
+        apt-get install -qqy $(cat "${KPI_SRC_DIR}/dependencies/apt_requirements.txt") && \
+        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
+    ; fi
 
-
-###########################
-# Install locales         #
-###########################
-RUN locale-gen en_US.UTF-8 && dpkg-reconfigure locales
-
-
-###########################
-# Install `pip` packages. #
-###########################
-
-RUN pip freeze > /srv/tmp/base_os_dependencies.txt
-RUN pip install  --quiet --upgrade pip && \
-    pip install  --quiet pip-tools
-COPY ./dependencies/pip/requirements.in /srv/tmp/base__external_services.txt
-#RUN pip-sync /srv/tmp/base_os_dependencies.txt /srv/tmp/base__external_services.txt 1>/dev/null && \
-#    rm -rf ~/.cache/pip
-RUN pip install -r /srv/tmp/base__external_services.txt && \
-    rm -rf ~/.cache/pip
-
-
-###########################
-# Install `npm` packages. #
-###########################
-
-COPY ./package.json ${KPI_SRC_DIR}/
-WORKDIR ${KPI_SRC_DIR}/
-RUN ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
-    npm install --quiet && \
-    npm cache clean --force # && \
-    #mv "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json
-ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 
 ###########################
 # Re-sync `pip` packages. #
 ###########################
 
-# COPY ./dependencies/pip/external_services.txt "${KPI_SRC_DIR}/dependencies/pip/"
-# WORKDIR ${PIP_DIR}/
+COPY ./dependencies/pip/external_services.txt "${KPI_SRC_DIR}/dependencies/pip/"
+WORKDIR ${PIP_DIR}/
 
 # Only install if the current version of `dependencies/pip/external_services.txt` differs from the one used in the base image.
-# RUN if ! diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" /srv/tmp/base__external_services.txt; then \
-#        pip-sync /srv/tmp/base_os_dependencies.txt "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" 1>/dev/null \
-#    ; fi
+RUN if ! diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" /srv/tmp/base__external_services.txt; then \
+        pip-sync /srv/tmp/base_os_dependencies.txt "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" 1>/dev/null \
+    ; fi
 
 
 ##########################################
 # Install any additional `npm` packages. #
 ##########################################
 
-#COPY ./package.json "${KPI_SRC_DIR}/"
-#WORKDIR ${KPI_SRC_DIR}/
+COPY ./package.json "${KPI_SRC_DIR}/"
+WORKDIR ${KPI_SRC_DIR}/
 # Only install if the current version of `package.json` differs from the one used in the base image.
-#RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
-#        # Try error-prone `npm install` step twice.
-#        npm install --quiet || npm install --quiet \
-#    ; fi
+RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
+        # Try error-prone `npm install` step twice.
+        npm install --quiet || npm install --quiet \
+    ; fi
 
 
 ######################
@@ -127,12 +62,14 @@ COPY ./webpack ${KPI_SRC_DIR}/webpack
 COPY ./.eslintrc.json ${KPI_SRC_DIR}/.eslintrc.json
 COPY ./.stylelintrc.json ${KPI_SRC_DIR}/.stylelintrc.json
 COPY ./test ${KPI_SRC_DIR}/test
-COPY ./jsapp ${KPI_SRC_DIR}/jsapp
-COPY ./webpack-stats.json ${WEBPACK_STATS_PATH}
 
-RUN ln -s "${BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
+COPY ./jsapp ${KPI_SRC_DIR}/jsapp
+
+RUN mkdir "${BUILD_DIR}" && \
+    mkdir "${FONTS_DIR}" && \
+    ln -s "${BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" # && \
+    ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
@@ -184,9 +121,6 @@ RUN echo 'source /etc/profile' >> /root/.bashrc
 
 # FIXME: Allow Celery to run as root ...for now.
 ENV C_FORCE_ROOT="true"
-
-# Do it even if we don't why yet.
-RUN useradd -s /bin/false -m wsgi
 
 # Prepare for execution.
 RUN ln -s "${KPI_SRC_DIR}/docker/init.bash" /etc/my_init.d/10_init_kpi.bash && \
