@@ -297,6 +297,10 @@ var allAssetsStore = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
+    if (typeof uid !== 'string' || typeof cb !== 'function') {
+      return;
+    }
+
     if (this.byUid[uid] && this.byUid[uid].content) {
       cb.call(this, this.byUid[uid]);
     } else {
