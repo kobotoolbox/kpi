@@ -8,7 +8,7 @@ import bem from '../bem';
 import stores from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
-
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
   t,
   assign,
@@ -109,11 +109,6 @@ class FormViewTabs extends Reflux.Component {
     }
 
     if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
-      let isSelfOwned = (
-        stores.session.currentAccount &&
-        stores.session.currentAccount.username &&
-        stores.session.currentAccount.username === this.state.asset.owner__username
-      );
       sideTabs = [];
 
       sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
@@ -124,7 +119,11 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
-      if (this.state.asset.deployment__active && isSelfOwned) {
+      if (
+        this.state.asset.deployment__active &&
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('view_submissions'), this.state.asset) &&
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), this.state.asset)
+      ) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
       }
 
