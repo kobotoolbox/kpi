@@ -29,12 +29,14 @@ class SharingForm extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
+      allAssetsCount: 0,
       isAddUserEditorVisible: false
     };
   }
 
   componentDidMount () {
     this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onCollectionPermissionsUpdated);
@@ -42,6 +44,12 @@ class SharingForm extends React.Component {
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
     }
+
+    this.onAllAssetsChange();
+  }
+
+  onAllAssetsChange() {
+    this.setState({allAssetsCount: Object.keys(stores.allAssets.byUid).length});
   }
 
   onAssetPermissionsUpdated(permissionAssignments) {
@@ -219,10 +227,15 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { kind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
+        { kind !== 'collection' && this.state.allAssetsCount === 0 &&
           <React.Fragment>
             <bem.Modal__hr/>
-
+            {t('Waiting for all projects to load…')}
+          </React.Fragment>
+        }
+        { kind !== 'collection' && this.state.allAssetsCount >= 2 &&
+          <React.Fragment>
+            <bem.Modal__hr/>
             <CopyTeamPermissions uid={uid}/>
           </React.Fragment>
         }

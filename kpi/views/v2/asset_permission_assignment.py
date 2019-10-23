@@ -46,22 +46,22 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     **Retrieve assignments**
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permissions/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/
+    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
 
 
     **Assign a permission**
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/ \\
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
     >            -H 'Content-Type: application/json' \\
     >            -d '<payload>'  # Payload is sent as the string
 
@@ -96,27 +96,27 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
 
 
-    **Remove a permission**
+    **Remove a permission assignment**
 
     <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/
     </pre>
 
     > Example
     >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/pG6AeSjCwNtpWazQAX76Ap/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/
 
 
     **Assign all permissions at once**
 
     <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/bulk/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/bulk/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/bulk/
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/bulk/
 
     > _Payload to assign all permissions at once_
     >
@@ -134,12 +134,12 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
     <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permissions/clone/
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/clone/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/clone/
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/clone/
 
     > _Payload to clone permissions from another asset_
     >

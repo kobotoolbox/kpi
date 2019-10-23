@@ -46,6 +46,11 @@ var dataInterface;
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
     serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
+    apiToken: () => {
+      return $ajax({
+        url: `${ROOT_URL}/token/?format=json`
+      });
+    },
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
       $ajax({ url: `${ROOT_URL}/api/v2/users/${username}/` })
@@ -264,7 +269,7 @@ var dataInterface;
 
     copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${targetUid}/permission-assignments/`,
+        url: `${ROOT_URL}/api/v2/assets/${targetUid}/permission-assignments/clone/`,
         method: 'PATCH',
         data: {
           clone_from: sourceUid

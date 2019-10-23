@@ -9,6 +9,7 @@
  * - label <string>
  * - placeholder <string>
  * - description <string>
+ * - readOnly <boolean>
  *
  * TODO: would be best to move it to `jsapp/js/components/generic` directory.
  */
@@ -33,6 +34,9 @@ class TextBox extends React.Component {
   }
 
   onChange(evt) {
+    if (this.props.readOnly) {
+      return;
+    }
     this.props.onChange(evt.currentTarget.value);
   }
 
@@ -73,7 +77,8 @@ class TextBox extends React.Component {
       placeholder: this.props.placeholder,
       onChange: this.onChange,
       onBlur: this.onBlur,
-      onKeyPress: this.onKeyPress
+      onKeyPress: this.onKeyPress,
+      readOnly: this.props.readOnly
     };
 
     return (
