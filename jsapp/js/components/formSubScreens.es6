@@ -11,7 +11,7 @@ import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import DataTable from './table';
-
+import {AccessDeniedMessage} from '../ui';
 import {ProjectDownloads} from './formEditors';
 
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -47,12 +47,12 @@ export class FormSubScreens extends React.Component {
       return false;
 
     if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !permAccess) {
-      return this.renderDenied();
+      return (<AccessDeniedMessage/>);
     }
 
     if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
         !this.userCan('change_asset', this.state)) {
-      return this.renderDenied();
+      return (<AccessDeniedMessage/>);
     }
 
     var iframeUrl = '';
@@ -149,20 +149,6 @@ export class FormSubScreens extends React.Component {
           {t('loading...')}
         </bem.Loading__inner>
       </bem.Loading>
-    );
-  }
-  renderDenied() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('Access Denied')}
-            </h3>
-            {t('You do not have permission to view this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
     );
   }
 }

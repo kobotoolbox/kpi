@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import _ from 'underscore';
 import bem from '../bem';
 import stores from '../stores';
 import { Link, hashHistory } from 'react-router';
@@ -110,6 +109,11 @@ class FormViewTabs extends Reflux.Component {
     }
 
     if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
+      let isSelfOwned = (
+        stores.session.currentAccount &&
+        stores.session.currentAccount.username &&
+        stores.session.currentAccount.username === this.state.asset.owner__username
+      );
       sideTabs = [];
 
       sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
@@ -120,8 +124,11 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
-      if (this.state.asset.deployment__active) {
+      if (this.state.asset.deployment__active && isSelfOwned) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
+      }
+
+      if (this.state.asset.deployment__active) {
         sideTabs.push({label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'});
       }
     }

@@ -238,107 +238,111 @@ export default class RESTServiceLogs extends React.Component {
 
   renderEmptyView() {
     return (
-      <bem.FormView__cell m='rest-services-list' className='rest-services-list--empty'>
-        {this.renderHeader()}
+      <bem.FormView m={'form-settings'} className='rest-services'>
+        <bem.FormView__cell m='rest-services-list' className='rest-services-list--empty'>
+          {this.renderHeader()}
 
-        <bem.EmptyContent>
-          <bem.EmptyContent__message>
-            {t('There are no logs yet')}
-          </bem.EmptyContent__message>
-        </bem.EmptyContent>
-      </bem.FormView__cell>
+          <bem.EmptyContent>
+            <bem.EmptyContent__message>
+              {t('There are no logs yet')}
+            </bem.EmptyContent__message>
+          </bem.EmptyContent>
+        </bem.FormView__cell>
+      </bem.FormView>
     );
   }
 
   renderListView() {
     return (
-      <bem.FormView__cell m='rest-services-list'>
-        {this.renderHeader()}
+      <bem.FormView m={'form-settings'} className='rest-services'>
+        <bem.FormView__cell m='rest-services-list'>
+          {this.renderHeader()}
 
-        <bem.FormView__cell m={['box']}>
-          <bem.ServiceRow m='header'>
-            <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
-            <bem.ServiceRow__column m='status'>
-              {t('Status')}
-              { this.hasAnyFailedLogs() &&
-                <bem.ServiceRow__actionButton
-                  onClick={this.retryAll.bind(this)}
-                  data-tip={t('Retry all submissions')}
-                  disabled={!this.state.isHookActive}
-                >
-                  <i className='k-icon-replace-all'/>
-                </bem.ServiceRow__actionButton>
+          <bem.FormView__cell m={['box']}>
+            <bem.ServiceRow m='header'>
+              <bem.ServiceRow__column m='submission'>{t('Submission')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='status'>
+                {t('Status')}
+                { this.hasAnyFailedLogs() &&
+                  <bem.ServiceRow__actionButton
+                    onClick={this.retryAll.bind(this)}
+                    data-tip={t('Retry all submissions')}
+                    disabled={!this.state.isHookActive}
+                  >
+                    <i className='k-icon-replace-all'/>
+                  </bem.ServiceRow__actionButton>
+                }
+              </bem.ServiceRow__column>
+              <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
+            </bem.ServiceRow>
+
+            {this.state.logs.map((log, n) => {
+              const rowProps = {
+                key: n
+              };
+              let statusMod = '';
+              let statusLabel = '';
+              if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
+                statusMod = 'success';
+                statusLabel = t('Success');
+                rowProps.m = 'clickable';
+                rowProps.onClick = this.openSubmissionModal.bind(this, log);
               }
-            </bem.ServiceRow__column>
-            <bem.ServiceRow__column m='date'>{t('Date')}</bem.ServiceRow__column>
-          </bem.ServiceRow>
+              if (log.status === HOOK_LOG_STATUSES.PENDING) {
+                statusMod = 'pending';
+                statusLabel = t('Pending');
 
-          {this.state.logs.map((log, n) => {
-            const rowProps = {
-              key: n
-            };
-            let statusMod = '';
-            let statusLabel = '';
-            if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
-              statusMod = 'success';
-              statusLabel = t('Success');
-              rowProps.m = 'clickable';
-              rowProps.onClick = this.openSubmissionModal.bind(this, log);
-            }
-            if (log.status === HOOK_LOG_STATUSES.PENDING) {
-              statusMod = 'pending';
-              statusLabel = t('Pending');
-
-              if (log.tries && log.tries > 1) {
-                statusLabel = t('Pending (##count##×)').replace('##count##', log.tries);
+                if (log.tries && log.tries > 1) {
+                  statusLabel = t('Pending (##count##×)').replace('##count##', log.tries);
+                }
               }
-            }
-            if (log.status === HOOK_LOG_STATUSES.FAILED) {
-              statusMod = 'failed';
-              statusLabel = t('Failed');
-            }
+              if (log.status === HOOK_LOG_STATUSES.FAILED) {
+                statusMod = 'failed';
+                statusLabel = t('Failed');
+              }
 
-            return (
-              <bem.ServiceRow {...rowProps}>
-                <bem.ServiceRow__column m='submission'>
-                  {log.instance_id}
-                </bem.ServiceRow__column>
+              return (
+                <bem.ServiceRow {...rowProps}>
+                  <bem.ServiceRow__column m='submission'>
+                    {log.instance_id}
+                  </bem.ServiceRow__column>
 
-                <bem.ServiceRow__column
-                  m={['status', statusMod]}
-                >
-                  {statusLabel}
+                  <bem.ServiceRow__column
+                    m={['status', statusMod]}
+                  >
+                    {statusLabel}
 
-                  {log.status === HOOK_LOG_STATUSES.FAILED &&
-                    <bem.ServiceRow__actionButton
-                      disabled={!this.state.isHookActive}
-                      onClick={this.retryLog.bind(this, log)}
-                      data-tip={t('Retry submission')}
-                    >
-                      <i className='k-icon-replace' />
-                    </bem.ServiceRow__actionButton>
-                  }
+                    {log.status === HOOK_LOG_STATUSES.FAILED &&
+                      <bem.ServiceRow__actionButton
+                        disabled={!this.state.isHookActive}
+                        onClick={this.retryLog.bind(this, log)}
+                        data-tip={t('Retry submission')}
+                      >
+                        <i className='k-icon-replace' />
+                      </bem.ServiceRow__actionButton>
+                    }
 
-                  {this.hasInfoToDisplay(log) &&
-                    <bem.ServiceRow__actionButton
-                      onClick={this.showLogInfo.bind(this, log)}
-                      data-tip={t('More info')}
-                    >
-                      <i className='k-icon-information' />
-                    </bem.ServiceRow__actionButton>
-                  }
-                </bem.ServiceRow__column>
+                    {this.hasInfoToDisplay(log) &&
+                      <bem.ServiceRow__actionButton
+                        onClick={this.showLogInfo.bind(this, log)}
+                        data-tip={t('More info')}
+                      >
+                        <i className='k-icon-information' />
+                      </bem.ServiceRow__actionButton>
+                    }
+                  </bem.ServiceRow__column>
 
-                <bem.ServiceRow__column m='date'>
-                  {formatTime(log.date_modified)}
-                </bem.ServiceRow__column>
-              </bem.ServiceRow>
-            );
-          })}
+                  <bem.ServiceRow__column m='date'>
+                    {formatTime(log.date_modified)}
+                  </bem.ServiceRow__column>
+                </bem.ServiceRow>
+              );
+            })}
+          </bem.FormView__cell>
+
+          {this.renderLoadMoreButton()}
         </bem.FormView__cell>
-
-        {this.renderLoadMoreButton()}
-      </bem.FormView__cell>
+      </bem.FormView>
     );
   }
 
