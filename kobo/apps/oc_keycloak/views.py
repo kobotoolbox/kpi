@@ -19,7 +19,43 @@ from keycloak.realm import KeycloakRealm
 
 logger = logging.getLogger(__name__)
 
+class OCKeycloakSettings:
+    OIDC_PROVIDERS = {
+        'KeyCloak': {
+            'srv_discovery_url': None,
+            'behaviour': {
+                'response_type': 'code',
+                'scope': ['openid', 'profile', 'email'],
+            },
+            'client_registration': {
+                'client_id': None,
+                'redirect_uris': [],
+                'post_logout_redirect_uris': [],
+            },
+        }
+    }
+
+oc_settings = OCKeycloakSettings()
 CLIENTS = OIDCClients(settings)
+
+def __configure_oidc(auth_uri, client_id, public_uri, scope=None, client_secret=None):
+    oidc_providers = oc_settings.OIDC_PROVIDERS
+    oidc_providers['KeyCloak']['srv_discovery_url'] = auth_uri
+    oidc_providers['KeyCloak']['client_registration']['client_id'] = client_id
+    login_uri = public_uri + '/openid/callback/login/'
+    logout_uri = public_uri + '/openid/callback/logout/'
+    oidc_providers['KeyCloak']['client_registration']['redirect_uris'] = [login_uri]
+    oidc_providers['KeyCloak']['client_registration']['post_logout_redirect_uris'] = [logout_uri]
+
+    # Add a client secret to the config if one is provided:
+    if client_secret:
+        oidc_providers['KeyCloak']['client_registration']['client_secret'] = client_secret
+
+    if scope:
+        # DP NOTE: Scope is only set for django-oidc / session based auth
+        #          as it is up to the caller to request the scope when
+        #          retrieving the JWT Bearer token that is used by drf-oidc-auth
+        oidc_providers['KeyCloak']['behaviour']['scope'] = scope
 
 def __configure(request):
     full_uri_with_path = request.build_absolute_uri()
@@ -71,12 +107,15 @@ def __configure(request):
         KEYCLOAK_CLIENT_SECRET = client_secret
         PUBLIC_URI_FOR_KEYCLOAK = current_root_uri
 
-        configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)
+        __configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)
+        print oc_settings.OIDC_PROVIDERS
 
-        CLIENTS = OIDCClients(settings)
+        CLIENTS = OIDCClients(oc_settings)
+
+        return CLIENTS
 
 def openid(request, op_name=None):
-    __configure(request)
+    CLIENTS = __configure(request)
 
     client = None
     request.session["next"] = request.GET["next"] if "next" in request.GET.keys() else "/"
@@ -127,7 +166,7 @@ def openid(request, op_name=None):
                            'form': form, 'ilform': ilform, "next": request.session["next"]}, )
 
 def authz_cb(request):
-    __configure(request)
+    CLIENTS = __configure(request)
     
     client = CLIENTS[request.session["op"]]
     query = None
@@ -150,7 +189,7 @@ def logout(request, next_page=None):
     if not "op" in request.session.keys():
         return auth_logout_view(request, next_page)
 
-    __configure(request)
+    CLIENTS = __configure(request)
     
     client = CLIENTS[request.session["op"]]
 
