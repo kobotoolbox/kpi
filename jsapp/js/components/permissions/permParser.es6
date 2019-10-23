@@ -323,7 +323,7 @@ function sortParseBackendOutput(output) {
   });
 }
 
-module.exports = {
+export const permParser = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,

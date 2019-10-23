@@ -5,11 +5,11 @@ import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
-import stores from 'js/stores';
-import actions from 'js/actions';
-import bem from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
 import classNames from 'classnames';
-import permParser from './permParser';
+import {permParser} from './permParser';
 import permConfig from './permConfig';
 import {
   assign,
