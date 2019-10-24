@@ -4,14 +4,14 @@ set -e
 source /etc/profile
 
 KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
-uwsgi_command="/usr/local/bin/uwsgi --ini ${KPI_SRC_DIR}/uwsgi.ini"
+UWSGI_COMMAND="$(which uwsgi) --ini ${KPI_SRC_DIR}/uwsgi.ini"
 
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     echo 'Running `kpi` container with uWSGI application server.'
-    exec ${uwsgi_command}
+    exec ${UWSGI_COMMAND}
 else
     echo 'Running `kpi` container with `runserver_plus` debugging application server.'
     cd "${KPI_SRC_DIR}"
-    pip-sync /srv/tmp/base_os_dependencies.txt dependencies/pip/dev_requirements.txt
+    pip-sync dependencies/pip/dev_requirements.txt
     exec python manage.py runserver_plus 0:8000
 fi
