@@ -1,4 +1,4 @@
-FROM nikolaik/python-nodejs:python3.8-nodejs12
+FROM nikolaik/python-nodejs:python3.8-nodejs10
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
@@ -38,12 +38,9 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 
 RUN apt -qq update && \
     apt -qq -y install \
-        default-jre-headless \
         gdal-bin \
         libproj-dev \
-        fontforge \
         gettext \
-        ttfautohint \
         postgresql-client \
         locales \
         runit-init \
