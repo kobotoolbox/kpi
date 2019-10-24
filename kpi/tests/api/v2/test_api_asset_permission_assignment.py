@@ -114,7 +114,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
         admin_perms = self.asset.get_perms(self.admin)
         anotheruser_perms = self.asset.get_perms(self.anotheruser)
-        results = permission_list_response.data.get('results')
+        results = permission_list_response.data
 
         # `anotheruser` can only see the owner's permissions `self.admin` and
         # `anotheruser`'s permissions. Should not see `someuser`s ones.
@@ -148,7 +148,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         admin_perms = self.asset.get_perms(self.admin)
         someuser_perms = self.asset.get_perms(self.someuser)
         anotheruser_perms = self.asset.get_perms(self.anotheruser)
-        results = permission_list_response.data.get('results')
+        results = permission_list_response.data
 
         # As an editor of the asset. `someuser` should see all.
         expected_perms = []
@@ -183,7 +183,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
                                                    format='json')
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
         admin_perms = self.asset.get_perms(self.admin)
-        results = permission_list_response.data.get('results')
+        results = permission_list_response.data
 
         # Get admin permissions.
         expected_perms = []
@@ -239,7 +239,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         permission_list_response = self.client.get(self.asset_permissions_list_url,
                                                    format='json')
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
-        total = permission_list_response.data.get('count')
+        total = len(permission_list_response.data)
         # Add number of permissions added with 'view_asset'
         total += len(Asset.get_implied_perms(PERM_VIEW_ASSET)) + 1
         # Add number of permissions added with 'change_asset'
@@ -252,5 +252,5 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         ])
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('count'), total)
+        self.assertEqual(len(response.data), total)
 

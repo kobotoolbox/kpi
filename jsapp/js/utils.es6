@@ -516,3 +516,11 @@ export function writeParameters(obj) {
   });
   return params.join(';');
 }
+
+export function renderCheckbox(id, label, isImportant) {
+  let additionalClass = '';
+  if (isImportant) {
+    additionalClass += 'alertify-toggle-important';
+  }
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
+};

@@ -370,7 +370,7 @@ class ExportTask(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
-    * `type`: required; `xls` or `csv`
+    * `type`: required; `xls`, `csv`, or `spss_labels`
     * `source`: required; URL of a deployed `Asset`
     * `lang`: optional; the name of the translation to be used for headers and
               response values. Specify `_xml` to use question and choice names

@@ -68,6 +68,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+    data = serializers.SerializerMethodField()
 
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
@@ -113,7 +114,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'name',
                   'assignable_permissions',
                   'permissions',
-                  'settings',)
+                  'settings',
+                  'data',)
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -212,6 +214,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_koboform_link(self, obj):
         return reverse('asset-koboform',
                        args=(obj.uid,),
+                       request=self.context.get('request', None))
+
+    def get_data(self, obj):
+        kwargs = {'parent_lookup_asset': obj.uid}
+        format = self.context.get('format')
+        if format:
+            kwargs['format'] = format
+
+        return reverse('submission-list',
+                       kwargs=kwargs,
                        request=self.context.get('request', None))
 
     def get_deployed_version_id(self, obj):
@@ -341,6 +353,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__submission_count',
                   'permissions',
                   'downloads',
+                  'data',
                   )
 
     def get_permissions(self, obj):

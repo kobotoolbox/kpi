@@ -3,6 +3,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import alertify from 'alertifyjs';
+import TextareaAutosize from 'react-autosize-textarea';
 import bem from '../../bem';
 import {dataInterface} from '../../dataInterface';
 import actions from '../../actions';
@@ -65,7 +66,8 @@ export default class RESTServicesForm extends React.Component {
       subsetFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
-      ]
+      ],
+      payloadTemplate: '',
     };
     autoBind(this);
   }
@@ -83,7 +85,8 @@ export default class RESTServicesForm extends React.Component {
             subsetFields: data.subset_fields || [],
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
-            customHeaders: this.headersObjToArr(data.settings.custom_headers)
+            customHeaders: this.headersObjToArr(data.settings.custom_headers),
+            payloadTemplate: data.payload_template
           };
 
           if (stateUpdate.customHeaders.length === 0) {
@@ -98,7 +101,7 @@ export default class RESTServicesForm extends React.Component {
 
           this.setState(stateUpdate);
         })
-        .fail((data) => {
+        .fail(() => {
           this.setState({isSubmitPending: false});
           alertify.error(t('Could not load REST Service'));
         });
@@ -129,7 +132,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   headersArrToObj(headersArr) {
-    const headersObj = {}
+    const headersObj = {};
     for (const header of headersArr) {
       if (header.name) {
         headersObj[header.name] = header.value;
@@ -184,6 +187,12 @@ export default class RESTServicesForm extends React.Component {
     this.setState({customHeaders: newCustomHeaders});
   }
 
+  handleCustomWrapperChange(evt) {
+    this.setState({
+      payloadTemplate: evt.target.value
+    });
+  }
+
   /*
    * submitting form
    */
@@ -204,7 +213,8 @@ export default class RESTServicesForm extends React.Component {
       auth_level: authLevel,
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
-      }
+      },
+      payload_template: this.state.payloadTemplate
     };
 
     if (this.state.authUsername) {
@@ -213,7 +223,6 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.authPassword) {
       data.settings.password = this.state.authPassword;
     }
-
     return data;
   }
 
@@ -355,7 +364,7 @@ export default class RESTServicesForm extends React.Component {
           {t('Add header')}
         </button>
       </bem.FormModal__item>
-    )
+    );
   }
 
   /*
@@ -384,7 +393,7 @@ export default class RESTServicesForm extends React.Component {
           inputProps={inputProps}
         />
       </bem.FormModal__item>
-    )
+    );
   }
 
   /*
@@ -404,6 +413,11 @@ export default class RESTServicesForm extends React.Component {
         </bem.Loading>
       );
     } else {
+      let submissionPlaceholder = '%SUBMISSION%';
+      if (stores.session.environment && stores.session.environment.submission_placeholder) {
+        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      }
+
       return (
         <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
           <bem.FormModal__item m='wrapper'>
@@ -476,8 +490,6 @@ export default class RESTServicesForm extends React.Component {
               />
             </bem.FormModal__item>
 
-            {this.renderFieldsSelector()}
-
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
                 <TextBox
@@ -496,7 +508,25 @@ export default class RESTServicesForm extends React.Component {
               </bem.FormModal__item>
             }
 
+            {this.renderFieldsSelector()}
+
             {this.renderCustomHeaders()}
+
+            {this.state.type === EXPORT_TYPES.json.value &&
+              <bem.FormModal__item>
+                <label htmlFor='customWrapperInput'>
+                  {t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
+                </label>
+
+                <TextareaAutosize
+                  className='textarea-code'
+                  id='customWrapperInput'
+                  placeholder={t('Add Custom Wrapper')}
+                  value={this.state.payloadTemplate}
+                  onChange={this.handleCustomWrapperChange.bind(this)}
+                />
+              </bem.FormModal__item>
+            }
           </bem.FormModal__item>
 
           <bem.Modal__footer>
@@ -512,4 +542,4 @@ export default class RESTServicesForm extends React.Component {
       );
     }
   }
-};
+}

@@ -29,24 +29,33 @@ class SharingForm extends React.Component {
     super(props);
     autoBind(this);
     this.state = {
+      allAssetsCount: 0,
       isAddUserEditorVisible: false
     };
   }
 
   componentDidMount () {
     this.listenTo(stores.asset, this.onAssetChange);
-    this.listenTo(actions.permissions.getAssetPermissions.completed, this.onGetAssetPermissionsCompleted);
-    this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onGetCollectionPermissionsCompleted);
+    this.listenTo(stores.allAssets, this.onAllAssetsChange);
+    this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
+    this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);
+    this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onCollectionPermissionsUpdated);
 
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
     }
+
+    this.onAllAssetsChange();
   }
 
-  onGetAssetPermissionsCompleted(response) {
-    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+  onAllAssetsChange() {
+    this.setState({allAssetsCount: Object.keys(stores.allAssets.byUid).length});
+  }
+
+  onAssetPermissionsUpdated(permissionAssignments) {
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
     const anonUserUrl = buildUserUrl(ANON_USERNAME);
-    const publicPerms = response.results.filter((assignment) => {
+    const publicPerms = permissionAssignments.filter((assignment) => {
       return assignment.user === anonUserUrl;
     });
     const nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
@@ -60,8 +69,8 @@ class SharingForm extends React.Component {
     });
   }
 
-  onGetCollectionPermissionsCompleted(response) {
-    const parsedPerms = permParser.parseBackendData(response.results, this.state.asset.owner);
+  onCollectionPermissionsUpdated(permissionAssignments) {
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
     let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);
     });
@@ -218,10 +227,15 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { kind !== 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
+        { kind !== 'collection' && this.state.allAssetsCount === 0 &&
           <React.Fragment>
             <bem.Modal__hr/>
-
+            {t('Waiting for all projects to load…')}
+          </React.Fragment>
+        }
+        { kind !== 'collection' && this.state.allAssetsCount >= 2 &&
+          <React.Fragment>
+            <bem.Modal__hr/>
             <CopyTeamPermissions uid={uid}/>
           </React.Fragment>
         }

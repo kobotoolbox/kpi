@@ -112,7 +112,7 @@ class Command(BaseCommand):
         if not settings.AWS_STORAGE_BUCKET_NAME:
             self.stdout.write('`AWS_STORAGE_BUCKET_NAME` is not set. '
                               'Please check your settings')
-            sys.exit(1)
+            sys.exit(-1)
 
         self.stdout.write('Bucket name: {}'.format(settings.AWS_STORAGE_BUCKET_NAME))
         if dry_run:
