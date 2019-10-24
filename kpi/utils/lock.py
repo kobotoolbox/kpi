@@ -11,8 +11,13 @@ from django.conf import settings
 REDIS_LOCK_CLIENT = redis.Redis(**settings.LOCK_REDIS)
 
 
-def lock(key='', timeout=None):
+def lock(key, timeout=None):
+    """
+    It tries to acquire a lock to execute the function it decorates.
+    If the lock is not acquired, the function is silently skipped.
 
+    It strongly depends on `redis` because it uses `redis.py:Lock`
+    """
     def _lock(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

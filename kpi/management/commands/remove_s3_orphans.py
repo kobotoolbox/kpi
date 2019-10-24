@@ -25,6 +25,12 @@ import xml.sax.saxutils
 
 def _get_all(self, element_map, initial_query_string='',
              headers=None, **params):
+    """
+    The purpose of this method is to be used to monkey-patch
+    `boto.s3.bucket.Bucket._get_all()`. The original doesn't handle
+    correctly bad characters and crashes because of `xml.sax.parseString`
+    which can't parse `body` as valid `XML`.
+    """
     query_args = self._get_all_query_args(
         params,
         initial_query_string=initial_query_string
@@ -40,7 +46,7 @@ def _get_all(self, element_map, initial_query_string='',
         try:
             xml.sax.parseString(fix_bad_characters(body), h)
         except Exception as e:
-            print("XML Parsing Error - {}".format(str(e)))
+            self.stdout.write("XML Parsing Error - {}".format(str(e)))
             error_filename = "/srv/logs/s3_body_error-{}.xml".format(str(int(time.time())))
             with open(error_filename, "w") as xmlfile_error:
                 xmlfile_error.write("{}\n".format(str(e)))
@@ -53,7 +59,12 @@ def _get_all(self, element_map, initial_query_string='',
 
 
 def fix_bad_characters(str_):
-
+    """
+    Replace unknown/bad characters `&...;` with `&amp;...;`.
+    Except `&apos;`, `&quot;, `&lt;`, `&gt;` and `&amp;`
+    Example:
+        `&foo;` becomes `&amp;foo;` but `&lt;` stays `&lt;`
+    """
     try:
         str_ = re.sub(r"&(?!(quot|apos|lt|gt|amp);)", "&amp;", str_)
     except Exception as e:
@@ -98,11 +109,16 @@ class Command(BaseCommand):
         now = time.time()
         csv_filepath = '/srv/logs/orphan_files-{}.csv'.format(int(now))
 
-        print('Bucket name: {}'.format(settings.AWS_STORAGE_BUCKET_NAME))
+        if not settings.AWS_STORAGE_BUCKET_NAME:
+            self.stdout.write('`AWS_STORAGE_BUCKET_NAME` is not set. '
+                              'Please check your settings')
+            sys.exit(1)
+
+        self.stdout.write('Bucket name: {}'.format(settings.AWS_STORAGE_BUCKET_NAME))
         if dry_run:
-            print('Dry run mode activated')
+            self.stdout.write('Dry run mode activated')
         if log_files:
-            print('CSV: {}'.format(csv_filepath))
+            self.stdout.write('CSV: {}'.format(csv_filepath))
 
         if log_files:
             with open(csv_filepath, "w") as csv:
@@ -126,22 +142,22 @@ class Command(BaseCommand):
                                 self.delete(f)
 
                 if time.time() - now >= 5 * 60:
-                    print("[{}] Still alive...".format(str(int(time.time()))))
+                    self.stdout.write("[{}] Still alive...".format(str(int(time.time()))))
                     now = time.time()
 
             except Exception as e:
-                print("ERROR - {}".format(str(e)))
+                self.stdout.write("ERROR - {}".format(str(e)))
                 sys.exit(-1)
 
-        print("Orphans: {}".format(orphans))
-        print("Size: {}".format(self.sizeof_fmt(size_to_reclaim)))
+        self.stdout.write("Orphans: {}".format(orphans))
+        self.stdout.write("Size: {}".format(self.sizeof_fmt(size_to_reclaim)))
 
     def delete(self, file_object):
         try:
-            print("File {} does not exist in DB".format(file_object.name).encode('utf-8'))
+            self.stdout.write("File {} does not exist in DB".format(file_object.name).encode('utf-8'))
             self._s3.delete_all(file_object.name)
         except Exception as e:
-            print("ERROR - Could not delete file {} - Reason {}".format(
+            self.stdout.write("ERROR - Could not delete file {} - Reason {}".format(
                 file_object.name,
                 str(e)))
 
