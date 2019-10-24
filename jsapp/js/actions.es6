@@ -72,7 +72,7 @@ actions.auth = Reflux.createActions({
 });
 
 actions.survey = Reflux.createActions({
-  addItemAtPosition: {
+  addExternalItemAtPosition: {
     children: [
       'completed',
       'failed'
@@ -668,16 +668,18 @@ actions.resources.loadAsset.listen(function(params){
   if (params.url) {
     dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
-  } else {
+  } else if (params.id) {
     dispatchMethodName = {
       c: 'getCollection',
       a: 'getAsset'
     }[params.id[0]];
   }
 
-  dataInterface[dispatchMethodName](params)
-    .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+  if (dispatchMethodName) {
+    dataInterface[dispatchMethodName](params)
+      .done(actions.resources.loadAsset.completed)
+      .fail(actions.resources.loadAsset.failed);
+  }
 });
 
 actions.resources.loadAssetContent.listen(function(params){

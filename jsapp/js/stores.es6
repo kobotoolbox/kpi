@@ -272,9 +272,9 @@ var assetContentStore = Reflux.createStore({
 
 var surveyCompanionStore = Reflux.createStore({
   init () {
-    this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
+    this.listenTo(actions.survey.addExternalItemAtPosition, this.addExternalItemAtPosition);
   },
-  addItemAtPosition ({position, survey, uid, groupId}) {
+  addExternalItemAtPosition ({position, survey, uid, groupId}) {
     stores.allAssets.whenLoaded(uid, function(asset){
       var _s = dkobo_xlform.model.Survey.loadDict(asset.content, survey)
       survey.insertSurvey(_s, position, groupId);
@@ -297,6 +297,10 @@ var allAssetsStore = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
+    if (typeof uid !== 'string' || typeof cb !== 'function') {
+      return;
+    }
+
     if (this.byUid[uid] && this.byUid[uid].content) {
       cb.call(this, this.byUid[uid]);
     } else {

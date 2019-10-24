@@ -12,6 +12,7 @@ import AssetNavigator from './assetNavigator';
 import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
+import MetadataEditor from 'js/components/metadataEditor';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -39,121 +40,6 @@ const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
 var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
-
-class FormSettingsEditor extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-
-  render () {
-    return (
-      <bem.FormBuilderMeta>
-        <bem.FormBuilderMeta__column>
-          {this.props.meta.map((mtype) => {
-            if (!mtype.key) {
-              mtype.key = `meta-${mtype.name}`;
-            }
-            return (
-              <Checkbox
-                key={mtype.key}
-                label={mtype.label}
-                checked={mtype.value}
-                onChange={this.props.onCheckboxChange.bind(this, mtype.name)}
-              />
-            );
-          })}
-        </bem.FormBuilderMeta__column>
-        <bem.FormBuilderMeta__column>
-          {this.props.phoneMeta.map((mtype) => {
-            if (!mtype.key) {
-              mtype.key = `meta-${mtype.name}`;
-            }
-            return (
-              <Checkbox
-                key={mtype.key}
-                label={mtype.label}
-                checked={mtype.value}
-                onChange={this.props.onCheckboxChange.bind(this, mtype.name)}
-              />
-            );
-          })}
-        </bem.FormBuilderMeta__column>
-      </bem.FormBuilderMeta>
-    );
-  }
-  focusSelect () {
-    this.refs.webformStyle.focus();
-  }
-}
-
-class FormSettingsBox extends React.Component {
-  constructor(props) {
-    super(props);
-    var formId = this.props.survey.settings.get('form_id');
-    this.state = {
-      xform_id_string: formId,
-      meta: [],
-      phoneMeta: []
-    };
-    this.META_PROPERTIES = ['start', 'end', 'today', 'deviceid'];
-    this.PHONE_META_PROPERTIES = ['username', 'simserial', 'subscriberid', 'phonenumber'];
-    autoBind(this);
-  }
-
-  componentDidMount() {
-    this.updateState();
-  }
-
-  updateState(newState = {}) {
-    this.META_PROPERTIES.forEach(this.passValueIntoObj('meta', newState));
-    this.PHONE_META_PROPERTIES.map(this.passValueIntoObj('phoneMeta', newState));
-    this.setState(newState);
-  }
-
-  getSurveyDetail(sdId) {
-    return this.props.survey.surveyDetails.filter(function(sd){
-      return sd.attributes.name === sdId;
-    })[0];
-  }
-
-  passValueIntoObj(category, newState) {
-    newState[category] = [];
-    return (id) => {
-      var sd = this.getSurveyDetail(id);
-      if (sd) {
-        newState[category].push(assign({}, sd.attributes));
-      }
-    };
-  }
-
-  onCheckboxChange(name, isChecked) {
-    this.getSurveyDetail(name).set('value', isChecked);
-    this.updateState();
-    if (typeof this.props.onChange === 'function') {
-      this.props.onChange();
-    }
-  }
-
-  onFieldChange(evt) {
-    const fieldId = evt.target.id;
-    const value = evt.target.value;
-
-    if (fieldId === 'form_id') {
-      this.props.survey.settings.set('form_id', value);
-    }
-
-    this.setState({
-      xform_id_string: this.props.survey.settings.get('form_id')
-    });
-  }
-
-  render() {
-    return (
-      <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange.bind(this)} />
-    );
-  }
-}
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
@@ -210,7 +96,7 @@ export default assign({
     sessionStorage.setItem(ASIDE_CACHE_NAME, JSON.stringify(asideSettings));
   },
 
-  onFormSettingsBoxChange() {
+  onMetadataEditorChange() {
     this.onSurveyChange();
   },
 
@@ -854,9 +740,9 @@ export default assign({
                   {t('Metadata')}
                 </bem.FormBuilderAside__header>
 
-                <FormSettingsBox
+                <MetadataEditor
                   survey={this.app.survey}
-                  onChange={this.onFormSettingsBoxChange}
+                  onChange={this.onMetadataEditorChange}
                   {...this.state}
                 />
               </bem.FormBuilderAside__row>
