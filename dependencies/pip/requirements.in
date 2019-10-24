@@ -2,9 +2,6 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # Formpack
-# NB: jnm fork of `geojson-rewind` should not be necessary after upgrading to
-# Python 3
--e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
 -e git+https://github.com/kobotoolbox/formpack.git@766a05c5e68dfdf52db86ce9d34028d75cd4df6e#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
@@ -52,12 +49,13 @@ djangorestframework
 djangorestframework-xml
 django-redis-sessions
 drf-extensions
+geojson-rewind
 jsonfield
 kombu
 lxml
 mock
 oauthlib
-py-gfm
+#py-gfm # Incompatible with markdown 3.x
 pymongo
 python-dateutil
 pytz

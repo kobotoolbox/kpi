@@ -7,23 +7,29 @@
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
 -e git+https://github.com/jnm/django-haystack@3a3b04564e189c11fdc20a4be43e360b5396708c#egg=django_haystack
 -e git+https://github.com/kobotoolbox/formpack.git@766a05c5e68dfdf52db86ce9d34028d75cd4df6e#egg=formpack
--e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
+-e git+https://github.com/jnm/geojson-rewind@0.1.1+py2.jnm#egg=geojson-rewind
 amqp==2.5.1
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
+asn1crypto==1.2.0         # via cryptography
 attrs==19.3.0             # via jsonschema
 backports.csv==1.0.7
+backports.os==0.1.1       # via path.py
 begins==0.9
 billiard==3.6.1.0
-boto3==1.10.0
+boto3==1.9.250
 boto==2.49.0
-botocore==1.13.0          # via boto3, s3transfer
+botocore==1.12.250        # via boto3, s3transfer
 celery[redis]==4.3.0
 certifi==2019.9.11        # via requests
-cffi==1.13.1              # via cryptography
+cffi==1.13.0              # via cryptography
 chardet==3.0.4            # via requests
-cryptography==2.8         # via pyopenssl
+configparser==4.0.2       # via importlib-metadata
+contextlib2==0.6.0.post1  # via importlib-metadata, raven
+cookies==2.2.1            # via responses
+cryptography==2.7         # via pyopenssl
 cssselect==1.1.0          # via pyquery
+cyordereddict==1.0.0
 defusedxml==0.6.0         # via djangorestframework-xml
 dicttoxml==1.7.4
 dj-database-url==0.5.0
@@ -33,13 +39,13 @@ django-celery-beat==1.5.0
 django-constance[database]==2.4.0
 django-cors-headers==2.5.3
 django-debug-toolbar==1.11
-django-extensions==2.2.5
+django-extensions==2.2.3
 django-js-asset==1.2.2    # via django-mptt
 django-jsonbfield==0.1.0
 django-loginas==0.3.6
 django-markdownx==2.0.28
 django-markitup==3.0.0
-django-mptt==0.10.0
+django-mptt==0.9.1
 django-oauth-toolkit==1.1.0
 django-picklefield==2.0   # via django-constance
 django-private-storage==2.2
@@ -49,34 +55,40 @@ django-request-cache==1.1
 django-reversion==3.0.1
 django-ses==0.8.12
 django-storages==1.7.2
-django-taggit==1.1.0
+django-taggit==0.24.0
 django-timezone-field==3.1  # via django-celery-beat
 django-userforeignkey==0.3.0  # via django-request-cache
 django-webpack-loader==0.6.0
 django==1.11.25
 djangorestframework-xml==1.4.0
-djangorestframework==3.10.3
+djangorestframework==3.9.4
 docutils==0.15.2          # via botocore, statistics
 drf-extensions==0.5.0
+enum34==1.1.6             # via cryptography
 formencode==1.3.1         # via pyxform
-future==0.18.1            # via django-ses
-geojson-rewind==0.2.0
+funcsigs==1.0.2           # via begins, mock
+functools32==3.2.3.post2  # via jsonschema, pyxform
+future==0.18.0            # via backports.os, django-ses
+futures==3.3.0            # via s3transfer
 idna==2.8                 # via requests
 importlib-metadata==0.23  # via jsonschema, kombu, path.py
+ipaddress==1.0.22         # via cryptography
 jmespath==0.9.4           # via boto3, botocore
 jsonfield==2.0.2
 jsonschema==3.1.1
 kombu==4.6.5
 linecache2==1.0.0         # via traceback2
 lxml==4.4.1
-markdown==3.1.1
+markdown==2.6.11
 mock==3.0.5
-more-itertools==7.2.0     # via zipp
+more-itertools==5.0.0     # via zipp
 ndg-httpsclient==0.5.1
 oauthlib==3.1.0
-path.py==12.0.1
-pillow==6.2.1             # via django-markdownx
-psycopg2==2.8.4           # via django-jsonbfield
+path.py==11.5.2
+pathlib2==2.3.5           # via importlib-metadata
+pillow==6.2.0             # via django-markdownx
+psycopg2==2.8.3           # via django-jsonbfield
+py-gfm==0.1.4
 pyasn1==0.4.7
 pycparser==2.19           # via cffi
 pygments==2.4.2
@@ -86,31 +98,34 @@ pyquery==1.4.0
 pyrsistent==0.15.4        # via jsonschema
 python-crontab==2.3.9     # via django-celery-beat
 python-dateutil==2.8.0
+python-digest==1.7
+python-slugify==1.2.6     # via transifex-client
 pytz==2019.3
 pyxform==0.15.1
+raven==6.10.0
 redis==3.3.11             # via celery, django-redis-sessions
 requests==2.22.0
 responses==0.10.6
 s3transfer==0.2.1         # via boto3
+scandir==1.10.0           # via pathlib2
 shortuuid==0.5.0
-six==1.12.0
+six==1.11.0
 sqlparse==0.3.0
 static3==0.7.0
 statistics==1.0.3.5
 tabulate==0.8.5
 traceback2==1.4.0         # via unittest2
+transifex-client==0.13.6
+typing==3.7.4.1           # via django-extensions
 unicodecsv==0.14.1
+unidecode==1.1.1          # via python-slugify
 unittest2==1.1.0          # via pyxform
-urllib3==1.25.6           # via botocore, requests
+urllib3==1.23             # via botocore, requests, transifex-client
 uwsgi==2.0.18
 vine==1.3.0               # via amqp, celery
 whitenoise==4.1.4
 whoosh==2.7.4
 xlrd==1.2.0
-xlsxwriter==1.2.2
+xlsxwriter==1.2.1
 xlwt==1.3.0
 zipp==0.6.0               # via importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-# pip==19.3.1               # via django-markdownx
-# setuptools==41.4.0        # via jsonschema, markdown

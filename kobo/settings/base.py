@@ -263,8 +263,9 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
 
 # django-markdownx, for in-app messages
 MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
-# Github-flavored Markdown from `py-gfm`
-MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
+# Github-flavored Markdown from `py-gfm`,
+# ToDo Uncomment when it's compatible with Markdown 3.x
+# MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
