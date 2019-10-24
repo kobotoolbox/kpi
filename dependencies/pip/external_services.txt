@@ -6,7 +6,7 @@
 #
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
 -e git+https://github.com/jnm/django-haystack@3a3b04564e189c11fdc20a4be43e360b5396708c#egg=django_haystack
--e git+https://github.com/kobotoolbox/formpack.git@7a766d80d1bfcfec7730e044439b0ea76d8d020c#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@0d89a653e07c5d5d1ea52c8448181ab7086ab537#egg=formpack
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
 amqp==2.5.1
 anyjson==0.3.3
