@@ -32,6 +32,4 @@ fi
 
 echo 'KoBoForm initialization completed.'
 
-#ps faux
-#exec /sbin/runit
 exec /usr/bin/runsvdir /etc/service
