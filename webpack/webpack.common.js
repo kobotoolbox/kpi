@@ -20,7 +20,6 @@ const postCssLoader = {
 };
 
 var defaultOptions = {
-  devtool: 'source-map',
   module: {
     rules: [
       {
