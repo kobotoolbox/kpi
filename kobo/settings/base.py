@@ -109,10 +109,12 @@ INSTALLED_APPS = (
 
 MIDDLEWARE_CLASSES = (
     'corsheaders.middleware.CorsMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    'kobo.apps.oc_keycloak.middleware.OCSessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'kobo.apps.oc_keycloak.middleware.OCCsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # TODO: Uncomment this when interoperability with dkobo is no longer
     # needed. See https://code.djangoproject.com/ticket/21649
