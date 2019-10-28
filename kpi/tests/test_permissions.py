@@ -1,6 +1,4 @@
-from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
 
 from ..models.asset import Asset
@@ -725,3 +723,12 @@ class PermissionsTestCase(BasePermissionsTestCase):
         partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
         self.assertDictEqual(expected_partial_perms, partial_perms)
 
+    def test_user_without_perms_get_anonymous_perms(self):
+
+        asset = self.admin_asset
+        grantee = self.someuser
+
+        asset.assign_perm(AnonymousUser(), PERM_VIEW_SUBMISSIONS)
+        self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertTrue(list(asset.get_perms(grantee)),
+                        list(asset.get_perms(AnonymousUser())))
