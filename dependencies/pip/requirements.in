@@ -69,7 +69,6 @@ static3
 tabulate
 unicodecsv
 uWSGI
-whitenoise
 Whoosh==2.7.4
 xlrd
 xlwt

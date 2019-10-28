@@ -107,7 +107,6 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -347,11 +346,6 @@ TEMPLATES = [
         },
     },
 ]
-
-# This is very brittle (can't handle references to missing images in CSS);
-# TODO: replace later with grunt gzipping?
-#if not DEBUG:
-#    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')

@@ -18,6 +18,3 @@ if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
 
 # Decrease prod value to speed-up tests
 SUBMISSION_LIST_LIMIT = 100
-
-# http://whitenoise.evans.io/en/stable/django.html#whitenoise-makes-my-tests-run-slow
-WHITENOISE_AUTOREFRESH = True
