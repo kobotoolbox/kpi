@@ -66,6 +66,9 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
+        if (window.Raven) {
+          window.Raven.captureException(new Error('Testing source maps!'));
+        }
         break;
 
       case MODAL_TYPES.ENKETO_PREVIEW:
