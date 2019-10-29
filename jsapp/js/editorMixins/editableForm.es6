@@ -605,16 +605,6 @@ export default assign({
     return (
       <bem.FormBuilderHeader>
         <bem.FormBuilderHeader__row m='primary'>
-          <bem.FormBuilderHeader__cell
-            m={'logo'}
-            data-tip={t('Return to list')}
-            className='left-tooltip'
-            tabIndex='0'
-            onClick={this.safeNavigateToList}
-          >
-            <i className='k-icon k-icon-kobo' />
-          </bem.FormBuilderHeader__cell>
-
           <bem.FormBuilderHeader__cell m={'name'} >
             <bem.FormModal__item>
               {this.renderAssetLabel()}
@@ -642,13 +632,6 @@ export default assign({
               <i />
               {saveButtonText}
             </bem.FormBuilderHeader__button>
-
-            <bem.FormBuilderHeader__close
-              m={[{'close-warning': this.needsSave()}]}
-              onClick={this.safeNavigateToAsset}
-            >
-              <i className='k-icon k-icon-close'/>
-            </bem.FormBuilderHeader__close>
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
 
