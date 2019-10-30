@@ -360,11 +360,9 @@ $mdl-layout-width: 1440px;
     }
 
     &::after {
-      content: "\2304";
-      font-size: 33px;
-      line-height: 34px;
-      display: inline-block;
-      vertical-align: top;
+      content: "\F107";
+      font-family: "FontAwesome";
+      margin-left: 5px;
     }
   }
 
