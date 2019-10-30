@@ -57,10 +57,9 @@ RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
 RUN locale-gen && dpkg-reconfigure locales -f noninteractive
 
 ###########################
-# Clean-up KPI directory  #
+# Copy KPI directory      #
 ###########################
 
-RUN rm -rf "${KPI_SRC_DIR}"
 COPY . "${KPI_SRC_DIR}"
 
 ###########################
@@ -130,6 +129,8 @@ RUN useradd -s /bin/false -m wsgi
 
 # Prepare for execution.
 RUN rm -rf /etc/service/wsgi && \
+    # Remove getty* services
+    rm -rf /etc/runit/runsvdir/default/getty-tty* && \
     mkdir -p /etc/service/uwsgi && \
     ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run && \
     mkdir -p /etc/service/celery && \

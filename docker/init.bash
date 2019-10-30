@@ -13,16 +13,28 @@ if [[ -z $DATABASE_URL ]]; then
     exit 1
 fi
 
-# ToDo Removed this comment when we're sure `syncdb` is not needed
-# Removed in Django 1.9 in favor of `python manage.py migrate`
-# echo 'Synchronizing database.'
-# python manage.py syncdb --noinput
-
 echo 'Running migrations.'
 python manage.py migrate --noinput
 
+if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
+    # If `node_modules` folder does not exist.
+    if [[ ! "$(ls -A ${KPI_SRC_DIR}/node_modules)" ]]; then
+        echo "\`npm\` packages are missing. Re-installing them."
+        npm install --quiet && npm cache clean --force
+    fi
+
+    echo "Rebuilding client code"
+    # Clean up folders
+    rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
+    npm run copy-fonts && npm run build
+
+    echo 'Building static files from live code.'
+    (cd "${KPI_SRC_DIR}" && python manage.py collectstatic --noinput)
+fi
+
 echo "Copying static files to nginx volume..."
-rsync -aq --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
+rsync -aq --delete --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
 if [[ -d /srv/pydev_orig && ! -z "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
