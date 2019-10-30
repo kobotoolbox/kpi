@@ -163,7 +163,7 @@ class ImportZipSubfile(ImportFile):
     def __init__(self, *args, **kwargs):
         self.zfile = kwargs['zfile']
         del kwargs['zfile']
-        super( mportZipSubfile, self).__init__(*args, **kwargs)
+        super(ImportZipSubfile, self).__init__(*args, **kwargs)
 
     @property
     def readable(self):

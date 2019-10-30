@@ -62,18 +62,3 @@ class ObjectPermissionBackend(ModelBackend):
         # Trust the object-level test to handle anonymous users correctly
         return obj.has_perm(user_obj, perm)
 
-    def has_module_perms(self, user_obj, app_label):
-        user_obj, is_anonymous = self._translate_anonymous_user(user_obj)
-        if is_anonymous:
-            # Obey limits on anonymous users' permissions
-            proceed = False
-            # FIXME `allowed_perm` & `perm` are not declared.
-            # how can it work?
-            for allowed_perm in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
-                if perm[:perm.index('.')] == app_label:
-                    proceed = True
-            if not proceed:
-                return False
-        return super(ObjectPermissionBackend, self).has_module_perms(
-            user_obj, app_label)
-

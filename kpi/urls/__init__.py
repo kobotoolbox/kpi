@@ -52,7 +52,6 @@ urlpatterns = [
     ),
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
-    # url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),

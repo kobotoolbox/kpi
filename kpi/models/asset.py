@@ -835,13 +835,14 @@ class Asset(ObjectPermissionMixin,
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
             try:
-                row_count = self.summary['row_count']
+                row_count = int(self.summary.get('row_count'))
+            except TypeError:
+                pass
+            else:
                 if row_count == 1:
                     self.asset_type = ASSET_TYPE_QUESTION
                 elif row_count > 1:
                     self.asset_type = ASSET_TYPE_BLOCK
-            except (KeyError, TypeError):  # `row_count` is `None` or doesn't exist
-                pass  # Leave `asset_type` as is.
 
         self._populate_report_styles()
 

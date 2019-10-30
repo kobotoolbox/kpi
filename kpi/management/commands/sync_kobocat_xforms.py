@@ -18,13 +18,13 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.six import iteritems
-from django.utils.six.moves import cStringIO as StringIO
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
+from kpi.utils.future import ObjectIO
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 from ...deployment_backends.kc_access.shadow_models import (
     ShadowModel,
@@ -47,12 +47,16 @@ FROM_KC_ONLY_PERMISSION = Permission.objects.get(
 XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
 # Replace codenames with Permission PKs, remembering the codenames
 KPI_CODENAMES = {}
-for kc_codename, kpi_codename in PERMISSIONS_MAP.items():
+
+permission_map_copy = dict(PERMISSIONS_MAP)
+for kc_codename, kpi_codename in permission_map_copy.items():
     kc_perm_pk = KobocatPermission.objects.get(
         content_type=XFORM_CT, codename=kc_codename).pk
     kpi_perm_pk = Permission.objects.get(
         content_type=ASSET_CT, codename=kpi_codename).pk
+
     del PERMISSIONS_MAP[kc_codename]
+
     PERMISSIONS_MAP[kc_perm_pk] = kpi_perm_pk
     KPI_CODENAMES[kpi_perm_pk] = kpi_codename
 
@@ -97,11 +101,11 @@ def _convert_dict_to_xls(ss_dict):
             cur_sheet = workbook.add_sheet(sheet_name)
             _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
 
-    # ToDo Check this code in Python3
-    string_io = StringIO()
-    workbook.save(string_io)
-    string_io.seek(0)
-    return string_io
+    object_io = ObjectIO()
+    obj = object_io.get_obj()
+    workbook.save(obj)
+    obj.seek(0)
+    return obj
 
 
 def _xlsform_to_kpi_content_schema(xlsform):
@@ -129,7 +133,7 @@ def _kc_forms_api_request(token, xform_pk, xlsform=False):
         settings.KOBOCAT_INTERNAL_URL, xform_pk)
     if xlsform:
         url += '/form.xls'
-    headers = {'Authorization':'Token ' + token.key}
+    headers = {'Authorization': 'Token ' + token.key}
     return requests.get(url, headers=headers)
 
 
