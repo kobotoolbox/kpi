@@ -24,11 +24,6 @@ from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
-# TODO: Remove lines below (38:58) when django and django-storages are upgraded
-# to latest version.
-# Because current version of Django is 1.8, we can't upgrade `django-storages`.
-# `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.1) requires `Django 1.11`
-from storages.backends.s3boto3 import S3Boto3StorageFile
 
 import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
@@ -42,23 +37,6 @@ from ..model_utils import create_assets, _load_library_content, \
     remove_string_prefix
 from ..models import Collection, Asset
 from ..zip_importer import HttpContentParse
-
-
-def _flush_write_buffer(self):
-    """
-    Flushes the write buffer.
-    """
-    if self._buffer_file_size:
-        self._write_counter += 1
-        self.file.seek(0)
-        part = self._multipart.Part(self._write_counter)
-        part.upload(Body=self.file.read())
-        self.file.seek(0)
-        self.file.truncate()
-
-
-# Monkey Patch S3Boto3StorageFile class with 1.7.1 version of the method
-S3Boto3StorageFile._flush_write_buffer = _flush_write_buffer
 
 
 def utcnow(*args, **kwargs):
@@ -81,9 +59,9 @@ def _resolve_url_to_asset_or_collection(item_path):
 
     uid = match.kwargs.get('uid')
     if match.url_name == 'asset-detail':
-        return ('asset', Asset.objects.get(uid=uid))
+        return 'asset', Asset.objects.get(uid=uid)
     elif match.url_name == 'collection-detail':
-        return ('collection', Collection.objects.get(uid=uid))
+        return 'collection', Collection.objects.get(uid=uid)
 
 
 class ImportExportTask(models.Model):
