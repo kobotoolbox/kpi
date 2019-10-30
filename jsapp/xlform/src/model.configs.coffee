@@ -24,74 +24,47 @@ module.exports = do ->
       label: "start time"
       description: "Records when the survey was begun"
       default: true
-      asJson:
-        type: "start"
-        name: "start"
     end_time:
       name: "end"
       label: "end time"
       description: "records when the survey was marked as completed"
       default: true
-      asJson:
-        type: "end"
-        name: "end"
     today:
       name: "today"
       label: "today"
       description: "includes today's date"
       default: false
-      asJson:
-        type: "today"
-        name: "today"
     username:
       name: "username"
       label: "username"
       description: "includes interviewer's username"
       default: false
-      asJson:
-        type: "username"
-        name: "username"
     simserial:
       name: "simserial"
       label: "sim serial"
       description: "records the serial number of the network sim card"
       default: false
-      asJson:
-        type: "simserial"
-        name: "simserial"
     subscriberid:
       name: "subscriberid"
       label: "subscriber id"
       description: "records the subscriber id of the sim card"
       default: false
-      asJson:
-        type: "subscriberid"
-        name: "subscriberid"
     deviceid:
       name: "deviceid"
       label: "device id"
       aliases: ["imei"]
       description: "Records the internal device ID number (works on Android phones)"
       default: false
-      asJson:
-        type: "deviceid"
-        name: "deviceid"
     phoneNumber:
       name: "phonenumber"
       label: "phone number"
       description: "Records the device's phone number, when available"
       default: false
-      asJson:
-        type: "phonenumber"
-        name: "phonenumber"
     audit:
       name: "audit"
       label: "audit"
       description: "Records the behavior of enumerators as they navigate through a form"
       default: false
-      asJson:
-        type: "audit"
-        name: "audit"
 
   do ->
     class SurveyDetailSchemaItem extends Backbone.Model
