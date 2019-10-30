@@ -4,10 +4,6 @@ defaultSurveyDetails
 These values will be populated in the form builder and the user
 will have the option to turn them on or off.
 
-When exported, if the checkbox was selected, the "asJson" value
-gets passed to the CSV builder and appended to the end of the
-survey.
-
 Details pulled from ODK documents / google docs. Notably this one:
   https://docs.google.com/spreadsheet/ccc?key=0AgpC5gsTSm_4dDRVOEprRkVuSFZUWTlvclJ6UFRvdFE#gid=0
 ###
