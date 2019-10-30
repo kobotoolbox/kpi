@@ -35,7 +35,7 @@ from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
 from kobo.apps.hook.views import HookViewSet, HookLogViewSet
-from kobo.apps.oc_keycloak.views import openid as oc_openid, authz_cb as oc_login_cb, logout as oc_logout
+from oc.views import openid as oc_openid, authz_cb as oc_login_cb, logout as oc_logout
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See

@@ -70,6 +70,7 @@ LOGIN_REDIRECT_URL = '/'
 # precedence
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'oc',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -102,7 +103,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'kobo.apps.oc_keycloak',
     'bossoidc',
     'djangooidc',
 )
@@ -110,11 +110,11 @@ INSTALLED_APPS = (
 MIDDLEWARE_CLASSES = (
     'corsheaders.middleware.CorsMiddleware',
     # 'django.contrib.sessions.middleware.SessionMiddleware',
-    'kobo.apps.oc_keycloak.middleware.OCSessionMiddleware',
+    'oc.middleware.OCSessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
-    'kobo.apps.oc_keycloak.middleware.OCCsrfViewMiddleware',
+    'oc.middleware.OCCsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # TODO: Uncomment this when interoperability with dkobo is no longer
     # needed. See https://code.djangoproject.com/ticket/21649

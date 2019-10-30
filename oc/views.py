@@ -57,6 +57,28 @@ def __configure_oidc(auth_uri, client_id, public_uri, scope=None, client_secret=
         #          retrieving the JWT Bearer token that is used by drf-oidc-auth
         oidc_providers['KeyCloak']['behaviour']['scope'] = scope
 
+def __get_subdomain(request):
+    full_uri_with_path = request.build_absolute_uri()
+    extracted_full_uri_with_path = extract(full_uri_with_path)
+    subdomain = extracted_full_uri_with_path.subdomain.split('.')[0]
+    return subdomain
+
+def __get_realm(request):
+    full_uri_with_path = request.build_absolute_uri()
+    extracted_full_uri_with_path = extract(full_uri_with_path)
+    current_domain = 'openclinica-dev.io'
+    if 'openclinica' in full_uri_with_path:
+        current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
+    subdomain = __get_subdomain(request)
+
+    allowed_connections_url = '{}://{}.build.{}/customer-service/api/allowed-connections'.format(request.scheme, subdomain, current_domain)
+    allowed_connections_response = requests.get(
+            allowed_connections_url,
+            params={'subdomain': subdomain}
+        )
+    realm_name = allowed_connections_response.json()[0]
+    return realm_name
+
 def __configure(request):
     full_uri_with_path = request.build_absolute_uri()
     parsed_full_uri_with_path = urlparse(full_uri_with_path)
@@ -68,14 +90,8 @@ def __configure(request):
     current_domain = 'openclinica-dev.io'
     if 'openclinica' in full_uri_with_path:
         current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
-    subdomain = extracted_full_uri_with_path.subdomain.split('.')[0]
 
-    allowed_connections_url = '{}://{}.build.{}/customer-service/api/allowed-connections'.format(request.scheme, subdomain, current_domain)
-    allowed_connections_response = requests.get(
-            allowed_connections_url,
-            params={'subdomain': subdomain}
-        )
-    realm_name = allowed_connections_response.json()[0]
+    realm_name = __get_realm(request)
     print realm_name
 
     master_realm = KeycloakRealm(server_url='https://auth.{}/'.format(current_domain), realm_name=settings.KEYCLOAK_MASTER_REALM)
@@ -169,12 +185,16 @@ def authz_cb(request):
     CLIENTS = __configure(request)
     
     client = CLIENTS[request.session["op"]]
+
     query = None
 
     try:
         query = parse_qs(request.META['QUERY_STRING'])
         userinfo = client.callback(query, request.session)
         request.session["userinfo"] = userinfo
+        request.session["subdomain"] = __get_subdomain(request)
+        print 'session_subdomain'
+        print request.session["subdomain"]
         user = authenticate(request=request, **userinfo)
         if user:
             login(request, user)
