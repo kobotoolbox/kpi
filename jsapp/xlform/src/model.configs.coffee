@@ -23,7 +23,7 @@ module.exports = do ->
       name: "start"
       label: "start time"
       description: "Records when the survey was begun"
-      default: true
+      default: false
       asJson:
         type: "start"
         name: "start"
@@ -31,7 +31,7 @@ module.exports = do ->
       name: "end"
       label: "end time"
       description: "records when the survey was marked as completed"
-      default: true
+      default: false
       asJson:
         type: "end"
         name: "end"
