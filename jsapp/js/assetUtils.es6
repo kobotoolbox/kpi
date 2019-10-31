@@ -1,3 +1,4 @@
+import actions from 'js/actions';
 import {QUESTION_TYPES} from 'js/constants';
 
 /**
@@ -30,6 +31,19 @@ export function getSurveyFlatPaths(survey) {
   return output;
 }
 
+/**
+ * Moves asset to a non-nested collection.
+ * @param {string} assetUid
+ * @param {string} collectionId
+ */
+export function moveToCollection(assetUid, collectionId) {
+  actions.resources.updateAsset(
+    assetUid,
+    {parent: `/api/v2/collections/${collectionId}/`}
+  );
+}
+
 export default {
-  getSurveyFlatPaths
+  getSurveyFlatPaths,
+  moveToCollection
 };

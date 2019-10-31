@@ -8,7 +8,6 @@ import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
-import {dataInterface} from '../dataInterface';
 import {
   KEY_CODES,
   ASSET_TYPES
@@ -18,6 +17,7 @@ import {
   formatTime,
   t
 } from '../utils';
+import assetUtils from 'js/assetUtils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -30,6 +30,7 @@ class AssetRow extends React.Component {
     this.escFunction = this.escFunction.bind(this);
     autoBind(this);
   }
+
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
@@ -39,6 +40,7 @@ class AssetRow extends React.Component {
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
   }
+
   clickTagsToggle () {
     const isTagsInputVisible = !this.state.isTagsInputVisible;
     if (isTagsInputVisible) {
@@ -48,47 +50,27 @@ class AssetRow extends React.Component {
     }
     this.setState({isTagsInputVisible: isTagsInputVisible});
   }
+
   escFunction (evt) {
     if (evt.keyCode === KEY_CODES.ESC && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }
-  componentDidMount () {
-    this.prepParentCollection();
-  }
-  prepParentCollection () {
-    this.setState({
-      parent: this.props.parent,
-    });
-  }
+
   moveToCollection (evt) {
-    var uid = this.props.uid;
-    var collid = '/collections/' + evt.currentTarget.dataset.collid + '/';
-    var parent = evt.currentTarget.dataset.parent;
-
-    if (parent == 'true') {
-      collid = null;
-    }
-
-    dataInterface.patchAsset(uid, {
-      parent: collid,
-    }).done(()=>{
-      this.setState({
-        parent: collid,
-      });
-    });
+    assetUtils.moveToCollection(this.props.uid, evt.currentTarget.dataset.collid);
   }
-  preventDefault (evt) {
-    evt.preventDefault();
-  }
+
   clearPopover () {
     if (this.state.popoverVisible) {
       this.setState({clearPopover: true, popoverVisible: false});
     }
   }
+
   popoverSetVisible () {
     this.setState({popoverVisible: true});
   }
+
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
     var _rc = this.props.summary && this.props.summary.row_count || 0;
@@ -111,7 +93,7 @@ class AssetRow extends React.Component {
 
     if (this.isLibrary()) {
       hrefTo = `/library/${this.props.uid}/edit`;
-      parent = this.state.parent || undefined;
+      parent = this.props.parent || undefined;
       ownedCollections = this.props.ownedCollections.map(function(c){
         var p = false;
         if (parent != undefined && parent.indexOf(c.uid) !== -1) {
