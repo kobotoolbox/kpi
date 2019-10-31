@@ -135,9 +135,9 @@ class FormpackXLSFormUtils(object):
     
     def _standardize(self, content):
         if needs_standardization(content):
-            self._survey_prepare_required_col_value(content)
+            # self._survey_prepare_required_col_value(content)
             standardize_content_in_place(content)
-            self._survey_revert_required_col_value(content)
+            # self._survey_revert_required_col_value(content)
             return True
         else:
             return False
