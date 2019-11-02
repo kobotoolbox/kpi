@@ -691,6 +691,7 @@ export class FormMap extends React.Component {
     } else if (!this.state.hasGeoPoint) {
       label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
     }
+    console.log('noData: ' + this.state.noData);
 
     const formViewModifiers = ['map'];
     if (this.state.isFullscreen) {
@@ -769,6 +770,40 @@ export class FormMap extends React.Component {
             })}
           </ui.PopoverMenu>
 
+        }
+
+        {this.state.noData && !this.state.hasGeoPoint &&
+         <div>
+            <p className="no_geopoint">
+              {t('The map does not show data because this form does not have a "geopoint" field.')}
+            </p>
+            <style>{"\
+              .no_geopoint{\
+                text-align:center;\
+                background-color:#ff9191;\
+                border-bottom:solid;\
+                margin:auto;\
+                padding:10px\
+              }\
+            "}</style>
+          </div>
+        }
+
+        {this.state.noData && this.state.hasGeoPoint &&
+         <div>
+            <p className="no_geopoint">
+              {t('No GeoPoint Data to show.')}
+            </p>
+            <style>{"\
+              .no_geopoint{\
+                text-align:center;\
+                background-color:#ff9191;\
+                border-bottom:solid;\
+                margin:auto;\
+                padding:10px\
+              }\
+            "}</style>
+          </div>
         }
 
         {this.state.markerMap && this.state.markersVisible &&
