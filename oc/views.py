@@ -17,6 +17,8 @@ from bossoidc.settings import configure_oidc
 
 from keycloak.realm import KeycloakRealm
 
+from kpi.utils.domain import get_subdomain
+
 logger = logging.getLogger(__name__)
 
 class OCKeycloakSettings:
@@ -57,19 +59,13 @@ def __configure_oidc(auth_uri, client_id, public_uri, scope=None, client_secret=
         #          retrieving the JWT Bearer token that is used by drf-oidc-auth
         oidc_providers['KeyCloak']['behaviour']['scope'] = scope
 
-def __get_subdomain(request):
-    full_uri_with_path = request.build_absolute_uri()
-    extracted_full_uri_with_path = extract(full_uri_with_path)
-    subdomain = extracted_full_uri_with_path.subdomain.split('.')[0]
-    return subdomain
-
 def __get_realm(request):
     full_uri_with_path = request.build_absolute_uri()
     extracted_full_uri_with_path = extract(full_uri_with_path)
     current_domain = 'openclinica-dev.io'
     if 'openclinica' in full_uri_with_path:
         current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
-    subdomain = __get_subdomain(request)
+    subdomain = get_subdomain(request)
 
     allowed_connections_url = '{}://{}.build.{}/customer-service/api/allowed-connections'.format(request.scheme, subdomain, current_domain)
     allowed_connections_response = requests.get(
@@ -85,14 +81,12 @@ def __configure(request):
     extracted_full_uri_with_path = extract(full_uri_with_path)
 
     current_root_uri = '{}://{}'.format(parsed_full_uri_with_path.scheme, parsed_full_uri_with_path.netloc)
-    print current_root_uri
 
     current_domain = 'openclinica-dev.io'
     if 'openclinica' in full_uri_with_path:
         current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
 
     realm_name = __get_realm(request)
-    print realm_name
 
     master_realm = KeycloakRealm(server_url='https://auth.{}/'.format(current_domain), realm_name=settings.KEYCLOAK_MASTER_REALM)
     master_realm_client = master_realm.open_id_connect(
@@ -124,7 +118,6 @@ def __configure(request):
         PUBLIC_URI_FOR_KEYCLOAK = current_root_uri
 
         __configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)
-        print oc_settings.OIDC_PROVIDERS
 
         CLIENTS = OIDCClients(oc_settings)
 
@@ -192,9 +185,7 @@ def authz_cb(request):
         query = parse_qs(request.META['QUERY_STRING'])
         userinfo = client.callback(query, request.session)
         request.session["userinfo"] = userinfo
-        request.session["subdomain"] = __get_subdomain(request)
-        print 'session_subdomain'
-        print request.session["subdomain"]
+        request.session["subdomain"] = get_subdomain(request)
         user = authenticate(request=request, **userinfo)
         if user:
             login(request, user)

@@ -12,6 +12,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from haystack.backends.whoosh_backend import WhooshSearchBackend
 from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
+from kpi.utils.domain import get_subdomain
+from bossoidc.models import Keycloak as KeycloakModel
 
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
@@ -43,6 +45,17 @@ class KpiObjectPermissionsFilter(object):
     def filter_queryset(self, request, queryset, view):
 
         user = request.user
+        
+        kc_user = None
+        try:
+            kc_user = KeycloakModel.objects.get(user=user)
+        except KeycloakModel.DoesNotExist:
+            pass
+
+        if kc_user is not None:
+            if kc_user.subdomain == get_subdomain(request):
+                return queryset
+
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
