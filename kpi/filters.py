@@ -22,6 +22,7 @@ from .models.object_permission import (
     get_models_with_object_permissions,
 )
 
+from kpi.utils.log import logging
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
@@ -44,17 +45,30 @@ class KpiObjectPermissionsFilter(object):
 
     def filter_queryset(self, request, queryset, view):
 
-        user = request.user
-        
-        kc_user = None
-        try:
-            kc_user = KeycloakModel.objects.get(user=user)
-        except KeycloakModel.DoesNotExist:
-            pass
+        model_cls = queryset.model
+        app_label = model_cls._meta.app_label
+        model_name = model_cls._meta.model_name
+        kwargs = {
+            'app_label': app_label,
+            'model_name': model_name,
+        }
+        permission = self.perm_format % kwargs
 
-        if kc_user is not None:
-            if kc_user.subdomain == get_subdomain(request):
-                return queryset
+        user = request.user
+
+        # User can access assets created by users with same subdomain
+        if model_name == 'asset':
+            kc_user = None
+            try:
+                kc_user = KeycloakModel.objects.get(user=user)
+            except KeycloakModel.DoesNotExist:
+                pass
+
+            if kc_user is not None:
+                subdomain = kc_user.subdomain
+                subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
+                subdomain_assetIds = Asset.objects.filter(owner__in=subdomain_userIds).values_list('id', flat=True)
+                return queryset.filter(pk__in=subdomain_assetIds)
 
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
@@ -64,13 +78,6 @@ class KpiObjectPermissionsFilter(object):
         # included. Exclude them by default
         all_public = bool(strtobool(
             request.query_params.get('all_public', 'false').lower()))
-
-        model_cls = queryset.model
-        kwargs = {
-            'app_label': model_cls._meta.app_label,
-            'model_name': model_cls._meta.model_name,
-        }
-        permission = self.perm_format % kwargs
 
         if user.is_anonymous():
             user = get_anonymous_user()
