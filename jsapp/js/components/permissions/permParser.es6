@@ -323,11 +323,17 @@ function sortParseBackendOutput(output) {
   });
 }
 
+export function validateBackendData(permissionAssignments) {
+  console.debug('validateBackendData', permissionAssignments);
+  return true;
+}
+
 module.exports = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,
   parseOldBackendData: parseOldBackendData,
   parseUserWithPermsList: parseUserWithPermsList,
+  validateBackendData,
   sortParseBackendOutput: sortParseBackendOutput // for testing purposes
 };

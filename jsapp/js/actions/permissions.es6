@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import RefluxPromise from 'js/libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
+import {validateBackendData} from 'js/components/permissions/permParser';
 import {
   t,
   notify
@@ -37,13 +38,23 @@ permissionsActions.getConfig.listen(() => {
 
 permissionsActions.getAssetPermissions.listen((assetUid) => {
   dataInterface.getAssetPermissions(assetUid)
-    .done(permissionsActions.getAssetPermissions.completed)
+    .done((permissionAssignments) => {
+      if (validateBackendData(permissionAssignments) === false) {
+        notify('test', 'error');
+      }
+      permissionsActions.getAssetPermissions.completed(permissionAssignments);
+    })
     .fail(permissionsActions.getAssetPermissions.failed);
 });
 
 permissionsActions.getCollectionPermissions.listen((uid) => {
   dataInterface.getCollectionPermissions(uid)
-    .done(permissionsActions.getCollectionPermissions.completed)
+    .done((permissionAssignments) => {
+      if (validateBackendData(permissionAssignments) === false) {
+        notify('test', 'error');
+      }
+      permissionsActions.getCollectionPermissions.completed(permissionAssignments);
+    })
     .fail(permissionsActions.getCollectionPermissions.failed);
 });
 
