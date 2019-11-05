@@ -42,6 +42,7 @@ import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
+import PermValidator from './components/permissions/permValidator';
 import Modal from './components/modal';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 import {
@@ -94,6 +95,7 @@ class App extends React.Component {
           global
           isolate>
 
+        <PermValidator/>
         <IntercomHandler/>
 
           { !this.isFormBuilder() &&
