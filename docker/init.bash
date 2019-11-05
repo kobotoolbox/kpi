@@ -3,7 +3,7 @@ set -e
 
 source /etc/profile
 
-echo 'KoBoForm initializing.'
+echo 'KoBoForm initializing...'
 
 cd "${KPI_SRC_DIR}"
 
@@ -13,24 +13,38 @@ if [[ -z $DATABASE_URL ]]; then
     exit 1
 fi
 
-echo 'Running migrations.'
+
+# Wait for databases to be up & running before going further
+/bin/bash "${INIT_PATH}/wait_for_mongo.bash"
+/bin/bash "${INIT_PATH}/wait_for_postgres.bash"
+
+echo 'Running migrations...'
 python manage.py migrate --noinput
 
+echo 'Creating superuser...'
+python manage.py create_kobo_superuser
+
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
-    # If `node_modules` folder does not exist.
-    if [[ ! "$(ls -A ${KPI_SRC_DIR}/node_modules)" ]]; then
-        echo "\`npm\` packages are missing. Re-installing them."
-        npm install --quiet && npm cache clean --force
+    if [[ "${FRONTEND_DEV_MODE}" == "host" ]]; then
+        echo "Dev mode is activated and `npm` should be run from host."
+        # Create folder to be sure following `rsync` command does not fail
+        mkdir -p ${KPI_SRC_DIR}/staticfiles
+    else
+        echo "Rebuilding client code..."
+        # If `node_modules` folder does not exist.
+        if [[ ! "$(ls -A ${KPI_SRC_DIR}/node_modules)" ]]; then
+            echo "\`npm\` packages are missing. Re-installing them"
+            npm install --quiet && npm cache clean --force
+        fi
+
+        # Clean up folders
+        rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
+        rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
+        npm run copy-fonts && npm run build
+
+        echo 'Building static files from live code...'
+        python manage.py collectstatic --noinput
     fi
-
-    echo "Rebuilding client code"
-    # Clean up folders
-    rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
-    npm run copy-fonts && npm run build
-
-    echo 'Building static files from live code.'
-    (cd "${KPI_SRC_DIR}" && python manage.py collectstatic --noinput)
 fi
 
 echo "Copying static files to nginx volume..."
@@ -42,9 +56,9 @@ if [[ -d /srv/pydev_orig && ! -z "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; 
     "${KPI_SRC_DIR}/docker/setup_pydev.bash"
 fi
 
-echo 'KoBoForm initialization completed.'
-
 echo 'Cleaning up Celery PIDs...'
 rm -rf /tmp/celery*.pid
+
+echo 'KoBoForm initialization completed.'
 
 exec /usr/bin/runsvdir /etc/service

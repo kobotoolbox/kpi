@@ -14,7 +14,8 @@ ENV KPI_LOGS_DIR=/srv/logs \
     NGINX_STATIC_DIR=/srv/static \
     KPI_SRC_DIR=/srv/src/kpi \
     KPI_NODE_PATH=/srv/src/kpi/node_modules \
-    TMP_PATH=/srv/tmp
+    TMP_PATH=/srv/tmp \
+    INIT_PATH=/srv/init
 
 # Install Dockerize.
 ENV DOCKERIZE_VERSION v0.6.1
@@ -30,7 +31,8 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 RUN mkdir -p "${NGINX_STATIC_DIR}" && \
     mkdir -p "${KPI_SRC_DIR}" && \
     mkdir -p "${KPI_NODE_PATH}" && \
-    mkdir -p "${TMP_PATH}"
+    mkdir -p "${TMP_PATH}" && \
+    mkdir -p "${INIT_PATH}"
 
 ##########################################
 # Install `apt` packages.                #
