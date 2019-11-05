@@ -4,6 +4,7 @@ import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import permConfig from './permConfig';
 import actions from 'js/actions';
+import _ from 'underscore';
 import {
   t,
   notify,
@@ -23,8 +24,42 @@ class PermValidator extends React.Component {
   }
 
   validateBackendData(permissionAssignments) {
-    console.debug('validateBackendData', permissionAssignments);
-    notify(replaceSupportEmail(INVALID_PERMS_ERROR), 'error');
+    let allImplied = [];
+    let allContradictory = [];
+
+    permissionAssignments.forEach((assignment) => {
+      const permDef = permConfig.getPermission(assignment.permission);
+      allImplied = _.union(allImplied, permDef.implied);
+      allContradictory = _.union(allContradictory, permDef.contradictory);
+    });
+
+    let hasAllImplied = true;
+    allImplied.forEach((implied) => {
+      let isFound = false;
+      permissionAssignments.forEach((assignment) => {
+        if (assignment.permission === implied) {
+          isFound = true;
+        }
+      });
+      if (isFound === false) {
+        hasAllImplied = false;
+      }
+    });
+
+    let hasAnyContradictory = false;
+    allContradictory.forEach((contradictory) => {
+      permissionAssignments.forEach((assignment) => {
+        if (assignment.permission === contradictory) {
+          hasAnyContradictory = true;
+        }
+      });
+    });
+
+    console.debug('validateBackendData', permissionAssignments, allImplied, allContradictory);
+
+    if (!hasAllImplied || hasAnyContradictory) {
+      notify(replaceSupportEmail(INVALID_PERMS_ERROR), 'error');
+    }
   }
 
   render () {
