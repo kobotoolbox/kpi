@@ -55,8 +55,6 @@ class PermValidator extends React.Component {
       });
     });
 
-    console.debug('validateBackendData', permissionAssignments, allImplied, allContradictory);
-
     if (!hasAllImplied || hasAnyContradictory) {
       notify(replaceSupportEmail(INVALID_PERMS_ERROR), 'error');
     }
