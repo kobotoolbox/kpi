@@ -10,9 +10,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from kobo.apps.hook.models.hook_log import HookLog
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
-from kpi.filters import AssetOwnerFilterBackend
 from kpi.paginators import TinyPaginated
-from kpi.permissions import AssetOwnerNestedObjectPermission
+from kpi.permissions import AssetEditorNestedObjectPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -70,11 +69,8 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     model = HookLog
 
     lookup_field = "uid"
-    filter_backends = (
-        AssetOwnerFilterBackend,
-    )
     serializer_class = HookLogSerializer
-    permission_classes = (AssetOwnerNestedObjectPermission,)
+    permission_classes = (AssetEditorNestedObjectPermission,)
     pagination_class = TinyPaginated
 
     def get_queryset(self):

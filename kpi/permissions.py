@@ -202,29 +202,23 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
-class AssetOwnerNestedObjectPermission(BaseAssetNestedObjectPermission):
+class AssetEditorNestedObjectPermission(AssetNestedObjectPermission):
     """
-    Permissions for objects that are nested under Asset which only owner should access.
+    Permissions for objects that are nested under Asset whose only users can
+    change/edit.
     Others should receive a 404 response (instead of 403) to avoid revealing existence
     of objects.
     """
 
-    perms_map = {}
-
-    def has_permission(self, request, view):
-
-        if not request.user or (request.user and
-                                not request.user.is_authenticated()):
-            return False
-        elif request.user.is_superuser:
-            return True
-
-        asset = self._get_asset(view)
-
-        if request.user != asset.owner:
-            raise Http404
-
-        return True
+    required_permissions = ['%(app_label)s.change_asset',
+                            '%(app_label)s.view_submissions']
+    perms_map = {
+        'GET': required_permissions,
+        'POST': required_permissions,
+        'PUT': required_permissions,
+        'PATCH': required_permissions,
+        'DELETE': required_permissions
+    }
 
 
 class CollectionNestedObjectPermission(BaseCollectionNestedObjectPermission,

@@ -16,8 +16,7 @@ from kobo.apps.hook.constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from kobo.apps.hook.models import Hook, HookLog
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
-from kpi.filters import AssetOwnerFilterBackend
-from kpi.permissions import AssetOwnerNestedObjectPermission
+from kpi.permissions import AssetEditorNestedObjectPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -158,11 +157,8 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     model = Hook
     lookup_field = "uid"
-    filter_backends = (
-        AssetOwnerFilterBackend,
-    )
     serializer_class = HookSerializer
-    permission_classes = (AssetOwnerNestedObjectPermission,)
+    permission_classes = (AssetEditorNestedObjectPermission,)
 
     def get_queryset(self):
         queryset = self.model.objects.filter(asset__uid=self.asset.uid)
@@ -181,8 +177,10 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             seconds = HookLog.get_elapsed_seconds(constance.config.HOOK_MAX_RETRIES)
             threshold = timezone.now() - timedelta(seconds=seconds)
 
-            records = hook.logs.filter(Q(date_modified__lte=threshold, status=HOOK_LOG_PENDING) |
-                                    Q(status=HOOK_LOG_FAILED)).values_list("id", "uid").distinct()
+            records = hook.logs.filter(Q(date_modified__lte=threshold,
+                                         status=HOOK_LOG_PENDING) |
+                                       Q(status=HOOK_LOG_FAILED)). \
+                values_list("id", "uid").distinct()
             # Prepare lists of ids
             hooklogs_ids = []
             hooklogs_uids = []

@@ -27,13 +27,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     Restricts access to items that are owned by the current user
     """
     def filter_queryset(self, request, queryset, view):
-        # Because HookLog is two level nested,
-        # we need to specify the relation in the filter field
-        if type(view).__name__ == "HookLogViewSet":
-            fields = {"hook__asset__owner": request.user}
-        else:
-            fields = {"asset__owner": request.user}
-
+        fields = {"asset__owner": request.user}
         return queryset.filter(**fields)
 
 
