@@ -727,8 +727,11 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         asset = self.admin_asset
         grantee = self.someuser
+        anonymous_user = AnonymousUser()
 
-        asset.assign_perm(AnonymousUser(), PERM_VIEW_SUBMISSIONS)
+        self.assertFalse(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertFalse(anonymous_user.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
         self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         self.assertTrue(list(asset.get_perms(grantee)),
                         list(asset.get_perms(AnonymousUser())))
