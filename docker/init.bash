@@ -30,19 +30,16 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         # Create folder to be sure following `rsync` command does not fail
         mkdir -p ${KPI_SRC_DIR}/staticfiles
     else
-        echo "Rebuilding client code..."
-        # If `node_modules` folder does not exist.
-        if [[ ! "$(ls -A ${KPI_SRC_DIR}/node_modules)" ]]; then
-            echo "\`npm\` packages are missing. Re-installing them"
-            npm install --quiet && npm cache clean --force
-        fi
+        echo "Syncing \`npm\` packages..."
+        check-dependencies --install
 
         # Clean up folders
         rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
         rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
+        echo "Rebuilding client code..."
         npm run copy-fonts && npm run build
 
-        echo 'Building static files from live code...'
+        echo "Building static files from live code..."
         python manage.py collectstatic --noinput
     fi
 fi
