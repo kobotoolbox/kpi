@@ -226,7 +226,6 @@ module.exports = do ->
     "name",
     "label",
     "hint",
-    "guidance_hint",
     "required",
     "relevant",
     "default",
@@ -297,8 +296,6 @@ module.exports = do ->
     hint:
       value: ""
       _hideUnlessChanged: true
-    guidance_hint:
-      value: ""
     required:
       value: ""
       _hideUnlessChanged: true

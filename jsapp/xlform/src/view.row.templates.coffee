@@ -71,7 +71,7 @@ module.exports = do ->
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
-            <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -251,7 +251,9 @@ module.exports = do ->
     </div>
     """
   mandatorySettingSelector = (uniqueName, currentValue) ->
+    console.log 'mandatorySettingSelector uniqueName currentValue', uniqueName, currentValue
     if currentValue is 'true' or currentValue is 'false'
+      console.log 'currentValue is not empty', currentValue
       modifier = currentValue
     else
       modifier = 'custom'
