@@ -773,69 +773,21 @@ export class FormMap extends React.Component {
         }
 
         {this.state.noData && !this.state.hasGeoPoint &&
-         <div className="transparent_background">
-           <div className="no_geopoint_wrapper">
-            <p className="no_geopoint">
+         <div className="map-transparent-background">
+           <div className="map-no-geopoint-wrapper">
+            <p className="map-no-geopoint">
               {t('The map does not show data because this form does not have a "geopoint" field.')}
             </p>
-            <style>{"\
-              .no_geopoint{\
-                text-align:center;\
-                margin:auto;\
-                padding:10px;\
-                font-weight:bold;\
-              }\
-              .no_geopoint_wrapper{\
-                position: absolute;\
-                z-index: 1000;\
-                top: 50%;\
-                left: 50%;\
-                transform: translate(-50%, -50%);\
-                width:100%;\
-              }\
-              .transparent_background{\
-                height: 100%;\
-                position: absolute;\
-                width: 100%;\
-                background-color: grey;\
-                z-index: 999;\
-                background:rgba(100,100,100,0.3);\
-              }\
-            "}</style>
           </div>
          </div>
         }
 
         {this.state.noData && this.state.hasGeoPoint &&
-         <div className="transparent_background">
-           <div className="no_geopoint_wrapper">
-            <p className="no_geopoint">
+         <div className="map-transparent-background">
+           <div className="map-no-geopoint-wrapper">
+            <p className="map-no-geopoint">
               {t('No GeoPoint Data to show.')}
             </p>
-            <style>{"\
-              .no_geopoint{\
-                text-align:center;\
-                margin:auto;\
-                padding:10px;\
-                font-weight:bold;\
-              }\
-              .no_geopoint_wrapper{\
-                position: absolute;\
-                z-index: 1000;\
-                top: 50%;\
-                left: 50%;\
-                transform: translate(-50%, -50%);\
-                width:100%;\
-              }\
-              .transparent_background{\
-                height: 100%;\
-                position: absolute;\
-                width: 100%;\
-                background-color: grey;\
-                z-index: 999;\
-                background:rgba(100,100,100,0.3);\
-              }\
-            "}</style>
           </div>
          </div>
         }
