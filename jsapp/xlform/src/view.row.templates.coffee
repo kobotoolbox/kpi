@@ -251,16 +251,14 @@ module.exports = do ->
     </div>
     """
   mandatorySettingSelector = (uniqueName, currentValue) ->
-    console.log 'mandatorySettingSelector uniqueName currentValue', uniqueName, currentValue
     if currentValue is 'true' or currentValue is 'false'
-      console.log 'currentValue is not empty', currentValue
       modifier = currentValue
     else
       modifier = 'custom'
 
     """
     <div class="card__settings__fields__field">
-      <label>#{_t('Mandatory response')}:</label>
+      <label>#{_t('Required')}:</label>
       <span class="settings__input">
         <div class="radio">
           <label class="radio__row mandatory-setting__row mandatory-setting__row--true">
@@ -270,7 +268,7 @@ module.exports = do ->
               name="#{uniqueName}"
               value="true" #{if modifier is 'true' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('Yes')}</span>
+            <span class="radio__label">#{_t('Always')}</span>
           </label>
           <label class="radio__row mandatory-setting__row mandatory-setting__row--false">
             <input
@@ -279,7 +277,7 @@ module.exports = do ->
               name="#{uniqueName}"
               value="false" #{if modifier is 'false' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('No')}</span>
+            <span class="radio__label">#{_t('Never')}</span>
           </label>
           <label class="radio__row mandatory-setting__row mandatory-setting__row--custom">
             <input
@@ -288,13 +286,13 @@ module.exports = do ->
               name="#{uniqueName}"
               value="custom" #{if modifier is 'custom' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('Custom logic')}</span>
+            <span class="radio__label">#{_t('Conditional')}</span>
             <label class="text-box text-box--on-white">
               <input
                 type="text"
                 class="text-box__input js-mandatory-setting-custom-text"
                 value="#{currentValue}"
-                placeholder="#{_t('Mandatory when this formula is true')}"
+                placeholder="#{_t('Conditional value')}"
               >
             </label>
           </label>
