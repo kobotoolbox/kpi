@@ -1,4 +1,6 @@
 # coding: utf-8
+from urllib.parse import urlparse
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import (
@@ -6,7 +8,6 @@ from django.core.urlresolvers import (
     get_script_prefix,
     resolve,
 )
-from django.utils.six.moves.urllib.parse import urlparse
 from rest_framework import serializers
 
 from kpi.models.object_permission import ObjectPermission

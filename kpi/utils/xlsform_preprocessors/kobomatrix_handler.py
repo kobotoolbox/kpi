@@ -2,7 +2,6 @@
 import re
 from functools import reduce
 
-from django.utils.six import string_types
 from .base_handlers import GroupHandler
 
 
@@ -204,7 +203,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                    'required': col.get('required', False),
                    }
             for key in ['relevant', 'constraint', 'required']:
-                if key in col and isinstance(col[key], string_types):
+                if key in col and isinstance(col[key], str):
                     _str = col[key]
                     for (key2, val) in mappings.items():
                         if key2 in _str:

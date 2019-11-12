@@ -1,7 +1,6 @@
 # coding: utf-8
 import hashlib
-
-from django.utils.six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 from kpi.utils.strings import hashable_str
 

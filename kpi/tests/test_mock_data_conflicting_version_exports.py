@@ -5,7 +5,6 @@ from collections import defaultdict
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.utils.six import text_type
 
 from kobo.apps.reports import report_data
 from kpi.constants import PERM_VIEW_SUBMISSIONS
@@ -53,7 +52,7 @@ class ConflictingVersionsMockDataExports(TestCase):
                     value = ''
                 fields_values[field] = value
             self.expected_results[
-                text_type(sub[self.submission_id_field])
+                str(sub[self.submission_id_field])
             ] = fields_values
 
     @staticmethod

@@ -3,8 +3,6 @@ import xml.etree.ElementTree as ET
 import hashlib
 import re
 
-from django.utils.six import string_types
-
 from kpi.utils.strings import hashable_str
 
 # an approximation of the max size.
@@ -109,7 +107,7 @@ def sluggify_label(label, **opts):
 
 
 def is_valid_node_name(_name):
-    if not isinstance(_name, string_types):
+    if not isinstance(_name, str):
         return False
     if _name == '':
         return False

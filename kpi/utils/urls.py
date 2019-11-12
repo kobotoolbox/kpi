@@ -1,10 +1,11 @@
 # coding: utf-8
+from urllib.parse import urlparse
+
 from django.core.urlresolvers import (
     get_script_prefix,
     resolve
 )
 from django.utils.encoding import uri_to_iri
-from django.utils.six.moves.urllib.parse import urlparse
 
 
 def absolute_resolve(url):

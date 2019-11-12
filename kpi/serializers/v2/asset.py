@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 
-from django.utils.six import text_type
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -134,7 +133,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             try:
                 asset.update_translation_list(translations_list)
             except ValueError as err:
-                raise serializers.ValidationError(text_type(err))
+                raise serializers.ValidationError(str(err))
             validated_data['content'] = asset_content
         return super(AssetSerializer, self).update(asset, validated_data)
 

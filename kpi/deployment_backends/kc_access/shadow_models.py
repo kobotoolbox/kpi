@@ -11,7 +11,6 @@ from django.core.exceptions import ValidationError
 from django.db import ProgrammingError
 from django.db import models
 from django.utils import timezone
-from django.utils.six import text_type
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 from jsonfield import JSONField
@@ -159,9 +158,9 @@ class KobocatPermission(ShadowModel):
 
     def __str__(self):
         return "%s | %s | %s" % (
-            text_type(self.content_type.app_label),
-            text_type(self.content_type),
-            text_type(self.name))
+            str(self.content_type.app_label),
+            str(self.content_type),
+            str(self.name))
 
 
 class KobocatUser(ShadowModel):
@@ -241,8 +240,8 @@ class KobocatUserObjectPermission(ShadowModel):
         return '%s | %s | %s' % (
             # unicode(self.content_object),
             content_object_str,
-            text_type(getattr(self, 'user', False) or self.group),
-            text_type(self.permission.codename))
+            str(getattr(self, 'user', False) or self.group),
+            str(self.permission.codename))
 
     def save(self, *args, **kwargs):
         content_type = KobocatContentType.objects.get_for_model(

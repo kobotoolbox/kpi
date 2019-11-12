@@ -1,6 +1,4 @@
 # coding: utf-8
-from django.utils.six import text_type
-
 from formpack.utils.future import OrderedDict
 
 
@@ -39,7 +37,7 @@ def ss_structure_to_mdtable(content):
     output = []
 
     def cell_to_str(cell):
-        return '' if cell is None else text_type(cell)
+        return '' if cell is None else str(cell)
 
     for (sheet_name, contents) in content.items():
         out_sheets[sheet_name] = output

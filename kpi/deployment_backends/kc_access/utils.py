@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
-from django.utils.six import string_types, iteritems
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
@@ -154,7 +153,7 @@ def _get_content_type_kwargs_for_related(obj):
         )
     # Prepend 'content_type__' to each field name in KC_CONTENT_TYPE_KWARGS
     content_type_kwargs = {
-        'content_type__' + k: v for k, v in iteritems(content_type_kwargs)
+        'content_type__' + k: v for k, v in content_type_kwargs.items()
     }
     return content_type_kwargs
 
@@ -178,7 +177,7 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
         logging.warning(
             '{} object missing KC_PERMISSIONS_MAP'.format(type(obj)))
         return []
-    if isinstance(kpi_codenames, string_types):
+    if isinstance(kpi_codenames, str):
         kpi_codenames = [kpi_codenames]
     # Map KPI codenames to KC
     kc_codenames = []
@@ -278,7 +277,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             '{} object missing KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS'.format(
                 type(obj)))
         return
-    if isinstance(kpi_codenames, string_types):
+    if isinstance(kpi_codenames, str):
         kpi_codenames = [kpi_codenames]
     # Find which KC `XForm` flags need to be switched
     xform_updates = {}
@@ -289,7 +288,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             # This permission doesn't map to anything in KC
             continue
         if remove:
-            flags = {flag: not value for flag, value in iteritems(flags)}
+            flags = {flag: not value for flag, value in flags.items()}
         xform_updates.update(flags)
     # Write to the KC database
     ReadOnlyKobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)

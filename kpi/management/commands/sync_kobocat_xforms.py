@@ -14,7 +14,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils.six import iteritems
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
@@ -35,7 +34,7 @@ from ...models.object_permission import get_anonymous_user
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
 # Swap keys and values so that keys are KC's codenames and values are KPI's
-PERMISSIONS_MAP = {kc: kpi for kpi, kc in iteritems(Asset.KC_PERMISSIONS_MAP)}
+PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 
 # Optimization
 ASSET_CT = ContentType.objects.get_for_model(Asset)
@@ -379,7 +378,7 @@ def _sync_permissions(asset, xform):
         translated_kc_perms[user] = set()
 
     affected_usernames = []
-    for user, expected_perms in iteritems(translated_kc_perms):
+    for user, expected_perms in translated_kc_perms.items():
         if user == xform.user_id:
             # No need sync the owner's permissions
             continue

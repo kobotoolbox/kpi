@@ -2,7 +2,6 @@
 import json
 
 from dicttoxml import dicttoxml
-from django.utils.six import text_type
 from rest_framework import renderers
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -104,7 +103,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
             # does not recognize this type and treat each character as xml node.
             for k, v in data.items():
                 if isinstance(v, ErrorDetail):
-                    data[k] = text_type(v)
+                    data[k] = str(v)
 
             # FIXME new `v2` list endpoint enters this block
             # Submissions are wrapped in `<item>` nodes.

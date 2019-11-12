@@ -2,7 +2,6 @@
 from corsheaders.models import AbstractCorsModel
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
-from six import add_metaclass
 
 
 def _set_cors_field_options(name, bases, attrs):
@@ -17,7 +16,7 @@ def _set_cors_field_options(name, bases, attrs):
 
 
 @python_2_unicode_compatible
-class CorsModel(AbstractCorsModel):
+class CorsModel(AbstractCorsModel, metaclass=_set_cors_field_options):
     """
     A model with one field, `cors`, which specifies an allowed origin that must
     exactly match the `netloc` returned by `urlparse`
@@ -28,8 +27,6 @@ class CorsModel(AbstractCorsModel):
 
     def __str__(self):
         return self.cors
-
-    __metaclass__ = _set_cors_field_options
 
     class Meta:
         verbose_name = _('allowed CORS origin')

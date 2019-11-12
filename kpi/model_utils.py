@@ -5,7 +5,6 @@ import re
 from collections import defaultdict
 
 from django.apps import apps
-from django.utils.six import text_type
 from taggit.models import Tag, TaggedItem
 
 '''
@@ -41,7 +40,7 @@ def _load_library_content(structure):
         # preserve the additional sheets of imported library (but not the library)
         row_tags = []
         for key, val in row.items():
-            if text_type(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
+            if str(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):
                 tag_name = re.match(TAG_RE, key).groups()[0]

@@ -5,7 +5,6 @@ import re
 import xlrd
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
-from django.utils.six import string_types, text_type, unichr
 
 
 def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
@@ -17,7 +16,7 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     a part of `pyxform.xls2json_backends.xls_to_dict`.)
     """
     def _iswhitespace(string):
-        return isinstance(string, string_types) and len(string.strip()) == 0
+        return isinstance(string, str) and len(string.strip()) == 0
 
     def xls_value_to_unicode(value, value_type):
         """
@@ -30,9 +29,9 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
             # Try to display as an int if possible.
             int_value = int(value)
             if int_value == value:
-                return text_type(int_value)
+                return str(int_value)
             else:
-                return text_type(value)
+                return str(value)
         elif value_type is xlrd.XL_CELL_DATE:
             # Warn that it is better to single quote as a string.
             # error_location = cellFormatString % (ss_row_idx, ss_col_idx)
@@ -42,13 +41,13 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
                 value, workbook.datemode)
             if datetime_or_time_only[:3] == (0, 0, 0):
                 # must be time only
-                return text_type(datetime.time(*datetime_or_time_only[3:]))
-            return text_type(datetime.datetime(*datetime_or_time_only))
+                return str(datetime.time(*datetime_or_time_only[3:]))
+            return str(datetime.datetime(*datetime_or_time_only))
         else:
             # ensure unicode and replace nbsp spaces with normal ones
             # to avoid this issue:
             # https://github.com/modilabs/pyxform/issues/83
-            return text_type(value).replace(unichr(160), ' ')
+            return str(value).replace(chr(160), ' ')
 
     def _escape_newline_chars(cell):
         return re.sub(r'\r', '\\\\r', re.sub(r'\n', '\\\\n', cell))
@@ -60,7 +59,7 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
             row_empty = True
             for col in range(0, sheet.ncols):
                 value = sheet.cell_value(row, col)
-                if isinstance(value, string_types):
+                if isinstance(value, str):
                     value = _escape_newline_chars(value.strip())
                 if (value is not None) and (not _iswhitespace(value)):
                     value = xls_value_to_unicode(value, sheet.cell_type(row, col))

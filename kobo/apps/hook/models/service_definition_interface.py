@@ -6,7 +6,6 @@ from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
-from six import add_metaclass
 
 from kpi.utils.log import logging
 from .hook import Hook
@@ -18,8 +17,7 @@ from ..constants import (
 )
 
 
-@add_metaclass(ABCMeta)
-class ServiceDefinitionInterface(object):
+class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def __init__(self, hook, instance_id):
         self._hook = hook

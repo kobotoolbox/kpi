@@ -4,7 +4,6 @@ import string
 import random
 from copy import deepcopy
 
-from django.utils.six import string_types, iteritems
 
 from formpack.utils.json_hash import json_hash
 from formpack.utils.future import OrderedDict
@@ -26,7 +25,7 @@ def _has_name(row):
 
 def _is_group_end(row):
     row_type = row['type']
-    return isinstance(row_type, string_types) and \
+    return isinstance(row_type, str) and \
         (row_type.startswith('end ') or row_type.startswith('end_'))
 
 
@@ -187,7 +186,7 @@ def autovalue_choices_in_place(surv_content, destination_key):
             choices[_list_name] = []
         choices[_list_name].append(choice)
 
-    for (list_name, choice_list) in iteritems(choices):
+    for list_name, choice_list in choices.items():
         previous_values = []
         for choice in choice_list:
             if choice_value_key in choice and choice[choice_value_key]:

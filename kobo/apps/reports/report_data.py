@@ -1,7 +1,6 @@
 # coding: utf-8
 from copy import deepcopy
 
-from django.utils.six import iteritems
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 
@@ -72,7 +71,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
             return submission
 
         submission_version_ids = [
-            val for key, val in iteritems(submission)
+            val for key, val in submission.items()
                 if FUZZY_VERSION_ID_KEY in key
         ]
         # Replace any deprecated reversion IDs with the UIDs of their

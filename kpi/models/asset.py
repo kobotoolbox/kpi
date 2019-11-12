@@ -14,7 +14,6 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import text_type, iteritems
 from django.utils.translation import ugettext_lazy as _
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
@@ -105,7 +104,7 @@ class KpiTaggableManager(_TaggableManager):
             # existing Tag objects, which could also be passed into this
             # method, because a fixed name could collide with the name of
             # another Tag object already in the database.
-            if isinstance(t, six.string_types):
+            if isinstance(t, str):
                 t = t.strip().replace(' ', '-')
             tags_out.append(t)
         super(KpiTaggableManager, self).add(*tags_out, **kwargs)
@@ -258,7 +257,7 @@ class FormpackXLSFormUtils(object):
                 'survey': 'type',
                 'choices': 'list_name',
             }
-        for (sheet_name, required_key) in iteritems(vals):
+        for sheet_name, required_key in vals.items():
             arr = content.get(sheet_name, [])
             arr[:] = [row for row in arr if required_key in row]
 
@@ -439,7 +438,7 @@ class XlsExportable(object):
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
             workbook = xlwt.Workbook()
-            for sheet_name, contents in iteritems(ss_dict):
+            for sheet_name, contents in ss_dict.items():
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
@@ -689,7 +688,7 @@ class Asset(ObjectPermissionMixin,
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly
-            six.text_type(self.ASSET_TYPE_LABELS[self.asset_type])
+            str(self.ASSET_TYPE_LABELS[self.asset_type])
         )
         return label
 
@@ -1147,7 +1146,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 'warnings': warnings,
             })
         except Exception as err:
-            err_message = text_type(err)
+            err_message = str(err)
             logging.error('Failed to generate xform for asset', extra={
                 'src': source,
                 'id_string': id_string,

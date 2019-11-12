@@ -7,6 +7,7 @@ import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import splitext
+from urllib.parse import urlparse
 
 import dateutil.parser
 import pytz
@@ -15,8 +16,6 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import Resolver404, resolve
 from django.db import models, transaction
-from django.utils.six import text_type
-from django.utils.six.moves.urllib.parse import urlparse
 from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
@@ -118,7 +117,7 @@ class ImportExportTask(models.Model):
             self.status = self.COMPLETE
         except Exception as err:
             msgs['error_type'] = type(err).__name__
-            msgs['error'] = text_type(err)
+            msgs['error'] = str(err)
             self.status = self.ERROR
             logging.error(
                 'Failed to run %s: %s' % (self._meta.model_name, repr(err)),
