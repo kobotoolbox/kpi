@@ -5,7 +5,6 @@ import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
@@ -49,7 +48,6 @@ class CollectionManager(TreeManager, TaggableModelManager):
         return self.filter(tags=tag)
 
 
-@python_2_unicode_compatible
 class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
     parent = TreeForeignKey(

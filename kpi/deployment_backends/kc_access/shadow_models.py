@@ -12,7 +12,6 @@ from django.db import ProgrammingError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
@@ -121,7 +120,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     uuid = models.CharField(max_length=249, default='')
 
 
-@python_2_unicode_compatible
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -141,7 +139,6 @@ class KobocatContentType(ShadowModel):
         return self.model
 
 
-@python_2_unicode_compatible
 class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
@@ -202,7 +199,6 @@ class KobocatUser(ShadowModel):
         kc_auth_user.save()
 
 
-@python_2_unicode_compatible
 class KobocatUserObjectPermission(ShadowModel):
     """
     For the _sole purpose_ of letting us manipulate KoBoCAT

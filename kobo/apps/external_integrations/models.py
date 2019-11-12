@@ -1,6 +1,5 @@
 # coding: utf-8
 from corsheaders.models import AbstractCorsModel
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -15,7 +14,6 @@ def _set_cors_field_options(name, bases, attrs):
     return cls
 
 
-@python_2_unicode_compatible
 class CorsModel(AbstractCorsModel, metaclass=_set_cors_field_options):
     """
     A model with one field, `cors`, which specifies an allowed origin that must

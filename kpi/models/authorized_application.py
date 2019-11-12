@@ -4,7 +4,6 @@ import datetime
 from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
 from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import TokenAuthentication
@@ -18,7 +17,6 @@ def _generate_random_key():
     return get_random_string(KEY_LENGTH, KEY_CHARS)
 
 
-@python_2_unicode_compatible
 class AuthorizedApplication(models.Model):
     name = models.CharField(max_length=50)
     key = models.CharField(

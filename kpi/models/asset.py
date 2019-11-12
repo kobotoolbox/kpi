@@ -13,7 +13,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
@@ -455,7 +454,6 @@ class XlsExportable(object):
         return obj
 
 
-@python_2_unicode_compatible
 class Asset(ObjectPermissionMixin,
             TagStringMixin,
             DeployableMixin,

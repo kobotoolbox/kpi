@@ -11,7 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
-from django.utils.encoding import python_2_unicode_compatible
 from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
@@ -203,7 +202,6 @@ class ObjectPermissionManager(models.Manager):
         )
 
 
-@python_2_unicode_compatible
 class ObjectPermission(models.Model):
     """ An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
