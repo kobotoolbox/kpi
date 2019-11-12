@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.conf.urls import url, include
 from django.contrib.auth.views import logout
 from django.views.i18n import javascript_catalog

@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import absolute_import
-
 from .v1.ancestor_collections import AncestorCollectionsSerializer
 from .v1.asset import AssetListSerializer
 from .v1.asset import AssetSerializer

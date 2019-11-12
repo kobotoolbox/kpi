@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError, ValidationError

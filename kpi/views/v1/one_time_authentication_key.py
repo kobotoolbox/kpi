@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from rest_framework import exceptions
 from rest_framework import mixins
 from rest_framework import viewsets

@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.hook.views.v2.hook import HookViewSet

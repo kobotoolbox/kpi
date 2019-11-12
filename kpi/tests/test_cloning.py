@@ -4,9 +4,6 @@ Created on Jun 15, 2015
 
 @author: esmail
 """
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 import json
 import unittest
 

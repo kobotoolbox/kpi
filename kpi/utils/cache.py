@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
 from functools import wraps
 
 from django_request_cache import get_request_cache

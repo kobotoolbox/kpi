@@ -1,8 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
-
 def superuser_or_username_matches_prefix(private_file):
     """
     You can create a custom function, and use that instead. The function

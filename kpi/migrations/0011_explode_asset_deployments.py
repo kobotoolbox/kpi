@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals
-import sys
-
 from django.db import migrations, models
 
 from ..deployment_backends.kobocat_backend import KobocatDeploymentBackend
