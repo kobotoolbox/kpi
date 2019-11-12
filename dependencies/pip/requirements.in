@@ -19,7 +19,6 @@ Pygments
 amqp
 anyjson
 billiard
-boto
 boto3
 celery>=4.0,<5.0
 celery[redis]
@@ -35,7 +34,7 @@ django-extensions
 django-jsonbfield
 django-oauth-toolkit<1.1.1 # Last Python2 support: 1.1.0
 django-registration-redux
-django-ses
+django-amazon-ses
 django-webpack-loader
 django-loginas<0.3.7 # Last Python2 support: 0.3.6
 django-markdownx
@@ -49,6 +48,7 @@ djangorestframework
 djangorestframework-xml
 django-redis-sessions
 drf-extensions
+future
 geojson-rewind
 jsonfield
 kombu

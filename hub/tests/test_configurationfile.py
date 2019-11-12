@@ -8,9 +8,8 @@ from django.core.files.base import ContentFile
 from django.template import Template, RequestContext
 
 from hub.models import ConfigurationFile
-from kpi.utils.future import to_str
 
-sample_svg = '''<svg xmlns="http://www.w3.org/2000/svg"
+sample_svg = b'''<svg xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 420 666">
 <path style="fill:#000000" d="M 0,665.24357 C 19.10304,616.60207
 43.791193,570.34321 65.172372,522.7213 78.325582,455.25301 90.425024,387.52616
@@ -55,7 +54,7 @@ class ConfigurationFileTestCase(LiveServerTestCase):
         absolute_url = self.live_server_url + self.cfg_file.url
         response = requests.get(absolute_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(to_str(response.content), sample_svg)
+        self.assertEqual(response.content, sample_svg)
 
     def test_template_context_processor(self):
         context = RequestContext(HttpRequest())  # NB: empty request
