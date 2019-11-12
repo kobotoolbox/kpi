@@ -469,8 +469,9 @@ module.exports = do ->
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
         group: ['select', 'field-list', 'table-list', 'other']
+        range: ['range', 'vertical', 'no-ticks', 'picker', 'rating', 'distress']
 
-      types[@model._parent.getValue('type').split(' ')[0]]
+      types[@model_type(@model)]
     html: ->
 
       @$el.addClass("card__settings__fields--active")
@@ -479,14 +480,18 @@ module.exports = do ->
       else
         appearances = @getTypes()
         if appearances?
-          appearances.push 'other'
-          appearances.unshift 'select'
+          if @model_type(@model) isnt 'range'
+            appearances.push 'other'
+            appearances.unshift 'select'
           return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, _t("Appearance (advanced)")
         else
           return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
 
     model_is_group: (model) ->
       model._parent.constructor.key == 'group'
+
+    model_type: (model) ->
+      @model._parent.getValue('type').split(' ')[0]
 
     afterRender: ->
       $select = @$('select')

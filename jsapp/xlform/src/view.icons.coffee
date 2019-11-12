@@ -77,7 +77,11 @@ module.exports = do ->
       grouping: "r4"
       id: "acknowledge"
     ,
-
+      label: _t("Range")
+      faClass: "lato-range"
+      grouping: "r4"
+      id: "range"
+    ,
     # r5
 
     # r6
