@@ -2,12 +2,12 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
+import datetime
 import io
 import json
 import re
 from collections import defaultdict
 
-import datetime
 import requests
 import xlwt
 from django.conf import settings
@@ -23,17 +23,18 @@ from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
-from kpi.utils.log import logging
 from kpi.utils.future import ObjectIO
+from kpi.utils.log import logging
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 from ...deployment_backends.kc_access.shadow_models import (
-    ShadowModel,
-    ReadOnlyKobocatXForm,
+    KobocatPermission,
     KobocatUserObjectPermission,
-    KobocatPermission
+    ReadOnlyKobocatXForm,
+    ShadowModel,
 )
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from ...models import Asset, ObjectPermission
+from ...models.object_permission import get_anonymous_user
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -45,10 +46,11 @@ ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
 XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
+ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
-KPI_CODENAMES = {}
-
 permission_map_copy = dict(PERMISSIONS_MAP)
+
+KPI_PKS_TO_CODENAMES = {}
 for kc_codename, kpi_codename in permission_map_copy.items():
     kc_perm_pk = KobocatPermission.objects.get(
         content_type=XFORM_CT, codename=kc_codename).pk
@@ -58,7 +60,11 @@ for kc_codename, kpi_codename in permission_map_copy.items():
     del PERMISSIONS_MAP[kc_codename]
 
     PERMISSIONS_MAP[kc_perm_pk] = kpi_perm_pk
-    KPI_CODENAMES[kpi_perm_pk] = kpi_codename
+    KPI_PKS_TO_CODENAMES[kpi_perm_pk] = kpi_codename
+
+KPI_CODENAMES_TO_PKS = dict(
+    zip(KPI_PKS_TO_CODENAMES.values(), KPI_PKS_TO_CODENAMES.keys())
+)
 
 
 class SyncKCXFormsError(Exception):
@@ -346,6 +352,23 @@ def _sync_permissions(asset, xform):
     for user, kc_permission in xform_user_perms:
         translated_kc_perms[user].add(PERMISSIONS_MAP[kc_permission])
 
+    # Note that certain KPI permissions should be granted if corresponding
+    # flags on the KC `XForm` are set
+    for kpi_codename, xform_flags in (
+        Asset.KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS.items()
+    ):
+        all_flags_set = True
+        for flag, value_when_set in xform_flags.items():
+            if getattr(xform, flag) != value_when_set:
+                all_flags_set = False
+                break
+        if not all_flags_set:
+            continue
+
+        translated_kc_perms[ANONYMOUS_USER.pk].add(
+            KPI_CODENAMES_TO_PKS[kpi_codename]
+        )
+
     # Get existing KPI permissions in same dictionary format
     current_kpi_perms = defaultdict(set)
     for user, kpi_permission in ObjectPermission.objects.filter(
@@ -369,15 +392,14 @@ def _sync_permissions(asset, xform):
         # resolving them
         implied_perms = set()
         for p in expected_perms:
-            implied_perms.update(Asset.get_implied_perms(KPI_CODENAMES[p]))
+            implied_perms.update(
+                Asset.get_implied_perms(KPI_PKS_TO_CODENAMES[p])
+            )
         # Only consider relevant implied permissions
-        implied_perms.intersection_update(KPI_CODENAMES.values())
+        implied_perms.intersection_update(KPI_PKS_TO_CODENAMES.values())
         # Convert from permission codenames back to PKs
-        kpi_codenames_to_pks = dict(
-            zip(KPI_CODENAMES.values(), KPI_CODENAMES.keys())
-        )
         expected_perms.update(
-            [kpi_codenames_to_pks[codename] for codename in implied_perms]
+            [KPI_CODENAMES_TO_PKS[codename] for codename in implied_perms]
         )
         user_obj = User.objects.get(pk=user)
         all_kpi_perms = current_kpi_perms[user]
@@ -398,9 +420,9 @@ def _sync_permissions(asset, xform):
                 object_id=asset.pk
             )
         for p in perms_to_assign:
-            asset.assign_perm(user_obj, KPI_CODENAMES[p], skip_kc=True)
+            asset.assign_perm(user_obj, KPI_PKS_TO_CODENAMES[p], skip_kc=True)
         for p in perms_to_revoke:
-            asset.remove_perm(user_obj, KPI_CODENAMES[p], skip_kc=True)
+            asset.remove_perm(user_obj, KPI_PKS_TO_CODENAMES[p], skip_kc=True)
         if all_revoked and FROM_KC_ONLY_PERMISSION.pk in all_kpi_perms:
             # This user's KPI access came only from this script, and now all KC
             # permissions have been removed. Purge all KPI grant permissions,
