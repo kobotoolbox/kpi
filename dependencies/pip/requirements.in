@@ -48,6 +48,7 @@ djangorestframework
 djangorestframework-xml
 django-redis-sessions
 drf-extensions
+future
 geojson-rewind
 jsonfield
 kombu
