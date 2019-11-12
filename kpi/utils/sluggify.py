@@ -8,7 +8,7 @@ import re
 
 from django.utils.six import string_types
 
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 
 # an approximation of the max size.
 # actual max length will be 40 + len(join_with) + len("_001")

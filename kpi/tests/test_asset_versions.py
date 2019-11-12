@@ -10,7 +10,7 @@ from django.test import TestCase
 
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kpi.exceptions import BadAssetTypeException
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 from ..models import Asset
 from ..models import AssetVersion
 

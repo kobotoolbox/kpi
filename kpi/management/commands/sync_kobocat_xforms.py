@@ -23,7 +23,6 @@ from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
-from kpi.utils.future import ObjectIO
 from kpi.utils.log import logging
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 from ...deployment_backends.kc_access.shadow_models import (
@@ -107,8 +106,7 @@ def _convert_dict_to_xls(ss_dict):
             cur_sheet = workbook.add_sheet(sheet_name)
             _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
 
-    object_io = ObjectIO()
-    obj = object_io.get_obj()
+    obj = io.BytesIO()
     workbook.save(obj)
     obj.seek(0)
     return obj

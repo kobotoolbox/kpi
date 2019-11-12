@@ -20,7 +20,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 
 
 class ReadOnlyModelError(ValueError):

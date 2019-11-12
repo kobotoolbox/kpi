@@ -5,6 +5,7 @@ from __future__ import (unicode_literals, print_function,
 
 import copy
 import sys
+from io import BytesIO
 
 import jsonbfield.fields
 import six
@@ -70,7 +71,6 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from kpi.utils.future import ObjectIO
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -453,8 +453,7 @@ class XlsExportable(object):
                 sys.exc_info()[2]
             )
 
-        object_io = ObjectIO()
-        obj = object_io.get_obj()
+        obj = BytesIO()
         workbook.save(obj)
         obj.seek(0)
         return obj

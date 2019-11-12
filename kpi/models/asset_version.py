@@ -15,7 +15,7 @@ from reversion.models import Version
 
 from kpi.fields import KpiUidField
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 

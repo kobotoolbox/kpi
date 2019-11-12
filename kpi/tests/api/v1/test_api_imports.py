@@ -14,7 +14,7 @@ from rest_framework.reverse import reverse
 
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.utils.future import to_str
+from kpi.utils.strings import to_str
 
 
 class AssetImportTaskTest(BaseTestCase):

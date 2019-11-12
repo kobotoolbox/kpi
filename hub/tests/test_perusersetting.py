@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from hub.models import PerUserSetting
-from kpi.utils.future import to_str
+from kpi.utils.strings import to_str
 
 
 class PerUserSettingTestCase(TestCase):
