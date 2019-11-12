@@ -82,6 +82,7 @@ RUN pip-sync /srv/tmp/pip_dependencies.txt 1>/dev/null && \
 
 WORKDIR ${KPI_SRC_DIR}/
 RUN rm -rf ${KPI_NODE_PATH} && \
+    npm install -g check-dependencies && \
     npm install --quiet && \
     npm cache clean --force
 
