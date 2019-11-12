@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from collections import defaultdict
 
 from django.contrib.auth.models import Permission, User

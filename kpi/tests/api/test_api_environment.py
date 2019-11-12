@@ -1,7 +1,5 @@
 # coding: utf-8
 # 😇
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
 import constance
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest

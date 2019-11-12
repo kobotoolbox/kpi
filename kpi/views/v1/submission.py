@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from rest_framework.response import Response
 
 from kpi.views.v2.data import DataViewSet

@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
 '''
 Converts kobo-specific structures into xlsform-standard structures:
 This enables us to use the form-builder to open and save structures

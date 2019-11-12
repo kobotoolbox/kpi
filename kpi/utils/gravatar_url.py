@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 import hashlib
 
 from django.utils.six.moves.urllib.parse import urlencode

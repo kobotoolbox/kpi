@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.translation import get_language

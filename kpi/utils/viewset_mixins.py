@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.shortcuts import get_object_or_404
 
 from kpi.models import Asset, Collection

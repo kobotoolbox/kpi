@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from rest_framework import status, exceptions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
