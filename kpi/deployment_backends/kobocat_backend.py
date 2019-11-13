@@ -378,7 +378,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
             else:
                 raise
-        super(KobocatDeploymentBackend, self).delete()
+        super().delete()
 
     def delete_submission(self, pk, user):
         """

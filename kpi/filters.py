@@ -112,15 +112,15 @@ class KpiObjectPermissionsFilter:
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
-    ''' Uses KpiObjectPermissionsFilter to determine which assets the user
+    """
+    Uses KpiObjectPermissionsFilter to determine which assets the user
     may access, and then filters the provided queryset to include only objects
     related to those assets. The queryset's model must be related to `Asset`
-    via a field named `asset`. '''
+    via a field named `asset`.
+    """
 
     def filter_queryset(self, request, queryset, view):
-        available_assets = super(
-            RelatedAssetPermissionsFilter, self
-        ).filter_queryset(
+        available_assets = super().filter_queryset(
             request=request,
             queryset=Asset.objects.all(),
             view=view
@@ -129,9 +129,11 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
 
 
 class SearchFilter(filters.BaseFilterBackend):
-    ''' Filter objects by searching with Whoosh if the request includes a `q`
+    """
+    Filter objects by searching with Whoosh if the request includes a `q`
     parameter. Another parameter, `parent`, is recognized when its value is an
-    empty string; this restricts the queryset to objects without parents. '''
+    empty string; this restricts the queryset to objects without parents.
+    """
 
     library_collection_pattern = re.compile(
         r'\(((?:asset_type:(?:[^ ]+)(?: OR )*)+)\) AND \(parent__uid:([^)]+)\)'

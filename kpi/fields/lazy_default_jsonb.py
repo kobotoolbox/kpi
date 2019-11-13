@@ -25,7 +25,7 @@ class LazyDefaultJSONBField(JSONBField):
                              'is not None')
         kwargs['null'] = True
         kwargs['default'] = None
-        super(LazyDefaultJSONBField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _get_lazy_default(self):
         if isinstance(self.lazy_default, Callable):
@@ -34,8 +34,7 @@ class LazyDefaultJSONBField(JSONBField):
             return self.lazy_default
 
     def deconstruct(self):
-        name, path, args, kwargs = super(
-            LazyDefaultJSONBField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         kwargs['default'] = self.lazy_default
         del kwargs['null']
         return name, path, args, kwargs

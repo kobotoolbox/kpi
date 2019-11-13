@@ -72,4 +72,4 @@ class HookSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        return super(HookSerializer, self).validate(attrs)
+        return super().validate(attrs)

@@ -249,7 +249,7 @@ class KobocatUserObjectPermission(ShadowModel):
                 "%r)"
                 % (self.permission.content_type, content_type)
             )
-        return super(KobocatUserObjectPermission, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class KobocatUserPermission(ShadowModel):

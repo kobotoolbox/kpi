@@ -84,7 +84,7 @@ class TaggableModelManager(models.Manager):
 
     def create(self, *args, **kwargs):
         tag_string = kwargs.pop('tag_string', None)
-        created = super(TaggableModelManager, self).create(*args, **kwargs)
+        created = super().create(*args, **kwargs)
         if tag_string:
             created.tag_string= tag_string
         return created
@@ -106,7 +106,7 @@ class KpiTaggableManager(_TaggableManager):
             if isinstance(t, str):
                 t = t.strip().replace(' ', '-')
             tags_out.append(t)
-        super(KpiTaggableManager, self).add(*tags_out, **kwargs)
+        super().add(*tags_out, **kwargs)
 
 
 class AssetManager(TaggableModelManager):
@@ -840,7 +840,7 @@ class Asset(ObjectPermissionMixin,
         self._populate_report_styles()
 
         _create_version = kwargs.pop('create_version', True)
-        super(Asset, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if _create_version:
             self.asset_versions.create(name=self.name,
@@ -1058,7 +1058,10 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     version of pyxform.
 
     TODO: come up with a policy to clear this cache out.
-    DO NOT: depend on these snapshots existing for more than a day until a policy is set.
+    DO NOT: depend on these snapshots existing for more than a day
+    until a policy is set.
+    Done with https://github.com/kobotoolbox/kpi/pull/2434.
+    Remove above lines when PR is merged
     """
     xml = models.TextField()
     source = JSONField(null=True)
@@ -1104,7 +1107,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                                           form_title=form_title,
                                           id_string=id_string)
         self.source = _source
-        return super(AssetSnapshot, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def generate_xml_from_source(self,
                                  source,

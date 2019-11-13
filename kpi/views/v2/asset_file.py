@@ -41,7 +41,7 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def perform_destroy(self, *args, **kwargs):
         if not self.request.user.has_perm(PERM_CHANGE_ASSET, self.asset):
             raise exceptions.PermissionDenied()
-        return super(AssetFileViewSet, self).perform_destroy(*args, **kwargs)
+        return super().perform_destroy(*args, **kwargs)
 
     class PrivateContentView(PrivateStorageDetailView):
         model = AssetFile

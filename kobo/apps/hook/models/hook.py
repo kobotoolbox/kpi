@@ -55,12 +55,12 @@ class Hook(models.Model):
 
     def __init__(self, *args, **kwargs):
         self.__totals = {}
-        return super(Hook, self).__init__(*args, **kwargs)
+        return super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
         self.date_modified = timezone.now()
-        super(Hook, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return "%s:%s - %s" % (self.asset, self.name, self.endpoint)

@@ -92,7 +92,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        super(ApiCollectionPermissionListTestCase, self).setUp()
+        super().setUp()
 
         self.collection.assign_perm(self.someuser, PERM_CHANGE_COLLECTION)
         self.collection.assign_perm(self.anotheruser, PERM_VIEW_COLLECTION)

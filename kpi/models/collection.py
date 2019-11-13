@@ -30,7 +30,7 @@ class CollectionManager(TreeManager, TaggableModelManager):
         if 'assets' in kwargs:
             assets = kwargs['assets']
             del kwargs['assets']
-        created = super(CollectionManager, self).create(*args, **kwargs)
+        created = super().create(*args, **kwargs)
         if assets:
             new_assets = []
             for asset in assets:

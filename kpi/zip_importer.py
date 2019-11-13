@@ -158,7 +158,7 @@ class ImportZipSubfile(ImportFile):
     def __init__(self, *args, **kwargs):
         self.zfile = kwargs['zfile']
         del kwargs['zfile']
-        super(ImportZipSubfile, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def readable(self):
@@ -179,7 +179,7 @@ class RootFileImport(ImportFile):
 
         self.files_by_path = {'': self}
         self._parsed = []
-        super( RootFileImport, self ).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def store(self):
         for item in self._parsed:
@@ -223,5 +223,5 @@ class HttpContentParse(RootFileImport):
         kwargs['readable'] = BytesIO(self.request.content)
         if 'name' not in kwargs:
             kwargs['name'] = os.path.basename(self.request.url)
-        super( HttpContentParse, self ).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 

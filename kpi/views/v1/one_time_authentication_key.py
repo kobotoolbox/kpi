@@ -21,5 +21,5 @@ class OneTimeAuthenticationKeyViewSet(
             # Only specially-authorized applications are allowed to create
             # one-time authentication keys via this endpoint
             raise exceptions.PermissionDenied()
-        return super(OneTimeAuthenticationKeyViewSet, self).create(
+        return super().create(
             request, *args, **kwargs)

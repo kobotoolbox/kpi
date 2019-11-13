@@ -3,7 +3,6 @@ import sys
 
 from django.core.management.base import BaseCommand
 
-from kobo.apps.hook.models.hook import Hook
 from kpi.exceptions import KobocatDeploymentException
 from kpi.models.asset import Asset
 
@@ -14,7 +13,7 @@ class Command(BaseCommand):
            'by populating the `kpi_asset_uid` field'
 
     def add_arguments(self, parser):
-        super(Command, self).add_arguments(parser)
+        super().add_arguments(parser)
         parser.add_argument(
             '--rest-service-only',
             action='store_true',

@@ -179,27 +179,21 @@ class ObjectPermissionManager(models.Manager):
     def get_for_object(self, content_object, **kwargs):
         """ Wrapper to allow get() queries using a generic foreign key. """
         return self._rewrite_query_args(
-            super(ObjectPermissionManager, self).get,
-            content_object, **kwargs
-        )
+            super().get, content_object, **kwargs)
 
     def filter(self, *args, **kwargs):
-        return super(ObjectPermissionManager, self).filter(*args, **kwargs)
+        return super().filter(*args, **kwargs)
 
     def filter_for_object(self, content_object, **kwargs):
         """ Wrapper to allow filter() queries using a generic foreign key. """
         return self._rewrite_query_args(
-            super(ObjectPermissionManager, self).filter,
-            content_object, **kwargs
-        )
+            super().filter, content_object, **kwargs)
 
     def get_or_create_for_object(self, content_object, **kwargs):
         """ Wrapper to allow get_or_create() calls using a generic foreign
         key. """
         return self._rewrite_query_args(
-            super(ObjectPermissionManager, self).get_or_create,
-            content_object, **kwargs
-        )
+            super().get_or_create, content_object, **kwargs)
 
 
 class ObjectPermission(models.Model):
@@ -239,12 +233,12 @@ class ObjectPermission(models.Model):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                                   'not match that of the object.')
-        super(ObjectPermission, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @void_cache_for_request(keys=('__get_all_object_permissions',
                                   '__get_all_user_permissions',))
     def delete(self, *args, **kwargs):
-        super(ObjectPermission, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         for required_field in ('user', 'permission'):
@@ -341,7 +335,7 @@ class ObjectPermissionMixin:
     @transaction.atomic
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
-        super(ObjectPermissionMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         # Recalculate self and all descendants, re-fetching ourself first to
         # guard against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)

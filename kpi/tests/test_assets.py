@@ -517,7 +517,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
 class ShareAssetsTest(AssetsTestCase):
 
     def setUp(self):
-        super(ShareAssetsTest, self).setUp()
+        super().setUp()
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
         self.coll = Collection.objects.create(owner=self.user)

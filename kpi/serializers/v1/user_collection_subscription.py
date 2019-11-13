@@ -21,8 +21,7 @@ class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
 
     def __init__(self, *args, **kwargs):
-        super(UserCollectionSubscriptionSerializer, self).__init__(
-            *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['collection'].queryset = get_objects_for_user(
             get_anonymous_user(),
             PERM_VIEW_COLLECTION,

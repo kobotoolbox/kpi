@@ -19,5 +19,4 @@ class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
             # Only specially-authorized applications are allowed to create
             # users via this endpoint
             raise exceptions.PermissionDenied()
-        return super(AuthorizedApplicationUserViewSet, self).create(
-            request, *args, **kwargs)
+        return super().create(request, *args, **kwargs)

@@ -75,7 +75,7 @@ class KoboMatrixGroupHandler(GroupHandler):
         self._base_handler = base_handler
 
     def begin(self, initial_row):
-        super(KoboMatrixGroupHandler, self).begin(initial_row)
+        super().begin(initial_row)
 
         choice_key = 'kobo--matrix_list'
         self.items = self._base_handler.choices(list_name=initial_row.pop(choice_key))

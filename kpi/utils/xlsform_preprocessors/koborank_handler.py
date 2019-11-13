@@ -46,7 +46,7 @@ class KoboRankGroup(GroupHandler):
     description = '''Ask a user to rank a number of things.'''
 
     def begin(self, initial_row):
-        super(KoboRankGroup, self).begin(initial_row)
+        super().begin(initial_row)
         self._previous_levels = []
 
         begin_group = {'type': 'begin_group',

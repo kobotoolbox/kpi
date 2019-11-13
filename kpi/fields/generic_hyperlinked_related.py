@@ -20,14 +20,14 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         # situation. We will override them dynamically.
         kwargs['view_name'] = '*'
         kwargs['queryset'] = ObjectPermission.objects.none()
-        return super(GenericHyperlinkedRelatedField, self).__init__(**kwargs)
+        # ToDo verify why return in __init__
+        return super().__init__(**kwargs)
 
     def to_representation(self, value):
         # TODO Figure out why self.view_name is initialized twice in a row?
         self.view_name = '{}-detail'.format(
             ContentType.objects.get_for_model(value).model)
-        result = super(GenericHyperlinkedRelatedField, self).to_representation(
-            value)
+        result = super().to_representation(value)
         self.view_name = '*'
         return result
 

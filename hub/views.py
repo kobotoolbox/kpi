@@ -19,7 +19,7 @@ class ExtraDetailRegistrationView(RegistrationView):
         extra_fields = set(form.fields.keys()).difference(standard_fields)
         # Don't save the user unless we successfully store the extra data
         with transaction.atomic():
-            new_user = super(ExtraDetailRegistrationView, self).register(form)
+            new_user = super().register(form)
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
             new_user.extra_details.data.update(extra_data)
             new_user.extra_details.save()

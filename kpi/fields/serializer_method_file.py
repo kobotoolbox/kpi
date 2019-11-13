@@ -11,11 +11,11 @@ class SerializerMethodFileField(serializers.FileField):
     """
     def __init__(self, *args, **kwargs):
         self._serializer_method_field = serializers.SerializerMethodField()
-        super(SerializerMethodFileField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def bind(self, *args, **kwargs):
         self._serializer_method_field.bind(*args, **kwargs)
-        super(SerializerMethodFileField, self).bind(*args, **kwargs)
+        super().bind(*args, **kwargs)
 
     def to_representation(self, obj):
         return self._serializer_method_field.to_representation(obj.instance)

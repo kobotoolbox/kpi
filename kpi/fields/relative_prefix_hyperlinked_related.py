@@ -22,6 +22,4 @@ class RelativePrefixHyperlinkedRelatedField(HyperlinkedRelatedField):
             if data.startswith(prefix):
                 data = '/' + data[len(prefix):]
 
-        return super(
-            RelativePrefixHyperlinkedRelatedField, self
-        ).to_internal_value(data)
+        return super().to_internal_value(data)

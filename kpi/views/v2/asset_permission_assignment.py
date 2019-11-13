@@ -229,7 +229,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         Inject asset_uid to avoid extra queries to DB inside the serializer.
         """
 
-        context_ = super(AssetPermissionAssignmentViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         context_.update({
             'asset_uid': self.asset.uid
         })

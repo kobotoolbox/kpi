@@ -99,7 +99,7 @@ class HookLog(models.Model):
         if kwargs.pop("reset_status", False) is False:
             self.tries += 1
             self.hook.reset_totals()
-        super(HookLog, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def status_str(self):

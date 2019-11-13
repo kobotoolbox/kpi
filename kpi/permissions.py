@@ -291,7 +291,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         :param user: auth.User
         :return: list
         """
-        user_permissions = super(SubmissionPermission, self)._get_user_permissions(
+        user_permissions = super()._get_user_permissions(
             asset, user)
 
         if PERM_PARTIAL_SUBMISSIONS in user_permissions:

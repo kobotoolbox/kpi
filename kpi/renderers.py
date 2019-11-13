@@ -39,18 +39,18 @@ class XMLRenderer(DRFXMLRenderer):
                 return getattr(obj, relationship).xml
             return obj.xml
         else:
-            return super(XMLRenderer, self).render(data=data,
-                                                   accepted_media_type=accepted_media_type,
-                                                   renderer_context=renderer_context)
+            return super().render(data=data,
+                                  accepted_media_type=accepted_media_type,
+                                  renderer_context=renderer_context)
 
 
 class XFormRenderer(XMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super(XFormRenderer, self).render(data=data,
-                                                 accepted_media_type=accepted_media_type,
-                                                 renderer_context=renderer_context,
-                                                 relationship="snapshot")
+        return super().render(data=data,
+                              accepted_media_type=accepted_media_type,
+                              renderer_context=renderer_context,
+                              relationship="snapshot")
 
 
 class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
