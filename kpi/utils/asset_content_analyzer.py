@@ -3,7 +3,7 @@ from formpack.utils.future import OrderedDict
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
 
 
-class AssetContentAnalyzer(object):
+class AssetContentAnalyzer:
     def __init__(self, *args, **kwargs):
         self.survey = kwargs.get('survey')
         self.settings = kwargs.get('settings', False)

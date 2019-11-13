@@ -9,7 +9,7 @@ from xlrd import open_workbook
 from kpi.exceptions import ImportAssetException
 
 
-class ImportFile(object):
+class ImportFile:
     """
     iterates through a zipfile and rebuilds a hierarchy which can then be
     parsed and used to create nested collections and assets.

@@ -2,7 +2,7 @@
 from kpi.constants import PERM_SHARE_SUBMISSIONS
 
 
-class ObjectPermissionHelper(object):
+class ObjectPermissionHelper:
 
     @staticmethod
     def user_can_share(affected_object, user_object, codename=''):

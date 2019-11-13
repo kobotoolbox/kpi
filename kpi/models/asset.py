@@ -149,7 +149,7 @@ FLATTEN_OPTS = {
 }
 
 
-class FormpackXLSFormUtils(object):
+class FormpackXLSFormUtils:
     def _standardize(self, content):
         if needs_standardization(content):
             standardize_content_in_place(content)
@@ -379,7 +379,7 @@ class FormpackXLSFormUtils(object):
         _ts[_ts.index(_from)] = _to
 
 
-class XlsExportable(object):
+class XlsExportable:
     def ordered_xlsform_content(self,
                                 kobo_specific_types=False,
                                 append=None):

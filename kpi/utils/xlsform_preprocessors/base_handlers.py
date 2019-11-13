@@ -1,6 +1,6 @@
 # coding: utf-8
 # 😬
-class RowHandler(object):
+class RowHandler:
     def handle_row(self, row):
         """
         handle_row(row) should return False to return to the base handler

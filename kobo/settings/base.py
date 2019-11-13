@@ -164,7 +164,7 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
-class DoNotUseRunner(object):
+class DoNotUseRunner:
     def __init__(self, *args, **kwargs):
         raise NotImplementedError('Please run tests with `pytest` instead')
 

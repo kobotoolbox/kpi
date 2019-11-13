@@ -9,7 +9,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
 
 
-class BaseDeploymentBackend(object):
+class BaseDeploymentBackend:
 
     # TODO. Stop using protected property `_deployment_data`.
 

@@ -29,7 +29,7 @@ class UserDeleteKludgeAdmin(UserAdmin):
         almost always fail
         """
 
-        actions = super(UserDeleteKludgeAdmin, self).get_actions(request)
+        actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions

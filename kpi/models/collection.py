@@ -124,7 +124,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         return self.name
 
 
-class CollectionChildrenQuerySet(object):
+class CollectionChildrenQuerySet:
     """ A pseudo-QuerySet containing mixed-model children of a collection.
     Collections are always listed before assets.  Derived from
     http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.

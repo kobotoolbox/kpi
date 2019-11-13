@@ -13,7 +13,7 @@ def get_instances_from_mongo():
     )
 
 
-class FakeMongoDB(object):
+class FakeMongoDB:
     """
     A fake Mongo connection that supports one collection, `instances`, and one
     method on that collection, `find()`, which returns the fake query results
@@ -21,7 +21,7 @@ class FakeMongoDB(object):
         FakeMongoDB(static_results_list).instances.find(ignored_query) ->
             static_results_list
     """
-    class FakeMongoCollection(object):
+    class FakeMongoCollection:
         def __init__(self, fake_query_results):
             self.fake_query_results = fake_query_results
 

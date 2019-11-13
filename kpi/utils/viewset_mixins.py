@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from kpi.models import Asset, Collection
 
 
-class AssetNestedObjectViewsetMixin(object):
+class AssetNestedObjectViewsetMixin:
 
     @property
     def asset(self):
@@ -21,7 +21,7 @@ class AssetNestedObjectViewsetMixin(object):
         return self._asset_uid
 
 
-class CollectionNestedObjectViewsetMixin(object):
+class CollectionNestedObjectViewsetMixin:
 
     @property
     def collection(self):

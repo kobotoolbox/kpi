@@ -10,7 +10,7 @@ from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
 
-class MongoHelper(object):
+class MongoHelper:
     """
     Mongo's helper.
 

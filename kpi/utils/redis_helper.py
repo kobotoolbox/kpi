@@ -5,7 +5,7 @@ import re
 from django.core.exceptions import ImproperlyConfigured
 
 
-class RedisHelper(object):
+class RedisHelper:
     """
     Redis's helper.
 

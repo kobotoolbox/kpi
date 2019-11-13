@@ -7,9 +7,8 @@ from registration.forms import RegistrationForm
 
 class ExtraDetailRegistrationView(RegistrationView):
     def registration_allowed(self, *args, **kwargs):
-        return constance.config.REGISTRATION_OPEN and super(
-            ExtraDetailRegistrationView, self).registration_allowed(
-                *args, **kwargs)
+        return constance.config.REGISTRATION_OPEN and \
+               super().registration_allowed(*args, **kwargs)
 
     def register(self, form):
         """

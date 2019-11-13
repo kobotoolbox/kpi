@@ -258,7 +258,7 @@ class ObjectPermission(models.Model):
         )
 
 
-class ObjectPermissionMixin(object):
+class ObjectPermissionMixin:
     """
     A mixin class that adds the methods necessary for object-level
     permissions to a model (either models.Model or MPTTModel). The model must
