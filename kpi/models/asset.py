@@ -2,6 +2,7 @@
 # 😬
 import copy
 import sys
+from collections import OrderedDict
 from io import BytesIO
 
 import jsonbfield.fields
@@ -21,7 +22,6 @@ from taggit.utils import require_instance_manager
 
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
-from formpack.utils.future import OrderedDict
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,

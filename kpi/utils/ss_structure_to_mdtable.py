@@ -1,5 +1,5 @@
 # coding: utf-8
-from formpack.utils.future import OrderedDict
+from collections import OrderedDict
 
 
 def _convert_sheets_to_lists(content):

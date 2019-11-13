@@ -2,11 +2,11 @@
 import re
 import string
 import random
+from collections import OrderedDict
 from copy import deepcopy
 
 
 from formpack.utils.json_hash import json_hash
-from formpack.utils.future import OrderedDict
 from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_node_name
 
 

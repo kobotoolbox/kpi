@@ -2,10 +2,10 @@
 import inspect
 import json
 import string
+from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
 
-from formpack.utils.future import OrderedDict
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 

@@ -1,5 +1,6 @@
 # coding: utf-8
-from formpack.utils.future import OrderedDict
+from collections import OrderedDict
+
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
 
 
