@@ -21,7 +21,7 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         kwargs['view_name'] = '*'
         kwargs['queryset'] = ObjectPermission.objects.none()
         # ToDo verify why return in __init__
-        return super().__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def to_representation(self, value):
         # TODO Figure out why self.view_name is initialized twice in a row?

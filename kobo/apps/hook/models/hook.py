@@ -55,7 +55,7 @@ class Hook(models.Model):
 
     def __init__(self, *args, **kwargs):
         self.__totals = {}
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
