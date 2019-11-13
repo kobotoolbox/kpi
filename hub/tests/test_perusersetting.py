@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.contrib.auth.models import User, AnonymousUser
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 
 from hub.models import PerUserSetting

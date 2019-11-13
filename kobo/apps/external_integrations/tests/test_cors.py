@@ -1,6 +1,6 @@
 # coding: utf-8
 from rest_framework.test import APITestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from ..models import CorsModel
 

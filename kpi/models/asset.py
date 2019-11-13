@@ -517,6 +517,17 @@ class Asset(ObjectPermissionMixin,
             (PERM_FROM_KC_ONLY, 'INTERNAL USE ONLY; DO NOT ASSIGN')
         )
 
+        # Since Django 2.1, 4 permissions are added for each registered model:
+        # - add
+        # - change
+        # - delete
+        # - view
+        # See https://docs.djangoproject.com/en/2.2/topics/auth/default/#default-permissions
+        # for more detail.
+        # `view_asset` clashes with newly built-in one.
+        # The simplest way to fix this is to keep old behaviour
+        default_permissions = ('add', 'change', 'delete')
+
     # Labels for each `asset_type` as they should be presented to users
     ASSET_TYPE_LABELS = {
         ASSET_TYPE_SURVEY: _('form'),
@@ -1069,7 +1080,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     details = JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
-    asset = models.ForeignKey(Asset, null=True)
+    asset = models.ForeignKey(Asset, null=True, on_delete=models.CASCADE)
     _reversion_version_id = models.IntegerField(null=True)
     asset_version = models.OneToOneField('AssetVersion',
                                          on_delete=models.CASCADE,

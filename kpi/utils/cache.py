@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
 
-from django_request_cache import get_request_cache
+# from django_request_cache import get_request_cache
 
 
 def void_cache_for_request(keys):

@@ -5,7 +5,7 @@ from hashlib import md5
 from io import StringIO
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (

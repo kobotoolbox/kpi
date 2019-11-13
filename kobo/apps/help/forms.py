@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from markdownx.forms import ImageForm
 
 from .models import InAppMessageFile

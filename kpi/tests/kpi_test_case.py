@@ -6,7 +6,7 @@ Created on Apr 6, 2015
 """
 import re
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 # FIXME: Remove the following line when the permissions API is in place.

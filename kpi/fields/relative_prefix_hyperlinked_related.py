@@ -1,7 +1,7 @@
 # coding: utf-8
 from urllib.parse import urlparse
 
-from django.core.urlresolvers import get_script_prefix
+from django.urls import get_script_prefix
 from rest_framework.serializers import HyperlinkedRelatedField
 
 

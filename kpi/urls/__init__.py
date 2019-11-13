@@ -1,12 +1,11 @@
 # coding: utf-8
-from django.conf.urls import url, include
-from django.contrib.auth.views import logout
-from django.views.i18n import javascript_catalog
 import private_storage.urls
+from django.conf.urls import url, include
+from django.contrib.auth import logout
+from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-# from hub.views import switch_builder
 from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
@@ -51,7 +50,7 @@ urlpatterns = [
     url(r'^authorized_application/one_time_login/$', one_time_login),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
+    url(r'^jsi18n/$', JavaScriptCatalog, js_info_dict, name='javascript-catalog'),
 
     url(r'^token/$', TokenView.as_view(), name='token'),
     url(r'^environment/$', EnvironmentView.as_view(), name='environment'),

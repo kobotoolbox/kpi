@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
-from django_request_cache import cache_for_request
+# from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
 from kpi.deployment_backends.kc_access.utils import (
@@ -19,7 +19,7 @@ from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions
 )
 from kpi.fields.kpi_uid import KpiUidField
-from kpi.utils.cache import void_cache_for_request
+# from kpi.utils.cache import void_cache_for_request
 
 
 def perm_parse(perm, obj=None):
@@ -149,7 +149,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     return objects
 
 
-@cache_for_request
+#@cache_for_request
 def get_anonymous_user():
     """ Return a real User in the database to represent AnonymousUser. """
     try:
@@ -227,16 +227,16 @@ class ObjectPermission(models.Model):
         unique_together = ('user', 'permission', 'deny', 'inherited',
                            'object_id', 'content_type')
 
-    @void_cache_for_request(keys=('__get_all_object_permissions',
-                                  '__get_all_user_permissions',))
+    #@void_cache_for_request(keys=('__get_all_object_permissions',
+    #                              '__get_all_user_permissions',))
     def save(self, *args, **kwargs):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                                   'not match that of the object.')
         super().save(*args, **kwargs)
 
-    @void_cache_for_request(keys=('__get_all_object_permissions',
-                                  '__get_all_user_permissions',))
+    #@void_cache_for_request(keys=('__get_all_object_permissions',
+    #                              '__get_all_user_permissions',))
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
 
@@ -953,7 +953,7 @@ class ObjectPermissionMixin:
         pass
 
     @staticmethod
-    @cache_for_request
+    # @cache_for_request
     def __get_all_object_permissions(content_type_id, object_id):
         """
         Retrieves all object permissions and builds an dict with user ids as keys.
@@ -1004,7 +1004,7 @@ class ObjectPermissionMixin:
         return object_permissions_per_user
 
     @staticmethod
-    @cache_for_request
+    # @cache_for_request
     def __get_all_user_permissions(content_type_id, user_id):
         """
         Retrieves all object permissions and builds an dict with object ids as keys.
@@ -1102,7 +1102,7 @@ class ObjectPermissionMixin:
         return set(perms)
 
     @staticmethod
-    @cache_for_request
+    # @cache_for_request
     def __get_permissions_for_content_type(content_type_id,
                                            codename=None,
                                            codename__startswith=None):

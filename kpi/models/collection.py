@@ -77,6 +77,17 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
              "Can change this collection's sharing settings"),
         )
 
+        # Since Django 2.1, 4 permissions are added for each registered model:
+        # - add
+        # - change
+        # - delete
+        # - view
+        # See https://docs.djangoproject.com/en/2.2/topics/auth/default/#default-permissions
+        # for more detail.
+        # `view_collection` clashes with newly built-in one.
+        # The simplest way to fix this is to keep old behaviour
+        default_permissions = ('add', 'change', 'delete')
+
     # Assignable permissions that are stored in the database
     ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
     # Calculated permissions that are neither directly assignable nor stored

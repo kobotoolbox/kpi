@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import (
+from django.urls import (
     Resolver404,
     get_script_prefix,
     resolve,
