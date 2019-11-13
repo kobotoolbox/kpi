@@ -24,7 +24,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data', jsonfield.fields.JSONField(default={})),
-                ('user', models.OneToOneField(related_name='extra_details', to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(related_name='extra_details',
+                                              to=settings.AUTH_USER_MODEL,
+                                              on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterField(

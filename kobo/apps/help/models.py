@@ -34,7 +34,7 @@ class InAppMessage(models.Model):
     # Make the author deliberately set these dates to something valid
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
-    last_editor = models.ForeignKey(settings.AUTH_USER_MODEL)
+    last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return '{} ({})'.format(self.title, self.uid)
@@ -70,8 +70,8 @@ class InAppMessageFile(models.Model):
 
 
 class InAppMessageUserInteractions(models.Model):
-    message = models.ForeignKey(InAppMessage)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    message = models.ForeignKey(InAppMessage, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     interactions = JSONField(default=dict)
 
     class Meta:

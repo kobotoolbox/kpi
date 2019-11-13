@@ -18,7 +18,8 @@ DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 class AssetVersion(models.Model):
     uid = KpiUidField(uid_prefix='v')
-    asset = models.ForeignKey('Asset', related_name='asset_versions')
+    asset = models.ForeignKey('Asset', related_name='asset_versions',
+                              on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=255)
     date_modified = models.DateTimeField(default=timezone.now)
 

@@ -23,8 +23,9 @@ class Migration(migrations.Migration):
                 ('asset_version_id', models.IntegerField(null=True)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('uid', models.CharField(default=b'', max_length=22, blank=True)),
-                ('asset', models.ForeignKey(to='kpi.Asset', null=True)),
-                ('owner', models.ForeignKey(related_name='asset_snapshots', to=settings.AUTH_USER_MODEL, null=True)),
+                ('asset', models.ForeignKey(to='kpi.Asset', null=True, on_delete=models.CASCADE)),
+                ('owner', models.ForeignKey(related_name='asset_snapshots', to=settings.AUTH_USER_MODEL, null=True,
+                                            on_delete=models.CASCADE)),
             ],
             options={
             },

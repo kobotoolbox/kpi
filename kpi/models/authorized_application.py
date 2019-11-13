@@ -34,7 +34,7 @@ def ten_minutes_from_now():
 
 
 class OneTimeAuthenticationKey(models.Model):
-    user = models.ForeignKey('auth.User')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     key = models.CharField(
         max_length=KEY_LENGTH,
         validators=[MinLengthValidator(KEY_LENGTH)],

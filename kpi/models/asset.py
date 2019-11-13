@@ -471,9 +471,10 @@ class Asset(ObjectPermissionMixin,
     map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
-    parent = models.ForeignKey(
-        'Collection', related_name='assets', null=True, blank=True)
-    owner = models.ForeignKey('auth.User', related_name='assets', null=True)
+    parent = models.ForeignKey('Collection', related_name='assets',
+                               null=True, blank=True, on_delete=models.CASCADE)
+    owner = models.ForeignKey('auth.User', related_name='assets', null=True,
+                              on_delete=models.CASCADE)
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
@@ -1066,7 +1067,8 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     xml = models.TextField()
     source = JSONField(null=True)
     details = JSONField(default=dict)
-    owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
+    owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
+                              null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey(Asset, null=True)
     _reversion_version_id = models.IntegerField(null=True)
     asset_version = models.OneToOneField('AssetVersion',

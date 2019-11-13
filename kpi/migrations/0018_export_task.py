@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('uid', kpi.fields.KpiUidField(uid_prefix=b'e')),
                 ('last_submission_time', models.DateTimeField(null=True)),
                 ('result', private_storage.fields.PrivateFileField(storage=private_storage.storage.files.PrivateFileSystemStorage(), max_length=380, upload_to=kpi.models.import_export_task.export_upload_to)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,

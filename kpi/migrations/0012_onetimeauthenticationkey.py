@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('key', models.CharField(default=kpi.models.authorized_application._generate_random_key, max_length=60, validators=[django.core.validators.MinLengthValidator(60)])),
                 ('expiry', models.DateTimeField(default=kpi.models.authorized_application.ten_minutes_from_now)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
     ]
