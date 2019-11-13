@@ -12,8 +12,12 @@
 # TODO: Get Haystack from PyPI again once https://github.com/django-haystack/django-haystack/issues/1662 is fixed
 -e git+https://github.com/jnm/django-haystack@3a3b04564e189c11fdc20a4be43e360b5396708c#egg=django_haystack
 
+# TODO: Get `django-markitup from PyPI again once https://github.com/django-haystack/django-haystack/issues/1662 is fixed
+-e git+https://github.com/st8st8/django-markitup@1370b43dc519b1441510a17330b8e980d29a7bf3#egg=django_markitup
+
+
 # Regular PyPI packages
-Django<2
+Django>=2.2,<2.3
 Markdown
 Pygments
 amqp
@@ -38,7 +42,7 @@ django-amazon-ses
 django-webpack-loader
 django-loginas
 django-markdownx
-django-markitup
+# django-markitup # Not compatible with Django 2.0+
 django-mptt
 django-reversion<3.0.2 # Migration issue with 3.0.2
 django-taggit
@@ -79,4 +83,4 @@ ndg-httpsclient
 pyasn1
 
 # Cache-Request
-django-request-cache
+# django-request-cache # Not compatible with Django 2.1+
