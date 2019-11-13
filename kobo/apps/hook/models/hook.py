@@ -46,7 +46,7 @@ class Hook(models.Model):
     subset_fields = ArrayField(
         models.CharField(max_length=500),
         blank=True,
-        default=[],
+        default=list,
     )
     payload_template = models.TextField(null=True, blank=True)
 
