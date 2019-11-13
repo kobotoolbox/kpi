@@ -244,7 +244,7 @@ class ObjectPermission(models.Model):
     @void_cache_for_request(keys=('__get_all_object_permissions',
                                   '__get_all_user_permissions',))
     def delete(self, *args, **kwargs):
-        super(self, ObjectPermission).delete(*args, **kwargs)
+        super(ObjectPermission, self).delete(*args, **kwargs)
 
     def __str__(self):
         for required_field in ('user', 'permission'):
