@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='hook',
             name='subset_fields',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=500), blank=True, default=[], size=None),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=500), blank=True,
+                                                            default=list, size=None),
         ),
     ]

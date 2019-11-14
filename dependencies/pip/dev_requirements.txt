@@ -40,7 +40,6 @@ django-cors-headers==2.5.3
 django-debug-toolbar==2.1
 django-extensions==2.2.5
 django-js-asset==1.2.2    # via django-mptt
-django-jsonbfield==0.1.0
 django-loginas==0.3.6
 django-markdownx==2.0.28
 django-mptt==0.10.0
@@ -89,7 +88,7 @@ pickleshare==0.7.5        # via ipython
 pillow==6.2.1             # via django-markdownx
 pluggy==0.13.0            # via pytest
 prompt-toolkit==2.0.10    # via ipython
-psycopg2==2.8.4           # via django-jsonbfield
+psycopg2==2.8.4
 ptyprocess==0.6.0         # via pexpect
 py==1.8.0                 # via pytest
 pyasn1==0.4.7
@@ -113,7 +112,7 @@ requests==2.22.0
 responses==0.10.6
 s3transfer==0.2.1         # via boto3
 shortuuid==0.5.0
-six==1.13.0
+six==1.13.0               # via bcrypt, cryptography, django-extensions, jsonschema, mock, packaging, prompt-toolkit, pynacl, pyopenssl, pyrsistent, python-dateutil, responses, traitlets, unittest2
 sqlparse==0.3.0
 static3==0.7.0
 statistics==1.0.3.5

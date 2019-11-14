@@ -2,7 +2,7 @@
 from collections import Callable
 
 from django.core.exceptions import FieldError
-from jsonbfield.fields import JSONField as JSONBField
+from django.contrib.postgres.fields import JSONField as JSONBField
 
 
 class LazyDefaultJSONBField(JSONBField):

@@ -3,10 +3,7 @@ from hashlib import md5
 
 from django.conf import settings
 from django.contrib.auth.models import User
-try:
-    from django.contrib.contenttypes.fields import GenericForeignKey
-except ImportError:
-    from django.contrib.contenttypes.generic import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.exceptions import ValidationError
 from django.db import ProgrammingError
 from django.db import models

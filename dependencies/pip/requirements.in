@@ -35,7 +35,6 @@ django-constance[database]
 django-cors-headers<3 # 3.0.0 dropped support for Python2 support
 django-debug-toolbar
 django-extensions
-django-jsonbfield
 django-oauth-toolkit<1.1.1 # Last Python2 support: 1.1.0
 django-registration-redux
 django-amazon-ses
@@ -57,9 +56,9 @@ geojson-rewind
 jsonfield
 kombu
 lxml
-mock
 oauthlib
 #py-gfm # Incompatible with markdown 3.x
+psycopg2
 pymongo
 python-dateutil
 pytz
@@ -67,7 +66,6 @@ pyxform
 requests
 responses
 shortuuid
-six
 sqlparse
 static3
 tabulate

@@ -6,3 +6,4 @@ ipython
 pytest-django
 pytest-env
 pytest
+mock

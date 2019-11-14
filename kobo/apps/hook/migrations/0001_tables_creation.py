@@ -1,7 +1,8 @@
 # coding: utf-8
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import migrations, models
 import django.utils.timezone
-import jsonbfield.fields
+
 import kpi.fields
 
 
@@ -22,7 +23,7 @@ class Migration(migrations.Migration):
                 ('active', models.BooleanField(default=True)),
                 ('export_type', models.CharField(default=b'json', max_length=10, choices=[(b'xml', b'xml'), (b'json', b'json')])),
                 ('auth_level', models.CharField(default=b'no_auth', max_length=10, choices=[(b'no_auth', b'no_auth'), (b'basic_auth', b'basic_auth')])),
-                ('settings', jsonbfield.fields.JSONField(default=dict)),
+                ('settings', JSONBField(default=dict)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
                 ('asset', models.ForeignKey(related_name='hooks', to='kpi.Asset', on_delete=models.CASCADE)),

@@ -1,7 +1,7 @@
 # coding: utf-8
-from django.utils import timezone
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
-from jsonbfield.fields import JSONField as JSONBField
+from django.utils import timezone
 
 
 class AssetUserPartialPermission(models.Model):

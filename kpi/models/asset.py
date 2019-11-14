@@ -5,17 +5,16 @@ import sys
 from collections import OrderedDict
 from io import BytesIO
 
-import jsonbfield.fields
 import six
 import xlwt
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.translation import ugettext_lazy as _
-from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -478,7 +477,7 @@ class Asset(ObjectPermissionMixin,
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings = jsonbfield.fields.JSONField(default=dict)
+    settings = JSONBField(default=dict)
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`

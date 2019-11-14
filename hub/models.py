@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.exceptions import FieldError, ValidationError
 from django.urls import reverse
 from django.db import models
@@ -8,7 +9,6 @@ from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
 from markitup.fields import MarkupField
 
