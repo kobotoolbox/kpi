@@ -407,11 +407,19 @@ class AssetsSettingsFieldTest(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def test_query_settings(self):
-        asset_title = 'asset_title'
-        content = {'settings': [{'id_string': 'titled_asset'}],
-                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        content = {
+            'settings': [
+                {'id_string': 'titled_asset'}
+            ],
+            'survey': [
+                {
+                    'label': 'Q1 Label.',
+                    'type': 'decimal'
+                }
+            ]
+        }
         self.login('someuser', 'someuser')
-        asset = self.create_asset(None, json.dumps(content), format='json')
+        asset = self.create_asset('', json.dumps(content), format='json')
         self.assert_object_in_object_list(asset)
         # Note: This is not an API method, but an ORM one.
         self.assertFalse(Asset.objects.filter(settings__id_string='titled_asset'))
