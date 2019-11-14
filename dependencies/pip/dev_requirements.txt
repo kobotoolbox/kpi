@@ -37,14 +37,14 @@ django-amazon-ses==2.1.1
 django-braces==1.13.0
 django-celery-beat==1.5.0
 django-constance[database]==2.4.0
-django-cors-headers==2.5.3
+django-cors-headers==3.1.1
 django-debug-toolbar==2.1
 django-extensions==2.2.5
 django-js-asset==1.2.2    # via django-mptt
 django-loginas==0.3.6
 django-markdownx==2.0.28
 django-mptt==0.10.0
-django-oauth-toolkit==1.1.0
+django-oauth-toolkit==1.2.0
 django-picklefield==2.0   # via django-constance
 django-private-storage==2.2.1
 django-redis-sessions==0.6.1

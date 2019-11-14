@@ -34,9 +34,8 @@ dj-database-url
 django-braces
 django-celery-beat
 django-constance[database]
-django-cors-headers<3 # 3.0.0 dropped support for Python2 support
+django-cors-headers
 django-debug-toolbar
-django-extensions
 django-extensions
 django-oauth-toolkit
 django-registration-redux

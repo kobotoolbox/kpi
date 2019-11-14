@@ -1,5 +1,5 @@
 # coding: utf-8
-from corsheaders.models import AbstractCorsModel
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -10,18 +10,17 @@ def _set_cors_field_options(name, bases, attrs):
     # will both appear in the admin interface
     cors_field = cls._meta.get_field('cors')
     cors_field.verbose_name = _('allowed origin')
-    cors_field.help_text = _('do not include http:// or https://')
+    cors_field.help_text = _('You must include scheme (http:// or https://)')
     return cls
 
 
-class CorsModel(AbstractCorsModel, metaclass=_set_cors_field_options):
+class CorsModel(models.Model, metaclass=_set_cors_field_options):
     """
     A model with one field, `cors`, which specifies an allowed origin that must
-    exactly match the `netloc` returned by `urlparse`
+    exactly match the host with its scheme. e.g. https://example.com
+    """
 
-    ToDo: `AbstractCorsModel` has been removed in v3.0.0.
-    Update code to support `django-cors-headers` v3.x
-   """
+    cors = models.CharField(max_length=255)
 
     def __str__(self):
         return self.cors
