@@ -77,9 +77,9 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             content = ''
 
         kwargs.update({
-            "name": name,
-            "content": content,
-            "asset_type": kwargs.get("asset_type", "survey")
+            'name': name,
+            'content': content,
+            'asset_type': kwargs.get('asset_type', 'survey')
         })
 
         response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
