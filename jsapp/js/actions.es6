@@ -63,10 +63,16 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getApiToken: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
-  addItemAtPosition: {
+  addExternalItemAtPosition: {
     children: [
       'completed',
       'failed'
@@ -646,21 +652,34 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
+actions.auth.getApiToken.listen(() => {
+  dataInterface.apiToken()
+    .done((response) => {
+      actions.auth.getApiToken.completed(response.token);
+    })
+    .fail(actions.auth.getApiToken.failed);
+});
+actions.auth.getApiToken.failed.listen(() => {
+  notify(t('failed to load API token'), 'error');
+});
+
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
     dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
-  } else {
+  } else if (params.id) {
     dispatchMethodName = {
       c: 'getCollection',
       a: 'getAsset'
     }[params.id[0]];
   }
 
-  dataInterface[dispatchMethodName](params)
-    .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+  if (dispatchMethodName) {
+    dataInterface[dispatchMethodName](params)
+      .done(actions.resources.loadAsset.completed)
+      .fail(actions.resources.loadAsset.failed);
+  }
 });
 
 actions.resources.loadAssetContent.listen(function(params){
