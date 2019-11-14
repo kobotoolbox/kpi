@@ -115,8 +115,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
-    # 'django_userforeignkey.middleware.UserForeignKeyMiddleware',
-    # 'django_request_cache.middleware.RequestCacheMiddleware',
+    'django_userforeignkey.middleware.UserForeignKeyMiddleware',
+    'django_request_cache.middleware.RequestCacheMiddleware',
 ]
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
