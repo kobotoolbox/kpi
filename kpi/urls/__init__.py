@@ -1,7 +1,7 @@
 # coding: utf-8
 import private_storage.urls
 from django.contrib.auth import logout
-from django.urls import include, re_path
+from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
@@ -23,13 +23,9 @@ from .router_api_v2 import router_api_v2, URL_NAMESPACE
 
 
 # Apps whose translations should be available in the client code.
-js_info_dict = {
-    'packages': ('kobo.apps.KpiConfig',),
-}
-
 urlpatterns = [
-    re_path(r'^$', home, name='kpi-root'),
-    re_path(r'^me/$', CurrentUserViewSet.as_view({
+    path('', home, name='kpi-root'),
+    path('me/', CurrentUserViewSet.as_view({
         'get': 'retrieve',
         'patch': 'partial_update',
     }), name='currentuser-detail'),
@@ -46,19 +42,19 @@ urlpatterns = [
         r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
     ),
-    re_path(r'^browser_tests/$', browser_tests),
-    re_path(r'^authorized_application/one_time_login/$', one_time_login),
+    path('browser_tests/', browser_tests),
+    path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
-    re_path(r'^jsi18n/$', JavaScriptCatalog, js_info_dict, name='javascript-catalog'),
-
-    re_path(r'^token/$', TokenView.as_view(), name='token'),
-    re_path(r'^environment/$', EnvironmentView.as_view(), name='environment'),
+    path('jsi18n/', JavaScriptCatalog.as_view(),
+         name='javascript-catalog'),
+    path('token/', TokenView.as_view(), name='token'),
+    path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    re_path(r'^superuser_stats/user_report/$', user_report),
+    path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
             retrieve_user_report),
 ]
