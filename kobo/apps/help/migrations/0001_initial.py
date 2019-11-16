@@ -1,5 +1,6 @@
 # coding: utf-8
-from __future__ import unicode_literals
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import datetime
 
@@ -7,7 +8,6 @@ from django.conf import settings
 from django.db import migrations, models
 import jsonbfield.fields
 import markdownx.models
-import private_storage.fields
 import private_storage.storage.files
 
 import kpi.fields

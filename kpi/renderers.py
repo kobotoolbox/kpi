@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
 
@@ -13,6 +14,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+
 
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
@@ -58,6 +60,7 @@ class XFormRenderer(XMLRenderer):
 class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
     media_type = 'application/json'
     format = 'geojson'
+
     def render(self, data, accepted_media_type=None, renderer_context=None):
         view = renderer_context['view']
         # `AssetNestedObjectViewsetMixin` provides the asset
@@ -79,7 +82,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         if not geo_question_name:
             # No geo question specified; use the first one in the latest
             # version of the form
-            latest_version = next(reversed(pack.versions.values()))
+            latest_version = next(reversed(list(pack.versions.values())))
             first_section = next(iter(latest_version.sections.values()))
             geo_questions = (field for field in first_section.fields.values()
                              if field.data_type in GEO_QUESTION_TYPES)

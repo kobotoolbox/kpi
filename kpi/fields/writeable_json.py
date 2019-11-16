@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
 
@@ -23,7 +24,7 @@ class WritableJSONField(serializers.Field):
                 return json.loads(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    u'Unable to parse JSON: {}'.format(e))
+                    'Unable to parse JSON: {}'.format(e))
 
     def to_representation(self, value):
         return value

@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -41,5 +42,5 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
             _queryset = _queryset.only(
                 'uid', 'deployed', 'date_modified', 'asset_id')
         # `AssetVersionListSerializer.get_url()` asks for the asset UID
-        _queryset = _queryset.select_related('asset__uid')
+        _queryset = _queryset.select_related('asset')
         return _queryset

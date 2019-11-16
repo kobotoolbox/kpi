@@ -1,7 +1,12 @@
-import re
-from collections import OrderedDict
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
+from django.utils.six import string_types
 
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
+from formpack.utils.future import OrderedDict
+
 
 class AssetContentAnalyzer(object):
     def __init__(self, *args, **kwargs):
@@ -45,7 +50,7 @@ class AssetContentAnalyzer(object):
                 types.add(_type)
                 if isinstance(_label, list) and len(_label) > 0:
                     labels.append(_label[0])
-                elif isinstance(_label, basestring) and len(_label) > 0:
+                elif isinstance(_label, string_types) and len(_label) > 0:
                     labels.append(_label)
                 keys.update(OrderedDict.fromkeys(row.keys()))
 
@@ -55,7 +60,7 @@ class AssetContentAnalyzer(object):
             'default_translation': self.default_translation,
             'geo': geo,
             'labels': labels[0:5],
-            'columns': filter(lambda k: not k.startswith('$'), keys.keys()),
+            'columns': [k for k in keys.keys() if not k.startswith('$')],
         }
         if len(naming_conflicts) > 0:
             summary['naming_conflicts'] = naming_conflicts

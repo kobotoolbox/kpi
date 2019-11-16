@@ -1,10 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import datetime
+
 from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
 from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import TokenAuthentication
@@ -13,9 +16,12 @@ from rest_framework import exceptions
 KEY_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
 KEY_LENGTH = 60
 
+
 def _generate_random_key():
     return get_random_string(KEY_LENGTH, KEY_CHARS)
 
+
+@python_2_unicode_compatible
 class AuthorizedApplication(models.Model):
     name = models.CharField(max_length=50)
     key = models.CharField(
@@ -24,12 +30,13 @@ class AuthorizedApplication(models.Model):
         default=_generate_random_key
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 def ten_minutes_from_now():
     return datetime.datetime.now() + datetime.timedelta(minutes=10)
+
 
 class OneTimeAuthenticationKey(models.Model):
     user = models.ForeignKey('auth.User')
@@ -51,4 +58,4 @@ class ApplicationTokenAuthentication(TokenAuthentication):
             token = self.model.objects.get(key=key)
         except self.model.DoesNotExist:
             raise exceptions.AuthenticationFailed(_('Invalid token.'))
-        return (AnonymousUser(), token)
+        return AnonymousUser(), token

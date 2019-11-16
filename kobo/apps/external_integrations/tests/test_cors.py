@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from rest_framework.test import APITestCase
 from django.core.urlresolvers import reverse
 

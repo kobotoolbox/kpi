@@ -1,5 +1,9 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import os
-import sys
+
 import subprocess
 import atexit
 import signal
@@ -7,6 +11,7 @@ import signal
 from django.conf import settings
 from django.contrib.staticfiles.management.commands.runserver import Command\
     as StaticfilesRunserverCommand
+
 
 class Command(StaticfilesRunserverCommand):
     # As described in this blog post:

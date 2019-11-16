@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-from collections import OrderedDict
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from rest_framework import serializers
 from rest_framework.pagination import LimitOffsetPagination
+
+from formpack.utils.future import OrderedDict
 
 
 class PaginatedApiField(serializers.ReadOnlyField):

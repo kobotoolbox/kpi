@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
 
+from django.utils.six import text_type
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -135,7 +137,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             try:
                 asset.update_translation_list(translations_list)
             except ValueError as err:
-                raise serializers.ValidationError(err.message)
+                raise serializers.ValidationError(text_type(err))
             validated_data['content'] = asset_content
         return super(AssetSerializer, self).update(asset, validated_data)
 
@@ -145,7 +147,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         if 'parent' in fields:
             # TODO: remove this restriction?

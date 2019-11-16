@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from collections import defaultdict
 
@@ -192,7 +193,8 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
         repr_ = super(AssetPermissionAssignmentSerializer, self). \
             to_representation(instance)
-        for k, v in repr_.items():
+        repr_copy = dict(repr_)
+        for k, v in repr_copy.items():
             if k == 'partial_permissions' and v is None:
                 del repr_[k]
 

@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😬
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
-from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 
 # This file is a place to store static, translatable strings

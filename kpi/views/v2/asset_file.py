@@ -1,9 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from private_storage.views import PrivateStorageDetailView
 from rest_framework import exceptions
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
@@ -53,7 +54,7 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             return private_file.request.user.has_perm(
                 PERM_VIEW_ASSET, private_file.parent_object.asset)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def content(self, *args, **kwargs):
         view = self.PrivateContentView.as_view(
             model=AssetFile,

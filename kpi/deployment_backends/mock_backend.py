@@ -1,14 +1,15 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import re
 
 from django.core.urlresolvers import reverse
 from django.utils.six import text_type
 from rest_framework import status
 
-from .base_backend import BaseDeploymentBackend
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from .base_backend import BaseDeploymentBackend
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):

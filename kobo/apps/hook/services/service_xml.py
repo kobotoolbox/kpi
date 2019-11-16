@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 from lxml import etree
-import requests
 
 from ..models.service_definition_interface import ServiceDefinitionInterface
 
 
 class ServiceDefinition(ServiceDefinitionInterface):
-    id = u"xml"
+    id = "xml"
 
     def _parse_data(self, submission, fields):
         if len(fields) > 0:

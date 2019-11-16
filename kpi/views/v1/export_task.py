@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from rest_framework import status, exceptions
 from rest_framework.response import Response
@@ -19,7 +20,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
     lookup_field = 'uid'
 
     def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             return ExportTask.objects.none()
 
         queryset = ExportTask.objects.filter(
@@ -49,7 +50,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
         # Read valid options from POST data

@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -31,7 +32,7 @@ class TagSerializer(serializers.ModelSerializer):
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         return [reverse('asset-detail', args=(sa.uid,), request=request)
                 for sa in Asset.objects.filter(tags=obj, owner=user).all()]
@@ -42,7 +43,7 @@ class TagSerializer(serializers.ModelSerializer):
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         return [reverse('collection-detail', args=(coll.uid,), request=request)
                 for coll in Collection.objects.filter(tags=obj, owner=user)

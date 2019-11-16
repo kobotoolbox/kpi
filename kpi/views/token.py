@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -16,7 +17,7 @@ class TokenView(APIView):
         Determine the user from `request`, allowing superusers to specify
         another user by passing the `username` query parameter
         """
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
         if 'username' in request.query_params:

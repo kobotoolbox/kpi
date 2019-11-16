@@ -1,15 +1,21 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import re
+
 from haystack import indexes
 from taggit.models import Tag
 
 from .models import Asset, Collection
 
+
 class FieldPreparersMixin:
-    '''
+    """
     Haystack uses commas as separators for MultiValueField:
     https://github.com/django-haystack/django-haystack/blob/v2.4.0/haystack/backends/whoosh_backend.py#L159
     We'll find commas (and spaces, to mimic Gmail) and replace them with dashes.
-    '''
+    """
     COMMA_SPACE_RE = re.compile('[, ]')
 
     def _escape_comma_space(self, string, repl='-'):
@@ -36,10 +42,10 @@ class FieldPreparersMixin:
             return self._escape_comma_space(obj.parent.name)
 
     def prepare_parent__uid(self, obj):
-        '''
+        """
         Trivial method needed because MultiValueField(model_attr='parent__uid')
         ends up giving each character in the UID its own entry in the lexicon
-        '''
+        """
         if obj.parent:
             return obj.parent.uid
 
@@ -108,6 +114,7 @@ class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixi
     parent__name__exact = indexes.MultiValueField()
     parent__uid = indexes.MultiValueField()
     users_granted_permission = indexes.MultiValueField()
+
     def get_model(self):
         return Collection
 
@@ -117,11 +124,13 @@ class TagIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     name__ngram = indexes.NgramField(model_attr='name')
     asset_type = indexes.MultiValueField()
     kind = indexes.MultiValueField()
+
     def prepare_asset_type(self, obj):
         # Call order_by() to make distinct() behave as expected
         asset_types = Asset.objects.filter(tags=obj).order_by().values_list(
             'asset_type', flat=True).distinct()
         return [self._escape_comma_space(x) for x in asset_types]
+
     def prepare_kind(self, obj):
         kinds = []
         for klass in (Asset, Collection):
@@ -130,5 +139,6 @@ class TagIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
             except IndexError:
                 pass
         return [self._escape_comma_space(x) for x in kinds]
+
     def get_model(self):
         return Tag

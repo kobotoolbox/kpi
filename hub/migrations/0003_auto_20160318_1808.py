@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# coding: utf-8
+from __future__ import absolute_import, unicode_literals
 
-from django.db import migrations, models
 import jsonfield.fields
 from django.conf import settings
+from django.db import migrations, models
 
 
 def create_extrauserdetails(apps, schema_editor):
@@ -11,6 +11,7 @@ def create_extrauserdetails(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     for user in User.objects.all():
         ExtraUserDetail.objects.get_or_create(user=user)
+
 
 class Migration(migrations.Migration):
 

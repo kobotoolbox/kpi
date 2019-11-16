@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😬
-from __future__ import absolute_import
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-import StringIO
 import copy
 import sys
-from collections import OrderedDict
 
 import jsonbfield.fields
 import six
@@ -16,16 +15,19 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import text_type, iteritems
 from django.utils.translation import ugettext_lazy as _
-from formpack import FormPack
-from formpack.utils.flatten_content import flatten_content
-from formpack.utils.json_hash import json_hash
-from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack import FormPack
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.future import OrderedDict
+from formpack.utils.json_hash import json_hash
+from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
@@ -68,6 +70,7 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
+from kpi.utils.future import ObjectIO
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -172,14 +175,14 @@ class FormpackXLSFormUtils(object):
     def _ensure_settings(self, content):
         # asset.settings should exist already, but
         # on some legacy forms it might not
-        _settings = content.get('settings', {})
+        _settings = OrderedDict(content.get('settings', {}))
         if isinstance(_settings, list):
             if len(_settings) > 0:
-                _settings = _settings[0]
+                _settings = OrderedDict(_settings[0])
             else:
-                _settings = {}
+                _settings = OrderedDict()
         if not isinstance(_settings, dict):
-            _settings = {}
+            _settings = OrderedDict()
         content['settings'] = _settings
 
     def _append(self, content, **sheet_data):
@@ -255,10 +258,10 @@ class FormpackXLSFormUtils(object):
     def _strip_empty_rows(self, content, vals=None):
         if vals is None:
             vals = {
-                u'survey': u'type',
-                u'choices': u'list_name',
+                'survey': 'type',
+                'choices': 'list_name',
             }
-        for (sheet_name, required_key) in vals.iteritems():
+        for (sheet_name, required_key) in iteritems(vals):
             arr = content.get(sheet_name, [])
             arr[:] = [row for row in arr if required_key in row]
 
@@ -400,22 +403,26 @@ class XlsExportable(object):
         return content
 
     def to_xls_io(self, versioned=False, **kwargs):
-        """ To append rows to one or more sheets, pass `append` as a
+        """
+        To append rows to one or more sheets, pass `append` as a
         dictionary of lists of dictionaries in the following format:
             `{'sheet name': [{'column name': 'cell value'}]}`
         Extra settings may be included as a dictionary in the same
         parameter.
-            `{'settings': {'setting name': 'setting value'}}` """
+            `{'settings': {'setting name': 'setting value'}}`
+        """
         if versioned:
-            append = kwargs['append'] = kwargs.get('append', {})
-            append_survey = append['survey'] = append.get('survey', [])
-            append_settings = append['settings'] = append.get('settings', {})
+            append = kwargs.setdefault('append', {})
+            append_survey = append.setdefault('survey', [])
+            # We want to keep the order and append `version` at the end.
+            append_settings = OrderedDict(append.setdefault('settings', {}))
             append_survey.append(
                 {'name': '__version__',
                  'calculation': '\'{}\''.format(self.version_id),
                  'type': 'calculate'}
             )
             append_settings.update({'version': self.version_id})
+            kwargs['append']['settings'] = append_settings
         try:
             def _add_contents_to_sheet(sheet, contents):
                 cols = []
@@ -434,9 +441,8 @@ class XlsExportable(object):
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
-
             workbook = xlwt.Workbook()
-            for (sheet_name, contents) in ss_dict.iteritems():
+            for sheet_name, contents in iteritems(ss_dict):
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
@@ -447,12 +453,14 @@ class XlsExportable(object):
                 sys.exc_info()[2]
             )
 
-        string_io = StringIO.StringIO()
-        workbook.save(string_io)
-        string_io.seek(0)
-        return string_io
+        object_io = ObjectIO()
+        obj = object_io.get_obj()
+        workbook.save(obj)
+        obj.seek(0)
+        return obj
 
 
+@python_2_unicode_compatible
 class Asset(ObjectPermissionMixin,
             TagStringMixin,
             DeployableMixin,
@@ -595,8 +603,8 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
-    def __unicode__(self):
-        return u'{} ({})'.format(self.name, self.uid)
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.uid)
 
     def adjust_content_on_save(self):
         """
@@ -625,7 +633,7 @@ class Asset(ObjectPermissionMixin,
                 settings['id_string'] = id_string
             if not _title:
                 _title = filename
-        if not self.asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
+        if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
 
@@ -727,7 +735,7 @@ class Asset(ObjectPermissionMixin,
             if with_filters:
                 return perms
             else:
-                return perms.keys()
+                return list(perms)
 
         return None
 
@@ -767,7 +775,11 @@ class Asset(ObjectPermissionMixin,
             #   * we don't need them for list views.
             'content', 'report_styles'
         ).select_related(
-            'owner__username',
+            # We only need `username`, but `select_related('owner__username')`
+            # actually pulled in the entire `auth_user` table under Django 1.8.
+            # In Django 1.9+, "select_related() prohibits non-relational fields
+            # for nested relations."
+            'owner',
         ).prefetch_related(
             # We previously prefetched `permissions__content_object`, but that
             # actually pulled the entirety of each permission's linked asset
@@ -822,11 +834,15 @@ class Asset(ObjectPermissionMixin,
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
-            row_count = self.summary.get('row_count')
-            if row_count == 1:
-                self.asset_type = ASSET_TYPE_QUESTION
-            elif row_count > 1:
-                self.asset_type = ASSET_TYPE_BLOCK
+            try:
+                row_count = int(self.summary.get('row_count'))
+            except TypeError:
+                pass
+            else:
+                if row_count == 1:
+                    self.asset_type = ASSET_TYPE_QUESTION
+                elif row_count > 1:
+                    self.asset_type = ASSET_TYPE_BLOCK
 
         self._populate_report_styles()
 
@@ -1113,9 +1129,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             _label = include_note
             if len(_translations) > 0:
                 _label = [_label for t in _translations]
-            source['survey'].append({u'type': u'note',
-                                     u'name': u'prepended_note',
-                                     u'label': _label})
+            source['survey'].append({'type': 'note',
+                                     'name': 'prepended_note',
+                                     'label': _label})
 
         source_copy = copy.deepcopy(source)
         self._expand_kobo_qs(source_copy)
@@ -1129,12 +1145,13 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                            root_node_name=root_node_name,
                            id_string=id_string,
                            title=form_title)[0].to_xml(warnings=warnings)
+
             details.update({
-                u'status': u'success',
-                u'warnings': warnings,
+                'status': 'success',
+                'warnings': warnings,
             })
         except Exception as err:
-            err_message = unicode(err)
+            err_message = text_type(err)
             logging.error('Failed to generate xform for asset', extra={
                 'src': source,
                 'id_string': id_string,
@@ -1144,9 +1161,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             })
             xml = ''
             details.update({
-                u'status': u'failure',
-                u'error_type': type(err).__name__,
-                u'error': err_message,
-                u'warnings': warnings,
+                'status': 'failure',
+                'error_type': type(err).__name__,
+                'error': err_message,
+                'warnings': warnings,
             })
-        return (xml, details)
+        return xml, details

@@ -1,23 +1,26 @@
-from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
-from ..models.asset import Asset
-from ..models.collection import Collection
-from ..models.object_permission import get_all_objects_for_user
+from django.contrib.auth.models import User
+from django.test import TestCase
+from django.utils.six import iteritems
+
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_ADD_SUBMISSIONS, \
     PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS, PERM_VALIDATE_SUBMISSIONS, \
     PERM_SHARE_ASSET, PERM_DELETE_ASSET, PERM_SHARE_SUBMISSIONS, \
     PERM_DELETE_SUBMISSIONS, PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
     PERM_PARTIAL_SUBMISSIONS
 from kpi.exceptions import BadPermissionsException
+from ..models.asset import Asset
+from ..models.collection import Collection
+from ..models.object_permission import get_all_objects_for_user
 
 
 class BasePermissionsTestCase(TestCase):
 
     def _get_perm_name(self, perm_name_prefix, model_instance):
-        '''
+        """
         Get the type-specific permission name for a model from a permission name
         prefix and a model instance.
 
@@ -33,14 +36,14 @@ class BasePermissionsTestCase(TestCase):
         :type model_instance: :py:class:`Collection` or :py:class:`Asset`
         :return: The computed permission name.
         :rtype: str
-        '''
+        """
         if not perm_name_prefix[-1] == '_':
             perm_name_prefix += '_'
         perm_name = perm_name_prefix + model_instance._meta.model_name
         return perm_name
 
     def _test_add_perm(self, obj, perm_name_prefix, user):
-        '''
+        """
         Test that a permission can be added and that the permission successfully
         takes effect.
 
@@ -51,14 +54,14 @@ class BasePermissionsTestCase(TestCase):
         :type perm_name_prefix: str
         :param user: The user for whom permissions on `obj` will be manipulated.
         :type user: :py:class:`User`
-        '''
+        """
         perm_name = self._get_perm_name(perm_name_prefix, obj)
         self.assertFalse(user.has_perm(perm_name, obj))
         obj.assign_perm(user, perm_name)
         self.assertTrue(user.has_perm(perm_name, obj))
 
     def _test_remove_perm(self, obj, perm_name_prefix, user):
-        '''
+        """
         Test that a permission can be removed and that the removal successfully
         takes effect.
 
@@ -69,7 +72,7 @@ class BasePermissionsTestCase(TestCase):
         :type perm_name_prefix: str
         :param user: The user for whom permissions on `obj` will be manipulated.
         :type user: :py:class:`User`
-        '''
+        """
         perm_name = self._get_perm_name(perm_name_prefix, obj)
         self.assertTrue(user.has_perm(perm_name, obj))
         obj.remove_perm(user, perm_name)
@@ -77,7 +80,7 @@ class BasePermissionsTestCase(TestCase):
 
     def _test_add_inherited_perm(self, ancestor_collection, perm_name_prefix,
                                  user, descendant_obj):
-        '''
+        """
         Test that a permission can be added to a collection and that the
         permission successfully propagates to a descendant.
 
@@ -92,14 +95,14 @@ class BasePermissionsTestCase(TestCase):
             changed permission (i.e. an asset/collection contained in
             `ancestor_collection`).
         :type descendant_obj: :py:class:`Collection` or :py:class:`Asset`
-        '''
+        """
         descendant_perm_name= self._get_perm_name(perm_name_prefix, descendant_obj)
         self.assertFalse(user.has_perm(descendant_perm_name, descendant_obj))
         self._test_add_perm(ancestor_collection, perm_name_prefix, user)
         self.assertTrue(user.has_perm(descendant_perm_name, descendant_obj))
 
     def _test_add_and_remove_perm(self, obj, perm_name_prefix, user):
-        '''
+        """
         Test that a permission can be removed after being added and that the
         removal successfully takes effect.
 
@@ -110,7 +113,7 @@ class BasePermissionsTestCase(TestCase):
         :type perm_name_prefix: str
         :param user: The user for whom permissions on `obj` will be manipulated.
         :type user: :py:class:`User`
-        '''
+        """
         self._test_add_perm(obj, perm_name_prefix, user)
         remove_perm_name = self._get_perm_name(perm_name_prefix, obj)
         obj.remove_perm(user, remove_perm_name)
@@ -118,7 +121,7 @@ class BasePermissionsTestCase(TestCase):
 
     def _test_add_remove_inherited_perm(self, ancestor_collection,
                                         perm_name_prefix, user, descendant_obj):
-        '''
+        """
         Test that a permission can be added and removed, and that the removal
         successfully takes effect.
 
@@ -134,7 +137,7 @@ class BasePermissionsTestCase(TestCase):
             changed permission (i.e. an asset/collection contained in
             `ancestor_collection`).
         :type descendant_obj: :py:class:`Collection` or :py:class:`Asset`
-        '''
+        """
         self._test_add_inherited_perm(ancestor_collection,
                                       perm_name_prefix, user,
                                       descendant_obj)
@@ -251,7 +254,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         # Prevent extra `share_` permissions from being assigned
         asset.editors_can_change_permissions = False
 
-        for explicit, implied in implications.iteritems():
+        for explicit, implied in iteritems(implications):
             # Make sure the slate is clean
             self.assertListEqual(list(asset.get_perms(grantee)), [])
             # Assign the explicit permission
@@ -521,7 +524,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         for user_, perms_ in asset2_perms.items():
             self.assertListEqual(
                 sorted(perms_), sorted(asset1_perms[user_]))
-        self.assertTrue(len(asset1_perms.keys()) == len(asset2_perms.keys()))
+        self.assertTrue(len(list(asset1_perms)) == len(list(asset2_perms)))
 
     def test_copy_permissions_between_objects_different_owner(self):
 
@@ -579,7 +582,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertListEqual(
             sorted(someuser_asset_perms[self.anotheruser]), expected_anotheruser_perms)
 
-        self.assertTrue(len(another_user_asset_perms.keys()) == len(someuser_asset_perms.keys()))
+        self.assertTrue(len(list(another_user_asset_perms)) == len(list(someuser_asset_perms)))
 
     def test_add_partial_submission_permission_to_owner(self):
         """
@@ -643,8 +646,8 @@ class PermissionsTestCase(BasePermissionsTestCase):
         }
         asset.assign_perm(grantee, PERM_PARTIAL_SUBMISSIONS,
                           partial_perms=partial_perms)
-        self.assertEquals(asset.get_partial_perms(grantee.id, with_filters=True),
-                          partial_perms)
+        self.assertEqual(asset.get_partial_perms(grantee.id, with_filters=True),
+                         partial_perms)
 
     def test_add_contradict_partial_submission_permission(self):
         """

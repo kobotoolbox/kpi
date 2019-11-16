@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import base64
 
@@ -10,6 +11,7 @@ from rest_framework.reverse import reverse
 from kpi.models import ImportTask
 from kpi.serializers import ImportTaskListSerializer, ImportTaskSerializer
 from kpi.tasks import import_in_background
+from kpi.utils.future import to_str
 
 
 class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
@@ -24,14 +26,14 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return ImportTaskSerializer
 
     def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             return ImportTask.objects.none()
         else:
             return ImportTask.objects.filter(
                         user=self.request.user).order_by('date_created')
 
     def create(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
         itask_data = {
             'library': request.POST.get('library') not in ['false', False],
@@ -44,7 +46,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
             itask_data['base64Encoded'] = encoded_substr
         elif 'file' in request.data:
-            encoded_xls = base64.b64encode(request.data['file'].read())
+            encoded_xls = to_str(base64.b64encode(request.data['file'].read()))
             itask_data['base64Encoded'] = encoded_xls
             if 'filename' not in itask_data:
                 itask_data['filename'] = request.data['file'].name

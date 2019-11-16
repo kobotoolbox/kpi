@@ -1,8 +1,12 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from django.contrib import admin
-from hub.models import FormBuilderPreference, SitewideMessage, ExtraUserDetail
+
+from hub.models import ExtraUserDetail
 from .models import AuthorizedApplication
 
 # Register your models here.
 admin.site.register(AuthorizedApplication)
-admin.site.register(FormBuilderPreference)
 admin.site.register(ExtraUserDetail)

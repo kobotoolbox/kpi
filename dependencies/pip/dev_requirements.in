@@ -5,4 +5,4 @@ Werkzeug
 ipython
 pytest-django
 pytest-env
-pytest==3.10.0
+pytest

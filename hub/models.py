@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError, ValidationError
@@ -6,6 +10,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
@@ -14,13 +19,16 @@ from markitup.fields import MarkupField
 from kpi.models.object_permission import get_anonymous_user
 
 
+@python_2_unicode_compatible
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
     body = MarkupField()
+
     def __str__(self):
         return self.slug
 
 
+@python_2_unicode_compatible
 class ConfigurationFile(models.Model):
     LOGO = 'logo'
     LOGO_SMALL = 'logo_small'
@@ -40,10 +48,10 @@ class ConfigurationFile(models.Model):
 
     @classmethod
     def redirect_view(cls, request, slug):
-        '''
+        """
         When using storage with URLs that expire (e.g. Amazon S3), this view
         allows for persistent URLs--which then redirect to the temporary URLs
-        '''
+        """
         obj = get_object_or_404(cls, slug=slug)
         return HttpResponseRedirect(obj.content.url)
 
@@ -52,6 +60,7 @@ class ConfigurationFile(models.Model):
         return reverse('configurationfile', kwargs={'slug': self.slug})
 
 
+@python_2_unicode_compatible
 class PerUserSetting(models.Model):
     """
     A configuration setting that has different values depending on whether not
@@ -65,12 +74,12 @@ class PerUserSetting(models.Model):
                     'the queries in the list.')
     )
     name = models.CharField(max_length=255, unique=True,
-                            default='INTERCOM_APP_ID') # The only one for now!
+                            default='INTERCOM_APP_ID')  # The only one for now!
     value_when_matched = models.CharField(max_length=2048, blank=True)
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
     def user_matches(self, user, ignore_invalid_queries=True):
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         manager = user._meta.model.objects
         queryset = manager.none()
@@ -105,35 +114,19 @@ class PerUserSetting(models.Model):
     def __str__(self):
         return self.name
 
-class FormBuilderPreference(models.Model):
-    KPI = 'K'
-    DKOBO = 'D'
-    BUILDER_CHOICES = (
-        (KPI, 'kpi'),
-        (DKOBO, 'dkobo')
-    )
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
-    preferred_builder = models.CharField(
-        max_length=1,
-        choices=BUILDER_CHOICES,
-        default=KPI,
-    )
-    def __unicode__(self):
-        choices_dict = dict(self.BUILDER_CHOICES)
-        choice_label = choices_dict[self.preferred_builder]
-        return u'{} prefers {}'.format(self.user, choice_label)
 
-
+@python_2_unicode_compatible
 class ExtraUserDetail(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='extra_details')
     data = JSONField(default={})
 
-    def __unicode__(self):
-        return '{}\'s data: {}'.format(self.user.__unicode__(), repr(self.data))
+    def __str__(self):
+        return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
 
 
 def create_extra_user_details(sender, instance, created, **kwargs):
     if created:
         ExtraUserDetail.objects.get_or_create(user=instance)
+
 
 post_save.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)

@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 import json
 import re
@@ -9,7 +10,7 @@ from ..models.service_definition_interface import ServiceDefinitionInterface
 
 
 class ServiceDefinition(ServiceDefinitionInterface):
-    id = u"json"
+    id = 'json'
 
     def __add_payload_template(self, submission):
         if not self._hook.payload_template:
@@ -27,7 +28,7 @@ class ServiceDefinition(ServiceDefinitionInterface):
             submission_keys = submission.keys()
 
             for field_ in fields:
-                pattern = r"^{}$" if "/" in field_ else r"(^|/){}(/|$)"
+                pattern = r'^{}$' if '/' in field_ else r'(^|/){}(/|$)'
                 for key_ in submission_keys:
                     if re.search(pattern.format(field_), key_):
                         parsed_submission.update({
@@ -40,6 +41,6 @@ class ServiceDefinition(ServiceDefinitionInterface):
 
     def _prepare_request_kwargs(self):
         return {
-            "headers": {"Content-Type": "application/json"},
-            "json": self._data
+            'headers': {'Content-Type': 'application/json'},
+            'json': self._data
         }

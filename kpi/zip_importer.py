@@ -1,18 +1,21 @@
-# -*- coding: utf-8 -*-
-from io import BytesIO
-import json
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import os
 import re
 import zipfile
+from io import BytesIO
 
-import requests
-from xlrd import open_workbook, XLRDError
+from django.utils.encoding import python_2_unicode_compatible
+from xlrd import open_workbook
 
 from kpi.exceptions import ImportAssetException
 
 
+@python_2_unicode_compatible
 class ImportFile(object):
-    '''
+    """
     iterates through a zipfile and rebuilds a hierarchy which can then be
     parsed and used to create nested collections and assets.
 
@@ -22,7 +25,7 @@ class ImportFile(object):
             importable_structure.to_dict(),
             indent=4
             )
-    '''
+    """
     def __init__(self, readable=False, name=None, root=False, parent=False):
         self._readable = readable
         self.parent = parent
@@ -76,10 +79,10 @@ class ImportFile(object):
         return list(reversed(items))
 
     def parse(self):
-        '''
+        """
         opens up the file, and parses the subfiles in a zip, creating "children" ImportFile
         objects.
-        '''
+        """
         if self.is_zip():
             self._type = 'collection'
             with zipfile.ZipFile(self.readable) as zfile:
@@ -137,7 +140,6 @@ class ImportFile(object):
                 self._is_xls = False
         return self._is_xls
 
-
     def is_zip(self):
         if not hasattr(self, '_is_zip'):
             if isinstance(self._readable, zipfile.ZipInfo):
@@ -148,7 +150,6 @@ class ImportFile(object):
                 self._is_zip = self._is_zip and not self.is_xls()
         return self._is_zip
 
-
     def is_dir(self):
         if not hasattr(self, '_is_dir'):
             if isinstance(self._readable, zipfile.ZipInfo):
@@ -157,11 +158,12 @@ class ImportFile(object):
                 self._is_dir = False
         return self._is_dir
 
+
 class ImportZipSubfile(ImportFile):
     def __init__(self, *args, **kwargs):
         self.zfile = kwargs['zfile']
         del kwargs['zfile']
-        super( ImportZipSubfile, self ).__init__(*args, **kwargs)
+        super(ImportZipSubfile, self).__init__(*args, **kwargs)
 
     @property
     def readable(self):
@@ -172,6 +174,7 @@ class ImportZipSubfile(ImportFile):
 
     def store(self):
         self._bytesio = BytesIO(self.readable.read())
+
 
 class RootFileImport(ImportFile):
     def __init__(self, *args, **kwargs):
@@ -212,6 +215,7 @@ class RootFileImport(ImportFile):
                 queued_for_removal.append(item)
         for item in queued_for_removal:
             self._parsed.remove(item)
+
 
 class HttpContentParse(RootFileImport):
     def __init__(self, *args, **kwargs):

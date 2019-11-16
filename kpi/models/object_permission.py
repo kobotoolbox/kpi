@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import copy
 import re
@@ -13,7 +14,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
-from django.utils.six import string_types
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import string_types, text_type, iteritems
 from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
@@ -81,7 +83,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     :param all_perms_required: If False, users should have at least one
       of the `perms`
     """
-    if isinstance(perms, basestring):
+    if isinstance(perms, string_types):
         perms = [perms]
     ctype = None
     app_label = None
@@ -93,7 +95,8 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
             new_app_label, codename = perm.split('.', 1)
             if app_label is not None and app_label != new_app_label:
                 raise ValidationError("Given perms must have same app "
-                    "label (%s != %s)" % (app_label, new_app_label))
+                                      "label (%s != %s)" % (app_label,
+                                                            new_app_label))
             else:
                 app_label = new_app_label
         else:
@@ -129,7 +132,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
     # queries, and it's nice to be able to pass in request.user blindly.
-    if user.is_anonymous():
+    if user.is_anonymous:
         user = get_anonymous_user()
 
     # Now we should extract list of pk values for which we would filter queryset
@@ -204,6 +207,7 @@ class ObjectPermissionManager(models.Manager):
         )
 
 
+@python_2_unicode_compatible
 class ObjectPermission(models.Model):
     """ An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
@@ -232,9 +236,8 @@ class ObjectPermission(models.Model):
         return self.content_object.get_label_for_permission(self.permission)
 
     class Meta:
-        unique_together = (
-            'user', 'permission', 'deny', 'inherited',
-            'object_id', 'content_type')
+        unique_together = ('user', 'permission', 'deny', 'inherited',
+                           'object_id', 'content_type')
 
     @void_cache_for_request(keys=('__get_all_object_permissions',
                                   '__get_all_user_permissions',))
@@ -249,15 +252,15 @@ class ObjectPermission(models.Model):
     def delete(self, *args, **kwargs):
         super(self, ObjectPermission).delete(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         for required_field in ('user', 'permission'):
             if not hasattr(self, required_field):
-                return u'incomplete ObjectPermission'
-        return u'{}{} {} {}'.format(
+                return 'incomplete ObjectPermission'
+        return '{}{} {} {}'.format(
             'inherited ' if self.inherited else '',
-            unicode(self.permission.codename),
+            text_type(self.permission.codename),  # TODO Test if cast is still needed
             'denied from' if self.deny else 'granted to',
-            unicode(self.user)
+            text_type(self.user)  # TODO Test if cast is still needed
         )
 
 
@@ -511,7 +514,7 @@ class ObjectPermissionMixin(object):
                 pk_list.append(child.pk)
                 delete_pks_by_content_type[content_type] = pk_list
             delete_query = models.Q()
-            for content_type, pks in delete_pks_by_content_type.iteritems():
+            for content_type, pks in iteritems(delete_pks_by_content_type):
                 delete_query |= models.Q(
                     content_type=content_type,
                     object_id__in=pks
@@ -656,7 +659,7 @@ class ObjectPermissionMixin(object):
         implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
-            for src_perm, dest_perms in implied_perms_dict.iteritems():
+            for src_perm, dest_perms in iteritems(implied_perms_dict):
                 for dest_perm in dest_perms:
                     reverse_perms_dict[dest_perm].append(src_perm)
             implied_perms_dict = reverse_perms_dict
@@ -856,7 +859,7 @@ class ObjectPermissionMixin(object):
                 user_perm_dict[user_id] = sorted(perm_list)
             # Resolve user ids into actual user objects
             user_perm_dict = {User.objects.get(pk=key): value for (key, value)
-                              in user_perm_dict.iteritems()}
+                              in iteritems(user_perm_dict)}
             return user_perm_dict
         else:
             # Use a set to avoid duplicate users
@@ -1095,7 +1098,7 @@ class ObjectPermissionMixin(object):
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.
         if user is not None:
-            user_id = user.pk if not user.is_anonymous() \
+            user_id = user.pk if not user.is_anonymous \
                 else settings.ANONYMOUS_USER_ID
             all_object_permissions = self.__get_all_user_permissions(
                 content_type_id=ContentType.objects.get_for_model(self).pk,

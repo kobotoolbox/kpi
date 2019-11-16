@@ -1,3 +1,7 @@
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -11,6 +15,7 @@ shouldn't incur a penalty:
     any subsequent attempts to import that module result in a quick dict lookup
     in sys.modules and nothing else. (https://stackoverflow.com/a/4177780)
 """
+
 
 def grant_default_model_level_perms(user):
     """
@@ -26,8 +31,7 @@ def grant_default_model_level_perms(user):
 
 def grant_all_model_level_perms(
         user, models_or_content_types, permissions_manager=Permission.objects,
-        content_type_manager=ContentType.objects
-    ):
+        content_type_manager=ContentType.objects):
     """
     Utility function that gives `user` unrestricted model-level access
     to everything listed in `models_or_content_types`. Without this, actions on
@@ -62,7 +66,8 @@ def grant_all_model_level_perms(
 
     if content_types and not permissions_to_assign.exists():
         raise Exception('No permissions found! You may need to migrate your '
-            'database. Searched for content types {}.'.format(content_types))
+                        'database. Searched for content types {}.'.format(
+                            content_types))
 
     if user.pk == settings.ANONYMOUS_USER_ID:
         # The user is anonymous, so pare down the permissions to only those

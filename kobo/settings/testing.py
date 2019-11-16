@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-import os
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 from .base import *
 
-# For tests, don't use Kobocat DB
+# For tests, don't use KoBoCat's DB
 DATABASES = {
-    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': dj_database_url.config(default='sqlite:///%s/db.sqlite3' % BASE_DIR),
 }
 
-DATABASE_ROUTERS = ["kpi.db_routers.TestingDatabaseRouter"]
+DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
 
 TESTING = True
 

@@ -1,12 +1,15 @@
-from StringIO import StringIO
-from optparse import make_option
-from pyxform.xls2json_backends import csv_to_dict
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
+
 import re
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import models
+from django.utils.six.moves import cStringIO as StringIO
 from jsonfield import JSONField
+from pyxform.xls2json_backends import csv_to_dict
 from taggit.managers import TaggableManager
 
 from kpi.models import Asset
@@ -16,10 +19,10 @@ from kpi.utils.log import logging
 
 
 class SurveyDraft(models.Model):
-    '''
+    """
     SurveyDrafts belong to a user and contain the minimal representation of
     the draft survey of the user and of the question library.
-    '''
+    """
     class Meta:
         app_label = 'koboform'
 
@@ -47,7 +50,7 @@ def _csv_to_dict(content):
 
 
 def _set_auto_field_update(kls, field_name, val):
-    field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
     field.auto_now = val
     field.auto_now_add = val
 
@@ -104,8 +107,8 @@ def _import_user_assets(from_user, to_user):
         except KeyboardInterrupt:
             raise
         except Exception:
-            message = (u'Failed to migrate survey draft with name="{}" '
-                       u'and pk={}').format(survey_draft.name, survey_draft.pk)
+            message = ('Failed to migrate survey draft with name="{}" '
+                       'and pk={}').format(survey_draft.name, survey_draft.pk)
             logging.error(message, exc_info=True)
 
     (qlib, _) = Collection.objects.get_or_create(name="question library",
@@ -115,8 +118,8 @@ def _import_user_assets(from_user, to_user):
         try:
             new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
         except:
-            message = (u'Failed to migrate library asset with name="{}" '
-                       u'and pk={}').format(qlib_asset.name, qlib_asset.pk)
+            message = ('Failed to migrate library asset with name="{}" '
+                       'and pk={}').format(qlib_asset.name, qlib_asset.pk)
             logging.error(message, exc_info=True)
 
     _set_auto_field_update(Asset, "date_created", False)
@@ -129,41 +132,51 @@ def _import_user_assets(from_user, to_user):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--destroy',
-                    action='store_true',
-                    dest='destroy',
-                    default=False,
-                    help='Delete all collections, assets, and tasks for user'),
-        make_option('--destination',
-                    action='store',
-                    dest='destination',
-                    default=False,
-                    help='A uid of a destination collection that will contain '
-                    'the imported asset(s)'
-                    ),
-        make_option('--allusers',
-                    action='store_true',
-                    dest='all_users',
-                    default=False,
-                    help='migrate all the users at once'),
-        make_option('--username',
-                    action='store',
-                    dest='username',
-                    default=False,
-                    help='specify the user to migrate'),
-        make_option('--to-username',
-                    action='store',
-                    dest='to_username',
-                    default=False,
-                    help='specify the user to migrate the assets TO (default: '
-                    'same as --username)'),
-        make_option('--quiet',
-                    action='store_true',
-                    dest='quiet',
-                    default=False,
-                    help='Do not output status messages'),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--destroy',
+            action='store_true',
+            dest='destroy',
+            default=False,
+            help='Delete all collections, assets, and tasks for user'
+        )
+        parser.add_argument(
+            '--destination',
+            action='store',
+            dest='destination',
+            default=False,
+            help='A uid of a destination collection that will contain '
+                 'the imported asset(s)'
+        )
+        parser.add_argument(
+            '--allusers',
+            action='store_true',
+            dest='all_users',
+            default=False,
+            help='migrate all the users at once'
+        )
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default=False,
+            help='specify the user to migrate'
+        )
+        parser.add_argument(
+            '--to-username',
+            action='store',
+            dest='to_username',
+            default=False,
+            help='specify the user to migrate the assets TO (default: '
+            'same as --username)'
+        )
+        parser.add_argument(
+            '--quiet',
+            action='store_true',
+            dest='quiet',
+            default=False,
+            help='Do not output status messages'
+        )
 
     def handle(self, *args, **options):
         if options.get('quiet'):
@@ -171,7 +184,7 @@ class Command(BaseCommand):
             def print_str(string): pass
         else:
             # Output status messages
-            def print_str(string): print string
+            def print_str(string): print(string)
 
         users = User.objects.none()
         to_user = False

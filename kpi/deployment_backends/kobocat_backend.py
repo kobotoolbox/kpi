@@ -1,17 +1,18 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
 import posixpath
 import re
-import urlparse
 
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.six import text_type
+from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import status, serializers
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
@@ -43,7 +44,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # if only the owner has permissions, no need to go further
         if len(users_with_perms) == 1 and \
-                users_with_perms.keys()[0].id == self.asset.owner_id:
+                list(users_with_perms)[0].id == self.asset.owner_id:
             return
 
         for user, perms in users_with_perms.items():
@@ -60,7 +61,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         # No need to use the internal URL here; it will be substituted in when
         # appropriate
-        return u'{}/{}/forms/{}'.format(
+        return '{}/{}/forms/{}'.format(
             settings.KOBOCAT_URL,
             username,
             id_string
@@ -74,7 +75,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `url`
         """
         return re.sub(
-            pattern=u'^{}'.format(re.escape(settings.KOBOCAT_URL)),
+            pattern='^{}'.format(re.escape(settings.KOBOCAT_URL)),
             repl=settings.KOBOCAT_INTERNAL_URL,
             string=url
         )
@@ -87,7 +88,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `url`
         """
         return re.sub(
-            pattern=u'^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
+            pattern='^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
             repl=settings.KOBOCAT_URL,
             string=url
         )
@@ -111,7 +112,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             expected_status_code = expected_status_codes[method]
         except KeyError:
             raise NotImplementedError(
-                u'This backend does not implement the {} method'.format(method)
+                'This backend does not implement the {} method'.format(method)
             )
 
         # Make the request to KC
@@ -122,7 +123,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(detail=unicode(e))
+            raise KobocatDeploymentException(detail=text_type(e))
 
         # If it's a no-content success, return immediately
         if response.status_code == expected_status_code == 204:
@@ -135,7 +136,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Unparseable KC API output
             # TODO: clarify that the user cannot correct this
             raise KobocatDeploymentException(
-                detail=unicode(e), response=response)
+                detail=text_type(e), response=response)
 
         # Check for failure
         if response.status_code != expected_status_code or (
@@ -208,8 +209,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             # Parse the provided identifier, which is expected to follow the
             # format http://kobocat_server/username/forms/id_string
-            parsed_identifier = urlparse.urlparse(identifier)
-            server = u'{}://{}'.format(
+            parsed_identifier = urlparse(identifier)
+            server = '{}://{}'.format(
                 parsed_identifier.scheme, parsed_identifier.netloc)
             path_head, path_tail = posixpath.split(parsed_identifier.path)
             id_string = path_tail
@@ -247,7 +248,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hook': self.asset.has_active_hooks,
             'kpi_asset_uid': self.asset.uid
         }
-        files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
+        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
         json_response = self._kobocat_request(
             'POST', url, data=payload, files=files)
         self.store_data({
@@ -280,7 +281,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'title': self.asset.name,
             'has_kpi_hook': self.asset.has_active_hooks
         }
-        files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
+        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
         try:
             json_response = self._kobocat_request(
                 'PATCH', url, data=payload, files=files)
@@ -411,7 +412,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def get_enketo_survey_links(self):
         data = {
-            'server_url': u'{}/{}'.format(
+            'server_url': '{}/{}'.format(
                 settings.KOBOCAT_URL.rstrip('/'),
                 self.asset.owner.username
             ),
@@ -419,7 +420,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         try:
             response = requests.post(
-                u'{}{}'.format(
+                '{}{}'.format(
                     settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_TOKEN, ''),
@@ -444,19 +445,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return links
 
     def get_data_download_links(self):
-        exports_base_url = u'/'.join((
+        exports_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
             self.asset.owner.username,
             'exports',
             self.backend_response['id_string']
         ))
-        reports_base_url = u'/'.join((
+        reports_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
             self.asset.owner.username,
             'reports',
             self.backend_response['id_string']
         ))
-        forms_base_url = u'/'.join((
+        forms_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
             self.asset.owner.username,
             'forms',
@@ -464,14 +465,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         ))
         links = {
             # To be displayed in iframes
-            'xls_legacy': u'/'.join((exports_base_url, 'xls/')),
-            'csv_legacy': u'/'.join((exports_base_url, 'csv/')),
-            'zip_legacy': u'/'.join((exports_base_url, 'zip/')),
-            'kml_legacy': u'/'.join((exports_base_url, 'kml/')),
-            'analyser_legacy': u'/'.join((exports_base_url, 'analyser/')),
+            'xls_legacy': '/'.join((exports_base_url, 'xls/')),
+            'csv_legacy': '/'.join((exports_base_url, 'csv/')),
+            'zip_legacy': '/'.join((exports_base_url, 'zip/')),
+            'kml_legacy': '/'.join((exports_base_url, 'kml/')),
+            'analyser_legacy': '/'.join((exports_base_url, 'analyser/')),
             # For GET requests that return files directly
-            'xls': u'/'.join((reports_base_url, 'export.xlsx')),
-            'csv': u'/'.join((reports_base_url, 'export.csv')),
+            'xls': '/'.join((reports_base_url, 'export.xlsx')),
+            'csv': '/'.join((reports_base_url, 'export.csv')),
         }
         return links
 
@@ -699,7 +700,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param user: User
         :return: requests.models.Response
         """
-        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
+        if not user.is_anonymous and user.pk != settings.ANONYMOUS_USER_ID:
             token, created = Token.objects.get_or_create(user=user)
             kc_request.headers['Authorization'] = 'Token %s' % token.key
         session = requests.Session()

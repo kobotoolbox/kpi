@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 from kpi.serializers import AssetFileSerializer
 from kpi.views.v2.asset_file import AssetFileViewSet as AssetFileViewSetV2

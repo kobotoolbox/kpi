@@ -1,10 +1,13 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import sys
+
 from django.core.management.base import BaseCommand
 
-from ...models import Asset
 from kpi.constants import PERM_VALIDATE_SUBMISSIONS
+from ...models import Asset
 
 
 class Command(BaseCommand):

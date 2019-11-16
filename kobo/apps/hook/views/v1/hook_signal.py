@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
+# coding: utf-8
+from __future__ import (division, print_function, absolute_import,
+                        unicode_literals)
 
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet as HookSignalViewSetV2
 

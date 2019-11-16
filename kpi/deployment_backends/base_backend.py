@@ -1,9 +1,11 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# coding: utf-8
+from __future__ import (unicode_literals, print_function,
+                        absolute_import, division)
 
 import json
 
 from bson import json_util, ObjectId
+from django.utils.six import string_types
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
@@ -83,7 +85,7 @@ class BaseDeploymentBackend(object):
         # possible. TODO: Should this validation be in (or called directly by)
         # the view code? Does DRF have a validator for GET params?
 
-        if isinstance(query, basestring):
+        if isinstance(query, string_types):
             try:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
@@ -111,7 +113,7 @@ class BaseDeploymentBackend(object):
                 'permission_filters': permission_filters
             }
 
-        if isinstance(sort, basestring):
+        if isinstance(sort, string_types):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
@@ -133,7 +135,7 @@ class BaseDeploymentBackend(object):
                 {'limit': _('A positive integer is required.')}
             )
 
-        if isinstance(fields, basestring):
+        if isinstance(fields, string_types):
             try:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:
