@@ -19,7 +19,7 @@ class Command(BaseCommand):
         self.counter = 0
         self.chunk_number = 0
         self.assets_count = 0
-        super(Command, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
+        super().__init__(stdout=stdout, stderr=stderr, no_color=no_color)
 
     def handle(self, *args, **options):
         self.assets_count = Asset.objects.all().count()

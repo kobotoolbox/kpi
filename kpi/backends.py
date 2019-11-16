@@ -24,8 +24,7 @@ class ObjectPermissionBackend(ModelBackend):
 
     def get_group_permissions(self, user_obj, obj=None):
         user_obj, is_anonymous = self._translate_anonymous_user(user_obj)
-        permissions = super(ObjectPermissionBackend, self
-            ).get_group_permissions(user_obj, obj)
+        permissions = super().get_group_permissions(user_obj, obj)
         if is_anonymous:
             # Obey limits on anonymous users' permissions
             allowed_set = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
@@ -35,8 +34,7 @@ class ObjectPermissionBackend(ModelBackend):
 
     def get_all_permissions(self, user_obj, obj=None):
         user_obj, is_anonymous = self._translate_anonymous_user(user_obj)
-        permissions = super(ObjectPermissionBackend, self
-            ).get_all_permissions(user_obj, obj)
+        permissions = super().get_all_permissions(user_obj, obj)
         if is_anonymous:
             # Obey limits on anonymous users' permissions
             allowed_set = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
@@ -51,8 +49,7 @@ class ObjectPermissionBackend(ModelBackend):
                 # Obey limits on anonymous users' permissions
                 if perm not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                     return False
-            return super(ObjectPermissionBackend, self
-                ).has_perm(user_obj, perm, obj)
+            return super().has_perm(user_obj, perm, obj)
         if not user_obj.is_active:
             # Inactive users are denied immediately
             return False

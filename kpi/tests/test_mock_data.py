@@ -1,5 +1,6 @@
 # coding: utf-8
 from copy import deepcopy
+from collections import OrderedDict
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -7,7 +8,6 @@ from django.test import TestCase
 from formpack import FormPack
 from kobo.apps.reports import report_data
 from kpi.models import Asset
-from formpack.utils.future import OrderedDict
 
 F1 = {'survey': [{'$kuid': 'Uf89NP4VX', 'type': 'start', 'name': 'start'},
                   {'$kuid': 'ZtZBY7XHX', 'type': 'end', 'name': 'end'},

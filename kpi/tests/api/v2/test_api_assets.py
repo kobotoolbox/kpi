@@ -2,10 +2,10 @@
 import copy
 import json
 from hashlib import md5
+from io import StringIO
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.utils.six.moves import cStringIO as StringIO
 from rest_framework import status
 
 from kpi.constants import (
@@ -21,7 +21,7 @@ from kpi.serializers.v2.asset import AssetListSerializer
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.future import to_str, hashable_str
+from kpi.utils.strings import to_str, hashable_str
 
 
 class AssetsListApiTests(BaseAssetTestCase):

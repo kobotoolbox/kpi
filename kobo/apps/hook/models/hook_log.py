@@ -3,14 +3,12 @@ import constance
 from datetime import timedelta
 from django.db import models
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 
 from kpi.fields import KpiUidField
 from kpi.utils.log import logging
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOBO_INTERNAL_ERROR_STATUS_CODE
 
 
-@python_2_unicode_compatible
 class HookLog(models.Model):
 
     hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
@@ -101,7 +99,7 @@ class HookLog(models.Model):
         if kwargs.pop("reset_status", False) is False:
             self.tries += 1
             self.hook.reset_totals()
-        super(HookLog, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def status_str(self):

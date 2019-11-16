@@ -38,7 +38,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
     """
 
     def setUp(self):
-        super(ApiAssignedPermissionsTestCase, self).setUp()
+        super().setUp()
         self.anon = get_anonymous_user()
         self.super = User.objects.get(username='admin')
         self.super_password = 'pass'

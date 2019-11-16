@@ -11,7 +11,7 @@ class WritableJSONField(serializers.Field):
 
     def __init__(self, **kwargs):
         self.allow_blank = kwargs.pop('allow_blank', False)
-        super(WritableJSONField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def to_internal_value(self, data):
         if (not data) and (not self.required):

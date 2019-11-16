@@ -2,7 +2,6 @@
 import re
 from functools import reduce
 
-from django.utils.six import string_types
 from .base_handlers import GroupHandler
 
 
@@ -76,7 +75,7 @@ class KoboMatrixGroupHandler(GroupHandler):
         self._base_handler = base_handler
 
     def begin(self, initial_row):
-        super(KoboMatrixGroupHandler, self).begin(initial_row)
+        super().begin(initial_row)
 
         choice_key = 'kobo--matrix_list'
         self.items = self._base_handler.choices(list_name=initial_row.pop(choice_key))
@@ -204,7 +203,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                    'required': col.get('required', False),
                    }
             for key in ['relevant', 'constraint', 'required']:
-                if key in col and isinstance(col[key], string_types):
+                if key in col and isinstance(col[key], str):
                     _str = col[key]
                     for (key2, val) in mappings.items():
                         if key2 in _str:

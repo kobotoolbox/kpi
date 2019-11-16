@@ -38,7 +38,7 @@ from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
     XlsRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -206,7 +206,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(AssetViewSet, self).get_queryset(*args, **kwargs)
+        queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.model.optimize_queryset_for_list(queryset)
         else:
@@ -219,14 +219,14 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         Extra context provided to the serializer class.
         """
 
-        context_ = super(AssetViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
             # to retrieve object permissions, we make a big one at beginning
             # to build an dict key-ed by asset ids.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
-            queryset = super(AssetViewSet, self).get_queryset()
+            queryset = super().get_queryset()
             asset_content_type = ContentType.objects.get_for_model(Asset)
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
             object_permissions = ObjectPermission.objects.\
@@ -541,7 +541,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         if hasattr(instance, 'has_deployment') and instance.has_deployment:
             instance.deployment.delete()
-        return super(AssetViewSet, self).perform_destroy(instance)
+        return super().perform_destroy(instance)
 
     def finalize_response(self, request, response, *args, **kwargs):
         """ Manipulate the headers as appropriate for the requested format.
@@ -562,5 +562,5 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                     request.accepted_renderer.format
                 )
 
-        return super(AssetViewSet, self).finalize_response(
+        return super().finalize_response(
             request, response, *args, **kwargs)

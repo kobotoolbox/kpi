@@ -6,7 +6,7 @@ from django.utils.translation import get_language
 from ..models import SitewideMessage
 
 
-class I18nUtils(object):
+class I18nUtils:
 
     @staticmethod
     def get_sitewide_message(slug="welcome_message", lang=None):

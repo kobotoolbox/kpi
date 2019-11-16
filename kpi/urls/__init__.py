@@ -35,7 +35,7 @@ urlpatterns = [
         'patch': 'partial_update',
     }), name='currentuser-detail'),
     url(r'^', include(router_api_v1.urls)),
-    url(r'^api/v2/', include(router_api_v2.urls, namespace=URL_NAMESPACE)),
+    url(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(

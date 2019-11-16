@@ -1,7 +1,6 @@
 # coding: utf-8
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.six import iteritems
 
 from hub.models import ExtraUserDetail
 from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
@@ -55,7 +54,7 @@ class Command(BaseCommand):
             if not extra_details.data.get('copied_kc_profile', False) or \
                     options.get('again'):
                 kc_detail = get_kc_profile_data(user.pk)
-                for k, v in iteritems(kc_detail):
+                for k, v in kc_detail.items():
                     if extra_details.data.get(k, None) is None:
                         extra_details.data[k] = v
                         extra_details.data['copied_kc_profile'] = True

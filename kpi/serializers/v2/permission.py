@@ -35,8 +35,7 @@ class PermissionSerializer(serializers.ModelSerializer):
         # Init dicts for later purpose (see below)
         self.__implied_permissions = {}
         self.__contradictory_permissions = {}
-        super(PermissionSerializer, self).__init__(instance=instance, data=data,
-                                                   **kwargs)
+        super().__init__(instance=instance, data=data, **kwargs)
 
         self.__asset_key = self.__get_key(Asset._meta.app_label,
                                           Asset._meta.model_name)

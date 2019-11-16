@@ -2,7 +2,7 @@
 from .constants import SHADOW_MODEL_APP_LABEL
 
 
-class DefaultDatabaseRouter(object):
+class DefaultDatabaseRouter:
 
     def db_for_read(self, model, **hints):
         """

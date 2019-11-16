@@ -473,7 +473,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 #     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 #
 #     def setUp(self):
-#         super(ApiAssignedPermissionsTestCase, self).setUp()
+#         super().setUp()
 #         self.anon = get_anonymous_user()
 #         self.super = User.objects.get(username='admin')
 #         self.super_password = 'pass'

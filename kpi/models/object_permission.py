@@ -11,8 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import string_types, text_type, iteritems
 from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
@@ -80,7 +78,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     :param all_perms_required: If False, users should have at least one
       of the `perms`
     """
-    if isinstance(perms, string_types):
+    if isinstance(perms, str):
         perms = [perms]
     ctype = None
     app_label = None
@@ -181,30 +179,23 @@ class ObjectPermissionManager(models.Manager):
     def get_for_object(self, content_object, **kwargs):
         """ Wrapper to allow get() queries using a generic foreign key. """
         return self._rewrite_query_args(
-            super(ObjectPermissionManager, self).get,
-            content_object, **kwargs
-        )
+            super().get, content_object, **kwargs)
 
     def filter(self, *args, **kwargs):
-        return super(ObjectPermissionManager, self).filter(*args, **kwargs)
+        return super().filter(*args, **kwargs)
 
     def filter_for_object(self, content_object, **kwargs):
         """ Wrapper to allow filter() queries using a generic foreign key. """
         return self._rewrite_query_args(
-            super(ObjectPermissionManager, self).filter,
-            content_object, **kwargs
-        )
+            super().filter, content_object, **kwargs)
 
     def get_or_create_for_object(self, content_object, **kwargs):
         """ Wrapper to allow get_or_create() calls using a generic foreign
         key. """
         return self._rewrite_query_args(
-            super(ObjectPermissionManager, self).get_or_create,
-            content_object, **kwargs
-        )
+            super().get_or_create, content_object, **kwargs)
 
 
-@python_2_unicode_compatible
 class ObjectPermission(models.Model):
     """ An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
@@ -242,12 +233,12 @@ class ObjectPermission(models.Model):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                                   'not match that of the object.')
-        super(ObjectPermission, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @void_cache_for_request(keys=('__get_all_object_permissions',
                                   '__get_all_user_permissions',))
     def delete(self, *args, **kwargs):
-        super(self, ObjectPermission).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         for required_field in ('user', 'permission'):
@@ -255,13 +246,13 @@ class ObjectPermission(models.Model):
                 return 'incomplete ObjectPermission'
         return '{}{} {} {}'.format(
             'inherited ' if self.inherited else '',
-            text_type(self.permission.codename),  # TODO Test if cast is still needed
+            str(self.permission.codename),  # TODO Test if cast is still needed
             'denied from' if self.deny else 'granted to',
-            text_type(self.user)  # TODO Test if cast is still needed
+            str(self.user)  # TODO Test if cast is still needed
         )
 
 
-class ObjectPermissionMixin(object):
+class ObjectPermissionMixin:
     """
     A mixin class that adds the methods necessary for object-level
     permissions to a model (either models.Model or MPTTModel). The model must
@@ -344,7 +335,7 @@ class ObjectPermissionMixin(object):
     @transaction.atomic
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
-        super(ObjectPermissionMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         # Recalculate self and all descendants, re-fetching ourself first to
         # guard against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
@@ -511,7 +502,7 @@ class ObjectPermissionMixin(object):
                 pk_list.append(child.pk)
                 delete_pks_by_content_type[content_type] = pk_list
             delete_query = models.Q()
-            for content_type, pks in iteritems(delete_pks_by_content_type):
+            for content_type, pks in delete_pks_by_content_type.items():
                 delete_query |= models.Q(
                     content_type=content_type,
                     object_id__in=pks
@@ -656,7 +647,7 @@ class ObjectPermissionMixin(object):
         implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
-            for src_perm, dest_perms in iteritems(implied_perms_dict):
+            for src_perm, dest_perms in implied_perms_dict.items():
                 for dest_perm in dest_perms:
                     reverse_perms_dict[dest_perm].append(src_perm)
             implied_perms_dict = reverse_perms_dict
@@ -855,8 +846,8 @@ class ObjectPermissionMixin(object):
                 perm_list.append(Permission.objects.get(pk=perm_id).codename)
                 user_perm_dict[user_id] = sorted(perm_list)
             # Resolve user ids into actual user objects
-            user_perm_dict = {User.objects.get(pk=key): value for (key, value)
-                              in iteritems(user_perm_dict)}
+            user_perm_dict = {User.objects.get(pk=key): value for key, value
+                              in user_perm_dict.items()}
             return user_perm_dict
         else:
             # Use a set to avoid duplicate users

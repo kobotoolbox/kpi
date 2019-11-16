@@ -2,7 +2,6 @@
 from django.forms import model_to_dict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.utils.six import iteritems
 from rest_framework import viewsets, status, exceptions
 from rest_framework.response import Response
 
@@ -64,8 +63,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME not in request.data:
-            return super(CollectionViewSet, self).create(request, *args,
-                                                         **kwargs)
+            return super().create(request, *args, **kwargs)
         else:
             return self._clone()
 
@@ -78,25 +76,21 @@ class CollectionViewSet(viewsets.ModelViewSet):
         if (self.request.user != original_collection.owner and
                 'discoverable_when_public' in serializer.validated_data and
                 (serializer.validated_data['discoverable_when_public'] !=
-                    original_collection.discoverable_when_public)
-        ):
+                    original_collection.discoverable_when_public)):
             raise exceptions.PermissionDenied()
 
         # Some fields shouldn't affect the modification date
-        FIELDS_NOT_AFFECTING_MODIFICATION_DATE = set((
-            'discoverable_when_public',
-        ))
+        FIELDS_NOT_AFFECTING_MODIFICATION_DATE = {'discoverable_when_public'}
         changed_fields = set()
-        for k, v in iteritems(serializer.validated_data):
+        for k, v in serializer.validated_data.items():
             if getattr(original_collection, k) != v:
                 changed_fields.add(k)
         if changed_fields.issubset(FIELDS_NOT_AFFECTING_MODIFICATION_DATE):
             with disable_auto_field_update(Collection, 'date_modified'):
-                return super(CollectionViewSet, self).perform_update(
+                return super().perform_update(
                     serializer, *args, **kwargs)
 
-        return super(CollectionViewSet, self).perform_update(
-                serializer, *args, **kwargs)
+        return super().perform_update(serializer, *args, **kwargs)
 
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()

@@ -162,8 +162,9 @@ CONSTANCE_CONFIG = {
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
+
 # Warn developers to use `pytest` instead of `./manage.py test`
-class DoNotUseRunner(object):
+class DoNotUseRunner:
     def __init__(self, *args, **kwargs):
         raise NotImplementedError('Please run tests with `pytest` instead')
 
@@ -171,9 +172,7 @@ class DoNotUseRunner(object):
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
 # used in kpi.models.sitewide_messages
-# markdown does not support imports as unicode.
-# see `python2.7/dist-packages/markitup/fields.py:L14`
-MARKITUP_FILTER = (n(b'markdown.markdown'), {n(b'safe_mode'): False})
+MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level

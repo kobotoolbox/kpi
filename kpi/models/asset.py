@@ -2,6 +2,8 @@
 # 😬
 import copy
 import sys
+from collections import OrderedDict
+from io import BytesIO
 
 import jsonbfield.fields
 import six
@@ -12,8 +14,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import text_type, iteritems
 from django.utils.translation import ugettext_lazy as _
 from jsonbfield.fields import JSONField as JSONBField
 from jsonfield import JSONField
@@ -22,7 +22,6 @@ from taggit.utils import require_instance_manager
 
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
-from formpack.utils.future import OrderedDict
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
@@ -67,7 +66,6 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from kpi.utils.future import ObjectIO
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -86,7 +84,7 @@ class TaggableModelManager(models.Manager):
 
     def create(self, *args, **kwargs):
         tag_string = kwargs.pop('tag_string', None)
-        created = super(TaggableModelManager, self).create(*args, **kwargs)
+        created = super().create(*args, **kwargs)
         if tag_string:
             created.tag_string= tag_string
         return created
@@ -105,10 +103,10 @@ class KpiTaggableManager(_TaggableManager):
             # existing Tag objects, which could also be passed into this
             # method, because a fixed name could collide with the name of
             # another Tag object already in the database.
-            if isinstance(t, six.string_types):
+            if isinstance(t, str):
                 t = t.strip().replace(' ', '-')
             tags_out.append(t)
-        super(KpiTaggableManager, self).add(*tags_out, **kwargs)
+        super().add(*tags_out, **kwargs)
 
 
 class AssetManager(TaggableModelManager):
@@ -151,7 +149,7 @@ FLATTEN_OPTS = {
 }
 
 
-class FormpackXLSFormUtils(object):
+class FormpackXLSFormUtils:
     def _standardize(self, content):
         if needs_standardization(content):
             standardize_content_in_place(content)
@@ -258,7 +256,7 @@ class FormpackXLSFormUtils(object):
                 'survey': 'type',
                 'choices': 'list_name',
             }
-        for (sheet_name, required_key) in iteritems(vals):
+        for sheet_name, required_key in vals.items():
             arr = content.get(sheet_name, [])
             arr[:] = [row for row in arr if required_key in row]
 
@@ -381,7 +379,7 @@ class FormpackXLSFormUtils(object):
         _ts[_ts.index(_from)] = _to
 
 
-class XlsExportable(object):
+class XlsExportable:
     def ordered_xlsform_content(self,
                                 kobo_specific_types=False,
                                 append=None):
@@ -439,7 +437,7 @@ class XlsExportable(object):
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
             workbook = xlwt.Workbook()
-            for sheet_name, contents in iteritems(ss_dict):
+            for sheet_name, contents in ss_dict.items():
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
@@ -450,14 +448,12 @@ class XlsExportable(object):
                 sys.exc_info()[2]
             )
 
-        object_io = ObjectIO()
-        obj = object_io.get_obj()
+        obj = BytesIO()
         workbook.save(obj)
         obj.seek(0)
         return obj
 
 
-@python_2_unicode_compatible
 class Asset(ObjectPermissionMixin,
             TagStringMixin,
             DeployableMixin,
@@ -690,7 +686,7 @@ class Asset(ObjectPermissionMixin,
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly
-            six.text_type(self.ASSET_TYPE_LABELS[self.asset_type])
+            str(self.ASSET_TYPE_LABELS[self.asset_type])
         )
         return label
 
@@ -844,7 +840,7 @@ class Asset(ObjectPermissionMixin,
         self._populate_report_styles()
 
         _create_version = kwargs.pop('create_version', True)
-        super(Asset, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if _create_version:
             self.asset_versions.create(name=self.name,
@@ -1062,7 +1058,10 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     version of pyxform.
 
     TODO: come up with a policy to clear this cache out.
-    DO NOT: depend on these snapshots existing for more than a day until a policy is set.
+    DO NOT: depend on these snapshots existing for more than a day
+    until a policy is set.
+    Done with https://github.com/kobotoolbox/kpi/pull/2434.
+    Remove above lines when PR is merged
     """
     xml = models.TextField()
     source = JSONField(null=True)
@@ -1108,7 +1107,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                                           form_title=form_title,
                                           id_string=id_string)
         self.source = _source
-        return super(AssetSnapshot, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def generate_xml_from_source(self,
                                  source,
@@ -1148,7 +1147,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 'warnings': warnings,
             })
         except Exception as err:
-            err_message = text_type(err)
+            err_message = str(err)
             logging.error('Failed to generate xform for asset', extra={
                 'src': source,
                 'id_string': id_string,

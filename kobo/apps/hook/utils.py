@@ -3,7 +3,7 @@ from .models.hook_log import HookLog
 from .tasks import service_definition_task
 
 
-class HookUtils(object):
+class HookUtils:
 
     @staticmethod
     def call_services(asset, instance_id):

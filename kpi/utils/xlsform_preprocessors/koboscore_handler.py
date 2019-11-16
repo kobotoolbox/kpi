@@ -46,7 +46,7 @@ class KoboScoreGroup(GroupHandler):
         self._base_handler = base_handler
 
     def begin(self, initial_row):
-        super(KoboScoreGroup, self).begin(initial_row)
+        super().begin(initial_row)
 
         begin_group = {
             'type': 'begin_group',

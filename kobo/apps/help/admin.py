@@ -10,7 +10,7 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.last_editor = request.user
-        super(InAppMessageAdmin, self).save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
 
 
 admin.site.register(InAppMessage, InAppMessageAdmin)

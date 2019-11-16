@@ -5,8 +5,6 @@ import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import integer_types
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
@@ -32,7 +30,7 @@ class CollectionManager(TreeManager, TaggableModelManager):
         if 'assets' in kwargs:
             assets = kwargs['assets']
             del kwargs['assets']
-        created = super(CollectionManager, self).create(*args, **kwargs)
+        created = super().create(*args, **kwargs)
         if assets:
             new_assets = []
             for asset in assets:
@@ -50,7 +48,6 @@ class CollectionManager(TreeManager, TaggableModelManager):
         return self.filter(tags=tag)
 
 
-@python_2_unicode_compatible
 class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
     parent = TreeForeignKey(
@@ -127,7 +124,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         return self.name
 
 
-class CollectionChildrenQuerySet(object):
+class CollectionChildrenQuerySet:
     """ A pseudo-QuerySet containing mixed-model children of a collection.
     Collections are always listed before assets.  Derived from
     http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
@@ -148,7 +145,7 @@ class CollectionChildrenQuerySet(object):
         return repr(data)
 
     def __getitem__(self, k):
-        if not isinstance(k, (slice, integer_types)):
+        if not isinstance(k, (slice, int)):
             raise TypeError
         assert ((not isinstance(k, slice) and (k >= 0))
                 or (isinstance(k, slice) and (k.start is None or k.start >= 0)

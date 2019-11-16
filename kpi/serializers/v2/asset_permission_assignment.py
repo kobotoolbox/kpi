@@ -188,8 +188,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        repr_ = super(AssetPermissionAssignmentSerializer, self). \
-            to_representation(instance)
+        repr_ = super().to_representation(instance)
         repr_copy = dict(repr_)
         for k, v in repr_copy.items():
             if k == 'partial_permissions' and v is None:

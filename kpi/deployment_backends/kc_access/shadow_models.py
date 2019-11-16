@@ -11,13 +11,11 @@ from django.core.exceptions import ValidationError
 from django.db import ProgrammingError
 from django.db import models
 from django.utils import timezone
-from django.utils.six import text_type
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 
 
 class ReadOnlyModelError(ValueError):
@@ -122,7 +120,6 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     uuid = models.CharField(max_length=249, default='')
 
 
-@python_2_unicode_compatible
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -142,7 +139,6 @@ class KobocatContentType(ShadowModel):
         return self.model
 
 
-@python_2_unicode_compatible
 class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
@@ -159,9 +155,9 @@ class KobocatPermission(ShadowModel):
 
     def __str__(self):
         return "%s | %s | %s" % (
-            text_type(self.content_type.app_label),
-            text_type(self.content_type),
-            text_type(self.name))
+            str(self.content_type.app_label),
+            str(self.content_type),
+            str(self.name))
 
 
 class KobocatUser(ShadowModel):
@@ -203,7 +199,6 @@ class KobocatUser(ShadowModel):
         kc_auth_user.save()
 
 
-@python_2_unicode_compatible
 class KobocatUserObjectPermission(ShadowModel):
     """
     For the _sole purpose_ of letting us manipulate KoBoCAT
@@ -241,8 +236,8 @@ class KobocatUserObjectPermission(ShadowModel):
         return '%s | %s | %s' % (
             # unicode(self.content_object),
             content_object_str,
-            text_type(getattr(self, 'user', False) or self.group),
-            text_type(self.permission.codename))
+            str(getattr(self, 'user', False) or self.group),
+            str(self.permission.codename))
 
     def save(self, *args, **kwargs):
         content_type = KobocatContentType.objects.get_for_model(
@@ -254,7 +249,7 @@ class KobocatUserObjectPermission(ShadowModel):
                 "%r)"
                 % (self.permission.content_type, content_type)
             )
-        return super(KobocatUserObjectPermission, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class KobocatUserPermission(ShadowModel):

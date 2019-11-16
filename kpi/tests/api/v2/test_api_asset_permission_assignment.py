@@ -98,7 +98,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        super(ApiAssetPermissionListTestCase, self).setUp()
+        super().setUp()
 
         self.asset.assign_perm(self.someuser, PERM_CHANGE_ASSET)
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)

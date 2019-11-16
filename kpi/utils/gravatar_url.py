@@ -1,9 +1,8 @@
 # coding: utf-8
 import hashlib
+from urllib.parse import urlencode
 
-from django.utils.six.moves.urllib.parse import urlencode
-
-from kpi.utils.future import hashable_str
+from kpi.utils.strings import hashable_str
 
 
 def gravatar_url(email, https=True):

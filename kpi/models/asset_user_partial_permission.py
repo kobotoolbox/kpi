@@ -40,4 +40,4 @@ class AssetUserPartialPermission(models.Model):
         if self.pk is not None:
             self.date_modified = timezone.now()
 
-        super(AssetUserPartialPermission, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)

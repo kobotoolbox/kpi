@@ -215,7 +215,7 @@ class CollectionPermissionAssignmentViewSet(CollectionNestedObjectViewsetMixin,
         Extra context provided to the serializer class.
         Inject collection_uid to avoid extra queries to DB inside the serializer.
         """
-        context_ = super(CollectionPermissionAssignmentViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         context_.update({
             'collection_uid': self.collection.uid
         })

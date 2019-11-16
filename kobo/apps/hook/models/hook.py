@@ -4,14 +4,12 @@ from importlib import import_module
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from jsonbfield.fields import JSONField as JSONBField
 
 from kpi.fields import KpiUidField
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 
 
-@python_2_unicode_compatible
 class Hook(models.Model):
 
     # Export types
@@ -57,12 +55,12 @@ class Hook(models.Model):
 
     def __init__(self, *args, **kwargs):
         self.__totals = {}
-        return super(Hook, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
         self.date_modified = timezone.now()
-        super(Hook, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return "%s:%s - %s" % (self.asset, self.name, self.endpoint)

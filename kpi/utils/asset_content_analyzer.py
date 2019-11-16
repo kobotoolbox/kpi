@@ -1,11 +1,10 @@
 # coding: utf-8
-from django.utils.six import string_types
+from collections import OrderedDict
 
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
-from formpack.utils.future import OrderedDict
 
 
-class AssetContentAnalyzer(object):
+class AssetContentAnalyzer:
     def __init__(self, *args, **kwargs):
         self.survey = kwargs.get('survey')
         self.settings = kwargs.get('settings', False)
@@ -47,7 +46,7 @@ class AssetContentAnalyzer(object):
                 types.add(_type)
                 if isinstance(_label, list) and len(_label) > 0:
                     labels.append(_label[0])
-                elif isinstance(_label, string_types) and len(_label) > 0:
+                elif isinstance(_label, str) and len(_label) > 0:
                     labels.append(_label)
                 keys.update(OrderedDict.fromkeys(row.keys()))
 

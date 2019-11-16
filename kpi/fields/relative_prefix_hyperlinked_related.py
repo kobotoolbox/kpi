@@ -1,6 +1,7 @@
 # coding: utf-8
+from urllib.parse import urlparse
+
 from django.core.urlresolvers import get_script_prefix
-from django.utils.six.moves.urllib.parse import urlparse
 from rest_framework.serializers import HyperlinkedRelatedField
 
 
@@ -21,6 +22,4 @@ class RelativePrefixHyperlinkedRelatedField(HyperlinkedRelatedField):
             if data.startswith(prefix):
                 data = '/' + data[len(prefix):]
 
-        return super(
-            RelativePrefixHyperlinkedRelatedField, self
-        ).to_internal_value(data)
+        return super().to_internal_value(data)

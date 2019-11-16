@@ -37,7 +37,7 @@ class SignalProcessor(haystack.signals.BaseSignalProcessor):
         # Instruct `load_models()` not to call `setup()` since Haystack
         # does that for us
         self.load_models(setup=False)
-        super(SignalProcessor, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load_models(self, setup=True):
         for app_label, model_name in settings.HAYSTACK_SIGNAL_MODELS:

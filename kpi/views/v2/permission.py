@@ -90,7 +90,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PermissionSerializer
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(PermissionViewSet, self).get_queryset(*args, **kwargs)
+        queryset = super().get_queryset(*args, **kwargs)
         # Codenames are unique per content_type. So, we ensure we don't return
         # codenames for different app or content_type
         models = [Asset._meta.model_name, Collection._meta.model_name]
