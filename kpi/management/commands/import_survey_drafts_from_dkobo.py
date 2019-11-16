@@ -23,7 +23,8 @@ class SurveyDraft(models.Model):
     class Meta:
         app_label = 'koboform'
 
-    user = models.ForeignKey(User, related_name="survey_drafts")
+    user = models.ForeignKey(User, related_name='survey_drafts',
+                             on_delete=models.CASCADE)
     name = models.CharField(max_length=255, null=False)
     body = models.TextField()
     description = models.CharField(max_length=255, null=True)

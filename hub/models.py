@@ -109,7 +109,9 @@ class PerUserSetting(models.Model):
 
 
 class ExtraUserDetail(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='extra_details')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                related_name='extra_details',
+                                on_delete=models.CASCADE)
     data = JSONField(default={})
 
     def __str__(self):

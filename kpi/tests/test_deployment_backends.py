@@ -14,8 +14,10 @@ class CreateDeployment(TestCase):
                     'label': 'Q1.',}
                 ]
             })
+
     def test_invalid_backend_fails(self):
         self.asset.save()
+
         def _bad_deployment():
             self.asset.connect_deployment(backend='nonexistent')
         self.assertRaises(KeyError, _bad_deployment)

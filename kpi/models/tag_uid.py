@@ -5,5 +5,5 @@ from kpi.fields import KpiUidField
 
 
 class TagUid(models.Model):
-    tag = models.OneToOneField(Tag)
+    tag = models.OneToOneField(Tag, on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='t')

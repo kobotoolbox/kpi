@@ -200,8 +200,8 @@ class ObjectPermission(models.Model):
     """ An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
     filter_for_object() to run queries using the content_object field. """
-    user = models.ForeignKey('auth.User')
-    permission = models.ForeignKey('auth.Permission')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    permission = models.ForeignKey('auth.Permission', on_delete=models.CASCADE)
     deny = models.BooleanField(
         default=False,
         help_text='Blocks inheritance of this permission when set to True'
@@ -210,7 +210,7 @@ class ObjectPermission(models.Model):
     object_id = models.PositiveIntegerField()
     # We can't do something like GenericForeignKey('permission__content_type'),
     # so duplicate the content_type field here.
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey('content_type', 'object_id')
     uid = KpiUidField(uid_prefix='p')
     objects = ObjectPermissionManager()

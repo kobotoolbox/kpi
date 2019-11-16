@@ -50,9 +50,10 @@ class CollectionManager(TreeManager, TaggableModelManager):
 
 class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
-    parent = TreeForeignKey(
-        'self', null=True, blank=True, related_name='children')
-    owner = models.ForeignKey('auth.User', related_name='owned_collections')
+    parent = TreeForeignKey('self', null=True, blank=True,
+                            related_name='children', on_delete=models.CASCADE)
+    owner = models.ForeignKey('auth.User', related_name='owned_collections',
+                              on_delete=models.CASCADE)
     editors_can_change_permissions = models.BooleanField(default=True)
     discoverable_when_public = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='c')
@@ -252,8 +253,8 @@ class CollectionChildrenQuerySet:
 class UserCollectionSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one that has `discoverable_when_public = True` """
-    collection = models.ForeignKey(Collection)
-    user = models.ForeignKey('auth.User')
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 
     class Meta:

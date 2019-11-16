@@ -81,7 +81,7 @@ class ImportExportTask(models.Model):
         (COMPLETE, COMPLETE),
     )
 
-    user = models.ForeignKey('auth.User')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     data = JSONField()
     messages = JSONField(default={})
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
