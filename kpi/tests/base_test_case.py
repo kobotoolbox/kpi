@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.core.urlresolvers import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status

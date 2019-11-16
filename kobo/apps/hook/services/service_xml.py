@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 from lxml import etree
 
 from ..models.service_definition_interface import ServiceDefinitionInterface

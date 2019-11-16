@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 import sys
 
 from django.core.management.base import BaseCommand

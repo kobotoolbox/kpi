@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.test import TestCase
 
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure

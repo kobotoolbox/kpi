@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
 import requests
 from django.http import HttpRequest
 from django.test import LiveServerTestCase

@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _

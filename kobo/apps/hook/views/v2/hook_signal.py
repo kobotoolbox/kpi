@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (division, print_function, absolute_import,
-                        unicode_literals)
-
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status, viewsets, serializers

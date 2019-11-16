@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from kpi.models import ImportTask

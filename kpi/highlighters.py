@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from pygments.lexers.html import XmlLexer
 from pygments.formatters.html import HtmlFormatter
 from pygments import highlight

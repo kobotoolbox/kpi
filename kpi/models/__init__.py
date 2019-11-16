@@ -1,6 +1,4 @@
 # coding: utf-8
-from __future__ import absolute_import
-
 from .collection import Collection, CollectionChildrenQuerySet
 from .collection import UserCollectionSubscription
 from .asset import Asset

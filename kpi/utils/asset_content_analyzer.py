@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.utils.six import string_types
 
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES

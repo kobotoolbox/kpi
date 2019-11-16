@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from rest_framework import serializers
 
 from kpi.constants import PERM_VIEW_COLLECTION

@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from kpi.serializers import UserSerializer
 from kpi.views.v2.user import UserViewSet as UserViewSetV2
 

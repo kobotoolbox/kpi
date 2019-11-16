@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from rest_framework import exceptions, serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse

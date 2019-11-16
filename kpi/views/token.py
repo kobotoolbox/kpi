@@ -1,7 +1,4 @@
 # coding: utf-8
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
