@@ -523,7 +523,7 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto.S3BotoStorage`
+    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
@@ -531,6 +531,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # django-private-storage needs its own S3 configuration
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
+            # NB.........There's intentionally no 3 here! ^
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
