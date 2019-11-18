@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import django.utils.timezone
 import jsonbfield.fields
 from django.conf import settings
@@ -31,12 +29,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='assetuserpartialpermission',
             name='asset',
-            field=models.ForeignKey(related_name='asset_partial_permissions', to='kpi.Asset'),
+            field=models.ForeignKey(related_name='asset_partial_permissions', to='kpi.Asset', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetuserpartialpermission',
             name='user',
-            field=models.ForeignKey(related_name='user_partial_permissions', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(related_name='user_partial_permissions', to=settings.AUTH_USER_MODEL,
+                                    on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='assetuserpartialpermission',

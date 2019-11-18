@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-from django.db import migrations, models
-from django.conf import settings
-
+# coding: utf-8
 import django.db.models.deletion
-from django.utils import timezone
-
 import jsonbfield.fields
 import jsonfield.fields
-import kpi.fields
+from django.conf import settings
+from django.db import migrations, models
+from django.utils import timezone
 
+import kpi.fields
 from kpi.management.commands.populate_assetversions import populate_assetversions
 
 
@@ -63,8 +59,10 @@ class Migration(migrations.Migration):
                 ('deployed_content', jsonbfield.fields.JSONField(null=True)),
                 ('_deployment_data', jsonbfield.fields.JSONField(default=False)),
                 ('deployed', models.BooleanField(default=False)),
-                ('_reversion_version', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, to='reversion.Version')),
-                ('asset', models.ForeignKey(related_name='asset_versions', to='kpi.Asset')),
+                ('_reversion_version', models.OneToOneField(null=True, on_delete=models.SET_NULL,
+                                                            to='reversion.Version')),
+                ('asset', models.ForeignKey(related_name='asset_versions',
+                                            to='kpi.Asset', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-date_modified'],
@@ -88,7 +86,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='assetsnapshot',
             name='asset_version',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='kpi.AssetVersion'),
+            field=models.OneToOneField(null=True, on_delete=models.CASCADE,
+                                       to='kpi.AssetVersion'),
         ),
         migrations.RunPython(
             copy_reversion_to_assetversion,

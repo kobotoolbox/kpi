@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import re
 
 from django.contrib.auth.models import User
@@ -10,6 +8,7 @@ from rest_framework import status
 from kpi.models.asset import AssetSnapshot
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.strings import to_str
 
 
 class TestAssetSnapshotList(KpiTestCase):
@@ -154,13 +153,13 @@ class TestAssetSnapshotList(KpiTestCase):
         Make sure the API endpoint returns the same XML as the ORM
         """
         def kludgy_is_xml_equal(*args):
-            '''
+            """
             Compare strings after removing newlines and whitespace between
             tags. Returns True if all strings are equal after this manipulation
-            '''
+            """
             xml_strings = list(args)
             for i, xml in enumerate(xml_strings):
-                xml = xml.replace('\n', '')
+                xml = to_str(xml).replace('\n', '')
                 xml = re.sub(r'>\s+<', '><', xml)
                 xml_strings[i] = xml
 

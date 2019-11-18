@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from kpi.constants import PERM_SHARE_SUBMISSIONS
 
 
-class ObjectPermissionHelper(object):
+class ObjectPermissionHelper:
 
     @staticmethod
     def user_can_share(affected_object, user_object, codename=''):
@@ -53,7 +51,7 @@ class ObjectPermissionHelper(object):
 
         # Filtering is done in `get_queryset` instead of FilteredBackend class
         # because it's specific to `ObjectPermission`.
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             queryset = queryset.filter(user_id=affected_object.owner_id)
         elif not cls.user_can_share(affected_object, user):
             # Display only users' permissions if they are not allowed to modify
@@ -83,7 +81,7 @@ class ObjectPermissionHelper(object):
         user_permission_assignments = []
         filtered_user_ids = None
 
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             filtered_user_ids = [affected_object.owner_id]
         elif not cls.user_can_share(affected_object, user):
             # Display only users' permissions if they are not allowed to modify

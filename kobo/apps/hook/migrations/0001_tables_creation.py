@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 from django.db import migrations, models
 import django.utils.timezone
 import jsonbfield.fields
@@ -27,7 +25,7 @@ class Migration(migrations.Migration):
                 ('settings', jsonbfield.fields.JSONField(default=dict)),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
-                ('asset', models.ForeignKey(related_name='hooks', to='kpi.Asset')),
+                ('asset', models.ForeignKey(related_name='hooks', to='kpi.Asset', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -45,7 +43,7 @@ class Migration(migrations.Migration):
                 ('message', models.TextField(default=b'')),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now_add=True)),
-                ('hook', models.ForeignKey(related_name='logs', to='hook.Hook')),
+                ('hook', models.ForeignKey(related_name='logs', to='hook.Hook', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-date_created'],

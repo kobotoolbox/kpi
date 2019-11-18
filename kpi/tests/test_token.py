@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token

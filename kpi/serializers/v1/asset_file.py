@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from kpi.serializers.v2.asset_file import \
     AssetFileSerializer as AssetFileSerializerV2
 

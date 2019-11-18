@@ -1,13 +1,10 @@
 # coding: utf-8
-from __future__ import unicode_literals
-
 import datetime
 
 from django.conf import settings
 from django.db import migrations, models
 import jsonbfield.fields
 import markdownx.models
-import private_storage.fields
 import private_storage.storage.files
 
 import kpi.fields
@@ -31,7 +28,7 @@ class Migration(migrations.Migration):
                 ('published', models.BooleanField(default=False, help_text=b'When published, this message appears to all users. It otherwise appears only to the last editor')),
                 ('valid_from', models.DateTimeField(default=datetime.datetime(1970, 1, 1, 0, 0))),
                 ('valid_until', models.DateTimeField(default=datetime.datetime(1970, 1, 1, 0, 0))),
-                ('last_editor', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('last_editor', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -46,8 +43,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('interactions', jsonbfield.fields.JSONField(default=dict)),
-                ('message', models.ForeignKey(to='help.InAppMessage')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('message', models.ForeignKey(to='help.InAppMessage',
+                                              on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL,
+                                           on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

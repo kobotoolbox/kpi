@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import itertools
-import unittest
 from collections import defaultdict
 
 from django.contrib.auth.models import User
@@ -10,20 +7,20 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from kobo.apps.reports import report_data
-
-from kpi.models import Asset, ExportTask
 from kpi.constants import PERM_VIEW_SUBMISSIONS
+from kpi.models import Asset, ExportTask
+from kpi.utils.strings import to_str
 
 
 class ConflictingVersionsMockDataExports(TestCase):
-    '''
+    """
     When submissions contain multiple version fields, e.g. the `__version__`,
     `_version_`, and `_version__001` fields included in the
     `conflicting_versions` fixture, make sure that exports pick the NEWEST of
     the versions given by those fields for each submission. Contrast this to
     old behavior where only `__version__` was considered. See
     https://github.com/kobotoolbox/kpi/issues/1500
-    '''
+    """
     fixtures = ['test_data', 'conflicting_versions']
 
     def setUp(self):
@@ -55,15 +52,18 @@ class ConflictingVersionsMockDataExports(TestCase):
                     value = ''
                 fields_values[field] = value
             self.expected_results[
-                unicode(sub[self.submission_id_field])
+                str(sub[self.submission_id_field])
             ] = fields_values
 
     @staticmethod
     def _split_formpack_csv(line, sep=";", quote='"'):
-        return [field.strip(quote) for field in line.split(sep)]
+        return [field.strip(quote) for field in to_str(line).split(sep)]
 
     def test_csv_export(self):
-        ''' Ignores the order of the rows and columns '''
+        """
+        Ignores the order of the rows and columns
+        """
+
         export_task = ExportTask()
         export_task.user = self.user
         export_task.data = {

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from collections import OrderedDict
 
 from rest_framework import serializers
@@ -12,7 +10,7 @@ class PaginatedApiField(serializers.ReadOnlyField):
     Serializes a manager or queryset `source` to a paginated representation
     """
     def __init__(self, serializer_class, *args, **kwargs):
-        r"""
+        """
         The `source`, whether implied or explicit, must be a manager or
         queryset. Alternatively, pass a `source_processor` callable that
         transforms `source` into a usable queryset.
@@ -28,7 +26,8 @@ class PaginatedApiField(serializers.ReadOnlyField):
         self.paginator = kwargs.pop('paginator_class', LimitOffsetPagination)()
         self.paginator.default_limit = kwargs.pop('default_limit', 10)
         self.source_processor = kwargs.pop('source_processor', None)
-        return super(PaginatedApiField, self).__init__(*args, **kwargs)
+        # ToDo Why return in __init__
+        super().__init__(*args, **kwargs)
 
     def to_representation(self, source):
         if self.source_processor:

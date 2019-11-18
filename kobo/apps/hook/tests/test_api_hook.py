@@ -1,17 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import json
 
 import constance
-import requests
 import responses
 from django.core.urlresolvers import reverse
-from django.utils.six import text_type
 from rest_framework import status
 
-from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER 
-from kobo.apps.hook.models.hook import Hook 
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.hook.models.hook import Hook
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from .hook_test_case import HookTestCase
 
@@ -48,6 +44,7 @@ class ApiHookTestCase(HookTestCase):
     def test_create_hook(self):
         self._create_hook()
 
+    @responses.activate
     def test_data_submission(self):
         # Create first hook
         first_hook = self._create_hook(name="dummy external service",
@@ -78,7 +75,7 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-        data = {"instance_id": 4}  # Instance doesn't belong to `self.asset`
+        data = {'instance_id': 4}  # Instance doesn't belong to `self.asset`
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -180,7 +177,7 @@ class ApiHookTestCase(HookTestCase):
         def request_callback(request):
             payload = json.loads(request.body)
             resp_body = payload
-            headers = {'request-id': text_type(instance_id)}
+            headers = {'request-id': str(instance_id)}
             return 200, headers, json.dumps(resp_body)
 
         responses.add_callback(

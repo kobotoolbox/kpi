@@ -1,5 +1,6 @@
-from django.utils.translation import ugettext_lazy as _
+# coding: utf-8
 from corsheaders.models import AbstractCorsModel
+from django.utils.translation import ugettext_lazy as _
 
 
 def _set_cors_field_options(name, bases, attrs):
@@ -13,16 +14,17 @@ def _set_cors_field_options(name, bases, attrs):
     return cls
 
 
-class CorsModel(AbstractCorsModel):
-    '''
+class CorsModel(AbstractCorsModel, metaclass=_set_cors_field_options):
+    """
     A model with one field, `cors`, which specifies an allowed origin that must
     exactly match the `netloc` returned by `urlparse`
-    '''
 
-    def __unicode__(self):
+    ToDo: `AbstractCorsModel` has been removed in v3.0.0.
+    Update code to support `django-cors-headers` v3.x
+   """
+
+    def __str__(self):
         return self.cors
-
-    __metaclass__ = _set_cors_field_options
 
     class Meta:
         verbose_name = _('allowed CORS origin')

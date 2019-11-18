@@ -1,14 +1,11 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+# coding: utf-8
 import re
 
 from django.core.urlresolvers import reverse
-from django.utils.six import text_type
 from rest_framework import status
 
-from .base_backend import BaseDeploymentBackend
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from .base_backend import BaseDeploymentBackend
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
@@ -172,7 +169,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         if len(instance_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
-                instance_ids = [text_type(instance_id) for instance_id in instance_ids]
+                instance_ids = [str(instance_id) for instance_id in instance_ids]
                 # ugly way to find matches, but it avoids to load each xml in memory.
                 pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
                     instance_ids='|'.join(instance_ids),

@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 """
 Created on Jun 15, 2015
 
 @author: esmail
 """
-from __future__ import absolute_import
-
 import json
 import unittest
 

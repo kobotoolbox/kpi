@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from collections import defaultdict
 
 from django.contrib.auth.models import Permission, User
@@ -190,9 +188,9 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        repr_ = super(AssetPermissionAssignmentSerializer, self). \
-            to_representation(instance)
-        for k, v in repr_.items():
+        repr_ = super().to_representation(instance)
+        repr_copy = dict(repr_)
+        for k, v in repr_copy.items():
             if k == 'partial_permissions' and v is None:
                 del repr_[k]
 

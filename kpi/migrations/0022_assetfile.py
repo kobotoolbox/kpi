@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 from django.db import migrations, models
 import kpi.models.asset_file
 from django.conf import settings
@@ -35,11 +33,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='assetfile',
             name='asset',
-            field=models.ForeignKey(related_name='asset_files', to='kpi.Asset'),
+            field=models.ForeignKey(related_name='asset_files', to='kpi.Asset', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='assetfile',
             name='user',
-            field=models.ForeignKey(related_name='asset_files', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(related_name='asset_files', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
         ),
     ]

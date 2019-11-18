@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from django.contrib.auth.models import User, Permission
 from django.core.urlresolvers import reverse
 from django.utils import timezone
@@ -40,7 +38,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
     """
 
     def setUp(self):
-        super(ApiAssignedPermissionsTestCase, self).setUp()
+        super().setUp()
         self.anon = get_anonymous_user()
         self.super = User.objects.get(username='admin')
         self.super_password = 'pass'
