@@ -115,7 +115,7 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
     TagUid.objects.get_or_create(tag=instance)
 
 
-@receiver([post_save, post_delete], sender=Hook)
+@receiver(post_save, sender=Hook)
 def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     """
     Updates `kc.XForm` instance as soon as Asset.Hook list is updated.
