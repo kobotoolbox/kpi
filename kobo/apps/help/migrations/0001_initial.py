@@ -2,8 +2,8 @@
 import datetime
 
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import migrations, models
-import jsonbfield.fields
 import markdownx.models
 import private_storage.storage.files
 
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             name='InAppMessageUserInteractions',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('interactions', jsonbfield.fields.JSONField(default=dict)),
+                ('interactions', JSONBField(default=dict)),
                 ('message', models.ForeignKey(to='help.InAppMessage',
                                               on_delete=models.CASCADE)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL,

@@ -8,7 +8,7 @@ import json
 import unittest
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \

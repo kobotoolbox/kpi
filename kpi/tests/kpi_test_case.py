@@ -6,7 +6,7 @@ Created on Apr 6, 2015
 """
 import re
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 # FIXME: Remove the following line when the permissions API is in place.
@@ -77,9 +77,9 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             content = ''
 
         kwargs.update({
-            "name": name,
-            "content": content,
-            "asset_type": kwargs.get("asset_type", "survey")
+            'name': name,
+            'content': content,
+            'asset_type': kwargs.get('asset_type', 'survey')
         })
 
         response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)

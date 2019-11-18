@@ -1,8 +1,6 @@
 # coding: utf-8
-import django.db.models.deletion
-import jsonbfield.fields
-import jsonfield.fields
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import migrations, models
 from django.utils import timezone
 
@@ -55,9 +53,9 @@ class Migration(migrations.Migration):
                 ('uid', kpi.fields.KpiUidField(uid_prefix=b'v')),
                 ('name', models.CharField(max_length=255, null=True)),
                 ('date_modified', models.DateTimeField(default=timezone.now)),
-                ('version_content', jsonbfield.fields.JSONField()),
-                ('deployed_content', jsonbfield.fields.JSONField(null=True)),
-                ('_deployment_data', jsonbfield.fields.JSONField(default=False)),
+                ('version_content', JSONBField()),
+                ('deployed_content', JSONBField(null=True)),
+                ('_deployment_data', JSONBField(default=False)),
                 ('deployed', models.BooleanField(default=False)),
                 ('_reversion_version', models.OneToOneField(null=True, on_delete=models.SET_NULL,
                                                             to='reversion.Version')),
@@ -71,12 +69,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='summary',
-            field=jsonfield.fields.JSONField(default=dict, null=True),
+            field=JSONBField(default=dict, null=True),
         ),
         migrations.AddField(
             model_name='asset',
             name='report_styles',
-            field=jsonbfield.fields.JSONField(default=dict),
+            field=JSONBField(default=dict),
         ),
         migrations.RenameField(
             model_name='assetsnapshot',

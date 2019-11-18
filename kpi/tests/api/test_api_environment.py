@@ -1,7 +1,7 @@
 # coding: utf-8
 # 😇
 import constance
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpRequest
 from django.template import Template, RequestContext
 from rest_framework import status

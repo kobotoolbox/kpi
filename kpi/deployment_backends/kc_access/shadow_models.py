@@ -3,10 +3,7 @@ from hashlib import md5
 
 from django.conf import settings
 from django.contrib.auth.models import User
-try:
-    from django.contrib.contenttypes.fields import GenericForeignKey
-except ImportError:
-    from django.contrib.contenttypes.generic import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.exceptions import ValidationError
 from django.db import ProgrammingError
 from django.db import models
@@ -221,7 +218,8 @@ class KobocatUserObjectPermission(ShadowModel):
     content_object = GenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
     user = models.ForeignKey(
-        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'))
+        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
+        on_delete=models.CASCADE)
 
     class Meta(ShadowModel.Meta):
         db_table = 'guardian_userobjectpermission'

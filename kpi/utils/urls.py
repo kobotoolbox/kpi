@@ -1,7 +1,7 @@
 # coding: utf-8
 from urllib.parse import urlparse
 
-from django.core.urlresolvers import (
+from django.urls import (
     get_script_prefix,
     resolve
 )

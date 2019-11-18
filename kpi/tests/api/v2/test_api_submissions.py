@@ -3,7 +3,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import PERM_VIEW_SUBMISSIONS, \

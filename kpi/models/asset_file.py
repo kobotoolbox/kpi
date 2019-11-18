@@ -1,9 +1,9 @@
 # coding: utf-8
 import posixpath
 
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
-from jsonbfield.fields import JSONField as JSONBField
 from private_storage.fields import PrivateFileField
 
 from kpi.fields import KpiUidField

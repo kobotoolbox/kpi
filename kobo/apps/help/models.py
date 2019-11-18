@@ -2,10 +2,10 @@
 # 😇
 import datetime
 
+from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
-from jsonbfield.fields import JSONField
 from markdownx.models import MarkdownxField
 from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
 from private_storage.fields import PrivateFileField

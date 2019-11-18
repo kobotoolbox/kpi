@@ -2,7 +2,7 @@
 from collections import defaultdict
 
 from django.contrib.auth.models import Permission, User
-from django.core.urlresolvers import resolve, Resolver404
+from django.urls import resolve, Resolver404
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.reverse import reverse

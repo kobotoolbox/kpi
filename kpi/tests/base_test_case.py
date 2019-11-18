@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.test import APITestCase

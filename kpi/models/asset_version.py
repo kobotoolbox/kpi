@@ -3,10 +3,10 @@ import datetime
 import hashlib
 import json
 
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
 from formpack.utils.expand_content import expand_content
-from jsonbfield.fields import JSONField as JSONBField
 from reversion.models import Version
 
 from kpi.fields import KpiUidField
@@ -32,7 +32,7 @@ class AssetVersion(models.Model):
     version_content = JSONBField()
     uid_aliases = JSONBField(null=True)
     deployed_content = JSONBField(null=True)
-    _deployment_data = JSONBField(default=False)
+    _deployment_data = JSONBField(default=dict)
     deployed = models.BooleanField(default=False)
 
     class Meta:

@@ -2,7 +2,7 @@
 import re
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.models.collection import Collection

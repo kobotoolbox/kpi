@@ -2,9 +2,9 @@
 from importlib import import_module
 
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
-from jsonbfield.fields import JSONField as JSONBField
 
 from kpi.fields import KpiUidField
 from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
@@ -46,7 +46,7 @@ class Hook(models.Model):
     subset_fields = ArrayField(
         models.CharField(max_length=500),
         blank=True,
-        default=[],
+        default=list,
     )
     payload_template = models.TextField(null=True, blank=True)
 

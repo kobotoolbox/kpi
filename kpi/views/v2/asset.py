@@ -229,11 +229,14 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             queryset = super().get_queryset()
             asset_content_type = ContentType.objects.get_for_model(Asset)
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
-            object_permissions = ObjectPermission.objects.\
-                filter(content_type_id=asset_content_type.pk,
-                       object_id__in=asset_ids).\
-                select_related('user', 'permission')
-
+            object_permissions = ObjectPermission.objects.filter(
+                content_type_id=asset_content_type.pk,
+                object_id__in=asset_ids
+            ).select_related(
+                'user', 'permission'
+            ).order_by(
+                'user__username', 'permission__codename'
+            )
             object_permissions_per_object = defaultdict(list)
 
             for op in object_permissions:

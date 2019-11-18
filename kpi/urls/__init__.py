@@ -1,12 +1,11 @@
 # coding: utf-8
-from django.conf.urls import url, include
-from django.contrib.auth.views import logout
-from django.views.i18n import javascript_catalog
 import private_storage.urls
+from django.contrib.auth import logout
+from django.urls import include, re_path, path
+from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-# from hub.views import switch_builder
 from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
@@ -24,42 +23,38 @@ from .router_api_v2 import router_api_v2, URL_NAMESPACE
 
 
 # Apps whose translations should be available in the client code.
-js_info_dict = {
-    'packages': ('kobo.apps.KpiConfig',),
-}
-
 urlpatterns = [
-    url(r'^$', home, name='kpi-root'),
-    url(r'^me/$', CurrentUserViewSet.as_view({
+    path('', home, name='kpi-root'),
+    path('me/', CurrentUserViewSet.as_view({
         'get': 'retrieve',
         'patch': 'partial_update',
     }), name='currentuser-detail'),
-    url(r'^', include(router_api_v1.urls)),
-    url(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
-    url(r'^api-auth/', include('rest_framework.urls',
-                               namespace='rest_framework')),
-    url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
+    re_path(r'^', include(router_api_v1.urls)),
+    re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
+    re_path(r'^api-auth/', include('rest_framework.urls',
+                                   namespace='rest_framework')),
+    re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
-    url(r'^accounts/logout/', logout, {'next_page': '/'}),
-    url(r'^accounts/', include('registration.backends.default.urls')),
-    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    url(
+    re_path(r'^accounts/logout/', logout, {'next_page': '/'}),
+    re_path(r'^accounts/', include('registration.backends.default.urls')),
+    re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    re_path(
         r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
     ),
-    url(r'^browser_tests/$', browser_tests),
-    url(r'^authorized_application/one_time_login/$', one_time_login),
-    url(r'^i18n/', include('django.conf.urls.i18n')),
+    path('browser_tests/', browser_tests),
+    path('authorized_application/one_time_login/', one_time_login),
+    re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
-
-    url(r'^token/$', TokenView.as_view(), name='token'),
-    url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
-    url(r'^configurationfile/(?P<slug>[^/]+)/?',
-        ConfigurationFile.redirect_view, name='configurationfile'),
-    url(r'^private-media/', include(private_storage.urls)),
+    path('jsi18n/', JavaScriptCatalog.as_view(),
+         name='javascript-catalog'),
+    path('token/', TokenView.as_view(), name='token'),
+    path('environment/', EnvironmentView.as_view(), name='environment'),
+    re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
+            ConfigurationFile.redirect_view, name='configurationfile'),
+    re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    url(r'^superuser_stats/user_report/$', user_report),
-    url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-        retrieve_user_report),
+    path('superuser_stats/user_report/', user_report),
+    re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+            retrieve_user_report),
 ]

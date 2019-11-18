@@ -10,7 +10,7 @@ import dj_database_url
 import django.conf.locale
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
 from pymongo import MongoClient
 
@@ -49,10 +49,6 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
 
-# Instances of this model will be treated as allowed origins; see
-# https://github.com/ottoyiu/django-cors-headers#cors_model
-CORS_MODEL = 'external_integrations.CorsModel'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
@@ -74,7 +70,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
-    'debug_toolbar',
     'mptt',
     'haystack',
     'private_storage',
@@ -119,10 +114,6 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
 ]
-
-if DEBUG is True:
-    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
-
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
@@ -532,7 +523,7 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto.S3BotoStorage`
+    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
@@ -540,6 +531,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # django-private-storage needs its own S3 configuration
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
+            # NB.........There's intentionally no 3 here! ^
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
