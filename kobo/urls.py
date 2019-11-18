@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.conf import settings
 from django.contrib import admin
-from django.urls import re_path, include, path
+from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 
 from kobo.apps.service_health.views import service_health
