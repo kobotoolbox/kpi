@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 """
 Created on Apr 6, 2015
 
 @author: esmail
 """
-from __future__ import absolute_import
-
 import re
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 # FIXME: Remove the following line when the permissions API is in place.
@@ -71,7 +69,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
     def create_asset(self, name, content=None, owner=None,
                      owner_password=None, **kwargs):
         if owner and owner_password:
-            if isinstance(owner, basestring):
+            if isinstance(owner, str):
                 self.login(owner, owner_password)
             self.login(owner.username, owner_password)
 
@@ -79,9 +77,9 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             content = ''
 
         kwargs.update({
-            "name": name,
-            "content": content,
-            "asset_type": kwargs.get("asset_type", "survey")
+            'name': name,
+            'content': content,
+            'asset_type': kwargs.get('asset_type', 'survey')
         })
 
         response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)

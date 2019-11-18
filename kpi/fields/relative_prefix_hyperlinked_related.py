@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from urllib.parse import urlparse
 
-from django.core.urlresolvers import get_script_prefix
-from django.utils.six.moves.urllib import parse as urlparse
+from django.urls import get_script_prefix
 from rest_framework.serializers import HyperlinkedRelatedField
 
 
@@ -18,11 +17,9 @@ class RelativePrefixHyperlinkedRelatedField(HyperlinkedRelatedField):
         # TODO: Figure out why DRF only strips absolute URLs, or file bug
         if True or http_prefix:
             # If needed convert absolute URLs to relative path
-            data = urlparse.urlparse(data).path
+            data = urlparse(data).path
             prefix = get_script_prefix()
             if data.startswith(prefix):
                 data = '/' + data[len(prefix):]
 
-        return super(
-            RelativePrefixHyperlinkedRelatedField, self
-        ).to_internal_value(data)
+        return super().to_internal_value(data)

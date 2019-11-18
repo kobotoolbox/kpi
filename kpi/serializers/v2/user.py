@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 from rest_framework import exceptions
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -23,5 +21,5 @@ class OneTimeAuthenticationKeyViewSet(
             # Only specially-authorized applications are allowed to create
             # one-time authentication keys via this endpoint
             raise exceptions.PermissionDenied()
-        return super(OneTimeAuthenticationKeyViewSet, self).create(
+        return super().create(
             request, *args, **kwargs)

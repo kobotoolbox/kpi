@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -50,7 +49,7 @@ export default class RESTServiceLogs extends React.Component {
           isHookActive: data.active
         });
       })
-      .fail((data) => {
+      .fail(() => {
         this.setState({
           isLoadingHook: false
         });
@@ -69,7 +68,7 @@ export default class RESTServiceLogs extends React.Component {
             totalLogsCount: data.count
           });
         },
-        onFail: (data) => {
+        onFail: () => {
           this.setState({
             isLoadingLogs: false
           });
@@ -92,7 +91,7 @@ export default class RESTServiceLogs extends React.Component {
           totalLogsCount: data.count
         });
       })
-      .fail((data) => {
+      .fail(() => {
         this.setState({isLoadingLogs: false});
         alertify.error(t('Could not load REST Service logs'));
       });
@@ -102,7 +101,7 @@ export default class RESTServiceLogs extends React.Component {
     this.setState({logs: data.results});
   }
 
-  retryAll(evt) {
+  retryAll() {
     const failedLogUids = [];
     this.state.logs.forEach((log) => {
       if (log.status === HOOK_LOG_STATUSES.FAILED) {
@@ -122,7 +121,7 @@ export default class RESTServiceLogs extends React.Component {
     );
   }
 
-  retryLog(log, evt) {
+  retryLog(log) {
     // make sure to allow only retrying failed logs
     if (log.status !== HOOK_LOG_STATUSES.FAILED) {
       return;
@@ -170,7 +169,7 @@ export default class RESTServiceLogs extends React.Component {
     });
   }
 
-  showLogInfo(log, evt) {
+  showLogInfo(log) {
     const title = t('Submission Failure Detail (##id##)').replace('##id##', log.instance_id);
     const escapedMessage = $('<div/>').text(log.message).html();
     alertify.alert(title, `<pre>${escapedMessage}</pre>`);
@@ -219,7 +218,7 @@ export default class RESTServiceLogs extends React.Component {
           {this.state.hookName}
         </h2>
       </header>
-    )
+    );
   }
 
   renderLoadMoreButton() {
@@ -234,7 +233,7 @@ export default class RESTServiceLogs extends React.Component {
       >
         {this.state.isLoadingLogs ? t('Loading…') : t('Load more')}
       </bem.ServiceRowButton>
-    )
+    );
   }
 
   renderEmptyView() {
@@ -275,11 +274,16 @@ export default class RESTServiceLogs extends React.Component {
           </bem.ServiceRow>
 
           {this.state.logs.map((log, n) => {
+            const rowProps = {
+              key: n
+            };
             let statusMod = '';
             let statusLabel = '';
             if (log.status === HOOK_LOG_STATUSES.SUCCESS) {
               statusMod = 'success';
               statusLabel = t('Success');
+              rowProps.m = 'clickable';
+              rowProps.onClick = this.openSubmissionModal.bind(this, log);
             }
             if (log.status === HOOK_LOG_STATUSES.PENDING) {
               statusMod = 'pending';
@@ -295,15 +299,8 @@ export default class RESTServiceLogs extends React.Component {
             }
 
             return (
-              <bem.ServiceRow key={n} >
+              <bem.ServiceRow {...rowProps}>
                 <bem.ServiceRow__column m='submission'>
-                  <bem.ServiceRow__actionButton
-                    onClick={this.openSubmissionModal.bind(this, log)}
-                    data-tip={t('Open submission')}
-                  >
-                    <i className='k-icon-view' />
-                  </bem.ServiceRow__actionButton>
-
                   {log.instance_id}
                 </bem.ServiceRow__column>
 
@@ -354,7 +351,7 @@ export default class RESTServiceLogs extends React.Component {
             {t('loading...')}
           </bem.Loading__inner>
         </bem.Loading>
-      )
+      );
     } else if (this.state.logs.length === 0) {
       return this.renderEmptyView();
     } else {

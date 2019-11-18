@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import exceptions, viewsets, status, renderers
-from rest_framework.decorators import list_route
+from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
     DestroyModelMixin, ListModelMixin
 from rest_framework.response import Response
@@ -46,22 +44,22 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     **Retrieve assignments**
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permissions/
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/
+    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
 
 
     **Assign a permission**
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/ \\
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
     >            -H 'Content-Type: application/json' \\
     >            -d '<payload>'  # Payload is sent as the string
 
@@ -96,27 +94,27 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
 
 
-    **Remove a permission**
+    **Remove a permission assignment**
 
     <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permissions/{permission_uid}/
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/
     </pre>
 
     > Example
     >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/pG6AeSjCwNtpWazQAX76Ap/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/
 
 
     **Assign all permissions at once**
 
     <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permissions/bulk/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/bulk/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/bulk/
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/bulk/
 
     > _Payload to assign all permissions at once_
     >
@@ -134,12 +132,12 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
     <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permissions/clone/
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/clone/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permissions/clone/
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/clone/
 
     > _Payload to clone permissions from another asset_
     >
@@ -156,8 +154,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetNestedObjectPermission,)
     pagination_class = None
 
-    @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
-                url_path='bulk')
+    @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
+            url_path='bulk')
     def bulk_assignments(self, request, *args, **kwargs):
         """
         Assigns all permissions at once for the same asset.
@@ -191,7 +189,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
             # see all permissions.
             return self.list(request, *args, **kwargs)
 
-    @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=['PATCH'],
+            renderer_classes=[renderers.JSONRenderer])
     def clone(self, request, *args, **kwargs):
 
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
@@ -230,7 +229,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         Inject asset_uid to avoid extra queries to DB inside the serializer.
         """
 
-        context_ = super(AssetPermissionAssignmentViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         context_.update({
             'asset_uid': self.asset.uid
         })

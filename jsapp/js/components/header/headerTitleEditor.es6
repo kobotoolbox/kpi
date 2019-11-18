@@ -7,7 +7,10 @@ import bem from 'js/bem';
 import stores from 'js/stores';
 import actions from 'js/actions';
 import {t} from 'js/utils';
-import {ASSET_TYPES} from 'js/constants';
+import {
+  NAME_MAX_LENGTH,
+  ASSET_TYPES
+} from 'js/constants';
 
 class HeaderTitleEditor extends React.Component {
   constructor(props){
@@ -87,6 +90,7 @@ class HeaderTitleEditor extends React.Component {
         <input
           type='text'
           name='title'
+          maxLength={NAME_MAX_LENGTH}
           placeholder={placeholder}
           value={this.state.name}
           onChange={this.assetTitleChange.bind(this)}

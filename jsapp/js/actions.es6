@@ -63,10 +63,16 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getApiToken: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
-  addItemAtPosition: {
+  addExternalItemAtPosition: {
     children: [
       'completed',
       'failed'
@@ -655,21 +661,34 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
+actions.auth.getApiToken.listen(() => {
+  dataInterface.apiToken()
+    .done((response) => {
+      actions.auth.getApiToken.completed(response.token);
+    })
+    .fail(actions.auth.getApiToken.failed);
+});
+actions.auth.getApiToken.failed.listen(() => {
+  notify(t('failed to load API token'), 'error');
+});
+
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
     dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
-  } else {
+  } else if (params.id) {
     dispatchMethodName = {
       c: 'getCollection',
       a: 'getAsset'
     }[params.id[0]];
   }
 
-  dataInterface[dispatchMethodName](params)
-    .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+  if (dispatchMethodName) {
+    dataInterface[dispatchMethodName](params)
+      .done(actions.resources.loadAsset.completed)
+      .fail(actions.resources.loadAsset.failed);
+  }
 });
 
 actions.resources.loadAssetContent.listen(function(params){
@@ -757,11 +776,19 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
       }
     });
 });
-actions.hooks.update.completed.listen((response) => {
+actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((response) => {
-  notify(t('Failed saving REST Service'), 'error');
+actions.hooks.update.failed.listen((data) => {
+  const errorLines = [t('Failed saving REST Service')];
+  if (
+    data.responseJSON &&
+    data.responseJSON.payload_template &&
+    data.responseJSON.payload_template.length !== 0
+  ) {
+    errorLines.push(t('Custom wrapper:') + ' ' + data.responseJSON.payload_template[0]);
+  }
+  alertify.error(errorLines.join('<br/>'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {

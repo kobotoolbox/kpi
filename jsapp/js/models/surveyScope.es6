@@ -38,10 +38,14 @@ class SurveyScope {
       console.error('cannot add group to question library');
     }
   }
-  handleItem({position, itemData, groupId}) {
-    actions.survey.addItemAtPosition({
+  handleItem({position, itemUid, groupId}) {
+    if (!itemUid) {
+      throw new Error('itemUid not provided!');
+    }
+
+    actions.survey.addExternalItemAtPosition({
       position: position,
-      uid: itemData.uid,
+      uid: itemUid,
       survey: this.survey,
       groupId: groupId
     });

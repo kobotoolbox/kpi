@@ -43,6 +43,7 @@
     "no-mixed-spaces-and-tabs": 1,
     "no-multi-spaces": 1,
     "no-multiple-empty-lines": [1, {"max": 2, "maxEOF": 1}],
+    "no-prototype-builtins": 1,
     "no-trailing-spaces": 1,
     "no-undef": 1,
     "no-undef-init": 1,

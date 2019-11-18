@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from kobo.apps.hook.views.v2.hook import HookViewSet as HookViewSetV2
 from kobo.apps.hook.serializers.v1.hook import HookSerializer
 

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 from kpi.serializers import AssetVersionListSerializer, AssetVersionSerializer
 from kpi.views.v2.asset_version import \
     AssetVersionViewSet as AssetVersionViewSetV2

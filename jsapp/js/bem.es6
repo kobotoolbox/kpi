@@ -42,7 +42,8 @@ bem.FormBuilder = BEM('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
-bem.FormBuilderMeta = BEM('form-builder-meta');
+bem.FormBuilderMeta = bem('form-builder-meta');
+bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
 bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
 bem.FormBuilderMeta__row = bem.FormBuilderMeta.__('row');
 
@@ -278,6 +279,7 @@ bem.collectionFilter = BEM('collection-filter');
 
 bem.TextBox = BEM('text-box', '<label>');
 bem.TextBox__label = bem.TextBox.__('label');
+bem.TextBox__labelLink = bem.TextBox.__('label-link', '<a>');
 bem.TextBox__input = bem.TextBox.__('input', '<input>');
 bem.TextBox__description = bem.TextBox.__('description');
 bem.TextBox__error = bem.TextBox.__('error');
