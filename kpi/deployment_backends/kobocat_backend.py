@@ -347,7 +347,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def set_has_kpi_hooks(self):
         """
         PATCH `has_kpi_hooks` boolean of survey.
-        It lets `kc` know whether it needs to ping `kpi`
+        It lets KoBoCat know whether it needs to ping KPI
         each time a submission comes in.
 
         Store results in self.asset._deployment_data
@@ -359,11 +359,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hooks': has_active_hooks,
             'kpi_asset_uid': self.asset.uid
         }
-        json_response = self._kobocat_request('PATCH', url, data=payload)
-        assert(json_response['has_kpi_hooks'] == has_active_hooks)
-        self.store_data({
-            'backend_response': json_response,
-        })
+
+        try:
+            json_response = self._kobocat_request('PATCH', url, data=payload)
+            assert (json_response['has_kpi_hooks'] == has_active_hooks)
+            self.store_data({
+                'backend_response': json_response,
+            })
+        except KobocatDeploymentException as e:
+            if not (has_active_hooks is False and hasattr(e, 'response') and
+                    e.response.status_code != status.HTTP_404_NOT_FOUND):
+                raise e
 
     def delete(self):
         """
