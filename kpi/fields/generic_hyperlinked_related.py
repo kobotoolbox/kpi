@@ -20,7 +20,6 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         # situation. We will override them dynamically.
         kwargs['view_name'] = '*'
         kwargs['queryset'] = ObjectPermission.objects.none()
-        # ToDo verify why return in __init__
         super().__init__(**kwargs)
 
     def to_representation(self, value):

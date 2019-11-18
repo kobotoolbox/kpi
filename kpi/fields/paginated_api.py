@@ -26,7 +26,6 @@ class PaginatedApiField(serializers.ReadOnlyField):
         self.paginator = kwargs.pop('paginator_class', LimitOffsetPagination)()
         self.paginator.default_limit = kwargs.pop('default_limit', 10)
         self.source_processor = kwargs.pop('source_processor', None)
-        # ToDo Why return in __init__
         super().__init__(*args, **kwargs)
 
     def to_representation(self, source):
