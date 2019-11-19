@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 from django.db import migrations, models
 from django.conf import settings
 import kpi.fields
@@ -29,12 +27,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='usercollectionsubscription',
             name='collection',
-            field=models.ForeignKey(to='kpi.Collection'),
+            field=models.ForeignKey(to='kpi.Collection', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='usercollectionsubscription',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='usercollectionsubscription',

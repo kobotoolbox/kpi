@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 import sys
+
 from django.core.management.base import BaseCommand
 
-from ...models import Asset
 from kpi.constants import PERM_VALIDATE_SUBMISSIONS
+from ...models import Asset
 
 
 class Command(BaseCommand):
@@ -19,7 +19,7 @@ class Command(BaseCommand):
         self.counter = 0
         self.chunk_number = 0
         self.assets_count = 0
-        super(Command, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
+        super().__init__(stdout=stdout, stderr=stderr, no_color=no_color)
 
     def handle(self, *args, **options):
         self.assets_count = Asset.objects.all().count()
