@@ -1,31 +1,27 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import json
 import time
 
-from kpi.models import Asset, AssetVersion
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand
 from reversion.models import Version
 
-from optparse import make_option
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models.signals import post_save
-
 from kpi.model_utils import disable_auto_field_update
+from kpi.models import Asset, AssetVersion
 
 NULL_CHAR_REPR = '\\u0000'
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--users',
-                    action='store',
-                    dest='filter_users_str',
-                    default=False,
-                    help='Only migrate asset versions for a comma-delimited'
-                         ' list of users (quicker)'),
-                    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--users',
+            action='store',
+            dest='filter_users_str',
+            default=False,
+            help='Only migrate asset versions for a comma-delimited list of '
+                 'users (quicker)'
+        )
 
     def handle(self, *args, **options):
         kw = {}
@@ -41,7 +37,7 @@ def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
         _cur = _cur.filter(owner__username__in=filter_usernames)
     asset_ids = _cur.order_by('-date_modified').values_list('id', flat=True)
 
-    for _i in xrange(0, len(asset_ids)):
+    for _i in range(0, len(asset_ids)):
         _create_versions_for_asset_id(asset_ids[_i], _AssetVersion, _ReversionVersion)
         if _i % 1000 == 0:
             print('on {} with {} created'.format(_i, _AssetVersion.objects.count()))
@@ -133,12 +129,12 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
             a_ids_done += 1
             if a_ids_done % 100 == 0:
                 elapsed = time.time() - start_time
-                print 'Completed {}/{} ({}%); est\'d time left: {}s'.format(
+                print('Completed {}/{} ({}%); est\'d time left: {}s'.format(
                     a_ids_done,
                     a_ids_len,
                     a_ids_done * float(100) / a_ids_len,
                     elapsed / a_ids_done * (a_ids_len - a_ids_done)
-                )
+                ))
 
     if len(ids_not_counted) > 0:
         print('DeploymentIDs not found: '
