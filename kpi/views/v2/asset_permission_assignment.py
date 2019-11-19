@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import exceptions, viewsets, status, renderers
-from rest_framework.decorators import list_route
+from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
     DestroyModelMixin, ListModelMixin
 from rest_framework.response import Response
@@ -156,8 +154,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetNestedObjectPermission,)
     pagination_class = None
 
-    @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
-                url_path='bulk')
+    @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
+            url_path='bulk')
     def bulk_assignments(self, request, *args, **kwargs):
         """
         Assigns all permissions at once for the same asset.
@@ -191,7 +189,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
             # see all permissions.
             return self.list(request, *args, **kwargs)
 
-    @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=['PATCH'],
+            renderer_classes=[renderers.JSONRenderer])
     def clone(self, request, *args, **kwargs):
 
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
@@ -230,7 +229,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         Inject asset_uid to avoid extra queries to DB inside the serializer.
         """
 
-        context_ = super(AssetPermissionAssignmentViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         context_.update({
             'asset_uid': self.asset.uid
         })

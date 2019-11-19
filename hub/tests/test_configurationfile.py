@@ -1,3 +1,4 @@
+# coding: utf-8
 import requests
 from django.http import HttpRequest
 from django.test import LiveServerTestCase
@@ -6,8 +7,7 @@ from django.template import Template, RequestContext
 
 from hub.models import ConfigurationFile
 
-
-sample_svg = '''<svg xmlns="http://www.w3.org/2000/svg"
+sample_svg = b'''<svg xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 420 666">
 <path style="fill:#000000" d="M 0,665.24357 C 19.10304,616.60207
 43.791193,570.34321 65.172372,522.7213 78.325582,455.25301 90.425024,387.52616
@@ -55,7 +55,7 @@ class ConfigurationFileTestCase(LiveServerTestCase):
         self.assertEqual(response.content, sample_svg)
 
     def test_template_context_processor(self):
-        context = RequestContext(HttpRequest()) # NB: empty request
+        context = RequestContext(HttpRequest())  # NB: empty request
         template = Template(
             '{{{{ config.{logo} }}}}'.format(logo=self.cfg_file.LOGO)
         )

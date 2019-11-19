@@ -1,5 +1,5 @@
 {% extends "registration.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load i18n %}
 {% block content %}
   <form method="post" action="." class="registration registration--login">
@@ -11,7 +11,6 @@
     <a href="{% url 'auth_password_reset' %}" class="registration__forgot">
       {% trans "Forgot?" %}
     </a>
-
     <input type="submit" value="Login" class="registration__action" />
     <input type="hidden" name="next" value="{{ next }}" />
 

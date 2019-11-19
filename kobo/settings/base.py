@@ -1,16 +1,16 @@
 # coding: utf-8
-from __future__ import absolute_import
-
 import multiprocessing
 import os
 import subprocess
 from datetime import timedelta
+# TODO remove this import when Python2 support is dropped
+from future.utils import bytes_to_native_str as n
 
 import dj_database_url
 import django.conf.locale
 from celery.schedules import crontab
 from django.conf.global_settings import LOGIN_URL
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
 from pymongo import MongoClient
 
@@ -49,10 +49,6 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
 
-# Instances of this model will be treated as allowed origins; see
-# https://github.com/ottoyiu/django-cors-headers#cors_model
-CORS_MODEL = 'external_integrations.CorsModel'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
@@ -66,13 +62,14 @@ LOGIN_REDIRECT_URL = '/'
 # apps both define templates for the same view, the first app listed receives
 # precedence
 INSTALLED_APPS = (
-    'django.contrib.auth',
+    # Always put `contenttypes` before `auth`; see
+    # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
-    'debug_toolbar',
     'mptt',
     'haystack',
     'private_storage',
@@ -101,7 +98,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -110,14 +107,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # TODO: Uncomment this when interoperability with dkobo is no longer
     # needed. See https://code.djangoproject.com/ticket/21649
-    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'hub.middleware.OtherFormBuilderRedirectMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
-)
+]
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
@@ -132,9 +128,9 @@ CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
                                 'themselves'),
     'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
-                            'URL for terms of service document'),
+                             'URL for terms of service document'),
     'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
-                          'URL for privacy policy'),
+                           'URL for privacy policy'),
     'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
                         'URL of source code repository. When empty, a link '
                         'will not be shown in the user interface'),
@@ -143,8 +139,8 @@ CONSTANCE_CONFIG = {
                     'URL of user support portal. When empty, a link will not '
                     'be shown in the user interface'),
     'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
-                        os.environ.get('DEFAULT_FROM_EMAIL',
-                                       'help@kobotoolbox.org'),
+                      os.environ.get('DEFAULT_FROM_EMAIL',
+                                     'help@kobotoolbox.org'),
                       'Email address for users to contact, e.g. when they '
                       'encounter unhandled errors in the application'),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
@@ -159,7 +155,7 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 
 # Warn developers to use `pytest` instead of `./manage.py test`
-class DoNotUseRunner(object):
+class DoNotUseRunner:
     def __init__(self, *args, **kwargs):
         raise NotImplementedError('Please run tests with `pytest` instead')
 
@@ -253,8 +249,9 @@ PRIVATE_STORAGE_AUTH_FUNCTION = \
 
 # django-markdownx, for in-app messages
 MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('in-app-message-image-upload')
-# Github-flavored Markdown from `py-gfm`
-MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
+# Github-flavored Markdown from `py-gfm`,
+# ToDo Uncomment when it's compatible with Markdown 3.x
+# MARKDOWNX_MARKDOWN_EXTENSIONS = ['mdx_gfm']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
@@ -336,11 +333,6 @@ TEMPLATES = [
         },
     },
 ]
-
-# This is very brittle (can't handle references to missing images in CSS);
-# TODO: replace later with grunt gzipping?
-#if not DEBUG:
-#    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
@@ -531,7 +523,7 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto.S3BotoStorage`
+    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
     if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
         AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
@@ -539,6 +531,7 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         # django-private-storage needs its own S3 configuration
         PRIVATE_STORAGE_CLASS = \
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
+            # NB.........There's intentionally no 3 here! ^
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication

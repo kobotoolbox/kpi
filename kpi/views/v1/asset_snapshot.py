@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 from kpi.serializers import AssetSnapshotSerializer
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet as AssetSnapshotViewSetV2
 

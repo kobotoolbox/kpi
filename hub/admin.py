@@ -1,12 +1,14 @@
+# coding: utf-8
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
-from models import SitewideMessage, ConfigurationFile, PerUserSetting
-from actions import delete_related_objects, remove_from_kobocat
+from .actions import delete_related_objects, remove_from_kobocat
+from .models import SitewideMessage, ConfigurationFile, PerUserSetting
+
 
 class UserDeleteKludgeAdmin(UserAdmin):
-    '''
+    """
     Deleting users is, sadly, a two-step process since KPI and KoBoCAT share
     the same database but do not know about each other's models.
 
@@ -17,17 +19,17 @@ class UserDeleteKludgeAdmin(UserAdmin):
     superuser invoke that.
 
     See https://github.com/kobotoolbox/kobocat/issues/92#issuecomment-158219885
-    '''
+    """
 
     actions = [delete_related_objects, remove_from_kobocat]
 
     def get_actions(self, request):
-        '''
+        """
         Remove the standard "Delete selected users" action, since it will
         almost always fail
-        '''
+        """
 
-        actions = super(UserDeleteKludgeAdmin, self).get_actions(request)
+        actions = super().get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
