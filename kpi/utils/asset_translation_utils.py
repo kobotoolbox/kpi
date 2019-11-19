@@ -1,5 +1,4 @@
-import json
-
+# coding: utf-8
 TRANSLATIONS_EQUAL = 'equal'
 TRANSLATIONS_OUT_OF_ORDER = 'out_of_order'
 TRANSLATION_RENAMED = 'translation_renamed'

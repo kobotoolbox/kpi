@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.hook.views.v2.hook import HookViewSet
@@ -23,57 +21,57 @@ from kpi.views.v2.user import UserViewSet
 URL_NAMESPACE = 'api_v2'
 
 router_api_v2 = ExtendedDefaultRouter()
-asset_routes = router_api_v2.register(r'assets', AssetViewSet, base_name='asset')
+asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
 asset_routes.register(r'files',
                       AssetFileViewSet,
-                      base_name='asset-file',
+                      basename='asset-file',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'permission-assignments',
                       AssetPermissionAssignmentViewSet,
-                      base_name='asset-permission-assignment',
+                      basename='asset-permission-assignment',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
-                      base_name='asset-version',
+                      basename='asset-version',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'data',
                       DataViewSet,
-                      base_name='submission',
+                      basename='submission',
                       parents_query_lookups=['asset'],
                       )
 
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
-                      base_name='hook-signal',
+                      basename='hook-signal',
                       parents_query_lookups=['asset'],
                       )
 
 hook_routes = asset_routes.register(r'hooks',
                                     HookViewSet,
-                                    base_name='hook',
+                                    basename='hook',
                                     parents_query_lookups=['asset'],
                                     )
 
 hook_routes.register(r'logs',
                      HookLogViewSet,
-                     base_name='hook-log',
+                     basename='hook-log',
                      parents_query_lookups=['asset', 'hook'],
                      )
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
 
 collection_routes = router_api_v2.register(r'collections', CollectionViewSet,
-                                           base_name='collection')
+                                           basename='collection')
 collection_routes.register(r'permission-assignments',
                            CollectionPermissionAssignmentViewSet,
-                           base_name='collection-permission-assignment',
+                           basename='collection-permission-assignment',
                            parents_query_lookups=['collection'],
                            )
 
@@ -81,13 +79,13 @@ router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 
 # TODO migrate ViewSet below
-# router_api_v2.register(r'reports', ReportsViewSet, base_name='reports')
+# router_api_v2.register(r'reports', ReportsViewSet, basename='reports')
 # router_api_v2.register(r'imports', ImportTaskViewSet)
 # router_api_v2.register(r'exports', ExportTaskViewSet)
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
 #
 # router_api_v2.register(r'authorized_application/users',
 #                        AuthorizedApplicationUserViewSet,
-#                        base_name='authorized_applications')
+#                        basename='authorized_applications')
 # router_api_v2.register(r'authorized_application/one_time_authentication_keys',
 #                        OneTimeAuthenticationKeyViewSet)

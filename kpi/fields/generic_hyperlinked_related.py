@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from urllib.parse import urlparse
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import Resolver404
-from django.core.urlresolvers import get_script_prefix
-from django.core.urlresolvers import resolve
-from django.utils.six.moves.urllib import parse as urlparse
+from django.urls import (
+    Resolver404,
+    get_script_prefix,
+    resolve,
+)
 from rest_framework import serializers
 
 from kpi.models.object_permission import ObjectPermission
@@ -19,14 +20,13 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         # situation. We will override them dynamically.
         kwargs['view_name'] = '*'
         kwargs['queryset'] = ObjectPermission.objects.none()
-        return super(GenericHyperlinkedRelatedField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def to_representation(self, value):
         # TODO Figure out why self.view_name is initialized twice in a row?
         self.view_name = '{}-detail'.format(
             ContentType.objects.get_for_model(value).model)
-        result = super(GenericHyperlinkedRelatedField, self).to_representation(
-            value)
+        result = super().to_representation(value)
         self.view_name = '*'
         return result
 
@@ -44,7 +44,7 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         # TODO: Figure out why DRF only strips absolute URLs, or file bug
         if True or http_prefix:
             # If needed convert absolute URLs to relative path
-            data = urlparse.urlparse(data).path
+            data = urlparse(data).path
             prefix = get_script_prefix()
             if data.startswith(prefix):
                 data = '/' + data[len(prefix):]

@@ -1,5 +1,6 @@
+# coding: utf-8
 def superuser_or_username_matches_prefix(private_file):
-    '''
+    """
     You can create a custom function, and use that instead. The function
     receives a private_storate.models.PrivateFile object, which has the
     following fields:
@@ -12,9 +13,9 @@ def superuser_or_username_matches_prefix(private_file):
         content_type: the HTTP content type.
 
     (See https://github.com/edoburu/django-private-storage)
-    '''
+    """
     request = private_file.request
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return False
     if request.user.is_superuser:
         return True

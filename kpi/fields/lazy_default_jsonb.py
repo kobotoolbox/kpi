@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# coding: utf-8
+from collections import Callable
 
 from django.core.exceptions import FieldError
-from jsonbfield.fields import JSONField as JSONBField
+from django.contrib.postgres.fields import JSONField as JSONBField
 
 
 class LazyDefaultJSONBField(JSONBField):
@@ -25,17 +25,16 @@ class LazyDefaultJSONBField(JSONBField):
                              'is not None')
         kwargs['null'] = True
         kwargs['default'] = None
-        super(LazyDefaultJSONBField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _get_lazy_default(self):
-        if callable(self.lazy_default):
+        if isinstance(self.lazy_default, Callable):
             return self.lazy_default()
         else:
             return self.lazy_default
 
     def deconstruct(self):
-        name, path, args, kwargs = super(
-            LazyDefaultJSONBField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         kwargs['default'] = self.lazy_default
         del kwargs['null']
         return name, path, args, kwargs

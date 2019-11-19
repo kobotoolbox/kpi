@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-import base64
-import json
+# coding: utf-8
 import re
 
 from bson import ObjectId
@@ -11,9 +7,10 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
+from kpi.utils.strings import base64_encodestring
 
 
-class MongoHelper(object):
+class MongoHelper:
     """
     Mongo's helper.
 
@@ -25,17 +22,17 @@ class MongoHelper(object):
                      '$lt', '$lte', '$regex', '$options', '$all']
 
     ENCODING_SUBSTITUTIONS = [
-        (re.compile(r'^\$'), base64.encodestring('$').strip()),
-        (re.compile(r'\.'), base64.encodestring('.').strip()),
+        (re.compile(r'^\$'), base64_encodestring('$').strip()),
+        (re.compile(r'\.'), base64_encodestring('.').strip()),
     ]
 
     DECODING_SUBSTITUTIONS = [
-        (re.compile(r'^' + base64.encodestring('$').strip()), '$'),
-        (re.compile(base64.encodestring('.').strip()), '.'),
+        (re.compile(r'^' + base64_encodestring('$').strip()), '$'),
+        (re.compile(base64_encodestring('.').strip()), '.'),
     ]
 
     # Match KoBoCat's variables of ParsedInstance class
-    USERFORM_ID = "_userform_id"
+    USERFORM_ID = '_userform_id'
     DEFAULT_BATCHSIZE = 1000
 
     @classmethod
@@ -99,7 +96,7 @@ class MongoHelper(object):
 
         if len(sort) == 1:
             sort = MongoHelper.to_safe_dict(sort, reading=True)
-            sort_key = sort.keys()[0]
+            sort_key = list(sort.keys())[0]
             sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
             cursor.sort(sort_key, sort_dir)
 

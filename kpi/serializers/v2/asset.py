@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import json
 
 from rest_framework import serializers
@@ -135,17 +133,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             try:
                 asset.update_translation_list(translations_list)
             except ValueError as err:
-                raise serializers.ValidationError(err.message)
+                raise serializers.ValidationError(str(err))
             validated_data['content'] = asset_content
-        return super(AssetSerializer, self).update(asset, validated_data)
+        return super().update(asset, validated_data)
 
     def get_fields(self, *args, **kwargs):
-        fields = super(AssetSerializer, self).get_fields(*args, **kwargs)
+        fields = super().get_fields(*args, **kwargs)
         user = self.context['request'].user
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         if 'parent' in fields:
             # TODO: remove this restriction?
@@ -361,7 +359,7 @@ class AssetListSerializer(AssetSerializer):
             asset_permission_assignments = self.context[
                 'object_permissions_per_object'].get(obj.pk)
         except KeyError:
-            return super(AssetListSerializer, self).get_permissions(obj)
+            return super().get_permissions(obj)
 
         context = self.context
         request = self.context.get('request')

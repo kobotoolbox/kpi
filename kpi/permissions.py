@@ -1,5 +1,4 @@
-from abc import ABCMeta, abstractmethod
-
+# coding: utf-8
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
@@ -40,16 +39,12 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
     Common methods are property are defined within this class.
     """
 
-    __metaclass__ = ABCMeta
-
     @property
     def perms_map(self):
         raise NotImplementedError
 
-    @abstractmethod
     def has_permission(self, request, view):
-        # This method should be overridden in subclasses
-        return False
+        raise NotImplementedError
 
     def has_object_permission(self, request, view, obj):
         # Because authentication checks have already executed via has_permission,
@@ -171,7 +166,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         parent_object = self._get_parent_object(view)
 
         user = request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
 
         user_permissions = self._get_user_permissions(parent_object, user)
@@ -290,7 +285,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         :param user: auth.User
         :return: list
         """
-        user_permissions = super(SubmissionPermission, self)._get_user_permissions(
+        user_permissions = super()._get_user_permissions(
             asset, user)
 
         if PERM_PARTIAL_SUBMISSIONS in user_permissions:

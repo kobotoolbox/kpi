@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from itertools import chain
 
 import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
@@ -33,7 +30,7 @@ class CollectionManager(TreeManager, TaggableModelManager):
         if 'assets' in kwargs:
             assets = kwargs['assets']
             del kwargs['assets']
-        created = super(CollectionManager, self).create(*args, **kwargs)
+        created = super().create(*args, **kwargs)
         if assets:
             new_assets = []
             for asset in assets:
@@ -53,9 +50,10 @@ class CollectionManager(TreeManager, TaggableModelManager):
 
 class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
-    parent = TreeForeignKey(
-        'self', null=True, blank=True, related_name='children')
-    owner = models.ForeignKey('auth.User', related_name='owned_collections')
+    parent = TreeForeignKey('self', null=True, blank=True,
+                            related_name='children', on_delete=models.CASCADE)
+    owner = models.ForeignKey('auth.User', related_name='owned_collections',
+                              on_delete=models.CASCADE)
     editors_can_change_permissions = models.BooleanField(default=True)
     discoverable_when_public = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='c')
@@ -78,6 +76,17 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             (PERM_SHARE_COLLECTION,
              "Can change this collection's sharing settings"),
         )
+
+        # Since Django 2.1, 4 permissions are added for each registered model:
+        # - add
+        # - change
+        # - delete
+        # - view
+        # See https://docs.djangoproject.com/en/2.2/topics/auth/default/#default-permissions
+        # for more detail.
+        # `view_collection` clashes with newly built-in one.
+        # The simplest way to fix this is to keep old behaviour
+        default_permissions = ('add', 'change', 'delete')
 
     # Assignable permissions that are stored in the database
     ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
@@ -123,11 +132,11 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         """ Returns all children, both Assets and Collections """
         return CollectionChildrenQuerySet(self)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
-class CollectionChildrenQuerySet(object):
+class CollectionChildrenQuerySet:
     """ A pseudo-QuerySet containing mixed-model children of a collection.
     Collections are always listed before assets.  Derived from
     http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
@@ -148,12 +157,12 @@ class CollectionChildrenQuerySet(object):
         return repr(data)
 
     def __getitem__(self, k):
-        if not isinstance(k, (slice, int, long)):
+        if not isinstance(k, (slice, int)):
             raise TypeError
         assert ((not isinstance(k, slice) and (k >= 0))
                 or (isinstance(k, slice) and (k.start is None or k.start >= 0)
                     and (k.stop is None or k.stop >= 0))), \
-                "Negative indexing is not supported."
+            "Negative indexing is not supported."
 
         qs = self._clone()
         collections = qs.child_collections
@@ -255,8 +264,8 @@ class CollectionChildrenQuerySet(object):
 class UserCollectionSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one that has `discoverable_when_public = True` """
-    collection = models.ForeignKey(Collection)
-    user = models.ForeignKey('auth.User')
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 
     class Meta:

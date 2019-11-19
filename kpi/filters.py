@@ -1,17 +1,19 @@
+# coding: utf-8
 import re
+from distutils.util import strtobool
+
 import haystack
 from django.conf import settings
-from rest_framework import filters
-from whoosh.query import Term, And
-from distutils.util import strtobool
-from whoosh.qparser import QueryParser
-from haystack.utils import get_model_ct
-from haystack.query import SearchQuerySet
-from django.core.exceptions import FieldError
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import FieldError
 from haystack.backends.whoosh_backend import WhooshSearchBackend
-from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
+from haystack.constants import DJANGO_CT
+from haystack.query import SearchQuerySet
+from haystack.utils import get_model_ct
+from rest_framework import filters
+from whoosh.qparser import QueryParser
+from whoosh.query import Term
 
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
@@ -31,7 +33,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(**fields)
 
 
-class KpiObjectPermissionsFilter(object):
+class KpiObjectPermissionsFilter:
     perm_format = '%(app_label)s.view_%(model_name)s'
 
     def filter_queryset(self, request, queryset, view):
@@ -53,7 +55,7 @@ class KpiObjectPermissionsFilter(object):
         }
         permission = self.perm_format % kwargs
 
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
             # Avoid giving anonymous users special treatment when viewing
             # public objects
@@ -104,15 +106,15 @@ class KpiObjectPermissionsFilter(object):
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
-    ''' Uses KpiObjectPermissionsFilter to determine which assets the user
+    """
+    Uses KpiObjectPermissionsFilter to determine which assets the user
     may access, and then filters the provided queryset to include only objects
     related to those assets. The queryset's model must be related to `Asset`
-    via a field named `asset`. '''
+    via a field named `asset`.
+    """
 
     def filter_queryset(self, request, queryset, view):
-        available_assets = super(
-            RelatedAssetPermissionsFilter, self
-        ).filter_queryset(
+        available_assets = super().filter_queryset(
             request=request,
             queryset=Asset.objects.all(),
             view=view
@@ -121,9 +123,11 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
 
 
 class SearchFilter(filters.BaseFilterBackend):
-    ''' Filter objects by searching with Whoosh if the request includes a `q`
+    """
+    Filter objects by searching with Whoosh if the request includes a `q`
     parameter. Another parameter, `parent`, is recognized when its value is an
-    empty string; this restricts the queryset to objects without parents. '''
+    empty string; this restricts the queryset to objects without parents.
+    """
 
     library_collection_pattern = re.compile(
         r'\(((?:asset_type:(?:[^ ]+)(?: OR )*)+)\) AND \(parent__uid:([^)]+)\)'
