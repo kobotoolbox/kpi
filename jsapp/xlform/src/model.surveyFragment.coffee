@@ -345,7 +345,7 @@ module.exports = do ->
   _determineConstructorByParams = (obj)->
     formSettingsTypes = do ->
       for key, val of $configs.defaultSurveyDetails
-        val.asJson.type
+        val.name
     type = obj?.type
     if type in INVALID_TYPES_AT_THIS_STAGE
       # inputParser should have converted groups and repeats into a structure by this point
