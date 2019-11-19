@@ -12,6 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
+import { CrossStorageClient } from 'cross-storage';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -498,4 +499,20 @@ export function writeParameters(obj) {
     }
   });
   return params.join(';');
+}
+
+var crossStorageClient = null;
+
+export function initCrossStorageClient() {
+  var crossStorageHub = window.location.origin.replace('formdesigner', 'build') + '/hub/hub.html';
+  crossStorageClient = new CrossStorageClient(crossStorageHub, {
+    timeout: 4000
+  });
+}
+
+export function getCrossStorageClient() {
+  if (!crossStorageClient) {
+    initCrossStorageClient();
+  }
+  return crossStorageClient;
 }

@@ -37,6 +37,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from taggit.models import Tag
 
@@ -1172,7 +1173,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     serializer_class = AssetSerializer
     lookup_field = 'uid'
-    permission_classes = (IsOwnerOrReadOnly,)
+    # permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
     filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,

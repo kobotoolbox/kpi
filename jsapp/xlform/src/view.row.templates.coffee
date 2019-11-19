@@ -71,7 +71,7 @@ module.exports = do ->
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
-            <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -258,7 +258,7 @@ module.exports = do ->
 
     """
     <div class="card__settings__fields__field">
-      <label>#{_t('Mandatory response')}:</label>
+      <label>#{_t('Required')}:</label>
       <span class="settings__input">
         <div class="radio">
           <label class="radio__row mandatory-setting__row mandatory-setting__row--true">
@@ -268,7 +268,7 @@ module.exports = do ->
               name="#{uniqueName}"
               value="true" #{if modifier is 'true' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('Yes')}</span>
+            <span class="radio__label">#{_t('Always')}</span>
           </label>
           <label class="radio__row mandatory-setting__row mandatory-setting__row--false">
             <input
@@ -277,7 +277,7 @@ module.exports = do ->
               name="#{uniqueName}"
               value="false" #{if modifier is 'false' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('No')}</span>
+            <span class="radio__label">#{_t('Never')}</span>
           </label>
           <label class="radio__row mandatory-setting__row mandatory-setting__row--custom">
             <input
@@ -286,13 +286,13 @@ module.exports = do ->
               name="#{uniqueName}"
               value="custom" #{if modifier is 'custom' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('Custom logic')}</span>
+            <span class="radio__label">#{_t('Conditional')}</span>
             <label class="text-box text-box--on-white">
               <input
                 type="text"
                 class="text-box__input js-mandatory-setting-custom-text"
                 value="#{currentValue}"
-                placeholder="#{_t('Mandatory when this formula is true')}"
+                placeholder="#{_t('Conditional value')}"
               >
             </label>
           </label>

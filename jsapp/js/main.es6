@@ -10,6 +10,7 @@ import 'babel-polyfill'; // required to support Array.prototypes.includes in IE1
 import {Cookies} from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
+import { initCrossStorageClient } from './utils';
 
 require('../scss/main.scss');
 
@@ -30,10 +31,12 @@ function csrfSafeMethod(method) {
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader('X-CSRFToken', csrftoken);
+          xhr.setRequestHeader('X-CSRFToken', cookies.get('csrftoken'));
         }
     }
 });
+
+initCrossStorageClient();
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
 

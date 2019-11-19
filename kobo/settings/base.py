@@ -49,10 +49,12 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
+    SESSION_COOKIE_AGE = 60*60 # Session age is 1 hour
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
 CORS_MODEL = 'external_integrations.CorsModel'
+CORS_ALLOW_CREDENTIALS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
@@ -68,6 +70,7 @@ LOGIN_REDIRECT_URL = '/'
 # precedence
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'oc',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -100,23 +103,33 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'bossoidc',
+    'djangooidc',
 )
 
 MIDDLEWARE_CLASSES = (
     'corsheaders.middleware.CorsMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    'oc.middleware.OCSessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'oc.middleware.OCCsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # TODO: Uncomment this when interoperability with dkobo is no longer
     # needed. See https://code.djangoproject.com/ticket/21649
     #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
 )
+
+CSP_FRAME_ANCESTORS = "https://*.openclinica-dev.io"
+CSP_STYLE_SRC = "'self' 'unsafe-inline'"
+CSP_CONNECT_SRC = "'self' https://*.openclinica-dev.io"
+CSP_FRAME_SRC = "'self' https://*.openclinica-dev.io"
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
@@ -177,6 +190,7 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
+    'bossoidc.backend.OpenIdConnectBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
@@ -698,3 +712,16 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+KEYCLOAK_AUTH_URI = "https://auth.openclinica-dev.io/auth/realms/cust1-aws-dev"
+KEYCLOAK_CLIENT_ID = "formdesigner"
+KEYCLOAK_CLIENT_SECRET = "client-secret"
+PUBLIC_URI_FOR_KEYCLOAK = "https://cust1.formdesigner.openclinica-dev.io"
+
+KEYCLOAK_MASTER_REALM = 'master'
+KEYCLOAK_ADMIN_CLIENT_ID = 'admin-cli'
+KEYCLOAK_ADMIN_CLIENT_SECRET = '3fa0dfb9-43ca-4e74-9a46-4d9fe421ec1a'
+
+if KEYCLOAK_AUTH_URI != '' and KEYCLOAK_CLIENT_ID != '' and KEYCLOAK_CLIENT_SECRET != '' and PUBLIC_URI_FOR_KEYCLOAK != '':
+    from bossoidc.settings import *
+    configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)

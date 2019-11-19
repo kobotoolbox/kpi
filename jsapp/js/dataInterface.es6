@@ -39,15 +39,22 @@ var dataInterface;
   // hook up to all AJAX requests to check auth problems
   $(document).ajaxError((event, request, settings) => {
     if (request.status === 403 || request.status === 401 || request.status === 404) {
+      console.log('ajaxError');
       dataInterface.selfProfile().done((data) => {
         if (data.message === 'user is not logged in') {
-          let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>')
-          let serverMessage = request.status.toString();
-          if (request.responseJSON && request.responseJSON.detail) {
-            serverMessage += ': ' + request.responseJSON.detail;
-          }
-          errorMessage = errorMessage.replace('##server_message##', serverMessage);
-          alertify.alert(t('You are not logged in'), errorMessage);
+          dataInterface.checkKeycloakStatus().done(() => {
+            console.log('retry ajax request');
+            $.ajax(settings);
+            return;
+          });
+
+          // let errorMessage = t('Please try reloading the page. If you need to contact support, note the following message: <pre>##server_message##</pre>')
+          // let serverMessage = request.status.toString();
+          // if (request.responseJSON && request.responseJSON.detail) {
+          //   serverMessage += ': ' + request.responseJSON.detail;
+          // }
+          // errorMessage = errorMessage.replace('##server_message##', serverMessage);
+          // alertify.alert(t('You are not logged in'), errorMessage);
         }
       });
     }
@@ -75,6 +82,36 @@ var dataInterface;
             d.fail(data);
           }
         }).fail(d.fail);
+      });
+      return d.promise();
+    },
+    keycloakLogout: ()=> {
+      var d = new $.Deferred();
+      $ajax({ url: `${rootUrl}/openid/logout` }).done(function(args) {
+        d.resolve();
+      }).fail(function (resp, etype, emessage) {
+        if (resp.status === 200) {
+          d.resolve();
+        } else {
+          d.fail('keycloak logout failed');
+        }
+      });
+      return d.promise();
+    },
+    checkKeycloakStatus: ()=> {
+      var d = new $.Deferred();
+      $ajax({ url: `${rootUrl}` }).done(function(args) {
+        console.log('checkKeycloakStatus resp', resp);
+        d.resolve();
+      }).fail(function (resp, etype, emessage) {
+        console.log('checkKeycloakStatus resp', resp);
+        console.log('checkKeycloakStatus etype', etype);
+        console.log('checkKeycloakStatus emessage', emessage);
+        if (resp.status === 200) {
+          d.resolve();
+        } else {
+          d.fail('checkKeycloakStatus failed');
+        }
       });
       return d.promise();
     },

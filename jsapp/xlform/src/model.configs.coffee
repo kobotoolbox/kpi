@@ -23,7 +23,7 @@ module.exports = do ->
       name: "start"
       label: "start time"
       description: "Records when the survey was begun"
-      default: true
+      default: false
       asJson:
         type: "start"
         name: "start"
@@ -31,7 +31,7 @@ module.exports = do ->
       name: "end"
       label: "end time"
       description: "records when the survey was marked as completed"
-      default: true
+      default: false
       asJson:
         type: "end"
         name: "end"
@@ -226,7 +226,6 @@ module.exports = do ->
     "name",
     "label",
     "hint",
-    "guidance_hint",
     "required",
     "relevant",
     "default",
@@ -297,10 +296,8 @@ module.exports = do ->
     hint:
       value: ""
       _hideUnlessChanged: true
-    guidance_hint:
-      value: ""
     required:
-      value: ""
+      value: "false"
       _hideUnlessChanged: true
     relevant:
       value: ""

@@ -135,34 +135,11 @@ class FormpackXLSFormUtils(object):
     
     def _standardize(self, content):
         if needs_standardization(content):
-            self._survey_prepare_required_col_value(content)
             standardize_content_in_place(content)
-            self._survey_revert_required_col_value(content)
             return True
         else:
             return False
     
-    def _survey_prepare_required_col_value(self, content):
-        survey = content.get('survey', [])
-        for survey_col_idx in range(len(survey)):
-            survey_col = survey[survey_col_idx]
-            if 'select_from_list_name' in survey_col and 'required' not in survey_col:
-                content['survey'][survey_col_idx]['required'] = ''
-
-        for row in content.get('survey', []):
-            for col in ['required']:
-                if col in row:
-                    if row[col] in ['yes', '']:
-                        row[col] = row[col] + '+' + self.REQ_COL_APPEND_STRING
-
-    def _survey_revert_required_col_value(self, content):
-        for row in content.get('survey', []):
-            for col in ['required']:
-                if col in row:
-                    if self.REQ_COL_APPEND_STRING in row[col]:
-                        req_col_append_string_pos = row[col].find(self.REQ_COL_APPEND_STRING)
-                        row[col] = row[col][:req_col_append_string_pos - 1]
-
     def _autoname(self, content):
         autoname_fields_in_place(content, '$autoname')
         autovalue_choices_in_place(content, '$autovalue')
@@ -431,7 +408,9 @@ class XlsExportable(object):
         content = copy.deepcopy(self.content)
         if append:
             self._append(content, **append)
+        self._survey_prepare_required_col_value(content)
         self._standardize(content)
+        self._survey_revert_required_col_value(content)
         if not kobo_specific_types:
             self._expand_kobo_qs(content)
             self._autoname(content)
@@ -442,6 +421,25 @@ class XlsExportable(object):
         self._settings_maintain_key_order(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
+
+    def _survey_prepare_required_col_value(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if 'required' in survey_col:
+                if survey_col['required'] == True:
+                    content['survey'][survey_col_idx]['required'] = 'yes+{}'.format(self.REQ_COL_APPEND_STRING)
+                elif survey_col['required'] == False:
+                    content['survey'][survey_col_idx]['required'] = '+{}'.format(self.REQ_COL_APPEND_STRING)
+
+    def _survey_revert_required_col_value(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if 'required' in survey_col:
+                if self.REQ_COL_APPEND_STRING in survey_col['required']:
+                    req_col_append_string_pos = survey_col['required'].find(self.REQ_COL_APPEND_STRING)
+                    content['survey'][survey_col_idx]['required'] = survey_col['required'][:req_col_append_string_pos - 1]
 
     def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
