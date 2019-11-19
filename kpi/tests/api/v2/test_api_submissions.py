@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 import json
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import PERM_VIEW_SUBMISSIONS, \
@@ -323,7 +321,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 class SubmissionEditApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
-        super(SubmissionEditApiTests, self).setUp()
+        super().setUp()
         self.submission = self.submissions[0]
         self.submission_url = reverse(self._get_endpoint('submission-edit'), kwargs={
             "parent_lookup_asset": self.asset.uid,
@@ -368,7 +366,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
     # @TODO Test PATCH
 
     def setUp(self):
-        super(SubmissionValidationStatusApiTests, self).setUp()
+        super().setUp()
         self.submission = self.submissions[0]
         self.validation_status_url = self.asset.deployment.get_submission_validation_status_url(
             self.submission.get(self.asset.deployment.INSTANCE_ID_FIELDNAME))

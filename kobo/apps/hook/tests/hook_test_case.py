@@ -1,18 +1,16 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import json
 
 import responses
 from django.conf import settings
+from django.urls import reverse
 from rest_framework import status
-from django.core.urlresolvers import reverse
 
-from ..models import HookLog, Hook
-from ..constants import HOOK_LOG_FAILED
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from ..constants import HOOK_LOG_FAILED
+from ..models import HookLog, Hook
 
 
 class HookTestCase(KpiTestCase):
@@ -72,6 +70,7 @@ class HookTestCase(KpiTestCase):
             'subset_fields': kwargs.get('subset_fields', []),
             'payload_template': kwargs.get('payload_template', None)
         }
+
         response = self.client.post(url, data, format='json')
         if return_response_only:
             return response

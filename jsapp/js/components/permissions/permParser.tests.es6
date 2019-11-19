@@ -9,7 +9,7 @@ constants.ROOT_URL = '';
 
 describe('permParser', () => {
   describe('parseBackendData', () => {
-    it('should hide anonymous user permissions from output', () => {
+    it('should hide anonymous user permissions from output by default', () => {
       // in original data there are total 7 permissions (6 of asset owner and
       // one of anonymous user)
       chai.expect(endpoints.assetWithAnon.results.length).to.equal(7);
@@ -20,6 +20,21 @@ describe('permParser', () => {
       // parsed data should only contain data of owner
       chai.expect(parsed.length).to.equal(1);
       chai.expect(parsed[0].user.name).to.equal('kobo');
+    });
+
+    it('should show anonymous user permissions from output when ordered to', () => {
+      // in original data there are total 7 permissions (6 of asset owner and
+      // one of anonymous user)
+      chai.expect(endpoints.assetWithAnon.results.length).to.equal(7);
+      const parsed = permParser.parseBackendData(
+        endpoints.assetWithAnon.results,
+        endpoints.assetWithAnon.results[0].user,
+        true
+      );
+      // parsed data should contain data of owner and anonymous user
+      chai.expect(parsed.length).to.equal(2);
+      chai.expect(parsed[0].user.name).to.equal('kobo');
+      chai.expect(parsed[1].user.name).to.equal(constants.ANON_USERNAME);
     });
 
     it('should group permissions by users properly', () => {

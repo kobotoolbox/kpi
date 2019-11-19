@@ -1,28 +1,29 @@
+# coding: utf-8
 from copy import deepcopy
 
 from formpack.utils.replace_aliases import replace_aliases
 from formpack.utils.expand_content import expand_content, SCHEMA_VERSION
 
 ALLOWED_TYPES = {
-    u'score__row': True,
-    u'rank__level': True,
-    u'begin_score': [
-        u'begin score',
+    'score__row': True,
+    'rank__level': True,
+    'begin_score': [
+        'begin score',
     ],
-    u'end_score': [
-        u'end score',
+    'end_score': [
+        'end score',
     ],
-    u'begin_rank': [
-        u'begin rank',
+    'begin_rank': [
+        'begin rank',
     ],
-    u'end_rank': [
-        u'end rank',
+    'end_rank': [
+        'end rank',
     ],
-    u'begin_kobomatrix': [
-        u'begin kobomatrix',
+    'begin_kobomatrix': [
+        'begin kobomatrix',
     ],
-    u'end_kobomatrix': [
-        u'end kobomatrix',
+    'end_kobomatrix': [
+        'end kobomatrix',
     ],
 }
 

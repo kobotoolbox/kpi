@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-from lxml import etree
+# coding: utf-8
 import json
 import re
 
-from .hook_test_case import HookTestCase
+from lxml import etree
+
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML
+from kpi.utils.strings import to_str
+from .hook_test_case import HookTestCase
 
 
 class ParserTestCase(HookTestCase):
@@ -25,7 +25,7 @@ class ParserTestCase(HookTestCase):
             'group2/subgroup1/q6': u'¿Cómo está en el subgrupo uno la tercera vez?',
             '_id': 1
         }
-        self.assertEquals(service_definition._get_data(), expected_data)
+        self.assertEqual(service_definition._get_data(), expected_data)
 
     def test_xml_parser(self):
         self.asset_xml = self.create_asset(
@@ -66,7 +66,7 @@ class ParserTestCase(HookTestCase):
         expected_xml = etree.tostring(expected_etree, pretty_print=True)
 
         def remove_whitespace(str_):
-            return re.sub(r'>\s+<', '><', str_)
+            return re.sub(r'>\s+<', '><', to_str(str_))
 
-        self.assertEquals(remove_whitespace(service_definition._get_data()),
-                          remove_whitespace(expected_xml))
+        self.assertEqual(remove_whitespace(service_definition._get_data()),
+                         remove_whitespace(expected_xml))

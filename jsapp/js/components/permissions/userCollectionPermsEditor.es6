@@ -16,6 +16,7 @@ import {
   buildUserUrl
 } from 'js/utils';
 import {
+  ANON_USERNAME,
   PERMISSIONS_CODENAMES,
   COLLECTION_PERMISSIONS
 } from 'js/constants';
@@ -205,7 +206,9 @@ class UserCollectionPermissionsEditor extends React.Component {
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       this.state.username.length > 0 &&
-      this.state.usernamesBeingChecked.size === 0
+      this.state.usernamesBeingChecked.size === 0 &&
+      // we don't allow manual setting anonymous user permissions through UI
+      this.state.username !== ANON_USERNAME
     );
   }
 

@@ -53,7 +53,7 @@ class SharingForm extends React.Component {
   }
 
   onAssetPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
     const anonUserUrl = buildUserUrl(ANON_USERNAME);
     const publicPerms = permissionAssignments.filter((assignment) => {
       return assignment.user === anonUserUrl;
@@ -70,7 +70,7 @@ class SharingForm extends React.Component {
   }
 
   onCollectionPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
     let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);
     });
@@ -157,6 +157,10 @@ class SharingForm extends React.Component {
           <h2>{t('Who has access')}</h2>
 
           {this.state.permissions.map((perm) => {
+            // don't show anonymous user permissions in UI
+            if (perm.user.name === ANON_USERNAME) {
+              return null;
+            }
             return <UserPermissionRow
               key={`perm.${uid}.${perm.user.name}`}
               uid={uid}
