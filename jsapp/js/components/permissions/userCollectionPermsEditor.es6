@@ -6,9 +6,9 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
-import stores from 'js/stores';
-import actions from 'js/actions';
-import bem from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
 import permConfig from './permConfig';
 import {
   t,

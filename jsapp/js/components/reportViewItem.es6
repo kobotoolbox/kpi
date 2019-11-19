@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
-import bem from '../bem';
+import {bem} from '../bem';
 import $ from 'jquery';
 
 import {t, assign} from '../utils';

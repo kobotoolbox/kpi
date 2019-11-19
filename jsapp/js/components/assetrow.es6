@@ -4,9 +4,9 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import $ from 'jquery';
 import { Link } from 'react-router';
-import bem from '../bem';
+import {bem} from '../bem';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {

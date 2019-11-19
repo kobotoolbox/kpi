@@ -1,7 +1,7 @@
-import permParser from './permParser';
+import {permParser} from './permParser';
 import permConfig from './permConfig';
-import endpoints from './permissionsMocks';
-import constants from 'js/constants';
+import {endpoints} from './permissionsMocks';
+import {constants} from 'js/constants';
 
 // bootstraping
 permConfig.onGetConfigCompleted(endpoints.permissions);

@@ -4,9 +4,9 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
-import stores from 'js/stores';
-import actions from 'js/actions';
-import bem from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
 import {
   t,
   buildUserUrl
@@ -22,7 +22,7 @@ import UserAssetPermsEditor from './userAssetPermsEditor';
 import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
-import permParser from './permParser';
+import {permParser} from './permParser';
 
 class SharingForm extends React.Component {
   constructor(props) {

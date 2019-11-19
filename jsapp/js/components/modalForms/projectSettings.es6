@@ -8,13 +8,13 @@ import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
 import Checkbox from 'js/components/checkbox';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
-import stores from 'js/stores';
+import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
-import actions from 'js/actions';
+import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
   t,

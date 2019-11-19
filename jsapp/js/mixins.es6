@@ -22,8 +22,8 @@ import {
   ANON_USERNAME
 } from './constants';
 import {dataInterface} from './dataInterface';
-import stores from './stores';
-import actions from './actions';
+import {stores} from './stores';
+import {actions} from './actions';
 import $ from 'jquery';
 import permConfig from 'js/components/permissions/permConfig';
 import {
