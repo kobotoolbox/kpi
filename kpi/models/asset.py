@@ -60,6 +60,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.utils.log import logging
 
+CUSTOM_COL_APPEND_STRING = 'custom_col_append_string'
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class TaggableModelManager(models.Manager):
@@ -131,7 +132,6 @@ FLATTEN_OPTS = {
 
 
 class FormpackXLSFormUtils(object):
-    REQ_COL_APPEND_STRING = 'req_col_append_string'
     
     def _standardize(self, content):
         if needs_standardization(content):
@@ -408,9 +408,9 @@ class XlsExportable(object):
         content = copy.deepcopy(self.content)
         if append:
             self._append(content, **append)
-        self._survey_prepare_required_col_value(content)
+        self._survey_prepare_custom_col_value(content)
         self._standardize(content)
-        self._survey_revert_required_col_value(content)
+        self._survey_revert_custom_col_value(content)
         if not kobo_specific_types:
             self._expand_kobo_qs(content)
             self._autoname(content)
@@ -422,24 +422,35 @@ class XlsExportable(object):
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
 
-    def _survey_prepare_required_col_value(self, content):
+    def _survey_prepare_custom_col_value(self, content):
         survey = content.get('survey', [])
         for survey_col_idx in range(len(survey)):
             survey_col = survey[survey_col_idx]
             if 'required' in survey_col:
                 if survey_col['required'] == True:
-                    content['survey'][survey_col_idx]['required'] = 'yes+{}'.format(self.REQ_COL_APPEND_STRING)
+                    content['survey'][survey_col_idx]['required'] = 'yes+{}'.format(CUSTOM_COL_APPEND_STRING)
                 elif survey_col['required'] == False:
-                    content['survey'][survey_col_idx]['required'] = '+{}'.format(self.REQ_COL_APPEND_STRING)
+                    content['survey'][survey_col_idx]['required'] = '+{}'.format(CUSTOM_COL_APPEND_STRING)
+            if 'readonly' in survey_col:
+                if survey_col['readonly'] == 'true':
+                    content['survey'][survey_col_idx]['oc_readonly'] = 'yes+{}'.format(CUSTOM_COL_APPEND_STRING)
+                elif survey_col['readonly'] == 'false':
+                    content['survey'][survey_col_idx]['oc_readonly'] = '+{}'.format(CUSTOM_COL_APPEND_STRING)
+                del content['survey'][survey_col_idx]['readonly']
 
-    def _survey_revert_required_col_value(self, content):
+    def _survey_revert_custom_col_value(self, content):
         survey = content.get('survey', [])
         for survey_col_idx in range(len(survey)):
             survey_col = survey[survey_col_idx]
             if 'required' in survey_col:
-                if self.REQ_COL_APPEND_STRING in survey_col['required']:
-                    req_col_append_string_pos = survey_col['required'].find(self.REQ_COL_APPEND_STRING)
+                if CUSTOM_COL_APPEND_STRING in survey_col['required']:
+                    req_col_append_string_pos = survey_col['required'].find(CUSTOM_COL_APPEND_STRING)
                     content['survey'][survey_col_idx]['required'] = survey_col['required'][:req_col_append_string_pos - 1]
+            if 'oc_readonly' in survey_col:
+                if CUSTOM_COL_APPEND_STRING in survey_col['oc_readonly']:
+                    req_col_append_string_pos = survey_col['oc_readonly'].find(CUSTOM_COL_APPEND_STRING)
+                    content['survey'][survey_col_idx]['readonly'] = survey_col['oc_readonly'][:req_col_append_string_pos - 1]
+                del content['survey'][survey_col_idx]['oc_readonly']
 
     def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
@@ -615,13 +626,39 @@ class Asset(ObjectPermissionMixin,
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
+    def _adjust_content_custom_column(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if 'readonly' in survey_col:
+                readonly_val = survey_col['readonly'].lower()
+                if readonly_val == 'yes' or readonly_val == 'true':
+                    readonly_val = 'true'
+                else:
+                    readonly_val = 'false'
+                content['survey'][survey_col_idx]['oc_readonly'] = readonly_val
+                del content['survey'][survey_col_idx]['readonly']
+            else:
+                content['survey'][survey_col_idx]['oc_readonly'] = 'false'
+                    
+
+    def _revert_custom_column(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if 'oc_readonly' in survey_col:
+                content['survey'][survey_col_idx]['readonly'] = survey_col['oc_readonly']
+                del content['survey'][survey_col_idx]['oc_readonly']
+
     def adjust_content_on_save(self):
         '''
         This is called on save by default if content exists.
         Can be disabled / skipped by calling with parameter:
         asset.save(adjust_content=False)
         '''
+        self._adjust_content_custom_column(self.content)
         self._standardize(self.content)
+        self._revert_custom_column(self.content)
         self._make_default_translation_first(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)

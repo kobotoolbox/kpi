@@ -561,4 +561,12 @@ module.exports = do ->
           else
             @model.set 'value', $select.val()
 
+  viewRowDetail.DetailViewMixins.readonly =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Read only")
+    afterRender: ->
+      @listenForCheckboxChange()
+
   viewRowDetail

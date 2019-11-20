@@ -231,7 +231,8 @@ module.exports = do ->
     "default",
     "constraint"
     "bind::oc:itemgroup",
-    "bind::oc:external"
+    "bind::oc:external",
+    "readonly"
   ]
 
   configs.lookupRowType = do->
@@ -321,6 +322,8 @@ module.exports = do ->
       value: ''
     "bind::oc:external":
       value: ''
+    readonly:
+      value: false
 
   configs.newGroupDetails =
     name:
