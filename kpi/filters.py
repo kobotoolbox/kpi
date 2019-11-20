@@ -2,18 +2,11 @@
 import re
 from distutils.util import strtobool
 
-import haystack
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
-from haystack.backends.whoosh_backend import WhooshSearchBackend
-from haystack.constants import DJANGO_CT
-from haystack.query import SearchQuerySet
-from haystack.utils import get_model_ct
 from rest_framework import filters
-from whoosh.qparser import QueryParser
-from whoosh.query import Term
 
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
@@ -146,97 +139,7 @@ class SearchFilter(filters.BaseFilterBackend):
             return queryset
 
         q_obj = parse(q,queryset.model)
-        res = queryset.filter(q_obj)
-        return res
-        # Short-circuit some commonly used queries
-        COMMON_QUERY_TO_ORM_FILTER = {
-            'asset_type:block': {'asset_type': 'block'},
-            'asset_type:question': {'asset_type': 'question'},
-            'asset_type:template': {'asset_type': 'template'},
-            'asset_type:survey': {'asset_type': 'survey'},
-            'asset_type:question OR asset_type:block': {
-                'asset_type__in': ('question', 'block')
-            },
-            'asset_type:question OR asset_type:block OR asset_type:template': {
-                'asset_type__in': ('question', 'block', 'template')
-            },
-        }
-        try:
-            return queryset.filter(**COMMON_QUERY_TO_ORM_FILTER[q])
-        except KeyError:
-            # We don't know how to short-circuit this query; pass it along
-            pass
-        except FieldError:
-            # The user passed a query we recognized as commonly-used, but the
-            # field was invalid for the requested model
-            return queryset.none()
-
-        # Queries for library questions/blocks inside collections are also
-        # common (and buggy when using Whoosh: see #1707)
-        library_collection_match = self.library_collection_pattern.match(q)
-        if library_collection_match:
-            asset_types = [
-                type_query.split(':')[1] for type_query in
-                    library_collection_match.groups()[0].split(' OR ')
-            ]
-            parent__uid = library_collection_match.groups()[1]
-            try:
-                return queryset.filter(
-                    asset_type__in=asset_types,
-                    parent__uid=parent__uid
-                )
-            except FieldError:
-                return queryset.none()
-
-        # Fall back to Whoosh
-        queryset_pks = list(queryset.values_list('pk', flat=True))
-        if not len(queryset_pks):
-            return queryset
-        # 'q' means do a full-text search of the document fields, where the
-        # critera are given in the Whoosh query language:
-        # https://pythonhosted.org/Whoosh/querylang.html
-        search_queryset = SearchQuerySet().models(queryset.model)
-        search_backend = search_queryset.query.backend
-        if not isinstance(search_backend, WhooshSearchBackend):
-            raise NotImplementedError(
-                'Only the Whoosh search engine is supported at this time')
-        if not search_backend.setup_complete:
-            search_backend.setup()
-        # Parse the user's query
-        user_query = QueryParser('text', search_backend.index.schema).parse(q)
-        # Construct a query to restrict the search to the appropriate model
-        filter_query = Term(DJANGO_CT, get_model_ct(queryset.model))
-        # Does the search index for this model have a field that allows
-        # filtering by permissions?
-        haystack_index = haystack.connections[
-            'default'].get_unified_index().get_index(queryset.model)
-        if hasattr(haystack_index, 'users_granted_permission'):
-            # Also restrict the search to records that the user can access
-            filter_query &= Term(
-                'users_granted_permission', request.user.username)
-        with search_backend.index.searcher() as searcher:
-            results = searcher.search(
-                user_query,
-                filter=filter_query,
-                scored=False,
-                sortedby=None,
-                limit=None
-            )
-            if not results:
-                # We got nothing; is the search index even valid?
-                if not searcher.search(filter_query, limit=1):
-                    # Thre's not a single entry in the search index for this
-                    # model; assume the index is invalid and return the
-                    # queryset untouched
-                    return queryset
-            pk_type = type(queryset_pks[0])
-            results_pks = {
-                # Coerce each `django_id` from unicode to the appropriate type,
-                # usually `int`
-                pk_type((x['django_id'])) for x in results
-            }
-        filter_pks = results_pks.intersection(queryset_pks)
-        return queryset.filter(pk__in=filter_pks)
+        return queryset.filter(q_obj)
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
