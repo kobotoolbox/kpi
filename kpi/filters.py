@@ -22,6 +22,8 @@ from .models.object_permission import (
     get_models_with_object_permissions,
 )
 
+from kpi.utils.query_parser.query_parser import parse
+
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
@@ -143,6 +145,9 @@ class SearchFilter(filters.BaseFilterBackend):
         except KeyError:
             return queryset
 
+        q_obj = parse(q,queryset.model)
+        res = queryset.filter(q_obj)
+        return res
         # Short-circuit some commonly used queries
         COMMON_QUERY_TO_ORM_FILTER = {
             'asset_type:block': {'asset_type': 'block'},

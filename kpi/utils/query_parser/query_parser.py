@@ -1,28 +1,30 @@
 # -*- coding: utf-8 -*-
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
 
 from django.db.models import Q
 
-# todo: use the real one
-DEFAULT_FIELD_NAME = str('PLACEHOLDER_FIELD')
+DEFAULT_FIELD_NAME = 'summary' # PLACEHOLDER_FIELD. Maybe "name."
 
-TEST_QUERY = '(a:a OR b:b AND c:c) AND d:d OR (snakes:� AND NOT alphabet:�soup)'
+from .grammar import parse as grammar_parse
 
-import grammar
 class Actions(object):
 
   def __init__(self, model):
     self.model = model
-  def process_value(self, field, value): #thx
-    return value
-    #return self.model._meta.get_field(field).to_python(value)
+  def process_value(self, field, value): #thx -- qqq - todo
+    # If all we're doing when we have a type mismatch with a field
+    # is returning an empty set, then we don't need to do type validation.
+    # Django converts this stuff to strings, with the exception of Nulls.
+    # There's no magic string for null, so we're adding one. Can remove it later.
+    if value == 'null':
+      return None
+    else:
+      return value
 
   def query(self, text, a, b, elements):
     exp = elements[1]
     if hasattr(exp, 'text') and exp.text == '':
       # HANDLE THE EMPTY QUERY CASE
-      return 'EMPTY'
+      return Q() # this gives us "all"
     else:
       #fallthrough
       return exp
@@ -61,10 +63,9 @@ class Actions(object):
   def term(self, text, a, b, elements):
     if elements[0].text == '':
       # A search term by itself without a specified field
-      field = DEFAULT_FIELD_NAME
+      field = DEFAULT_FIELD_NAME + "__icontains"
+      # if hasattr(self.model, DEFAULT_FIELD_NAME)
       value = elements[1]
-      # Make the value the right type, based on the model's default field
-      value = self.process_value(field, value)
       return Q(**{field: value})
     else:
       # A field+colon, and a value [[field,':'],value]
@@ -80,5 +81,6 @@ class Actions(object):
   def name(self, text, a, b, elements):
     return text[a:b]  
 
-result = grammar.parse(TEST_QUERY, actions=Actions(None))
-print(result)
+
+def parse(query='', model=None): # qqq - needs careful review
+    return grammar_parse(query, actions=Actions(model))
