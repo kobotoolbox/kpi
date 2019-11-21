@@ -4,7 +4,7 @@ import re
 from haystack import indexes
 from taggit.models import Tag
 
-from .models import Asset, Collection
+from .models import Asset
 
 
 class FieldPreparersMixin:
@@ -46,11 +46,6 @@ class FieldPreparersMixin:
         if obj.parent:
             return obj.parent.uid
 
-    def prepare_ancestor__uid(self, obj):
-        ancestors = obj.get_ancestors_or_none()
-        if ancestors:
-            return [a.uid for a in ancestors]
-
     def prepare_users_granted_permission(self, obj):
         return [u.username for u in obj.get_users_with_perms()]
 
@@ -65,7 +60,6 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     owner__username = indexes.CharField(model_attr='owner__username', null=True)
     parent__name = indexes.CharField(model_attr='parent__name', null=True)
     tag = indexes.MultiValueField()
-    ancestor__uid = indexes.MultiValueField()
     # There's nothing multi-valued about these fields, but using
     # MultiValueField convinces Haystack to use Whoosh's KEYWORD field, which
     # in turn uses KeywordAnalyzer. Then, by replacing commas, we can force the
@@ -96,26 +90,6 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
         return Asset
 
 
-class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
-    # Haystack seems allergic to mixins and inheritance (even from ABCs!),
-    # so throw DRY to the wind
-    text = indexes.CharField(document=True, use_template=True)
-    name = indexes.CharField(model_attr='name')
-    owner__username = indexes.CharField(model_attr='owner__username')
-    parent__name = indexes.CharField(model_attr='parent__name', null=True)
-    tag = indexes.MultiValueField()
-    ancestor__uid = indexes.MultiValueField()
-    # Not really multi-valued; see AssetIndex for explanation
-    name__exact = indexes.MultiValueField()
-    owner__username__exact = indexes.MultiValueField()
-    parent__name__exact = indexes.MultiValueField()
-    parent__uid = indexes.MultiValueField()
-    users_granted_permission = indexes.MultiValueField()
-
-    def get_model(self):
-        return Collection
-
-
 class TagIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     text = indexes.CharField(model_attr='name', document=True)
     name__ngram = indexes.NgramField(model_attr='name')
@@ -130,11 +104,10 @@ class TagIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
 
     def prepare_kind(self, obj):
         kinds = []
-        for klass in (Asset, Collection):
-            try:
-                kinds.append(klass.objects.filter(tags=obj)[0].kind)
-            except IndexError:
-                pass
+        try:
+            kinds.append(Asset.objects.filter(tags=obj)[0].kind)
+        except IndexError:
+            pass
         return [self._escape_comma_space(x) for x in kinds]
 
     def get_model(self):

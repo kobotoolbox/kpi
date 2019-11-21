@@ -47,13 +47,6 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
                          msg="anonymous user cannot create a asset")
 
-    def test_cannot_create_collection(self):
-        url = reverse(self._get_endpoint('collection-list'))
-        data = {'name': 'my collection', 'collections': [], 'assets': []}
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
-                         msg="anonymous user cannot create a collection")
-
 
 class ApiPermissionsPublicAssetTestCase(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -433,7 +426,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Test that "someuser" can't delete the collection.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url = reverse(self._get_endpoint('collection-detail'), kwargs={'uid':
+        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid':
                                                        self.admin_collection.uid})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -449,7 +442,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Test that "someuser" can't delete the child collection.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url = reverse(self._get_endpoint('collection-detail'), kwargs={'uid':
+        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid':
                                                        self.child_collection.uid})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -25,13 +25,17 @@ import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
-from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
+from kpi.constants import (
+    ASSET_TYPE_COLLECTION,
+    PERM_VIEW_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+)
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
     remove_string_prefix
-from ..models import Collection, Asset
+from ..models import Asset
 from ..zip_importer import HttpContentParse
 
 
@@ -43,7 +47,8 @@ def utcnow(*args, **kwargs):
     return datetime.datetime.utcnow()
 
 
-def _resolve_url_to_asset_or_collection(item_path):
+def _resolve_url_to_asset(item_path):
+    # TODO: is this still necessary now that `Collection` has been removed?
     if item_path.startswith(('http', 'https')):
         item_path = urlparse(item_path).path
     try:
@@ -54,10 +59,7 @@ def _resolve_url_to_asset_or_collection(item_path):
         match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
 
     uid = match.kwargs.get('uid')
-    if match.url_name == 'asset-detail':
-        return 'asset', Asset.objects.get(uid=uid)
-    elif match.url_name == 'collection-detail':
-        return 'collection', Collection.objects.get(uid=uid)
+    return Asset.objects.get(uid=uid)
 
 
 class ImportExportTask(models.Model):
@@ -149,14 +151,13 @@ class ImportTask(ImportExportTask):
     def _run_task(self, messages):
         self.status = self.PROCESSING
         self.save(update_fields=['status'])
-        dest_item = dest_kls = has_necessary_perm = False
+        dest_item = has_necessary_perm = False
 
         if 'destination' in self.data and self.data['destination']:
             _d = self.data.get('destination')
-            (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
-            necessary_perm = 'change_%s' % dest_kls
-            if not dest_item.has_perm(self.user, necessary_perm):
-                raise exceptions.PermissionDenied('user cannot update %s' % dest_kls)
+            dest_item = _resolve_url_to_asset(_d)
+            if not dest_item.has_perm(self.user, PERM_CHANGE_ASSET):
+                raise exceptions.PermissionDenied('user cannot update asset')
             else:
                 has_necessary_perm = True
 
@@ -165,7 +166,6 @@ class ImportTask(ImportExportTask):
                 messages=messages,
                 url=self.data.get('url'),
                 destination=dest_item,
-                destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
             return
@@ -186,7 +186,6 @@ class ImportTask(ImportExportTask):
                 messages=messages,
                 library=self.data.get('library', False),
                 destination=dest_item,
-                destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
             return
@@ -198,7 +197,6 @@ class ImportTask(ImportExportTask):
 
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
-        destination_kls = kwargs.get('destination_kls', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
         req = requests.get(url, allow_redirects=True)
         fif = HttpContentParse(request=req).parse()
@@ -206,7 +204,7 @@ class ImportTask(ImportExportTask):
         fif.remove_empty_collections()
 
         destination_collection = destination \
-            if destination_kls == 'collection' else False
+            if destination.asset_type == ASSET_TYPE_COLLECTION else False
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -265,14 +263,13 @@ class ImportTask(ImportExportTask):
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
-        destination_kls = kwargs.get('destination_kls', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
 
         if destination and not has_necessary_perm:
             # redundant check
             raise exceptions.PermissionDenied('user cannot update item')
 
-        if destination_kls == 'collection':
+        if destination and destination.asset_type == ASSET_TYPE_COLLECTION:
             raise NotImplementedError('cannot import into a collection at this'
                                       ' time')
 
@@ -513,12 +510,7 @@ class ExportTask(ImportExportTask):
         source_url = self.data.get('source', False)
         if not source_url:
             raise Exception('no source specified for the export')
-        source_type, source = _resolve_url_to_asset_or_collection(source_url)
-
-        if source_type != 'asset':
-            raise NotImplementedError(
-                'only an `Asset` may be exported at this time')
-
+        source = _resolve_url_to_asset(source_url)
         source_perms = source.get_perms(self.user)
 
         if (PERM_VIEW_SUBMISSIONS not in source_perms and

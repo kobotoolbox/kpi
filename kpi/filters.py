@@ -15,6 +15,7 @@ from rest_framework import filters
 from whoosh.qparser import QueryParser
 from whoosh.query import Term
 
+from kpi.constants import PERM_DISCOVER_ASSET
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
@@ -77,17 +78,10 @@ class KpiObjectPermissionsFilter:
 
         # For a list, do not include public objects unless they are also
         # discoverable
-        try:
-            discoverable = public.filter(discoverable_when_public=True)
-        except FieldError:
-            try:
-                # The model does not have a discoverability setting, but maybe
-                # its parent does
-                discoverable = public.filter(
-                    parent__discoverable_when_public=True)
-            except FieldError:
-                # Neither the model or its parent has a discoverability setting
-                discoverable = public.none()
+        # FIXME: clearly asset-specific, not generic; should not be here
+        discoverable = get_objects_for_user(
+            get_anonymous_user(), PERM_DISCOVER_ASSET, public
+        )
 
         if all_public:
             # We were asked not to consider subscriptions; return all
@@ -97,16 +91,15 @@ class KpiObjectPermissionsFilter:
         # Of the discoverable objects, determine to which the user has
         # subscribed
         try:
-            subscribed = public.filter(usercollectionsubscription__user=user)
+            subscribed = public.filter(userassetsubscription__user=user)
+            # TODO: should this expand beyond the immediate parents to include
+            # all ancestors to which the user has subscribed?
+            subscribed |= public.filter(
+                parent__userassetsubscription__user=user
+            )
         except FieldError:
-            try:
-                # The model does not have a subscription relation, but maybe
-                # its parent does
-                subscribed = public.filter(
-                    parent__usercollectionsubscription__user=user)
-            except FieldError:
-                # Neither the model or its parent has a subscription relation
-                subscribed = public.none()
+            # The model does not have a subscription relation
+            subscribed = public.none()
 
         return (owned_and_explicitly_shared | subscribed).distinct()
 
@@ -155,6 +148,7 @@ class SearchFilter(filters.BaseFilterBackend):
             'asset_type:question': {'asset_type': 'question'},
             'asset_type:template': {'asset_type': 'template'},
             'asset_type:survey': {'asset_type': 'survey'},
+            'asset_type:collection': {'asset_type': 'collection'},
             'asset_type:question OR asset_type:block': {
                 'asset_type__in': ('question', 'block')
             },

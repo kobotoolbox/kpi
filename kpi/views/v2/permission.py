@@ -3,13 +3,12 @@ from django.contrib.auth.models import Permission
 from rest_framework import viewsets
 
 from kpi.models.asset import Asset
-from kpi.models.collection import Collection
 from kpi.serializers.v2.permission import PermissionSerializer
 
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    **Display all assignable permissions for `Asset` and `Collection`**
+    **Display all assignable permissions for `Asset`**
 
     The `implied` property of a given permission shows which additional
     permissions are automatically granted when assigning that particular
@@ -47,11 +46,11 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     >                },
     >                ...
     >               {
-    >                   "url": "http://kpi/api/v2/permissions/view_collection/",
+    >                   "url": "http://kpi/api/v2/permissions/add_submissions/",
     >                   "codename": "add_submissions",
     >                   "implied": [],
     >                   "contradictory": [],
-    >                   "name": "Can view collection"
+    >                   "name": "Can submit data to asset"
     >                }
     >           ]
     >        }
@@ -93,14 +92,9 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset(*args, **kwargs)
         # Codenames are unique per content_type. So, we ensure we don't return
         # codenames for different app or content_type
-        models = [Asset._meta.model_name, Collection._meta.model_name]
-        assignable_permissions = list(Asset.ASSIGNABLE_PERMISSIONS +
-                                      Collection.ASSIGNABLE_PERMISSIONS)
-
         queryset = queryset.filter(
-            content_type__app_label="kpi",
-            content_type__model__in=models,
-            codename__in=assignable_permissions,
-        ).select_related("content_type")
-
+            content_type__app_label='kpi',
+            content_type__model='asset',
+            codename__in=Asset.ASSIGNABLE_PERMISSIONS,
+        ).select_related('content_type')
         return queryset

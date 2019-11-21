@@ -11,8 +11,8 @@ from lxml import etree
 from private_storage.storage.files import PrivateFileSystemStorage
 from rest_framework import status
 
+from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset
-from kpi.models import Collection
 from kpi.models import ExportTask
 from kpi.serializers.v1.asset import AssetListSerializer
 # importing module instead of the class, avoid running the tests twice
@@ -134,7 +134,10 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.surv = Asset.objects.create(content={'survey': [{"type": "text", "name": "q1"}]},
                                          owner=self.user,
                                          asset_type='survey')
-        self.coll = Collection.objects.create(name='sample collection', owner=self.user)
+        self.coll = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, name='sample collection',
+            owner=self.user
+        )
 
     def _count_children_by_kind(self, children, kind):
         count = 0
@@ -153,18 +156,24 @@ class ObjectRelationshipsTests(BaseTestCase):
             the asset is now listed in the collection's list of assets.
         """
         _ = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
-        coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
+        coll_req1 = self.client.get(
+            reverse("asset-detail", args=[self.coll.uid])
+        )
         self.assertEqual(self._count_children_by_kind(
             coll_req1.data['children'], self.surv.kind), 0)
 
         self.surv.parent = self.coll
         self.surv.save()
 
-        surv_req2 = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
-        self.assertIn('parent', surv_req2.data)
-        self.assertIn(self.coll.uid, surv_req2.data['parent'])
+        surv_req2 = self.client.get(
+            reverse("asset-detail", args=[self.surv.uid])
+        )
+        self.assertIn("parent", surv_req2.data)
+        self.assertIn(self.coll.uid, surv_req2.data["parent"])
 
-        coll_req2 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
+        coll_req2 = self.client.get(
+            reverse("asset-detail", args=[self.coll.uid])
+        )
         self.assertEqual(self._count_children_by_kind(
             coll_req2.data['children'], self.surv.kind), 1)
         self.assertEqual(
@@ -179,10 +188,12 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(
-            surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
+            surv_url,
+            data={"parent": reverse("asset-detail", args=[self.coll.uid])},
+        )
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (self.coll.uid), req.data['parent'])
 
     def test_remove_asset_from_collection(self):
         """
@@ -195,10 +206,12 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(
-            surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
+            surv_url,
+            data={"parent": reverse("asset-detail", args=[self.coll.uid])},
+        )
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (self.coll.uid), req.data['parent'])
         # Assigned asset to collection successfully; now remove it
         patch_req = self.client.patch(surv_url, data={'parent': ''})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
@@ -216,18 +229,20 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(surv_url, data={'parent': reverse(
-            'collection-detail', args=[self.coll.uid])})
+            'asset-detail', args=[self.coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (self.coll.uid), req.data['parent'])
         # Assigned asset to collection successfully; now move it to another
-        other_coll = Collection.objects.create(
-            name='another collection', owner=self.user)
+        other_coll = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, name='another collection',
+            owner=self.user
+        )
         patch_req = self.client.patch(surv_url, data={'parent': reverse(
-            'collection-detail', args=[other_coll.uid])})
+            'asset-detail', args=[other_coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (other_coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (other_coll.uid), req.data['parent'])
 
 
 class AssetsSettingsFieldTest(test_api_assets.AssetsSettingsFieldTest):

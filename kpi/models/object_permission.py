@@ -13,7 +13,7 @@ from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 
-from kpi.constants import PREFIX_PARTIAL_PERMS
+from kpi.constants import ASSET_TYPE_SURVEY, PREFIX_PARTIAL_PERMS
 from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
@@ -54,10 +54,12 @@ def get_all_objects_for_user(user, klass):
     Return all objects of type klass to which user has been assigned any
     permission.
     """
-    return klass.objects.filter(pk__in=ObjectPermission.objects.filter(
-        user=user,
-        content_type=ContentType.objects.get_for_model(klass)
-    ).values_list('object_id', flat=True))
+    # TODO: trash this once we've axed `GenericForeignKey`
+    return klass.objects.filter(
+        pk__in=ObjectPermission.objects.filter(
+            user=user, content_type=ContentType.objects.get_for_model(klass)
+        ).values_list("object_id", flat=True)
+    )
 
 
 def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
@@ -254,21 +256,18 @@ class ObjectPermission(models.Model):
 
 class ObjectPermissionMixin:
     """
-    A mixin class that adds the methods necessary for object-level
-    permissions to a model (either models.Model or MPTTModel). The model must
-    define parent, ASSIGNABLE_PERMISSIONS, CALCULATED_PERMISSIONS, and, if
-    parent references a different model, MAPPED_PARENT_PERMISSIONS. A
-    post_delete signal receiver should also clean up any ObjectPermission
-    records associated with the model instance.  The MRO is important, so be
-    sure to include this mixin before the base class in your model definition,
-    e.g.
+    A mixin class that adds the methods necessary for object-level permissions
+    to a model. The model must define parent, ASSIGNABLE_PERMISSIONS_BY_TYPE,
+    CALCULATED_PERMISSIONS, and HERITABLE_PERMISSIONS. A post_delete signal
+    receiver should also clean up any ObjectPermission records associated with
+    the model instance.  The MRO is important, so be sure to include this mixin
+    before the base class in your model definition, e.g.
         class MyAwesomeModel(ObjectPermissionMixin, models.Model)
     """
 
     CONTRADICTORY_PERMISSIONS = {}
 
-    @classmethod
-    def get_assignable_permissions(cls, with_partial=True):
+    def get_assignable_permissions(self, with_partial=True):
         """
         The "versioned app registry" used during migrations apparently does
         not store non-database attributes, so this awful workaround is needed
@@ -283,11 +282,15 @@ class ObjectPermissionMixin:
         :return: tuple
         """
         try:
-            assignable_permissions = cls.ASSIGNABLE_PERMISSIONS
+            permissions_by_type = self.ASSIGNABLE_PERMISSIONS_BY_TYPE
         except AttributeError:
-            assignable_permissions = apps.get_model(
-                cls._meta.app_label, cls._meta.model_name
-            ).ASSIGNABLE_PERMISSIONS
+            permissions_by_type = apps.get_model(
+                self._meta.app_label, self._meta.model_name
+            ).ASSIGNABLE_PERMISSIONS_BY_TYPE
+
+        # FIXME: since this method is clearly `Asset`-specific, it does not
+        # belong in this generic mixin
+        assignable_permissions = permissions_by_type[self.asset_type]
 
         if with_partial is False:
             assignable_permissions = tuple(ap for ap in assignable_permissions
@@ -303,7 +306,7 @@ class ObjectPermissionMixin:
         Copies permissions from `source_object` to `self` object.
         Both objects must have the same type.
 
-        :param source_object: mixed (Asset, Collection)
+        :param source_object: Asset
         :return: Boolean
         """
 
@@ -336,13 +339,11 @@ class ObjectPermissionMixin:
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
         super().save(*args, **kwargs)
-        # Recalculate self and all descendants, re-fetching ourself first to
-        # guard against stale MPTT values
-        fresh_self = type(self).objects.get(pk=self.pk)
+        # Recalculate self and all descendants
         # TODO: Don't do this when the modification is trivial, e.g. a
         # collection was renamed
-        fresh_self._recalculate_inherited_perms()
-        fresh_self.recalculate_descendants_perms()
+        self._recalculate_inherited_perms()
+        self.recalculate_descendants_perms()
 
     def _filter_anonymous_perms(self, unfiltered_set):
         """
@@ -442,6 +443,12 @@ class ObjectPermissionMixin:
         ):
             delete_permissions = self.__get_permissions_for_content_type(
                 content_type.pk, codename__startswith='delete_')
+            # FIXME: `Asset`-specific logic does not belong in this generic
+            # mixin
+            if self.asset_type != ASSET_TYPE_SURVEY:
+                delete_permissions = delete_permissions.exclude(
+                    codename__endswith="_submissions"
+                )
             for delete_perm_pk, delete_perm_codename in delete_permissions:
                 if (codename is not None and
                         delete_perm_codename != codename
@@ -460,17 +467,32 @@ class ObjectPermissionMixin:
             return effective_perms
 
     def recalculate_descendants_perms(self):
-        """ Recalculate the inherited permissions of all descendants. Expects
-        either self.get_mixed_children() or self.get_children() to exist. The
-        former will be used preferentially if it exists. """
+        if not hasattr(self, 'children'):
+            # It's impossible for us to have descendants. Move along...
+            return
+        children = list(self.children.only('pk', 'owner', 'parent'))
+        if not children:
+            return
+        effective_perms = self._get_effective_perms(
+            include_calculated=False)
+        for child in children:
+            # remove stale inherited perms
+            child.permissions.filter(inherited=True).delete()
+            # calc the new ones
+            child._recalculate_inherited_perms(
+                parent_effective_perms=effective_perms,
+                stale_already_deleted=True,
+                #return_instead_of_creating=True
+            )
+            # recurse!
+            child.recalculate_descendants_perms()
 
-        GET_CHILDREN_METHODS = ('get_mixed_children', 'get_children')
-        can_have_children = False
-        for method in GET_CHILDREN_METHODS:
-            if hasattr(self, method):
-                can_have_children = True
-                break
-        if not can_have_children:
+    def fuckall_recalculate_descendants_perms(self):
+        """
+        Recalculate the inherited permissions of all `self.children`
+        """
+
+        if not hasattr(self, 'children'):
             # It's impossible for us to have descendants. Move along...
             return
 
@@ -482,19 +504,21 @@ class ObjectPermissionMixin:
             except IndexError:
                 # No parents left; we're done!
                 break
+
+            # Query for all the children now instead of using `exists()` since
+            # we're about to use the results, if any
+            children = list(self.children.only('pk', 'owner', 'parent'))
+            if not children:
+                continue
+
             # Get the effective permissions once per parent so that each child
             # does not have to query the database for the same information
+            # FIXME: does this really work? if we're a grandchild whose parent
+            # was just updated by this function, are the effective permissions
+            # accurate?
             parent_effective_perms = parent._get_effective_perms(
                 include_calculated=False)
-            # Get all children, retrieving only the necessary fields from the
-            # database. NB: `content` is particularly heavy
-            for method in GET_CHILDREN_METHODS:
-                if hasattr(parent, method):
-                    break
-            children = getattr(parent, method)().only(
-                'pk', 'owner', 'parent')
             # Delete stale permissions once per parent, instead of per-child
-            # TODO: Um, don't have two loops?
             delete_pks_by_content_type = {}
             for child in children:
                 content_type = ContentType.objects.get_for_model(child).pk
@@ -519,12 +543,14 @@ class ObjectPermissionMixin:
             # once per parent
             objects_to_create = []
             for child in children:
-                for method in GET_CHILDREN_METHODS:
-                    if hasattr(child, method):
-                        # This child could have its own children; make sure we
-                        # check it later
-                        parents.append(child)
-                        break
+                if child.asset_type == 'collection':
+                    # This child could have its own children; make sure we
+                    # check it later
+                    parents.append(child)
+                    # FIXME: why do we break here? did we not care about
+                    # recalculating child collections' permissions? i guess it
+                    # didn't matter because we never had nested collections
+                    break
                 # Recalculate the child's permissions
                 new_permissions = child._recalculate_inherited_perms(
                     parent_effective_perms=parent_effective_perms,
@@ -590,34 +616,25 @@ class ObjectPermissionMixin:
                 if user_id == self.owner_id:
                     # The owner already has every assignable permission
                     continue
-                if hasattr(self, 'MAPPED_PARENT_PERMISSIONS'):
+                try:
+                    translated_id = translate_perm[permission_id]
+                except KeyError:
+                    parent_perm = Permission.objects.get(pk=permission_id)
                     try:
-                        translated_id = translate_perm[permission_id]
+                        translated_codename = self.HERITABLE_PERMISSIONS[
+                            parent_perm.codename
+                        ]
                     except KeyError:
-                        parent_perm = Permission.objects.get(pk=permission_id)
-                        try:
-                            translated_codename = \
-                                self.MAPPED_PARENT_PERMISSIONS[
-                                    parent_perm.codename]
-                        except KeyError:
-                            # We haven't been configured to inherit this
-                            # permission from our parent, so skip it
-                            continue
-                        translated_id = Permission.objects.get(
-                            content_type__app_label=\
-                                parent_perm.content_type.app_label,
-                            codename=translated_codename
-                        ).pk
-                        translate_perm[permission_id] = translated_id
-                    permission_id = translated_id
-                elif content_type != ContentType.objects.get_for_model(
-                        self.parent
-                ):
-                    raise ImproperlyConfigured(
-                        'Parent of {} is a {}, but the child has not defined '
-                        'MAPPED_PARENT_PERMISSIONS.'.format(
-                            type(self), type(self.parent))
-                    )
+                        # We haven't been configured to inherit this
+                        # permission from our parent, so skip it
+                        continue
+                    translated_id = Permission.objects.get(
+                        content_type__app_label=\
+                            parent_perm.content_type.app_label,
+                        codename=translated_codename
+                    ).pk
+                    translate_perm[permission_id] = translated_id
+                permission_id = translated_id
                 new_permission = ObjectPermission()
                 new_permission.content_object = self
                 new_permission.user_id = user_id
@@ -633,7 +650,7 @@ class ObjectPermissionMixin:
             return objects_to_return
 
     @classmethod
-    def get_implied_perms(cls, explicit_perm, reverse=False):
+    def get_implied_perms(cls, explicit_perm, reverse=False, for_instance=None):
         """
         Determine which permissions are implied by `explicit_perm` based on
         the `IMPLIED_PERMISSIONS` attribute.
@@ -644,6 +661,7 @@ class ObjectPermissionMixin:
             permissions. Defaults to `False`.
         :rtype: set of `codename`s
         """
+        # TODO: document `for_instance` NOMERGE
         implied_perms_dict = getattr(cls, 'IMPLIED_PERMISSIONS', {})
         if reverse:
             reverse_perms_dict = defaultdict(list)
@@ -665,10 +683,19 @@ class ObjectPermissionMixin:
                     'Loop in IMPLIED_PERMISSIONS for {}'.format(cls))
             perms_to_process.extend(implied_perms)
             result.update(implied_perms)
-        return result
+
+        if for_instance:
+            # Include only permissions that can be assigned to this asset type
+            # FIXME: since this method is clearly `Asset`-specific, it does not
+            # belong in this generic mixin
+            return result.intersection(
+                cls.ASSIGNABLE_PERMISSIONS_BY_TYPE[for_instance.asset_type]
+            )
+        else:
+            return result
 
     @classmethod
-    def get_all_implied_perms(cls):
+    def get_all_implied_perms(cls, for_instance=None):
         """
         Return a dictionary with permission codenames as keys and a complete
         list of implied permissions as each value. For example, given a model
@@ -694,8 +721,9 @@ class ObjectPermissionMixin:
         }
         ```
         """
+        # TODO: document `for_instance` NOMERGE
         return {
-            codename: list(cls.get_implied_perms(codename))
+            codename: list(cls.get_implied_perms(codename, for_instance))
             for codename in cls.IMPLIED_PERMISSIONS.keys()
         }
 
@@ -721,8 +749,7 @@ class ObjectPermissionMixin:
         if codename not in self.get_assignable_permissions():
             # Some permissions are calculated and not stored in the database
             raise ValidationError(
-                '{} cannot be assigned explicitly to {} objects.'.format(
-                    codename, self._meta.model_name)
+                f'{codename} cannot be assigned explicitly to {self}'
             )
         if isinstance(user_obj, AnonymousUser) or (
             user_obj.pk == settings.ANONYMOUS_USER_ID
@@ -791,7 +818,9 @@ class ObjectPermissionMixin:
             assign_applicable_kc_permissions(self, user_obj, codename)
         # Resolve implied permissions, e.g. granting change implies granting
         # view
-        implied_perms = self.get_implied_perms(codename, reverse=deny)
+        implied_perms = self.get_implied_perms(
+            codename, reverse=deny, for_instance=self
+        )
         for implied_perm in implied_perms:
             self.assign_perm(
                 user_obj, implied_perm, deny=deny, defer_recalc=True)
@@ -803,10 +832,8 @@ class ObjectPermissionMixin:
         self._update_partial_permissions(user_obj.pk, perm,
                                          partial_perms=partial_perms)
 
-        # Recalculate all descendants, re-fetching ourself first to guard
-        # against stale MPTT values
-        fresh_self = type(self).objects.get(pk=self.pk)
-        fresh_self.recalculate_descendants_perms()
+        # Recalculate all descendants
+        self.recalculate_descendants_perms()
         return new_permission
 
     def get_perms(self, user_obj):
@@ -920,7 +947,9 @@ class ObjectPermissionMixin:
         inherited_permissions = all_permissions.filter(inherited=True)
         # Resolve implied permissions, e.g. revoking view implies revoking
         # change
-        implied_perms = self.get_implied_perms(codename, reverse=True)
+        implied_perms = self.get_implied_perms(
+            codename, reverse=True, for_instance=self
+        )
         for implied_perm in implied_perms:
             self.remove_perm(
                 user_obj, implied_perm, defer_recalc=True)
@@ -941,10 +970,8 @@ class ObjectPermissionMixin:
             return
 
         self._update_partial_permissions(user_obj.pk, perm, remove=True)
-        # Recalculate all descendants, re-fetching ourself first to guard
-        # against stale MPTT values
-        fresh_self = type(self).objects.get(pk=self.pk)
-        fresh_self.recalculate_descendants_perms()
+        # Recalculate all descendants
+        self.recalculate_descendants_perms()
 
     def _update_partial_permissions(self, user_id, perm, remove=False,
                                     partial_perms=None):
@@ -1017,7 +1044,7 @@ class ObjectPermissionMixin:
         are needed several times in a row (within the same request).
 
         It will hit the DB once for this user. If object permissions are needed
-        for an another object (i.e. `Asset`, `Collection`), in subsequent calls,
+        for an another object (i.e. `Asset`), in subsequent calls,
         they can be easily retrieved by the returned dict keys.
 
         Args:
@@ -1081,7 +1108,7 @@ class ObjectPermissionMixin:
             return perms_
 
         perms = []
-        
+
         # If User is not none, retrieve all permissions for this user
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.

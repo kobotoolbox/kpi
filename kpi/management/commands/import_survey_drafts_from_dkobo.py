@@ -9,8 +9,8 @@ from jsonfield import JSONField
 from pyxform.xls2json_backends import csv_to_dict
 from taggit.managers import TaggableManager
 
+from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset
-from kpi.models import Collection
 from kpi.models.asset import KpiTaggableManager
 from kpi.utils.log import logging
 
@@ -109,8 +109,9 @@ def _import_user_assets(from_user, to_user):
                        'and pk={}').format(survey_draft.name, survey_draft.pk)
             logging.error(message, exc_info=True)
 
-    (qlib, _) = Collection.objects.get_or_create(name="question library",
-                                                 owner=user)
+    (qlib, _) = Asset.objects.get_or_create(asset_type=ASSET_TYPE_COLLECTION,
+                                            name="question library",
+                                            owner=user)
 
     for qlib_asset in user_qlib_assets.all():
         try:
@@ -202,16 +203,24 @@ class Command(BaseCommand):
                 to_user = from_user
 
             print_str(
-                "user has %d collections" % to_user.owned_collections.count())
+                "user has %d collections" % to_user.assets.filter(
+                    asset_type=ASSET_TYPE_COLLECTION
+                ).count()
+            )
             print_str("user has %d assets" % to_user.assets.count())
             if options.get('destroy'):
                 print_str("Destroying user's collections and assets in KPI.")
-                to_user.owned_collections.all().delete()
+                to_user.assets.filter(
+                    asset_type=ASSET_TYPE_COLLECTION
+                ).all().delete()
                 to_user.assets.all().delete()
                 print_str("Removing references in dkobo to KPI assets.")
                 to_user.survey_drafts.update(kpi_asset_uid='')
             print_str("Importing assets and collections.")
             print_str(
-                "user has %d collections" % to_user.owned_collections.count())
+                "user has %d collections" % to_user.assets.filter(
+                    asset_type=ASSET_TYPE_COLLECTION
+                ).count()
+            )
             print_str("user has %d assets" % to_user.assets.count())
             _import_user_assets(from_user, to_user)

@@ -6,6 +6,8 @@ import xlrd
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
+from kpi.constants import ASSET_TYPE_COLLECTION
+
 
 def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     """
@@ -106,4 +108,7 @@ class Command(BaseCommand):
                         'survey': [row],
                     },
                 })
-        new_library = user.collections.create(name=filename, survey_assets=assets)
+        new_library = user.assets.create(
+            asset_type=ASSET_TYPE_COLLECTION, name=filename,
+            children_to_create=assets
+        )
