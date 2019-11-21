@@ -149,26 +149,11 @@ $z-form-view-fullscreen: 101;
   + .form-view__row {
     margin-top: 0;
   }
+}
 
-  &.historyHidden {
-    margin-top: -15px;
-  }
-
-  &.historyHidden .form-view__cell--history-label,
-  &.historyHidden .form-view__cell--history-table {
-    max-height: 0;
-    overflow: hidden;
-    transition: 0.2s max-height;
-  }
-
-  &.historyExpanded .form-view__cell--history-label,
-  &.historyExpanded .form-view__cell--history-table {
-    transition: 0.2s max-height;
-    max-height: 99999px;
-  }
-
-  &.historyExpanded .form-view__cell--history-table + .form-view__cell {
-    padding-top: 20px;
+.form-view__row--history {
+  .form-view__cell--history-table {
+    margin-bottom: 20px;
   }
 }
 
@@ -427,6 +412,7 @@ $z-form-view-fullscreen: 101;
   }
 
   .popover-menu .popover-menu__toggle {
+    // TODO: this is too generic, find out what was this really set for
     height: 36px;
   }
 
