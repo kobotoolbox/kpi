@@ -6,16 +6,16 @@ import TagsInput from 'react-tagsinput';
 import Select from 'react-select';
 import TextBox from 'js/components/textBox';
 import Checkbox from 'js/components/checkbox';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
-import stores from 'js/stores';
-import actions from 'js/actions';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
 import {hashHistory} from 'react-router';
 import {
   t,
-  notify,
-  anonUsername
+  notify
 } from 'js/utils';
+import {ANON_USERNAME} from 'js/constants';
 import {cleanupTags} from 'js/assetUtils';
 import {
   renderLoading,
@@ -148,7 +148,7 @@ export class LibraryTemplateForm extends React.Component {
         this.state.data.makePublic === true
       ) {
         actions.permissions.assignPerm({
-          username: anonUsername,
+          username: ANON_USERNAME,
           uid: this.props.asset.uid,
           kind: this.props.asset.kind,
           objectUrl: this.props.asset.object_url,

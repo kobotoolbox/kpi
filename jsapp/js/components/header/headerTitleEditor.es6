@@ -3,9 +3,9 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
-import bem from 'js/bem';
-import stores from 'js/stores';
-import actions from 'js/actions';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
 import {t} from 'js/utils';
 import {
   NAME_MAX_LENGTH,

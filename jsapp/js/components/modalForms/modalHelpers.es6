@@ -1,8 +1,11 @@
 import React from 'react';
-import bem from 'js/bem';
-import stores from 'js/stores';
-// TODO: change to constant after #2259 is closed
-import {t, anonUsername} from 'js/utils';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
+import {t} from 'js/utils';
+import {
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
+} from 'js/constants';
 
 export function renderLoading(message = t('loading…')) {
   return (
@@ -77,11 +80,11 @@ export function isLibraryAssetPublic(permissions, isDiscoverable) {
   let isVisibleToAnonymous = false;
   permissions.forEach((perm) => {
     if (
-      perm.user__username === anonUsername &&
+      perm.user__username === ANON_USERNAME &&
       (
         // TODO: change to constant after #2259 is closed
-        perm.permission === 'view_asset' ||
-        perm.permission === 'view_collection'
+        perm.permission === PERMISSIONS_CODENAMES.get('view_asset') ||
+        perm.permission === PERMISSIONS_CODENAMES.get('view_collection')
       )
     ) {
       isVisibleToAnonymous = true;

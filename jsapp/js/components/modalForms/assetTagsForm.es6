@@ -3,9 +3,9 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
-import bem from 'js/bem';
-import stores from 'js/stores';
-import actions from 'js/actions';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
 import {
   t,
   notify

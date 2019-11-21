@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import searches from 'js/searches';
+import {searches} from 'js/searches';
 import mixins from 'js/mixins';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import SearchCollectionList from 'js/components/searchcollectionlist';
 import {
   ListSearchSummary,

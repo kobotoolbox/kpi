@@ -1,8 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
-import {AssetName} from 'js/ui';
+import ui from 'js/ui';
 import {formatTime} from 'js/utils';
 import {
   getAssetIcon,
@@ -51,7 +51,7 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>
-          <AssetName {...this.props.asset}/>
+          <ui.AssetName {...this.props.asset}/>
 
           {this.props.asset.settings && this.props.asset.settings.tags && this.props.asset.settings.tags.length > 0 &&
             <bem.AssetsTableRow__tags>

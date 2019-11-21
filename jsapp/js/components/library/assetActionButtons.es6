@@ -12,18 +12,14 @@ import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import ui from 'js/ui';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import {t} from 'js/utils';
 import {dataInterface} from 'js/dataInterface';
-import assetUtils from 'js/assetUtils';
+import {assetUtils} from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
-import {
-  dmix,
-  clickAssets,
-  contextRouter
-} from 'js/mixins';
+import mixins from 'js/mixins';
 
-const assetActions = clickAssets.click.asset;
+const assetActions = mixins.clickAssets.click.asset;
 
 /**
  * @prop {object} asset
@@ -115,7 +111,7 @@ class AssetActionButtons extends React.Component {
   }
 
   deploy() {
-    dmix.deployAsset(this.props.asset);
+    mixins.dmix.deployAsset(this.props.asset);
   }
 
   archive() {
@@ -326,7 +322,7 @@ class AssetActionButtons extends React.Component {
   }
 }
 
-reactMixin(AssetActionButtons.prototype, contextRouter);
+reactMixin(AssetActionButtons.prototype, mixins.contextRouter);
 AssetActionButtons.contextTypes = {
   router: PropTypes.object
 };

@@ -1,16 +1,16 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from 'js/bem';
-import stores from 'js/stores';
-import actions from 'js/actions';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
 import {
   ASSET_TYPES,
-  MODAL_TYPES
+  MODAL_TYPES,
+  ANON_USERNAME
 } from 'js/constants';
 import {
   t,
-  formatTime,
-  anonUsername
+  formatTime
 } from 'js/utils';
 import {
   isLibraryAssetPublic,
@@ -44,8 +44,7 @@ class AssetInfoBox extends React.Component {
 
     if (requiredPropsReady === true) {
       actions.permissions.assignPerm({
-        // TODO: change to constant after #2259 is closed
-        username: anonUsername,
+        username: ANON_USERNAME,
         uid: this.props.asset.uid,
         kind: this.props.asset.kind,
         objectUrl: this.props.asset.object_url,
@@ -75,8 +74,7 @@ class AssetInfoBox extends React.Component {
   makePrivate() {
     let permUrl;
     this.props.asset.permissions.forEach((perm) => {
-      // TODO: change to constant after #2259 is closed
-      if (perm.user__username === anonUsername) {
+      if (perm.user__username === ANON_USERNAME) {
         permUrl = perm.url;
       }
     });

@@ -3,8 +3,8 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
-import bem from 'js/bem';
-import stores from 'js/stores';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import {
   renderLoading,

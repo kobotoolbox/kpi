@@ -1,5 +1,5 @@
-import actions from 'js/actions';
-import stores from 'js/stores';
+import {actions} from 'js/actions';
+import {stores} from 'js/stores';
 import {
   t,
   getAnonymousUserPermission
