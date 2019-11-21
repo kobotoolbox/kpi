@@ -2,7 +2,7 @@
  * Config file for `react-shortcuts` plugin.
  */
 
-export const keymap = {
+export default {
   APP_SHORTCUTS: {
     EDGE: 'alt+e'
   },
