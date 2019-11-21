@@ -532,20 +532,18 @@ module.exports = do ->
 
   viewRowDetail.DetailViewMixins.oc_item_group =
     html: ->
-      @$el.addClass("card__settings__fields--active")
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
       viewRowDetail.Templates.textbox @cid, @model.key, _t("OC Item Group"), 'text'
-    insertInDOM: (rowView)->
-      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--oc-item-group').eq(0)
     afterRender: ->
       @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.oc_external =
     html: ->
-      @$el.addClass("card__settings__fields--active")
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
       options = ['null', 'clinicaldata']
       return viewRowDetail.Templates.dropdown @cid, @model.key, options, _t("OC External")
-    insertInDOM: (rowView)->
-      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--oc-external').eq(0)
     afterRender: ->
       $select = @$('select')
       modelValue = @model.get 'value'
