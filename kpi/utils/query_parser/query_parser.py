@@ -4,7 +4,7 @@ from django.db.models import Q
 
 DEFAULT_FIELD_NAME = 'summary'
 
-from .grammar import parse as grammar_parse
+from .grammar import parse as grammar_parse, ParseError
 
 class Actions(object):
 

@@ -15,7 +15,7 @@ from .models.object_permission import (
     get_models_with_object_permissions,
 )
 
-from kpi.utils.query_parser.query_parser import parse
+from kpi.utils.query_parser.query_parser import parse, ParseError
 
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
@@ -138,8 +138,16 @@ class SearchFilter(filters.BaseFilterBackend):
         except KeyError:
             return queryset
 
-        q_obj = parse(q,queryset.model)
-        return queryset.filter(q_obj)
+
+        try:
+            q_obj = parse(q,queryset.model)
+        except ParseError:
+            return queryset.model.objects.none()
+        
+        try:
+            return queryset.filter(q_obj)
+        except FieldError:
+            return queryset.model.objects.none()
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
