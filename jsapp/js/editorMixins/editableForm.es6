@@ -738,13 +738,6 @@ export default assign({
               {saveButtonText}
             </bem.FormBuilderHeader__button>
 
-            <bem.FormBuilderHeader__close
-              m={[{'close-warning': this.needsSave()}]}
-              onClick={this.safeNavigateToForm}
-            >
-              <i className='k-icon-close'/>
-            </bem.FormBuilderHeader__close>
-
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
 
