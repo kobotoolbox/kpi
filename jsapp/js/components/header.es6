@@ -5,10 +5,10 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import Reflux from 'reflux';
-import bem from '../bem';
-import actions from '../actions';
+import {bem} from '../bem';
+import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
@@ -18,7 +18,7 @@ import {
   stringToColor,
 } from 'js/utils';
 import {getAssetIcon} from 'js/assetUtils';
-import searches from '../searches';
+import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 

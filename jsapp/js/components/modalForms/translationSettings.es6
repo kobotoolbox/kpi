@@ -4,9 +4,9 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import LanguageForm from 'js/components/modalForms/languageForm';
-import bem from 'js/bem';
-import stores from 'js/stores';
-import actions from 'js/actions';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
 import {t, getLangString, notify} from 'utils';
 

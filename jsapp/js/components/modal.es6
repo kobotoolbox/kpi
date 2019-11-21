@@ -22,10 +22,10 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import actions from '../actions';
-import bem from '../bem';
+import {actions} from '../actions';
+import {bem} from '../bem';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,

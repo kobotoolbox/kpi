@@ -5,8 +5,8 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
-import bem from '../bem';
-import stores from '../stores';
+import {bem} from '../bem';
+import {stores} from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 

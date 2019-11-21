@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
-import stores from '../stores';
-import bem from '../bem';
-import {MODAL_TYPES} from '../constants';
-import {t} from 'js/utils';
 import {getAssetIcon} from 'js/assetUtils';
+import {stores} from 'js/stores';
+import {bem} from 'js/bem';
+import {MODAL_TYPES} from 'js/constants';
+import {t} from 'js/utils';
+
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){

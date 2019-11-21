@@ -4,9 +4,9 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import $ from 'jquery';
 import { Link } from 'react-router';
-import bem from '../bem';
+import {bem} from '../bem';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
@@ -91,7 +91,7 @@ class AssetRow extends React.Component {
     this.setState({popoverVisible: true});
   }
   render () {
-    var selfowned = this.props.owner__username === this.props.currentUsername;
+    const isSelfOwned = this.userIsOwner(this.props);
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
@@ -197,7 +197,7 @@ class AssetRow extends React.Component {
               ]}
             >
               { this.props.asset_type == ASSET_TYPES.survey.id &&
-                <span>{ selfowned ? ' ' : this.props.owner__username }</span>
+                <span>{ isSelfOwned ? ' ' : this.props.owner__username }</span>
               }
               { this.props.asset_type != ASSET_TYPES.survey.id &&
                 <span>{getAssetOwnerDisplayName(this.props.owner__username)}</span>
@@ -428,7 +428,7 @@ class AssetRow extends React.Component {
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }
-              {userCanEdit &&
+              {isSelfOwned &&
                 <bem.PopoverMenu__link
                   m={'delete'}
                   data-action={'delete'}

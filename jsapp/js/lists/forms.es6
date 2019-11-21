@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 
-import searches from '../searches';
+import {searches} from '../searches';
 import mixins from '../mixins';
 import SearchCollectionList from '../components/searchcollectionlist';
 

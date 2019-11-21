@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import actions from '../actions';
-import stores from '../stores';
-import bem from '../bem';
-import searches from '../searches';
+import {actions} from '../actions';
+import {stores} from '../stores';
+import {bem} from '../bem';
+import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 

@@ -5,9 +5,9 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import Reflux from 'reflux';
 
-import searches from '../searches';
+import {searches} from '../searches';
 import mixins from '../mixins';
-import bem from '../bem';
+import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import SearchCollectionList from '../components/searchcollectionlist';
 import {

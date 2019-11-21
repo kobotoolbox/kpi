@@ -4,10 +4,10 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from '../mixins';
-import bem from '../bem';
+import {bem} from '../bem';
 import ui from '../ui';
-import searches from '../searches';
-import stores from '../stores';
+import {searches} from '../searches';
+import {stores} from '../stores';
 import {t} from '../utils';
 
 class SidebarFormsList extends Reflux.Component {

@@ -15,7 +15,8 @@
 
     .form-view__item--table-meta {
       flex-grow: 1;
-      line-height: 40px;
+      line-height: 20px;
+      padding: 10px 0;
 
       > *:not(:first-child)::before {
         content: "·";
