@@ -53,8 +53,8 @@ permissionsActions.getCollectionPermissions.listen((uid) => {
  * @param {string} assetUid
  * @param {Object[]} perms - permissions to set
  */
-permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
-  dataInterface.bulkSetAssetPermissions(assetUid, perm)
+permissionsActions.bulkSetAssetPermissions.listen((assetUid, perms) => {
+  dataInterface.bulkSetAssetPermissions(assetUid, perms)
     .done((permissionAssignments) => {
       permissionsActions.bulkSetAssetPermissions.completed(permissionAssignments);
     })
