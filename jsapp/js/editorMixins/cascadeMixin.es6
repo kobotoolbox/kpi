@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import bem from '../bem';
+import {bem} from '../bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
-import stores from '../stores';
+import {stores} from '../stores';
 
 var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__message = bem.create('cascade-popup__message'),
@@ -14,7 +14,7 @@ var choiceListHelpUrl = 'http://support.kobotoolbox.org/creating-forms/general/a
 
 import {t} from '../utils';
 
-export default {
+export const cascadeMixin = {
   toggleCascade () {
     var lastSelectedRow = _.last(this.app.selectedRows()),
         lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1;

@@ -59,3 +59,9 @@
     }
   }
 }
+
+// custom styles for RESTServicesForm
+
+.form-modal__item.form-modal__item--rest-custom-wrapper textarea {
+  font-family: monospace;
+}

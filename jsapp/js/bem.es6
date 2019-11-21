@@ -4,8 +4,8 @@
  * use `<bem.ModuleName__partial m={['modifier1', 'modifier2']}>` in your JSX.
  */
 
-var BEM = require('./libs/react-create-bem-element');
-var bem = BEM.init();
+import {BEM} from './libs/react-create-bem-element';
+export const bem = BEM.init();
 
 bem.Button = BEM('mdl-button', '<button>');
 
@@ -298,5 +298,3 @@ bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
 bem.create = BEM;
-
-export default bem;
