@@ -311,7 +311,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # Only owner can delete submissions on `kpi`. `delete_submissions` is
         # a calculated permission and thus, can not be assigned.
         # TODO Review this test when kpi#2282 is released.
-        self.asset.assign_perm(self.anotheruser, 'change_submissions')
+        self.asset.assign_perm(self.anotheruser, 'delete_submissions')
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")

@@ -547,7 +547,8 @@ class Asset(ObjectPermissionMixin,
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
-        PERM_CHANGE_SUBMISSIONS: _('Edit and delete submissions'),
+        PERM_CHANGE_SUBMISSIONS: _('Edit submissions'),
+        PERM_DELETE_SUBMISSIONS: _('Delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
@@ -583,19 +584,22 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
+        PERM_DELETE_SUBMISSIONS: (PERM_CHANGE_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
 
     CONTRADICTORY_PERMISSIONS = {
-        PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS,
-                                      PERM_VALIDATE_SUBMISSIONS),
+        PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,
+                                   PERM_CHANGE_SUBMISSIONS,
+                                   PERM_VALIDATE_SUBMISSIONS),
         PERM_VIEW_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_CHANGE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
+        PERM_DELETE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,)
     }
 
     # Some permissions must be copied to KC
-    KC_PERMISSIONS_MAP = {  # keys are KC's codenames, values are KPI's
+    KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
         PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
         PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
         PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
