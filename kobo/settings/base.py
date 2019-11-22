@@ -70,7 +70,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
-    'mptt',
     'haystack',
     'private_storage',
     'kobo.apps.KpiConfig',
@@ -184,7 +183,6 @@ WSGI_APPLICATION = 'kobo.wsgi.application'
 ANONYMOUS_USER_ID = -1
 # Permissions assigned to AnonymousUser are restricted to the following
 ALLOWED_ANONYMOUS_PERMISSIONS = (
-    'kpi.view_collection',
     'kpi.view_asset',
     'kpi.view_submissions',
 )
@@ -374,7 +372,6 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_SIGNAL_MODELS = (
     # Each tuple must be (app_label, model_name)
     ('kpi', 'Asset'),
-    ('kpi', 'Collection'),
     ('taggit', 'Tag'),
 )
 # If this causes performance trouble, see

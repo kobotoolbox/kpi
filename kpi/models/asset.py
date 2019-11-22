@@ -28,6 +28,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_BLOCK,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_QUESTION,
     ASSET_TYPE_SURVEY,
@@ -35,17 +36,16 @@ from kpi.constants import (
     ASSET_TYPE_TEXT,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
-    PERM_CHANGE_COLLECTION,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_ASSET,
     PERM_DELETE_SUBMISSIONS,
+    PERM_DISCOVER_ASSET,
     PERM_FROM_KC_ONLY,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_SHARE_ASSET,
     PERM_SHARE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
-    PERM_VIEW_COLLECTION,
     PERM_VIEW_SUBMISSIONS,
     SUFFIX_SUBMISSIONS_PERMS,
 )
@@ -79,14 +79,22 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
-class TaggableModelManager(models.Manager):
-
-    def create(self, *args, **kwargs):
-        tag_string = kwargs.pop('tag_string', None)
+class AssetManager(models.Manager):
+    def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
         created = super().create(*args, **kwargs)
         if tag_string:
             created.tag_string= tag_string
+        if children_to_create:
+            new_assets = []
+            for asset in children_to_create:
+                asset['parent'] = created
+                new_assets.append(Asset.objects.create(**asset))
+            # bulk_create comes with a number of caveats
+            # Asset.objects.bulk_create(new_assets)
         return created
+
+    def filter_by_tag_name(self, tag_name):
+        return self.filter(tags__name=tag_name)
 
 
 class KpiTaggableManager(_TaggableManager):
@@ -106,31 +114,6 @@ class KpiTaggableManager(_TaggableManager):
                 t = t.strip().replace(' ', '-')
             tags_out.append(t)
         super().add(*tags_out, **kwargs)
-
-
-class AssetManager(TaggableModelManager):
-    def filter_by_tag_name(self, tag_name):
-        return self.filter(tags__name=tag_name)
-
-
-# TODO: Merge this functionality into the eventual common base class of `Asset`
-# and `Collection`.
-class TagStringMixin:
-
-    @property
-    def tag_string(self):
-        try:
-            tag_list = self.prefetched_tags
-        except AttributeError:
-            tag_names = self.tags.values_list('name', flat=True)
-        else:
-            tag_names = [t.name for t in tag_list]
-        return ','.join(tag_names)
-
-    @tag_string.setter
-    def tag_string(self, value):
-        intended_tags = value.split(',')
-        self.tags.set(*intended_tags)
 
 
 FLATTEN_OPTS = {
@@ -454,7 +437,6 @@ class XlsExportable:
 
 
 class Asset(ObjectPermissionMixin,
-            TagStringMixin,
             DeployableMixin,
             XlsExportable,
             FormpackXLSFormUtils,
@@ -470,7 +452,7 @@ class Asset(ObjectPermissionMixin,
     map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
-    parent = models.ForeignKey('Collection', related_name='assets',
+    parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
@@ -499,6 +481,7 @@ class Asset(ObjectPermissionMixin,
             # by Django
             (PERM_VIEW_ASSET, _('Can view asset')),
             (PERM_SHARE_ASSET, _("Can change asset's sharing settings")),
+            (PERM_DISCOVER_ASSET, _('Can discover asset in public lists')),
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
@@ -535,7 +518,7 @@ class Asset(ObjectPermissionMixin,
         ASSET_TYPE_QUESTION: _('question'),
         ASSET_TYPE_TEXT: _('text'),  # unused?
         ASSET_TYPE_EMPTY: _('empty'),  # unused?
-        #ASSET_TYPE_COLLECTION: _('collection'),
+        ASSET_TYPE_COLLECTION: _('collection'),
     }
 
     # Assignable permissions that are stored in the database.
@@ -544,6 +527,7 @@ class Asset(ObjectPermissionMixin,
     ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
         PERM_VIEW_ASSET: _('View ##asset_type_label##'),
         PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
+        PERM_DISCOVER_ASSET: _('Discover ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
@@ -553,13 +537,27 @@ class Asset(ObjectPermissionMixin,
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
     # Depending on our `asset_type`, only some permissions might be applicable
     ASSIGNABLE_PERMISSIONS_BY_TYPE = {
-        ASSET_TYPE_SURVEY: ASSIGNABLE_PERMISSIONS, # all of them
+        ASSET_TYPE_SURVEY: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            # Only collections may be "discoverable" at this time
+            # PERM_DISCOVER_ASSET,
+            PERM_ADD_SUBMISSIONS,
+            PERM_VIEW_SUBMISSIONS,
+            PERM_PARTIAL_SUBMISSIONS,
+            PERM_CHANGE_SUBMISSIONS,
+            PERM_VALIDATE_SUBMISSIONS,
+        ),
         ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
         ASSET_TYPE_BLOCK: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
         ASSET_TYPE_QUESTION: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
         ASSET_TYPE_TEXT: (),  # unused?
         ASSET_TYPE_EMPTY: (),  # unused?
-        #ASSET_TYPE_COLLECTION: # tbd
+        ASSET_TYPE_COLLECTION: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_DISCOVER_ASSET,
+        ),
     }
 
     # Calculated permissions that are neither directly assignable nor stored
@@ -570,10 +568,11 @@ class Asset(ObjectPermissionMixin,
         PERM_SHARE_SUBMISSIONS,
         PERM_DELETE_SUBMISSIONS
     )
-    # Certain Collection permissions carry over to Asset
-    MAPPED_PARENT_PERMISSIONS = {
-        PERM_VIEW_COLLECTION: PERM_VIEW_ASSET,
-        PERM_CHANGE_COLLECTION: PERM_CHANGE_ASSET
+    # Only certain permissions can be inherited
+    HERITABLE_PERMISSIONS = {
+        # parent permission: child permission
+        PERM_VIEW_ASSET: PERM_VIEW_ASSET,
+        PERM_CHANGE_ASSET: PERM_CHANGE_ASSET
     }
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
@@ -652,13 +651,6 @@ class Asset(ObjectPermissionMixin,
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
-
-    def get_ancestors_or_none(self):
-        # ancestors are ordered from farthest to nearest
-        if self.parent is not None:
-            return self.parent.get_ancestors(include_self=True)
-        else:
-            return None
 
     def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
@@ -865,6 +857,21 @@ class Asset(ObjectPermissionMixin,
     @property
     def snapshot(self):
         return self._snapshot(regenerate=False)
+
+    @property
+    def tag_string(self):
+        try:
+            tag_list = self.prefetched_tags
+        except AttributeError:
+            tag_names = self.tags.values_list('name', flat=True)
+        else:
+            tag_names = [t.name for t in tag_list]
+        return ','.join(tag_names)
+
+    @tag_string.setter
+    def tag_string(self, value):
+        intended_tags = value.split(',')
+        self.tags.set(*intended_tags)
 
     def to_clone_dict(self, version_uid=None, version=None):
         """
@@ -1175,3 +1182,14 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 'warnings': warnings,
             })
         return xml, details
+
+
+class UserAssetSubscription(models.Model):
+    """ Record a user's subscription to a publicly-discoverable collection,
+    i.e. one where the anonymous user has been granted `discover_asset` """
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    uid = KpiUidField(uid_prefix='b')
+
+    class Meta:
+        unique_together = ('asset', 'user')

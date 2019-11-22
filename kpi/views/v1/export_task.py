@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from kpi.models import ExportTask
-from kpi.models.import_export_task import _resolve_url_to_asset_or_collection
+from kpi.models.import_export_task import _resolve_url_to_asset
 from kpi.model_utils import remove_string_prefix
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
@@ -69,12 +69,8 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             raise exceptions.ValidationError(
                 {'source': 'This field is required.'})
         # Get the source object
-        source_type, source = _resolve_url_to_asset_or_collection(
+        source = _resolve_url_to_asset(
             task_data['source'])
-        # Complain if it's not an Asset
-        if source_type != 'asset':
-            raise exceptions.ValidationError(
-                {'source': 'This field must specify an asset.'})
         # Complain if it's not deployed
         if not source.has_deployment:
             raise exceptions.ValidationError(

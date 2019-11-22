@@ -8,12 +8,11 @@ from rest_framework.reverse import reverse
 from kpi.constants import PERM_PARTIAL_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
     PaginatedApiField
-from kpi.models import Asset, AssetVersion, Collection
-from kpi.models.asset import ASSET_TYPES
+from kpi.models import Asset, AssetVersion
+from kpi.models.asset import ASSET_TYPES, ASSET_TYPE_COLLECTION
 from kpi.models.object_permission import get_anonymous_user
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
-from .ancestor_collections import AncestorCollectionsSerializer
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 
@@ -41,13 +40,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     embeds = serializers.SerializerMethodField()
     parent = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
-        queryset=Collection.objects.all(),
-        view_name='collection-detail',
+        queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
+        view_name='asset-detail',
         required=False,
         allow_null=True
     )
-    ancestors = AncestorCollectionsSerializer(
-        many=True, read_only=True, source='get_ancestors_or_none')
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
@@ -71,6 +68,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
+    # Only relevant for collections
+    children = PaginatedApiField(
+        serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
+    )
+
     class Meta:
         model = Asset
         lookup_field = 'uid'
@@ -78,7 +80,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'owner',
                   'owner__username',
                   'parent',
-                  'ancestors',
                   'settings',
                   'asset_type',
                   'date_created',
@@ -113,7 +114,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'assignable_permissions',
                   'permissions',
                   'settings',
-                  'data',)
+                  'data',
+                  'children',
+                 )
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',

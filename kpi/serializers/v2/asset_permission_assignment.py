@@ -205,8 +205,14 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         :param suffix: str.
         :return: bool.
         """
-        return (codename in Asset.get_assignable_permissions(with_partial=True)
-                and (suffix is None or codename.endswith(suffix)))
+        return (
+            # DONOTMERGE abusive to the database server?
+            codename in Asset.objects.only('asset_type').get(
+                uid=self.context['asset_uid']
+            ).get_assignable_permissions(
+                with_partial=True
+            ) and (suffix is None or codename.endswith(suffix))
+        )
 
     def __get_partial_permissions_generator(self, partial_permissions):
         """

@@ -35,10 +35,16 @@ class Command(BaseCommand):
         user = User.objects.get(username=options.get('username'))
         destination = options.get('destination', False)
         if destination:
-            parent_coll = user.owned_collections.get(uid=destination)  # .children().all()
-            destination_collection = user.owned_collections.filter(parent=parent_coll)
+            parent_coll = user.assets.filter(
+                asset_type=ASSET_TYPE_COLLECTION
+            ).get(uid=destination)  # .children().all()
+            destination_collection = user.assets.filter(
+                asset_type=ASSET_TYPE_COLLECTION
+            ).filter(parent=parent_coll)
         else:
-            destination_collection = user.owned_collections
+            destination_collection = user.assets.filter(
+                asset_type=ASSET_TYPE_COLLECTION
+            )
 
         if options.get('destroy'):
             destination_collection.all().delete()

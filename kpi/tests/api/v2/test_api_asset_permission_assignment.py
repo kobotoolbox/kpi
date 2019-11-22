@@ -118,10 +118,10 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         # `anotheruser`'s permissions. Should not see `someuser`s ones.
         expected_perms = []
         for admin_perm in admin_perms:
-            if admin_perm in Asset.get_assignable_permissions():
+            if admin_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.admin.username, admin_perm))
         for anotheruser_perm in anotheruser_perms:
-            if anotheruser_perm in Asset.get_assignable_permissions():
+            if anotheruser_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.anotheruser.username, anotheruser_perm))
 
         expected_perms = sorted(expected_perms, key=lambda element: (element[0],
@@ -151,13 +151,13 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         # As an editor of the asset. `someuser` should see all.
         expected_perms = []
         for admin_perm in admin_perms:
-            if admin_perm in Asset.get_assignable_permissions():
+            if admin_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.admin.username, admin_perm))
         for someuser_perm in someuser_perms:
-            if someuser_perm in Asset.get_assignable_permissions():
+            if someuser_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.someuser.username, someuser_perm))
         for anotheruser_perm in anotheruser_perms:
-            if anotheruser_perm in Asset.get_assignable_permissions():
+            if anotheruser_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.anotheruser.username, anotheruser_perm))
 
         expected_perms = sorted(expected_perms, key=lambda element: (element[0],
@@ -186,7 +186,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         # Get admin permissions.
         expected_perms = []
         for admin_perm in admin_perms:
-            if admin_perm in Asset.get_assignable_permissions():
+            if admin_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.admin.username, admin_perm))
 
         expected_perms = sorted(expected_perms, key=lambda element: (element[0],
@@ -239,9 +239,9 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
         total = len(permission_list_response.data)
         # Add number of permissions added with 'view_asset'
-        total += len(Asset.get_implied_perms(PERM_VIEW_ASSET)) + 1
+        total += len(self.asset.get_implied_perms(PERM_VIEW_ASSET)) + 1
         # Add number of permissions added with 'change_asset'
-        total += len(Asset.get_implied_perms(PERM_CHANGE_ASSET)) + 1
+        total += len(self.asset.get_implied_perms(PERM_CHANGE_ASSET)) + 1
 
         response = self._logged_user_gives_permissions([
             ('someuser', PERM_VIEW_ASSET),

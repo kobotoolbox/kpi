@@ -20,10 +20,4 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url',
                   'username',
                   'assets',
-                  'owned_collections',
                   )
-        extra_kwargs = {
-            'owned_collections': {
-                'lookup_field': 'uid',
-            },
-        }

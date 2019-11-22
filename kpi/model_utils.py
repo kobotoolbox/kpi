@@ -17,8 +17,8 @@ importing kpi.model_utils:
   File "kpi/models/import_task.py", line 6, in <module>
     from kpi.model_utils import create_assets
 '''
+from .constants import ASSET_TYPE_COLLECTION
 from .models import Asset
-from .models import Collection
 from .haystack_utils import update_object_in_search_index
 
 
@@ -66,8 +66,10 @@ def _load_library_content(structure):
     collection_name = structure['name']
     if not collection_name:
         collection_name = 'Collection'
-    collection = Collection.objects.create(
-        owner=structure['owner'], name=collection_name)
+    collection = Asset.objects.create(
+        asset_type=ASSET_TYPE_COLLECTION, owner=structure['owner'],
+        name=collection_name
+    )
 
     with apps.get_app_config('haystack').signal_processor.defer():
         for block_name, rows in grouped.items():
@@ -122,7 +124,9 @@ def _load_library_content(structure):
 
 def create_assets(kls, structure, **options):
     if kls == "collection":
-        obj = Collection.objects.create(**structure)
+        obj = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, **structure
+        )
     elif kls == "asset":
         if 'library' in structure.get('content', {}):
             obj = _load_library_content(structure)

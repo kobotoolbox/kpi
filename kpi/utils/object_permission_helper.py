@@ -8,13 +8,10 @@ class ObjectPermissionHelper:
     def user_can_share(affected_object, user_object, codename=''):
         """
         Return `True` if `user` is allowed to grant and revoke
-        `codename` on `affected_object`. For `Collection`, this is always
-        the same as checking that `user` has the
-        `share_collection` permission on `affected_object`. For `Asset`,
-        the result is determined by either `share_asset` or
-        `share_submissions`, depending on the `codename`.
+        `codename` on `affected_object`. The result is determined by either
+        `share_asset` or `share_submissions`, depending on the `codename`.
 
-        :type affected_object: :py:class:Asset or :py:class:Collection
+        :type affected_object: :py:class:Asset
         :type user_object: auth.User
         :type codename: str
         :rtype bool
@@ -22,6 +19,7 @@ class ObjectPermissionHelper:
         # affected_object can be deferred which doesn't return the expected
         # model_name. Using `concrete_model` does.
         model_name = affected_object._meta.concrete_model._meta.model_name
+        # FIXME: hard-coded `Asset`-specific behavior should not be here
         if model_name == 'asset' and codename.endswith('_submissions'):
             share_permission = PERM_SHARE_SUBMISSIONS
         else:
@@ -35,7 +33,7 @@ class ObjectPermissionHelper:
         that `user` is allowed to see.
 
         Args:
-            affected_object (Collection|Asset)
+            affected_object (Asset)
             user (User)
         Returns:
              QuerySet
@@ -73,7 +71,7 @@ class ObjectPermissionHelper:
         `user` is allowed to see.
 
         Args:
-            affected_object (Collection|Asset)
+            affected_object (Asset)
             user (User)
             object_permission_assignments (list):
         Returns:
