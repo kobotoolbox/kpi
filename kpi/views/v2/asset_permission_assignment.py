@@ -172,12 +172,15 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
             # First delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
-            self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
+            self.asset.permissions.exclude(
+                user__username=self.asset.owner.username).delete()
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
                 if 'partial_permissions' in assignment:
-                    context_.update({'partial_permissions': assignment['partial_permissions']})
+                    context_.update({
+                        'partial_permissions': assignment['partial_permissions']
+                    })
                 serializer = AssetBulkInsertPermissionSerializer(
                     data=assignment,
                     context=context_

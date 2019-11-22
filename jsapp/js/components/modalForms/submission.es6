@@ -518,7 +518,7 @@ class Submission extends React.Component {
               </a>
             }
 
-            {this.userCan('change_submissions', this.props.asset) &&
+            {this.userCan('delete_submissions', this.props.asset) &&
               <a
                 onClick={this.deleteSubmission}
                 className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'

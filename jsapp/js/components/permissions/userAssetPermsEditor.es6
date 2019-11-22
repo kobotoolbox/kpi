@@ -164,14 +164,6 @@ class UserAssetPermsEditor extends React.Component {
       stateObj.submissionsViewDisabled = true;
     }
 
-    // checking these options implies having `submissionsEdit` checked
-    if (
-      stateObj.submissionsDelete
-    ) {
-      stateObj.submissionsEdit = true;
-      stateObj.submissionsEditDisabled = true;
-    }
-
     // checking `submissionsViewPartial` disallows checking two other options
     if (stateObj.submissionsViewPartial) {
       stateObj.submissionsDelete = false;
