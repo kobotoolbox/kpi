@@ -3,7 +3,7 @@ import {
   assign,
 } from './utils';
 
-function parseTags (asset) {
+export function parseTags (asset) {
   return {
     tags: asset.tag_string.split(',').filter((tg) => { return tg.length !== 0; })
   };
@@ -26,13 +26,8 @@ function parseSettings (asset) {
   }
 }
 
-function parsed (asset) {
+export function parsed (asset) {
   return assign(asset,
       parseSettings(asset),
       parseTags(asset));
 }
-
-module.exports = {
-  parseTags: parseTags,
-  parsed: parsed,
-};

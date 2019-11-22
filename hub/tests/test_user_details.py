@@ -1,7 +1,7 @@
+# coding: utf-8
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from hub.models import ExtraUserDetail
 
 class UserDetailTestCase(TestCase):
     fixtures = ['test_data']

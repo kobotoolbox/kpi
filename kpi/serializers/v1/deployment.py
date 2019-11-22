@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework import exceptions
@@ -44,9 +42,11 @@ class DeploymentSerializer(serializers.Serializer):
         return asset.deployment
 
     def update(self, instance, validated_data):
-        ''' If a `version_id` is provided and differs from the current
+        """
+        If a `version_id` is provided and differs from the current
         deployment's `version_id`, the asset will be redeployed. Otherwise,
-        only the `active` field will be updated '''
+        only the `active` field will be updated
+        """
         asset = self.context['asset']
         deployment = asset.deployment
 

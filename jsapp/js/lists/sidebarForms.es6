@@ -5,10 +5,10 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import mixins from '../mixins';
-import bem from '../bem';
+import {bem} from '../bem';
 import ui from '../ui';
-import searches from '../searches';
-import stores from '../stores';
+import {searches} from '../searches';
+import {stores} from '../stores';
 
 import {t} from '../utils';
 

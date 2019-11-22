@@ -13,8 +13,8 @@ import alertify from 'alertifyjs';
 import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
-import permissionsActions from './actions/permissions';
-import helpActions from './actions/help';
+import {permissionsActions} from './actions/permissions';
+import {helpActions} from './actions/help';
 import {
   log,
   t,
@@ -25,7 +25,7 @@ import {
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
 
-const actions = {
+export const actions = {
   permissions: permissionsActions,
   help: helpActions
 };
@@ -770,16 +770,8 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
 actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((data) => {
-  const errorLines = [t('Failed saving REST Service')];
-  if (
-    data.responseJSON &&
-    data.responseJSON.payload_template &&
-    data.responseJSON.payload_template.length !== 0
-  ) {
-    errorLines.push(t('Custom wrapper:') + ' ' + data.responseJSON.payload_template[0]);
-  }
-  alertify.error(errorLines.join('<br/>'));
+actions.hooks.update.failed.listen(() => {
+  alertify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
@@ -866,5 +858,3 @@ actions.hooks.retryLogs.completed.listen((response) => {
 actions.hooks.retryLogs.failed.listen((response) => {
   notify(t('Retrying all submissions failed'), 'error');
 });
-
-module.exports = actions;

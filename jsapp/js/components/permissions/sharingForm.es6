@@ -4,9 +4,9 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
-import stores from 'js/stores';
-import actions from 'js/actions';
-import bem from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
 import {
   t,
   buildUserUrl
@@ -22,7 +22,7 @@ import UserAssetPermsEditor from './userAssetPermsEditor';
 import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
-import permParser from './permParser';
+import {permParser} from './permParser';
 
 class SharingForm extends React.Component {
   constructor(props) {
@@ -53,7 +53,7 @@ class SharingForm extends React.Component {
   }
 
   onAssetPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
     const anonUserUrl = buildUserUrl(ANON_USERNAME);
     const publicPerms = permissionAssignments.filter((assignment) => {
       return assignment.user === anonUserUrl;
@@ -70,7 +70,7 @@ class SharingForm extends React.Component {
   }
 
   onCollectionPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner);
+    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
     let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
       return perm.user !== buildUserUrl(this.state.asset.owner);
     });
@@ -157,6 +157,10 @@ class SharingForm extends React.Component {
           <h2>{t('Who has access')}</h2>
 
           {this.state.permissions.map((perm) => {
+            // don't show anonymous user permissions in UI
+            if (perm.user.name === ANON_USERNAME) {
+              return null;
+            }
             return <UserPermissionRow
               key={`perm.${uid}.${perm.user.name}`}
               uid={uid}

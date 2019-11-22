@@ -5,9 +5,9 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import {dataInterface} from '../dataInterface';
-import stores from '../stores';
+import {stores} from '../stores';
 import mixins from '../mixins';
-import bem from '../bem';
+import {bem} from '../bem';
 
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';

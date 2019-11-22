@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 from django.conf import settings
-from rest_framework.serializers import SerializerMethodField
 from rest_framework.pagination import (
     LimitOffsetPagination,
     PageNumberPagination,
 )
 from rest_framework.reverse import reverse_lazy
+from rest_framework.serializers import SerializerMethodField
 
 
 class DataPagination(LimitOffsetPagination):
@@ -19,7 +18,6 @@ class DataPagination(LimitOffsetPagination):
 
 
 class Paginated(LimitOffsetPagination):
-
     """ Adds 'root' to the wrapping response object. """
     root = SerializerMethodField('get_parent_url', read_only=True)
 

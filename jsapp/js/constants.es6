@@ -4,7 +4,7 @@
 
 import {t} from './utils';
 
-const ROOT_URL = (() => {
+export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
   let rootPath = document.head.querySelector('meta[name=kpi-root-path]');
@@ -18,14 +18,14 @@ const ROOT_URL = (() => {
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
 
-const ANON_USERNAME = 'AnonymousUser';
+export const ANON_USERNAME = 'AnonymousUser';
 
 /**
  * A hardcoded list of permissions codenames.
  * All of them are really defined on backend, but we need it here to be able to
  * build UI for handling them.
  */
-const PERMISSIONS_CODENAMES = new Map();
+export const PERMISSIONS_CODENAMES = new Map();
 new Set([
   'view_asset',
   'change_asset',
@@ -40,17 +40,17 @@ new Set([
 
 // TODO remove after collection is merged with asset
 // // https://github.com/kobotoolbox/kpi/issues/2332
-const COLLECTION_PERMISSIONS = {};
+export const COLLECTION_PERMISSIONS = {};
 COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View collection');
 COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit collection');
 
-const HOOK_LOG_STATUSES = {
+export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0
 };
 
-const KEY_CODES = new Map([
+export const KEY_CODES = new Map([
   ['TAB', 9],
   ['ENTER', 13],
   ['ESC', 27],
@@ -58,7 +58,7 @@ const KEY_CODES = new Map([
   ['NBSP', 160], // non-breakable space
 ]);
 
-const MODAL_TYPES = {
+export const MODAL_TYPES = {
   SHARING: 'sharing',
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
@@ -71,21 +71,21 @@ const MODAL_TYPES = {
   FORM_TRANSLATIONS_TABLE: 'form-translation-table'
 };
 
-const PROJECT_SETTINGS_CONTEXTS = {
+export const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside'
 };
 
-const update_states = {
+export const update_states = {
   UNSAVED_CHANGES: -1,
   UP_TO_DATE: true,
   PENDING_UPDATE: false,
   SAVE_FAILED: 'SAVE_FAILED',
 };
 
-const AVAILABLE_FORM_STYLES = [
+export const AVAILABLE_FORM_STYLES = [
   {value: '', label: t('Default - single page')},
   {value: 'theme-grid no-text-transform', label: t('Grid theme')},
   {value: 'theme-grid', label: t('Grid theme with headings in ALL CAPS')},
@@ -94,7 +94,7 @@ const AVAILABLE_FORM_STYLES = [
   {value: 'theme-grid pages', label: t('Grid theme + Multiple pages + headings in ALL CAPS')},
 ];
 
-const VALIDATION_STATUSES = {
+export const VALIDATION_STATUSES = {
   no_status: {
     value: null,
     label: '—'
@@ -113,14 +113,14 @@ const VALIDATION_STATUSES = {
   },
 };
 
-const VALIDATION_STATUSES_LIST = [
+export const VALIDATION_STATUSES_LIST = [
   VALIDATION_STATUSES.no_status,
   VALIDATION_STATUSES.validation_status_not_approved,
   VALIDATION_STATUSES.validation_status_approved,
   VALIDATION_STATUSES.validation_status_on_hold
 ];
 
-const ASSET_TYPES = {
+export const ASSET_TYPES = {
   question: {
     id: 'question',
     label: t('question')
@@ -139,13 +139,13 @@ const ASSET_TYPES = {
   }
 };
 
-const ASSET_KINDS = new Map();
+export const ASSET_KINDS = new Map();
 new Set([
   'asset',
   'collection'
 ]).forEach((kind) => {ASSET_KINDS.set(kind, kind);});
 
-const QUESTION_TYPES = new Map([
+export const QUESTION_TYPES = new Map([
   [
     'select_one',
     {
@@ -332,7 +332,7 @@ const QUESTION_TYPES = new Map([
   ]
 ]);
 
-const META_QUESTION_TYPES = new Map();
+export const META_QUESTION_TYPES = new Map();
 new Set([
   'start',
   'end',
@@ -345,22 +345,24 @@ new Set([
   'audit'
 ]).forEach((codename) => {META_QUESTION_TYPES.set(codename, codename);});
 
-export default {
-  ROOT_URL: ROOT_URL,
-  META_QUESTION_TYPES: META_QUESTION_TYPES,
-  ANON_USERNAME: ANON_USERNAME,
-  PERMISSIONS_CODENAMES: PERMISSIONS_CODENAMES,
-  COLLECTION_PERMISSIONS: COLLECTION_PERMISSIONS,
-  QUESTION_TYPES: QUESTION_TYPES,
-  AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
-  update_states: update_states,
-  VALIDATION_STATUSES: VALIDATION_STATUSES,
-  VALIDATION_STATUSES_LIST: VALIDATION_STATUSES_LIST,
-  PROJECT_SETTINGS_CONTEXTS: PROJECT_SETTINGS_CONTEXTS,
-  MODAL_TYPES: MODAL_TYPES,
-  ASSET_TYPES: ASSET_TYPES,
-  ASSET_KINDS: ASSET_KINDS,
-  KEY_CODES: KEY_CODES,
-  HOOK_LOG_STATUSES: HOOK_LOG_STATUSES,
-  NAME_MAX_LENGTH: 255
+export const NAME_MAX_LENGTH = 255;
+
+export const constants = {
+  ROOT_URL,
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES,
+  COLLECTION_PERMISSIONS,
+  HOOK_LOG_STATUSES,
+  KEY_CODES,
+  MODAL_TYPES,
+  PROJECT_SETTINGS_CONTEXTS,
+  update_states,
+  AVAILABLE_FORM_STYLES,
+  VALIDATION_STATUSES,
+  VALIDATION_STATUSES_LIST,
+  ASSET_TYPES,
+  ASSET_KINDS,
+  QUESTION_TYPES,
+  META_QUESTION_TYPES,
+  NAME_MAX_LENGTH
 };

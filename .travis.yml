@@ -66,4 +66,3 @@ install:
         git submodule update --remote &&
         python manage.py compilemessages
   - pip install coverage codacy-coverage python-coveralls pytest-cov pytest-django pytest-env
-  - pip install pytest==3.10  # Force install this version, has to be at the end

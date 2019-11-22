@@ -221,7 +221,6 @@ function parseBackendData(data, ownerUrl, includeAnon = false) {
   const groupedData = {};
   data.forEach((item) => {
     // anonymous user permissions are our inner way of handling public sharing
-    // so we don't want to display them
     if (getUsernameFromUrl(item.user) === ANON_USERNAME && !includeAnon) {
       return;
     }
@@ -323,7 +322,7 @@ function sortParseBackendOutput(output) {
   });
 }
 
-module.exports = {
+export const permParser = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,

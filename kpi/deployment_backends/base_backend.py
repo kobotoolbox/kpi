@@ -1,6 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 import json
 
 from bson import json_util, ObjectId
@@ -11,7 +9,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
 
 
-class BaseDeploymentBackend(object):
+class BaseDeploymentBackend:
 
     # TODO. Stop using protected property `_deployment_data`.
 
@@ -83,7 +81,7 @@ class BaseDeploymentBackend(object):
         # possible. TODO: Should this validation be in (or called directly by)
         # the view code? Does DRF have a validator for GET params?
 
-        if isinstance(query, basestring):
+        if isinstance(query, str):
             try:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
@@ -111,7 +109,7 @@ class BaseDeploymentBackend(object):
                 'permission_filters': permission_filters
             }
 
-        if isinstance(sort, basestring):
+        if isinstance(sort, str):
             try:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
@@ -133,7 +131,7 @@ class BaseDeploymentBackend(object):
                 {'limit': _('A positive integer is required.')}
             )
 
-        if isinstance(fields, basestring):
+        if isinstance(fields, str):
             try:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:

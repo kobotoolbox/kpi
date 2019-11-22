@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 from django.contrib.auth.models import User
 from rest_framework import viewsets, mixins, exceptions
+
 from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import CreateUserSerializer
@@ -20,5 +19,4 @@ class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
             # Only specially-authorized applications are allowed to create
             # users via this endpoint
             raise exceptions.PermissionDenied()
-        return super(AuthorizedApplicationUserViewSet, self).create(
-            request, *args, **kwargs)
+        return super().create(request, *args, **kwargs)
