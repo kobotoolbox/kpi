@@ -9,12 +9,20 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import CLONE_ARG_NAME, PERM_VIEW_ASSET, PERM_SHARE_ASSET
+from kpi.constants import (
+    CLONE_ARG_NAME,
+    PERM_SHARE_ASSET,
+    PERM_VIEW_ASSET,
+)
+from kpi.deployment_backends.kc_access.utils import \
+    remove_applicable_kc_permissions
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetNestedObjectPermission
-from kpi.serializers.v2.asset_permission_assignment import AssetPermissionAssignmentSerializer, \
-    AssetBulkInsertPermissionSerializer
+from kpi.serializers.v2.asset_permission_assignment import (
+    AssetBulkInsertPermissionSerializer,
+    AssetPermissionAssignmentSerializer,
+)
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -172,12 +180,22 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
             # First delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
-            self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
+            perms_to_delete = self.asset.permissions.exclude(
+                user__username=self.asset.owner.username)
+
+            # Delete all related KoBoCat permissions as well
+            for perm in perms_to_delete.all():
+                remove_applicable_kc_permissions(self.asset,
+                                                 perm.user,
+                                                 perm.permission.codename)
+            perms_to_delete.delete()
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
                 if 'partial_permissions' in assignment:
-                    context_.update({'partial_permissions': assignment['partial_permissions']})
+                    context_.update({
+                        'partial_permissions': assignment['partial_permissions']
+                    })
                 serializer = AssetBulkInsertPermissionSerializer(
                     data=assignment,
                     context=context_
