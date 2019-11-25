@@ -77,21 +77,21 @@ class UserCollectionPermissionsEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.permissions.assignCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
-    this.listenTo(actions.permissions.assignCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
-    this.listenTo(actions.permissions.removeCollectionPermission.completed, this.onChangeCollectionPermissionCompleted);
-    this.listenTo(actions.permissions.removeCollectionPermission.failed, this.onChangeCollectionPermissionFailed);
+    this.listenTo(actions.permissions.assignAssetPermission.completed, this.onChangeAssetPermissionCompleted);
+    this.listenTo(actions.permissions.assignAssetPermission.failed, this.onChangeAssetPermissionFailed);
+    this.listenTo(actions.permissions.removeAssetPermission.completed, this.onChangeAssetPermissionCompleted);
+    this.listenTo(actions.permissions.removeAssetPermission.failed, this.onChangeAssetPermissionFailed);
     this.listenTo(stores.userExists, this.onUserExistsStoreChange);
   }
 
-  onChangeCollectionPermissionCompleted() {
+  onChangeAssetPermissionCompleted() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(true);
     }
   }
 
-  onChangeCollectionPermissionFailed() {
+  onChangeAssetPermissionFailed() {
     this.setState({isSubmitPending: false});
     if (typeof this.props.onSubmitEnd === 'function') {
       this.props.onSubmitEnd(false);
@@ -240,11 +240,11 @@ class UserCollectionPermissionsEditor extends React.Component {
     }
 
     if (permToRemove) {
-      actions.permissions.removeCollectionPermission(this.props.uid, permToRemove);
+      actions.permissions.removeAssetPermission(this.props.uid, permToRemove);
       this.setState({isSubmitPending: true});
     }
     if (permToSet) {
-      actions.permissions.assignCollectionPermission(
+      actions.permissions.assignAssetPermission(
         this.props.uid, {
           user: buildUserUrl(this.state.username),
           permission: permConfig.getPermissionByCodename(permToSet).url

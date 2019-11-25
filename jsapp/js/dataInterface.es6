@@ -236,16 +236,6 @@ export var dataInterface;
       });
     },
 
-    assignCollectionPermission(uid, perm) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/permission-assignments/`,
-        method: 'POST',
-        data: JSON.stringify(perm),
-        dataType: 'json',
-        contentType: 'application/json'
-      });
-    },
-
     removePermission (permUrl) {
       return $ajax({
         method: 'DELETE',

@@ -15,10 +15,8 @@ export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
   getAssetPermissions: {children: ['completed', 'failed']},
   bulkSetAssetPermissions: {children: ['completed', 'failed']},
-  assignCollectionPermission: {children: ['completed', 'failed']},
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
-  removeCollectionPermission: {children: ['completed', 'failed']},
   copyPermissionsFrom: {children: ['completed', 'failed']},
   assignPublicPerm: {children: ['completed', 'failed']},
   setCollectionDiscoverability: {children: ['completed', 'failed']}
@@ -58,24 +56,6 @@ permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
 });
 
 /**
- * For adding single collection permission
- *
- * @param {string} uid - collection uid
- * @param {Object} perm - permission to add
- */
-permissionsActions.assignCollectionPermission.listen((uid, perm) => {
-  dataInterface.assignCollectionPermission(uid, perm)
-    .done(() => {
-      permissionsActions.getAssetPermissions(uid);
-      permissionsActions.assignCollectionPermission.completed(uid);
-    })
-    .fail(() => {
-      permissionsActions.getAssetPermissions(uid);
-      permissionsActions.assignCollectionPermission.failed(uid);
-    });
-});
-
-/**
  * For adding single asset permission
  *
  * @param {string} assetUid
@@ -109,25 +89,6 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
       notify(t('failed to remove permission'), 'error');
       permissionsActions.getAssetPermissions(assetUid);
       permissionsActions.removeAssetPermission.failed();
-    });
-});
-
-/**
- * For removing single permission
- *
- * @param {string} uid
- * @param {string} perm - permission url
- */
-permissionsActions.removeCollectionPermission.listen((uid, perm) => {
-  dataInterface.removePermission(perm)
-    .done(() => {
-      permissionsActions.getAssetPermissions(uid);
-      permissionsActions.removeCollectionPermission.completed();
-    })
-    .fail(() => {
-      notify(t('failed to remove permission'), 'error');
-      permissionsActions.getAssetPermissions(uid);
-      permissionsActions.removeCollectionPermission.failed();
     });
 });
 
