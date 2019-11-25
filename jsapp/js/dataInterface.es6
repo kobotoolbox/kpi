@@ -197,15 +197,6 @@ export var dataInterface;
         data: data,
       });
     },
-    cloneCollection ({uid}) {
-      return $ajax({
-        method: 'POST',
-        url: `${ROOT_URL}/api/v2/collections/`,
-        data: {
-          clone_from: uid
-        }
-      });
-    },
 
     /*
      * permissions
