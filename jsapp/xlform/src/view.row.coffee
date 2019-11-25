@@ -210,6 +210,7 @@ module.exports = do ->
       @$header.after($viewTemplates.row.rowSettingsView())
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
+      questionType = @model.get('type').get('typeId')
 
       # don't display columns that start with a $
       hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters', 'tags', 'default']
@@ -219,9 +220,15 @@ module.exports = do ->
             model: @model.get('required')
           }).render().insertInDOM(@)
         else
-          new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
+          if questionType is 'calculate'
+            if key isnt 'readonly'
+              new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
+          else if questionType is 'note'
+            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external']
+              new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
+          else
+            new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
-      questionType = @model.get('type').get('typeId')
       if (
         $configs.questionParams[questionType] and
         'getParameters' of @model and

@@ -162,7 +162,7 @@ module.exports = do ->
       if @key in ["name", "label", "hint", "required",
                   "calculation", "default", "appearance",
                   "constraint_message", "tags",
-                  "bind::oc:itemgroup", "bind::oc:external"] or @key.match(/^.+::.+/)
+                  "bind::oc:itemgroup", "bind::oc:external", 'readonly'] or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
 

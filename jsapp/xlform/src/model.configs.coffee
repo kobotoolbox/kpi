@@ -111,21 +111,12 @@ module.exports = do ->
     geotrace:
       label:
         value: "Record a line"
-      required:
-        value: ""
-        _hideUnlessChanged: true
     geoshape:
       label:
         value: "Record an area"
-      required:
-        value: ""
-        _hideUnlessChanged: true
     geopoint:
       label:
         value: "Record your current location"
-      required:
-        value: ""
-        _hideUnlessChanged: true
     image:
       label:
         value: "Upload an image file"
@@ -141,9 +132,6 @@ module.exports = do ->
     note:
       label:
         value: "This note can be read out loud"
-      required:
-        value: ""
-        _hideUnlessChanged: true
     integer:
       label:
         value: "Enter a number"
@@ -164,9 +152,6 @@ module.exports = do ->
         value: ""
       label:
         value: "calculation"
-      required:
-        value: ""
-        _hideUnlessChanged: true
     datetime:
       label:
         value: "Enter a date and time"
@@ -231,7 +216,8 @@ module.exports = do ->
     "default",
     "constraint"
     "bind::oc:itemgroup",
-    "bind::oc:external"
+    "bind::oc:external",
+    "readonly"
   ]
 
   configs.lookupRowType = do->
@@ -321,6 +307,8 @@ module.exports = do ->
       value: ''
     "bind::oc:external":
       value: ''
+    readonly:
+      value: false
 
   configs.newGroupDetails =
     name:
