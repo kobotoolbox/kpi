@@ -161,7 +161,7 @@ export class LibraryTemplateForm extends React.Component {
     } else {
       actions.resources.createResource({
         name: this.state.data.name,
-        asset_type: ASSET_TYPES.get('template').id,
+        asset_type: ASSET_TYPES.template.id,
         settings: JSON.stringify({
           organization: this.state.data.organization,
           country: this.state.data.country,

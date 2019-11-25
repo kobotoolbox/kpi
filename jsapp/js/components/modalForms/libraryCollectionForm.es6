@@ -73,7 +73,7 @@ export class LibraryCollectionForm extends React.Component {
 
     actions.resources.createResource({
       name: this.state.data.name,
-      asset_type: ASSET_TYPES.get('collection').id,
+      asset_type: ASSET_TYPES.collection.id,
       settings: JSON.stringify({
         organization: this.state.data.organization,
         country: this.state.data.country,

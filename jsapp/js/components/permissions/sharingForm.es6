@@ -171,7 +171,7 @@ class SharingForm extends React.Component {
               </bem.Button>
 
               {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-              {asset_type === ASSET_TYPES.get('asset').id &&
+              {asset_type === ASSET_TYPES.asset.id &&
                 <UserAssetPermsEditor
                   uid={uid}
                   assignablePerms={this.state.assignablePerms}
@@ -179,7 +179,7 @@ class SharingForm extends React.Component {
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }
-              {asset_type === ASSET_TYPES.get('collection').id &&
+              {asset_type === ASSET_TYPES.collection.id &&
                 <UserCollectionPermsEditor
                   uid={uid}
                   assignablePerms={this.state.assignablePerms}
