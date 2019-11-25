@@ -311,7 +311,7 @@ class AssetRow extends React.Component {
               </bem.AssetRow__actionIcon>
             }
 
-            { this.props.kind === 'collection' &&
+            { this.props.asset_type === ASSET_TYPES.collection.id &&
               [/*'view',*/ 'sharing'].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon

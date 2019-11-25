@@ -73,10 +73,7 @@ class SharingForm extends React.Component {
     const asset = data[uid];
 
     if (asset) {
-      this.setState({
-        asset: asset,
-        kind: asset.kind
-      });
+      this.setState({asset: asset});
     }
 
     this.setState({
@@ -122,7 +119,6 @@ class SharingForm extends React.Component {
     }
 
     let uid = this.state.asset.uid,
-        kind = this.state.asset.kind,
         asset_type = this.state.asset.asset_type,
         objectUrl = this.state.asset.url;
 
@@ -171,7 +167,7 @@ class SharingForm extends React.Component {
               </bem.Button>
 
               {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-              {asset_type === ASSET_TYPES.asset.id &&
+              {asset_type === ASSET_TYPES.survey.id &&
                 <UserAssetPermsEditor
                   uid={uid}
                   assignablePerms={this.state.assignablePerms}
@@ -192,7 +188,7 @@ class SharingForm extends React.Component {
         </bem.FormModal__item>
 
         {/* public sharing settings */}
-        { kind !== 'collection' && asset_type === 'survey' &&
+        { asset_type === ASSET_TYPES.survey.id &&
           <React.Fragment>
             <bem.Modal__hr/>
 
@@ -202,7 +198,6 @@ class SharingForm extends React.Component {
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
                 uid={uid}
-                kind={kind}
                 objectUrl={objectUrl}
                 deploymentActive={this.state.asset.deployment__active}
               />
@@ -211,13 +206,13 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { kind !== 'collection' && this.state.allAssetsCount === 0 &&
+        { asset_type !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 &&
           <React.Fragment>
             <bem.Modal__hr/>
             {t('Waiting for all projects to load…')}
           </React.Fragment>
         }
-        { kind !== 'collection' && this.state.allAssetsCount >= 2 &&
+        { asset_type !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 &&
           <React.Fragment>
             <bem.Modal__hr/>
             <CopyTeamPermissions uid={uid}/>

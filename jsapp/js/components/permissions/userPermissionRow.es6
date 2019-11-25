@@ -57,7 +57,7 @@ class UserPermissionRow extends React.Component {
    */
   removeAllPermissions() {
     let targetPermUrl;
-    if (this.props.assetType === ASSET_TYPES.asset.id) {
+    if (this.props.assetType === ASSET_TYPES.survey.id) {
       targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
     } else if (this.props.assetType === ASSET_TYPES.collection.id) {
       targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
@@ -185,7 +185,7 @@ class UserPermissionRow extends React.Component {
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
             {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-            {this.props.assetType === ASSET_TYPES.asset.id &&
+            {this.props.assetType === ASSET_TYPES.survey.id &&
               <UserAssetPermsEditor
                 uid={this.props.uid}
                 username={this.props.user.name}

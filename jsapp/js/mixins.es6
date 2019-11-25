@@ -143,8 +143,8 @@ mixins.dmix = {
     dialog.set(opts).show();
   },
   deployAsset (asset) {
-    if (!asset || asset.kind !== 'asset') {
-        if (this.state && this.state.kind === 'asset') {
+    if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
+        if (this.state && this.state.asset_type === ASSET_TYPES.survey.id) {
           asset = this.state;
         } else {
           console.error('Neither the arguments nor the state supplied an asset.');

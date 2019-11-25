@@ -15,11 +15,8 @@ import {
   t,
   notify
 } from 'js/utils';
-import {
-  ASSET_TYPES,
-  ANON_USERNAME
-} from 'js/constants';
-import {cleanupTags} from 'js/assetUtils';
+import {ASSET_TYPES} from 'js/constants';
+import {assetUtils} from 'js/assetUtils';
 import {
   renderLoading,
   renderBackButton,
@@ -142,7 +139,7 @@ export class LibraryTemplateForm extends React.Component {
         }
       );
 
-      // TODO: merge this change with above action to make single BE call
+      // TODO finish this up
       if (
         isLibraryAssetPublic(
           this.props.asset.permissions,
@@ -150,13 +147,7 @@ export class LibraryTemplateForm extends React.Component {
         ) === false &&
         this.state.data.makePublic === true
       ) {
-        actions.permissions.assignPerm({
-          username: ANON_USERNAME,
-          uid: this.props.asset.uid,
-          kind: this.props.asset.kind,
-          objectUrl: this.props.asset.object_url,
-          role: 'view'
-        });
+        assetUtils.setAssetPublic(this.props.asset.uid, true);
       }
     } else {
       actions.resources.createResource({
@@ -189,7 +180,7 @@ export class LibraryTemplateForm extends React.Component {
   onOrganizationChange(newValue) {this.onPropertyChange('organization', newValue);}
   onCountryChange(newValue) {this.onPropertyChange('country', newValue);}
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
-  onTagsChange(newValue) {this.onPropertyChange('tags', cleanupTags(newValue));}
+  onTagsChange(newValue) {this.onPropertyChange('tags', assetUtils.cleanupTags(newValue));}
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
   onIsPublicChange(newValue) {this.onPropertyChange('makePublic', newValue);}
 

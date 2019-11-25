@@ -2,11 +2,10 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
-import {actions} from 'js/actions';
+import {assetUtils} from 'js/assetUtils';
 import {
   ASSET_TYPES,
-  MODAL_TYPES,
-  ANON_USERNAME
+  MODAL_TYPES
 } from 'js/constants';
 import {
   t,
@@ -43,14 +42,7 @@ class AssetInfoBox extends React.Component {
     );
 
     if (requiredPropsReady === true) {
-      actions.permissions.assignPerm({
-        username: ANON_USERNAME,
-        uid: this.props.asset.uid,
-        kind: this.props.asset.kind,
-        objectUrl: this.props.asset.object_url,
-        // TODO: change to constant after #2259 is closed
-        role: 'view'
-      });
+      assetUtils.setAssetPublic(this.props.asset.uid, true);
       this.setState({isPublicPending: true});
     } else {
       this.showDetailsModalForced();
@@ -72,17 +64,7 @@ class AssetInfoBox extends React.Component {
   }
 
   makePrivate() {
-    let permUrl;
-    this.props.asset.permissions.forEach((perm) => {
-      if (perm.user__username === ANON_USERNAME) {
-        permUrl = perm.url;
-      }
-    });
-
-    actions.permissions.removePerm({
-      permission_url: permUrl,
-      content_object_uid: this.props.asset.uid
-    });
+    assetUtils.setAssetPublic(this.props.asset.uid, false);
     this.setState({isPublicPending: true});
   }
 

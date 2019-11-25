@@ -1,13 +1,17 @@
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
+import permConfig from 'js/components/permissions/permConfig';
 import {
   t,
+  buildUserUrl,
   getAnonymousUserPermission
 } from 'js/utils';
 import {
   ASSET_TYPES,
   MODAL_TYPES,
-  QUESTION_TYPES
+  QUESTION_TYPES,
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 
 /**
@@ -105,7 +109,7 @@ export function getAssetIcon(asset) {
     } else {
       return 'k-icon-drafts';
     }
-  } else if (asset.kind === ASSET_TYPES.collection.id) {
+  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
     const hasAnonPerm = typeof getAnonymousUserPermission(asset.permissions) !== 'undefined';
 
     if (asset.discoverable_when_public || hasAnonPerm) {
@@ -222,6 +226,25 @@ export function getSurveyFlatPaths(survey) {
   return output;
 }
 
+/**
+ * @param {string} assetUid
+ * @param {boolean} isPublic
+ */
+export function setAssetPublic(assetUid, isPublic) {
+  if (isPublic) {
+    actions.permissions.assignAssetPermission(
+      this.props.uid, {
+        user: buildUserUrl(ANON_USERNAME),
+        permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+      }
+    );
+  } else {
+    // TODO get asset permissions and remove 'view_asset' for ANON_USERNAME from them
+    let permToRemove;
+    actions.permissions.removeAssetPermission(assetUid, permToRemove);
+  }
+}
+
 export const assetUtils = {
   cleanupTags,
   getSurveyFlatPaths,
@@ -234,5 +257,6 @@ export const assetUtils = {
   editLanguages,
   editTags,
   replaceForm,
-  moveToCollection
+  moveToCollection,
+  setAssetPublic
 };

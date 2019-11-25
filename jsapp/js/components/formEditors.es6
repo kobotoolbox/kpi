@@ -398,7 +398,6 @@ export class LibraryAssetCreator extends React.Component {
       multioptionsExpanded: true,
       surveyAppRendered: false,
       name: '',
-      kind: 'asset',
       asset: false,
       editorState: 'new',
       backRoute: '/library'

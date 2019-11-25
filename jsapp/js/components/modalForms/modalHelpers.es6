@@ -82,7 +82,6 @@ export function isLibraryAssetPublic(permissions, isDiscoverable) {
     if (
       perm.user__username === ANON_USERNAME &&
       (
-        // TODO: change to constant after #2259 is closed
         perm.permission === PERMISSIONS_CODENAMES.get('view_asset') ||
         perm.permission === PERMISSIONS_CODENAMES.get('view_collection')
       )
