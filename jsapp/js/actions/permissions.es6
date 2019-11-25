@@ -107,7 +107,7 @@ permissionsActions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
 });
 
 permissionsActions.setCollectionDiscoverability.listen(function(uid, discoverable){
-  dataInterface.patchCollection(uid, {discoverable_when_public: discoverable})
+  dataInterface.patchAsset(uid, {discoverable_when_public: discoverable})
     .done(permissionsActions.setCollectionDiscoverability.completed)
     .fail(permissionsActions.setCollectionDiscoverability.failed);
 });

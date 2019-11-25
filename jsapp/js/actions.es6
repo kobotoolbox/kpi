@@ -144,9 +144,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  updateCollection: {
-    asyncResult: true
-  },
   loadAssetSubResource: {
     children: [
       'completed',
@@ -512,17 +509,6 @@ actions.resources.deleteAsset.listen(function(details, params={}){
         t('Unable to delete asset!'),
         `<p>${t('Error details:')}</p><pre style='max-height: 200px;'>${err.responseText}</pre>`
       );
-    });
-});
-
-actions.resources.updateCollection.listen(function(uid, values){
-  dataInterface.patchCollection(uid, values)
-    .done(function(asset){
-      actions.resources.updateCollection.completed(asset);
-      notify(t('successfully updated'));
-    })
-    .fail(function(...args){
-      actions.resources.updateCollection.failed(...args);
     });
 });
 
