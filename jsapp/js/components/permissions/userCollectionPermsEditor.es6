@@ -17,8 +17,7 @@ import {
 } from 'js/utils';
 import {
   ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
-  COLLECTION_PERMISSIONS
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 
 /**
@@ -299,13 +298,13 @@ class UserCollectionPermissionsEditor extends React.Component {
             checked={this.state.collectionView}
             disabled={this.state.collectionViewDisabled}
             onChange={this.onCheckboxChange.bind(this, 'collectionView')}
-            label={COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')]}
+            label={PERMISSIONS_CODENAMES.get('view_collection')}
           />
 
           <Checkbox
             checked={this.state.collectionEdit}
             onChange={this.onCheckboxChange.bind(this, 'collectionEdit')}
-            label={COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')]}
+            label={PERMISSIONS_CODENAMES.get('change_collection')}
           />
         </div>
 

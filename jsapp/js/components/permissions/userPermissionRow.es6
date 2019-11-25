@@ -15,8 +15,7 @@ import {
 import {
   KEY_CODES,
   ASSET_KINDS,
-  PERMISSIONS_CODENAMES,
-  COLLECTION_PERMISSIONS
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
 import UserCollectionPermsEditor from './userCollectionPermsEditor';
@@ -105,14 +104,8 @@ class UserPermissionRow extends React.Component {
           }
 
           let permName = '???';
-          // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
-          if (this.props.kind === ASSET_KINDS.get('asset')) {
-            if (this.props.assignablePerms.has(perm.permission)) {
-              permName = this.props.assignablePerms.get(perm.permission);
-            }
-          }
-          if (this.props.kind === ASSET_KINDS.get('collection')) {
-            permName = COLLECTION_PERMISSIONS[permConfig.getPermission(perm.permission).codename];
+          if (this.props.assignablePerms.has(perm.permission)) {
+            permName = this.props.assignablePerms.get(perm.permission);
           }
 
           // Hopefully this is friendly to translators of RTL languages

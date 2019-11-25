@@ -38,12 +38,6 @@ new Set([
   'change_collection'
 ]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
 
-// TODO remove after collection is merged with asset
-// // https://github.com/kobotoolbox/kpi/issues/2332
-export const COLLECTION_PERMISSIONS = {};
-COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('view_collection')] = t('View collection');
-COLLECTION_PERMISSIONS[PERMISSIONS_CODENAMES.get('change_collection')] = t('Edit collection');
-
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
@@ -363,7 +357,6 @@ export const constants = {
   ROOT_URL,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  COLLECTION_PERMISSIONS,
   HOOK_LOG_STATUSES,
   KEY_CODES,
   MODAL_TYPES,
