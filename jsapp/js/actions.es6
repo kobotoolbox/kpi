@@ -159,12 +159,6 @@ actions.resources = Reflux.createActions({
   updateCollection: {
     asyncResult: true
   },
-  deleteCollection: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   loadAssetSubResource: {
     children: [
       'completed',
@@ -540,20 +534,6 @@ actions.resources.createCollection.listen(function(details){
 });
 actions.resources.createCollection.failed.listen(() => {
   notify(t('Failed to create collection.'), 'error');
-});
-
-actions.resources.deleteCollection.listen(function(details, params = {}){
-  dataInterface.deleteCollection(details)
-    .done(function(result) {
-      actions.resources.deleteCollection.completed(details, result);
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(details, result);
-      }
-    })
-    .fail(actions.resources.deleteCollection.failed);
-});
-actions.resources.deleteCollection.failed.listen(() => {
-  notify(t('Failed to delete collection.'), 'error');
 });
 
 actions.resources.updateCollection.listen(function(uid, values){

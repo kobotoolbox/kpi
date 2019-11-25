@@ -266,12 +266,6 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    deleteCollection ({uid}) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/`,
-        method: 'DELETE'
-      });
-    },
     deleteAsset ({uid}) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
