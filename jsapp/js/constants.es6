@@ -142,15 +142,6 @@ export const ASSET_TYPES = {
   }
 };
 
-// TODO: collection will soon be an asset type - remove this when it's true
-console.warn('Is collection a type of asset?');
-
-export const ASSET_KINDS = new Map();
-new Set([
-  'asset',
-  'collection'
-]).forEach((kind) => {ASSET_KINDS.set(kind, kind);});
-
 export const QUESTION_TYPES = new Map([
   [
     'select_one',
@@ -366,7 +357,6 @@ export const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
-  ASSET_KINDS,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH

@@ -14,7 +14,6 @@ import {
 export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
   getAssetPermissions: {children: ['completed', 'failed']},
-  getCollectionPermissions: {children: ['completed', 'failed']},
   bulkSetAssetPermissions: {children: ['completed', 'failed']},
   assignCollectionPermission: {children: ['completed', 'failed']},
   assignAssetPermission: {children: ['completed', 'failed']},
@@ -39,12 +38,6 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
   dataInterface.getAssetPermissions(assetUid)
     .done(permissionsActions.getAssetPermissions.completed)
     .fail(permissionsActions.getAssetPermissions.failed);
-});
-
-permissionsActions.getCollectionPermissions.listen((uid) => {
-  dataInterface.getCollectionPermissions(uid)
-    .done(permissionsActions.getCollectionPermissions.completed)
-    .fail(permissionsActions.getCollectionPermissions.failed);
 });
 
 /**
@@ -73,11 +66,11 @@ permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
 permissionsActions.assignCollectionPermission.listen((uid, perm) => {
   dataInterface.assignCollectionPermission(uid, perm)
     .done(() => {
-      permissionsActions.getCollectionPermissions(uid);
+      permissionsActions.getAssetPermissions(uid);
       permissionsActions.assignCollectionPermission.completed(uid);
     })
     .fail(() => {
-      permissionsActions.getCollectionPermissions(uid);
+      permissionsActions.getAssetPermissions(uid);
       permissionsActions.assignCollectionPermission.failed(uid);
     });
 });
@@ -128,12 +121,12 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
 permissionsActions.removeCollectionPermission.listen((uid, perm) => {
   dataInterface.removePermission(perm)
     .done(() => {
-      permissionsActions.getCollectionPermissions(uid);
+      permissionsActions.getAssetPermissions(uid);
       permissionsActions.removeCollectionPermission.completed();
     })
     .fail(() => {
       notify(t('failed to remove permission'), 'error');
-      permissionsActions.getCollectionPermissions(uid);
+      permissionsActions.getAssetPermissions(uid);
       permissionsActions.removeCollectionPermission.failed();
     });
 });

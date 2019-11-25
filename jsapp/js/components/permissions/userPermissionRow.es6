@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -13,8 +12,7 @@ import {
   stringToColor,
 } from 'js/utils';
 import {
-  KEY_CODES,
-  ASSET_KINDS,
+  ASSET_TYPES,
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
@@ -58,13 +56,10 @@ class UserPermissionRow extends React.Component {
    * the most basic one, so removing it will in fact remove all permissions
    */
   removeAllPermissions() {
-    let actionFn;
     let targetPermUrl;
-    if (this.props.kind === ASSET_KINDS.get('asset')) {
-      actionFn = actions.permissions.removeAssetPermission;
+    if (this.props.assetType === ASSET_TYPES.get('asset').id) {
       targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-    } else if (this.props.kind === ASSET_KINDS.get('collection')) {
-      actionFn = actions.permissions.removeCollectionPermission;
+    } else if (this.props.assetType === ASSET_TYPES.get('collection').id) {
       targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
     }
 
@@ -73,7 +68,7 @@ class UserPermissionRow extends React.Component {
     const userViewAssetPerm = this.props.permissions.find((perm) => {
       return perm.permission === targetPermUrl;
     });
-    actionFn(this.props.uid, userViewAssetPerm.url);
+    actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
   }
 
   onPermissionsEditorSubmitEnd(isSuccess) {
@@ -190,7 +185,7 @@ class UserPermissionRow extends React.Component {
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
             {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-            {this.props.kind === ASSET_KINDS.get('asset') &&
+            {this.props.assetType === ASSET_TYPES.get('asset').id &&
               <UserAssetPermsEditor
                 uid={this.props.uid}
                 username={this.props.user.name}
@@ -200,7 +195,7 @@ class UserPermissionRow extends React.Component {
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd}
               />
             }
-            {this.props.kind === ASSET_KINDS.get('collection') &&
+            {this.props.assetType === ASSET_TYPES.get('collection').id &&
               <UserCollectionPermsEditor
                 uid={this.props.uid}
                 username={this.props.user.name}

@@ -216,13 +216,6 @@ export var dataInterface;
       });
     },
 
-    getCollectionPermissions(uid) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/permission-assignments/`,
-        method: 'GET'
-      });
-    },
-
     bulkSetAssetPermissions(assetUid, perms) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,

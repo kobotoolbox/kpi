@@ -186,7 +186,7 @@ function buildFormData(permissions) {
 /**
  * Builds a flat array of permissions for Backend endpoint
  *
- * @param {UserWithPerms[]} data - The one you get from parseBackendData or parseOldBackendData
+ * @param {UserWithPerms[]} data - The one you get from parseBackendData
  * @returns {BackendPerm[]} A flat list of BackendPerms
  */
 function parseUserWithPermsList(data) {
@@ -254,53 +254,6 @@ function parseBackendData(data, ownerUrl, includeAnon = false) {
 }
 
 /**
- * Groups OLD raw Backend permissions list data into array of users who have a list of permissions.
- *
- * @param {Object} data - OLD permissions array.
- * @param {string} ownerUrl - Asset owner url (used as identifier).
- *
- * @returns {UserWithPerms[]} An list of users with all their permissions.
- */
-function parseOldBackendData(data, ownerUrl) {
-  const output = [];
-
-  const groupedData = {};
-  data.forEach((item) => {
-    // anonymous user permissions are our inner way of handling public sharing
-    // so we don't want to display them
-    if (item.user__username === ANON_USERNAME) {
-      return;
-    }
-    if (!groupedData[item.user]) {
-      groupedData[item.user] = [];
-    }
-    const permDef = permConfig.getPermission(item.permission);
-    groupedData[item.user].push({
-      url: item.url,
-      permission: permDef.url
-    });
-  });
-
-  Object.keys(groupedData).forEach((userUrl) => {
-    output.push({
-      user: {
-        url: userUrl,
-        name: getUsernameFromUrl(userUrl),
-        // not all endpoints return user url in the v2 format, so as a fallback
-        // we also check plain old usernames
-        isOwner: (
-          userUrl === ownerUrl ||
-          getUsernameFromUrl(userUrl) === getUsernameFromUrl(ownerUrl)
-        )
-      },
-      permissions: groupedData[userUrl]
-    });
-  });
-
-  return sortParseBackendOutput(output);
-}
-
-/**
  * Sort by abcs but keep the owner at the top.
  *
  * @param {UserWithPerms[]} output - Possibly unsorted.
@@ -326,7 +279,6 @@ export const permParser = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,
-  parseOldBackendData: parseOldBackendData,
   parseUserWithPermsList: parseUserWithPermsList,
   sortParseBackendOutput: sortParseBackendOutput // for testing purposes
 };

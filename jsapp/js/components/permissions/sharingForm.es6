@@ -12,7 +12,7 @@ import {
   buildUserUrl
 } from 'js/utils';
 import {
-  ASSET_KINDS,
+  ASSET_TYPES,
   ANON_USERNAME
 } from 'js/constants';
 
@@ -39,7 +39,6 @@ class SharingForm extends React.Component {
     this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);
-    this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onCollectionPermissionsUpdated);
 
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
@@ -69,18 +68,6 @@ class SharingForm extends React.Component {
     });
   }
 
-  onCollectionPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
-    let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
-      return perm.user !== buildUserUrl(this.state.asset.owner);
-    });
-
-    this.setState({
-      permissions: parsedPerms,
-      nonOwnerPerms: nonOwnerPerms
-    });
-  }
-
   onAssetChange (data) {
     const uid = this.props.uid || this.currentAssetID;
     const asset = data[uid];
@@ -92,19 +79,12 @@ class SharingForm extends React.Component {
       });
     }
 
-    // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
-    if (asset.kind === ASSET_KINDS.get('asset')) {
-      this.setState({
-        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
-      });
-      // we need to fetch permissions after asset has loaded,
-      // as we need the owner username to parse permissions
-      actions.permissions.getAssetPermissions(uid);
-    } else if (asset.kind === ASSET_KINDS.get('collection')) {
-      this.setState({
-        permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
-      });
-    }
+    this.setState({
+      assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
+    });
+    // we need to fetch permissions after asset has loaded,
+    // as we need the owner username to parse permissions
+    actions.permissions.getAssetPermissions(uid);
   }
 
   getAssignablePermsMap(backendPerms) {
@@ -166,7 +146,7 @@ class SharingForm extends React.Component {
               uid={uid}
               nonOwnerPerms={this.state.nonOwnerPerms}
               assignablePerms={this.state.assignablePerms}
-              kind={kind}
+              assetType={asset_type}
               {...perm}
             />;
           })}
@@ -191,7 +171,7 @@ class SharingForm extends React.Component {
               </bem.Button>
 
               {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-              {kind === ASSET_KINDS.get('asset') &&
+              {asset_type === ASSET_TYPES.get('asset').id &&
                 <UserAssetPermsEditor
                   uid={uid}
                   assignablePerms={this.state.assignablePerms}
@@ -199,7 +179,7 @@ class SharingForm extends React.Component {
                   onSubmitEnd={this.onPermissionsEditorSubmitEnd}
                 />
               }
-              {kind === ASSET_KINDS.get('collection') &&
+              {asset_type === ASSET_TYPES.get('collection').id &&
                 <UserCollectionPermsEditor
                   uid={uid}
                   assignablePerms={this.state.assignablePerms}
