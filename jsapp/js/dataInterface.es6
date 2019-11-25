@@ -86,7 +86,9 @@ export var dataInterface;
       });
     },
     listCollections () {
-      return $.getJSON(`${ROOT_URL}/api/v2/collections/?all_public=true`);
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=asset_type:collection`
+      });
     },
     createAssetSnapshot (data) {
       return $ajax({
