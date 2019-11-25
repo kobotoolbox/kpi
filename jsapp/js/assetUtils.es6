@@ -245,6 +245,61 @@ export function setAssetPublic(assetUid, isPublic) {
   }
 }
 
+
+/**
+ * Validates a library asset data to see if ready to be made public
+ *
+ * @param {string} name
+ * @param {string} organization
+ * @param {string} sector
+ *
+ * @returns {boolean|Object} true for valid library asset and object with errors for invalid one.
+ */
+export function isLibraryAssetPublicReady(name, organization, sector) {
+  const errors = {};
+  if (!name) {
+    errors.name = t('Name is required to make asset public');
+  }
+  if (!organization) {
+    errors.organization = t('Organization is required to make asset public');
+  }
+  if (!sector) {
+    errors.sector = t('Sector is required to make asset public');
+  }
+
+  if (Object.keys(errors).length >= 1) {
+    return errors;
+  } else {
+    return true;
+  }
+}
+
+/**
+ * Checks whether the library asset is public.
+ *
+ * @param {Object[]} permissions - Asset permissions.
+ * @param {boolean} isDiscoverable - If asset is discoverable when public.
+ *
+ * @returns {boolean} Is asset public.
+ */
+export function isLibraryAssetPublic(permissions, isDiscoverable) {
+  // TODO: collections have `discoverable_when_public` property but it will go away
+  // when they will become assets, for now disregard it when undefined
+  if (isDiscoverable === false) {
+    return false;
+  }
+  let isVisibleToAnonymous = false;
+  permissions.forEach((perm) => {
+    if (
+      perm.user__username === ANON_USERNAME &&
+      perm.permission === PERMISSIONS_CODENAMES.get('view_asset')
+    ) {
+      isVisibleToAnonymous = true;
+    }
+  });
+   return isVisibleToAnonymous;
+}
+
 export const assetUtils = {
   cleanupTags,
   getSurveyFlatPaths,
@@ -258,5 +313,7 @@ export const assetUtils = {
   editTags,
   replaceForm,
   moveToCollection,
-  setAssetPublic
+  setAssetPublic,
+  isLibraryAssetPublicReady,
+  isLibraryAssetPublic
 };

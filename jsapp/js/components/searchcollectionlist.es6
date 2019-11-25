@@ -45,7 +45,7 @@ class SearchCollectionList extends Reflux.Component {
               // TODO: include shared assets with edit (change) permission for current user
               // var hasChangePermission = false;
               // value.permissions.forEach((perm, index) => {
-              //   if (perm.permission == 'change_collection')
+              //   if (perm.permission == 'change_asset')
               //     hasChangePermission = true;
               // });
               // return hasChangePermission;

@@ -11,10 +11,6 @@ import {
   t,
   formatTime
 } from 'js/utils';
-import {
-  isLibraryAssetPublic,
-  isLibraryAssetPublicReady
-} from 'js/components/modalForms/modalHelpers';
 
 class AssetInfoBox extends React.Component {
   constructor(props){
@@ -35,7 +31,7 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = isLibraryAssetPublicReady(
+    const requiredPropsReady = assetUtils.isLibraryAssetPublicReady(
       this.props.asset.name,
       this.props.asset.settings.organization,
       this.props.asset.settings.sector
@@ -78,7 +74,7 @@ class AssetInfoBox extends React.Component {
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     );
 
-    const isPublic = isLibraryAssetPublic(
+    const isPublic = assetUtils.isLibraryAssetPublic(
       this.props.asset.permissions,
       this.props.asset.discoverable_when_public
     );

@@ -65,10 +65,10 @@ class UserCollectionPermissionsEditor extends React.Component {
     };
 
     perms.forEach((perm) => {
-      if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('view_collection')}/`)) {
+      if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('view_asset')}/`)) {
         out.viewUrl = perm.url;
       }
-      if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('change_collection')}/`)) {
+      if (perm.permission.endsWith(`${PERMISSIONS_CODENAMES.get('change_asset')}/`)) {
         out.changeUrl = perm.url;
       }
     });
@@ -224,17 +224,17 @@ class UserCollectionPermissionsEditor extends React.Component {
 
     if (isNew) {
       if (this.state.collectionEdit) {
-        permToSet = PERMISSIONS_CODENAMES.get('change_collection');
+        permToSet = PERMISSIONS_CODENAMES.get('change_asset');
       }
       if (!this.state.collectionEdit && this.state.collectionView) {
-        permToSet = PERMISSIONS_CODENAMES.get('view_collection');
+        permToSet = PERMISSIONS_CODENAMES.get('view_asset');
       }
     } else {
       const parsedPropsPerms = this.parsePropsPerms(this.props.permissions);
-      if (!isNew && parsedPropsPerms.changeUrl === null && this.state.collectionEdit) {
-        permToSet = PERMISSIONS_CODENAMES.get('change_collection');
+      if (parsedPropsPerms.changeUrl === null && this.state.collectionEdit) {
+        permToSet = PERMISSIONS_CODENAMES.get('change_asset');
       }
-      if (!isNew && parsedPropsPerms.changeUrl !== null && !this.state.collectionEdit) {
+      if (parsedPropsPerms.changeUrl !== null && !this.state.collectionEdit) {
         permToRemove = parsedPropsPerms.changeUrl;
       }
     }
@@ -298,13 +298,13 @@ class UserCollectionPermissionsEditor extends React.Component {
             checked={this.state.collectionView}
             disabled={this.state.collectionViewDisabled}
             onChange={this.onCheckboxChange.bind(this, 'collectionView')}
-            label={PERMISSIONS_CODENAMES.get('view_collection')}
+            label={PERMISSIONS_CODENAMES.get('view_asset')}
           />
 
           <Checkbox
             checked={this.state.collectionEdit}
             onChange={this.onCheckboxChange.bind(this, 'collectionEdit')}
-            label={PERMISSIONS_CODENAMES.get('change_collection')}
+            label={PERMISSIONS_CODENAMES.get('change_asset')}
           />
         </div>
 

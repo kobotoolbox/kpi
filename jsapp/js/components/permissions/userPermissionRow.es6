@@ -52,21 +52,13 @@ class UserPermissionRow extends React.Component {
   }
 
   /**
-   * Note: we remove "view_asset"/"view_collection" permission, as it is
-   * the most basic one, so removing it will in fact remove all permissions
+   * Note: we remove "view_asset" permission, as it is the most basic one,
+   * so removing it will in fact remove all permissions
    */
   removeAllPermissions() {
-    let targetPermUrl;
-    if (this.props.assetType === ASSET_TYPES.survey.id) {
-      targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-    } else if (this.props.assetType === ASSET_TYPES.collection.id) {
-      targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
-    }
-
     this.setState({isBeingDeleted: true});
-
     const userViewAssetPerm = this.props.permissions.find((perm) => {
-      return perm.permission === targetPermUrl;
+      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
     });
     actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
   }

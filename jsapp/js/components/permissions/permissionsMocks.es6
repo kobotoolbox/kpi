@@ -89,24 +89,6 @@ const permissions = {
       ],
       'name': '',
       'description': 'Can view submitted data for asset'
-    },
-    {
-      'url': '/api/v2/permissions/change_collection/',
-      'codename': 'change_collection',
-      'implied': [
-        '/api/v2/permissions/view_collection/'
-      ],
-      'contradictory': [],
-      'name': '',
-      'description': 'Can change collection'
-    },
-    {
-      'url': '/api/v2/permissions/view_collection/',
-      'codename': 'view_collection',
-      'implied': [],
-      'contradictory': [],
-      'name': '',
-      'description': 'Can view collection'
     }
   ]
 };

@@ -19,9 +19,7 @@ import {ASSET_TYPES} from 'js/constants';
 import {assetUtils} from 'js/assetUtils';
 import {
   renderLoading,
-  renderBackButton,
-  isLibraryAssetPublic,
-  isLibraryAssetPublicReady
+  renderBackButton
 } from './modalHelpers';
 
 /**
@@ -91,7 +89,7 @@ export class LibraryTemplateForm extends React.Component {
     if (this.props.forceMakePublic) {
       this.state.data.makePublic = true;
     } else {
-      this.state.data.makePublic = isLibraryAssetPublic(
+      this.state.data.makePublic = assetUtils.isLibraryAssetPublic(
         this.props.asset.permissions,
         this.props.asset.discoverable_when_public
       );
@@ -141,7 +139,7 @@ export class LibraryTemplateForm extends React.Component {
 
       // TODO finish this up
       if (
-        isLibraryAssetPublic(
+        assetUtils.isLibraryAssetPublic(
           this.props.asset.permissions,
           this.props.asset.discoverable_when_public
         ) === false &&
@@ -187,7 +185,7 @@ export class LibraryTemplateForm extends React.Component {
   validate(async = true) {
     let errors = {};
     if (this.state.data.makePublic) {
-      const validateResult = isLibraryAssetPublicReady(
+      const validateResult = assetUtils.isLibraryAssetPublicReady(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector
