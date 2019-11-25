@@ -252,11 +252,6 @@ export var dataInterface;
         }
       });
     },
-    setCollectionDiscoverability (uid, discoverable) {
-      dataInterface.patchCollection(uid, {
-        discoverable_when_public: discoverable
-      });
-    },
     libraryDefaultSearch () {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
