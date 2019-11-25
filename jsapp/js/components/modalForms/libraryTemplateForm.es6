@@ -15,7 +15,10 @@ import {
   t,
   notify
 } from 'js/utils';
-import {ANON_USERNAME} from 'js/constants';
+import {
+  ASSET_TYPES,
+  ANON_USERNAME
+} from 'js/constants';
 import {cleanupTags} from 'js/assetUtils';
 import {
   renderLoading,
@@ -158,7 +161,7 @@ export class LibraryTemplateForm extends React.Component {
     } else {
       actions.resources.createResource({
         name: this.state.data.name,
-        asset_type: 'template',
+        asset_type: ASSET_TYPES.get('template').id,
         settings: JSON.stringify({
           organization: this.state.data.organization,
           country: this.state.data.country,

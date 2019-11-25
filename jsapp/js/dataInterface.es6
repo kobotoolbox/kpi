@@ -360,13 +360,6 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    createCollection (data) {
-      return $ajax({
-        method: 'POST',
-        url: `${ROOT_URL}/api/v2/collections/`,
-        data: data,
-      });
-    },
     patchCollection (uid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/collections/${uid}/`,

@@ -96,12 +96,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  createAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   createImport: {
     children: [
       'completed',
@@ -145,12 +139,6 @@ actions.resources = Reflux.createActions({
     ]
   },
   listTags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createCollection: {
     children: [
       'completed',
       'failed'
@@ -525,15 +513,6 @@ actions.resources.deleteAsset.listen(function(details, params={}){
         `<p>${t('Error details:')}</p><pre style='max-height: 200px;'>${err.responseText}</pre>`
       );
     });
-});
-
-actions.resources.createCollection.listen(function(details){
-  dataInterface.createCollection(details)
-    .done(actions.resources.createCollection.completed)
-    .fail(actions.resources.createCollection.failed);
-});
-actions.resources.createCollection.failed.listen(() => {
-  notify(t('Failed to create collection.'), 'error');
 });
 
 actions.resources.updateCollection.listen(function(uid, values){

@@ -21,6 +21,7 @@ import {
   renderBackButton,
   isLibraryAssetPublicReady
 } from './modalHelpers';
+import {ASSET_TYPES} from 'js/constants';
 
 export class LibraryCollectionForm extends React.Component {
   constructor(props) {
@@ -48,8 +49,8 @@ export class LibraryCollectionForm extends React.Component {
       this.setState({isSessionLoaded: true});
     });
     this.unlisteners.push(
-      actions.resources.createCollection.completed.listen(this.onCreateCollectionCompleted.bind(this)),
-      actions.resources.createCollection.failed.listen(this.onCreateCollectionFailed.bind(this))
+      actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
+      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this))
     );
   }
 
@@ -57,26 +58,29 @@ export class LibraryCollectionForm extends React.Component {
     this.unlisteners.forEach((clb) => {clb();});
   }
 
-  onCreateCollectionCompleted(response) {
+  onCreateResourceCompleted(response) {
     this.setState({isPending: false});
     notify(t('Collection ##name## created').replace('##name##', response.name));
     this.goToCollectionLandingPage(response.uid);
   }
 
-  onCreateCollectionFailed() {
+  onCreateResourceFailed() {
     this.setState({isPending: false});
   }
 
   createCollection() {
     this.setState({isPending: true});
 
-    actions.resources.createCollection({
+    actions.resources.createResource({
       name: this.state.data.name,
-      organization: this.state.data.organization,
-      country: this.state.data.country,
-      sector: this.state.data.sector,
-      tags: this.state.data.tags,
-      description: this.state.data.description
+      asset_type: ASSET_TYPES.get('collection').id,
+      settings: JSON.stringify({
+        organization: this.state.data.organization,
+        country: this.state.data.country,
+        sector: this.state.data.sector,
+        tags: this.state.data.tags,
+        description: this.state.data.description
+      })
     });
   }
 
