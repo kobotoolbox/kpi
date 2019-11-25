@@ -182,13 +182,9 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
             # If something fails later, this query should rollback
             perms_to_delete = self.asset.permissions.exclude(
                 user__username=self.asset.owner.username)
-
-            # Delete all related KoBoCat permissions as well
             for perm in perms_to_delete.all():
-                remove_applicable_kc_permissions(self.asset,
-                                                 perm.user,
-                                                 perm.permission.codename)
-            perms_to_delete.delete()
+                self.asset.remove_perm(perm.user,
+                                       perm.permission.codename)
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
