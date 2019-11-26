@@ -148,8 +148,6 @@ module.exports = do ->
       label:
         value: "Enter a number within a specified range"
     calculate:
-      calculation:
-        value: ""
       label:
         value: "calculation"
     datetime:
@@ -309,6 +307,8 @@ module.exports = do ->
       value: ''
     readonly:
       value: false
+    calculation:
+      value: ""
 
   configs.newGroupDetails =
     name:
