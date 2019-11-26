@@ -570,19 +570,15 @@ module.exports = do ->
       viewRowDetail.Templates.textbox @cid, @model.key, _t("Calculation"), 'text'
     afterRender: ->
       questionType = @model._parent.get('type').get('typeId')
-      console.log 'questionType', questionType
       if questionType is 'calculate'
         $input = @$('input')
         $input.on 'blur', ->
-          console.log 'calculation blur', $input, $input.val()
           if $input.val() is ''
-            console.log 'empty val'
             $input.closest('div').addClass('input-error')
             if $input.siblings('.message').length is 0
               $message = $('<div/>').addClass('message').text(_t("This field is required"))
               $input.after($message)
           else
-            console.log 'not empty val'
             $input.closest('div').removeClass('input-error')
             $input.siblings('.message').remove()
       @listenForInputChange()
