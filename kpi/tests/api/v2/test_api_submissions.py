@@ -307,10 +307,6 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Give user `change_submissions` should not give permission to delete.
-        # Only owner can delete submissions on `kpi`. `delete_submissions` is
-        # a calculated permission and thus, can not be assigned.
-        # TODO Review this test when kpi#2282 is released.
         self.asset.assign_perm(self.anotheruser, 'delete_submissions')
         response = self.client.delete(url,
                                       content_type="application/json",

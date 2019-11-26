@@ -6,12 +6,18 @@ from urllib.parse import urlparse
 
 import requests
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_JSON,
+    INSTANCE_FORMAT_TYPE_XML,
+    PERM_FROM_KC_ONLY,
+)
+from kpi.models.object_permission import ObjectPermission
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -254,6 +260,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    def remove_from_flag(self, user_id: int = None):
+        """
+        Removes `from_kc_only` flag for specific user if any.
+        :param user_id: User's pk
+        """
+        # This flag lets us know that user's permissions have been sync'ed
+        # with management command `sync_from_kobocat` or not.
+        # As soon as permissions are assigned through KPI, this flag must be
+        # removed
+        #
+        # This method is here instead of `ObjectPermissionMixin` because
+        # it's specific to KoBoCat as backend.
+        filters = {
+            'permission__codename': PERM_FROM_KC_ONLY,
+            'object_id': self.asset.id,
+            'content_type': ContentType.objects.get_for_model(self.asset)
+        }
+        if user_id is not None:
+            filters['user_id'] = user_id
+
+        ObjectPermission.objects.filter(**filters).delete()
 
     def redeploy(self, active=None):
         """

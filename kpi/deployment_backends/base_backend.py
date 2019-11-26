@@ -26,6 +26,9 @@ class BaseDeploymentBackend:
     def delete(self):
         self.asset._deployment_data.clear()
 
+    def remove_from_backend_flag(self, user_id):
+        pass
+
     def validate_submission_list_params(self,
                                         requesting_user_id,
                                         format_type=INSTANCE_FORMAT_TYPE_JSON,

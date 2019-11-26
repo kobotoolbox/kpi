@@ -52,6 +52,11 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
                 'user': "Owner's permissions cannot be assigned explicitly"})
         permission = validated_data['permission']
         partial_permissions = validated_data.get('partial_permissions', None)
+
+        bulk = self.context.get('bulk', False)
+        if bulk is False and asset.has_deployment:
+            asset.deployment.remove_from_flag(user_id=user.pk)
+
         return asset.assign_perm(user, permission.codename,
                                  partial_perms=partial_permissions)
 
