@@ -315,7 +315,7 @@ module.exports = do ->
       value: ->
         "group_#{$utils.txtid()}"
     label:
-      value: "Group"
+      value: ""
     type:
       value: "group"
     _isRepeat:
