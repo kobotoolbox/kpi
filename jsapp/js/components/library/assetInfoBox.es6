@@ -74,10 +74,7 @@ class AssetInfoBox extends React.Component {
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     );
 
-    const isPublic = assetUtils.isLibraryAssetPublic(
-      this.props.asset.permissions,
-      this.props.asset.discoverable_when_public
-    );
+    const isPublic = assetUtils.isLibraryAssetPublic(this.props.asset.permissions);
 
     return (
       <bem.FormView__cell m='box'>

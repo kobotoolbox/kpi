@@ -18,8 +18,7 @@ export const permissionsActions = Reflux.createActions({
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
   copyPermissionsFrom: {children: ['completed', 'failed']},
-  assignPublicPerm: {children: ['completed', 'failed']},
-  setCollectionDiscoverability: {children: ['completed', 'failed']}
+  assignPublicPerm: {children: ['completed', 'failed']}
 });
 
 /**
@@ -104,10 +103,4 @@ permissionsActions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
       permissionsActions.copyPermissionsFrom.completed(sourceUid, targetUid);
     })
     .fail(permissionsActions.copyPermissionsFrom.failed);
-});
-
-permissionsActions.setCollectionDiscoverability.listen(function(uid, discoverable){
-  dataInterface.patchAsset(uid, {discoverable_when_public: discoverable})
-    .done(permissionsActions.setCollectionDiscoverability.completed)
-    .fail(permissionsActions.setCollectionDiscoverability.failed);
 });

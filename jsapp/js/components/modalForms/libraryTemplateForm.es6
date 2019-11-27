@@ -89,10 +89,7 @@ export class LibraryTemplateForm extends React.Component {
     if (this.props.forceMakePublic) {
       this.state.data.makePublic = true;
     } else {
-      this.state.data.makePublic = assetUtils.isLibraryAssetPublic(
-        this.props.asset.permissions,
-        this.props.asset.discoverable_when_public
-      );
+      this.state.data.makePublic = assetUtils.isLibraryAssetPublic(this.props.asset.permissions);
     }
 
     this.validate(false);
@@ -139,10 +136,7 @@ export class LibraryTemplateForm extends React.Component {
 
       // TODO finish this up
       if (
-        assetUtils.isLibraryAssetPublic(
-          this.props.asset.permissions,
-          this.props.asset.discoverable_when_public
-        ) === false &&
+        assetUtils.isLibraryAssetPublic(this.props.asset.permissions) === false &&
         this.state.data.makePublic === true
       ) {
         assetUtils.setAssetPublic(this.props.asset.uid, true);
@@ -159,6 +153,8 @@ export class LibraryTemplateForm extends React.Component {
           description: this.state.data.description
         })
       });
+
+      // TODO after resource is created, assign permissions if necessary
     }
   }
 

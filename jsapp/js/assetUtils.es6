@@ -110,9 +110,7 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    const hasAnonPerm = typeof getAnonymousUserPermission(asset.permissions) !== 'undefined';
-
-    if (asset.discoverable_when_public || hasAnonPerm) {
+    if (isLibraryAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
     } else if (asset.access_type === 'shared') {
       return 'k-icon-folder-shared';
@@ -275,20 +273,15 @@ export function isLibraryAssetPublicReady(name, organization, sector) {
 }
 
 /**
- * Checks whether the library asset is public.
+ * Checks whether the library asset is public - i.e. visible and discoverable by anyone.
  *
  * @param {Object[]} permissions - Asset permissions.
- * @param {boolean} isDiscoverable - If asset is discoverable when public.
  *
  * @returns {boolean} Is asset public.
  */
-export function isLibraryAssetPublic(permissions, isDiscoverable) {
-  // TODO: collections have `discoverable_when_public` property but it will go away
-  // when they will become assets, for now disregard it when undefined
-  if (isDiscoverable === false) {
-    return false;
-  }
+export function isLibraryAssetPublic(permissions) {
   let isVisibleToAnonymous = false;
+  let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
     if (
       perm.user__username === ANON_USERNAME &&
@@ -296,8 +289,14 @@ export function isLibraryAssetPublic(permissions, isDiscoverable) {
     ) {
       isVisibleToAnonymous = true;
     }
+    if (
+      perm.user__username === ANON_USERNAME &&
+      perm.permission === PERMISSIONS_CODENAMES.get('discover_asset')
+    ) {
+      isDiscoverableByAnonymous = true;
+    }
   });
-   return isVisibleToAnonymous;
+   return isVisibleToAnonymous && isDiscoverableByAnonymous;
 }
 
 export const assetUtils = {

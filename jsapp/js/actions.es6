@@ -240,9 +240,6 @@ permissionsActions.removeAssetPermission.completed.listen((uid) => {
   // needed to update publicShareSettings after disabling link sharing
   actions.resources.loadAsset({id: uid});
 });
-permissionsActions.setCollectionDiscoverability.completed.listen((val) => {
-  actions.resources.loadAsset({url: val.url});
-});
 
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)
