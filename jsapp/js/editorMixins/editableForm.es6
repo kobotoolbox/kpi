@@ -273,6 +273,7 @@ export default assign({
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
       this.preventClosingTab();
     }
+    window.parent.postMessage('form_saveneeded', '*');
     this.setState({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
