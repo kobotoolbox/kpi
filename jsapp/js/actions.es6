@@ -369,6 +369,7 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
     if (!res || res == '') {
       actions.auth.logout();
     } else {
+      window.parent.postMessage('form_saveinprogress', '*');
       dataInterface.patchAsset(uid, values)
         .done((asset) => {
           actions.resources.updateAsset.completed(asset, uid, values);
