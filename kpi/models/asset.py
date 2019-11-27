@@ -568,8 +568,7 @@ class Asset(ObjectPermissionMixin,
     CALCULATED_PERMISSIONS = (
         PERM_SHARE_ASSET,
         PERM_DELETE_ASSET,
-        PERM_SHARE_SUBMISSIONS,
-        PERM_DELETE_SUBMISSIONS
+        PERM_SHARE_SUBMISSIONS
     )
     # Certain Collection permissions carry over to Asset
     MAPPED_PARENT_PERMISSIONS = {
