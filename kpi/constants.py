@@ -69,3 +69,9 @@ PERM_DELETE_SUBMISSIONS = 'delete_submissions'
 
 # KC INTERNAL
 PERM_FROM_KC_ONLY = 'from_kc_only'
+
+
+ASSET_STATUS_DISCOVERABLE = 'public-discoverable'
+ASSET_STATUS_PRIVATE = 'private'
+ASSET_STATUS_PUBLIC = 'public'
+ASSET_STATUS_SHARED = 'shared'
