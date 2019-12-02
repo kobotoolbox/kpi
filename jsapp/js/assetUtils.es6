@@ -110,7 +110,7 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (isLibraryAssetPublic(asset.permissions)) {
+    if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
     } else if (asset.access_type === 'shared') {
       return 'k-icon-folder-shared';
@@ -225,35 +225,51 @@ export function getSurveyFlatPaths(survey) {
 }
 
 /**
- * @param {string} assetUid
- * @param {boolean} isPublic
+ * Makes asset public or private
+ *
+ * @param {Object} asset - BE asset data
+ * @param {boolean} newIsPublic
  */
-export function setAssetPublic(assetUid, isPublic) {
-  if (isPublic) {
-    actions.permissions.assignAssetPermission(
-      this.props.uid, {
-        user: buildUserUrl(ANON_USERNAME),
-        permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
-      }
-    );
+export function setAssetPublic(asset, shouldSetAnonPerms) {
+  if (isAssetPublic(asset.permissions) === shouldSetAnonPerms) {
+    throw new Error('Trying to set asset public to state it already is!');
+  }
+
+  if (shouldSetAnonPerms) {
+    const permsToSet = asset.permissions.filter((permissionAssignment) => {
+      return permissionAssignment.user !== asset.owner;
+    });
+    permsToSet.push({
+      user: buildUserUrl(ANON_USERNAME),
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+    });
+    permsToSet.push({
+      user: buildUserUrl(ANON_USERNAME),
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
+    });
+    actions.permissions.bulkSetAssetPermissions(asset.uid, permsToSet);
   } else {
-    // TODO get asset permissions and remove 'view_asset' for ANON_USERNAME from them
-    let permToRemove;
-    actions.permissions.removeAssetPermission(assetUid, permToRemove);
+    const permToRemove = asset.permissions.find((permissionAssignment) => {
+      return (
+        permissionAssignment.user === buildUserUrl(ANON_USERNAME) &&
+        permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+      );
+    });
+    actions.permissions.removeAssetPermission(asset.uid, permToRemove.url);
   }
 }
 
 
 /**
- * Validates a library asset data to see if ready to be made public
+ * Validates asset data to see if ready to be made public
  *
  * @param {string} name
  * @param {string} organization
  * @param {string} sector
  *
- * @returns {boolean|Object} true for valid library asset and object with errors for invalid one.
+ * @returns {boolean|Object} true for valid asset and object with errors for invalid one.
  */
-export function isLibraryAssetPublicReady(name, organization, sector) {
+export function isAssetPublicReady(name, organization, sector) {
   const errors = {};
   if (!name) {
     errors.name = t('Name is required to make asset public');
@@ -273,13 +289,13 @@ export function isLibraryAssetPublicReady(name, organization, sector) {
 }
 
 /**
- * Checks whether the library asset is public - i.e. visible and discoverable by anyone.
+ * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  *
  * @param {Object[]} permissions - Asset permissions.
  *
  * @returns {boolean} Is asset public.
  */
-export function isLibraryAssetPublic(permissions) {
+export function isAssetPublic(permissions) {
   let isVisibleToAnonymous = false;
   let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
@@ -313,6 +329,6 @@ export const assetUtils = {
   replaceForm,
   moveToCollection,
   setAssetPublic,
-  isLibraryAssetPublicReady,
-  isLibraryAssetPublic
+  isAssetPublicReady,
+  isAssetPublic
 };

@@ -89,7 +89,7 @@ export class LibraryTemplateForm extends React.Component {
     if (this.props.forceMakePublic) {
       this.state.data.makePublic = true;
     } else {
-      this.state.data.makePublic = assetUtils.isLibraryAssetPublic(this.props.asset.permissions);
+      this.state.data.makePublic = assetUtils.isAssetPublic(this.props.asset.permissions);
     }
 
     this.validate(false);
@@ -136,10 +136,10 @@ export class LibraryTemplateForm extends React.Component {
 
       // TODO finish this up
       if (
-        assetUtils.isLibraryAssetPublic(this.props.asset.permissions) === false &&
+        assetUtils.isAssetPublic(this.props.asset.permissions) === false &&
         this.state.data.makePublic === true
       ) {
-        assetUtils.setAssetPublic(this.props.asset.uid, true);
+        assetUtils.setAssetPublic(this.props.asset, true);
       }
     } else {
       actions.resources.createResource({
@@ -181,7 +181,7 @@ export class LibraryTemplateForm extends React.Component {
   validate(async = true) {
     let errors = {};
     if (this.state.data.makePublic) {
-      const validateResult = assetUtils.isLibraryAssetPublicReady(
+      const validateResult = assetUtils.isAssetPublicReady(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector

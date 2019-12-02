@@ -31,14 +31,14 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = assetUtils.isLibraryAssetPublicReady(
+    const requiredPropsReady = assetUtils.isAssetPublicReady(
       this.props.asset.name,
       this.props.asset.settings.organization,
       this.props.asset.settings.sector
     );
 
     if (requiredPropsReady === true) {
-      assetUtils.setAssetPublic(this.props.asset.uid, true);
+      assetUtils.setAssetPublic(this.props.asset, true);
       this.setState({isPublicPending: true});
     } else {
       this.showDetailsModalForced();
@@ -60,7 +60,7 @@ class AssetInfoBox extends React.Component {
   }
 
   makePrivate() {
-    assetUtils.setAssetPublic(this.props.asset.uid, false);
+    assetUtils.setAssetPublic(this.props.asset, false);
     this.setState({isPublicPending: true});
   }
 
@@ -74,7 +74,7 @@ class AssetInfoBox extends React.Component {
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     );
 
-    const isPublic = assetUtils.isLibraryAssetPublic(this.props.asset.permissions);
+    const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
 
     return (
       <bem.FormView__cell m='box'>

@@ -106,7 +106,7 @@ export class LibraryCollectionForm extends React.Component {
   validate() {
     let errors = {};
     if (this.state.data.isPublic) {
-      const validateResult = assetUtils.isLibraryAssetPublicReady(
+      const validateResult = assetUtils.isAssetPublicReady(
         this.state.data.name,
         this.state.data.organization,
         this.state.data.sector
