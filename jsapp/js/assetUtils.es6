@@ -300,14 +300,14 @@ export function isAssetPublic(permissions) {
   let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
     if (
-      perm.user__username === ANON_USERNAME &&
-      perm.permission === PERMISSIONS_CODENAMES.get('view_asset')
+      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
     ) {
       isVisibleToAnonymous = true;
     }
     if (
-      perm.user__username === ANON_USERNAME &&
-      perm.permission === PERMISSIONS_CODENAMES.get('discover_asset')
+      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
     ) {
       isDiscoverableByAnonymous = true;
     }
