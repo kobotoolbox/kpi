@@ -82,12 +82,12 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
   dataInterface.removePermission(perm)
     .done(() => {
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.removeAssetPermission.completed();
+      permissionsActions.removeAssetPermission.completed(assetUid);
     })
     .fail(() => {
       notify(t('failed to remove permission'), 'error');
       permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.removeAssetPermission.failed();
+      permissionsActions.removeAssetPermission.failed(assetUid);
     });
 });
 
