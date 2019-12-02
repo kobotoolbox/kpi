@@ -15,3 +15,5 @@ if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
 
 # Decrease prod value to speed-up tests
 SUBMISSION_LIST_LIMIT = 100
+
+ENV = 'testing'

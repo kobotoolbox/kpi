@@ -1,16 +1,29 @@
 # coding: utf-8
 import json
 
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
+from kpi.constants import (
+    ASSET_STATUS_DISCOVERABLE,
+    ASSET_STATUS_PRIVATE,
+    ASSET_STATUS_PUBLIC,
+    ASSET_STATUS_SHARED,
+    ASSET_TYPES,
+    ASSET_TYPE_COLLECTION,
+    PERM_DISCOVER_ASSET,
+    PERM_VIEW_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
     PaginatedApiField
 from kpi.models import Asset, AssetVersion
-from kpi.models.asset import ASSET_TYPES, ASSET_TYPE_COLLECTION
+from kpi.models.asset import UserAssetSubscription
 from kpi.models.object_permission import get_anonymous_user
+
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 from .asset_version import AssetVersionListSerializer
@@ -73,6 +86,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
     )
 
+    languages = serializers.SerializerMethodField()
+    subscribers_count = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
     class Meta:
         model = Asset
         lookup_field = 'uid'
@@ -116,6 +133,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'settings',
                   'data',
                   'children',
+                  'languages',
+                  'subscribers_count',
+                  'status',
                  )
         extra_kwargs = {
             'parent': {
@@ -302,6 +322,48 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             }
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
+    def get_languages(self, asset):
+        languages = set()
+        for summary in asset.children.values_list('summary', flat=True).all():
+            try:
+                child_languages = json.loads(summary).get('languages')
+                child_languages = [language
+                                   for language in child_languages
+                                   if language is not None]
+            except ValueError:
+                continue
+
+            if child_languages:
+                languages = set(list(languages) + child_languages)
+
+        return languages
+
+    def get_subscribers_count(self, asset):
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
+            return 0
+
+        return UserAssetSubscription.objects.filter(asset_id=asset.pk).count()
+
+    def get_status(self, asset):
+
+        # `order_by` lets us check `AnonymousUser`'s permissions first.
+        # No need to read all permissions if `AnonymousUser`'s permissions are found.
+        permissions = asset.permissions.values('user_id', 'permission__codename'). exclude(user_id=asset.owner_id).\
+            order_by('user_id', 'permission__codename')
+
+        if not permissions:
+            return ASSET_STATUS_PRIVATE
+
+        for permission in permissions:
+            if permission.get('user_id') == settings.ANONYMOUS_USER_ID:
+                if permission.get('permission__codename') == PERM_DISCOVER_ASSET:
+                    return ASSET_STATUS_DISCOVERABLE
+
+                if permission.get('permission__codename') == PERM_VIEW_ASSET:
+                    return ASSET_STATUS_PUBLIC
+
+            return ASSET_STATUS_SHARED
+
     def get_permissions(self, obj):
         context = self.context
         request = self.context.get('request')
@@ -329,6 +391,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AssetListSerializer(AssetSerializer):
+
     class Meta(AssetSerializer.Meta):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
@@ -355,6 +418,9 @@ class AssetListSerializer(AssetSerializer):
                   'permissions',
                   'downloads',
                   'data',
+                  'languages',
+                  'subscribers_count',
+                  'status',
                   )
 
     def get_permissions(self, obj):
