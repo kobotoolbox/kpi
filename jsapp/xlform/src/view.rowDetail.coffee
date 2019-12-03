@@ -30,6 +30,7 @@ module.exports = do ->
         modelKey = 'oc_external'
       @extraClass = "xlf-dv-#{modelKey}"
       _.extend(@, viewRowDetail.DetailViewMixins[modelKey] || viewRowDetail.DetailViewMixins.default)
+      Backbone.on('ocCustomEvent', @onOcCustomEvent, @)
       @$el.addClass(@extraClass)
 
     render: ()->
@@ -113,6 +114,33 @@ module.exports = do ->
     insertInDOM: (rowView)->
       @_insertInDOM rowView.defaultRowDetailParent
 
+    makeRequired: (opts={})->
+      el = opts.el || @$('input').get(0)
+      $el = $(el)
+
+      showOrHideRequired = () =>
+        if $el.val() is ''
+          $el.closest('div').addClass('input-error')
+          if $el.siblings('.message').length is 0
+            $message = $('<div/>').addClass('message').text(_t("This field is required"))
+            $el.after($message)
+        else
+          $el.closest('div').removeClass('input-error')
+          $el.siblings('.message').remove()
+
+      $el.on 'blur', ->
+        showOrHideRequired()
+
+      $el.on 'keyup', ->
+        showOrHideRequired()
+
+    removeRequired: (opts={})->
+      el = opts.el || @$('input').get(0)
+      $el = $(el)
+      $el.off 'blur'
+      $el.closest('div').removeClass('input-error')
+      $el.siblings('.message').remove()
+
   viewRowDetail.Templates = {
     textbox: (cid, key, key_label = key, input_class = '') ->
       @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
@@ -130,7 +158,7 @@ module.exports = do ->
       @field buttons, cid, key_label
 
     dropdown: (cid, key, values, key_label = key) ->
-      select = """<select id="#{cid}">"""
+      select = """<select name="#{key}" id="#{cid}">"""
 
       for value in values
         select += """<option value="#{value}">#{value}</option>"""
@@ -267,6 +295,7 @@ module.exports = do ->
       @$el.addClass("card__settings__fields--#{@fieldTab}")
       viewRowDetail.Templates.textbox @cid, @model.key, _t("Name"), 'text'
     afterRender: ->
+      @makeRequired()
       @listenForInputChange(transformFn: (value)=>
         value_chars = value.split('')
         if !/[\w_]/.test(value_chars[0])
@@ -527,10 +556,16 @@ module.exports = do ->
               @model.set 'value', ''
 
   viewRowDetail.DetailViewMixins.oc_item_group =
+    onOcCustomEvent: (ocCustomEventArgs)->
+      if ocCustomEventArgs.sender is 'bind::oc:external'
+        if ocCustomEventArgs.value isnt ''
+          @removeRequired()
+        else
+          @makeRequired()
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("OC Item Group"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text'
     afterRender: ->
       @listenForInputChange()
 
@@ -538,22 +573,24 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      options = ['null', 'clinicaldata']
-      return viewRowDetail.Templates.dropdown @cid, @model.key, options, _t("OC External")
+      options = ['No', 'clinicaldata']
+      return viewRowDetail.Templates.dropdown @cid, @model.key, options, _t("Use External Value")
     afterRender: ->
       $select = @$('select')
       modelValue = @model.get 'value'
+      Backbone.trigger('ocCustomEvent', { sender: @model.key, value: @model.get 'value' })
       if $select.length > 0
         if modelValue == ''
-          $select.val('null')
+          $select.val('No')
         else
           $select.val(modelValue)
 
         $select.change () =>
-          if $select.val() == 'null'
+          if $select.val() == 'No'
             @model.set 'value', ''
           else
             @model.set 'value', $select.val()
+          Backbone.trigger('ocCustomEvent', { sender: @model.key, value: @model.get 'value' })
 
   viewRowDetail.DetailViewMixins.readonly =
     html: ->
@@ -571,16 +608,8 @@ module.exports = do ->
     afterRender: ->
       questionType = @model._parent.get('type').get('typeId')
       if questionType is 'calculate'
-        $input = @$('input')
-        $input.on 'blur', ->
-          if $input.val() is ''
-            $input.closest('div').addClass('input-error')
-            if $input.siblings('.message').length is 0
-              $message = $('<div/>').addClass('message').text(_t("This field is required"))
-              $input.after($message)
-          else
-            $input.closest('div').removeClass('input-error')
-            $input.siblings('.message').remove()
+        @makeRequired()
+
       @listenForInputChange()
 
   viewRowDetail

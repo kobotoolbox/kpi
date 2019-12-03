@@ -518,9 +518,9 @@ export default assign({
     if (this.state.editorState === 'new') {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
-      ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
+      ooo.saveButtonText = `${t('save draft')} (${t('retry')}) `;
     } else {
-      ooo.saveButtonText = t('save');
+      ooo.saveButtonText = t('save draft');
     }
     return ooo;
   },

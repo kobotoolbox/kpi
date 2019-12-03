@@ -207,13 +207,13 @@ module.exports = do ->
   configs.columns = [
     "type",
     "name",
+    "bind::oc:itemgroup",
     "label",
     "hint",
     "required",
     "relevant",
     "default",
     "constraint"
-    "bind::oc:itemgroup",
     "bind::oc:external",
     "readonly"
   ]
