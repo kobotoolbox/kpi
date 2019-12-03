@@ -227,8 +227,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # To avoid making a triple join-query for each asset in the list
             # to retrieve related objects, we populated dicts key-ed by asset ids
             # with the data needed by serializer.
-            # We create one (big) query per dict instead of as many queries as
-            # there are assets in the list.
+            # We create one (big) query per dict instead of a separate query
+            # for each asset in the list.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
             queryset = super().get_queryset()
