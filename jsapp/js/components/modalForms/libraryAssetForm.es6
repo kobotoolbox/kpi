@@ -5,7 +5,6 @@ import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import Select from 'react-select';
 import TextBox from 'js/components/textBox';
-import Checkbox from 'js/components/checkbox';
 import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
@@ -22,7 +21,12 @@ import {
 } from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
 
-export class LibraryCollectionForm extends React.Component {
+/**
+ * Modal for creating or updating library asset (collection or template)
+ *
+ * @prop {Object} asset - Modal asset.
+ */
+export class LibraryAssetForm extends React.Component {
   constructor(props) {
     super(props);
     this.unlisteners = [];
@@ -34,13 +38,14 @@ export class LibraryCollectionForm extends React.Component {
         country: null,
         sector: null,
         tags: [],
-        description: '',
-        isPublic: false
+        description: ''
       },
-      errors: {},
       isPending: false
     };
     autoBind(this);
+    if (this.props.asset) {
+      this.applyPropsData();
+    }
   }
 
   componentDidMount() {
@@ -49,7 +54,9 @@ export class LibraryCollectionForm extends React.Component {
     });
     this.unlisteners.push(
       actions.resources.createResource.completed.listen(this.onCreateResourceCompleted.bind(this)),
-      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this))
+      actions.resources.createResource.failed.listen(this.onCreateResourceFailed.bind(this)),
+      actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
+      actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this))
     );
   }
 
@@ -57,42 +64,89 @@ export class LibraryCollectionForm extends React.Component {
     this.unlisteners.forEach((clb) => {clb();});
   }
 
+  applyPropsData() {
+    if (this.props.asset.name) {
+      this.state.data.name = this.props.asset.name;
+    }
+    if (this.props.asset.settings.organization) {
+      this.state.data.organization = this.props.asset.settings.organization;
+    }
+    if (this.props.asset.settings.country) {
+      this.state.data.country = this.props.asset.settings.country;
+    }
+    if (this.props.asset.settings.sector) {
+      this.state.data.sector = this.props.asset.settings.sector;
+    }
+    if (this.props.asset.settings.tags) {
+      this.state.data.tags = this.props.asset.settings.tags;
+    }
+    if (this.props.asset.settings.description) {
+      this.state.data.description = this.props.asset.settings.description;
+    }
+  }
+
   onCreateResourceCompleted(response) {
     this.setState({isPending: false});
-    notify(t('Collection ##name## created').replace('##name##', response.name));
-    this.goToCollectionLandingPage(response.uid);
+    notify(t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name));
+    stores.pageState.hideModal();
+    if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
+      hashHistory.push(`/library/collection/${response.uid}`);
+    } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
+      hashHistory.push(`/library/asset/${response.uid}/edit`);
+    }
   }
 
   onCreateResourceFailed() {
     this.setState({isPending: false});
+    notify(t('Failed to create ##type##').replace('##type##', this.getFormAssetType()), 'error');
   }
 
-  createCollection() {
+  onUpdateAssetCompleted() {
+    this.setState({isPending: false});
+    stores.pageState.hideModal();
+  }
+
+  onUpdateAssetFailed() {
+    this.setState({isPending: false});
+    notify(t('Failed to update ##type##').replace('##type##', this.getFormAssetType()), 'error');
+  }
+
+  onSubmit() {
     this.setState({isPending: true});
 
-    actions.resources.createResource({
-      name: this.state.data.name,
-      asset_type: ASSET_TYPES.collection.id,
-      settings: JSON.stringify({
-        organization: this.state.data.organization,
-        country: this.state.data.country,
-        sector: this.state.data.sector,
-        tags: this.state.data.tags,
-        description: this.state.data.description
-      })
-    });
-  }
-
-  goToCollectionLandingPage(uid) {
-    stores.pageState.hideModal();
-    hashHistory.push(`/library/collection/${uid}`);
+    if (this.props.asset) {
+      actions.resources.updateAsset(
+        this.props.asset.uid,
+        {
+          name: this.state.data.name,
+          settings: JSON.stringify({
+            organization: this.state.data.organization,
+            country: this.state.data.country,
+            sector: this.state.data.sector,
+            tags: this.state.data.tags,
+            description: this.state.data.description
+          })
+        }
+      );
+    } else {
+      actions.resources.createResource({
+        name: this.state.data.name,
+        asset_type: this.getFormAssetType(),
+        settings: JSON.stringify({
+          organization: this.state.data.organization,
+          country: this.state.data.country,
+          sector: this.state.data.sector,
+          tags: this.state.data.tags,
+          description: this.state.data.description
+        })
+      });
+    }
   }
 
   onPropertyChange(property, newValue) {
     const data = this.state.data;
     data[property] = newValue;
     this.setState({data: data});
-    this.validate();
   }
 
   onNameChange(newValue) {this.onPropertyChange('name', newValue);}
@@ -101,28 +155,30 @@ export class LibraryCollectionForm extends React.Component {
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
   onTagsChange(newValue) {this.onPropertyChange('tags', assetUtils.cleanupTags(newValue));}
   onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
-  onIsPublicChange(newValue) {this.onPropertyChange('isPublic', newValue);}
 
-  validate() {
-    let errors = {};
-    if (this.state.data.isPublic) {
-      const validateResult = assetUtils.isAssetPublicReady(
-        this.state.data.name,
-        this.state.data.organization,
-        this.state.data.sector
-      );
-      if (validateResult !== true) {
-        errors = validateResult;
-      }
-    }
-    this.setState({errors: errors});
+  /**
+   * @returns existing asset type or desired asset type
+   */
+  getFormAssetType() {
+    return this.props.asset ? this.props.asset.asset_type : this.props.assetType;
   }
 
   isSubmitEnabled() {
-    return (
-      !this.state.isPending &&
-      Object.keys(this.state.errors).length === 0
-    );
+    return !this.state.isPending;
+  }
+
+  getSubmitButtonLabel() {
+    if (this.props.asset) {
+      if (this.state.isPending) {
+        return t('Saving…');
+      } else {
+        return t('Save');
+      }
+    } else if (this.state.isPending) {
+      return t('Creating…');
+    } else {
+      return t('Create');
+    }
   }
 
   render() {
@@ -133,11 +189,6 @@ export class LibraryCollectionForm extends React.Component {
     const SECTORS = stores.session.environment.available_sectors;
     const COUNTRIES = stores.session.environment.available_countries;
 
-    const sectorWrapperClassNames = ['kobo-select__wrapper'];
-    if (this.state.errors.sector) {
-      sectorWrapperClassNames.push('kobo-select__wrapper--error');
-    }
-
     return (
       <bem.FormModal__form className='project-settings'>
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
@@ -145,8 +196,7 @@ export class LibraryCollectionForm extends React.Component {
             <TextBox
               value={this.state.data.name}
               onChange={this.onNameChange}
-              label={t('Name') + '*'}
-              errors={this.state.errors.name}
+              label={t('Name')}
             />
           </bem.FormModal__item>
 
@@ -154,8 +204,7 @@ export class LibraryCollectionForm extends React.Component {
             <TextBox
               value={this.state.data.organization}
               onChange={this.onOrganizationChange}
-              label={t('Organization') + '*'}
-              errors={this.state.errors.organization}
+              label={t('Organization')}
             />
           </bem.FormModal__item>
 
@@ -176,9 +225,9 @@ export class LibraryCollectionForm extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item className={sectorWrapperClassNames.join(' ')}>
+          <bem.FormModal__item>
             <label htmlFor='sector'>
-              {t('Primary Sector') + '*'}
+              {t('Primary Sector')}
             </label>
 
             <Select
@@ -191,10 +240,6 @@ export class LibraryCollectionForm extends React.Component {
               menuPlacement='auto'
               isClearable
             />
-
-            {this.state.errors.sector &&
-              <div className='kobo-select-error'>{this.state.errors.sector}</div>
-            }
           </bem.FormModal__item>
 
           <bem.FormModal__item>
@@ -212,14 +257,6 @@ export class LibraryCollectionForm extends React.Component {
               placeholder={t('Enter short description here')}
             />
           </bem.FormModal__item>
-
-          <bem.FormModal__item>
-            <Checkbox
-              checked={this.state.data.isPublic}
-              onChange={this.onIsPublicChange}
-              label={t('Make Public') + ' ' + t('*required to be made public')}
-            />
-          </bem.FormModal__item>
         </bem.FormModal__item>
 
         <bem.Modal__footer>
@@ -228,11 +265,11 @@ export class LibraryCollectionForm extends React.Component {
           <bem.Modal__footerButton
             m='primary'
             type='submit'
-            onClick={this.createCollection}
+            onClick={this.onSubmit}
             disabled={!this.isSubmitEnabled()}
             className='mdl-js-button'
           >
-            {this.state.isPending ? t('Creating…') : t('Create')}
+            {this.getSubmitButtonLabel()}
           </bem.Modal__footerButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
@@ -240,4 +277,4 @@ export class LibraryCollectionForm extends React.Component {
   }
 }
 
-reactMixin(LibraryCollectionForm.prototype, Reflux.ListenerMixin);
+reactMixin(LibraryAssetForm.prototype, Reflux.ListenerMixin);

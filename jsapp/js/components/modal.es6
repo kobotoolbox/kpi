@@ -29,11 +29,11 @@ import {stores} from '../stores';
 import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
-  MODAL_TYPES
-} from '../constants';
+  MODAL_TYPES,
+  ASSET_TYPES
+} from 'js/constants';
 import {AssetTagsForm} from './modalForms/assetTagsForm';
-import {LibraryCollectionForm} from './modalForms/libraryCollectionForm';
-import {LibraryTemplateForm} from './modalForms/libraryTemplateForm';
+import {LibraryAssetForm} from './modalForms/libraryAssetForm';
 import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import ProjectSettings from './modalForms/projectSettings';
@@ -246,16 +246,16 @@ class Modal extends React.Component {
               />
             }
             { this.props.params.type === MODAL_TYPES.LIBRARY_TEMPLATE &&
-              <LibraryTemplateForm
+              <LibraryAssetForm
                 asset={this.props.params.asset}
-                forceMakePublic={this.props.params.forceMakePublic}
+                assetType={ASSET_TYPES.template.id}
                 onSetModalTitle={this.setModalTitle}
               />
             }
             { this.props.params.type === MODAL_TYPES.LIBRARY_COLLECTION &&
-              <LibraryCollectionForm
+              <LibraryAssetForm
                 asset={this.props.params.asset}
-                forceMakePublic={this.props.params.forceMakePublic}
+                assetType={ASSET_TYPES.collection.id}
                 onSetModalTitle={this.setModalTitle}
               />
             }

@@ -272,13 +272,13 @@ export function setAssetPublic(asset, shouldSetAnonPerms) {
 export function isAssetPublicReady(name, organization, sector) {
   const errors = {};
   if (!name) {
-    errors.name = t('Name is required to make asset public');
+    errors.name = t('Name is required to make asset public.');
   }
   if (!organization) {
-    errors.organization = t('Organization is required to make asset public');
+    errors.organization = t('Organization is required to make asset public.');
   }
   if (!sector) {
-    errors.sector = t('Sector is required to make asset public');
+    errors.sector = t('Sector is required to make asset public.');
   }
 
   if (Object.keys(errors).length >= 1) {

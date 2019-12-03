@@ -9,6 +9,7 @@ import {
 } from 'js/constants';
 import {
   t,
+  notify,
   formatTime
 } from 'js/utils';
 
@@ -41,7 +42,7 @@ class AssetInfoBox extends React.Component {
       assetUtils.setAssetPublic(this.props.asset, true);
       this.setState({isPublicPending: true});
     } else {
-      this.showDetailsModalForced();
+      notify(Object.values(requiredPropsReady).join(' '), 'error');
     }
   }
 
@@ -54,8 +55,7 @@ class AssetInfoBox extends React.Component {
     }
     stores.pageState.showModal({
       type: modalType,
-      asset: this.props.asset,
-      forceMakePublic: true
+      asset: this.props.asset
     });
   }
 
@@ -69,12 +69,8 @@ class AssetInfoBox extends React.Component {
       return null;
     }
 
-    const isPublicable = (
-      this.props.asset.asset_type === ASSET_TYPES.template.id ||
-      this.props.asset.asset_type === ASSET_TYPES.collection.id
-    );
-
-    const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
+    const isPublic = isPublicable && assetUtils.isAssetPublic(this.props.asset.permissions);
 
     return (
       <bem.FormView__cell m='box'>
