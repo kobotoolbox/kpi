@@ -6,6 +6,7 @@ from hashlib import md5
 
 
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -16,6 +17,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -32,6 +34,7 @@ from kpi.models.object_permission import (
     get_anonymous_user,
     get_objects_for_user
 )
+from kpi.models.asset import UserAssetSubscription
 from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
     get_perm_name
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
@@ -222,27 +225,54 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         context_ = super().get_serializer_context()
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
-            # to retrieve object permissions, we make a big one at beginning
-            # to build an dict key-ed by asset ids.
+            # to retrieve related objects, we populated dicts key-ed by asset ids
+            # with the data needed by serializer.
+            # We create one (big) query per dict instead of a separate query
+            # for each asset in the list.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
             queryset = super().get_queryset()
             asset_content_type = ContentType.objects.get_for_model(Asset)
+
+            # 1) Retrieve all asset IDs of current list
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
+
+            # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
                 content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids
+                object_id__in=asset_ids,
+                deny=False,
             ).select_related(
                 'user', 'permission'
             ).order_by(
                 'user__username', 'permission__codename'
             )
-            object_permissions_per_object = defaultdict(list)
+            object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:
-                object_permissions_per_object[op.object_id].append(op)
+                object_permissions_per_asset[op.object_id].append(op)
 
-            context_['object_permissions_per_object'] = object_permissions_per_object
+            context_['object_permissions_per_asset'] = object_permissions_per_asset
+
+            # 3) Get the collection subscriptions per asset
+            subscriptions_queryset = UserAssetSubscription.objects. \
+                values('asset_id').annotate(user_subscriptions=Count('user_id'))
+
+            user_subscriptions_per_asset = defaultdict(int)
+            for record in subscriptions_queryset:
+                user_subscriptions_per_asset[record['asset_id']] = \
+                    record['user_subscriptions']
+
+            context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
+
+            # 4) Get the languages per asset
+            records = Asset.objects.filter(parent_id__in=asset_ids). \
+                values('parent_id', 'summary').order_by('parent_id')
+            summaries_per_asset = defaultdict(list)
+            for record in records:
+                summaries_per_asset[record['parent_id']].append(record['summary'])
+
+            context_['summaries_per_asset'] = summaries_per_asset
 
         return context_
 
@@ -439,9 +469,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(response_data, template_name='highlighted_xform.html')
 
     @action(detail=True, 
-        methods=['get', 'post', 'patch'],
-        permission_classes=[PostMappedToChangePermission]
-    )
+            methods=['get', 'post', 'patch'],
+            permission_classes=[PostMappedToChangePermission])
     def deployment(self, request, uid):
         """
         A GET request retrieves the existing deployment, if any.

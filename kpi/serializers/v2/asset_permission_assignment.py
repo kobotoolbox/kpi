@@ -65,14 +65,15 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             partial_perms = asset.get_partial_perms(
                 object_permission.user_id, with_filters=True)
 
-            hyperlinked_partial_perms = []
-            for perm_codename, filters in partial_perms.items():
-                url = self.__get_permission_hyperlink(perm_codename)
-                hyperlinked_partial_perms.append({
-                    'url': url,
-                    'filters': filters
-                })
-            return hyperlinked_partial_perms
+            if partial_perms:
+                hyperlinked_partial_perms = []
+                for perm_codename, filters in partial_perms.items():
+                    url = self.__get_permission_hyperlink(perm_codename)
+                    hyperlinked_partial_perms.append({
+                        'url': url,
+                        'filters': filters
+                    })
+                return hyperlinked_partial_perms
         return None
 
     def get_url(self, object_permission):
