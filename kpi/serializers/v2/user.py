@@ -6,7 +6,7 @@ from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
-from kpi.constants import ASSET_TYPE_COLLECTION, PERM_VIEW_ASSET
+from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.fields import PaginatedApiField
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
@@ -59,5 +59,5 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             content_type=ContentType.objects.get_for_model(Asset),
             object_id__in=collection_ids,
             user_id=settings.ANONYMOUS_USER_ID,
-            permission__codename=PERM_VIEW_ASSET).values_list('object_id',
-                                                              flat=True)
+            permission__codename=PERM_DISCOVER_ASSET).values_list('object_id',
+                                                                  flat=True)
