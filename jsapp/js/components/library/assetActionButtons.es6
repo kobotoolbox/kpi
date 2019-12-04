@@ -42,10 +42,11 @@ class AssetActionButtons extends React.Component {
   }
 
   getOwnedCollections() {
-    // TODO: use an action!
-    dataInterface.listCollections().then((collections) => {
+    // TODO: use collection search store and get already loaded collections list
+    // to avoid fetching collection for each asset on a list of assets
+    dataInterface.listCollections().then((data) => {
       this.setState({
-        ownedCollections: collections.results.filter((value) => {
+        ownedCollections: data.results.filter((value) => {
           if (value.access_type === 'shared') {
             return false;
           } else {

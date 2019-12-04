@@ -16,7 +16,6 @@ import {
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
-import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import permConfig from './permConfig';
 
 class UserPermissionRow extends React.Component {
@@ -176,26 +175,14 @@ class UserPermissionRow extends React.Component {
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
-            {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-            {this.props.assetType === ASSET_TYPES.survey.id &&
-              <UserAssetPermsEditor
-                uid={this.props.uid}
-                username={this.props.user.name}
-                permissions={this.props.permissions}
-                assignablePerms={this.props.assignablePerms}
-                nonOwnerPerms={this.props.nonOwnerPerms}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-              />
-            }
-            {this.props.assetType === ASSET_TYPES.collection.id &&
-              <UserCollectionPermsEditor
-                uid={this.props.uid}
-                username={this.props.user.name}
-                permissions={this.props.permissions}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-              />
-            }
-
+            <UserAssetPermsEditor
+              uid={this.props.uid}
+              username={this.props.user.name}
+              permissions={this.props.permissions}
+              assignablePerms={this.props.assignablePerms}
+              nonOwnerPerms={this.props.nonOwnerPerms}
+              onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+            />
           </bem.UserRow__editor>
         }
       </bem.UserRow>

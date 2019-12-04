@@ -19,7 +19,6 @@ import {
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
-import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
 import {permParser} from './permParser';
@@ -166,22 +165,12 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-              {asset_type === ASSET_TYPES.survey.id &&
-                <UserAssetPermsEditor
-                  uid={uid}
-                  assignablePerms={this.state.assignablePerms}
-                  nonOwnerPerms={this.state.nonOwnerPerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-                />
-              }
-              {asset_type === ASSET_TYPES.collection.id &&
-                <UserCollectionPermsEditor
-                  uid={uid}
-                  assignablePerms={this.state.assignablePerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-                />
-              }
+              <UserAssetPermsEditor
+                uid={uid}
+                assignablePerms={this.state.assignablePerms}
+                nonOwnerPerms={this.state.nonOwnerPerms}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              />
 
             </bem.FormModal__item>
           }

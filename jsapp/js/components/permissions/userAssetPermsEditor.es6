@@ -28,6 +28,8 @@ import {
  * @prop uid - asset uid
  * @prop username - permissions user username (could be empty for new)
  * @prop permissions - list of permissions (could be empty for new)
+ * @prop assignablePerms - list of assignable permissions for given asset type
+ * @prop nonOwnerPerms - list of permissions with exclusion of the asset owner permissions
  * @prop onSubmitEnd - callback to be run when submit ends (success or failure)
  */
 class UserAssetPermsEditor extends React.Component {
@@ -305,11 +307,19 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   getLabel(permCodename) {
-    return this.props.assignablePerms.get(permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get(permCodename)).url);
+    return this.props.assignablePerms.get(
+      permConfig.getPermissionByCodename(
+        PERMISSIONS_CODENAMES.get(permCodename)
+      ).url
+    );
   }
 
   isAssignable(permCodename) {
-    return this.props.assignablePerms.has(permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get(permCodename)).url);
+    return this.props.assignablePerms.has(
+      permConfig.getPermissionByCodename(
+        PERMISSIONS_CODENAMES.get(permCodename)
+      ).url
+    );
   }
 
   /**
