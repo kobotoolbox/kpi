@@ -33,7 +33,7 @@ class SharingForm extends React.Component {
     };
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.onAssetChange);
     this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
@@ -67,7 +67,7 @@ class SharingForm extends React.Component {
     });
   }
 
-  onAssetChange (data) {
+  onAssetChange(data) {
     const uid = this.props.uid || this.currentAssetID;
     const asset = data[uid];
 
@@ -112,7 +112,7 @@ class SharingForm extends React.Component {
     );
   }
 
-  render () {
+  render() {
     if (!this.state.permissions) {
       return this.renderLoadingMessage();
     }

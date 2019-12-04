@@ -3,8 +3,7 @@ import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   t,
-  buildUserUrl,
-  getAnonymousUserPermission
+  buildUserUrl
 } from 'js/utils';
 import {
   ASSET_TYPES,
@@ -182,6 +181,8 @@ export function replaceForm(asset) {
 }
 
 /**
+ * TODO: this should be an action
+ *
  * Moves asset to a non-nested collection.
  * @param {string} assetUid
  * @param {string} collectionId
@@ -223,42 +224,6 @@ export function getSurveyFlatPaths(survey) {
 
   return output;
 }
-
-/**
- * Makes asset public or private
- *
- * @param {Object} asset - BE asset data
- * @param {boolean} newIsPublic
- */
-export function setAssetPublic(asset, shouldSetAnonPerms) {
-  if (isAssetPublic(asset.permissions) === shouldSetAnonPerms) {
-    throw new Error('Trying to set asset public to state it already is!');
-  }
-
-  if (shouldSetAnonPerms) {
-    const permsToSet = asset.permissions.filter((permissionAssignment) => {
-      return permissionAssignment.user !== asset.owner;
-    });
-    permsToSet.push({
-      user: buildUserUrl(ANON_USERNAME),
-      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
-    });
-    permsToSet.push({
-      user: buildUserUrl(ANON_USERNAME),
-      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
-    });
-    actions.permissions.bulkSetAssetPermissions(asset.uid, permsToSet);
-  } else {
-    const permToRemove = asset.permissions.find((permissionAssignment) => {
-      return (
-        permissionAssignment.user === buildUserUrl(ANON_USERNAME) &&
-        permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
-      );
-    });
-    actions.permissions.removeAssetPermission(asset.uid, permToRemove.url);
-  }
-}
-
 
 /**
  * Validates asset data to see if ready to be made public
@@ -328,7 +293,6 @@ export const assetUtils = {
   editTags,
   replaceForm,
   moveToCollection,
-  setAssetPublic,
   isAssetPublicReady,
   isAssetPublic
 };

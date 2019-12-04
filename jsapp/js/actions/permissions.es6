@@ -8,8 +8,14 @@ Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
 import {
   t,
-  notify
+  notify,
+  buildUserUrl
 } from 'js/utils';
+import {
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
+} from 'js/constants';
+import permConfig from 'js/components/permissions/permConfig';
 
 export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
@@ -17,8 +23,8 @@ export const permissionsActions = Reflux.createActions({
   bulkSetAssetPermissions: {children: ['completed', 'failed']},
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
-  copyPermissionsFrom: {children: ['completed', 'failed']},
-  assignPublicPerm: {children: ['completed', 'failed']}
+  setAssetPublic: {children: ['completed', 'failed']},
+  copyPermissionsFrom: {children: ['completed', 'failed']}
 });
 
 /**
@@ -92,8 +98,41 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
 });
 
 /**
-Old actions
+ * Makes asset public or private. This is a special action that mixes
+ * bulkSetAssetPermissions and removeAssetPermission to elegantly solve a
+ * particular problem.
+ *
+ * @param {Object} asset - BE asset data
+ * @param {boolean} shouldSetAnonPerms
  */
+permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
+  if (shouldSetAnonPerms) {
+    const permsToSet = asset.permissions.filter((permissionAssignment) => {
+      return permissionAssignment.user !== asset.owner;
+    });
+    permsToSet.push({
+      user: buildUserUrl(ANON_USERNAME),
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+    });
+    permsToSet.push({
+      user: buildUserUrl(ANON_USERNAME),
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
+    });
+    dataInterface.bulkSetAssetPermissions(asset.uid, permsToSet)
+      .done(() => {permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms);})
+      .fail(() => {permissionsActions.setAssetPublic.failed(asset.uid, shouldSetAnonPerms);});
+  } else {
+    const permToRemove = asset.permissions.find((permissionAssignment) => {
+      return (
+        permissionAssignment.user === buildUserUrl(ANON_USERNAME) &&
+        permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+      );
+    });
+    dataInterface.removePermission(permToRemove.url)
+      .done(() => {permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms);})
+      .fail(() => {permissionsActions.setAssetPublic.failed(asset.uid, shouldSetAnonPerms);});
+  }
+});
 
 // copies permissions from one asset to other
 permissionsActions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {

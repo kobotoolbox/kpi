@@ -236,6 +236,9 @@ permissionsActions.assignAssetPermission.completed.listen((uid) => {
 permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) => {
   actions.resources.loadAsset({id: targetUid});
 });
+permissionsActions.setAssetPublic.completed.listen((uid) => {
+  actions.resources.loadAsset({id: uid});
+});
 permissionsActions.removeAssetPermission.completed.listen((uid) => {
   // needed to update publicShareSettings after disabling link sharing
   actions.resources.loadAsset({id: uid});

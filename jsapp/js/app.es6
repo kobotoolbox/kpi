@@ -56,6 +56,7 @@ import keymap from './keymap';
 import { ShortcutManager, Shortcuts } from 'react-shortcuts';
 import LibrarySearchableList from './lists/library';
 import FormsSearchableList from './lists/forms';
+import permConfig from 'js/components/permissions/permConfig';
 
 const shortcutManager = new ShortcutManager(keymap);
 
@@ -77,8 +78,9 @@ class App extends React.Component {
       stores.pageState.hideModal();
     }
   }
-  componentDidMount () {
+  componentDidMount() {
     actions.misc.getServerEnvironment();
+    permConfig.fetchAndBuildConfig();
   }
   _handleShortcuts(action) {
     switch (action) {

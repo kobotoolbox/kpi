@@ -2,26 +2,8 @@ import Reflux from 'reflux';
 import {actions} from 'js/actions';
 import {
   t,
-  notify,
-  assign
+  notify
 } from 'js/utils';
-
-// TODO instead of this use `stateChanges` function from '/js/utils'
-// after https://github.com/kobotoolbox/kpi/pull/1959 is merged
-function stateChanges(orig_obj, new_obj) {
-  var out = {},
-      any = false;
-  Object.keys(new_obj).forEach(function(key) {
-    if (orig_obj[key] !== new_obj[key]) {
-      out[key] = new_obj[key];
-      any = true;
-    }
-  });
-  if (!any) {
-    return false;
-  }
-  return out;
-}
 
 /**
  * @typedef {Object} PermDefinition - A permission object from backend.
@@ -33,26 +15,22 @@ function stateChanges(orig_obj, new_obj) {
  * @property {string[]} contradictory - A list of contradictory permissions.
  */
 
+/**
+ * Permissions config. Starts empty and requires to manually call `fetchAndBuildConfig`.
+ */
 const permConfig = Reflux.createStore({
   init() {
-    this.state = {
-      permissions: []
-    };
+    this.permissions = [];
+  },
+
+  fetchAndBuildConfig() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.permissions.getConfig();
   },
 
-  setState (change) {
-    const changed = stateChanges(this.state, change);
-    if (changed) {
-      assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-
   onGetConfigCompleted(response) {
-    this.setState({permissions: response.results});
+    this.permissions = response.results;
   },
 
   onGetConfigFailed() {
@@ -65,7 +43,7 @@ const permConfig = Reflux.createStore({
    */
   getPermissionByCodename(permCodename) {
     this.verifyReady();
-    const foundPerm = this.state.permissions.find((permission) => {
+    const foundPerm = this.permissions.find((permission) => {
       return permission.codename === permCodename;
     });
     return foundPerm;
@@ -77,7 +55,7 @@ const permConfig = Reflux.createStore({
    */
   getPermission(permUrl) {
     this.verifyReady();
-    const foundPerm = this.state.permissions.find((permission) => {
+    const foundPerm = this.permissions.find((permission) => {
       return permission.url === permUrl;
     });
     return foundPerm;
@@ -87,7 +65,7 @@ const permConfig = Reflux.createStore({
    * Throws if trying to use permConfig before it fetches data from BE.
    */
   verifyReady() {
-    if (this.state.permissions.length === 0) {
+    if (this.permissions.length === 0) {
       throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
   }

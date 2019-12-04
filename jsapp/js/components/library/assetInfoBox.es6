@@ -1,34 +1,58 @@
 import React from 'react';
+import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import Reflux from 'reflux';
 import {bem} from 'js/bem';
-import {stores} from 'js/stores';
+import {actions} from 'js/actions';
 import {assetUtils} from 'js/assetUtils';
-import {
-  ASSET_TYPES,
-  MODAL_TYPES
-} from 'js/constants';
+import {ASSET_TYPES} from 'js/constants';
 import {
   t,
   notify,
   formatTime
 } from 'js/utils';
 
+/**
+ * @prop asset
+ */
 class AssetInfoBox extends React.Component {
   constructor(props){
     super(props);
     this.state = {
       isPublicPending: false,
+      isAwaitingFreshPermissions: false,
       areDetailsVisible: false
     };
     autoBind(this);
   }
 
+  componentDidMount() {
+    this.listenTo(actions.permissions.setAssetPublic.completed, this.onSetAssetPublicCompleted);
+    this.listenTo(actions.permissions.setAssetPublic.failed, this.onSetAssetPublicFailed);
+  }
+
   componentWillReceiveProps() {
-    this.setState({isPublicPending: false});
+    this.setState({isAwaitingFreshPermissions: false});
   }
 
   toggleDetails() {
     this.setState({areDetailsVisible: !this.state.areDetailsVisible});
+  }
+
+  onSetAssetPublicCompleted(assetUid) {
+    if (this.props.asset.uid === assetUid) {
+      this.setState({
+        isPublicPending: false,
+        isAwaitingFreshPermissions: true,
+      });
+    }
+  }
+
+  onSetAssetPublicFailed(assetUid) {
+    if (this.props.asset.uid === assetUid) {
+      this.setState({isPublicPending: false});
+      notify(t('Failed to change asset public status.'), 'error');
+    }
   }
 
   makePublic() {
@@ -39,29 +63,20 @@ class AssetInfoBox extends React.Component {
     );
 
     if (requiredPropsReady === true) {
-      assetUtils.setAssetPublic(this.props.asset, true);
       this.setState({isPublicPending: true});
+      actions.permissions.setAssetPublic(this.props.asset, true);
     } else {
       notify(Object.values(requiredPropsReady).join(' '), 'error');
     }
   }
 
-  showDetailsModalForced() {
-    let modalType;
-    if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
-      modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
-    } else if (this.props.asset.asset_type === ASSET_TYPES.collection.id) {
-      modalType = MODAL_TYPES.LIBRARY_COLLECTION;
-    }
-    stores.pageState.showModal({
-      type: modalType,
-      asset: this.props.asset
-    });
+  makePrivate() {
+    this.setState({isPublicPending: true});
+    actions.permissions.setAssetPublic(this.props.asset, false);
   }
 
-  makePrivate() {
-    assetUtils.setAssetPublic(this.props.asset, false);
-    this.setState({isPublicPending: true});
+  isSetPublicButtonDisabled() {
+    return this.state.isPublicPending || this.state.isAwaitingFreshPermissions;
   }
 
   render() {
@@ -97,7 +112,7 @@ class AssetInfoBox extends React.Component {
                 <button
                   className='mdl-button mdl-button--raised mdl-button--colored'
                   onClick={this.makePublic}
-                  disabled={this.state.isPublicPending}
+                  disabled={this.isSetPublicButtonDisabled()}
                 >
                   {t('Make public')}
                 </button>
@@ -106,7 +121,7 @@ class AssetInfoBox extends React.Component {
                 <button
                   className='mdl-button mdl-button--raised mdl-button--colored'
                   onClick={this.makePrivate}
-                  disabled={this.state.isPublicPending}
+                  disabled={this.isSetPublicButtonDisabled()}
                 >
                   {t('Make private')}
                 </button>
@@ -199,5 +214,7 @@ class AssetInfoBox extends React.Component {
     );
   }
 }
+
+reactMixin(AssetInfoBox.prototype, Reflux.ListenerMixin);
 
 export default AssetInfoBox;
