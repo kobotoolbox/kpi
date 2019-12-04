@@ -1,5 +1,5 @@
 # coding: utf-8
-from kpi.constants import PERM_SHARE_SUBMISSIONS
+from kpi.constants import PERM_SHARE_SUBMISSIONS, PERM_FROM_KC_ONLY
 
 
 class ObjectPermissionHelper:
@@ -43,11 +43,11 @@ class ObjectPermissionHelper:
         # `affected_object.permissions` is a `GenericRelation(ObjectPermission)`
         # Don't Prefetch `content_object`.
         # See `AssetPermissionAssignmentSerializer.to_representation()`
-        queryset = affected_object.permissions.select_related(
+        queryset = affected_object.permissions.filter(deny=False).select_related(
             'permission', 'user'
         ).order_by(
                 'user__username', 'permission__codename'
-        ).all()
+        ).exclude(permission__codename=PERM_FROM_KC_ONLY).all()
 
         # Filtering is done in `get_queryset` instead of FilteredBackend class
         # because it's specific to `ObjectPermission`.

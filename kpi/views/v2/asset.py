@@ -240,7 +240,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
                 content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids
+                object_id__in=asset_ids,
+                deny=False,
             ).select_related(
                 'user', 'permission'
             ).order_by(
