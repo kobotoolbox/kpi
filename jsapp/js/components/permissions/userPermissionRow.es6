@@ -5,9 +5,9 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import mixins from 'js/mixins';
-import stores from 'js/stores';
-import actions from 'js/actions';
-import bem from 'js/bem';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
 import {
   t,
   stringToColor,

@@ -3,8 +3,8 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/checkbox';
 import mixins from 'js/mixins';
-import actions from 'js/actions';
-import bem from 'js/bem';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   t,

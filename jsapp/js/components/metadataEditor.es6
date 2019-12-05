@@ -9,7 +9,7 @@ import {
 import {
   META_QUESTION_TYPES,
 } from 'js/constants';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 
 const AUDIT_HELP_URL = 'http://support.kobotoolbox.org/en/articles/2648050-audit-logging-meta-question-type';
 

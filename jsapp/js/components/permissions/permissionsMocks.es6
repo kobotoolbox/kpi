@@ -266,9 +266,9 @@ const assetWithPartial = {
   ]
 };
 
-export default {
-  permissions: permissions,
-  assetWithAnon: assetWithAnonymousUser,
-  assetWithMulti: assetWithMultipleUsers,
-  assetWithPartial: assetWithPartial
+export const endpoints = {
+  permissions,
+  assetWithAnonymousUser,
+  assetWithMultipleUsers,
+  assetWithPartial,
 };

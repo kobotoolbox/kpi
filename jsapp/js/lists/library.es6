@@ -5,10 +5,10 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import Reflux from 'reflux';
 
-import searches from '../searches';
+import {searches} from '../searches';
 import mixins from '../mixins';
-import stores from '../stores';
-import bem from '../bem';
+import {stores} from '../stores';
+import {bem} from '../bem';
 import ui from '../ui';
 import {dataInterface} from '../dataInterface';
 import SearchCollectionList from '../components/searchcollectionlist';

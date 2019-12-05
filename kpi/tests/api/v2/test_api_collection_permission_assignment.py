@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
@@ -94,7 +92,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        super(ApiCollectionPermissionListTestCase, self).setUp()
+        super().setUp()
 
         self.collection.assign_perm(self.someuser, PERM_CHANGE_COLLECTION)
         self.collection.assign_perm(self.anotheruser, PERM_VIEW_COLLECTION)

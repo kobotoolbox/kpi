@@ -1,9 +1,7 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 import pytest
-
 from django.test import TestCase
+
 from kpi.models.asset import Asset
 from kpi.models.asset_version import AssetVersion
 
@@ -12,12 +10,14 @@ class CreateDeployment(TestCase):
     def setUp(self):
         self.asset = Asset(content={
             'survey': [
-                {u'type':'text', u'name': 'q1',
-                    u'label': 'Q1.',}
+                {'type':'text', 'name': 'q1',
+                    'label': 'Q1.',}
                 ]
             })
+
     def test_invalid_backend_fails(self):
         self.asset.save()
+
         def _bad_deployment():
             self.asset.connect_deployment(backend='nonexistent')
         self.assertRaises(KeyError, _bad_deployment)
@@ -34,10 +34,10 @@ def test_initial_kuids():
     initial_kuid = 'aaaa1111'
     asset = Asset.objects.create(content={
         'survey': [
-            {u'type': 'text',
-                u'name': 'q1',
-                u'label': 'Q1.',
-                u'$kuid': initial_kuid,
+            {'type': 'text',
+                'name': 'q1',
+                'label': 'Q1.',
+                '$kuid': initial_kuid,
              }
             ]
         })
@@ -54,8 +54,8 @@ class MockDeployment(TestCase):
     def setUp(self):
         self.asset = Asset.objects.create(content={
             'survey': [
-                {u'type': 'text', u'name': 'q1',
-                    u'label': 'Q1.'
+                {'type': 'text', 'name': 'q1',
+                    'label': 'Q1.'
                  }
                 ]
             })
