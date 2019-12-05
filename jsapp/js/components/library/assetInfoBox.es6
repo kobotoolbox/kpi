@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import {assetUtils} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
   t,

@@ -252,15 +252,6 @@ export var dataInterface;
         }
       });
     },
-    libraryDefaultSearch () {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/`,
-        data: {
-          q: 'asset_type:question OR asset_type:block OR asset_type:template'
-        },
-        method: 'GET'
-      });
-    },
     deleteAsset ({uid}) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
@@ -339,13 +330,23 @@ export var dataInterface;
         dataType: 'html'
       });
     },
-    searchAssets (searchData) {
-      // override limit
+    searchAssets(searchData) {
+      // TODO https://github.com/kobotoolbox/kpi/issues/1983
+      // force set limit to get hacky "all" assets
       searchData.limit = 200;
       return $.ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
         data: searchData,
+        method: 'GET'
+      });
+    },
+    libraryDefaultSearch() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/`,
+        data: {
+          q: 'asset_type:question OR asset_type:block OR asset_type:template'
+        },
         method: 'GET'
       });
     },

@@ -15,7 +15,7 @@ import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
 import {dataInterface} from 'js/dataInterface';
-import {assetUtils} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 

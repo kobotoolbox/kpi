@@ -7,7 +7,6 @@
 
 import _ from 'underscore';
 import Reflux from 'reflux';
-import $ from 'jquery';
 import SparkMD5 from 'spark-md5';
 
 import {stores} from './stores';

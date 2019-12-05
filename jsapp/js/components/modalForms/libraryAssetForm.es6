@@ -14,7 +14,7 @@ import {
   t,
   notify
 } from 'js/utils';
-import {assetUtils} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import {
   renderLoading,
   renderBackButton

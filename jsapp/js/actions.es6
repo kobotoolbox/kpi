@@ -526,7 +526,7 @@ actions.resources.cloneAsset.failed.listen(() => {
   notify(t('Could not create project!'), 'error');
 });
 
-actions.search.assets.listen(function(searchData, params={}){
+actions.search.assets.listen(function(searchData, params = {}){
   dataInterface.searchAssets(searchData)
     .done(function(response){
       actions.search.assets.completed(searchData, response);
@@ -541,8 +541,6 @@ actions.search.assets.listen(function(searchData, params={}){
       }
     });
 });
-
-
 
 // reload so a new csrf token is issued
 actions.auth.logout.completed.listen(function(){

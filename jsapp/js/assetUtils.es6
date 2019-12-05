@@ -280,7 +280,7 @@ export function isAssetPublic(permissions) {
    return isVisibleToAnonymous && isDiscoverableByAnonymous;
 }
 
-export const assetUtils = {
+export default {
   cleanupTags,
   getSurveyFlatPaths,
   getAssetOwnerDisplayName,
