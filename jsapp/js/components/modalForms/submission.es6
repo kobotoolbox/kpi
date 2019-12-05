@@ -6,11 +6,11 @@ import reactMixin from 'react-mixin';
 import Select from 'react-select';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
-import actions from 'js/actions';
+import {actions} from 'js/actions';
 import mixins from 'js/mixins';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import {t, notify} from 'js/utils';
-import stores from 'js/stores';
+import {stores} from 'js/stores';
 import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
 import {

@@ -5,9 +5,9 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import stores from '../../stores';
-import bem from '../../bem';
-import actions from '../../actions';
+import {stores} from '../../stores';
+import {bem} from '../../bem';
+import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
 import {

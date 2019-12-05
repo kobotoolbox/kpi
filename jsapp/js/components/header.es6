@@ -5,10 +5,10 @@ import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import alertify from 'alertifyjs';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import Reflux from 'reflux';
-import bem from '../bem';
-import actions from '../actions';
+import {bem} from '../bem';
+import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
@@ -17,7 +17,7 @@ import {
   currentLang,
   stringToColor,
 } from '../utils';
-import searches from '../searches';
+import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import {NAME_MAX_LENGTH} from 'js/constants';
 
