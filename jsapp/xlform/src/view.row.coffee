@@ -100,10 +100,6 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
       for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
-        if key == 'label' and @model.get('type').get('value') == 'calculate'
-          view.model = @model.get('calculation')
-          @model.finalize()
-          val.set('value', '')
         view.render().insertInDOM(@)
       if @model.getValue('required')
         @$card.addClass('card--required')
@@ -224,7 +220,7 @@ module.exports = do ->
             if key isnt 'readonly'
               new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
           else if questionType is 'note'
-            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external']
+            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external', 'calculation']
               new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
           else
             new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
@@ -283,10 +279,6 @@ module.exports = do ->
 
       for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
-        if key == 'label' and @model.get('type').get('value') == 'calculate'
-          view.model = @model.get('calculation')
-          @model.finalize()
-          val.set('value', '')
         view.render().insertInDOM(@)
       @
 

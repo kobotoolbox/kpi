@@ -363,18 +363,17 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
   var crossStorage = getCrossStorageClient();
   crossStorage.onConnect()
   .then(function() {
-    console.log('crossStorage connected');
     return crossStorage.get('currentUser');
   })
   .then(function(res) {
-    console.log('crossStorage gotCurrentUser', res);
     if (!res || res == '') {
-      console.log('app will logout');
       actions.auth.logout();
     } else {
+      window.parent.postMessage('form_saveinprogress', '*');
       dataInterface.patchAsset(uid, values)
         .done((asset) => {
           actions.resources.updateAsset.completed(asset, uid, values);
+          window.parent.postMessage('form_savecomplete', '*');
           if (typeof params.onComplete === 'function') {
             params.onComplete(asset, uid, values);
           }

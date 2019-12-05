@@ -123,6 +123,14 @@
       display: inline-block;
     }
   }
+
+  &.input-error {
+    color: $cool-red;
+
+    input.text {
+      border-color: $cool-red;
+    }
+  }
 }
 
 .card__settings-close {

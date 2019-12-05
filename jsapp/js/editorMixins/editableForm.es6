@@ -273,6 +273,7 @@ export default assign({
     if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
       this.preventClosingTab();
     }
+    window.parent.postMessage('form_saveneeded', '*');
     this.setState({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
@@ -517,9 +518,9 @@ export default assign({
     if (this.state.editorState === 'new') {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
-      ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
+      ooo.saveButtonText = `${t('save draft')} (${t('retry')}) `;
     } else {
-      ooo.saveButtonText = t('save');
+      ooo.saveButtonText = t('save draft');
     }
     return ooo;
   },

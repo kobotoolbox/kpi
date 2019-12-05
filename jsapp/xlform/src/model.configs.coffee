@@ -148,8 +148,6 @@ module.exports = do ->
       label:
         value: "Enter a number within a specified range"
     calculate:
-      calculation:
-        value: ""
       label:
         value: "calculation"
     datetime:
@@ -209,13 +207,13 @@ module.exports = do ->
   configs.columns = [
     "type",
     "name",
+    "bind::oc:itemgroup",
     "label",
     "hint",
     "required",
     "relevant",
     "default",
     "constraint"
-    "bind::oc:itemgroup",
     "bind::oc:external",
     "readonly"
   ]
@@ -309,13 +307,15 @@ module.exports = do ->
       value: ''
     readonly:
       value: false
+    calculation:
+      value: ""
 
   configs.newGroupDetails =
     name:
       value: ->
         "group_#{$utils.txtid()}"
     label:
-      value: "Group"
+      value: ""
     type:
       value: "group"
     _isRepeat:

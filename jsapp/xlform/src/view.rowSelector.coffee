@@ -113,11 +113,7 @@ module.exports = do ->
       rowDetails =
         type: rowType
 
-      if rowType is 'calculate'
-
-        rowDetails.calculation = questionLabelValue
-      else
-        rowDetails.label = questionLabelValue
+      rowDetails.label = questionLabelValue
 
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)
