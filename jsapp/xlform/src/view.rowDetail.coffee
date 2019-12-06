@@ -547,13 +547,63 @@ module.exports = do ->
           @$('input[type=text]').val(modelValue)
           @listenForInputChange()
         else if $input.attr('type') == 'checkbox'
-          if @model.get('value') == 'field-list'
-            $input.prop('checked', true)
-          $input.on 'change', () =>
-            if $input.prop('checked')
-              @model.set 'value', 'field-list'
+          isThemeGrid = false
+          if sessionStorage.getItem('kpi.editable-form.form-style').indexOf('theme-grid') isnt -1
+            isThemeGrid = true
+
+          fieldListStr = 'field-list'
+          if not isThemeGrid
+            if @model.get('value') == fieldListStr
+              $input.prop('checked', true)
+
+            $input.on 'change', () =>
+              if $input.prop('checked')
+                @model.set 'value', fieldListStr
+              else
+                @model.set 'value', ''
+          else
+            $inputText = $('<input/>', {
+              class:'text',
+              type: 'text',
+              style: 'width: auto',
+              title: _t("Number of columns"),
+              placeholder: _t("Number of columns")
+            })
+            $labelText = $('<span/>').text(_t("Number of columns") + " ")
+
+            @$('.settings__input').append($('<div/>').append($labelText).append($inputText))
+            if @model.get('value').indexOf(fieldListStr) isnt -1
+              $input.prop('checked', true)
+              inputTextValue = @model.get('value').substr(fieldListStr.length + 1)
+              $inputText.val(inputTextValue)
             else
-              @model.set 'value', ''
+              $input.prop('checked', false)
+              if @model.get('value') isnt ''
+                $inputText.val(@model.get('value'))
+
+            $inputText.on 'keyup', () =>
+              if $inputText.val() isnt ''
+                if $input.prop('checked')
+                  @model.set 'value', fieldListStr + ' ' + $inputText.val()
+                else
+                  @model.set 'value', $inputText.val()
+
+            $input.on 'change', () =>
+              if $input.prop('checked')
+                if $inputText.val() isnt ''
+                  @model.set 'value', fieldListStr + ' ' + $inputText.val()
+                else
+                  @model.set 'value', fieldListStr
+
+                @$('.settings__input').append($('<div/>').append($labelText).append($inputText))
+                $inputText.on 'keyup', () =>
+                  if $inputText.val() isnt ''
+                    @model.set 'value', fieldListStr + ' ' + $inputText.val()
+              else
+                if $inputText.val() isnt ''
+                  @model.set 'value', $inputText.val()
+                else
+                  @model.set 'value', ''
 
   viewRowDetail.DetailViewMixins.oc_item_group =
     onOcCustomEvent: (ocCustomEventArgs)->
