@@ -4,12 +4,12 @@ from hashlib import md5
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.core.exceptions import ValidationError
 from django.db import ProgrammingError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
+from rest_framework import serializers
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.utils.strings import hashable_str
@@ -243,12 +243,12 @@ class KobocatUserObjectPermission(ShadowModel):
         content_type = KobocatContentType.objects.get_for_model(
             self.content_object)
         if content_type != self.permission.content_type:
-            raise ValidationError(
-                "Cannot persist permission not designed for this "
-                "class (permission's type is %r and object's type is "
-                "%r)"
-                % (self.permission.content_type, content_type)
-            )
+            raise serializers.ValidationError({
+                'content_type': "Cannot persist permission not designed for this "
+                                "class (permission's type is %r and object's " 
+                                "type is %r)" % (self.permission.content_type,
+                                                 content_type)
+            })
         return super().save(*args, **kwargs)
 
 

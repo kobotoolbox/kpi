@@ -215,8 +215,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Returns the deployment for the asset specified by the request
         """
         if not self.asset.has_deployment:
-            raise serializers.ValidationError(
-                _('The specified asset has not been deployed'))
+            raise serializers.ValidationError({
+                'deployment': _('The specified asset has not been deployed')
+            })
+
         return self.asset.deployment
 
     @action(detail=False, methods=['DELETE'],
