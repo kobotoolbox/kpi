@@ -498,10 +498,12 @@ module.exports = do ->
 
       types[@model_type(@model)]
     html: ->
-
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
-        return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
+        if @is_theme_grid()
+          return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
+        else
+          return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
       else
         appearances = @getTypes()
         if appearances?
@@ -517,6 +519,9 @@ module.exports = do ->
 
     model_type: (model) ->
       @model._parent.getValue('type').split(' ')[0]
+
+    is_theme_grid: () ->
+      sessionStorage.getItem('kpi.editable-form.form-style').indexOf('theme-grid') isnt -1
 
     afterRender: ->
       $select = @$('select')
@@ -544,66 +549,21 @@ module.exports = do ->
       else
         $input = @$('input')
         if $input.attr('type') == 'text'
+          if @model_is_group(@model) and @is_theme_grid()
+            $labelText = $('<span/>').text(_t('Number of columns (default is w4)') + '')
+            @$('input[type=text]').parent().prepend($labelText)
           @$('input[type=text]').val(modelValue)
           @listenForInputChange()
         else if $input.attr('type') == 'checkbox'
-          isThemeGrid = false
-          if sessionStorage.getItem('kpi.editable-form.form-style').indexOf('theme-grid') isnt -1
-            isThemeGrid = true
-
           fieldListStr = 'field-list'
-          if not isThemeGrid
-            if @model.get('value') == fieldListStr
-              $input.prop('checked', true)
+          if @model.get('value') == fieldListStr
+            $input.prop('checked', true)
 
-            $input.on 'change', () =>
-              if $input.prop('checked')
-                @model.set 'value', fieldListStr
-              else
-                @model.set 'value', ''
-          else
-            $inputText = $('<input/>', {
-              class:'text',
-              type: 'text',
-              style: 'width: auto',
-              title: _t("Number of columns"),
-              placeholder: _t("Number of columns")
-            })
-            $labelText = $('<span/>').text(_t("Number of columns") + " ")
-
-            @$('.settings__input').append($('<div/>').append($labelText).append($inputText))
-            if @model.get('value').indexOf(fieldListStr) isnt -1
-              $input.prop('checked', true)
-              inputTextValue = @model.get('value').substr(fieldListStr.length + 1)
-              $inputText.val(inputTextValue)
+          $input.on 'change', () =>
+            if $input.prop('checked')
+              @model.set 'value', fieldListStr
             else
-              $input.prop('checked', false)
-              if @model.get('value') isnt ''
-                $inputText.val(@model.get('value'))
-
-            $inputText.on 'keyup', () =>
-              if $inputText.val() isnt ''
-                if $input.prop('checked')
-                  @model.set 'value', fieldListStr + ' ' + $inputText.val()
-                else
-                  @model.set 'value', $inputText.val()
-
-            $input.on 'change', () =>
-              if $input.prop('checked')
-                if $inputText.val() isnt ''
-                  @model.set 'value', fieldListStr + ' ' + $inputText.val()
-                else
-                  @model.set 'value', fieldListStr
-
-                @$('.settings__input').append($('<div/>').append($labelText).append($inputText))
-                $inputText.on 'keyup', () =>
-                  if $inputText.val() isnt ''
-                    @model.set 'value', fieldListStr + ' ' + $inputText.val()
-              else
-                if $inputText.val() isnt ''
-                  @model.set 'value', $inputText.val()
-                else
-                  @model.set 'value', ''
+              @model.set 'value', ''
 
   viewRowDetail.DetailViewMixins.oc_item_group =
     onOcCustomEvent: (ocCustomEventArgs)->
