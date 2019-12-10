@@ -3,6 +3,9 @@ import constance
 from django.db import transaction
 from registration.backends.default.views import RegistrationView
 from registration.forms import RegistrationForm
+from django.contrib.auth.views import PasswordResetView
+from registration.forms import PasswordResetFormWithUsername
+
 
 
 class ExtraDetailRegistrationView(RegistrationView):
@@ -24,3 +27,8 @@ class ExtraDetailRegistrationView(RegistrationView):
             new_user.extra_details.data.update(extra_data)
             new_user.extra_details.save()
         return new_user
+
+class PasswordResetFormWithUsernameView(PasswordResetView):
+    form_class = PasswordResetFormWithUsername
+    success_url = reverse_lazy('password_reset_done')
+    template_name = 'registration/password_reset_form.html'

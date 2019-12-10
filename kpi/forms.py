@@ -3,8 +3,11 @@ from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
-
+from django.contrib.auth.forms import PasswordResetForm as PRF
 from kobo.static_lists import SECTORS, COUNTRIES
+from django.contrib.auth import get_user_model
+
+UserModel = get_user_model()
 
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
@@ -65,3 +68,26 @@ class RegistrationForm(registration_forms.RegistrationForm):
             # The 'password' field appears without adding it here; adding it
             # anyway results in a duplicate
         ]
+
+class PasswordResetFormWithUsername(PRF):
+    username = forms.CharField(
+        label=_("Username"),
+        max_length=254,
+        required=False,
+    )
+
+    def get_users(self, email):
+        username = self.cleaned_data['username']
+        active_users = UserModel._default_manager.filter(**{
+            '%s__iexact' % UserModel.get_email_field_name(): email,
+            'is_active': True,
+        })
+        print('--------')
+        print(active_users)
+        print('--------')
+        print(username)
+        print('--------')
+        if(username == ""):
+            return(u for u in active_users if u.has_usable_password())
+        else:
+            return (u for u in active_users if u.username == username)
