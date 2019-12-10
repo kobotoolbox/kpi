@@ -12,7 +12,7 @@
     left: 0px;
     width: 100%;
     height: 100%;
-    z-index: 1001;
+    z-index: 0;
     background: rgba(#FFF, 0.8);
   }
 
@@ -401,15 +401,13 @@ body .leaflet-control-layers,
 
 .map-no-geopoint{
   text-align:center;
-  margin:auto;
-  padding:10px;
   font-weight:bold;
+  color: white;
 }
 .map-no-geopoint-wrapper{
   position: absolute;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
   width:100%;
 }
 .map-transparent-background{
@@ -417,8 +415,8 @@ body .leaflet-control-layers,
   position: absolute;
   width: 100%;
   background-color: grey;
-  z-index: 401;
-  background:rgba(100,100,100,0.3);
+  z-index: 1001;
+  background:rgba(100,100,100,0.7);
 }
 
 // ClusterMarker overrides

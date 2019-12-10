@@ -260,7 +260,6 @@ export class FormMap extends React.Component {
       this.buildMarkers(map);
       this.buildHeatMap(map);
     }).fail((error)=>{
-      console.log('error: ' + error);
       if (error.responseText)
         this.setState({error: error.responseText, loading: false});
       else if (error.statusText)
@@ -405,7 +404,7 @@ export class FormMap extends React.Component {
         map.fitBounds(markers.getBounds());
     }
       if(prepPoints == 0) {
-        map.fitWorld();
+        map.fitBounds([[42.373, -71.124]]);
         this.setState({noData: true});
       }
       this.setState({
@@ -711,7 +710,7 @@ export class FormMap extends React.Component {
               return (
                   <bem.PopoverMenu__link
                     data-index={i} className={this.state.langIndex == i ? 'active': ''}
-                    key={`l-${i}`} onClick={this.filterLanguage} style={maxWidth = '1000px'}>
+                    key={`l-${i}`} onClick={this.filterLanguage}>
                     {l ? l : t('Default')}
                   </bem.PopoverMenu__link>
                 );
