@@ -27,6 +27,7 @@ from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
+    PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
 )
@@ -144,7 +145,7 @@ class ImportExportTask(models.Model):
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')
     """
-    someting that would be done after the file has uploaded
+    Something that would be done after the file has uploaded
     ...although we probably would need to store the file in a blob
     """
 
