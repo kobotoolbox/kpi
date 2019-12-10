@@ -1,11 +1,11 @@
 # coding: utf-8
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordResetForm as PRF
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
-from django.contrib.auth.forms import PasswordResetForm as PRF
 from kobo.static_lists import SECTORS, COUNTRIES
-from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
 

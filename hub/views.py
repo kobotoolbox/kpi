@@ -1,11 +1,12 @@
 # coding: utf-8
 import constance
 from django.db import transaction
+from django.urls import reverse_lazy
 from registration.backends.default.views import RegistrationView
 from registration.forms import RegistrationForm
 from django.contrib.auth.views import PasswordResetView
-from registration.forms import PasswordResetFormWithUsername
 
+from kpi.forms import PasswordResetFormWithUsername
 
 
 class ExtraDetailRegistrationView(RegistrationView):

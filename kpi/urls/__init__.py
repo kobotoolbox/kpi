@@ -6,7 +6,9 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
+from hub.views import PasswordResetFormWithUsernameView
 from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
+from kpi.forms import PasswordResetFormWithUsername
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests
@@ -42,6 +44,7 @@ urlpatterns = [
         r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
     ),
+    re_path(r'^accounts/password/reset', PasswordResetFormWithUsernameView.as_view(form_class=PasswordResetFormWithUsername), name='password_reset'),
     path('browser_tests/', browser_tests),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
