@@ -11,6 +11,7 @@ import {
   ListSearchSummary,
 } from 'js/components/list';
 import {t} from 'js/utils';
+import myLibraryStore from './myLibraryStore';
 
 class LibraryAssetsList extends React.Component {
   constructor(props) {
@@ -25,6 +26,11 @@ class LibraryAssetsList extends React.Component {
 
   componentDidMount() {
     this.searchDefault();
+    this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
+  }
+
+  myLibraryStoreChanged(store) {
+    console.debug('myLibraryStoreChanged', store);
   }
 
   render() {

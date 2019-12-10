@@ -116,17 +116,27 @@ $headerAccountTextColor: #dbedf7;
       width: 99%;
     }
 
+    .search__icon,
+    .search__cancel {
+      position: absolute;
+      top: 11px;
+      color: $white;
+
+      &::before {
+        font-size: 18px;
+      }
+    }
+
     .search__icon {
       @extend .fa, .fa-search;
 
-      position: absolute;
-      top: 11px;
       left: 12px;
-      color: $white;
+    }
 
-      &:before {
-        font-size: 18px;
-      }
+    .search__cancel {
+      @extend .fa, .fa-close;
+
+      right: 12px;
     }
   }
 }

@@ -16,25 +16,33 @@ import {t, assign} from './utils';
 import classNames from 'classnames';
 
 class SearchBox extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     autoBind(this);
   }
-  getValue () {
+  getValue() {
     return ReactDOM.findDOMNode(this.refs.inp).value;
   }
-  setValue (v) {
+  setValue(v) {
     ReactDOM.findDOMNode(this.refs.inp).value = v;
   }
-  render () {
+  render() {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
     return (
-        <input type='text' ref='inp' className='k-search__input' value={value}
-            onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
-      );
+      <input
+        type='text'
+        ref='inp'
+        className='k-search__input'
+        value={value}
+        onKeyUp={this.props.onKeyUp}
+        onChange={this.props.onChange}
+        id={elemId}
+        placeholder={this.props.placeholder}
+      />
+    );
   }
-};
+}
 
 class Panel extends React.Component {
   constructor(props) {
@@ -64,7 +72,7 @@ class Modal extends React.Component {
     document.removeEventListener('keydown', this.escFunction);
   }
   escFunction (evt) {
-    if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
+    if (evt.keyCode === KEY_CODES.get('ESC') || evt.key === 'Escape') {
       this.props.onClose.call(evt);
     }
   }

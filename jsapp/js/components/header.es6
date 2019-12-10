@@ -21,6 +21,7 @@ import {getAssetIcon} from 'js/assetUtils';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
+import SearchBox from 'js/components/header/searchBox';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -220,7 +221,7 @@ class MainHeader extends Reflux.Component {
             }
             { this.isLibraryList() &&
               <div className='mdl-layout__header-searchers'>
-                <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
+                <SearchBox placeholder={t('Search Library')}/>
               </div>
             }
             { this.isLibrarySingle() && this.state.asset &&

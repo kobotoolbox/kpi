@@ -288,7 +288,6 @@ export var routes = (
 
     <Route path='library'>
       <Route path='owned' component={LibraryAssetsList}/>
-      <Route path='shared' component={LibraryAssetsList}/>
       <Route path='public-collections' component={LibraryPublicCollections}/>
       <Route path='new-asset' component={LibraryAssetCreator}/>
       <Route path='asset/:uid' component={LibraryAsset}/>
