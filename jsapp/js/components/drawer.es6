@@ -14,7 +14,7 @@ import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
-import LibrarySidebar from '../components/librarySidebar';
+import LibrarySidebar from 'js/components/library/librarySidebar';
 import {
   IntercomHelpBubble,
   SupportHelpBubble

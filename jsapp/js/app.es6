@@ -287,7 +287,7 @@ export var routes = (
     */}
 
     <Route path='library'>
-      <Route path='owned' component={LibraryAssetsList}/>
+      <Route path='my-library' component={LibraryAssetsList}/>
       <Route path='public-collections' component={LibraryPublicCollections}/>
       <Route path='new-asset' component={LibraryAssetCreator}/>
       <Route path='asset/:uid' component={LibraryAsset}/>
@@ -295,7 +295,7 @@ export var routes = (
       <Route path='asset/:uid/json' component={FormJson} />
       <Route path='asset/:uid/xform' component={FormXform} />
       <Route path='collection/:uid' component={LibraryCollection}/>
-      <IndexRedirect to='owned'/>
+      <IndexRedirect to='my-library'/>
     </Route>
 
     <IndexRedirect to='forms' />
