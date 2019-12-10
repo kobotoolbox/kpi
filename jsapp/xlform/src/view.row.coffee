@@ -220,7 +220,7 @@ module.exports = do ->
             if key isnt 'readonly'
               new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
           else if questionType is 'note'
-            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external', 'calculation', 'bind::oc:briefdescription']
+            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external', 'calculation', 'bind::oc:briefdescription', 'bind::oc:description']
               new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
           else
             new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)

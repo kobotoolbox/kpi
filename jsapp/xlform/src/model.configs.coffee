@@ -312,6 +312,8 @@ module.exports = do ->
       value: ""
     "bind::oc:briefdescription":
       value: ''
+    "bind::oc:description":
+      value: ''
 
   configs.newGroupDetails =
     name:

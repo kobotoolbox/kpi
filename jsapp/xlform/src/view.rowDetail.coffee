@@ -30,6 +30,8 @@ module.exports = do ->
         modelKey = 'oc_external'
       else if modelKey == 'bind::oc:briefdescription'
         modelKey = 'oc_briefdescription'
+      else if modelKey == 'bind::oc:description'
+        modelKey = 'oc_description'
       @extraClass = "xlf-dv-#{modelKey}"
       _.extend(@, viewRowDetail.DetailViewMixins[modelKey] || viewRowDetail.DetailViewMixins.default)
       Backbone.on('ocCustomEvent', @onOcCustomEvent, @)
@@ -633,6 +635,14 @@ module.exports = do ->
       if questionType is 'calculate'
         @makeRequired()
 
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.oc_description =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Description"), 'text', '3999'
+    afterRender: ->
       @listenForInputChange()
 
   viewRowDetail
