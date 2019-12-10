@@ -28,6 +28,8 @@ module.exports = do ->
         modelKey = 'oc_item_group'
       else if modelKey == 'bind::oc:external'
         modelKey = 'oc_external'
+      else if modelKey == 'bind::oc:briefdescription'
+        modelKey = 'oc_briefdescription'
       @extraClass = "xlf-dv-#{modelKey}"
       _.extend(@, viewRowDetail.DetailViewMixins[modelKey] || viewRowDetail.DetailViewMixins.default)
       Backbone.on('ocCustomEvent', @onOcCustomEvent, @)
@@ -142,8 +144,11 @@ module.exports = do ->
       $el.siblings('.message').remove()
 
   viewRowDetail.Templates = {
-    textbox: (cid, key, key_label = key, input_class = '') ->
-      @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+    textbox: (cid, key, key_label = key, input_class = '', max_length = '') ->
+      if max_length is ''
+        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+      else
+        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" maxlength="#{max_length}" />""", cid, key_label
 
     checkbox: (cid, key, key_label = key, input_label = _t("Yes")) ->
       input_label = input_label
@@ -576,6 +581,14 @@ module.exports = do ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
       viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text'
+    afterRender: ->
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.oc_briefdescription =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Brief Description"), 'text', '40'
     afterRender: ->
       @listenForInputChange()
 
