@@ -399,6 +399,28 @@ body .leaflet-control-layers,
   }
 }
 
+.map-no-geopoint{
+  text-align:center;
+  margin:auto;
+  padding:10px;
+  font-weight:bold;
+}
+.map-no-geopoint-wrapper{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width:100%;
+}
+.map-transparent-background{
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  background-color: grey;
+  z-index: 401;
+  background:rgba(100,100,100,0.3);
+}
+
 // ClusterMarker overrides
 
 .marker-cluster-small {
