@@ -341,11 +341,18 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    libraryDefaultSearch() {
+    searchMyLibraryAssets(params = {}) {
+      let q = '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)';
+      if (params.searchPhrase) {
+        q += ` AND (${params.searchPhrase})`;
+      }
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
+        dataType: 'json',
         data: {
-          q: 'asset_type:question OR asset_type:block OR asset_type:template'
+          q: q,
+          limit: params.pageSize || 100,
+          page: params.page || 0
         },
         method: 'GET'
       });

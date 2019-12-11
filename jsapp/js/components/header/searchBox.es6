@@ -11,6 +11,7 @@ import {KEY_CODES} from 'js/constants';
 
 /**
  * @prop {string} placeholder - A text to be displayed in empty input.
+ * @prop {boolean} disabled - For disabling input.
  */
 export default class SearchBox extends React.Component {
   constructor(props) {
@@ -61,6 +62,7 @@ export default class SearchBox extends React.Component {
           onChange={this.onInputChange}
           onKeyUp={this.onInputKeyUp}
           placeholder={this.props.placeholder || t('Search…')}
+          disabled={this.props.disabled}
         />
         {this.state.inputVal !== '' &&
           <bem.Search__cancel onClick={this.clear}/>

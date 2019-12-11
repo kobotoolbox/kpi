@@ -31,8 +31,6 @@ class AssetsTableRow extends React.Component {
       rowCount = this.props.asset.summary.row_count;
     }
 
-    console.debug('assetsTableRow', this.props.asset);
-
     return (
       <bem.AssetsTableRow m='asset'>
         <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`}/>

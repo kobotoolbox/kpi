@@ -15,6 +15,7 @@ import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
 import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
+import libraryActions from './actions/library';
 import {
   log,
   t,
@@ -27,7 +28,8 @@ Reflux.use(RefluxPromise(window.Promise));
 
 export const actions = {
   permissions: permissionsActions,
-  help: helpActions
+  help: helpActions,
+  library: libraryActions
 };
 
 actions.navigation = Reflux.createActions([

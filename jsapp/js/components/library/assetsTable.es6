@@ -4,12 +4,12 @@ import {bem} from 'js/bem';
 import {t} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
 
-export const ASSETS_TABLE_CONTEXTS = new Map([
-  // default displays all available columns
-  ['default', 'default'],
-  // collection-content displays only a few columns
-  ['collection-content', 'collection-content']
-]);
+export const ASSETS_TABLE_CONTEXTS = new Map();
+new Set([
+  'my-library',
+  'public-collections',
+  'collection-content'
+]).forEach((name) => {ASSETS_TABLE_CONTEXTS.set(name, name);});
 
 /**
  * @typedef AssetsTableColumn
@@ -166,16 +166,16 @@ export class AssetsTable extends React.Component {
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
             this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('status'))
           }
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
             this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('collection'))
           }
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
             this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))
           }
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
             this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))
           }
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('last-modified'))}

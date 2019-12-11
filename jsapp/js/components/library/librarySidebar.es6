@@ -21,11 +21,18 @@ class LibrarySidebar extends Reflux.Component {
 
   componentDidMount() {
     this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
+    this.setState({
+      isLoading: false,
+      myLibraryCount: myLibraryStore.data.totalUserAssets
+    });
   }
 
-  myLibraryStoreChanged(store) {
-    console.debug('myLibraryStoreChanged', store);
-    this.setState({isLoading: false});
+  myLibraryStoreChanged() {
+    console.debug('myLibraryStoreChanged', myLibraryStore.data);
+    this.setState({
+      isLoading: false,
+      myLibraryCount: myLibraryStore.data.totalUserAssets
+    });
   }
 
   showLibraryNewModal(evt) {

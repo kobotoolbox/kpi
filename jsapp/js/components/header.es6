@@ -22,6 +22,7 @@ import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
+import myLibraryStore from 'js/components/library/myLibraryStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -30,6 +31,7 @@ class MainHeader extends Reflux.Component {
       asset: false,
       currentLang: currentLang(),
       isLanguageSelectorVisible: false,
+      isSearchBoxDisabled: this.getIsSearchBoxDisabled(),
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
@@ -52,11 +54,20 @@ class MainHeader extends Reflux.Component {
   componentDidMount() {
     document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
+    this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
   }
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
     }
+  }
+  myLibraryStoreChanged() {
+    this.setState({
+      isSearchBoxDisabled: this.getIsSearchBoxDisabled()
+    });
+  }
+  getIsSearchBoxDisabled() {
+    return myLibraryStore.data.totalUserAssets === null;
   }
   assetLoad(data) {
     const asset = data[this.props.assetid];
@@ -221,7 +232,10 @@ class MainHeader extends Reflux.Component {
             }
             { this.isLibraryList() &&
               <div className='mdl-layout__header-searchers'>
-                <SearchBox placeholder={t('Search Library')}/>
+                <SearchBox
+                  placeholder={t('Search Library')}
+                  disabled={this.state.isSearchBoxDisabled}
+                />
               </div>
             }
             { this.isLibrarySingle() && this.state.asset &&

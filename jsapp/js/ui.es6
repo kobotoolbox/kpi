@@ -39,6 +39,7 @@ class SearchBox extends React.Component {
         onChange={this.props.onChange}
         id={elemId}
         placeholder={this.props.placeholder}
+        disabled={this.props.disabled}
       />
     );
   }
