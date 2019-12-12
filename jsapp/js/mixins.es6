@@ -434,22 +434,6 @@ mixins.droppable = {
   }
 };
 
-mixins.collectionList = {
-  getInitialState () {
-    // initial state is a copy of "stores.collections.initialState"
-    return assign({}, stores.collections.initialState);
-  },
-  listCollections () {
-    actions.resources.listCollections();
-  },
-  componentDidMount () {
-    this.listenTo(stores.collections, this.collectionsChanged);
-  },
-  collectionsChanged (collections) {
-    this.setState(collections);
-  },
-};
-
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);

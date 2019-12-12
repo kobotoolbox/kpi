@@ -140,7 +140,7 @@ export class ListCollectionFilter extends React.Component {
     this.queryCollections();
   }
   queryCollections () {
-    dataInterface.listCollections().then((collections)=>{
+    dataInterface.getCollections().then((collections)=>{
       var availableCollections = collections.results.filter((value) => {
         return value.access_type !== 'public';
       });

@@ -107,16 +107,22 @@ class AssetInfoBox extends React.Component {
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['questions', 'column-1']}>
-            <bem.FormView__cellLabel>
-              {this.props.asset.asset_type === ASSET_TYPES.collection.id &&
-                t('Childrens')
-              }
-              {this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
-                t('Questions')
-              }
-            </bem.FormView__cellLabel>
-
-            {this.props.asset.summary.row_count || 0}
+            {this.props.asset.asset_type === ASSET_TYPES.collection.id &&
+              <React.Fragment>
+                <bem.FormView__cellLabel>
+                  {t('Assets')}
+                </bem.FormView__cellLabel>
+                {this.props.asset.children.count || 0}
+              </React.Fragment>
+            }
+            {this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
+              <React.Fragment>
+                <bem.FormView__cellLabel>
+                  {t('Questions')}
+                </bem.FormView__cellLabel>
+                {this.props.asset.summary.row_count || 0}
+              </React.Fragment>
+            }
           </bem.FormView__cell>
 
           {isPublicable &&

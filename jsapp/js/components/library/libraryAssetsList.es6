@@ -37,6 +37,7 @@ class LibraryAssetsList extends React.Component {
   }
 
   myLibraryStoreChanged() {
+    // TODO only list assets without parent (so collections and orphan assets)
     this.setState({
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets

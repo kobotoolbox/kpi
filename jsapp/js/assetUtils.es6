@@ -234,10 +234,9 @@ export function replaceForm(asset) {
  *
  * Moves asset to a non-nested collection.
  * @param {string} assetUid
- * @param {string} collectionId
+ * @param {string} collectionUrl
  */
-export function moveToCollection(assetUid, collectionId) {
-  const collectionUrl = '/collections/' + collectionId + '/';
+export function moveToCollection(assetUid, collectionUrl) {
   actions.resources.updateAsset(
     assetUid,
     {parent: collectionUrl}

@@ -21,6 +21,8 @@ const myLibraryStore = Reflux.createStore({
       assets: []
     };
 
+    // TODO update this list whenever existing item is changed
+
     this.listenTo(searchBoxStore, this.searchBoxStoreChanged);
     this.listenTo(actions.library.searchMyLibraryAssets.started, this.onSearchStarted);
     this.listenTo(actions.library.searchMyLibraryAssets.completed, this.onSearchCompleted);

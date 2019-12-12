@@ -5,7 +5,6 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
-import {dataInterface} from '../../dataInterface';
 import {bem} from '../../bem';
 import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';

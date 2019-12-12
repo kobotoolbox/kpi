@@ -38,7 +38,7 @@ class SearchCollectionList extends Reflux.Component {
   }
   queryCollections() {
     if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
-      dataInterface.listCollections().then((collections) => {
+      dataInterface.getCollections().then((collections) => {
         this.setState({
           ownedCollections: collections.results.filter((value) => {
             if (value.access_type === 'shared') {

@@ -18,6 +18,7 @@ import {dataInterface} from 'js/dataInterface';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
+import ownedCollectionsStore from './ownedCollectionsStore';
 
 const assetActions = mixins.clickAssets.click.asset;
 
@@ -36,26 +37,6 @@ class AssetActionButtons extends React.Component {
   }
 
   // methods for inner workings of component
-
-  componentDidMount() {
-    this.getOwnedCollections();
-  }
-
-  getOwnedCollections() {
-    // TODO: use collection search store and get already loaded collections list
-    // to avoid fetching collection for each asset on a list of assets
-    dataInterface.listCollections().then((data) => {
-      this.setState({
-        ownedCollections: data.results.filter((value) => {
-          if (value.access_type === 'shared') {
-            return false;
-          } else {
-            return value.access_type === 'owned';
-          }
-        })
-      });
-    });
-  }
 
   onMouseLeave() {
     // force hide popover in next render cycle
@@ -135,8 +116,8 @@ class AssetActionButtons extends React.Component {
     assetActions.cloneAsTemplate(this.props.asset.uid, this.props.asset.name);
   }
 
-  moveToCollection(collectionId) {
-    assetUtils.moveToCollection(this.props.asset.uid, collectionId);
+  moveToCollection(collectionUrl) {
+    assetUtils.moveToCollection(this.props.asset.uid, collectionUrl);
   }
 
   viewContainingCollection() {
@@ -146,6 +127,7 @@ class AssetActionButtons extends React.Component {
   }
 
   render() {
+    const ownedCollections = ownedCollectionsStore.data.collections;
     const assetType = this.props.asset ? this.props.asset.asset_type : null;
     const userCanEdit = true;
     const hasDetailsEditable = (
@@ -273,29 +255,35 @@ class AssetActionButtons extends React.Component {
             );
           })}
 
-          {assetType !== ASSET_TYPES.survey.id && this.state.ownedCollections.length > 0 &&
-            <bem.PopoverMenu__heading>
-              {t('Move to')}
-            </bem.PopoverMenu__heading>
+          {userCanEdit && this.props.asset.parent !== null &&
+            <bem.PopoverMenu__link
+              onClick={this.moveToCollection.bind(this, null)}
+            >
+              <i className='k-icon k-icon-folder-out'/>
+              {t('Remove from collection')}
+            </bem.PopoverMenu__link>
           }
 
-          {assetType !== ASSET_TYPES.survey.id && this.state.ownedCollections.length > 0 &&
-            <bem.PopoverMenu__moveTo>
-              {this.state.ownedCollections.map((col) => {
+          {assetType !== ASSET_TYPES.survey.id && ownedCollections.length > 0 && [
+            <bem.PopoverMenu__heading key='heading'>
+              {t('Move to')}
+            </bem.PopoverMenu__heading>,
+            <bem.PopoverMenu__moveTo key='list'>
+              {ownedCollections.map((collection) => {
                 return (
                   <bem.PopoverMenu__item
-                    onClick={this.moveToCollection.bind(this, col.value)}
-                    key={col.value}
-                    title={col.label}
+                    onClick={this.moveToCollection.bind(this, collection.url)}
+                    key={collection.uid}
+                    title={collection.name}
                     m='move-coll-item'
                   >
-                    <i className='k-icon k-icon-folder'/>
-                    {col.label}
+                    <i className='k-icon k-icon-folder-in'/>
+                    {collection.name}
                   </bem.PopoverMenu__item>
                 );
               })}
             </bem.PopoverMenu__moveTo>
-          }
+          ]}
 
           {assetType === ASSET_TYPES.survey.id && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
             <bem.PopoverMenu__link onClick={this.archive}>

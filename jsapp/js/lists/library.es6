@@ -37,7 +37,7 @@ class LibrarySearchableList extends React.Component {
     autoBind(this);
   }
   queryCollections() {
-    dataInterface.listCollections().then((collections) => {
+    dataInterface.getCollections().then((collections) => {
       this.setState({
         sidebarCollections: collections.results,
       });

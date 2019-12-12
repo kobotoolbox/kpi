@@ -323,7 +323,7 @@ var allAssetsStore = Reflux.createStore({
     }
   },
   onUpdateAssetCompleted (asset) {
-    this.registerAssetOrCollection(asset);
+    this.registerAsset(asset);
     this.data.forEach((dataAsset, index) => {
       if (dataAsset.uid === asset.uid) {
         this.data[index] = asset;
@@ -331,10 +331,10 @@ var allAssetsStore = Reflux.createStore({
     });
   },
   onLoadAssetCompleted (asset) {
-    this.registerAssetOrCollection(asset);
+    this.registerAsset(asset);
   },
   onCloneAssetCompleted (asset) {
-    this.registerAssetOrCollection(asset);
+    this.registerAsset(asset);
     this.byUid[asset.uid] = asset;
     this.data.unshift(asset);
     this.trigger(this.data);
@@ -349,7 +349,7 @@ var allAssetsStore = Reflux.createStore({
       this.trigger(this.data);
     }, 500);
   },
-  registerAssetOrCollection (asset) {
+  registerAsset (asset) {
     const parsedObj = parseTags(asset);
     asset.tags = parsedObj.tags;
     this.byUid[asset.uid] = asset;
@@ -366,7 +366,7 @@ var allAssetsStore = Reflux.createStore({
     }
   },
   onListAssetsCompleted: function(searchData, response) {
-    response.results.forEach(this.registerAssetOrCollection);
+    response.results.forEach(this.registerAsset);
     this.data = response.results;
     this.trigger(this.data);
   },
@@ -422,27 +422,6 @@ var userExistsStore = Reflux.createStore({
   usernameDoesntExist (username) {
     this.checked[username] = false;
     this.trigger(this.checked, username);
-  }
-});
-
-stores.collections = Reflux.createStore({
-  init () {
-    this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
-    this.initialState = {
-      collectionSearchState: 'none',
-      collectionCount: 0,
-      collectionList: [],
-    };
-    this.state = this.initialState;
-  },
-  listCollectionsCompleted (collectionData) {
-    this.latestList = collectionData.results;
-    assign(this.state, {
-      collectionSearchState: 'done',
-      collectionCount: collectionData.count,
-      collectionList: collectionData.results,
-    });
-    this.trigger(this.state);
   }
 });
 

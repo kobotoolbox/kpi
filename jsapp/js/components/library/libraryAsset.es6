@@ -9,9 +9,11 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
+import {ASSET_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
 import AssetContentSummary from './assetContentSummary';
+import CollectionAssetsTable from './collectionAssetsTable';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 class LibraryAsset extends React.Component {
@@ -32,6 +34,9 @@ class LibraryAsset extends React.Component {
 
   componentDidMount() {
     this.listenTo(stores.asset, this.onAssetLoad);
+
+    // TODO this should listen to asset parent being changed and update accordingly
+    // especially when displaying a collection
 
     const uid = this.currentAssetID();
     if (uid) {
@@ -69,17 +74,31 @@ class LibraryAsset extends React.Component {
             <AssetInfoBox asset={this.state.asset}/>
           </bem.FormView__row>
 
-          <bem.FormView__row>
-            <bem.FormView__cell m={['columns', 'first']}>
-              <bem.FormView__cell m='label'>
-                {t('Quick look')}
+          {this.state.asset.asset_type !== ASSET_TYPES.collection.id &&
+            <bem.FormView__row>
+              <bem.FormView__cell m={['columns', 'first']}>
+                <bem.FormView__cell m='label'>
+                  {t('Quick look')}
+                </bem.FormView__cell>
               </bem.FormView__cell>
-            </bem.FormView__cell>
 
-            <AssetContentSummary
-              asset={this.state.asset}
-            />
-          </bem.FormView__row>
+              <AssetContentSummary asset={this.state.asset}/>
+            </bem.FormView__row>
+          }
+
+          {this.state.asset.asset_type === ASSET_TYPES.collection.id &&
+            <bem.FormView__row>
+              <bem.FormView__cell m={['columns', 'first']}>
+                <bem.FormView__cell m='label'>
+                  {t('Collection Content')}
+                </bem.FormView__cell>
+              </bem.FormView__cell>
+
+              <bem.FormView__cell m='box'>
+                <CollectionAssetsTable asset={this.state.asset}/>
+              </bem.FormView__cell>
+            </bem.FormView__row>
+          }
         </bem.FormView>
       </DocumentTitle>
     );

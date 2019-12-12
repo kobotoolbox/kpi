@@ -92,12 +92,6 @@ actions.search = Reflux.createActions({
 });
 
 actions.resources = Reflux.createActions({
-  listCollections: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   createImport: {
     children: [
       'completed',
@@ -615,12 +609,6 @@ actions.resources.loadAssetContent.listen(function(params){
   dataInterface.getAssetContent(params)
     .done(actions.resources.loadAssetContent.completed)
     .fail(actions.resources.loadAssetContent.failed);
-});
-
-actions.resources.listCollections.listen(function(){
-  dataInterface.listCollections()
-    .done(actions.resources.listCollections.completed)
-    .fail(actions.resources.listCollections.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){

@@ -13,6 +13,13 @@ const libraryActions = Reflux.createActions({
       'failed'
     ]
   },
+
+  getCollections: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 // 'started' callback returns abort method immediately
@@ -21,6 +28,12 @@ libraryActions.searchMyLibraryAssets.listen((params) => {
     .done(libraryActions.searchMyLibraryAssets.completed)
     .fail(libraryActions.searchMyLibraryAssets.failed);
   libraryActions.searchMyLibraryAssets.started(xhr.abort);
+});
+
+libraryActions.getCollections.listen((params) => {
+  dataInterface.getCollections(params)
+    .done(libraryActions.getCollections.completed)
+    .fail(libraryActions.getCollections.failed);
 });
 
 export default libraryActions;

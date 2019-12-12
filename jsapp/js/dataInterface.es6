@@ -85,9 +85,16 @@ export var dataInterface;
         url: `${ROOT_URL}/api/v2/assets/?q=asset_type:template`
       });
     },
-    listCollections () {
+    getCollections(params = {}) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/?q=asset_type:collection`
+        url: `${ROOT_URL}/api/v2/assets/`,
+        dataType: 'json',
+        data: {
+          q: 'asset_type:collection',
+          limit: params.pageSize || 100,
+          page: params.page || 0
+        },
+        method: 'GET'
       });
     },
     createAssetSnapshot (data) {

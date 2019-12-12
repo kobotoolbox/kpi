@@ -38,7 +38,6 @@ import {
 import LibraryAssetsList from 'js/components/library/libraryAssetsList';
 import LibraryPublicCollections from 'js/components/library/libraryPublicCollections';
 import LibraryAsset from 'js/components/library/libraryAsset';
-import LibraryCollection from 'js/components/library/libraryCollection';
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
@@ -54,7 +53,6 @@ import {
 } from './utils';
 import keymap from './keymap';
 import { ShortcutManager, Shortcuts } from 'react-shortcuts';
-import LibrarySearchableList from './lists/library';
 import FormsSearchableList from './lists/forms';
 import permConfig from 'js/components/permissions/permConfig';
 
@@ -292,9 +290,8 @@ export var routes = (
       <Route path='new-asset' component={LibraryAssetCreator}/>
       <Route path='asset/:uid' component={LibraryAsset}/>
       <Route path='asset/:uid/edit' component={LibraryAssetEditor}/>
-      <Route path='asset/:uid/json' component={FormJson} />
-      <Route path='asset/:uid/xform' component={FormXform} />
-      <Route path='collection/:uid' component={LibraryCollection}/>
+      <Route path='asset/:uid/json' component={FormJson}/>
+      <Route path='asset/:uid/xform' component={FormXform}/>
       <IndexRedirect to='my-library'/>
     </Route>
 
