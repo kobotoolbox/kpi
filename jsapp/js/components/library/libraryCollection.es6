@@ -157,7 +157,7 @@ class LibraryCollection extends React.Component {
                 orderBy={this.state.orderBy}
                 isOrderAsc={this.state.isOrderAsc}
                 onReorder={this.onAssetsTableReorder.bind(this)}
-                context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
+                context={ASSETS_TABLE_CONTEXTS.get('my-library')}
               />
             </bem.FormView__cell>
           </bem.FormView__row>

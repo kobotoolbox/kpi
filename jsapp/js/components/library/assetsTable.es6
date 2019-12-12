@@ -7,8 +7,7 @@ import AssetsTableRow from './assetsTableRow';
 export const ASSETS_TABLE_CONTEXTS = new Map();
 new Set([
   'my-library',
-  'public-collections',
-  'collection-content'
+  'public-collections'
 ]).forEach((name) => {ASSETS_TABLE_CONTEXTS.set(name, name);});
 
 /**
@@ -87,7 +86,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     'subscribers', {
       label: t('Subscribers'),
       id: 'subscribers',
-      backendProp: 'subscribers',
+      backendProp: 'subscribers_count',
       defaultIsOrderAsc: true
     }
   ]
@@ -173,18 +172,13 @@ export class AssetsTable extends React.Component {
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon-status'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))
+          {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
+            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('subscribers'))
           }
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))
-          }
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))
-          }
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))
-          }
+          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))}
+          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))}
+          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
+          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('last-modified'))}
         </bem.AssetsTableRow>
 

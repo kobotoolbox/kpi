@@ -68,29 +68,27 @@ class AssetsTableRow extends React.Component {
           {getAssetOwnerDisplayName(this.props.asset.owner__username)}
         </bem.AssetsTableRow__column>
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-          <bem.AssetsTableRow__column m='organization'>
-            {getOrganizationDisplayString(this.props.asset)}
+        {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
+          <bem.AssetsTableRow__column m='subscribers'>
+            {this.props.asset.subscribers_count}
           </bem.AssetsTableRow__column>
         }
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-          <bem.AssetsTableRow__column m='languages'>
-            {getLanguagesDisplayString(this.props.asset)}
-          </bem.AssetsTableRow__column>
-        }
+        <bem.AssetsTableRow__column m='organization'>
+          {getOrganizationDisplayString(this.props.asset)}
+        </bem.AssetsTableRow__column>
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-          <bem.AssetsTableRow__column m='primary-sector'>
-            {getSectorDisplayString(this.props.asset)}
-          </bem.AssetsTableRow__column>
-        }
+        <bem.AssetsTableRow__column m='languages'>
+          {getLanguagesDisplayString(this.props.asset)}
+        </bem.AssetsTableRow__column>
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-          <bem.AssetsTableRow__column m='country'>
-            {getCountryDisplayString(this.props.asset)}
-          </bem.AssetsTableRow__column>
-        }
+        <bem.AssetsTableRow__column m='primary-sector'>
+          {getSectorDisplayString(this.props.asset)}
+        </bem.AssetsTableRow__column>
+
+        <bem.AssetsTableRow__column m='country'>
+          {getCountryDisplayString(this.props.asset)}
+        </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='last-modified'>
           {formatTime(this.props.asset.date_modified)}

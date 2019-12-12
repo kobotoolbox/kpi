@@ -15,6 +15,10 @@
       width: 10%;
     }
 
+    .assets-table-row__column--subscribers {
+      width: 10%;
+    }
+
     .assets-table-row__column--organization {
       width: 10%;
     }
@@ -33,16 +37,6 @@
 
     .assets-table-row__column--last-modified {
       width: 17.5%;
-    }
-  }
-
-  &.assets-table--collection-content {
-    .assets-table-row__column--owner {
-      width: 20%;
-    }
-
-    .assets-table-row__column--last-modified {
-      width: 20%;
     }
   }
 }
