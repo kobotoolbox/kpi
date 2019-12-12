@@ -27,7 +27,7 @@ export function cleanupTags(tags) {
 
 /**
  * Returns nicer "me" label for your own assets.
- * @param {Object} asset - BE asset data
+ * @param {string} username
  * @returns {string} nice owner username.
  */
 export function getAssetOwnerDisplayName(username) {
@@ -39,6 +39,55 @@ export function getAssetOwnerDisplayName(username) {
     return t('me');
   } else {
     return username;
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {string}
+ */
+export function getOrganizationDisplayString(asset) {
+  if (asset.settings.organization) {
+    return asset.settings.organization;
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {string}
+ */
+export function getLanguagesDisplayString(asset) {
+  if (asset.languages.length >= 1) {
+    return asset.languages.join(', ');
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {string}
+ */
+export function getSectorDisplayString(asset) {
+  if (asset.settings.sector) {
+    return asset.settings.sector.label;
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @param {boolean} showLongName - shoul display long name
+ * @returns {string}
+ */
+export function getCountryDisplayString(asset, showLongName = false) {
+  if (asset.settings.country) {
+    return showLongName ? asset.settings.country.label : asset.settings.country.value;
+  } else {
+    return '-';
   }
 }
 

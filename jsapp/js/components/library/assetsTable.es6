@@ -20,14 +20,6 @@ new Set([
  */
 export const ASSETS_TABLE_COLUMNS = new Map([
   [
-    'collection', {
-      label: t('Collection'),
-      id: 'collection',
-      backendProp: 'parent',
-      defaultIsOrderAsc: true
-    }
-  ],
-  [
     'country', {
       label: t('Country'),
       id: 'country',
@@ -36,10 +28,18 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     }
   ],
   [
-    'icon', {
+    'icon-status', {
       label: null,
-      id: 'icon',
+      id: 'icon-status',
       backendProp: 'asset_type',
+      defaultIsOrderAsc: true
+    }
+  ],
+  [
+    'languages', {
+      label: t('Languages'),
+      id: 'languages',
+      backendProp: 'settings.languages',
       defaultIsOrderAsc: true
     }
   ],
@@ -60,6 +60,14 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     }
   ],
   [
+    'organization', {
+      label: t('Organization'),
+      id: 'organization',
+      backendProp: 'settings.organization',
+      defaultIsOrderAsc: true
+    }
+  ],
+  [
     'owner', {
       label: t('Owner'),
       id: 'owner',
@@ -76,11 +84,10 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     }
   ],
   [
-    'status', {
-      label: t('Status'),
-      id: 'status',
-      // TODO: How should this work? Currently status is being built by multiple pieces of data.
-      backendProp: null,
+    'subscribers', {
+      label: t('Subscribers'),
+      id: 'subscribers',
+      backendProp: 'subscribers',
       defaultIsOrderAsc: true
     }
   ]
@@ -163,14 +170,14 @@ export class AssetsTable extends React.Component {
     return (
       <bem.AssetsTable m={this.props.context}>
         <bem.AssetsTableRow m='header'>
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon'))}
+          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon-status'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
           {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
           {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('status'))
+            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))
           }
           {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('collection'))
+            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))
           }
           {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
             this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))

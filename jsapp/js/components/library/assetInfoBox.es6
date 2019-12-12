@@ -4,7 +4,15 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import assetUtils from 'js/assetUtils';
+import {
+  isAssetPublicReady,
+  isAssetPublic,
+  getAssetOwnerDisplayName,
+  getOrganizationDisplayString,
+  getLanguagesDisplayString,
+  getSectorDisplayString,
+  getCountryDisplayString
+} from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
   t,
@@ -56,7 +64,7 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = assetUtils.isAssetPublicReady(
+    const requiredPropsReady = isAssetPublicReady(
       this.props.asset.name,
       this.props.asset.settings.organization,
       this.props.asset.settings.sector
@@ -85,7 +93,7 @@ class AssetInfoBox extends React.Component {
     }
 
     const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
-    const isPublic = isPublicable && assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isPublic = isPublicable && isAssetPublic(this.props.asset.permissions);
 
     return (
       <bem.FormView__cell m='box'>
@@ -100,7 +108,12 @@ class AssetInfoBox extends React.Component {
 
           <bem.FormView__cell m={['questions', 'column-1']}>
             <bem.FormView__cellLabel>
-              {t('Questions')}
+              {this.props.asset.asset_type === ASSET_TYPES.collection.id &&
+                t('Childrens')
+              }
+              {this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
+                t('Questions')
+              }
             </bem.FormView__cellLabel>
 
             {this.props.asset.summary.row_count || 0}
@@ -136,7 +149,7 @@ class AssetInfoBox extends React.Component {
               {t('Organization')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.organization || t('n/a')}
+            {getOrganizationDisplayString(this.props.asset)}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['tags', 'column-1']}>
@@ -152,7 +165,7 @@ class AssetInfoBox extends React.Component {
               {t('Sector')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.sector && this.props.asset.settings.sector.value || t('n/a')}
+            {getSectorDisplayString(this.props.asset)}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['country', 'column-1']}>
@@ -160,7 +173,7 @@ class AssetInfoBox extends React.Component {
               {t('Country')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.country && this.props.asset.settings.country.value || t('n/a')}
+            {getCountryDisplayString(this.props.asset, true)}
           </bem.FormView__cell>
         </bem.FormView__cell>
 
@@ -172,7 +185,7 @@ class AssetInfoBox extends React.Component {
                   {t('Languages')}
                 </bem.FormView__cellLabel>
 
-                {this.props.asset.content.translations && this.props.asset.content.translations.join(', ') || t('n/a')}
+                {getLanguagesDisplayString(this.props.asset)}
               </bem.FormView__cell>
 
               <bem.FormView__cell m={['description', 'column-2']}>
@@ -190,7 +203,7 @@ class AssetInfoBox extends React.Component {
                   {t('Owner')}
                 </bem.FormView__cellLabel>
 
-                {this.props.asset.owner__username}
+                {getAssetOwnerDisplayName(this.props.asset.owner__username)}
               </bem.FormView__cell>
 
               <bem.FormView__cell m='column-1'>

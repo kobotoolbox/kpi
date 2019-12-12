@@ -6,29 +6,33 @@
   width: 100%;
   background-color: $white;
 
-  &.assets-table--default {
+  &.assets-table--my-library {
+    .assets-table-row__column--icon-status {
+      width: 50px;
+    }
+
     .assets-table-row__column--owner {
       width: 10%;
     }
 
-    .assets-table-row__column--status {
-      width: 50px;
+    .assets-table-row__column--organization {
+      width: 10%;
     }
 
-    .assets-table-row__column--collection {
+    .assets-table-row__column--languages {
       width: 10%;
     }
 
     .assets-table-row__column--primary-sector {
-      width: 10%;
+      width: 15%;
     }
 
     .assets-table-row__column--country {
-      width: 10%;
+      width: 7.5%;
     }
 
     .assets-table-row__column--last-modified {
-      width: 10%;
+      width: 17.5%;
     }
   }
 
@@ -71,7 +75,7 @@ $c-assets-table-row-hover: $cool-whitegray;
       }
     }
 
-    .assets-table-row__column--icon {
+    .assets-table-row__column--icon-status {
       padding: 3px 0 0 0;
 
       .k-icon {
@@ -136,7 +140,7 @@ $c-assets-table-row-hover: $cool-whitegray;
     border-top: 1px solid $divider-color;
     padding: 10px;
 
-    &.assets-table-row__column--icon {
+    &.assets-table-row__column--icon-status {
       width: 40px;
       text-align: center;
     }
@@ -184,11 +188,11 @@ $c-assets-table-row-hover: $cool-whitegray;
   z-index: $z-assets-table-row-buttons;
   top: 1px; // because of top border
   right: 0;
+  bottom: 0; // stretch for whole row
   opacity: 0;
   visibility: hidden;
   background-color: $c-assets-table-row-hover;
   padding: 3px 10px 0 0;
-  height: 40px;
 
   // for nicer blending in with the possible text underneath
   &::before {

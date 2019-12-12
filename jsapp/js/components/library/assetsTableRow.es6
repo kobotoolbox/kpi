@@ -6,7 +6,11 @@ import ui from 'js/ui';
 import {formatTime} from 'js/utils';
 import {
   getAssetIcon,
-  getAssetOwnerDisplayName
+  getAssetOwnerDisplayName,
+  getOrganizationDisplayString,
+  getLanguagesDisplayString,
+  getSectorDisplayString,
+  getCountryDisplayString
 } from 'js/assetUtils';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
 
@@ -39,7 +43,7 @@ class AssetsTableRow extends React.Component {
           <AssetActionButtons asset={this.props.asset}/>
         </bem.AssetsTableRow__buttons>
 
-        <bem.AssetsTableRow__column m='icon'>
+        <bem.AssetsTableRow__column m='icon-status'>
           {rowCount &&
             <i className={`k-icon ${iconClassName}`} data-counter={rowCount}/>
           }
@@ -64,27 +68,27 @@ class AssetsTableRow extends React.Component {
           {getAssetOwnerDisplayName(this.props.asset.owner__username)}
         </bem.AssetsTableRow__column>
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
-          <bem.AssetsTableRow__column m='status'>
-            status {this.props.asset.uid}
+        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
+          <bem.AssetsTableRow__column m='organization'>
+            {getOrganizationDisplayString(this.props.asset)}
           </bem.AssetsTableRow__column>
         }
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
-          <bem.AssetsTableRow__column m='collection'>
-            collection {this.props.asset.uid}
+        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
+          <bem.AssetsTableRow__column m='languages'>
+            {getLanguagesDisplayString(this.props.asset)}
           </bem.AssetsTableRow__column>
         }
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
           <bem.AssetsTableRow__column m='primary-sector'>
-            primary-sector {this.props.asset.uid}
+            {getSectorDisplayString(this.props.asset)}
           </bem.AssetsTableRow__column>
         }
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('default') &&
+        {this.props.context === ASSETS_TABLE_CONTEXTS.get('my-library') &&
           <bem.AssetsTableRow__column m='country'>
-            country {this.props.asset.uid}
+            {getCountryDisplayString(this.props.asset)}
           </bem.AssetsTableRow__column>
         }
 
