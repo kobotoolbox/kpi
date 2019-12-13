@@ -22,9 +22,15 @@ class CollectionAssetsTable extends React.Component {
     super(props);
     this.state = {
       orderBy: defaultColumn,
-      isOrderAsc: defaultColumn.defaultIsOrderAsc
+      isOrderAsc: defaultColumn.defaultIsOrderAsc,
+      currentPage: 0,
+      totalPages: null
     };
     autoBind(this);
+  }
+
+  onAssetsTableSwitchPage(pageNumber) {
+    console.debug('onAssetsTableSwitchPage', pageNumber);
   }
 
   onAssetsTableReorder(orderBy, isOrderAsc) {
@@ -73,11 +79,11 @@ class CollectionAssetsTable extends React.Component {
 
     return (
       <AssetsTable
+        context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
         assets={orderedChildren}
         orderBy={this.state.orderBy}
         isOrderAsc={this.state.isOrderAsc}
         onReorder={this.onAssetsTableReorder.bind(this)}
-        context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
       />
     );
   }

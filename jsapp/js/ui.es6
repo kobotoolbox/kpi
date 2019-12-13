@@ -220,11 +220,11 @@ class AssetName extends React.Component {
 class PopoverMenu extends React.Component {
   constructor(props) {
     super(props);
-    this.state = assign({
+    this.state = {
       popoverVisible: false,
       popoverHiding: false,
       placement: 'below'
-    });
+    };
     this._mounted = false;
     autoBind(this);
   }

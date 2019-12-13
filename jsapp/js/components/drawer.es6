@@ -134,7 +134,6 @@ class Drawer extends Reflux.Component {
   constructor(props){
     super(props);
     autoBind(this);
-    this.state = assign(stores.session, stores.pageState);
     this.stores = [
       stores.session,
       stores.pageState,

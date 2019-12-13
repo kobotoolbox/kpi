@@ -170,6 +170,10 @@ export class AssetsTable extends React.Component {
         <span>
           {t('##count## items available').replace('##count##', this.props.assets.length)}
         </span>
+
+        <span>
+          {this.props.currentPage + 1} / {this.props.totalPages}
+        </span>
       </bem.AssetsTable__footer>
     );
   }
@@ -195,9 +199,7 @@ export class AssetsTable extends React.Component {
 
         <bem.AssetsTable__body>
           {this.props.isLoading &&
-            <bem.AssetsTableRow m='loading'>
-              {renderLoading()}
-            </bem.AssetsTableRow>
+            renderLoading()
           }
 
           {!this.props.isLoading && this.props.assets.length === 0 &&
@@ -206,7 +208,7 @@ export class AssetsTable extends React.Component {
             </bem.AssetsTableRow>
           }
 
-          {this.props.assets.map((asset) => {
+          {!this.props.isLoading && this.props.assets.map((asset) => {
             return (
               <AssetsTableRow
                 asset={asset}

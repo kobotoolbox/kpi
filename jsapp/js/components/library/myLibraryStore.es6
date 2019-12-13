@@ -14,8 +14,8 @@ const myLibraryStore = Reflux.createStore({
   init() {
     this.data = {
       isFetchingData: false,
-      hasNextPage: false,
-      hasPreviousPage: false,
+      currentPage: 0,
+      totalPages: null,
       totalUserAssets: null,
       totalAssets: 0,
       assets: []
@@ -49,8 +49,12 @@ const myLibraryStore = Reflux.createStore({
     console.debug('onSearchCompleted', response);
 
     delete this.abortFetchData;
+
     this.data.hasNextPage = response.next !== null;
     this.data.hasPreviousPage = response.previous !== null;
+
+    this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
+
     this.data.assets = response.results;
     this.data.totalAssets = response.count;
     if (this.data.totalUserAssets === null) {
@@ -75,7 +79,8 @@ const myLibraryStore = Reflux.createStore({
 
     actions.library.searchMyLibraryAssets({
       searchPhrase: searchBoxStore.getSearchPhrase(),
-      pageSize: this.PAGE_SIZE
+      pageSize: this.PAGE_SIZE,
+      page: this.data.currentPage
     });
   },
 });

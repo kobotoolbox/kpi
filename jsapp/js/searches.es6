@@ -329,7 +329,7 @@ function SearchContext(opts={}) {
 
   search.completed.listen(function(searchParams, data, _opts){
     data.results = data.results.map(parsed);
-    data.results.forEach(stores.allAssets.registerAssetOrCollection);
+    data.results.forEach(stores.allAssets.registerAsset);
 
     var count = data.count;
 

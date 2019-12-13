@@ -5,7 +5,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
-import {searches} from 'js/searches';
 import mixins from 'js/mixins';
 import {t, validFileTypes} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
@@ -26,7 +25,8 @@ class LibraryAssetsList extends React.Component {
       assets: myLibraryStore.data.assets,
       orderBy: defaultColumn,
       isOrderAsc: defaultColumn.defaultIsOrderAsc,
-      searchContext: searches.getSearchContext('library')
+      currentPage: myLibraryStore.data.currentPage,
+      totalPages: myLibraryStore.data.totalPages
     };
 
     autoBind(this);
@@ -52,6 +52,13 @@ class LibraryAssetsList extends React.Component {
     // TODO tell myLibraryStore that column header was clicked
   }
 
+  onAssetsTableSwitchPage(pageNumber) {
+    this.setState({
+      currentPage: pageNumber
+    });
+    // TODO tell myLibraryStore that page was changed
+  }
+
   render() {
     return (
       <DocumentTitle title={`${t('My Library')} | KoboToolbox`}>
@@ -64,11 +71,15 @@ class LibraryAssetsList extends React.Component {
           accept={validFileTypes()}
         >
           <AssetsTable
+            context={ASSETS_TABLE_CONTEXTS.get('my-library')}
             assets={this.state.assets}
+            isLoading={this.state.isLoading}
             orderBy={this.state.orderBy}
             isOrderAsc={this.state.isOrderAsc}
             onReorder={this.onAssetsTableReorder.bind(this)}
-            context={ASSETS_TABLE_CONTEXTS.get('my-library')}
+            currentPage={this.state.currentPage}
+            totalPages={this.state.totalPages}
+            onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
           />
         </Dropzone>
       </DocumentTitle>

@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
@@ -14,7 +15,6 @@ import reactMixin from 'react-mixin';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
-import {dataInterface} from 'js/dataInterface';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
@@ -29,11 +29,21 @@ class AssetActionButtons extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      ownedCollections: [],
+      ownedCollections: ownedCollectionsStore.data.collections,
       shouldHidePopover: false,
       isPopoverVisible: false
     };
     autoBind(this);
+  }
+
+  componentDidMount() {
+    this.listenTo(ownedCollectionsStore, this.onOwnedCollectionsStoreChanged);
+  }
+
+  onOwnedCollectionsStoreChanged(storeData) {
+    this.setState({
+      ownedCollections: storeData.collections
+    })
   }
 
   // methods for inner workings of component
@@ -127,7 +137,6 @@ class AssetActionButtons extends React.Component {
   }
 
   render() {
-    const ownedCollections = ownedCollectionsStore.data.collections;
     const assetType = this.props.asset ? this.props.asset.asset_type : null;
     const userCanEdit = true;
     const hasDetailsEditable = (
@@ -264,12 +273,12 @@ class AssetActionButtons extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {assetType !== ASSET_TYPES.survey.id && ownedCollections.length > 0 && [
+          {assetType !== ASSET_TYPES.survey.id && this.state.ownedCollections.length > 0 && [
             <bem.PopoverMenu__heading key='heading'>
               {t('Move to')}
             </bem.PopoverMenu__heading>,
             <bem.PopoverMenu__moveTo key='list'>
-              {ownedCollections.map((collection) => {
+              {this.state.ownedCollections.map((collection) => {
                 const modifiers = ['move-coll-item'];
                 const isAssetParent = collection.url === this.props.asset.parent;
                 if (isAssetParent) {
@@ -317,6 +326,7 @@ class AssetActionButtons extends React.Component {
 }
 
 reactMixin(AssetActionButtons.prototype, mixins.contextRouter);
+reactMixin(AssetActionButtons.prototype, Reflux.ListenerMixin);
 AssetActionButtons.contextTypes = {
   router: PropTypes.object
 };

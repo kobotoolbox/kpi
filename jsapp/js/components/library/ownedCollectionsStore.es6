@@ -11,11 +11,13 @@ const ownedCollectionsStore = Reflux.createStore({
 
     // TODO update collections list whenever a new one is created or existing one is changed
 
-    this.listenTo(stores.session, this.onSessionChanged);
-    this.listenTo(actions.library.getCollections.completed, this.onGetCollectionsCompleted);
-    this.listenTo(actions.library.getCollections.failed, this.onGetCollectionsFailed);
+    stores.session.listen(this.onSessionChanged);
+    actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted);
+    actions.library.getCollections.failed.listen(this.onGetCollectionsFailed);
 
-    this.fetchData();
+    if (stores.session.currentAccount) {
+      this.fetchData();
+    }
   },
 
   // methods for handling actions
@@ -27,9 +29,7 @@ const ownedCollectionsStore = Reflux.createStore({
   },
 
   onGetCollectionsCompleted(response) {
-    this.data.collections = response.results.filter((asset) => {
-      return asset.owner__username === stores.session.currentAccount.username;
-    });
+    this.data.collections = response.results;
     this.data.isFetchingData = false;
     this.trigger(this.data);
   },
@@ -46,6 +46,7 @@ const ownedCollectionsStore = Reflux.createStore({
     this.trigger(this.data);
 
     actions.library.getCollections({
+      owner: stores.session.currentAccount.username,
       pageSize: 9999 // big magic number, as we want to avoid pagination
     });
   },

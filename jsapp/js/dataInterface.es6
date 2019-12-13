@@ -89,11 +89,15 @@ export var dataInterface;
       });
     },
     getCollections(params = {}) {
+      let q = COMMON_QUERIES.get('c');
+      if (params.owner) {
+        q += ` AND owner__username__exact:${params.owner}`;
+      }
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
         data: {
-          q: COMMON_QUERIES.get('c'),
+          q: q,
           limit: params.pageSize || 100,
           page: params.page || 0
         },
