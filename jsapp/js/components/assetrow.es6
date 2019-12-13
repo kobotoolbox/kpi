@@ -400,7 +400,7 @@ class AssetRow extends React.Component {
                             <i className='k-icon-folder' />
                             {col.label}
                             {col.hasParent &&
-                              <span className='has-parent'>&bull;</span>
+                              <span className='is-parent'>&bull;</span>
                             }
                         </bem.PopoverMenu__item>
                       );

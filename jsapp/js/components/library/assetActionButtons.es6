@@ -270,12 +270,17 @@ class AssetActionButtons extends React.Component {
             </bem.PopoverMenu__heading>,
             <bem.PopoverMenu__moveTo key='list'>
               {ownedCollections.map((collection) => {
+                const modifiers = ['move-coll-item'];
+                const isAssetParent = collection.url === this.props.asset.parent;
+                if (isAssetParent) {
+                  modifiers.push('move-coll-item-parent');
+                }
                 return (
                   <bem.PopoverMenu__item
                     onClick={this.moveToCollection.bind(this, collection.url)}
                     key={collection.uid}
                     title={collection.name}
-                    m='move-coll-item'
+                    m={modifiers}
                   >
                     <i className='k-icon k-icon-folder-in'/>
                     {collection.name}
