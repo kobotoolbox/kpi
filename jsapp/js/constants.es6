@@ -343,6 +343,20 @@ new Set([
 
 export const NAME_MAX_LENGTH = 255;
 
+/**
+ * for Backend calls, see their definitions at `kpi/filters.py`
+ */
+export const COMMON_QUERIES = new Map([
+  ['b', 'asset_type:block'],
+  ['q', 'asset_type:question'],
+  ['t', 'asset_type:template'],
+  ['s', 'asset_type:survey'],
+  ['c', 'asset_type:collection'],
+  ['qb', 'asset_type:question OR asset_type:block'],
+  ['qbt', 'asset_type:question OR asset_type:block OR asset_type:template'],
+  ['qbtc', 'asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection']
+]);
+
 export const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -358,5 +372,6 @@ export const constants = {
   ASSET_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
-  NAME_MAX_LENGTH
+  NAME_MAX_LENGTH,
+  COMMON_QUERIES
 };

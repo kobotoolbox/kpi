@@ -18,6 +18,7 @@ import {
   stringToColor,
 } from 'js/utils';
 import {getAssetIcon} from 'js/assetUtils';
+import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
@@ -34,15 +35,15 @@ class MainHeader extends Reflux.Component {
       isSearchBoxDisabled: this.getIsSearchBoxDisabled(),
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
+          assetType: COMMON_QUERIES.get('qbt'),
         },
-        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
+        filterTags: COMMON_QUERIES.get('qbt'),
       }),
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey',
+          assetType: COMMON_QUERIES.get('s'),
         },
-        filterTags: 'asset_type:survey',
+        filterTags: COMMON_QUERIES.get('s'),
       })
     }, stores.pageState.state);
     this.stores = [

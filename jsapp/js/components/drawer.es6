@@ -20,7 +20,10 @@ import {
   SupportHelpBubble
 } from '../components/helpBubbles';
 
-import {MODAL_TYPES} from '../constants';
+import {
+  COMMON_QUERIES,
+  MODAL_TYPES
+} from '../constants';
 
 import {
   t,
@@ -50,9 +53,9 @@ class FormSidebar extends Reflux.Component {
       headerFilters: 'forms',
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey',
+          assetType: COMMON_QUERIES.get('s'),
         },
-        filterTags: 'asset_type:survey',
+        filterTags: COMMON_QUERIES.get('s'),
       })
     });
   }

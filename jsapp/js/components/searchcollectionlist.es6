@@ -13,7 +13,10 @@ import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
 import Dropzone from 'react-dropzone';
 import {t, validFileTypes} from '../utils';
-import {ASSET_TYPES} from '../constants';
+import {
+  ASSET_TYPES,
+  COMMON_QUERIES
+} from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -37,7 +40,7 @@ class SearchCollectionList extends Reflux.Component {
     }
   }
   queryCollections() {
-    if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags !== COMMON_QUERIES.get('s')) {
       dataInterface.getCollections().then((collections) => {
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -59,7 +62,7 @@ class SearchCollectionList extends Reflux.Component {
     }
   }
   handleScroll(event) {
-    if (this.props.searchContext.store.filterTags === 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.get('s')) {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
         fixedHeadings: offset < -105 ? 'fixed-headings' : '',
@@ -190,7 +193,7 @@ class SearchCollectionList extends Reflux.Component {
     var s = this.state;
     var docTitle = '';
     let display;
-    if (this.props.searchContext.store.filterTags === 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.get('s')) {
       display = 'grouped';
       docTitle = t('Projects');
     } else {
@@ -255,7 +258,7 @@ class SearchCollectionList extends Reflux.Component {
                     );
                   } else if (s.defaultQueryState === 'done') {
                     if (s.defaultQueryCount < 1) {
-                      if (s.defaultQueryFor.assetType === 'asset_type:survey') {
+                      if (s.defaultQueryFor.assetType === COMMON_QUERIES.get('s')) {
                         return (
                           <bem.Loading>
                             <bem.Loading__inner>

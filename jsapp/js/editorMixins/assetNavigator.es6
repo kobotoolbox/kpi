@@ -9,7 +9,7 @@ import {bem} from '../bem';
 import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
-
+import {COMMON_QUERIES} from 'js/constants';
 import { t } from '../utils';
 
 import {
@@ -152,7 +152,7 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template'
+          assetType: COMMON_QUERIES.get('qbt')
         }
       }),
       selectedTags: []

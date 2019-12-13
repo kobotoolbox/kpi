@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
 import Reflux from 'reflux';
-
+import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import {bem} from '../bem';
@@ -20,10 +20,10 @@ class LibrarySearchableList extends React.Component {
     super(props);
 
     this.TYPE_FILTER = {
-      ALL: 'asset_type:question OR asset_type:block OR asset_type:template',
-      BY_QUESTION: 'asset_type:question',
-      BY_BLOCK: 'asset_type:block',
-      BY_TEMPLATE: 'asset_type:template'
+      ALL: COMMON_QUERIES.get('qbt'),
+      BY_QUESTION: COMMON_QUERIES.get('q'),
+      BY_BLOCK: COMMON_QUERIES.get('b'),
+      BY_TEMPLATE: COMMON_QUERIES.get('t')
     };
     this.TYPE_FILTER_DEFAULT = this.TYPE_FILTER.ALL;
 

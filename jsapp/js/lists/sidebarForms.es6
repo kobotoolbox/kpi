@@ -9,6 +9,7 @@ import ui from '../ui';
 import {searches} from '../searches';
 import {stores} from '../stores';
 import {t} from '../utils';
+import {COMMON_QUERIES} from 'js/constants';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -22,9 +23,9 @@ class SidebarFormsList extends Reflux.Component {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey',
+          assetType: COMMON_QUERIES.get('s'),
         },
-        filterTags: 'asset_type:survey',
+        filterTags: COMMON_QUERIES.get('s'),
       })
     };
     this.store = stores.pageState;
@@ -78,7 +79,7 @@ class SidebarFormsList extends Reflux.Component {
       s.searchState === 'done' &&
       (s.searchString === false || s.searchString === '') &&
       s.searchResultsFor &&
-      s.searchResultsFor.assetType === 'asset_type:survey'
+      s.searchResultsFor.assetType === COMMON_QUERIES.get('s')
     ) {
       activeItems = 'searchResultsCategorizedResultsLists';
     }

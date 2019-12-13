@@ -13,7 +13,10 @@ import {
   t,
   assign
 } from './utils';
-import {ROOT_URL} from './constants';
+import {
+  ROOT_URL,
+  COMMON_QUERIES
+} from './constants';
 
 export var dataInterface;
 (function(){
@@ -82,7 +85,7 @@ export var dataInterface;
     },
     listTemplates () {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/?q=asset_type:template`
+        url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.get('t')}`
       });
     },
     getCollections(params = {}) {
@@ -90,7 +93,7 @@ export var dataInterface;
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
         data: {
-          q: 'asset_type:collection',
+          q: COMMON_QUERIES.get('c'),
           limit: params.pageSize || 100,
           page: params.page || 0
         },
@@ -349,7 +352,7 @@ export var dataInterface;
       });
     },
     searchMyLibraryAssets(params = {}) {
-      let q = '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)';
+      let q = `(parent='') AND (${COMMON_QUERIES.get('qbtc')})`;
       if (params.searchPhrase) {
         q += ` AND (${params.searchPhrase})`;
       }
