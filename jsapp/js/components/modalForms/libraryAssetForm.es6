@@ -90,7 +90,7 @@ export class LibraryAssetForm extends React.Component {
     notify(t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name));
     stores.pageState.hideModal();
     if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
-      hashHistory.push(`/library/collection/${response.uid}`);
+      hashHistory.push(`/library/asset/${response.uid}`);
     } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
       hashHistory.push(`/library/asset/${response.uid}/edit`);
     }
