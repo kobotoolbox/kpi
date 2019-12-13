@@ -352,15 +352,16 @@ export var dataInterface;
       });
     },
     searchMyLibraryAssets(params = {}) {
-      let q = `(parent='') AND (${COMMON_QUERIES.get('qbtc')})`;
+      let q = `(${COMMON_QUERIES.get('qbtc')})`;
       if (params.searchPhrase) {
-        q += ` AND (${params.searchPhrase})`;
+        q += ` AND ${params.searchPhrase}`;
       }
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
         data: {
           q: q,
+          parent: '', // we only want orphans (assets not inside collection)
           limit: params.pageSize || 100,
           page: params.page || 0
         },

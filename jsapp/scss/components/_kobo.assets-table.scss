@@ -5,39 +5,25 @@
 .assets-table {
   width: 100%;
   background-color: $white;
+}
 
-  &.assets-table--my-library {
-    .assets-table-row__column--icon-status {
-      width: 50px;
-    }
+.assets-table__footer {
+  padding: 10px;
+  border-top: 2px solid $divider-color;
 
-    .assets-table-row__column--owner {
-      width: 10%;
-    }
+  span {
+    opacity: 0.6;
+  }
+}
 
-    .assets-table-row__column--subscribers {
-      width: 10%;
-    }
+.assets-table--my-library {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 
-    .assets-table-row__column--organization {
-      width: 10%;
-    }
-
-    .assets-table-row__column--languages {
-      width: 10%;
-    }
-
-    .assets-table-row__column--primary-sector {
-      width: 15%;
-    }
-
-    .assets-table-row__column--country {
-      width: 7.5%;
-    }
-
-    .assets-table-row__column--last-modified {
-      width: 17.5%;
-    }
+  .assets-table__body {
+    flex: 1;
+    overflow-y: auto;
   }
 }
 
@@ -103,18 +89,6 @@ $c-assets-table-row-hover: $cool-whitegray;
     }
   }
 
-  &.assets-table-row--footer {
-    display: block;
-
-    .assets-table-row__column {
-      border-top: 2px solid $divider-color;
-
-      span {
-        opacity: 0.6;
-      }
-    }
-  }
-
   &.assets-table-row--empty-message {
     padding: 40px;
     justify-content: center;
@@ -135,7 +109,7 @@ $c-assets-table-row-hover: $cool-whitegray;
     padding: 10px;
 
     &.assets-table-row__column--icon-status {
-      width: 40px;
+      width: 50px;
       text-align: center;
     }
 
@@ -143,7 +117,32 @@ $c-assets-table-row-hover: $cool-whitegray;
       flex: 1;
     }
 
+    &.assets-table-row__column--owner {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--subscribers {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--organization {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--languages {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--primary-sector {
+      width: 15%;
+    }
+
+    &.assets-table-row__column--country {
+      width: 7.5%;
+    }
+
     &.assets-table-row__column--last-modified {
+      width: 17.5%;
       text-align: right;
     }
 

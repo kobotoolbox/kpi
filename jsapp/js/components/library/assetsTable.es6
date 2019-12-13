@@ -3,10 +3,12 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 export const ASSETS_TABLE_CONTEXTS = new Map();
 new Set([
   'my-library',
+  'collection-content',
   'public-collections'
 ]).forEach((name) => {ASSETS_TABLE_CONTEXTS.set(name, name);});
 
@@ -99,16 +101,23 @@ export const ASSETS_TABLE_COLUMNS = new Map([
  */
 
 /**
+ * @callback switchPageCallback
+ * @param {string} pageNumber
+ */
+
+/**
  * Displays a table of assets.
  *
- * @prop {string} [emptyMessage] - To replace the default empty message.
- * @prop {Array<object>} assets - List of assets to be displayed.
  * @prop {string} context - One of ASSETS_TABLE_CONTEXTS.
+ * @prop {Array<object>} assets - List of assets to be displayed.
+ * @prop {string} [emptyMessage] - To replace the default empty message.
+ * @prop {boolean} [isLoading] - To display spinner.
  * @prop {AssetsTableColumn} orderBy - Current order column, one of ASSETS_TABLE_COLUMNS.
  * @prop {boolean} isOrderAsc - Current order direction.
- * @prop {reorderCallback} onReorder - Called when the user clicks column header for reordering.
+ * @prop {reorderCallback} onReorder - Called when user clicks column header for reordering.
  * @prop {number} [currentPage] - For displaying pagination.
  * @prop {number} [totalPages] - For displaying pagination.
+ * @prop {switchPageCallback} [onSwitchPage] - Called when user clicks page change.
  */
 export class AssetsTable extends React.Component {
   constructor(props){
@@ -154,49 +163,59 @@ export class AssetsTable extends React.Component {
   }
 
   renderFooter() {
+    // TODO pagination!
+
     return (
-      <bem.AssetsTableRow m='footer'>
-        <bem.AssetsTableRow__column>
-          <span>
-            {t('##count## items available').replace('##count##', this.props.assets.length)}
-          </span>
-        </bem.AssetsTableRow__column>
-      </bem.AssetsTableRow>
+      <bem.AssetsTable__footer>
+        <span>
+          {t('##count## items available').replace('##count##', this.props.assets.length)}
+        </span>
+      </bem.AssetsTable__footer>
     );
   }
 
   render() {
     return (
       <bem.AssetsTable m={this.props.context}>
-        <bem.AssetsTableRow m='header'>
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon-status'))}
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
-          {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-            this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('subscribers'))
-          }
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))}
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))}
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))}
-          {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('last-modified'))}
-        </bem.AssetsTableRow>
-
-        {this.props.assets.length === 0 &&
-          <bem.AssetsTableRow m='empty-message'>
-            {this.props.emptyMessage || t('There are no assets to display.')}
+        <bem.AssetsTable__header>
+          <bem.AssetsTableRow m='header'>
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon-status'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
+            {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
+              this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('subscribers'))
+            }
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('last-modified'))}
           </bem.AssetsTableRow>
-        }
+        </bem.AssetsTable__header>
 
-        {this.props.assets.map((asset) => {
-          return (
-            <AssetsTableRow
-              asset={asset}
-              key={asset.uid}
-              context={this.props.context}
-            />
-          );
-        })}
+        <bem.AssetsTable__body>
+          {this.props.isLoading &&
+            <bem.AssetsTableRow m='loading'>
+              {renderLoading()}
+            </bem.AssetsTableRow>
+          }
+
+          {!this.props.isLoading && this.props.assets.length === 0 &&
+            <bem.AssetsTableRow m='empty-message'>
+              {this.props.emptyMessage || t('There are no assets to display.')}
+            </bem.AssetsTableRow>
+          }
+
+          {this.props.assets.map((asset) => {
+            return (
+              <AssetsTableRow
+                asset={asset}
+                key={asset.uid}
+                context={this.props.context}
+              />
+            );
+          })}
+        </bem.AssetsTable__body>
 
         {this.renderFooter()}
       </bem.AssetsTable>

@@ -265,6 +265,9 @@ bem.HelpBubble__rowAnchor = bem.HelpBubble.__('row', 'a');
 bem.HelpBubble__rowWrapper = bem.HelpBubble.__('row-wrapper');
 
 bem.AssetsTable = BEM('assets-table');
+bem.AssetsTable__header = bem.AssetsTable.__('header');
+bem.AssetsTable__body = bem.AssetsTable.__('body');
+bem.AssetsTable__footer = bem.AssetsTable.__('footer');
 bem.AssetsTableRow = BEM('assets-table-row');
 bem.AssetsTableRow__link = bem.AssetsTableRow.__('link', '<a>');
 bem.AssetsTableRow__buttons = bem.AssetsTableRow.__('buttons');
