@@ -122,8 +122,9 @@ module.exports = do ->
 
       if @key is "required"
         _val = _innerValue(value)
-        if _.isString(_val)
-          _val = _val.toLowerCase()
+        # closes #636, but opens #1240
+        # if _.isString(_val)
+        #   _val = _val.toLowerCase()
         @set({
           value: _val
         })
