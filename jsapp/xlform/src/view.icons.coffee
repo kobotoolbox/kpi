@@ -72,18 +72,7 @@ module.exports = do ->
     ,
 
     # r4
-      label: _t("Acknowledge")
-      faClass: "check-square-o"
-      grouping: "r4"
-      id: "acknowledge"
-    ,
-      label: _t("Range")
-      faClass: "lato-range"
-      grouping: "r4"
-      id: "range"
-    ,
     # r5
-
     # r6
     ]
 
