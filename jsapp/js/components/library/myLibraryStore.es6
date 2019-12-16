@@ -17,7 +17,7 @@ const myLibraryStore = Reflux.createStore({
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
-      totalAssets: 0,
+      totalSearchAssets: null,
       assets: []
     };
 
@@ -34,6 +34,10 @@ const myLibraryStore = Reflux.createStore({
   // methods for handling search parameters
 
   searchBoxStoreChanged() {
+    // reset to first page when search changes
+    this.data.currentPage = 0;
+    this.data.totalPages = null;
+    this.data.totalSearchAssets = null;
     this.fetchData();
   },
 
@@ -56,9 +60,9 @@ const myLibraryStore = Reflux.createStore({
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
 
     this.data.assets = response.results;
-    this.data.totalAssets = response.count;
+    this.data.totalSearchAssets = response.count;
     if (this.data.totalUserAssets === null) {
-      this.data.totalUserAssets = this.data.totalAssets;
+      this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
     this.trigger(this.data);
@@ -68,6 +72,13 @@ const myLibraryStore = Reflux.createStore({
     delete this.abortFetchData;
     this.data.isFetchingData = false;
     this.trigger(this.data);
+  },
+
+  // public methods
+
+  setCurrentPage(newCurrentPage) {
+    this.data.currentPage = newCurrentPage;
+    this.fetchData();
   },
 
   // the method for fetching new data

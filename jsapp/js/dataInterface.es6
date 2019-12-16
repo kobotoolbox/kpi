@@ -367,7 +367,7 @@ export var dataInterface;
           q: q,
           parent: '', // we only want orphans (assets not inside collection)
           limit: params.pageSize || 100,
-          page: params.page || 0
+          offset: params.page * params.pageSize || 0
         },
         method: 'GET'
       });

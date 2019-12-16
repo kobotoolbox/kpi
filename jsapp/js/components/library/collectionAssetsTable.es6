@@ -81,6 +81,7 @@ class CollectionAssetsTable extends React.Component {
       <AssetsTable
         context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
         assets={orderedChildren}
+        totalAssets={this.state.orderedChildren.length}
         orderBy={this.state.orderBy}
         isOrderAsc={this.state.isOrderAsc}
         onReorder={this.onAssetsTableReorder.bind(this)}

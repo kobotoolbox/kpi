@@ -110,6 +110,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
  *
  * @prop {string} context - One of ASSETS_TABLE_CONTEXTS.
  * @prop {Array<object>} assets - List of assets to be displayed.
+ * @prop {number} totalAssets - Number of assets on all pages.
  * @prop {string} [emptyMessage] - To replace the default empty message.
  * @prop {boolean} [isLoading] - To display spinner.
  * @prop {AssetsTableColumn} orderBy - Current order column, one of ASSETS_TABLE_COLUMNS.
@@ -208,9 +209,11 @@ export class AssetsTable extends React.Component {
   renderFooter() {
     return (
       <bem.AssetsTable__footer>
-        <span>
-          {t('##count## items available').replace('##count##', this.props.assets.length)}
-        </span>
+        {this.props.totalAssets !== null &&
+          <span>
+            {t('##count## items available').replace('##count##', this.props.totalAssets)}
+          </span>
+        }
 
         {this.renderPagination()}
       </bem.AssetsTable__footer>

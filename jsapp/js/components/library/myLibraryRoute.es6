@@ -23,6 +23,7 @@ class MyLibraryRoute extends React.Component {
     this.state = {
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
+      totalAssets: myLibraryStore.data.totalSearchAssets,
       orderBy: defaultColumn,
       isOrderAsc: defaultColumn.defaultIsOrderAsc,
       currentPage: myLibraryStore.data.currentPage,
@@ -37,10 +38,10 @@ class MyLibraryRoute extends React.Component {
   }
 
   myLibraryStoreChanged() {
-    // TODO only list assets without parent (so collections and orphan assets)
     this.setState({
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
+      totalAssets: myLibraryStore.data.totalSearchAssets,
       currentPage: myLibraryStore.data.currentPage,
       totalPages: myLibraryStore.data.totalPages
     });
@@ -55,10 +56,7 @@ class MyLibraryRoute extends React.Component {
   }
 
   onAssetsTableSwitchPage(pageNumber) {
-    this.setState({
-      currentPage: pageNumber
-    });
-    // TODO tell myLibraryStore that page was changed
+    myLibraryStore.setCurrentPage(pageNumber);
   }
 
   render() {
@@ -75,6 +73,7 @@ class MyLibraryRoute extends React.Component {
           <AssetsTable
             context={ASSETS_TABLE_CONTEXTS.get('my-library')}
             assets={this.state.assets}
+            totalAssets={this.state.totalAssets}
             isLoading={this.state.isLoading}
             orderBy={this.state.orderBy}
             isOrderAsc={this.state.isOrderAsc}

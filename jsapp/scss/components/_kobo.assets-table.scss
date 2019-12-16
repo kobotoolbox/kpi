@@ -11,9 +11,11 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   padding: 10px;
   border-top: 2px solid $divider-color;
   color: $cool-gray;
+  height: 40px;
 }
 
 .assets-table--my-library {
@@ -49,6 +51,7 @@
   border: 0;
   cursor: pointer;
   color: inherit;
+  height: 20px;
 
   &:hover {
     color: $cool-darkgray;
