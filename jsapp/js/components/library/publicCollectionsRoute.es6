@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
 
-class LibraryPublicCollections extends React.Component {
+class PublicCollectionsRoute extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -19,8 +19,8 @@ class LibraryPublicCollections extends React.Component {
   }
 }
 
-LibraryPublicCollections.contextTypes = {
+PublicCollectionsRoute.contextTypes = {
   router: PropTypes.object
 };
 
-export default LibraryPublicCollections;
+export default PublicCollectionsRoute;

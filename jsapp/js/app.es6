@@ -36,8 +36,8 @@ import {
   LibraryAssetEditor
 } from './components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
-import LibraryPublicCollections from 'js/components/library/libraryPublicCollections';
-import LibraryAsset from 'js/components/library/libraryAsset';
+import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
+import AssetRoute from 'js/components/library/assetRoute';
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
@@ -286,9 +286,9 @@ export var routes = (
 
     <Route path='library'>
       <Route path='my-library' component={MyLibraryRoute}/>
-      <Route path='public-collections' component={LibraryPublicCollections}/>
+      <Route path='public-collections' component={PublicCollectionsRoute}/>
       <Route path='new-asset' component={LibraryAssetCreator}/>
-      <Route path='asset/:uid' component={LibraryAsset}/>
+      <Route path='asset/:uid' component={AssetRoute}/>
       <Route path='asset/:uid/edit' component={LibraryAssetEditor}/>
       <Route path='asset/:uid/json' component={FormJson}/>
       <Route path='asset/:uid/xform' component={FormXform}/>
