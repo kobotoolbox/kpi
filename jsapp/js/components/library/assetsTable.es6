@@ -126,6 +126,13 @@ export class AssetsTable extends React.Component {
   }
 
   /**
+   * @param {number} newPageNumber
+   */
+  switchPage(newPageNumber) {
+    this.props.onSwitchPage(newPageNumber);
+  }
+
+  /**
    * This function is only a callback handler, as the asset reordering itself
    * should be handled by the component that is providing the assets list.
    * @param {string} columnId
@@ -162,18 +169,50 @@ export class AssetsTable extends React.Component {
     );
   }
 
-  renderFooter() {
-    // TODO pagination!
+  renderPagination() {
+    const hasPagination = (
+      typeof this.props.currentPage === 'number' &&
+      typeof this.props.totalPages === 'number'
+    );
+    const naturalCurrentPage = this.props.currentPage + 1;
 
+    if (hasPagination) {
+      return (
+        <bem.AssetsTablePagination>
+          <bem.AssetsTablePagination__button
+            disabled={this.props.currentPage === 0}
+            onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
+          >
+            <i className='k-icon k-icon-prev'/>
+            {t('Previous page')}
+          </bem.AssetsTablePagination__button>
+
+          <bem.AssetsTablePagination__index>
+            {naturalCurrentPage}/{this.props.totalPages}
+          </bem.AssetsTablePagination__index>
+
+          <bem.AssetsTablePagination__button
+            disabled={naturalCurrentPage === this.props.totalPages}
+            onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
+          >
+            {t('Next page')}
+            <i className='k-icon k-icon-next'/>
+          </bem.AssetsTablePagination__button>
+        </bem.AssetsTablePagination>
+      );
+    } else {
+      return null;
+    }
+  }
+
+  renderFooter() {
     return (
       <bem.AssetsTable__footer>
         <span>
           {t('##count## items available').replace('##count##', this.props.assets.length)}
         </span>
 
-        <span>
-          {this.props.currentPage + 1} / {this.props.totalPages}
-        </span>
+        {this.renderPagination()}
       </bem.AssetsTable__footer>
     );
   }

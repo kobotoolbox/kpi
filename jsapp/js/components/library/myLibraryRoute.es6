@@ -16,7 +16,7 @@ import {
 
 const defaultColumn = ASSETS_TABLE_COLUMNS.get('last-modified');
 
-class LibraryAssetsList extends React.Component {
+class MyLibraryRoute extends React.Component {
   constructor(props) {
     super(props);
 
@@ -40,7 +40,9 @@ class LibraryAssetsList extends React.Component {
     // TODO only list assets without parent (so collections and orphan assets)
     this.setState({
       isLoading: myLibraryStore.data.isFetchingData,
-      assets: myLibraryStore.data.assets
+      assets: myLibraryStore.data.assets,
+      currentPage: myLibraryStore.data.currentPage,
+      totalPages: myLibraryStore.data.totalPages
     });
   }
 
@@ -87,11 +89,11 @@ class LibraryAssetsList extends React.Component {
   }
 }
 
-LibraryAssetsList.contextTypes = {
+MyLibraryRoute.contextTypes = {
   router: PropTypes.object
 };
 
-reactMixin(LibraryAssetsList.prototype, mixins.droppable);
-reactMixin(LibraryAssetsList.prototype, Reflux.ListenerMixin);
+reactMixin(MyLibraryRoute.prototype, mixins.droppable);
+reactMixin(MyLibraryRoute.prototype, Reflux.ListenerMixin);
 
-export default LibraryAssetsList;
+export default MyLibraryRoute;

@@ -35,7 +35,7 @@ import {
   LibraryAssetCreator,
   LibraryAssetEditor
 } from './components/formEditors';
-import LibraryAssetsList from 'js/components/library/libraryAssetsList';
+import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import LibraryPublicCollections from 'js/components/library/libraryPublicCollections';
 import LibraryAsset from 'js/components/library/libraryAsset';
 import Reports from './components/reports';
@@ -285,7 +285,7 @@ export var routes = (
     */}
 
     <Route path='library'>
-      <Route path='my-library' component={LibraryAssetsList}/>
+      <Route path='my-library' component={MyLibraryRoute}/>
       <Route path='public-collections' component={LibraryPublicCollections}/>
       <Route path='new-asset' component={LibraryAssetCreator}/>
       <Route path='asset/:uid' component={LibraryAsset}/>

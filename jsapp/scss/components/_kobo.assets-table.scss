@@ -8,12 +8,12 @@
 }
 
 .assets-table__footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   padding: 10px;
   border-top: 2px solid $divider-color;
-
-  span {
-    opacity: 0.6;
-  }
+  color: $cool-gray;
 }
 
 .assets-table--my-library {
@@ -24,6 +24,49 @@
   .assets-table__body {
     flex: 1;
     overflow-y: auto;
+  }
+}
+
+/* ==========================================================================
+ * AssetsTablePagination
+ * ========================================================================== */
+
+.assets-table-pagination {
+  display: inline-block;
+  color: inherit;
+}
+
+.assets-table-pagination__index {
+  display: inline;
+  margin: 0 10px;
+}
+
+.assets-table-pagination__button {
+  appearance: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+
+  &:hover {
+    color: $cool-darkgray;
+  }
+
+  &:active {
+    color: $cool-charcoal;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .k-icon {
+    font-size: 20px;
+    display: inline-block;
+    vertical-align: middle;
   }
 }
 

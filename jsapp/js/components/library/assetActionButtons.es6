@@ -43,7 +43,7 @@ class AssetActionButtons extends React.Component {
   onOwnedCollectionsStoreChanged(storeData) {
     this.setState({
       ownedCollections: storeData.collections
-    })
+    });
   }
 
   // methods for inner workings of component
