@@ -207,6 +207,7 @@ module.exports = do ->
   configs.columns = [
     "type",
     "name",
+    "bind::oc:briefdescription",
     "bind::oc:itemgroup",
     "label",
     "hint",
@@ -309,6 +310,10 @@ module.exports = do ->
       value: false
     calculation:
       value: ""
+    "bind::oc:briefdescription":
+      value: ''
+    "bind::oc:description":
+      value: ''
 
   configs.newGroupDetails =
     name:

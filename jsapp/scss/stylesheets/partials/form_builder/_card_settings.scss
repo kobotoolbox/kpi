@@ -108,6 +108,12 @@
     padding-top: 15px;
   }
 
+  &.xlf-dv-appearance {
+    label {
+      vertical-align: top;
+    }
+  }
+
   input[type="text"] {
     width: 85%;
     padding: 2px;

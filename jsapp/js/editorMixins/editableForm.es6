@@ -156,6 +156,7 @@ class FormSettingsBox extends React.Component {
 }
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
+const FORM_STYLE_CACHE_NAME = 'kpi.editable-form.form-style';
 
 export default assign({
   componentDidMount() {
@@ -169,6 +170,8 @@ export default assign({
       let uid = this.props.params.assetid;
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
+
+        sessionStorage.setItem(FORM_STYLE_CACHE_NAME, asset.settings__style);
 
         this.launchAppForSurveyContent(asset.content, {
           name: asset.name,
@@ -192,6 +195,7 @@ export default assign({
       document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
       this.app.survey.off('change');
     }
+    sessionStorage.removeItem(FORM_STYLE_CACHE_NAME);
     this.unpreventClosingTab();
   },
 
@@ -238,6 +242,7 @@ export default assign({
     this.setState({
       settings__style: settingsStyle
     });
+    sessionStorage.setItem(FORM_STYLE_CACHE_NAME, settingsStyle);
     this.onSurveyChange();
   },
 

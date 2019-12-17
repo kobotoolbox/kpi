@@ -462,7 +462,7 @@ module.exports = do ->
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
           receive: (evt, ui) =>
-            if ui.sender.hasClass('group__rows')
+            if ui.sender.hasClass('group__rows') || ui.sender.hasClass('survey-editor__list')
               return
             prevItem = ui.item.prev()
             if @ngScope.handleItem

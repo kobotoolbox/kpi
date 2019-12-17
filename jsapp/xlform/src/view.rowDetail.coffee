@@ -28,6 +28,10 @@ module.exports = do ->
         modelKey = 'oc_item_group'
       else if modelKey == 'bind::oc:external'
         modelKey = 'oc_external'
+      else if modelKey == 'bind::oc:briefdescription'
+        modelKey = 'oc_briefdescription'
+      else if modelKey == 'bind::oc:description'
+        modelKey = 'oc_description'
       @extraClass = "xlf-dv-#{modelKey}"
       _.extend(@, viewRowDetail.DetailViewMixins[modelKey] || viewRowDetail.DetailViewMixins.default)
       Backbone.on('ocCustomEvent', @onOcCustomEvent, @)
@@ -142,8 +146,11 @@ module.exports = do ->
       $el.siblings('.message').remove()
 
   viewRowDetail.Templates = {
-    textbox: (cid, key, key_label = key, input_class = '') ->
-      @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+    textbox: (cid, key, key_label = key, input_class = '', max_length = '') ->
+      if max_length is ''
+        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+      else
+        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" maxlength="#{max_length}" />""", cid, key_label
 
     checkbox: (cid, key, key_label = key, input_label = _t("Yes")) ->
       input_label = input_label
@@ -498,10 +505,12 @@ module.exports = do ->
 
       types[@model_type(@model)]
     html: ->
-
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
-        return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
+        if @is_theme_grid()
+          return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
+        else
+          return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
       else
         appearances = @getTypes()
         if appearances?
@@ -517,6 +526,9 @@ module.exports = do ->
 
     model_type: (model) ->
       @model._parent.getValue('type').split(' ')[0]
+
+    is_theme_grid: () ->
+      sessionStorage.getItem('kpi.editable-form.form-style').indexOf('theme-grid') isnt -1
 
     afterRender: ->
       $select = @$('select')
@@ -544,14 +556,19 @@ module.exports = do ->
       else
         $input = @$('input')
         if $input.attr('type') == 'text'
+          if @model_is_group(@model) and @is_theme_grid()
+            $labelText = $('<span/>').text(_t('Number of columns (default is w4)') + '')
+            @$('input[type=text]').parent().prepend($labelText)
           @$('input[type=text]').val(modelValue)
           @listenForInputChange()
         else if $input.attr('type') == 'checkbox'
-          if @model.get('value') == 'field-list'
+          fieldListStr = 'field-list'
+          if @model.get('value') == fieldListStr
             $input.prop('checked', true)
+
           $input.on 'change', () =>
             if $input.prop('checked')
-              @model.set 'value', 'field-list'
+              @model.set 'value', fieldListStr
             else
               @model.set 'value', ''
 
@@ -566,6 +583,14 @@ module.exports = do ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
       viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text'
+    afterRender: ->
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.oc_briefdescription =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Brief Description"), 'text', '40'
     afterRender: ->
       @listenForInputChange()
 
@@ -610,6 +635,14 @@ module.exports = do ->
       if questionType is 'calculate'
         @makeRequired()
 
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.oc_description =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Description"), 'text', '3999'
+    afterRender: ->
       @listenForInputChange()
 
   viewRowDetail
