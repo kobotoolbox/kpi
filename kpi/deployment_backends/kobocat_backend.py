@@ -30,6 +30,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     "self.asset._deployment_data" JSONField.
     """
 
+    @property
+    def backend_response(self):
+        return self.asset._deployment_data['backend_response']
+
     def bulk_assign_mapped_perms(self):
         """
         Bulk assign all `kc` permissions related to `kpi` permissions.
@@ -48,136 +52,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 continue
             assign_applicable_kc_permissions(self.asset, user, perms)
 
-    @staticmethod
-    def make_identifier(username, id_string):
-        """
-        Uses `settings.KOBOCAT_URL` to construct an identifier from a
-        username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers
-        """
-        # No need to use the internal URL here; it will be substituted in when
-        # appropriate
-        return '{}/{}/forms/{}'.format(
-            settings.KOBOCAT_URL,
-            username,
-            id_string
-        )
-
-    @staticmethod
-    def external_to_internal_url(url):
-        """
-        Replace the value of `settings.KOBOCAT_URL` with that of
-        `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
-        `url`
-        """
-        return re.sub(
-            pattern='^{}'.format(re.escape(settings.KOBOCAT_URL)),
-            repl=settings.KOBOCAT_INTERNAL_URL,
-            string=url
-        )
-
-    @staticmethod
-    def internal_to_external_url(url):
-        """
-        Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
-        `settings.KOBOCAT_URL` when it appears at the beginning of
-        `url`
-        """
-        return re.sub(
-            pattern='^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
-            repl=settings.KOBOCAT_URL,
-            string=url
-        )
-
-    @property
-    def backend_response(self):
-        return self.asset._deployment_data['backend_response']
-
-    def _kobocat_request(self, method, url, **kwargs):
-        """
-        Make a POST or PATCH request and return parsed JSON. Keyword arguments,
-        e.g. `data` and `files`, are passed through to `requests.request()`.
-        """
-
-        expected_status_codes = {
-            'POST': 201,
-            'PATCH': 200,
-            'DELETE': 204,
-        }
-        try:
-            expected_status_code = expected_status_codes[method]
-        except KeyError:
-            raise NotImplementedError(
-                'This backend does not implement the {} method'.format(method)
-            )
-
-        # Make the request to KC
-        try:
-            kc_request = requests.Request(method=method, url=url, **kwargs)
-            response = self.__kobocat_proxy_request(kc_request, user=self.asset.owner)
-
-        except requests.exceptions.RequestException as e:
-            # Failed to access the KC API
-            # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(detail=str(e))
-
-        # If it's a no-content success, return immediately
-        if response.status_code == expected_status_code == 204:
-            return {}
-
-        # Parse the response
-        try:
-            json_response = response.json()
-        except ValueError as e:
-            # Unparseable KC API output
-            # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(
-                detail=str(e), response=response)
-
-        # Check for failure
-        if response.status_code != expected_status_code or (
-            'type' in json_response and json_response['type'] == 'alert-error'
-        ) or 'formid' not in json_response:
-            if 'text' in json_response:
-                # KC API refused us for a specified reason, likely invalid
-                # input Raise a 400 error that includes the reason
-                e = KobocatDeploymentException(detail=json_response['text'])
-                e.status_code = status.HTTP_400_BAD_REQUEST
-                raise e
-            else:
-                # Unspecified failure; raise 500
-                raise KobocatDeploymentException(
-                    detail='Unexpected KoBoCAT error {}: {}'.format(
-                        response.status_code, response.content),
-                    response=response
-                )
-
-        return json_response
-
-    @property
-    def timestamp(self):
-        try:
-            return self.backend_response['date_modified']
-        except KeyError:
-            return None
-
-    @property
-    def xform_id_string(self):
-        return self.asset._deployment_data.get('backend_response', {}).get('id_string')
-
-    @property
-    def xform_id(self):
-        pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
-        xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
-            'user__username', 'id_string').first()
-        if not (xform.user.username == self.asset.owner.username and
-                xform.id_string == self.xform_id_string):
-            raise Exception('Deployment links to an unexpected KoBoCAT XForm')
-        return pk
-
-    @property
-    def mongo_userform_id(self):
-        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      validate_count=True,
+                                                      **kwargs)
+        return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, identifier=None, active=False):
         """
@@ -254,6 +133,139 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    def delete(self):
+        """
+        WARNING! Deletes all submitted data!
+        """
+        url = self.external_to_internal_url(self.backend_response['url'])
+        try:
+            self._kobocat_request('DELETE', url)
+        except KobocatDeploymentException as e:
+            if hasattr(e, 'response') and e.response.status_code == 404:
+                # The KC project is already gone!
+                pass
+            else:
+                raise
+        super().delete()
+
+    def delete_submission(self, pk, user):
+        """
+        Deletes submission through `KoBoCat` proxy
+        :param pk: int
+        :param user: User
+        :return: dict
+        """
+        kc_url = self.get_submission_detail_url(pk)
+        kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    def delete_submissions(self, data, user):
+        """
+        Deletes submissions through `KoBoCat` proxy
+        :param user: User
+        :return: dict
+        """
+
+        kc_url = self.submission_list_url
+        kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
+    @staticmethod
+    def external_to_internal_url(url):
+        """
+        Replace the value of `settings.KOBOCAT_URL` with that of
+        `settings.KOBOCAT_INTERNAL_URL` when it appears at the beginning of
+        `url`
+        """
+        return re.sub(
+            pattern='^{}'.format(re.escape(settings.KOBOCAT_URL)),
+            repl=settings.KOBOCAT_INTERNAL_URL,
+            string=url
+        )
+
+    def get_enketo_survey_links(self):
+        data = {
+            'server_url': '{}/{}'.format(
+                settings.KOBOCAT_URL.rstrip('/'),
+                self.asset.owner.username
+            ),
+            'form_id': self.backend_response['id_string']
+        }
+        try:
+            response = requests.post(
+                '{}{}'.format(
+                    settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
+                # bare tuple implies basic auth
+                auth=(settings.ENKETO_API_TOKEN, ''),
+                data=data
+            )
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            # Don't 500 the entire asset view if Enketo is unreachable
+            logging.error(
+                'Failed to retrieve links from Enketo', exc_info=True)
+            return {}
+        try:
+            links = response.json()
+        except ValueError:
+            logging.error('Received invalid JSON from Enketo', exc_info=True)
+            return {}
+        for discard in ('enketo_id', 'code', 'preview_iframe_url'):
+            try:
+                del links[discard]
+            except KeyError:
+                pass
+        return links
+
+    def get_data_download_links(self):
+        exports_base_url = '/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'exports',
+            self.backend_response['id_string']
+        ))
+        reports_base_url = '/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'reports',
+            self.backend_response['id_string']
+        ))
+        forms_base_url = '/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'forms',
+            self.backend_response['id_string']
+        ))
+        links = {
+            # To be displayed in iframes
+            'xls_legacy': '/'.join((exports_base_url, 'xls/')),
+            'csv_legacy': '/'.join((exports_base_url, 'csv/')),
+            'zip_legacy': '/'.join((exports_base_url, 'zip/')),
+            'kml_legacy': '/'.join((exports_base_url, 'kml/')),
+            'analyser_legacy': '/'.join((exports_base_url, 'analyser/')),
+            # For GET requests that return files directly
+            'xls': '/'.join((reports_base_url, 'export.xlsx')),
+            'csv': '/'.join((reports_base_url, 'export.csv')),
+        }
+        return links
+
+    @staticmethod
+    def internal_to_external_url(url):
+        """
+        Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
+        `settings.KOBOCAT_URL` when it appears at the beginning of
+        `url`
+        """
+        return re.sub(
+            pattern='^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
+            repl=settings.KOBOCAT_URL,
+            string=url
+        )
 
     def redeploy(self, active=None):
         """
@@ -371,121 +383,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     e.response.status_code != status.HTTP_404_NOT_FOUND):
                 raise e
 
-    def delete(self):
+    @staticmethod
+    def make_identifier(username, id_string):
         """
-        WARNING! Deletes all submitted data!
+        Uses `settings.KOBOCAT_URL` to construct an identifier from a
+        username and id string, without the caller having to specify a server
+        or know the full format of KC identifiers
         """
-        url = self.external_to_internal_url(self.backend_response['url'])
-        try:
-            self._kobocat_request('DELETE', url)
-        except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
-                # The KC project is already gone!
-                pass
-            else:
-                raise
-        super().delete()
+        # No need to use the internal URL here; it will be substituted in when
+        # appropriate
+        return '{}/{}/forms/{}'.format(
+            settings.KOBOCAT_URL,
+            username,
+            id_string
+        )
 
-    def delete_submission(self, pk, user):
-        """
-        Deletes submission through `KoBoCat` proxy
-        :param pk: int
-        :param user: User
-        :return: dict
-        """
-        kc_url = self.get_submission_detail_url(pk)
-        kc_request = requests.Request(method="DELETE", url=kc_url)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-
-        return self.__prepare_as_drf_response_signature(kc_response)
-
-    def delete_submissions(self, data, user):
-        """
-        Deletes submissions through `KoBoCat` proxy
-        :param user: User
-        :return: dict
-        """
-
-        kc_url = self.submission_list_url
-        kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-
-        return self.__prepare_as_drf_response_signature(kc_response)
-
-    def get_enketo_survey_links(self):
-        data = {
-            'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'),
-                self.asset.owner.username
-            ),
-            'form_id': self.backend_response['id_string']
-        }
-        try:
-            response = requests.post(
-                '{}{}'.format(
-                    settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
-                # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
-                data=data
-            )
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            # Don't 500 the entire asset view if Enketo is unreachable
-            logging.error(
-                'Failed to retrieve links from Enketo', exc_info=True)
-            return {}
-        try:
-            links = response.json()
-        except ValueError:
-            logging.error('Received invalid JSON from Enketo', exc_info=True)
-            return {}
-        for discard in ('enketo_id', 'code', 'preview_iframe_url'):
-            try:
-                del links[discard]
-            except KeyError:
-                pass
-        return links
-
-    def get_data_download_links(self):
-        exports_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'exports',
-            self.backend_response['id_string']
-        ))
-        reports_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'reports',
-            self.backend_response['id_string']
-        ))
-        forms_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'forms',
-            self.backend_response['id_string']
-        ))
-        links = {
-            # To be displayed in iframes
-            'xls_legacy': '/'.join((exports_base_url, 'xls/')),
-            'csv_legacy': '/'.join((exports_base_url, 'csv/')),
-            'zip_legacy': '/'.join((exports_base_url, 'zip/')),
-            'kml_legacy': '/'.join((exports_base_url, 'kml/')),
-            'analyser_legacy': '/'.join((exports_base_url, 'analyser/')),
-            # For GET requests that return files directly
-            'xls': '/'.join((reports_base_url, 'export.xlsx')),
-            'csv': '/'.join((reports_base_url, 'export.csv')),
-        }
-        return links
-
-    def _submission_count(self):
-        _deployment_data = self.asset._deployment_data
-        id_string = _deployment_data['backend_response']['id_string']
-        # avoid migrations from being created for kc_access mocked models
-        # there should be a better way to do this, right?
-        return instance_count(xform_id_string=id_string,
-                              user_id=self.asset.owner.pk,
-                              )
+    @property
+    def mongo_userform_id(self):
+        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
     @property
     def submission_list_url(self):
@@ -517,12 +432,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
-
-    def _last_submission_time(self):
-        _deployment_data = self.asset._deployment_data
-        id_string = _deployment_data['backend_response']['id_string']
-        return last_submission_time(
-            xform_id_string=id_string, user_id=self.asset.owner.pk)
 
     def get_submission_validation_status_url(self, submission_pk):
         url = '{detail_url}/validation_status'.format(
@@ -619,11 +528,102 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        params = self.validate_submission_list_params(requesting_user_id,
-                                                      validate_count=True,
-                                                      **kwargs)
-        return MongoHelper.get_count(self.mongo_userform_id, **params)
+    @property
+    def timestamp(self):
+        try:
+            return self.backend_response['date_modified']
+        except KeyError:
+            return None
+
+    @property
+    def xform_id(self):
+        pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
+        xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
+            'user__username', 'id_string').first()
+        if not (xform.user.username == self.asset.owner.username and
+                xform.id_string == self.xform_id_string):
+            raise Exception('Deployment links to an unexpected KoBoCAT XForm')
+        return pk
+
+    @property
+    def xform_id_string(self):
+        return self.asset._deployment_data.get('backend_response', {}).get('id_string')
+
+    def _last_submission_time(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        return last_submission_time(
+            xform_id_string=id_string, user_id=self.asset.owner.pk)
+
+    def _kobocat_request(self, method, url, **kwargs):
+        """
+        Make a POST or PATCH request and return parsed JSON. Keyword arguments,
+        e.g. `data` and `files`, are passed through to `requests.request()`.
+        """
+
+        expected_status_codes = {
+            'POST': 201,
+            'PATCH': 200,
+            'DELETE': 204,
+        }
+        try:
+            expected_status_code = expected_status_codes[method]
+        except KeyError:
+            raise NotImplementedError(
+                'This backend does not implement the {} method'.format(method)
+            )
+
+        # Make the request to KC
+        try:
+            kc_request = requests.Request(method=method, url=url, **kwargs)
+            response = self.__kobocat_proxy_request(kc_request, user=self.asset.owner)
+
+        except requests.exceptions.RequestException as e:
+            # Failed to access the KC API
+            # TODO: clarify that the user cannot correct this
+            raise KobocatDeploymentException(detail=str(e))
+
+        # If it's a no-content success, return immediately
+        if response.status_code == expected_status_code == 204:
+            return {}
+
+        # Parse the response
+        try:
+            json_response = response.json()
+        except ValueError as e:
+            # Unparseable KC API output
+            # TODO: clarify that the user cannot correct this
+            raise KobocatDeploymentException(
+                detail=str(e), response=response)
+
+        # Check for failure
+        if response.status_code != expected_status_code or (
+            'type' in json_response and json_response['type'] == 'alert-error'
+        ) or 'formid' not in json_response:
+            if 'text' in json_response:
+                # KC API refused us for a specified reason, likely invalid
+                # input Raise a 400 error that includes the reason
+                e = KobocatDeploymentException(detail=json_response['text'])
+                e.status_code = status.HTTP_400_BAD_REQUEST
+                raise e
+            else:
+                # Unspecified failure; raise 500
+                raise KobocatDeploymentException(
+                    detail='Unexpected KoBoCAT error {}: {}'.format(
+                        response.status_code, response.content),
+                    response=response
+                )
+
+        return json_response
+
+    def _submission_count(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        # avoid migrations from being created for kc_access mocked models
+        # there should be a better way to do this, right?
+        return instance_count(xform_id_string=id_string,
+                              user_id=self.asset.owner.pk,
+                              )
 
     def __get_submissions_in_json(self, **params):
         """
