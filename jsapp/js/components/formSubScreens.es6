@@ -11,7 +11,7 @@ import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import DataTable from './table';
-import {AccessDeniedMessage} from '../ui';
+import ui from '../ui';
 import {ProjectDownloads} from './formEditors';
 
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -47,12 +47,12 @@ export class FormSubScreens extends React.Component {
       return false;
 
     if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !permAccess) {
-      return (<AccessDeniedMessage/>);
+      return (<ui.AccessDeniedMessage/>);
     }
 
     if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
         !this.userCan('change_asset', this.state)) {
-      return (<AccessDeniedMessage/>);
+      return (<ui.AccessDeniedMessage/>);
     }
 
     var iframeUrl = '';

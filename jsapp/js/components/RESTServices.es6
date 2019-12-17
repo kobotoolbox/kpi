@@ -4,7 +4,7 @@ import DocumentTitle from 'react-document-title';
 import stores from '../stores';
 import mixins from 'js/mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
-import {AccessDeniedMessage} from 'js/ui';
+import ui from 'js/ui';
 import RESTServicesList from './RESTServices/RESTServicesList';
 import RESTServiceLogs from './RESTServices/RESTServiceLogs';
 import {t} from '../utils';
@@ -26,7 +26,7 @@ export default class RESTServices extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <React.Fragment>
           {!hasAccess &&
-            <AccessDeniedMessage/>
+            <ui.AccessDeniedMessage/>
           }
           {hasAccess && this.props.hookUid &&
             <RESTServiceLogs assetUid={this.props.asset.uid} hookUid={this.props.hookUid} />
