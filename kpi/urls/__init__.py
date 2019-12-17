@@ -38,13 +38,17 @@ urlpatterns = [
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     re_path(r'^accounts/logout/', logout, {'next_page': '/'}),
+    path('accounts/password/reset/',
+        PasswordResetFormWithUsernameView.as_view(
+            form_class=PasswordResetFormWithUsername
+        ), name='password_reset'
+    ),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
     ),
-    re_path(r'^accounts/password/reset', PasswordResetFormWithUsernameView.as_view(form_class=PasswordResetFormWithUsername), name='password_reset'),
     path('browser_tests/', browser_tests),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
