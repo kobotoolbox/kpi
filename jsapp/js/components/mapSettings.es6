@@ -106,7 +106,7 @@ class MapSettings extends React.Component {
     };
   }
   componentDidMount() {
-    actions.resources.getAssetFiles(this.props.asset.uid);
+    actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
     this.listenTo(
       actions.resources.getAssetFiles.completed,
       this.updateFileList
@@ -148,9 +148,9 @@ class MapSettings extends React.Component {
   dropFiles(files, rejectedFiles) {
     let uid = this.props.asset.uid,
       _this = this,
-      name = this.state.layerName;
+      description = this.state.layerName;
 
-    if (!name) {
+    if (!description) {
       alertify.error(t('Please add a name for your layer file.'));
       return false;
     }
@@ -162,13 +162,13 @@ class MapSettings extends React.Component {
       };
       let data = {
         content: file,
-        name: name,
+        description: description,
         file_type: 'map_layer',
         metadata: JSON.stringify(metadata)
       };
       dataInterface.uploadAssetFile(uid, data).done(result => {
         _this.setState({ layerName: '' });
-        actions.resources.getAssetFiles(this.props.asset.uid);
+        actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
       }).fail((jqxhr) => {
         var errMsg = t('Upload error: ##error_message##.').replace('##error_message##', jqxhr.statusText);
         alertify.error(errMsg);
@@ -199,7 +199,7 @@ class MapSettings extends React.Component {
       labels: { ok: t('Delete'), cancel: t('Cancel') },
       onok: (evt, val) => {
         dataInterface.deleteAssetFile(this.props.asset.uid, uid).done(r => {
-          actions.resources.getAssetFiles(this.props.asset.uid);
+          actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
           dialog.destroy();
         });
       },
@@ -293,7 +293,7 @@ class MapSettings extends React.Component {
                           <span className='file-type'>
                             {file.metadata.type}
                           </span>
-                          <span className='file-layer-name'>{file.name}</span>
+                          <span className='file-layer-name'>{file.description}</span>
                           <span
                             className='file-delete'
                             onClick={this.deleteFile}

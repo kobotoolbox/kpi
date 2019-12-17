@@ -62,8 +62,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     ### CURRENT ENDPOINT
     """
 
-    URL_NAMESPACE = 'api_v2'
-
     model = HookLog
 
     lookup_field = "uid"

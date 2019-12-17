@@ -14,9 +14,97 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 
 class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                        NoUpdateModelViewSet):
-
     """
-    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+    This endpoint shows uploaded files related to an asset.
+
+    `uid` - is the unique identifier of a specific asset
+
+    **Retrieve files**
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/files/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/
+
+    Results can be narrowed down with a filter by type
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/files/?file_type=map_layer
+
+
+    **Retrieve a file**
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/files/{file_uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/afQoJxA4kmKEXVpkH6SYbhb/"
+
+
+    **Create a new file**
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/files/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/ \\
+    >            -H 'Content-Type: application/json' \\
+    >            -d '<payload>'  # Payload is sent as a string
+
+    Fields:
+
+    - `asset` (required)
+    - `user` (required)
+    - `description` (required)
+    - `file_type`<sup>1</sup> (required)
+    - `content` (as binary) <sup>2</sup> (required)
+    - `metadata` JSON <sup>2</sup>
+
+    <sup>1</sup> Files can have different types:
+
+    - `map_layer`
+    - `form_media`
+
+    **Files with `form_media` type must have unique name per asset**
+
+    <sup>2</sup> `content` can be sent as a base64 encoded string with `base64Encoded` parameter.
+    `metadata` becomes mandatory and must contain `filename` property.
+
+
+    > _Payload to create a file with binary content_
+    >
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
+    >           "description": "Description of the file",
+    >           "content": <binary>
+    >        }
+
+    > _Payload to create a file with base64 encoded content_
+    >
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
+    >           "description": "Description of the file",
+    >           "base64Encoded": "<base64-encoded-string>"
+    >           "metadata": {"filename": "filename.ext"}
+    >        }
+
+
+    **Delete a file**
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/files/{file_uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/pG6AeSjCwNtpWazQAX76Ap/
 
     ### CURRENT ENDPOINT
     """
@@ -28,6 +116,10 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     def get_queryset(self):
         _queryset = self.model.objects.filter(asset__uid=self.asset_uid)
+        file_type = self.request.GET.get('file_type')
+        if file_type is not None:
+            _queryset = _queryset.filter(file_type=file_type)
+
         return _queryset
 
     def perform_create(self, serializer):
@@ -41,6 +133,14 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def perform_destroy(self, *args, **kwargs):
         if not self.request.user.has_perm(PERM_CHANGE_ASSET, self.asset):
             raise exceptions.PermissionDenied()
+
+        # Delete file
+        try:
+            private_file = self.get_object()
+            private_file.content.delete()
+        except OSError:
+            pass
+
         return super().perform_destroy(*args, **kwargs)
 
     class PrivateContentView(PrivateStorageDetailView):

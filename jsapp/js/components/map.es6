@@ -135,10 +135,10 @@ export class FormMap extends React.Component {
       actions.resources.getAssetFiles.completed,
       this.updateOverlayList
     );
-    actions.resources.getAssetFiles(this.props.asset.uid);
+    actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
   }
   loadOverlayLayers(map) {
-    dataInterface.getAssetFiles(this.props.asset.uid).done(data => {});
+    dataInterface.getAssetFiles(this.props.asset.uid, 'map_layer').done(data => {});
   }
   updateOverlayList(data) {
     let map = this.state.map;
