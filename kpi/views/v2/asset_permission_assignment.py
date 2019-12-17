@@ -56,7 +56,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     > Example
     >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
 
 
     **Assign a permission**
@@ -68,7 +68,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     >
     >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
     >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as the string
+    >            -d '<payload>'  # Payload is sent as a string
 
 
     > _Payload to assign a permission_

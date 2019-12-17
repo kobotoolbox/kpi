@@ -700,9 +700,9 @@ export var dataInterface;
         contentType: false
       });
     },
-    getAssetFiles(uid) {
+    getAssetFiles(uid, fileType) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
         method: 'GET'
       });
     },

@@ -291,9 +291,9 @@ actions.resources.setDeploymentActive.completed.listen((result) => {
   }
 });
 
-actions.resources.getAssetFiles.listen(function(assetId) {
+actions.resources.getAssetFiles.listen(function(assetId, fileType) {
   dataInterface
-    .getAssetFiles(assetId)
+    .getAssetFiles(assetId, fileType)
     .done(actions.resources.getAssetFiles.completed)
     .fail(actions.resources.getAssetFiles.failed);
 });
