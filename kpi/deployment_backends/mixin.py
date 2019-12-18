@@ -18,6 +18,7 @@ class DeployableMixin:
 
     def deploy(self, backend=False, active=True):
         """this method could be called "deploy_latest_version()"."""
+        from kpi.tasks import sync_media_files  # Because of circular imports
 
         if self.can_be_deployed:
             if not self.has_deployment:
@@ -26,6 +27,7 @@ class DeployableMixin:
                     self.deployment.bulk_assign_mapped_perms()
             else:
                 self.deployment.redeploy(active=active)
+            sync_media_files.delay(self.uid)
             self._mark_latest_version_as_deployed()
         else:
             raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
