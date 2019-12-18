@@ -1,3 +1,6 @@
+// TODO: add subscribe/unscubscribe buttons for public collections
+// TODO: double check the display logic for buttons (permissions)
+
 /**
  * This is intended to be displayed in multiple places:
  * - library asset landing page

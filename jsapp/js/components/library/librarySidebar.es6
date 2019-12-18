@@ -28,7 +28,6 @@ class LibrarySidebar extends Reflux.Component {
   }
 
   myLibraryStoreChanged() {
-    console.debug('myLibraryStoreChanged', myLibraryStore.data);
     this.setState({
       isLoading: false,
       myLibraryCount: myLibraryStore.data.totalUserAssets

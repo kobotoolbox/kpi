@@ -378,6 +378,28 @@ export var dataInterface;
         method: 'GET'
       });
     },
+    searchPublicCollections(params = {}) {
+      const searchData = {
+        all_public: true,
+        limit: params.pageSize || 100,
+        offset: params.page * params.pageSize || 0
+      };
+
+      if (params.searchPhrase) {
+        searchData.q += ` AND ${params.searchPhrase}`;
+      }
+
+      if (params.sort && params.order) {
+        searchData.sort = `{"${params.sort}":${params.order}}`;
+      }
+
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/collections/`,
+        dataType: 'json',
+        data: searchData,
+        method: 'GET'
+      });
+    },
     assetsHash () {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/hash/`,

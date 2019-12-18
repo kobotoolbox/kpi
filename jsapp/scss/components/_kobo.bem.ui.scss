@@ -30,7 +30,8 @@ $mdl-layout-width: 1440px;
     @include box-shadow;
   }
 
-  > .dropzone {
+  > .dropzone,
+  .public-collections-wrapper {
     height: 100%;
     overflow: hidden;
   }
