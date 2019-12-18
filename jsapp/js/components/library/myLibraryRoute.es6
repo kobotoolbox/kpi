@@ -10,11 +10,8 @@ import {t, validFileTypes} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
 import {
   AssetsTable,
-  ASSETS_TABLE_CONTEXTS,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_CONTEXTS
 } from './assetsTable';
-
-const defaultColumn = ASSETS_TABLE_COLUMNS.get('last-modified');
 
 class MyLibraryRoute extends React.Component {
   constructor(props) {
@@ -24,8 +21,8 @@ class MyLibraryRoute extends React.Component {
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
       totalAssets: myLibraryStore.data.totalSearchAssets,
-      orderBy: defaultColumn,
-      isOrderAsc: defaultColumn.defaultIsOrderAsc,
+      orderBy: myLibraryStore.data.orderColumn,
+      isOrderAsc: myLibraryStore.data.isOrderAsc,
       currentPage: myLibraryStore.data.currentPage,
       totalPages: myLibraryStore.data.totalPages
     };
@@ -42,17 +39,15 @@ class MyLibraryRoute extends React.Component {
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
       totalAssets: myLibraryStore.data.totalSearchAssets,
+      orderBy: myLibraryStore.data.orderColumn,
+      isOrderAsc: myLibraryStore.data.isOrderAsc,
       currentPage: myLibraryStore.data.currentPage,
       totalPages: myLibraryStore.data.totalPages
     });
   }
 
   onAssetsTableReorder(orderBy, isOrderAsc) {
-    this.setState({
-      orderBy,
-      isOrderAsc
-    });
-    // TODO tell myLibraryStore that column header was clicked
+    myLibraryStore.setOrder(orderBy, isOrderAsc);
   }
 
   onAssetsTableSwitchPage(pageNumber) {

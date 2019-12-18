@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import searchBoxStore from '../header/searchBoxStore';
 import {actions} from 'js/actions';
+import {ASSETS_TABLE_COLUMNS} from './assetsTable';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -11,9 +12,13 @@ const myLibraryStore = Reflux.createStore({
 
   PAGE_SIZE: 100,
 
+  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
+
   init() {
     this.data = {
       isFetchingData: false,
+      orderColumn: this.DEFAULT_COLUMN,
+      isOrderAsc: this.DEFAULT_COLUMN.defaultIsOrderAsc,
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
@@ -22,6 +27,8 @@ const myLibraryStore = Reflux.createStore({
     };
 
     // TODO update this list whenever existing item is changed
+
+    // TODO reset data properly on some actions or when leaving route out of library
 
     this.listenTo(searchBoxStore, this.searchBoxStoreChanged);
     this.listenTo(actions.library.searchMyLibraryAssets.started, this.onSearchStarted);
@@ -79,6 +86,17 @@ const myLibraryStore = Reflux.createStore({
   setCurrentPage(newCurrentPage) {
     this.data.currentPage = newCurrentPage;
     this.fetchData();
+  },
+
+  setOrder(orderColumn, isOrderAsc) {
+    if (
+      this.data.orderColumn.id !== orderColumn.id ||
+      this.data.isOrderAsc !== isOrderAsc
+    ) {
+      this.data.orderColumn = orderColumn;
+      this.data.isOrderAsc = isOrderAsc;
+      this.fetchData();
+    }
   },
 
   // the method for fetching new data

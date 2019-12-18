@@ -1,10 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
-import reactMixin from 'react-mixin';
-import Reflux from 'reflux';
 import orderBy from 'lodash.orderby';
-import mixins from 'js/mixins';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {
   AssetsTable,
@@ -15,22 +11,20 @@ import {
 const defaultColumn = ASSETS_TABLE_COLUMNS.get('last-modified');
 
 /**
- * A wrapper component over AssetsTable for usage on collection landing page
+ * A wrapper component over AssetsTable for usage on collection landing page.
+ * It doesn't have much setup, as we use non-paginated results here and order
+ * rows on Frontend to avoid unnecessary calls.
+ *
+ * @prop {object} asset
  */
 class CollectionAssetsTable extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       orderBy: defaultColumn,
-      isOrderAsc: defaultColumn.defaultIsOrderAsc,
-      currentPage: 0,
-      totalPages: null
+      isOrderAsc: defaultColumn.defaultIsOrderAsc
     };
     autoBind(this);
-  }
-
-  onAssetsTableSwitchPage(pageNumber) {
-    console.debug('onAssetsTableSwitchPage', pageNumber);
   }
 
   onAssetsTableReorder(orderBy, isOrderAsc) {
@@ -89,12 +83,5 @@ class CollectionAssetsTable extends React.Component {
     );
   }
 }
-
-reactMixin(CollectionAssetsTable.prototype, mixins.contextRouter);
-reactMixin(CollectionAssetsTable.prototype, Reflux.ListenerMixin);
-
-CollectionAssetsTable.contextTypes = {
-  router: PropTypes.object
-};
 
 export default CollectionAssetsTable;

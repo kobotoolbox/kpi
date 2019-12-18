@@ -4,6 +4,7 @@ import {bem} from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
 import ui from 'js/ui';
 import {formatTime} from 'js/utils';
+import {ASSET_TYPES} from 'js/constants';
 import {
   getAssetIcon,
   getAssetOwnerDisplayName,
@@ -28,11 +29,18 @@ class AssetsTableRow extends React.Component {
 
     let rowCount;
     if (
+      this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
       this.props.asset.summary &&
       this.props.asset.summary.row_count &&
       this.props.asset.summary.row_count >= 2
     ) {
       rowCount = this.props.asset.summary.row_count;
+    } else if (
+      this.props.asset.asset_type === ASSET_TYPES.collection.id &&
+      this.props.asset.children
+    ) {
+      // TODO this informations is not yet provided by Backend
+      rowCount = this.props.asset.children;
     }
 
     return (
