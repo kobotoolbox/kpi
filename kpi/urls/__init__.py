@@ -43,6 +43,7 @@ urlpatterns = [
             form_class=PasswordResetFormWithUsername
         ), name='password_reset'
     ),
+    path('', include('django.contrib.auth.urls')),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
