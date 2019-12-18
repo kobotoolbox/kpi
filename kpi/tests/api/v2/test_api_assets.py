@@ -1,7 +1,6 @@
 # coding: utf-8
 import copy
 import json
-from hashlib import md5
 from io import StringIO
 
 from django.contrib.auth.models import User
@@ -21,7 +20,8 @@ from kpi.serializers.v2.asset import AssetListSerializer
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.strings import to_str, hashable_str
+from kpi.utils.hash import get_hash
+from kpi.utils.strings import to_str
 
 
 class AssetsListApiTests(BaseAssetTestCase):
@@ -97,7 +97,7 @@ class AssetsListApiTests(BaseAssetTestCase):
             another_user_asset.version_id
         ]
         versions_ids.sort()
-        expected_hash = md5(hashable_str(''.join(versions_ids))).hexdigest()
+        expected_hash = get_hash(''.join(versions_ids))
         hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
@@ -696,7 +696,7 @@ class AssetFileTest(BaseTestCase):
     def asset_file_payload(self):
         return {
             'file_type': 'map_layer',
-            'name': 'Dinagat Islands',
+            'description': 'Dinagat Islands',
             'content':
                 StringIO(json.dumps(
                     {
@@ -742,11 +742,19 @@ class AssetFileTest(BaseTestCase):
             response_dict['user__username'],
             self.current_username,
         )
+
+        # Some metadata properties are added when file is created.
+        # Let's compare without them
+        responsed_metadata = dict(response_dict['metadata'])
+        responsed_metadata.pop('filename', None)
+        responsed_metadata.pop('mimetype', None)
+        responsed_metadata.pop('hash', None)
+
         self.assertEqual(
-            json.dumps(response_dict['metadata']),
+            json.dumps(responsed_metadata),
             posted_payload['metadata']
         )
-        for field in 'file_type', 'name':
+        for field in 'file_type', 'description':
             self.assertEqual(response_dict[field], posted_payload[field])
         # Content via the direct URL to the file
         posted_payload['content'].seek(0)

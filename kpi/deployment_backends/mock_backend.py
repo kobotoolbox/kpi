@@ -67,7 +67,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
         view_name = 'submission-list'
-        namespace = self.asset._deployment_data.get('namespace', None)
+        namespace = self.asset.deployment_data.get('namespace', None)
         if namespace is not None:
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name, kwargs={"parent_lookup_asset": self.asset.uid})
@@ -122,7 +122,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def _submission_count(self):
-        submissions = self.asset._deployment_data.get('submissions', [])
+        submissions = self.asset.deployment_data.get('submissions', [])
         return len(submissions)
 
     def _mock_submission(self, submission):
@@ -130,7 +130,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         @TODO may be useless because of mock_submissions. Remove if it's not used anymore anywhere else.
         :param submission:
         """
-        submissions = self.asset._deployment_data.get('submissions', [])
+        submissions = self.asset.deployment_data.get('submissions', [])
         submissions.append(submission)
         self.store_data({
             'submissions': submissions,
@@ -165,7 +165,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 - `None` if no results
         """
 
-        submissions = self.asset._deployment_data.get("submissions", [])
+        submissions = self.asset.deployment_data.get("submissions", [])
         kwargs['instance_ids'] = instance_ids
         params = self.validate_submission_list_params(requesting_user_id,
                                                       format_type=format_type,
@@ -293,7 +293,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def set_has_kpi_hooks(self):
         """
-        Store results in self.asset._deployment_data
+        Store results in self.asset.deployment_data
         """
         has_active_hooks = self.asset.has_active_hooks
         self.store_data({

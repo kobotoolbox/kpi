@@ -8,6 +8,7 @@ from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.serializers.v2.asset_file import AssetFileSerializer
+from kpi.permissions import AssetNestedObjectPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
@@ -113,6 +114,7 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     lookup_field = 'uid'
     filter_backends = (RelatedAssetPermissionsFilter,)
     serializer_class = AssetFileSerializer
+    permission_classes = (AssetNestedObjectPermission, )
 
     def get_queryset(self):
         _queryset = self.model.objects.filter(asset__uid=self.asset_uid)
@@ -123,21 +125,16 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return _queryset
 
     def perform_create(self, serializer):
-        if not self.request.user.has_perm(PERM_CHANGE_ASSET, self.asset):
-            raise exceptions.PermissionDenied()
         serializer.save(
             asset=self.asset,
             user=self.request.user
         )
 
     def perform_destroy(self, *args, **kwargs):
-        if not self.request.user.has_perm(PERM_CHANGE_ASSET, self.asset):
-            raise exceptions.PermissionDenied()
-
         # Delete file
         try:
             private_file = self.get_object()
-            private_file.content.delete()
+            private_file.content.delete(save=False)
         except OSError:
             pass
 
