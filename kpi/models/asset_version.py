@@ -61,7 +61,6 @@ class AssetVersion(models.Model):
         # not saved, only compared with other asset_versions
         _json_string = json.dumps(self.version_content, sort_keys=True)
         return get_hash(_json_string, 'sha1')
-        # return hashlib.sha1(hashable_str(_json_string)).hexdigest()
 
     def __str__(self):
         return '{}@{} T{}{}'.format(

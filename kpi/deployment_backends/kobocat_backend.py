@@ -2,6 +2,7 @@
 import json
 import posixpath
 import re
+from collections import defaultdict
 from urllib.parse import urlparse
 
 import requests
@@ -12,6 +13,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.models.asset_file import AssetFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -27,12 +29,12 @@ from ..exceptions import BadFormatException, KobocatDeploymentException
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
     Used to deploy a project into KC. Stores the project identifiers in the
-    "self.asset._deployment_data" JSONField.
+    "self.asset.deployment_data" JSONField.
     """
 
     @property
     def backend_response(self):
-        return self.asset._deployment_data['backend_response']
+        return self.asset.deployment_data['backend_response']
 
     def bulk_assign_mapped_perms(self):
         """
@@ -61,7 +63,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def connect(self, identifier=None, active=False):
         """
         POST initial survey content to kobocat and create a new project.
-        store results in self.asset._deployment_data.
+        store results in self.asset.deployment_data.
         """
         # If no identifier was provided, construct one using
         # `settings.KOBOCAT_URL` and the uid of the asset
@@ -84,9 +86,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             # Parse the provided identifier, which is expected to follow the
             # format http://kobocat_server/username/forms/id_string
-            parsed_identifier = urlparse(identifier)
-            server = '{}://{}'.format(
-                parsed_identifier.scheme, parsed_identifier.netloc)
+            server, parsed_identifier = self.__get_server_from_identifier(identifier)
             path_head, path_tail = posixpath.split(parsed_identifier.path)
             id_string = path_tail
             path_head, path_tail = posixpath.split(path_head)
@@ -310,10 +310,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def set_active(self, active):
         """
         PATCH active boolean of survey.
-        store results in self.asset._deployment_data
+        store results in self.asset.deployment_data
         """
         # self.store_data is an alias for
-        # self.asset._deployment_data.update(...)
+        # self.asset.deployment_data.update(...)
         url = self.external_to_internal_url(
             self.backend_response['url'])
         payload = {
@@ -331,7 +331,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
         populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
         Useful when a form is created from the legacy upload form.
-        Store results in self.asset._deployment_data
+        Store results in self.asset.deployment_data
 
         Returns:
             bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
@@ -362,7 +362,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It lets KoBoCat know whether it needs to ping KPI
         each time a submission comes in.
 
-        Store results in self.asset._deployment_data
+        Store results in self.asset.deployment_data
         """
         has_active_hooks = self.asset.has_active_hooks
         url = self.external_to_internal_url(
@@ -528,6 +528,77 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
+    def sync_media_files(self):
+
+        identifier = self.asset.deployment_data['identifier']
+        server, parsed_identifier = self.__get_server_from_identifier(identifier)
+        metadata_url = self.external_to_internal_url('{}/api/v1/metadata'.format(server))
+
+        def upload_to_kc(file_):
+            files = {
+                'data_file': (
+                    file_.metadata['filename'],
+                    file_.content.file.read(),
+                    file_.metadata['mimetype'],
+                )
+            }
+            data = {
+                'data_value': file_.metadata['filename'],
+                'xform': self.xform_id,
+                'data_type': 'media',
+            }
+            try:
+                response = self._kobocat_request('POST',
+                                                 url=metadata_url,
+                                                 files=files,
+                                                 data=data,
+                                                 sync_media_files=True)
+            except Exception as e:
+                print('ERROR', str(e), flush=True)
+
+        def delete_kc_file(dict_):
+            response = self._kobocat_request('DELETE',
+                                             url=dict_['url'],
+                                             sync_media_files=True)
+
+        asset_files = self.asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA)
+        url = self.external_to_internal_url(self.backend_response['url'])
+        response = self._kobocat_request('GET', url)
+        kc_files = defaultdict(dict)
+        for metadata in response.get('metadata', []):
+            if metadata['data_type'] == 'media':
+
+                kc_files[metadata['data_value']] = {
+                    'url': metadata['url'],
+                    'md5': metadata['file_hash']
+                }
+
+        kc_filenames = kc_files.keys()
+
+        for file in asset_files:
+            filename = file.metadata.get('filename')
+            # New file
+            if filename not in kc_filenames:
+                upload_to_kc(file)
+                continue
+
+            # Existing file
+            if filename in kc_filenames:
+                kc_file = kc_files[filename]
+                # If md5 differs, we need to re-upload it.
+                if file.metadata.get('hash') != kc_file['md5']:
+                    delete_kc_file(kc_file)
+                    upload_to_kc(file)
+
+                # Remove current filename from `kc_files`.
+                # All files which will remain in this dict (after this loop)
+                # will be considered obsolete and will be deleted
+                del kc_files[filename]
+
+        # Remove files present in KoBoCat, but not in KPI
+        for kc_file in kc_files.values():
+            delete_kc_file(kc_file)
+
     @property
     def timestamp(self):
         try:
@@ -536,21 +607,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return None
 
     @property
+    def xform(self):
+        if not hasattr(self, '_xform'):
+            pk = self.asset.deployment_data.get('backend_response', {}).get('formid')
+            xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
+                'user__username', 'id_string').first()
+            if not (xform.user.username == self.asset.owner.username and
+                    xform.id_string == self.xform_id_string):
+                raise Exception('Deployment links to an unexpected KoBoCAT XForm')
+            setattr(self, '_xform', xform)
+
+        return self._xform
+
+    @property
     def xform_id(self):
-        pk = self.asset._deployment_data.get('backend_response', {}).get('formid')
-        xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
-            'user__username', 'id_string').first()
-        if not (xform.user.username == self.asset.owner.username and
-                xform.id_string == self.xform_id_string):
-            raise Exception('Deployment links to an unexpected KoBoCAT XForm')
-        return pk
+        return self.xform.pk
 
     @property
     def xform_id_string(self):
-        return self.asset._deployment_data.get('backend_response', {}).get('id_string')
+        return self.asset.deployment_data.get('backend_response', {}).get('id_string')
 
     def _last_submission_time(self):
-        _deployment_data = self.asset._deployment_data
+        _deployment_data = self.asset.deployment_data
         id_string = _deployment_data['backend_response']['id_string']
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
@@ -562,16 +640,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         expected_status_codes = {
+            'GET': 200,
             'POST': 201,
             'PATCH': 200,
             'DELETE': 204,
         }
+
         try:
             expected_status_code = expected_status_codes[method]
         except KeyError:
             raise NotImplementedError(
                 'This backend does not implement the {} method'.format(method)
             )
+
+        sync_media_files = kwargs.pop('sync_media_files', False)
 
         # Make the request to KC
         try:
@@ -597,9 +679,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 detail=str(e), response=response)
 
         # Check for failure
-        if response.status_code != expected_status_code or (
-            'type' in json_response and json_response['type'] == 'alert-error'
-        ) or 'formid' not in json_response:
+        if (response.status_code != expected_status_code
+                or ('type' in json_response and
+                    json_response['type'] == 'alert-error')
+                or ('formid' not in json_response and sync_media_files is False)):
             if 'text' in json_response:
                 # KC API refused us for a specified reason, likely invalid
                 # input Raise a 400 error that includes the reason
@@ -617,13 +700,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return json_response
 
     def _submission_count(self):
-        _deployment_data = self.asset._deployment_data
+        _deployment_data = self.asset.deployment_data
         id_string = _deployment_data['backend_response']['id_string']
         # avoid migrations from being created for kc_access mocked models
         # there should be a better way to do this, right?
         return instance_count(xform_id_string=id_string,
                               user_id=self.asset.owner.pk,
                               )
+
+    def __get_server_from_identifier(self, identifier):
+        parsed_identifier = urlparse(identifier)
+        server = '{}://{}'.format(
+            parsed_identifier.scheme, parsed_identifier.netloc)
+        return server, parsed_identifier
 
     def __get_submissions_in_json(self, **params):
         """

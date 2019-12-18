@@ -1,5 +1,6 @@
 # coding: utf-8
 import posixpath
+from mimetypes import guess_type
 
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
@@ -7,6 +8,7 @@ from django.utils import timezone
 from private_storage.fields import PrivateFileField
 
 from kpi.fields import KpiUidField
+from kpi.utils.hash import get_hash
 
 
 def upload_to(self, filename):
@@ -63,6 +65,20 @@ class AssetFile(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
+        self.set_filename()
+        self.set_hash()
+        self.set_mimetype()
+        return super().save(force_insert, force_update, using, update_fields)
+
+    def set_filename(self):
         if not self.metadata.get('filename'):
             self.metadata['filename'] = self.content.name
-        return super().save(force_insert, force_update, using, update_fields)
+
+    def set_hash(self):
+        md5_hash = get_hash(self.content.file.read())
+        self.metadata['hash'] = f'md5:{md5_hash}'
+
+    def set_mimetype(self):
+        mimetype, _ = guess_type(self.metadata['filename'])
+        self.metadata['mimetype'] = mimetype
+

@@ -2,7 +2,7 @@
 from celery import shared_task
 from django.core.management import call_command
 
-from kpi.models import ImportTask, ExportTask
+from kpi.models import Asset, ImportTask, ExportTask
 
 
 @shared_task
@@ -30,3 +30,10 @@ def sync_kobocat_xforms(username=None, quiet=True):
 @shared_task
 def import_survey_drafts_from_dkobo(**kwargs):
     call_command('import_survey_drafts_from_dkobo', **kwargs)
+
+
+@shared_task
+def sync_media_files(asset_uid):
+    asset = Asset.objects.get(uid=asset_uid)
+    asset.deployment.sync_media_files()
+

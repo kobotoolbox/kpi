@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _lazy
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, \
     SerializerMethodFileField, WritableJSONField
 from kpi.models.asset_file import AssetFile
