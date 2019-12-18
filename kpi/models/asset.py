@@ -738,6 +738,10 @@ class Asset(ObjectPermissionMixin,
         )
 
     @property
+    def deployment_data(self):
+        return self._deployment_data
+
+    @property
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
