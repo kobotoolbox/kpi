@@ -13,7 +13,7 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  * @prop {number} totalAssets - Number of assets on all pages.
  * @prop {string} [emptyMessage] - To replace the default empty message.
  * @prop {boolean} [isLoading] - To display spinner.
- * @prop {AssetsTableColumn} orderBy - Current order column, one of ASSETS_TABLE_COLUMNS.
+ * @prop {AssetsTableColumn} sortColumn - Current order column, one of ASSETS_TABLE_COLUMNS.
  * @prop {boolean} isOrderAsc - Current order direction.
  * @prop {reorderCallback} onReorder - Called when user clicks column header for reordering.
  * @prop {number} [currentPage] - For displaying pagination.
@@ -39,9 +39,9 @@ export class AssetsTable extends React.Component {
    * @param {string} columnId
    */
   reorder(columnId) {
-    if (this.props.orderBy.id === columnId) {
+    if (this.props.sortColumn.id === columnId) {
       // clicking already selected column results in switching the order direction
-      this.props.onReorder(this.props.orderBy, !this.props.isOrderAsc);
+      this.props.onReorder(this.props.sortColumn, !this.props.isOrderAsc);
     } else {
       // change column and revert order direction to ascending
       const newColumn = ASSETS_TABLE_COLUMNS.get(columnId);
@@ -55,7 +55,7 @@ export class AssetsTable extends React.Component {
   renderHeaderColumn(columnDef) {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
-    if (this.props.orderBy.id === columnDef.id) {
+    if (this.props.sortColumn.id === columnDef.id) {
       if (this.props.isOrderAsc) {
         icon = (<i className='k-icon k-icon-up'/>);
       } else {
@@ -265,7 +265,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
 
 /**
  * @callback reorderCallback
- * @param {AssetsTableColumn} orderBy
+ * @param {AssetsTableColumn} sortColumn
  * @param {boolean} isOrderAsc
  */
 

@@ -17,7 +17,7 @@ const myLibraryStore = Reflux.createStore({
   init() {
     this.data = {
       isFetchingData: false,
-      orderColumn: this.DEFAULT_COLUMN,
+      sortColumn: this.DEFAULT_COLUMN,
       isOrderAsc: this.DEFAULT_COLUMN.defaultIsOrderAsc,
       currentPage: 0,
       totalPages: null,
@@ -88,12 +88,12 @@ const myLibraryStore = Reflux.createStore({
     this.fetchData();
   },
 
-  setOrder(orderColumn, isOrderAsc) {
+  setOrder(sortColumn, isOrderAsc) {
     if (
-      this.data.orderColumn.id !== orderColumn.id ||
+      this.data.sortColumn.id !== sortColumn.id ||
       this.data.isOrderAsc !== isOrderAsc
     ) {
-      this.data.orderColumn = orderColumn;
+      this.data.sortColumn = sortColumn;
       this.data.isOrderAsc = isOrderAsc;
       this.fetchData();
     }
@@ -109,7 +109,9 @@ const myLibraryStore = Reflux.createStore({
     actions.library.searchMyLibraryAssets({
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage
+      page: this.data.currentPage,
+      sort: this.data.sortColumn.backendProp,
+      order: this.data.isOrderAsc ? -1 : 1
     });
   },
 });

@@ -356,19 +356,25 @@ export var dataInterface;
       });
     },
     searchMyLibraryAssets(params = {}) {
-      let q = `(${COMMON_QUERIES.get('qbtc')})`;
+      const searchData = {
+        q: `(${COMMON_QUERIES.get('qbtc')})`,
+        parent: '', // we only want orphans (assets not inside collection)
+        limit: params.pageSize || 100,
+        offset: params.page * params.pageSize || 0
+      };
+
       if (params.searchPhrase) {
-        q += ` AND ${params.searchPhrase}`;
+        searchData.q += ` AND ${params.searchPhrase}`;
       }
+
+      if (params.sort && params.order) {
+        searchData.sort = `{"${params.sort}":${params.order}}`;
+      }
+
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
-        data: {
-          q: q,
-          parent: '', // we only want orphans (assets not inside collection)
-          limit: params.pageSize || 100,
-          offset: params.page * params.pageSize || 0
-        },
+        data: searchData,
         method: 'GET'
       });
     },

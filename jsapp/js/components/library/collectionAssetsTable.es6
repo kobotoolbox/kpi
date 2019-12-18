@@ -21,15 +21,15 @@ class CollectionAssetsTable extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      orderBy: defaultColumn,
+      sortColumn: defaultColumn,
       isOrderAsc: defaultColumn.defaultIsOrderAsc
     };
     autoBind(this);
   }
 
-  onAssetsTableReorder(orderBy, isOrderAsc) {
+  onAssetsTableReorder(sortColumn, isOrderAsc) {
     this.setState({
-      orderBy,
+      sortColumn,
       isOrderAsc
     });
   }
@@ -45,16 +45,16 @@ class CollectionAssetsTable extends React.Component {
   }
 
   defaultOrderFunction(asset) {
-    return asset[this.state.orderBy.backendProp];
+    return asset[this.state.sortColumn.backendProp];
   }
 
   /**
-   * Returns asset children ordered by orderBy and isOrderAsc properties
+   * Returns asset children ordered by sortColumn and isOrderAsc properties
    * @return {Array}
    */
   getOrderedChildren() {
     let orderFn = this.defaultOrderFunction.bind(this);
-    if (this.state.orderBy.id === ASSETS_TABLE_COLUMNS.get('name').id) {
+    if (this.state.sortColumn.id === ASSETS_TABLE_COLUMNS.get('name').id) {
       orderFn = this.nameOrderFunction.bind(this);
     }
     const orderDirection = this.state.isOrderAsc ? 'asc' : 'desc';
@@ -76,7 +76,7 @@ class CollectionAssetsTable extends React.Component {
         context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
         assets={orderedChildren}
         totalAssets={this.state.orderedChildren.length}
-        orderBy={this.state.orderBy}
+        sortColumn={this.state.sortColumn}
         isOrderAsc={this.state.isOrderAsc}
         onReorder={this.onAssetsTableReorder.bind(this)}
       />
