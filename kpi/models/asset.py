@@ -667,6 +667,10 @@ class Asset(ObjectPermissionMixin,
         return Asset.objects.create(**self.to_clone_dict(version_uid))
 
     @property
+    def deployment_data(self):
+        return self._deployment_data
+
+    @property
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
