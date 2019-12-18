@@ -197,10 +197,10 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
-class AssetEditorNestedObjectPermission(AssetNestedObjectPermission):
+class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     """
     Permissions for objects that are nested under Asset whose only users can
-    change/edit.
+    change/edit and need to view submissions
     Others should receive a 404 response (instead of 403) to avoid revealing existence
     of objects.
     """

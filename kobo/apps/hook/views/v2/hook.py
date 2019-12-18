@@ -14,7 +14,7 @@ from kobo.apps.hook.constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from kobo.apps.hook.models import Hook, HookLog
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
-from kpi.permissions import AssetEditorNestedObjectPermission
+from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -156,7 +156,7 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     model = Hook
     lookup_field = "uid"
     serializer_class = HookSerializer
-    permission_classes = (AssetEditorNestedObjectPermission,)
+    permission_classes = (AssetEditorSubmissionViewerPermission,)
 
     def get_queryset(self):
         queryset = self.model.objects.filter(asset__uid=self.asset.uid)
