@@ -1,7 +1,7 @@
 # coding: utf-8
 import json
 
-from bson import json_util, ObjectId
+from bson import json_util
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
@@ -11,20 +11,89 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
 
 class BaseDeploymentBackend:
 
-    # TODO. Stop using protected property `_deployment_data`.
-
     INSTANCE_ID_FIELDNAME = '_id'
+    STATUS_SYNCED = 'synced'
+    STATUS_NOT_SYNCED = 'not-synced'
 
     def __init__(self, asset):
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = 0
 
-    def store_data(self, vals=None):
-        self.asset._deployment_data.update(vals)
+    @property
+    def active(self):
+        return self.asset.deployment_data.get('active', False)
+
+    @property
+    def backend(self):
+        return self.asset.deployment_data.get('backend', None)
+
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        raise NotImplementedError('This method should be implemented in subclasses')
 
     def delete(self):
-        self.asset._deployment_data.clear()
+        self.asset.deployment_data.clear()
+
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns submission if `pk` exists otherwise `None`
+
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending of `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [int(pk)],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
+        return None
+
+    @property
+    def identifier(self):
+        return self.asset.deployment_data.get('identifier', None)
+
+    @property
+    def last_submission_time(self):
+        return self._last_submission_time()
+
+    @property
+    def mongo_userform_id(self):
+        return None
+
+    def set_status(self, status):
+        # ToDo Find a better way to update status.
+        # Race condition may occur when using Celery
+        self.asset.refresh_from_db(fields=['_deployment_data'])
+        self.store_data({
+            'status': status,
+        })
+        self.asset.save(create_version=False, adjust_content=False,
+                        update_fields=['_deployment_data'])
+
+    @property
+    def status(self):
+        return self.asset.deployment_data.get('status')
+
+    def store_data(self, vals=None):
+        self.asset.deployment_data.update(vals)
+
+    @property
+    def submission_count(self):
+        return self._submission_count()
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
@@ -162,65 +231,12 @@ class BaseDeploymentBackend:
 
         return params
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        raise NotImplementedError('This method should be implemented in subclasses')
-
-    @property
-    def backend(self):
-        return self.asset._deployment_data.get('backend', None)
-
-    @property
-    def identifier(self):
-        return self.asset._deployment_data.get('identifier', None)
-
-    @property
-    def active(self):
-        return self.asset._deployment_data.get('active', False)
-
     @property
     def version(self):
         raise NotImplementedError('Use `asset.deployment.version_id`')
 
     @property
     def version_id(self):
-        return self.asset._deployment_data.get('version', None)
+        return self.asset.deployment_data.get('version', None)
 
-    @property
-    def submission_count(self):
-        return self._submission_count()
 
-    @property
-    def last_submission_time(self):
-        return self._last_submission_time()
-
-    @property
-    def mongo_userform_id(self):
-        return None
-
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns submission if `pk` exists otherwise `None`
-
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
-        """
-
-        submissions = list(self.get_submissions(requesting_user_id,
-                                                format_type, [int(pk)],
-                                                **kwargs))
-        try:
-            return submissions[0]
-        except IndexError:
-            pass
-        return None
