@@ -94,7 +94,9 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             validated_data.pop('asset_version', None)
             snapshot = AssetSnapshot.objects.create(**validated_data)
         else:
-            raise serializers.ValidationError('Specify an asset and/or a source')
+            raise serializers.ValidationError({
+                'asset': 'Specify an asset and/or a source'
+            })
 
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.details)

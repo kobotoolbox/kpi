@@ -106,9 +106,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                         'current_password': 'Incorrect current password.'
                     })
         elif any((current_password, new_password)):
-            raise serializers.ValidationError(
-                'current_password and new_password must both be sent ' \
-                'together; one or the other cannot be sent individually.'
-            )
+            raise serializers.ValidationError({
+                'password': 'current_password and new_password must both be '
+                            'sent together; one or the other cannot be sent '
+                            'individually.'
+            })
         return super().update(
             instance, validated_data)
