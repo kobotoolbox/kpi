@@ -1107,7 +1107,7 @@ class ObjectPermissionMixin:
             return perms_
 
         perms = []
-
+        object_content_type_id = ContentType.objects.get_for_model(self).pk
         # If User is not none, retrieve all permissions for this user
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.
@@ -1115,12 +1115,18 @@ class ObjectPermissionMixin:
             user_id = user.pk if not user.is_anonymous \
                 else settings.ANONYMOUS_USER_ID
             all_object_permissions = self.__get_all_user_permissions(
-                content_type_id=ContentType.objects.get_for_model(self).pk,
+                content_type_id=object_content_type_id,
                 user_id=user_id)
+            if not all_object_permissions:
+                # Try AnonymousUser's permissions in case user does not have any.
+                all_object_permissions = self.__get_all_user_permissions(
+                    content_type_id=object_content_type_id,
+                    user_id=settings.ANONYMOUS_USER_ID)
+
             perms = build_dict(user_id, all_object_permissions.get(self.pk))
         else:
             all_object_permissions = self.__get_all_object_permissions(
-                content_type_id=ContentType.objects.get_for_model(self).pk,
+                content_type_id=object_content_type_id,
                 object_id=self.pk)
             for user_id, object_permissions in all_object_permissions.items():
                 perms += build_dict(user_id, object_permissions)
