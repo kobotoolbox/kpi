@@ -300,7 +300,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Name"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Name"), 'text'
     afterRender: ->
       @makeRequired()
       @listenForInputChange(transformFn: (value)=>
@@ -590,7 +590,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Brief Description"), 'text', '40'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Brief Description"), 'text', '40'
     afterRender: ->
       @listenForInputChange()
 
@@ -641,7 +641,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Description"), 'text', '3999'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Description"), 'text', '3999'
     afterRender: ->
       @listenForInputChange()
 

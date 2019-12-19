@@ -696,6 +696,13 @@ export default assign({
       nameFieldLabel = ASSET_TYPES.template.label;
     }
 
+    if (
+      nameFieldLabel &&
+      nameFieldLabel === ASSET_TYPES.survey.label
+    ) {
+      nameFieldLabel = `${nameFieldLabel} title`;
+    }
+
     return (
       <bem.FormBuilderHeader>
         <bem.FormBuilderHeader__row m='primary'>
