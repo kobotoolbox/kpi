@@ -27,8 +27,10 @@ class DeployableMixin:
                     self.deployment.bulk_assign_mapped_perms()
             else:
                 self.deployment.redeploy(active=active)
+
             sync_media_files.delay(self.uid)
             self._mark_latest_version_as_deployed()
+
         else:
             raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
                 self.asset_type))

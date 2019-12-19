@@ -2,6 +2,7 @@
 from django.conf import settings
 from rest_framework import serializers
 
+from kpi.tasks import sync_media_files  # Because of circular imports
 from .asset import AssetSerializer
 
 
@@ -67,6 +68,13 @@ class DeploymentSerializer(serializers.Serializer):
         elif 'active' in validated_data:
             # Set the `active` flag without touching the rest of the deployment
             deployment.set_active(validated_data['active'])
+            sync_media_files.delay(asset.uid)
+
+        # ToDo Find a better way to update status. `_deployment_data['status']`
+        # Race condition may occur when using Celery because `sync_media_files()`
+        # is calling `asset.deployment.set_status()` internally which modifies
+        # asset too. See `BaseDeploymentBackend.set_status()`
+        asset.refresh_from_db(fields=['_deployment_data'])
 
         asset.save(create_version=False, adjust_content=False)
         return deployment

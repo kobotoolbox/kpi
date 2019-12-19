@@ -530,7 +530,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def sync_media_files(self):
 
-        identifier = self.asset.deployment_data['identifier']
+        identifier = self.identifier
         server, parsed_identifier = self.__get_server_from_identifier(identifier)
         metadata_url = self.external_to_internal_url('{}/api/v1/metadata'.format(server))
 
@@ -547,19 +547,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'xform': self.xform_id,
                 'data_type': 'media',
             }
-            try:
-                response = self._kobocat_request('POST',
-                                                 url=metadata_url,
-                                                 files=files,
-                                                 data=data,
-                                                 sync_media_files=True)
-            except Exception as e:
-                print('ERROR', str(e), flush=True)
+
+            self._kobocat_request('POST',
+                                  url=metadata_url,
+                                  files=files,
+                                  data=data,
+                                  sync_media_files=True)
 
         def delete_kc_file(dict_):
-            response = self._kobocat_request('DELETE',
-                                             url=dict_['url'],
-                                             sync_media_files=True)
+            self._kobocat_request('DELETE',
+                                  url=dict_['url'],
+                                  sync_media_files=True)
 
         asset_files = self.asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA)
         url = self.external_to_internal_url(self.backend_response['url'])

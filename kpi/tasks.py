@@ -35,5 +35,7 @@ def import_survey_drafts_from_dkobo(**kwargs):
 @shared_task
 def sync_media_files(asset_uid):
     asset = Asset.objects.get(uid=asset_uid)
+    asset.deployment.set_status(asset.deployment.STATUS_NOT_SYNCED)
     asset.deployment.sync_media_files()
-
+    # If no exceptions have been raised, let's tag the deployment has sync'ed
+    asset.deployment.set_status(asset.deployment.STATUS_SYNCED)

@@ -76,7 +76,9 @@ class BaseDeploymentBackend:
 
     def set_status(self, status):
         # ToDo Find a better way to update status.
-        # Race condition may occur when using Celery
+        # Race condition may occur when using Celery because `set_status()` is
+        # mostly called within another DB transaction which modifies asset too.
+        # see `DeploymentSerializer.update()`
         self.asset.refresh_from_db(fields=['_deployment_data'])
         self.store_data({
             'status': status,

@@ -34,7 +34,7 @@ class AssetFile(models.Model):
     )
 
     ALLOWED_CONTENT_TYPES = {
-        FORM_MEDIA: ('image', 'video',),
+        FORM_MEDIA: ('image', 'video', 'text/csv', 'application/xml'),
     }
 
     ALLOWED_EXTENSIONS = {
