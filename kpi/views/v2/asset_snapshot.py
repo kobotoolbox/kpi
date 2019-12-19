@@ -78,6 +78,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
                                       request=request
                                       ),
                             )
+
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
