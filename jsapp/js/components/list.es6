@@ -202,7 +202,7 @@ class ListExpandToggle extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      assetNavExpanded: stores.pageState.state.assetNavExpanded
+      assetNavExpanded: true
     };
     autoBind(this);
   }
@@ -225,15 +225,8 @@ class ListExpandToggle extends React.Component {
     return (
       <bem.LibNav__expanded className={{hidden: this.props.hidden}}>
         <bem.LibNav__count>
-          {count} {t('assets found')}
+          {count} {t('items found')}
         </bem.LibNav__count>
-        <bem.LibNav__expandedToggle>
-          <Checkbox
-            checked={this.state.assetNavExpanded}
-            onChange={this.onExpandedToggleChange}
-            label={t('expand details')}
-          />
-        </bem.LibNav__expandedToggle>
       </bem.LibNav__expanded>
       );
   }

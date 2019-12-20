@@ -202,8 +202,6 @@ class AssetNavigator extends Reflux.Component {
               searchContext={this.state.searchContext}
             />
           </bem.LibNav__search>
-          <ListTagFilter searchContext={this.state.searchContext} />
-          <ListCollectionFilter searchContext={this.state.searchContext} />
           <ListExpandToggle searchContext={this.state.searchContext} />
         </bem.LibNav__header>
 
