@@ -112,7 +112,6 @@ module.exports = do ->
       if show and !@_settingsExpanded
         @_expandedRender()
         @$card.addClass('card--expanded-settings')
-        @hideMultioptions?()
         @_settingsExpanded = true
       else if !show and @_settingsExpanded
         @$card.removeClass('card--expanded-settings')
