@@ -828,7 +828,7 @@ class ObjectPermissionMixin:
         for implied_perm in implied_perms:
             self.assign_perm(
                 user_obj, implied_perm, deny=deny, defer_recalc=True)
-        # We might have been called by ourself to assign a related
+        # We might have been called by ourselves to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return new_permission
