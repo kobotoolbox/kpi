@@ -90,6 +90,7 @@ module.exports = do ->
 
       if questionType is 'calculate'
         @$hint.hide()
+        @$label.prop('placeholder', '')
 
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
