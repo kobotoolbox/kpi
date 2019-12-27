@@ -105,10 +105,10 @@ module.exports = do ->
       # if question name not provided by user, use default one for type or general one
       if @question_name
         questionLabelValue = @question_name.replace(/\t/g, ' ')
-      else if rowType of $configs.defaultsForType
+      else if rowType is 'calculate'
         questionLabelValue = $configs.defaultsForType[rowType].label.value
       else
-        questionLabelValue = $configs.defaultsGeneral.label.value
+        questionLabelValue = ''
 
       rowDetails =
         type: rowType
