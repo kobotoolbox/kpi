@@ -91,10 +91,7 @@ class Modal extends React.Component {
   }
   render() {
     return (
-      <bem.Modal__backdrop
-        className='modal__backdrop'
-        onClick={this.backdropClick}
-      >
+      <bem.Modal__backdrop onClick={this.backdropClick}>
         <div className={classNames(
           'modal',
           this.props.className,
