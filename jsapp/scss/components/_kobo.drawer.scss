@@ -81,7 +81,7 @@ $drawer-icons-width: 58px;
 @media screen and (max-width: 999px) {
   .k-drawer {
     position: fixed;
-    z-index: 4;
+    z-index: 1050; // must be over leaflet
     left: -274px;
     transition: left 0.5s;
     background-color: #fff;

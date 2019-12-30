@@ -122,7 +122,7 @@ export default class RESTServicesList extends React.Component {
           {this.renderModalButton('empty-content__button')}
         </bem.EmptyContent>
       </bem.FormView>
-    )
+    );
   }
 
   renderListView() {
@@ -147,29 +147,25 @@ export default class RESTServicesList extends React.Component {
           <bem.FormView__cell m={['box']}>
             <bem.ServiceRow m='header'>
               <bem.ServiceRow__column m='name'>{t('Service Name')}</bem.ServiceRow__column>
-              <bem.ServiceRow__column m='count'>{t('Count')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='count'>{t('Success')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='count'>{t('Pending')}</bem.ServiceRow__column>
+              <bem.ServiceRow__column m='count'>{t('Failed')}</bem.ServiceRow__column>
               <bem.ServiceRow__column m='actions' />
             </bem.ServiceRow>
 
-            {this.state.hooks.map((hook, n) => {
+            {this.state.hooks.map((hook) => {
               const logsUrl = `/#/forms/${this.state.assetUid}/settings/rest/${hook.uid}`;
               return (
                 <bem.ServiceRow key={hook.uid} m={hook.active ? 'active' : 'inactive'}>
-                  <bem.ServiceRow__column m='name'>
-                    <a href={logsUrl}>{hook.name}</a>
-                  </bem.ServiceRow__column>
+                  <bem.ServiceRow__linkOverlay href={logsUrl}/>
 
-                  <bem.ServiceRow__column m='count'>
-                    <a href={logsUrl}>
-                      {hook.success_count + hook.pending_count + hook.failed_count}
-                      <span
-                        className='count-information-wrapper'
-                        data-tip={`${t('Success')} ${hook.success_count} · ${t('Pending')} ${hook.pending_count} · ${t('Failed')} ${hook.failed_count}`}
-                      >
-                        <i className='k-icon-help'/>
-                      </span>
-                    </a>
-                  </bem.ServiceRow__column>
+                  <bem.ServiceRow__column m='name'>{hook.name}</bem.ServiceRow__column>
+
+                  <bem.ServiceRow__column m='count'>{hook.success_count}</bem.ServiceRow__column>
+
+                  <bem.ServiceRow__column m='count'>{hook.pending_count}</bem.ServiceRow__column>
+
+                  <bem.ServiceRow__column m='count'>{hook.failed_count}</bem.ServiceRow__column>
 
                   <bem.ServiceRow__column m='actions'>
                     <bem.ServiceRow__actionButton
