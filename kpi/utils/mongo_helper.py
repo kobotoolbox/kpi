@@ -260,7 +260,7 @@ class MongoHelper:
             if ObjectId.is_valid(query.get('_uuid')):
                 query['_uuid'] = ObjectId(query.get('_uuid'))
             else:
-                raise ValidationError(_('Invalid _uuid specified'))
+                raise ValidationError({'_uuid': _('Invalid')})
 
         if len(instance_ids) > 0:
             query.update({
