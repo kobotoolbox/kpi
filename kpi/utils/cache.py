@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
 from functools import wraps
 
 from django_request_cache import get_request_cache
@@ -24,7 +22,8 @@ def void_cache_for_request(keys):
             # stored its keys
             if cache:
                 prefixed_keys = tuple(["('{}".format(key) for key in keys])
-                for key in cache.__dict__.keys():
+                cache_keys = list(cache.__dict__.keys())
+                for key in cache_keys:
                     if key.startswith(prefixed_keys):
                         delattr(cache, key)
             return func(*args, **kwargs)

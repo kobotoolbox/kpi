@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😇
-from __future__ import absolute_import, unicode_literals
-
 import constance
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpRequest
 from django.template import Template, RequestContext
 from rest_framework import status
 
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -40,6 +39,7 @@ class EnvironmentTests(BaseTestCase):
                 self.assertGreater(len(x), 5) and self.assertIn(
                     ('ar', 'العربيّة'), x
                 ),
+            'submission_placeholder': SUBMISSION_PLACEHOLDER,
         }
 
     def _check_response_dict(self, response_dict):

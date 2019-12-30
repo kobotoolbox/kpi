@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import json
 
 from rest_framework import serializers
@@ -13,7 +11,7 @@ class WritableJSONField(serializers.Field):
 
     def __init__(self, **kwargs):
         self.allow_blank = kwargs.pop('allow_blank', False)
-        super(WritableJSONField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def to_internal_value(self, data):
         if (not data) and (not self.required):
@@ -23,7 +21,7 @@ class WritableJSONField(serializers.Field):
                 return json.loads(data)
             except Exception as e:
                 raise serializers.ValidationError(
-                    u'Unable to parse JSON: {}'.format(e))
+                    'Unable to parse JSON: {}'.format(e))
 
     def to_representation(self, value):
         return value

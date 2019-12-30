@@ -1,27 +1,23 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-from abc import ABCMeta, abstractmethod
+# coding: utf-8
 import json
 import os
 import re
+from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
 
+from kpi.utils.log import logging
+from .hook import Hook
+from .hook_log import HookLog
 from ..constants import (
     HOOK_LOG_SUCCESS,
     HOOK_LOG_FAILED,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
 )
-from .hook import Hook
-from .hook_log import HookLog
-from kpi.utils.log import logging
 
 
-class ServiceDefinitionInterface(object):
-
-    __metaclass__ = ABCMeta
+class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def __init__(self, hook, instance_id):
         self._hook = hook
@@ -39,8 +35,10 @@ class ServiceDefinitionInterface(object):
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
             logging.error("service_json.ServiceDefinition._get_data "
-                          "- Hook #{} - Data #{} - {}".format(
-                self._hook.uid, self._instance_id, str(e)), exc_info=True)
+                          "- Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                              self._instance_id,
+                                                              str(e)),
+                          exc_info=True)
         return None
 
     @abstractmethod
@@ -87,7 +85,7 @@ class ServiceDefinitionInterface(object):
                     self._hook.settings.get("custom_headers", {}))
 
                 # Add user agent
-                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME"))\
+                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME")) \
                     if os.getenv("PUBLIC_DOMAIN_NAME") else ""
                 request_kwargs.get("headers").update({
                     "User-Agent": "KoBoToolbox external service {}#{}".format(
@@ -118,8 +116,10 @@ class ServiceDefinitionInterface(object):
 
             except Exception as e:
                 logging.error("service_json.ServiceDefinition.send - "
-                              "Hook #{} - Data #{} - {}".format(
-                    self._hook.uid, self._instance_id, str(e)), exc_info=True)
+                              "Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                                self._instance_id,
+                                                                str(e)),
+                              exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")

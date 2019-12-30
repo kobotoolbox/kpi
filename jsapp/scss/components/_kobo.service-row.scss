@@ -18,6 +18,10 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
     background-color: $cool-whitegray;
   }
 
+  &.service-row--clickable {
+    cursor: pointer;
+  }
+
   &.service-row--header {
     font-weight: 600;
     border-bottom-width: 2px;

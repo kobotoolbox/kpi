@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from importlib import import_module
 
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
-from jsonbfield.fields import JSONField as JSONBField
 
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 from kpi.fields import KpiUidField
+from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
 
 
 class Hook(models.Model):
@@ -44,24 +44,26 @@ class Hook(models.Model):
     date_modified = models.DateTimeField(default=timezone.now)
     email_notification = models.BooleanField(default=True)
     subset_fields = ArrayField(
-        models.CharField(max_length=500, blank=False),
-        default=[],
+        models.CharField(max_length=500),
+        blank=True,
+        default=list,
     )
+    payload_template = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ["name"]
 
     def __init__(self, *args, **kwargs):
         self.__totals = {}
-        return super(Hook, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Update date_modified each time object is saved
         self.date_modified = timezone.now()
-        super(Hook, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
-    def __unicode__(self):
-        return u"%s:%s - %s" % (self.asset, self.name, self.endpoint)
+    def __str__(self):
+        return "%s:%s - %s" % (self.asset, self.name, self.endpoint)
 
     def get_service_definition(self):
         mod = import_module("kobo.apps.hook.services.service_{}".format(self.export_type))

@@ -4,9 +4,9 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import {hashHistory} from 'react-router';
-import bem from '../bem';
-import stores from '../stores';
-import actions from '../actions';
+import {bem} from '../bem';
+import {stores} from '../stores';
+import {actions} from '../actions';
 import ui from '../ui';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
@@ -25,6 +25,7 @@ import {
   notify,
   checkLatLng
 } from '../utils';
+import {getSurveyFlatPaths} from 'js/assetUtils';
 
 import MapSettings from './mapSettings';
 
@@ -613,31 +614,8 @@ export class FormMap extends React.Component {
   }
 
   nameOfFieldInGroup(fieldName) {
-    const s = this.props.asset.content.survey;
-    var groups = {}, currentGroup = null;
-
-    s.forEach(function(f){
-      if (f.type === 'end_group') {
-        currentGroup = null;
-      }
-
-      if (currentGroup !== null) {
-        groups[currentGroup].push(f.name || f.$autoname);
-      }
-
-      if (f.type === 'begin_group') {
-        currentGroup = f.name;
-        groups[currentGroup] = [];
-      }
-    });
-
-    Object.keys(groups).forEach(function(g, i){
-      if(groups[g].includes(fieldName)) {
-        fieldName = `${g}/${fieldName}`;
-      }
-    });
-
-    return fieldName;
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
+    return flatPaths[fieldName];
   }
 
   render () {

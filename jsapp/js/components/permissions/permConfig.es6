@@ -1,5 +1,5 @@
 import Reflux from 'reflux';
-import actions from 'js/actions';
+import {actions} from 'js/actions';
 import {
   t,
   notify,

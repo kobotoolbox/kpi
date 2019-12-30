@@ -13,8 +13,8 @@ import alertify from 'alertifyjs';
 import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
-import permissionsActions from './actions/permissions';
-import helpActions from './actions/help';
+import {permissionsActions} from './actions/permissions';
+import {helpActions} from './actions/help';
 import {
   log,
   t,
@@ -25,7 +25,7 @@ import {
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
 
-const actions = {
+export const actions = {
   permissions: permissionsActions,
   help: helpActions
 };
@@ -63,10 +63,16 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getApiToken: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
-  addItemAtPosition: {
+  addExternalItemAtPosition: {
     children: [
       'completed',
       'failed'
@@ -646,21 +652,34 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
+actions.auth.getApiToken.listen(() => {
+  dataInterface.apiToken()
+    .done((response) => {
+      actions.auth.getApiToken.completed(response.token);
+    })
+    .fail(actions.auth.getApiToken.failed);
+});
+actions.auth.getApiToken.failed.listen(() => {
+  notify(t('failed to load API token'), 'error');
+});
+
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
     dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
-  } else {
+  } else if (params.id) {
     dispatchMethodName = {
       c: 'getCollection',
       a: 'getAsset'
     }[params.id[0]];
   }
 
-  dataInterface[dispatchMethodName](params)
-    .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+  if (dispatchMethodName) {
+    dataInterface[dispatchMethodName](params)
+      .done(actions.resources.loadAsset.completed)
+      .fail(actions.resources.loadAsset.failed);
+  }
 });
 
 actions.resources.loadAssetContent.listen(function(params){
@@ -748,11 +767,11 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
       }
     });
 });
-actions.hooks.update.completed.listen((response) => {
+actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((response) => {
-  notify(t('Failed saving REST Service'), 'error');
+actions.hooks.update.failed.listen(() => {
+  alertify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
@@ -839,5 +858,3 @@ actions.hooks.retryLogs.completed.listen((response) => {
 actions.hooks.retryLogs.failed.listen((response) => {
   notify(t('Retrying all submissions failed'), 'error');
 });
-
-module.exports = actions;

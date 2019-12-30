@@ -4,7 +4,7 @@
 <!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
-    {% load staticfiles %}
+    {% load static %}
     {% load render_bundle from webpack_loader %}
     {% render_bundle 'app' 'css' %}
     {% render_bundle 'app' 'js' %}
@@ -14,7 +14,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>KoBoToolbox {% block title %}{% endblock %}</title>
-<meta name="description" content="KoBoToolbox is a free toolkit collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
+<meta name="description" content="KoBoToolbox is a free toolkit for collecting and managing data in challenging environments and is the most widely-used tool in humanitarian emergencies">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
 <!-- iPhone + iPad icons -->

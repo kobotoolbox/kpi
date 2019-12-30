@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, PaginatedApiField
-from kpi.serializers.v1.object_permission import ObjectPermissionSerializer
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models import CollectionChildrenQuerySet
@@ -121,7 +118,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             return 'public'
         if request.user.is_superuser:
             return 'superuser'
-        raise Exception(u'{} has unexpected access to {}'.format(
+        raise Exception('{} has unexpected access to {}'.format(
             request.user.username, obj.uid))
 
     def get_permissions(self, obj):

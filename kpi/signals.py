@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete

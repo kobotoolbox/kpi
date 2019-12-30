@@ -3,10 +3,10 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import stores from '../../stores';
-import actions from '../../actions';
+import {stores} from '../../stores';
+import {actions} from '../../actions';
 import {dataInterface} from '../../dataInterface';
-import bem from '../../bem';
+import {bem} from '../../bem';
 import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 

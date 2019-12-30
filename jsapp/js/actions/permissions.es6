@@ -11,7 +11,7 @@ import {
   notify
 } from 'js/utils';
 
-const permissionsActions = Reflux.createActions({
+export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
   getAssetPermissions: {children: ['completed', 'failed']},
   getCollectionPermissions: {children: ['completed', 'failed']},
@@ -157,5 +157,3 @@ permissionsActions.setCollectionDiscoverability.listen(function(uid, discoverabl
     .done(permissionsActions.setCollectionDiscoverability.completed)
     .fail(permissionsActions.setCollectionDiscoverability.failed);
 });
-
-export default permissionsActions;

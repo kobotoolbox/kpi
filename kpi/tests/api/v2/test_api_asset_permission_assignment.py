@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET
@@ -100,7 +98,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        super(ApiAssetPermissionListTestCase, self).setUp()
+        super().setUp()
 
         self.asset.assign_perm(self.someuser, PERM_CHANGE_ASSET)
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
