@@ -1,6 +1,7 @@
 $s-service-row-action-button: 36px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
+$s-service-row-z-link: 10;
 
 .service-row {
   display: flex;
@@ -9,6 +10,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   min-height: $s-service-row-action-button;
   box-sizing: content-box;
   line-height: $s-service-row-leading;
+  position: relative;
 
   &:not(:last-of-type) {
     border-bottom: 1px solid $divider-color;
@@ -16,6 +18,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
   &:not(.service-row--header):hover {
     background-color: $cool-whitegray;
+    color: $cool-charcoal;
   }
 
   &.service-row--clickable {
@@ -36,22 +39,17 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   }
 }
 
+.service-row__link-overlay {
+  position: absolute;
+  z-index: $s-service-row-z-link;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
 .service-row__column {
-  a {
-    color: inherit;
-    display: block;
-    cursor: pointer;
-    &:hover {color: $cool-charcoal;}
-  }
-
-  &.service-row__column--name,
-  &.service-row__column--count {
-    padding: 0;
-
-    .service-row--header & {padding: $s-service-row-column-spacing;}
-
-    a {padding: $s-service-row-column-spacing;}
-  }
+  padding: $s-service-row-column-spacing;
 
   &.service-row__column--name {
     flex: 6;
@@ -60,10 +58,7 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   &.service-row__column--count {
     flex: 1;
     line-height: 18px;
-
-
   }
-
 
   &.service-row__column--actions {
     flex: 1;
@@ -82,7 +77,6 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
   &.service-row__column--date {
     flex: 1;
-    padding: $s-service-row-column-spacing;
   }
 
   &.service-row__column--success {
