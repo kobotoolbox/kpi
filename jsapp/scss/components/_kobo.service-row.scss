@@ -16,6 +16,11 @@ $s-service-row-z-link: 10;
     border-bottom: 1px solid $divider-color;
   }
 
+  &:hover .service-row__action-button {
+    position: relative;
+    z-index: $s-service-row-z-link + 1;
+  }
+
   &:not(.service-row--header):hover {
     background-color: $cool-whitegray;
     color: $cool-charcoal;
@@ -61,7 +66,8 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--actions {
-    flex: 1;
+    min-width: $s-service-row-action-button * 2;
+    text-align: right;
     padding: 0 $s-service-row-column-spacing;
     box-sizing: content-box;
     white-space: nowrap;
@@ -104,10 +110,6 @@ $s-service-row-z-link: 10;
   background: transparent;
   display: inline-block;
   vertical-align: top;
-
-  &:first-of-type {
-    margin-left: 12px;
-  }
 
   &[disabled] {
     opacity: 0.5;
