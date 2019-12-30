@@ -10,7 +10,8 @@ const myLibraryStore = Reflux.createStore({
    */
   abortFetchData: undefined,
 
-  PAGE_SIZE: 100,
+  // TODO make it 100 after development
+  PAGE_SIZE: 3,
 
   DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
 
@@ -27,6 +28,7 @@ const myLibraryStore = Reflux.createStore({
     };
 
     // TODO update this list whenever existing item is changed
+    // see actions, AssetActionButtons and other
 
     // TODO reset data properly on some actions or when leaving route out of library
 

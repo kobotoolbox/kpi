@@ -646,13 +646,6 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  userIsOwner(asset) {
-    return (
-      asset &&
-      stores.session.currentAccount &&
-      asset.owner__username === stores.session.currentAccount.username
-    );
-  },
   userCan (permName, asset) {
     if (!asset.permissions) {
       return false;

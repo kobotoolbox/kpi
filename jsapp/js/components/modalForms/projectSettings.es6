@@ -9,6 +9,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
 import Checkbox from 'js/components/checkbox';
 import {bem} from 'js/bem';
+import {assetUtils} from 'js/assetUtils';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
@@ -767,7 +768,7 @@ class ProjectSettings extends React.Component {
   renderStepProjectDetails() {
     const sectors = stores.session.environment.available_sectors;
     const countries = stores.session.environment.available_countries;
-    const isSelfOwned = this.userIsOwner(this.state.formAsset);
+    const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (
       <bem.FormModal__form

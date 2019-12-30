@@ -1,4 +1,3 @@
-import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -230,20 +229,6 @@ export function replaceForm(asset) {
 }
 
 /**
- * TODO: this should be an action
- *
- * Moves asset to a non-nested collection.
- * @param {string} assetUid
- * @param {string} collectionUrl
- */
-export function moveToCollection(assetUid, collectionUrl) {
-  actions.resources.updateAsset(
-    assetUid,
-    {parent: collectionUrl}
-  );
-}
-
-/**
  * @param {object} survey
  * @returns {object} a pair of quesion names and their full paths
  */
@@ -328,6 +313,17 @@ export function isAssetPublic(permissions) {
    return isVisibleToAnonymous && isDiscoverableByAnonymous;
 }
 
+/**
+ * @param {Object} asset - BE asset data
+ */
+export function isSelfOwned(asset) {
+  return (
+    asset &&
+    stores.session.currentAccount &&
+    asset.owner__username === stores.session.currentAccount.username
+  );
+}
+
 export default {
   cleanupTags,
   getSurveyFlatPaths,
@@ -340,7 +336,7 @@ export default {
   editLanguages,
   editTags,
   replaceForm,
-  moveToCollection,
   isAssetPublicReady,
-  isAssetPublic
+  isAssetPublic,
+  isSelfOwned
 };

@@ -454,9 +454,9 @@ var commonMethods = {
     });
     this.searchValue();
   },
-  searchCollectionChange (collectionUid) {
+  searchCollectionChange (assetUid) {
     this.quietUpdateStore({
-      parentUid: collectionUid
+      parentUid: assetUid
     });
     this.searchValue();
   },

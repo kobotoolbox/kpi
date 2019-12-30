@@ -272,16 +272,16 @@ export var dataInterface;
         method: 'DELETE'
       });
     },
-    subscribeCollection ({uid}) {
+    subscribeToCollection(collectionUrl) {
       return $ajax({
         url: `${ROOT_URL}/asset_subscriptions/`,
         data: {
-          collection: `${ROOT_URL}/api/v2/collections/${uid}/`,
+          collection: collectionUrl
         },
         method: 'POST'
       });
     },
-    unsubscribeCollection ({uid}) {
+    unsubscribeFromCollection(uid) {
       return $ajax({
         url: `${ROOT_URL}/asset_subscriptions/`,
         data: {

@@ -22,6 +22,27 @@ const libraryActions = Reflux.createActions({
     ]
   },
 
+  subscribeToCollection: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+
+  unsubscribeFromCollection: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+
+  moveToCollection: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+
   getCollections: {
     children: [
       'completed',
@@ -44,6 +65,35 @@ libraryActions.searchPublicCollections.listen((params) => {
     .done(libraryActions.searchPublicCollections.completed)
     .fail(libraryActions.searchPublicCollections.failed);
   libraryActions.searchPublicCollections.started(xhr.abort);
+});
+
+/**
+ * @param {string} collectionUrl
+ */
+libraryActions.subscribeToCollection.listen((collectionUrl) => {
+  dataInterface.subscribeToCollection(collectionUrl)
+    .done(libraryActions.subscribeToCollection.completed)
+    .fail(libraryActions.subscribeToCollection.failed);
+});
+
+/**
+ * @param {string} assetUid - uid of target collection.
+ */
+libraryActions.unsubscribeFromCollection.listen((assetUid) => {
+  dataInterface.unsubscribeFromCollection(assetUid)
+    .done(libraryActions.unsubscribeFromCollection.completed)
+    .fail(libraryActions.unsubscribeFromCollection.failed);
+});
+
+/**
+ * Moves asset to a collection.
+ * @param {string} assetUid
+ * @param {string} collectionUrl
+ */
+libraryActions.moveToCollection.listen((assetUid, collectionUrl) => {
+  dataInterface.patchAsset(assetUid, {parent: collectionUrl})
+    .done(libraryActions.moveToCollection.completed)
+    .fail(libraryActions.moveToCollection.failed);
 });
 
 libraryActions.getCollections.listen((params) => {

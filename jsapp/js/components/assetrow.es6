@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import $ from 'jquery';
 import { Link } from 'react-router';
 import {bem} from '../bem';
+import {assetUtils} from 'js/assetUtils';
 import ui from '../ui';
 import {stores} from '../stores';
 import mixins from '../mixins';
@@ -18,7 +19,6 @@ import {
   formatTime,
   t
 } from '../utils';
-import {getAssetOwnerDisplayName} from 'js/assetUtils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -91,7 +91,7 @@ class AssetRow extends React.Component {
     this.setState({popoverVisible: true});
   }
   render () {
-    const isSelfOwned = this.userIsOwner(this.props);
+    const isSelfOwned = assetUtils.isSelfOwned(this.props);
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
@@ -200,7 +200,7 @@ class AssetRow extends React.Component {
                 <span>{ isSelfOwned ? ' ' : this.props.owner__username }</span>
               }
               { this.props.asset_type != ASSET_TYPES.survey.id &&
-                <span>{getAssetOwnerDisplayName(this.props.owner__username)}</span>
+                <span>{assetUtils.getAssetOwnerDisplayName(this.props.owner__username)}</span>
               }
             </bem.AssetRow__cell>
 

@@ -18,6 +18,7 @@ import reactMixin from 'react-mixin';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
+import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
@@ -93,6 +94,14 @@ class AssetActionButtons extends React.Component {
     );
   }
 
+  subscribe() {
+
+  }
+
+  unsubscribe() {
+
+  }
+
   /**
    * Navigates out of nonexistent paths after asset was successfuly deleted
    */
@@ -130,13 +139,21 @@ class AssetActionButtons extends React.Component {
   }
 
   moveToCollection(collectionUrl) {
-    assetUtils.moveToCollection(this.props.asset.uid, collectionUrl);
+    actions.library.moveToCollection(this.props.asset.uid, collectionUrl);
+  }
+
+  subscribeToCollection() {
+    actions.library.subscribeToCollection(this.props.asset.url);
+  }
+
+  unsubscribeFromCollection() {
+    actions.library.unsubscribeFromCollection(this.props.asset.uid);
   }
 
   viewContainingCollection() {
     const parentArr = this.props.asset.parent.split('/');
-    const parentCollectionUid = parentArr[parentArr.length - 2];
-    hashHistory.push(`/library/asset/${parentCollectionUid}`);
+    const parentAssetUid = parentArr[parentArr.length - 2];
+    hashHistory.push(`/library/asset/${parentAssetUid}`);
   }
 
   render() {
@@ -149,6 +166,9 @@ class AssetActionButtons extends React.Component {
     const isDeployable = true;
     const isInsideCollection = this.props.asset.parent !== null;
     const downloads = [];
+    // TODO finish up this logic
+    const isSubscribed = false;
+    const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
 
     return (
       <bem.AssetActionButtons onMouseLeave={this.onMouseLeave}>
@@ -267,10 +287,22 @@ class AssetActionButtons extends React.Component {
             );
           })}
 
+          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isSubscribed &&
+            <bem.PopoverMenu__link onClick={this.subscribeToCollection}>
+              <i className='k-icon k-icon-subscribe'/>
+              {t('Subscribe')}
+            </bem.PopoverMenu__link>
+          }
+
+          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isSubscribed &&
+            <bem.PopoverMenu__link onClick={this.unsubscribeFromCollection}>
+              <i className='k-icon k-icon-unsubscribe'/>
+              {t('Unsubscribe')}
+            </bem.PopoverMenu__link>
+          }
+
           {userCanEdit && this.props.asset.parent !== null &&
-            <bem.PopoverMenu__link
-              onClick={this.moveToCollection.bind(this, null)}
-            >
+            <bem.PopoverMenu__link onClick={this.moveToCollection.bind(this, null)}>
               <i className='k-icon k-icon-folder-out'/>
               {t('Remove from collection')}
             </bem.PopoverMenu__link>
