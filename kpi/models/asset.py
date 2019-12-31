@@ -23,6 +23,7 @@ from jsonfield import JSONField
 from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
+from bs4 import BeautifulSoup
 
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
@@ -991,6 +992,17 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                                 root_node_name=root_node_name,
                                 id_string=id_string,
                                 title=form_title)[0].to_xml(warnings=warnings)
+            soup = BeautifulSoup(xml, "xml")
+
+            all_instance = soup.find_all('instance')
+            instance_count = len(all_instance)
+            clinicaldata_instance = soup.new_tag('instance')
+            clinicaldata_instance['id'] = 'clinicaldata'
+            clinicaldata_instance['src'] = '//build.openclinica-dev.io/form-service/api/storage/artifacts/clinicaldata.xml'
+            all_instance[0].parent.insert(instance_count, clinicaldata_instance)
+
+            xml = soup.prettify()
+            
             details.update({
                 u'status': u'success',
                 u'warnings': warnings,
