@@ -9,7 +9,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
 import Checkbox from 'js/components/checkbox';
 import {bem} from 'js/bem';
-import {assetUtils} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';

@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import $ from 'jquery';
 import { Link } from 'react-router';
 import {bem} from '../bem';
-import {assetUtils} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import ui from '../ui';
 import {stores} from '../stores';
 import mixins from '../mixins';
