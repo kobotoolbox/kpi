@@ -992,17 +992,20 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                                 root_node_name=root_node_name,
                                 id_string=id_string,
                                 title=form_title)[0].to_xml(warnings=warnings)
-            soup = BeautifulSoup(xml, "xml")
-
+            
+            soup = BeautifulSoup(xml, 'xml')
             all_instance = soup.find_all('instance')
             instance_count = len(all_instance)
-            clinicaldata_instance = soup.new_tag('instance')
-            clinicaldata_instance['id'] = 'clinicaldata'
-            clinicaldata_instance['src'] = '//build.openclinica-dev.io/form-service/api/storage/artifacts/clinicaldata.xml'
-            all_instance[0].parent.insert(instance_count, clinicaldata_instance)
 
-            xml = soup.prettify()
-            
+            oc_clinicaldata_soup = BeautifulSoup('<instance id="clinicaldata" src="//build.openclinica-dev.io/form-service/api/storage/artifacts/clinicaldata.xml"/>', 'xml')
+            if instance_count == 0:
+                if soup.find('model') is not None:
+                    soup.model.insert(1, oc_clinicaldata_soup.instance)
+            else:
+                all_instance[instance_count - 1].insert_after(oc_clinicaldata_soup.instance)
+
+            xml = str(soup)
+
             details.update({
                 u'status': u'success',
                 u'warnings': warnings,
