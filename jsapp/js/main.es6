@@ -10,7 +10,7 @@ import 'babel-polyfill'; // required to support Array.prototypes.includes in IE1
 import {Cookies} from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
-import { initCrossStorageClient } from './utils';
+import { initCrossStorageClient, addCustomEventListener, updateCrossStorageTimeOut } from './utils';
 
 require('../scss/main.scss');
 
@@ -37,6 +37,18 @@ $.ajaxSetup({
 });
 
 initCrossStorageClient();
+
+[ { element: 'button', event: 'click' },
+  { element: '.btn', event: 'click' },
+  { element: '.questiontypelist__item', event: 'click' },
+  { element: '.group__header__buttons__button', event: 'click' },
+  { element: '.card__settings', event: 'click' },
+  { element: 'body', event: 'keydown' }
+].forEach(function(elementEvent) {
+  addCustomEventListener(elementEvent.element, elementEvent.event, function() {
+    updateCrossStorageTimeOut();
+  });
+});
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
 

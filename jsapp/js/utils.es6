@@ -24,6 +24,8 @@ alertify.defaults.notifier.closeButton = true;
 
 const cookies = new Cookies();
 
+const IDLE_LOGOUT_TIME = 3600;
+
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
@@ -515,4 +517,35 @@ export function getCrossStorageClient() {
     initCrossStorageClient();
   }
   return crossStorageClient;
+}
+
+export function updateCrossStorageTimeOut() {
+  crossStorageClient.onConnect().then(function() {
+    const newTimeoutMoment = moment().add(IDLE_LOGOUT_TIME, 's');
+    console.log('updateCrossStorageTimeOut ', newTimeoutMoment.valueOf());
+    crossStorageClient.set('OCAppTimeout', newTimeoutMoment.valueOf());
+  });
+}
+
+export function addCustomEventListener(selector, event, handler) {
+  if (selector == 'body') {
+    document.body.addEventListener(event, function(evt) {
+      handler(evt);
+      return;
+    }, true);
+  } else {
+    let rootElement = document.querySelector('body');
+    rootElement.addEventListener(event, function (evt) {
+      let targetElement = evt.target;
+      let targetFound = false;
+      while (targetElement != null && !targetFound) {
+        if (targetElement.matches(selector)) {
+          handler(evt);
+          targetFound = true;
+          return;
+        }
+        targetElement = targetElement.parentElement;
+      }
+    }, true);
+  }
 }
