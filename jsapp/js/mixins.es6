@@ -167,8 +167,8 @@ mixins.dmix = {
       mixins.clickAssets.click.asset.unarchive(uid, callback);
     }
   },
-  deleteAsset (uid, name, callback) {
-    mixins.clickAssets.click.asset.delete(uid, name, callback);
+  deleteAsset(assetOrUid, name, callback) {
+    mixins.clickAssets.click.asset.delete(assetOrUid, name, callback);
   },
   toggleDeploymentHistory () {
     this.setState({
@@ -498,15 +498,20 @@ mixins.clickAssets = {
           hashHistory.push(`/forms/${uid}/edit`);
         }
       },
-      delete: function(uid, name, callback) {
-        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+      delete: function(assetOrUid, name, callback) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
         let onok = (evt, val) => {
-          actions.resources.deleteAsset({uid: uid}, {
+          actions.resources.deleteAsset({uid: asset.uid, assetType: asset.asset_type}, {
             onComplete: ()=> {
               notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel));
               if (typeof callback === 'function') {

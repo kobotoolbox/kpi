@@ -88,8 +88,8 @@ class AssetActionButtons extends React.Component {
 
   delete() {
     assetActions.delete(
-      this.props.asset.uid,
-      this.props.asset.name,
+      this.props.asset,
+      assetUtils.getAssetDisplayName(this.props.asset).final,
       this.onDeleteComplete.bind(this, this.props.asset.uid)
     );
   }
@@ -131,11 +131,17 @@ class AssetActionButtons extends React.Component {
   }
 
   cloneAsSurvey() {
-    assetActions.cloneAsSurvey(this.props.asset.uid, this.props.asset.name);
+    assetActions.cloneAsSurvey(
+      this.props.asset.uid,
+      assetUtils.getAssetDisplayName(this.props.asset).final
+    );
   }
 
   cloneAsTemplate() {
-    assetActions.cloneAsTemplate(this.props.asset.uid, this.props.asset.name);
+    assetActions.cloneAsTemplate(
+      this.props.asset.uid,
+      assetUtils.getAssetDisplayName(this.props.asset).final
+    );
   }
 
   moveToCollection(collectionUrl) {

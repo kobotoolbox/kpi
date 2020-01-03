@@ -138,6 +138,19 @@ export function getQuestionDisplayName(question) {
 }
 
 /**
+ * @param {Object} asset - BE asset data
+ * @returns {boolean}
+ */
+export function isLibraryAsset(assetType) {
+  return (
+    assetType === ASSET_TYPES.question.id ||
+    assetType === ASSET_TYPES.block.id ||
+    assetType === ASSET_TYPES.template.id ||
+    assetType === ASSET_TYPES.collection.id
+  );
+}
+
+/**
  * For getting the icon class name for given asset type.
  * @param {Object} asset - BE asset data
  * @returns {string} k-icon CSS class name
@@ -336,6 +349,7 @@ export default {
   editLanguages,
   editTags,
   replaceForm,
+  isLibraryAsset,
   isAssetPublicReady,
   isAssetPublic,
   isSelfOwned

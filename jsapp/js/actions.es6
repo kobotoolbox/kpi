@@ -152,12 +152,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  loadResource: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
   createResource: {
     asyncResult: true
   },
