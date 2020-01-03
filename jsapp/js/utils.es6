@@ -522,7 +522,6 @@ export function getCrossStorageClient() {
 export function updateCrossStorageTimeOut() {
   crossStorageClient.onConnect().then(function() {
     const newTimeoutMoment = moment().add(IDLE_LOGOUT_TIME, 's');
-    console.log('updateCrossStorageTimeOut ', newTimeoutMoment.valueOf());
     crossStorageClient.set('OCAppTimeout', newTimeoutMoment.valueOf());
   });
 }
