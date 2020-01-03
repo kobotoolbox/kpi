@@ -279,7 +279,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push('/library');
+          hashHistory.push(this.state.backRoute);
         });
     } else {
       // update existing asset
@@ -486,12 +486,14 @@ export default assign({
     }
   },
 
-  safeNavigateToForm() {
-    var backRoute = this.state.backRoute;
+  safeNavigateToAsset() {
+    let targetRoute = this.state.backRoute;
     if (this.state.backRoute === '/forms') {
-      backRoute = `/forms/${this.state.asset_uid}`;
+      targetRoute = `/forms/${this.state.asset_uid}`;
+    } else if (this.state.backRoute === '/library') {
+      targetRoute = `/library/asset/${this.state.asset_uid}`;
     }
-    this.safeNavigateToRoute(backRoute);
+    this.safeNavigateToRoute(targetRoute);
   },
 
   // rendering methods
@@ -579,7 +581,7 @@ export default assign({
 
             <bem.FormBuilderHeader__close
               m={[{'close-warning': this.needsSave()}]}
-              onClick={this.safeNavigateToForm}
+              onClick={this.safeNavigateToAsset}
             >
               <i className='k-icon-close'/>
             </bem.FormBuilderHeader__close>

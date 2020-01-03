@@ -18,7 +18,6 @@ import {
   formatTime,
 } from '../utils';
 import {
-  ROOT_URL,
   update_states,
   ASSET_TYPES
 } from 'js/constants';
