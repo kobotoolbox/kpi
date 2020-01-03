@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 import xlwt
 import six
+from django.conf import settings as django_settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
@@ -997,7 +998,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             all_instance = soup.find_all('instance')
             instance_count = len(all_instance)
 
-            oc_clinicaldata_soup = BeautifulSoup('<instance id="clinicaldata" src="//build.openclinica-dev.io/form-service/api/storage/artifacts/clinicaldata.xml"/>', 'xml')
+            oc_clinicaldata_soup = BeautifulSoup('<instance id="clinicaldata" src="{}"/>'.format(django_settings.ENKETO_FORM_OC_INSTANCE_URL), 'xml')
             if instance_count == 0:
                 if soup.find('model') is not None:
                     soup.model.insert(1, oc_clinicaldata_soup.instance)
