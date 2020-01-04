@@ -183,6 +183,20 @@ $z-form-view-fullscreen: 101;
     flex: 2;
   }
 
+  &.form-view__cell--column-icon {
+    width: 30px;
+    margin-right: 10px;
+    text-align: center;
+  }
+
+  &.form-view__cell--asset-content-summary-name {
+    line-height: 1;
+
+    small {
+      color: $cool-silver;
+    }
+  }
+
   &.form-view__cell--bordertop {
     border-top: 1px solid $cool-lightgray;
   }

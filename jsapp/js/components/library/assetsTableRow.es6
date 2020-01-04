@@ -39,8 +39,7 @@ class AssetsTableRow extends React.Component {
       this.props.asset.asset_type === ASSET_TYPES.collection.id &&
       this.props.asset.children
     ) {
-      // TODO this informations is not yet provided by Backend
-      rowCount = this.props.asset.children;
+      rowCount = this.props.asset.children.count;
     }
 
     return (

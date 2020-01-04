@@ -242,8 +242,8 @@ export function replaceForm(asset) {
 }
 
 /**
- * @param {object} survey
- * @returns {object} a pair of quesion names and their full paths
+ * @param {Object} survey
+ * @returns {Object} a pair of quesion names and their full paths
  */
 export function getSurveyFlatPaths(survey) {
   const output = {};
@@ -265,6 +265,34 @@ export function getSurveyFlatPaths(survey) {
       }
 
       output[rowName] = `${groupsPath}${rowName}`;
+    }
+  });
+
+  return output;
+}
+
+/**
+ * @param {Object} survey
+ * @returns {Array<object>} a question object
+ */
+export function getFlatQuestionsList(survey) {
+  const output = [];
+  const openedGroups = [];
+  survey.forEach((row) => {
+    if (row.type === 'begin_group' || row.type === 'begin_repeat') {
+      openedGroups.push(getQuestionDisplayName(row));
+    }
+    if (row.type === 'end_group' || row.type === 'end_repeat') {
+      openedGroups.pop();
+    }
+
+    if (QUESTION_TYPES.has(row.type)) {
+      output.push({
+        type: row.type,
+        isRequired: row.required,
+        label: getQuestionDisplayName(row),
+        parents: openedGroups.slice(0)
+      });
     }
   });
 
@@ -328,6 +356,7 @@ export function isAssetPublic(permissions) {
 
 /**
  * @param {Object} asset - BE asset data
+ * @return {boolean}
  */
 export function isSelfOwned(asset) {
   return (
@@ -337,9 +366,26 @@ export function isSelfOwned(asset) {
   );
 }
 
+/**
+ * @param {Object} asset - BE asset data
+ * @return {boolean}
+ */
+export function isUserSubscribedToAsset(asset) {
+  let username = null;
+
+  if (stores.session.currentAccount && stores.session.currentAccount.username) {
+    username = stores.session.currentAccount.username;
+  }
+
+  // TODO write this logic
+
+  return true;
+}
+
 export default {
   cleanupTags,
   getSurveyFlatPaths,
+  getFlatQuestionsList,
   getAssetOwnerDisplayName,
   getAssetDisplayName,
   getQuestionDisplayName,
@@ -352,5 +398,6 @@ export default {
   isLibraryAsset,
   isAssetPublicReady,
   isAssetPublic,
-  isSelfOwned
+  isSelfOwned,
+  isUserSubscribedToAsset
 };

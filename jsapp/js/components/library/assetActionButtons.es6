@@ -1,4 +1,3 @@
-// TODO: add subscribe/unscubscribe buttons for public collections
 // TODO: double check the display logic for buttons (permissions)
 
 /**
@@ -94,14 +93,6 @@ class AssetActionButtons extends React.Component {
     );
   }
 
-  subscribe() {
-
-  }
-
-  unsubscribe() {
-
-  }
-
   /**
    * Navigates out of nonexistent paths after asset was successfuly deleted
    */
@@ -172,8 +163,7 @@ class AssetActionButtons extends React.Component {
     const isDeployable = true;
     const isInsideCollection = this.props.asset.parent !== null;
     const downloads = [];
-    // TODO finish up this logic
-    const isSubscribed = false;
+    const isUserSubscribed = assetUtils.isUserSubscribedToAsset(this.props.asset);
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
 
     return (
@@ -293,14 +283,14 @@ class AssetActionButtons extends React.Component {
             );
           })}
 
-          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isSubscribed &&
+          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isUserSubscribed &&
             <bem.PopoverMenu__link onClick={this.subscribeToCollection}>
               <i className='k-icon k-icon-subscribe'/>
               {t('Subscribe')}
             </bem.PopoverMenu__link>
           }
 
-          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isSubscribed &&
+          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isUserSubscribed &&
             <bem.PopoverMenu__link onClick={this.unsubscribeFromCollection}>
               <i className='k-icon k-icon-unsubscribe'/>
               {t('Unsubscribe')}

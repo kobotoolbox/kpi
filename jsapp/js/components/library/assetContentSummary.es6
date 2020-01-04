@@ -1,10 +1,7 @@
-// TODO: use `getSurveyFlatPaths` from `jsapp/js/assetUtils.es6` after
-// commit 4b94fa97370ee1ec4bf82913d2872022ad9bce94 is merged
-
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import {getQuestionDisplayName} from 'js/assetUtils';
+import {getFlatQuestionsList} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 import {t} from 'js/utils';
 
@@ -33,14 +30,21 @@ class AssetContentSummary extends React.Component {
       modifiers.push('bordertop');
     }
     return (
-      <bem.FormView__cell
-        m={modifiers}
-        key={question.$kuid}
-      >
-        <bem.FormView__cell m='column-1'>
+      <bem.FormView__cell m={modifiers} key={itemIndex}>
+        <bem.FormView__cell m='column-icon'>
+          {/* fix icon for date time */}
           <i className={['fa', 'fa-lg', typeDef.faIcon].join(' ')}/>
-          &nbsp;
-          {getQuestionDisplayName(question)}
+        </bem.FormView__cell>
+
+        <bem.FormView__cell m={['column-1', 'asset-content-summary-name']}>
+          {question.parents.length > 0 &&
+            <small>{question.parents.join(' / ') + ' /'}</small>
+          }
+
+          <div>
+            {question.isRequired && <strong>*&nbsp;</strong>}
+            {question.label}
+          </div>
         </bem.FormView__cell>
       </bem.FormView__cell>
     );
@@ -61,7 +65,8 @@ class AssetContentSummary extends React.Component {
       return null;
     }
 
-    let items = this.filterRealQuestions(this.props.asset.content.survey);
+    let items = getFlatQuestionsList(this.props.asset.content.survey);
+
     if (this.state.isExpandable && !this.state.isExpanded) {
       items = items.slice(0, DISPLAY_LIMIT);
     }
