@@ -73,7 +73,6 @@ class MainHeader extends Reflux.Component {
     return myLibraryStore.data.totalUserAssets === null;
   }
   onAssetLoad(data) {
-    console.debug('onAssetLoad', data);
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }

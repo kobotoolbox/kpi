@@ -287,6 +287,8 @@ class AssetActionButtons extends React.Component {
             );
           })}
 
+          {/* TODO these should be a blue button outside popovermenu */}
+
           {!isUserSubscribed &&
             !isSelfOwned &&
             isPublic &&
