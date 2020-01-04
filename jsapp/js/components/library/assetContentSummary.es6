@@ -11,16 +11,9 @@ class AssetContentSummary extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      isExpanded: false,
-      isExpandable: false
+      isExpanded: false
     };
     autoBind(this);
-  }
-
-  componentDidMount() {
-    this.setState({
-      isExpandable: this.props.asset.content.survey.length > DISPLAY_LIMIT
-    });
   }
 
   renderQuestion(question, itemIndex) {
@@ -66,8 +59,9 @@ class AssetContentSummary extends React.Component {
     }
 
     let items = getFlatQuestionsList(this.props.asset.content.survey);
+    const isExpandable = items.length > DISPLAY_LIMIT
 
-    if (this.state.isExpandable && !this.state.isExpanded) {
+    if (isExpandable && !this.state.isExpanded) {
       items = items.slice(0, DISPLAY_LIMIT);
     }
 
@@ -83,7 +77,7 @@ class AssetContentSummary extends React.Component {
       <bem.FormView__cell m='box'>
         {items.map(this.renderQuestion)}
 
-        {this.state.isExpandable &&
+        {isExpandable &&
           <bem.FormView__cell m={['bordertop', 'toggle-details']}>
             <button onClick={this.toggleExpanded}>
               {this.state.isExpanded ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}

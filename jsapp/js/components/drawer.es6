@@ -4,32 +4,23 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
-import Select from 'react-select';
-
-import {dataInterface} from '../dataInterface';
-import {actions} from '../actions';
 import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
-import ui from '../ui';
 import mixins from '../mixins';
-
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import {
   IntercomHelpBubble,
   SupportHelpBubble
 } from '../components/helpBubbles';
-
 import {
   COMMON_QUERIES,
   MODAL_TYPES
 } from '../constants';
-
 import {
   t,
   assign
 } from '../utils';
-
 import SidebarFormsList from '../lists/sidebarForms';
 
 class FormSidebar extends Reflux.Component {
@@ -182,7 +173,7 @@ class Drawer extends Reflux.Component {
       </bem.KDrawer>
       );
   }
-};
+}
 
 reactMixin(Drawer.prototype, searches.common);
 reactMixin(Drawer.prototype, mixins.droppable);

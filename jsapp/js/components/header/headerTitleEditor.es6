@@ -28,7 +28,10 @@ class HeaderTitleEditor extends React.Component {
   }
 
   onAssetLoad() {
-    this.setState({isPending: false});
+    this.setState({
+      name: this.props.name,
+      isPending: false
+    });
   }
 
   updateAssetTitle() {

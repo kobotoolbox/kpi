@@ -54,7 +54,7 @@ class MainHeader extends Reflux.Component {
   }
   componentDidMount() {
     document.body.classList.add('hide-edge');
-    this.listenTo(stores.asset, this.assetLoad);
+    this.listenTo(stores.asset, this.onAssetLoad);
     this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
   }
   componentWillUpdate(newProps) {
@@ -72,7 +72,8 @@ class MainHeader extends Reflux.Component {
   getIsSearchBoxDisabled() {
     return myLibraryStore.data.totalUserAssets === null;
   }
-  assetLoad(data) {
+  onAssetLoad(data) {
+    console.debug('onAssetLoad', data);
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }
@@ -241,19 +242,7 @@ class MainHeader extends Reflux.Component {
                 />
               </div>
             }
-            { this.isLibrarySingle() && this.state.asset &&
-              <React.Fragment>
-                <bem.MainHeader__icon className={iconClassName} />
-
-                <HeaderTitleEditor
-                  uid={this.state.asset.uid}
-                  type={this.state.asset.asset_type}
-                  name={this.state.asset.name}
-                  isEditable={userCanEditAsset}
-                />
-              </React.Fragment>
-            }
-            { this.isFormSingle() && this.state.asset &&
+            { this.isFormSingle() || this.isLibrarySingle() && this.state.asset &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 
@@ -264,7 +253,7 @@ class MainHeader extends Reflux.Component {
                   isEditable={userCanEditAsset}
                 />
 
-                { this.state.asset.has_deployment &&
+                { this.isFormSingle() && this.state.asset.has_deployment &&
                   <bem.MainHeader__counter>
                     {this.state.asset.deployment__submission_count} {t('submissions')}
                   </bem.MainHeader__counter>
