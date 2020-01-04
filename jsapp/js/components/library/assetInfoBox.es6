@@ -4,7 +4,9 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
+import {stores} from 'js/stores';
 import {
+  isSelfOwned,
   isAssetPublicReady,
   isAssetPublic,
   getAssetOwnerDisplayName,
@@ -17,7 +19,8 @@ import {ASSET_TYPES} from 'js/constants';
 import {
   t,
   notify,
-  formatTime
+  formatTime,
+  formatDate
 } from 'js/utils';
 
 /**
@@ -94,6 +97,12 @@ class AssetInfoBox extends React.Component {
 
     const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
     const isPublic = isPublicable && isAssetPublic(this.props.asset.permissions);
+    let dateJoined;
+    if (isSelfOwned(this.props.asset)) {
+      dateJoined = stores.session.currentAccount.date_joined;
+    } else {
+      // TODO get `date_joined` of not-logged in user
+    }
 
     return (
       <bem.FormView__cell m='box'>
@@ -163,7 +172,7 @@ class AssetInfoBox extends React.Component {
               {t('Tags')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.tags && this.props.asset.settings.tags.join(', ') || t('n/a')}
+            {this.props.asset.settings.tags && this.props.asset.settings.tags.join(', ') || '-'}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['sector', 'column-1']}>
@@ -199,7 +208,7 @@ class AssetInfoBox extends React.Component {
                   {t('Description')}
                 </bem.FormView__cellLabel>
 
-                {this.props.asset.settings.description || t('n/a')}
+                {this.props.asset.settings.description || '-'}
               </bem.FormView__cell>
             </bem.FormView__cell>
 
@@ -217,7 +226,7 @@ class AssetInfoBox extends React.Component {
                   {t('Member since')}
                 </bem.FormView__cellLabel>
 
-                TODO
+                {dateJoined ? formatDate(dateJoined) : t('n/a')}
               </bem.FormView__cell>
             </bem.FormView__cell>
           </React.Fragment>
