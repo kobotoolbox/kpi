@@ -474,7 +474,7 @@ export default assign({
 
   safeNavigateToList() {
     if (this.state.asset_type) {
-      if (this.state.asset_type === 'survey') {
+      if (this.state.asset_type === ASSET_TYPES.survey.id) {
         this.safeNavigateToRoute('/forms/');
       } else {
         this.safeNavigateToRoute('/library/');

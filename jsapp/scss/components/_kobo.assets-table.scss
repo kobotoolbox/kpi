@@ -111,9 +111,13 @@ $c-assets-table-row-hover: $cool-whitegray;
     }
   }
 
+  &:first-of-type .assets-table-row__column {
+    border-top: 0;
+  }
+
   &.assets-table-row--header .assets-table-row__column {
     border-top: 0;
-    border-bottom: 1px solid $divider-color;
+    border-bottom: 2px solid $divider-color;
     cursor: pointer;
     font-weight: 700;
     white-space: nowrap;

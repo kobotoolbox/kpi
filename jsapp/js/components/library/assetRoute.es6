@@ -45,6 +45,8 @@ class LibraryAsset extends React.Component {
   }
 
   onAssetLoad(data) {
+    // TODO when loaded asset is a child of this asset, overwrite it in the `.children`
+
     const uid = this.currentAssetID();
     const asset = data[uid];
     if (asset) {

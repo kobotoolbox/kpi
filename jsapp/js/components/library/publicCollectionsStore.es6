@@ -11,7 +11,7 @@ const publicCollectionsStore = Reflux.createStore({
   abortFetchData: undefined,
 
   // TODO make it 100 after development
-  PAGE_SIZE: 10,
+  PAGE_SIZE: 100,
 
   DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
 

@@ -440,13 +440,20 @@ mixins.clickAssets = {
   },
   click: {
     asset: {
-      clone: function(uid, name){
-        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
+      clone: function(assetOrUid, name) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
+        let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
+
         let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
-          title: `${t('Clone')} ${assetType}`,
+          title: `${t('Clone')} ${assetTypeLabel}`,
           message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
@@ -454,7 +461,7 @@ mixins.clickAssets = {
             ok_button.disabled = true;
             ok_button.innerText = t('Cloning...');
             actions.resources.cloneAsset({
-              uid: uid,
+              uid: asset.uid,
               name: value,
             }, {
             onComplete: (asset) => {
@@ -486,7 +493,7 @@ mixins.clickAssets = {
         mixins.cloneAssetAsNewType.dialog({
           sourceUid: sourceUid,
           sourceName: sourceName,
-          targetType: 'survey',
+          targetType: ASSET_TYPES.survey.id,
           promptTitle: t('Create new project from this template'),
           promptMessage: t('Enter the name of the new project.')
         });
