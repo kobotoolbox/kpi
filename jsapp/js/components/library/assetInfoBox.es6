@@ -5,16 +5,7 @@ import Reflux from 'reflux';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {
-  isSelfOwned,
-  isAssetPublicReady,
-  isAssetPublic,
-  getAssetOwnerDisplayName,
-  getOrganizationDisplayString,
-  getLanguagesDisplayString,
-  getSectorDisplayString,
-  getCountryDisplayString
-} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
   t,
@@ -67,7 +58,7 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = isAssetPublicReady(
+    const requiredPropsReady = assetUtils.isAssetPublicReady(
       this.props.asset.name,
       this.props.asset.settings.organization,
       this.props.asset.settings.sector
@@ -96,9 +87,9 @@ class AssetInfoBox extends React.Component {
     }
 
     const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
-    const isPublic = isPublicable && isAssetPublic(this.props.asset.permissions);
+    const isPublic = isPublicable && assetUtils.isAssetPublic(this.props.asset.permissions);
     let dateJoined;
-    if (isSelfOwned(this.props.asset)) {
+    if (assetUtils.isSelfOwned(this.props.asset)) {
       dateJoined = stores.session.currentAccount.date_joined;
     } else {
       // TODO get `date_joined` of not-logged in user
@@ -164,7 +155,7 @@ class AssetInfoBox extends React.Component {
               {t('Organization')}
             </bem.FormView__cellLabel>
 
-            {getOrganizationDisplayString(this.props.asset)}
+            {assetUtils.getOrganizationDisplayString(this.props.asset)}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['tags', 'column-1']}>
@@ -180,7 +171,7 @@ class AssetInfoBox extends React.Component {
               {t('Sector')}
             </bem.FormView__cellLabel>
 
-            {getSectorDisplayString(this.props.asset)}
+            {assetUtils.getSectorDisplayString(this.props.asset)}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['country', 'column-1']}>
@@ -188,7 +179,7 @@ class AssetInfoBox extends React.Component {
               {t('Country')}
             </bem.FormView__cellLabel>
 
-            {getCountryDisplayString(this.props.asset, true)}
+            {assetUtils.getCountryDisplayString(this.props.asset, true)}
           </bem.FormView__cell>
         </bem.FormView__cell>
 
@@ -200,7 +191,7 @@ class AssetInfoBox extends React.Component {
                   {t('Languages')}
                 </bem.FormView__cellLabel>
 
-                {getLanguagesDisplayString(this.props.asset)}
+                {assetUtils.getLanguagesDisplayString(this.props.asset)}
               </bem.FormView__cell>
 
               <bem.FormView__cell m={['description', 'column-2']}>
@@ -218,7 +209,7 @@ class AssetInfoBox extends React.Component {
                   {t('Owner')}
                 </bem.FormView__cellLabel>
 
-                {getAssetOwnerDisplayName(this.props.asset.owner__username)}
+                {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner__username)}
               </bem.FormView__cell>
 
               <bem.FormView__cell m='column-1'>
