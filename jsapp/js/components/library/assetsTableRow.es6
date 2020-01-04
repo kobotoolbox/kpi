@@ -5,14 +5,7 @@ import AssetActionButtons from './assetActionButtons';
 import ui from 'js/ui';
 import {formatTime} from 'js/utils';
 import {ASSET_TYPES} from 'js/constants';
-import {
-  getAssetIcon,
-  getAssetOwnerDisplayName,
-  getOrganizationDisplayString,
-  getLanguagesDisplayString,
-  getSectorDisplayString,
-  getCountryDisplayString
-} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
 
 class AssetsTableRow extends React.Component {
@@ -24,7 +17,7 @@ class AssetsTableRow extends React.Component {
   render() {
     let iconClassName = '';
     if (this.props.asset) {
-      iconClassName = getAssetIcon(this.props.asset);
+      iconClassName = assetUtils.getAssetIcon(this.props.asset);
     }
 
     let rowCount;
@@ -73,7 +66,7 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='owner'>
-          {getAssetOwnerDisplayName(this.props.asset.owner__username)}
+          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner__username)}
         </bem.AssetsTableRow__column>
 
         {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
@@ -83,19 +76,19 @@ class AssetsTableRow extends React.Component {
         }
 
         <bem.AssetsTableRow__column m='organization'>
-          {getOrganizationDisplayString(this.props.asset)}
+          {assetUtils.getOrganizationDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='languages'>
-          {getLanguagesDisplayString(this.props.asset)}
+          {assetUtils.getLanguagesDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='primary-sector'>
-          {getSectorDisplayString(this.props.asset)}
+          {assetUtils.getSectorDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='country'>
-          {getCountryDisplayString(this.props.asset)}
+          {assetUtils.getCountryDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='last-modified'>
