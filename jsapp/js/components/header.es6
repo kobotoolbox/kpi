@@ -60,6 +60,8 @@ class MainHeader extends Reflux.Component {
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
+      // we need new asset here, but instead of duplicating a call, we wait for
+      // action triggered by other component (route component)
     }
   }
   myLibraryStoreChanged() {
@@ -274,11 +276,6 @@ class MainHeader extends Reflux.Component {
           {this.renderGitRevInfo()}
         </bem.MainHeader>
       );
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.assetid !== nextProps.assetid && nextProps.assetid !== null) {
-      actions.resources.loadAsset({id: nextProps.assetid});
-    }
   }
 }
 

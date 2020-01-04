@@ -379,7 +379,7 @@ export function isUserSubscribedToAsset(asset) {
 
   // TODO write this logic
 
-  return true;
+  return false;
 }
 
 export default {

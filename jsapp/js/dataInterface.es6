@@ -276,7 +276,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/asset_subscriptions/`,
         data: {
-          collection: collectionUrl
+          asset: collectionUrl
         },
         method: 'POST'
       });

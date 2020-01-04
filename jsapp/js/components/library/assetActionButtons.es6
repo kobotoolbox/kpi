@@ -264,7 +264,7 @@ class AssetActionButtons extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {userCanEdit &&
+          {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
             <bem.PopoverMenu__link onClick={this.editLanguages}>
               <i className='k-icon k-icon-language'/>
               {t('Manage Translations')}
@@ -283,28 +283,35 @@ class AssetActionButtons extends React.Component {
             );
           })}
 
-          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isUserSubscribed &&
+          {!isSelfOwned && assetType === ASSET_TYPES.collection.id && !isUserSubscribed &&
             <bem.PopoverMenu__link onClick={this.subscribeToCollection}>
               <i className='k-icon k-icon-subscribe'/>
               {t('Subscribe')}
             </bem.PopoverMenu__link>
           }
 
-          {isSelfOwned && assetType === ASSET_TYPES.collection.id && isUserSubscribed &&
+          {!isSelfOwned && assetType === ASSET_TYPES.collection.id && isUserSubscribed &&
             <bem.PopoverMenu__link onClick={this.unsubscribeFromCollection}>
               <i className='k-icon k-icon-unsubscribe'/>
               {t('Unsubscribe')}
             </bem.PopoverMenu__link>
           }
 
-          {userCanEdit && this.props.asset.parent !== null &&
+          {
+            userCanEdit &&
+            assetType !== ASSET_TYPES.survey.id &&
+            assetType !== ASSET_TYPES.collection.id &&
+            this.props.asset.parent !== null &&
             <bem.PopoverMenu__link onClick={this.moveToCollection.bind(this, null)}>
               <i className='k-icon k-icon-folder-out'/>
               {t('Remove from collection')}
             </bem.PopoverMenu__link>
           }
 
-          {assetType !== ASSET_TYPES.survey.id && this.state.ownedCollections.length > 0 && [
+          {
+            assetType !== ASSET_TYPES.survey.id &&
+            assetType !== ASSET_TYPES.collection.id &&
+            this.state.ownedCollections.length > 0 && [
             <bem.PopoverMenu__heading key='heading'>
               {t('Move to')}
             </bem.PopoverMenu__heading>,
