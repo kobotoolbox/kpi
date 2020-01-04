@@ -14,7 +14,7 @@
 import React from 'react';
 import alertify from 'alertifyjs';
 import {hashHistory} from 'react-router';
-
+import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
@@ -440,7 +440,7 @@ mixins.clickAssets = {
   },
   click: {
     asset: {
-      clone: function(assetOrUid, name) {
+      clone: function(assetOrUid) {
         let asset;
         if (typeof assetOrUid === 'object') {
           asset = assetOrUid;
@@ -449,12 +449,18 @@ mixins.clickAssets = {
         }
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
-        let newName = `${t('Clone of')} ${name}`;
+        let newName;
+        const displayName = assetUtils.getAssetDisplayName(asset);
+        // propose new name only if source asset name is not empty
+        if (displayName.original) {
+          newName = `${t('Clone of')} ${displayName.original}`;
+        }
+
         let dialog = alertify.dialog('prompt');
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetTypeLabel}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
+          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
@@ -463,12 +469,25 @@ mixins.clickAssets = {
             actions.resources.cloneAsset({
               uid: asset.uid,
               name: value,
+              parent: asset.parent
             }, {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
-              hashHistory.push(`/forms/${asset.uid}/landing`);
-              notify(t('cloned project created'));
+
+              // TODO when on collection landing page and user clones this
+              // collection's child asset, instead of navigating to clone
+              // landing page, it would be better to stay here and refresh data
+              // (as the clone will keep the parent asset)
+              let goToUrl;
+              if (asset.asset_type === ASSET_TYPES.survey.id) {
+                goToUrl = `/forms/${asset.uid}/landing`;
+              } else {
+                goToUrl = `/library/asset/${asset.uid}`;
+              }
+
+              hashHistory.push(goToUrl);
+              notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             }
             });
             // keep the dialog open

@@ -112,7 +112,7 @@ export function getAssetDisplayName(asset) {
     // for unnamed assets, we try to display first question name
     displayName.question = asset.summary.labels[0];
   } else {
-    // for unnamed assets, with no questions, ww display special empty name
+    // for unnamed assets, with no questions, we display special empty name
     displayName.empty = t('no name');
   }
 

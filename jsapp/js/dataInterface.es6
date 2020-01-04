@@ -198,13 +198,14 @@ export var dataInterface;
         url: `${ROOT_URL}/reports/${data.uid}/${identifierString}`,
       });
     },
-    cloneAsset ({uid, name, version_id, new_asset_type}) {
+    cloneAsset ({uid, name, version_id, new_asset_type, parent}) {
       let data = {
         clone_from: uid,
       };
       if (name) { data.name = name; }
       if (version_id) { data.clone_from_version_id = version_id; }
       if (new_asset_type) { data.asset_type = new_asset_type; }
+      if (parent) { data.parent = parent; }
       return $ajax({
         method: 'POST',
         url: `${ROOT_URL}/api/v2/assets/`,

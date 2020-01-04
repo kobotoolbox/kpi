@@ -328,14 +328,16 @@ stores.allAssets = Reflux.createStore({
     this.trigger(this.data);
   },
   onDeleteAssetCompleted (asset) {
-    this.byUid[asset.uid].deleted = 'true';
-    this.trigger(this.data);
-    window.setTimeout(()=> {
-      this.data = this.data.filter(function(item){
-        return item.uid !== asset.uid;
-      });
+    if (this.byUid[asset.uid]) {
+      this.byUid[asset.uid].deleted = 'true';
       this.trigger(this.data);
-    }, 500);
+      window.setTimeout(()=> {
+        this.data = this.data.filter(function(item){
+          return item.uid !== asset.uid;
+        });
+        this.trigger(this.data);
+      }, 500);
+    }
   },
   registerAsset (asset) {
     const parsedObj = parseTags(asset);
@@ -370,7 +372,7 @@ stores.selectedAsset = Reflux.createStore({
   },
   onCloneAssetCompleted (asset) {
     this.uid = asset.uid;
-    this.asset = allAssetsStore.byUid[asset.uid];
+    this.asset = stores.allAssets.byUid[asset.uid];
     if (!this.asset) {
       console.error('selectedAssetStore error');
     }
@@ -379,7 +381,7 @@ stores.selectedAsset = Reflux.createStore({
   toggleSelect (uid, forceSelect=false) {
     if (forceSelect || this.uid !== uid) {
       this.uid = uid;
-      this.asset = allAssetsStore.byUid[uid];
+      this.asset = stores.allAssets.byUid[uid];
     } else {
       this.uid = false;
       this.asset = {};

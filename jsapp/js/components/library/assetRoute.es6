@@ -26,9 +26,10 @@ class LibraryAsset extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    // trigger loading message when switching assets
+    // trigger loading when switching assets
     if (nextProps.params.uid !== this.props.params.uid) {
       this.setState({asset: false});
+      this.triggerAssetLoad();
     }
   }
 
@@ -37,7 +38,10 @@ class LibraryAsset extends React.Component {
 
     // TODO this should listen to asset parent being changed and update accordingly
     // especially when displaying a collection
+    this.triggerAssetLoad();
+  }
 
+  triggerAssetLoad() {
     const uid = this.currentAssetID();
     if (uid) {
       actions.resources.loadAsset({id: uid});
