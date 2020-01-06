@@ -406,6 +406,9 @@ ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 
+# OC Instance URL
+ENKETO_FORM_OC_INSTANCE_URL = os.environ.get('ENKETO_FORM_OC_INSTANCE_URL', '//build.openclinica-dev.io/form-service/api/storage/artifacts/clinicaldata.xml')
+
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
 # Uppercase settings can be used when using a PREFIX

@@ -16,6 +16,7 @@ Pygments
 amqp
 anyjson
 billiard
+beautifulsoup4
 boto
 boto3
 celery>=4.0,<5.0

@@ -205,16 +205,18 @@ module.exports = do ->
   }
 
   configs.columns = [
-    "type",
     "name",
-    "bind::oc:briefdescription",
     "bind::oc:itemgroup",
+    "bind::oc:briefdescription",
+    'bind::oc:description',
+    'appearance',
+    "type",
     "label",
     "hint",
     "required",
     "relevant",
     "default",
-    "constraint"
+    "constraint",
     "bind::oc:external",
     "readonly"
   ]

@@ -696,6 +696,13 @@ export default assign({
       nameFieldLabel = ASSET_TYPES.template.label;
     }
 
+    if (
+      nameFieldLabel &&
+      nameFieldLabel === ASSET_TYPES.survey.label
+    ) {
+      nameFieldLabel = `${nameFieldLabel} title`;
+    }
+
     return (
       <bem.FormBuilderHeader>
         <bem.FormBuilderHeader__row m='primary'>
@@ -816,7 +823,7 @@ export default assign({
               onClick={this.toggleAsideLibrarySearch}
             >
               <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
-              <span className='panel-toggle-name'>{t('Add from Library')}</span>
+              <span className='panel-toggle-name'>{t('Add from Library (Beta)')}</span>
             </bem.FormBuilderHeader__button>
           </bem.FormBuilderHeader__cell>
 
@@ -954,7 +961,7 @@ export default assign({
           <bem.FormBuilderAside__content>
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
-                {t('Search Library')}
+                {t('Search Library (Beta)')}
               </bem.FormBuilderAside__header>
             </bem.FormBuilderAside__row>
 

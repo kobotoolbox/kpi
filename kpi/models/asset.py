@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 import xlwt
 import six
+from django.conf import settings as django_settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
@@ -23,6 +24,7 @@ from jsonfield import JSONField
 from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
+from bs4 import BeautifulSoup
 
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
@@ -991,6 +993,20 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                                 root_node_name=root_node_name,
                                 id_string=id_string,
                                 title=form_title)[0].to_xml(warnings=warnings)
+            
+            soup = BeautifulSoup(xml, 'xml')
+            all_instance = soup.find_all('instance')
+            instance_count = len(all_instance)
+
+            oc_clinicaldata_soup = BeautifulSoup('<instance id="clinicaldata" src="{}"/>'.format(django_settings.ENKETO_FORM_OC_INSTANCE_URL), 'xml')
+            if instance_count == 0:
+                if soup.find('model') is not None:
+                    soup.model.insert(1, oc_clinicaldata_soup.instance)
+            else:
+                all_instance[instance_count - 1].insert_after(oc_clinicaldata_soup.instance)
+
+            xml = str(soup)
+
             details.update({
                 u'status': u'success',
                 u'warnings': warnings,

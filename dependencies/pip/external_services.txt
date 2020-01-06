@@ -15,7 +15,9 @@ amqp==2.4.0
 anyjson==0.3.3
 argparse==1.4.0           # via unittest2
 asn1crypto==0.24.0        # via cryptography
+backports.functools-lru-cache==1.6.1  # via soupsieve
 beaker==1.11.0            # via oic
+beautifulsoup4==4.8.2
 begins==0.9
 billiard==3.5.0.5
 boto3==1.9.80
@@ -115,6 +117,7 @@ s3transfer==0.1.13        # via boto3
 scandir==1.9.0            # via pathlib2
 shortuuid==0.4.3
 six==1.12.0
+soupsieve==1.9.5          # via beautifulsoup4
 sqlparse==0.1.19
 static3==0.7.0
 statistics==1.0.3.5
@@ -136,4 +139,4 @@ zipp==0.3.3               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip==19.3.1               # via django-markdownx
-# setuptools==41.6.0        # via py-gfm, tldextract
+# setuptools==42.0.2        # via py-gfm, tldextract

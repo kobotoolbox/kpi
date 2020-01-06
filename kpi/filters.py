@@ -227,10 +227,10 @@ class SearchFilter(filters.BaseFilterBackend):
         # filtering by permissions?
         haystack_index = haystack.connections[
             'default'].get_unified_index().get_index(queryset.model)
-        if hasattr(haystack_index, 'users_granted_permission'):
-            # Also restrict the search to records that the user can access
-            filter_query &= Term(
-                'users_granted_permission', request.user.username)
+        # if hasattr(haystack_index, 'users_granted_permission'):
+        #     # Also restrict the search to records that the user can access
+        #     filter_query &= Term(
+        #         'users_granted_permission', request.user.username)
         with search_backend.index.searcher() as searcher:
             results = searcher.search(
                 user_query,
