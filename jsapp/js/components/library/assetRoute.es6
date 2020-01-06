@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -6,7 +7,6 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {bem} from 'js/bem';
 import mixins from 'js/mixins';
-import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
 import {ASSET_TYPES} from 'js/constants';
@@ -25,36 +25,49 @@ class LibraryAsset extends React.Component {
     autoBind(this);
   }
 
+  componentDidMount() {
+    actions.library.moveToCollection.completed.listen(this.onAssetChanged);
+    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
+    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
+    actions.resources.cloneAsset.completed.listen(this.onAssetChanged);
+    actions.resources.createResource.completed.listen(this.onAssetChanged);
+
+    this.loadCurrentAsset();
+  }
+
   componentWillReceiveProps(nextProps) {
     // trigger loading when switching assets
     if (nextProps.params.uid !== this.props.params.uid) {
       this.setState({asset: false});
-      this.triggerAssetLoad();
+      this.loadCurrentAsset();
     }
   }
 
-  componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetLoad);
-
-    // TODO this should listen to asset parent being changed and update accordingly
-    // especially when displaying a collection
-    this.triggerAssetLoad();
-  }
-
-  triggerAssetLoad() {
+  loadCurrentAsset() {
     const uid = this.currentAssetID();
     if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
 
-  onAssetLoad(data) {
-    // TODO when loaded asset is a child of this asset, overwrite it in the `.children`
-
-    const uid = this.currentAssetID();
-    const asset = data[uid];
-    if (asset) {
+  onAssetChanged(asset) {
+    if (asset.uid === this.currentAssetID()) {
       this.setState({asset: asset});
+    } else if (
+      this.state.asset &&
+      this.state.asset.asset_type === ASSET_TYPES.collection.id &&
+      asset.parent === this.state.asset.url
+    ) {
+      const updatedAsset = this.state.asset;
+      const newChildren = Array.from(updatedAsset.children);
+      const index = _.findIndex(this.state.asset.children, {uid: asset.uid});
+      if (index === -1) {
+        newChildren[index] = asset;
+      } else {
+        newChildren.push(asset);
+      }
+      updatedAsset.children = newChildren;
+      this.setState({asset: updatedAsset});
     }
   }
 

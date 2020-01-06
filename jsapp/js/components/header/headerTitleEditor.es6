@@ -7,17 +7,22 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
+import {getAssetDisplayName} from 'js/assetUtils';
 import {
   NAME_MAX_LENGTH,
   ASSET_TYPES
 } from 'js/constants';
 
+/**
+ * @prop {object} asset
+ * @prop {boolean} isEditable
+ */
 class HeaderTitleEditor extends React.Component {
   constructor(props){
     super(props);
     this.typingTimer = null;
     this.state = {
-      name: this.props.name,
+      name: this.props.asset.name,
       isPending: false
     };
     autoBind(this);
@@ -29,19 +34,20 @@ class HeaderTitleEditor extends React.Component {
 
   onAssetLoad() {
     this.setState({
-      name: this.props.name,
+      name: this.props.asset.name,
       isPending: false
     });
   }
 
   updateAssetTitle() {
-    if (!this.state.name.trim()) {
-      alertify.error(t('Please enter a title for your ##type##').replace('##type##', ASSET_TYPES[this.props.type].label));
+    // surveys are required to have name
+    if (!this.state.name.trim() && this.props.asset.asset_type === ASSET_TYPES.survey.id) {
+      alertify.error(t('Please enter a title for your ##type##').replace('##type##', ASSET_TYPES[this.props.asset.asset_type].label));
       return false;
     } else {
       this.setState({isPending: true});
       actions.resources.updateAsset(
-        this.props.uid,
+        this.props.asset.uid,
         {name: this.state.name}
       );
       return true;
@@ -73,18 +79,22 @@ class HeaderTitleEditor extends React.Component {
     }
 
     let placeholder = '';
-    switch (this.props.type) {
+    const displayName = getAssetDisplayName(this.props.asset);
+    switch (this.props.asset.asset_type) {
       case ASSET_TYPES.question.id:
-        placeholder = t('Question title');
-        break;
       case ASSET_TYPES.block.id:
-        placeholder = t('Block title');
-        break;
       case ASSET_TYPES.template.id:
-        placeholder = t('Template title');
+        if (displayName.question) {
+          placeholder = displayName.question;
+        } else {
+          placeholder = t('untitled ##type##').replace('##type##', ASSET_TYPES[this.props.asset.asset_type].label);
+        }
+        break;
+      case ASSET_TYPES.collection.id:
+        placeholder = t('untitled collection');
         break;
       case ASSET_TYPES.survey.id:
-        placeholder = t('Project title');
+        placeholder = t('project title');
         break;
     }
 

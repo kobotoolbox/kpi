@@ -20,7 +20,7 @@ class AssetsTableRow extends React.Component {
       iconClassName = assetUtils.getAssetIcon(this.props.asset);
     }
 
-    let rowCount;
+    let rowCount = null;
     if (
       this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
       this.props.asset.summary &&
@@ -46,10 +46,10 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__buttons>
 
         <bem.AssetsTableRow__column m='icon-status'>
-          {rowCount &&
+          {rowCount !== null &&
             <i className={`k-icon ${iconClassName}`} data-counter={rowCount}/>
           }
-          {!rowCount &&
+          {rowCount === null &&
             <i className={`k-icon ${iconClassName}`}/>
           }
         </bem.AssetsTableRow__column>

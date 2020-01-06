@@ -92,10 +92,10 @@ export function getCountryDisplayString(asset, showLongName = false) {
 
 /**
  * @typedef DisplayNameObj
- * @prop {string} [original]
- * @prop {string} [question]
- * @prop {string} [empty]
- * @prop {string} final - original, question or empty name - the one for the user.
+ * @prop {string} [original] - Name typed in by user.
+ * @prop {string} [question] - First question name.
+ * @prop {string} [empty] - Set when no other is available.
+ * @prop {string} final - original, question or empty name - the one to be displayed.
  */
 
 /**
@@ -104,21 +104,19 @@ export function getCountryDisplayString(asset, showLongName = false) {
  * @returns {DisplayNameObj} object containing final name and all useful data.
  */
 export function getAssetDisplayName(asset) {
-  const displayName = {};
-
+  const output = {};
   if (asset.name) {
-    displayName.original = asset.name;
-  } else if (asset.summary && asset.summary.labels && asset.summary.labels.length > 0) {
-    // for unnamed assets, we try to display first question name
-    displayName.question = asset.summary.labels[0];
-  } else {
-    // for unnamed assets, with no questions, we display special empty name
-    displayName.empty = t('no name');
+    output.original = asset.name;
   }
-
-  displayName.final = displayName.original || displayName.question || displayName.empty;
-
-  return displayName;
+  if (asset.summary && asset.summary.labels && asset.summary.labels.length > 0) {
+    // for unnamed assets, we try to display first question name
+    output.question = asset.summary.labels[0];
+  }
+  if (!output.original && !output.question) {
+    output.empty = t('untitled');
+  }
+  output.final = output.original || output.question || output.empty;
+  return output;
 }
 
 /**

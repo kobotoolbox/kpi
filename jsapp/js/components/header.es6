@@ -246,9 +246,7 @@ class MainHeader extends Reflux.Component {
                 <bem.MainHeader__icon className={iconClassName} />
 
                 <HeaderTitleEditor
-                  uid={this.state.asset.uid}
-                  type={this.state.asset.asset_type}
-                  name={this.state.asset.name}
+                  asset={this.state.asset}
                   isEditable={userCanEditAsset}
                 />
 
