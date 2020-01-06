@@ -146,11 +146,13 @@ module.exports = do ->
       $el.siblings('.message').remove()
 
   viewRowDetail.Templates = {
-    textbox: (cid, key, key_label = key, input_class = '', max_length = '') ->
+    textbox: (cid, key, key_label = key, input_class = '', placeholder_text='', max_length = '') ->
+      if placeholder_text is not ''
+        placeholder_text = _t(placeholder_text)
       if max_length is ''
-        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" placeholder="#{placeholder_text}" />""", cid, key_label
       else
-        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" maxlength="#{max_length}" />""", cid, key_label
+        @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" placeholder="#{placeholder_text}" maxlength="#{max_length}" />""", cid, key_label
 
     checkbox: (cid, key, key_label = key, input_label = _t("Yes")) ->
       input_label = input_label
@@ -300,7 +302,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Name"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Name"), 'text', 'Enter variable name here'
     afterRender: ->
       @makeRequired()
       @listenForInputChange(transformFn: (value)=>
@@ -590,7 +592,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Brief Description"), 'text', '40'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Brief Description"), 'text', 'Enter variable title here (optional)', '40'
     afterRender: ->
       @listenForInputChange()
 
@@ -641,7 +643,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Description"), 'text', '3999'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Description"), 'text', 'Enter variable definition here (optional)', '3999'
     afterRender: ->
       @listenForInputChange()
 
