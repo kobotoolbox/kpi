@@ -3,7 +3,11 @@
  */
 
 import Reflux from 'reflux';
-import {dataInterface} from '../dataInterface';
+import {dataInterface} from 'js/dataInterface';
+import {
+  t,
+  notify
+} from 'js/utils';
 
 const libraryActions = Reflux.createActions({
   searchMyLibraryAssets: {
@@ -100,6 +104,17 @@ libraryActions.getCollections.listen((params) => {
   dataInterface.getCollections(params)
     .done(libraryActions.getCollections.completed)
     .fail(libraryActions.getCollections.failed);
+});
+
+libraryActions.moveToCollection.completed.listen((asset) => {
+  if (asset.parent === null) {
+    notify(t('Successfuly removed from collection'));
+  } else {
+    notify(t('Successfuly moved to collection'));
+  }
+});
+libraryActions.moveToCollection.failed.listen(() => {
+  notify(t('Move to collection failed'), 'error');
 });
 
 export default libraryActions;

@@ -11,10 +11,7 @@ const myLibraryStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-
-  // TODO make it 100 after development
   PAGE_SIZE: 100,
-
   DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
 
   init() {
@@ -31,16 +28,16 @@ const myLibraryStore = Reflux.createStore({
     this.previousPath = null;
 
     hashHistory.listen(this.onRouteChange.bind(this));
-    this.listenTo(searchBoxStore, this.searchBoxStoreChanged);
-    this.listenTo(actions.library.moveToCollection.completed, this.onMoveToCollectionCompleted);
-    this.listenTo(actions.library.searchMyLibraryAssets.started, this.onSearchStarted);
-    this.listenTo(actions.library.searchMyLibraryAssets.completed, this.onSearchCompleted);
-    this.listenTo(actions.library.searchMyLibraryAssets.failed, this.onSearchFailed);
-    this.listenTo(actions.resources.loadAsset.completed, this.setAsset);
-    this.listenTo(actions.resources.cloneAsset.completed, this.onNewLibraryAsset);
-    this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
-    this.listenTo(actions.resources.createResource.completed, this.onNewLibraryAsset);
-    this.listenTo(actions.resources.updateAsset.completed, this.setAsset);
+    searchBoxStore.listen(this.searchBoxStoreChanged);
+    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
+    actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted);
+    actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted);
+    actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed);
+    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
+    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
+    actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
+    actions.resources.createResource.completed.listen(this.onAssetCreated);
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
     this.fetchData();
   },
@@ -81,7 +78,7 @@ const myLibraryStore = Reflux.createStore({
     }
   },
 
-  setAsset(asset) {
+  onAssetChanged(asset) {
     if (
       assetUtils.isLibraryAsset(asset.asset_type) &&
       this.data.assets.length !== 0
@@ -112,7 +109,7 @@ const myLibraryStore = Reflux.createStore({
     }
   },
 
-  onNewLibraryAsset(asset) {
+  onAssetCreated(asset) {
     if (
       assetUtils.isLibraryAsset(asset.asset_type) &&
       asset.parent === null

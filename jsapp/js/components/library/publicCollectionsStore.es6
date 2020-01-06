@@ -9,10 +9,7 @@ const publicCollectionsStore = Reflux.createStore({
    * It doesn't need to be defined, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-
-  // TODO make it 100 after development
   PAGE_SIZE: 100,
-
   DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
 
   init() {
@@ -31,10 +28,10 @@ const publicCollectionsStore = Reflux.createStore({
 
     // TODO reset data properly on some actions or when leaving route out of library
 
-    this.listenTo(searchBoxStore, this.searchBoxStoreChanged);
-    this.listenTo(actions.library.searchPublicCollections.started, this.onSearchStarted);
-    this.listenTo(actions.library.searchPublicCollections.completed, this.onSearchCompleted);
-    this.listenTo(actions.library.searchPublicCollections.failed, this.onSearchFailed);
+    searchBoxStore.listen(this.searchBoxStoreChanged);
+    actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
+    actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
+    actions.library.searchPublicCollections.failed.listen(this.onSearchFailed);
 
     this.fetchData();
   },
