@@ -333,15 +333,16 @@ class AssetActionButtons extends React.Component {
                 if (isAssetParent) {
                   modifiers.push('move-coll-item-parent');
                 }
+                const displayName = assetUtils.getAssetDisplayName(collection).final;
                 return (
                   <bem.PopoverMenu__item
                     onClick={this.moveToCollection.bind(this, collection.url)}
                     key={collection.uid}
-                    title={collection.name}
+                    title={displayName}
                     m={modifiers}
                   >
                     <i className='k-icon k-icon-folder-in'/>
-                    {collection.name}
+                    {displayName}
                   </bem.PopoverMenu__item>
                 );
               })}
