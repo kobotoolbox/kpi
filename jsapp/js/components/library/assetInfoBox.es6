@@ -23,7 +23,8 @@ class AssetInfoBox extends React.Component {
     this.state = {
       isPublicPending: false,
       isAwaitingFreshPermissions: false,
-      areDetailsVisible: false
+      areDetailsVisible: false,
+      ownerData: null
     };
     autoBind(this);
   }
@@ -31,6 +32,14 @@ class AssetInfoBox extends React.Component {
   componentDidMount() {
     this.listenTo(actions.permissions.setAssetPublic.completed, this.onSetAssetPublicCompleted);
     this.listenTo(actions.permissions.setAssetPublic.failed, this.onSetAssetPublicFailed);
+
+    if (!assetUtils.isSelfOwned(this.props.asset)) {
+      this.listenTo(actions.misc.getUser.completed, this.onGetUserCompleted);
+      this.listenTo(actions.misc.getUser.failed, this.onGetUserFailed);
+      actions.misc.getUser(this.props.asset.owner);
+    } else {
+      this.setState({ownerData: stores.session.currentAccount});
+    }
   }
 
   componentWillReceiveProps() {
@@ -39,6 +48,14 @@ class AssetInfoBox extends React.Component {
 
   toggleDetails() {
     this.setState({areDetailsVisible: !this.state.areDetailsVisible});
+  }
+
+  onGetUserCompleted(userData) {
+    this.setState({ownerData: userData});
+  }
+
+  onGetUserFailed() {
+    // TODO notify
   }
 
   onSetAssetPublicCompleted(assetUid) {
@@ -88,12 +105,6 @@ class AssetInfoBox extends React.Component {
 
     const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
     const isPublic = isPublicable && assetUtils.isAssetPublic(this.props.asset.permissions);
-    let dateJoined;
-    if (assetUtils.isSelfOwned(this.props.asset)) {
-      dateJoined = stores.session.currentAccount.date_joined;
-    } else {
-      // TODO get `date_joined` of not-logged in user
-    }
 
     return (
       <bem.FormView__cell m='box'>
@@ -217,7 +228,7 @@ class AssetInfoBox extends React.Component {
                   {t('Member since')}
                 </bem.FormView__cellLabel>
 
-                {dateJoined ? formatDate(dateJoined) : t('n/a')}
+                {this.state.ownerData ? formatDate(this.state.ownerData.date_joined) : t('…')}
               </bem.FormView__cell>
             </bem.FormView__cell>
           </React.Fragment>
