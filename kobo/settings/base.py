@@ -203,12 +203,7 @@ DATABASES = {
     'kobocat': dj_database_url.parse(kobocat_database_url)
 }
 
-USE_SAME_DATABASE = DATABASES['default'] == DATABASES['kobocat']
-
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
-if USE_SAME_DATABASE is True:
-    DATABASE_ROUTERS = ['kpi.db_routers.SingleDatabaseRouter']
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
