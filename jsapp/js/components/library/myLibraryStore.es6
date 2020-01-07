@@ -128,8 +128,6 @@ const myLibraryStore = Reflux.createStore({
   },
 
   onSearchCompleted(response) {
-    console.debug('onSearchCompleted', response);
-
     delete this.abortFetchData;
 
     this.data.hasNextPage = response.next !== null;

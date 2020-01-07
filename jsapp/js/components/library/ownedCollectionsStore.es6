@@ -45,6 +45,10 @@ const ownedCollectionsStore = Reflux.createStore({
     this.trigger(this.data);
   },
 
+  onMoveToCollectionCompleted(asset) {
+    // TODO update this.data.collections collection children count?
+  },
+
   onAssetChangedOrCreated(asset) {
     if (
       asset.asset_type === ASSET_TYPES.collection.id &&

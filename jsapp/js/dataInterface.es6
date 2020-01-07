@@ -54,6 +54,11 @@ export var dataInterface;
         url: `${ROOT_URL}/token/?format=json`
       });
     },
+    getUser: (userUrl) => {
+      return $ajax({
+        url: userUrl
+      });
+    },
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
       $ajax({ url: `${ROOT_URL}/api/v2/users/${username}/` })

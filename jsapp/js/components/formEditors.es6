@@ -402,8 +402,6 @@ export class LibraryAssetCreator extends React.Component {
       backRoute: '/library'
     };
 
-    console.debug('LibraryAssetCreator', this.props);
-
     if (this.props.location.pathname === '/library/new/template') {
       this.state.desiredAssetType = ASSET_TYPES.template.id;
     }

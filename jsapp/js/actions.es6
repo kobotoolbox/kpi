@@ -190,6 +190,12 @@ actions.hooks = Reflux.createActions({
 });
 
 actions.misc = Reflux.createActions({
+  getUser: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   checkUsername: {
     asyncResult: true,
     children: [
@@ -232,6 +238,12 @@ permissionsActions.setAssetPublic.completed.listen((uid) => {
 permissionsActions.removeAssetPermission.completed.listen((uid) => {
   // needed to update publicShareSettings after disabling link sharing
   actions.resources.loadAsset({id: uid});
+});
+
+actions.misc.getUser.listen((userUrl) => {
+  dataInterface.getUser(userUrl)
+    .done(actions.misc.getUser.completed)
+    .fail(actions.misc.getUser.failed);
 });
 
 actions.misc.checkUsername.listen(function(username){
