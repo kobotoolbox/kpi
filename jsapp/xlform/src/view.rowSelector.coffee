@@ -123,6 +123,8 @@ module.exports = do ->
         survey = @options.survey
         options.at = 0
 
+      rowDetails.isNewRow = true
+
       newRow = survey.addRow(rowDetails, options)
       newRow.linkUp(warnings: [], errors: [])
       @hide()
