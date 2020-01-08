@@ -105,7 +105,6 @@ class FilteredQuerySetMixin:
                 self._matched_field = True
                 value = self.__get_value(part, 'parent')
                 null_values = ['none', 'null', '']
-                any(x == value for x in null_values)
                 if any(x == value for x in null_values):
                     filters_['parent'] = None
                 else:
