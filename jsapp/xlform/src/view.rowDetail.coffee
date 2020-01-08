@@ -584,7 +584,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text', 'Enter variable data group name here'
     afterRender: ->
       @listenForInputChange()
 
