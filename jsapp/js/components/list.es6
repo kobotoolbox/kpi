@@ -12,6 +12,7 @@ import {dataInterface} from '../dataInterface';
 import {searches} from '../searches';
 import {stores} from '../stores';
 import {t} from '../utils';
+import {ACCESS_TYPES} from 'js/constants';
 
 export class ListSearch extends React.Component {
   constructor(props) {
@@ -142,7 +143,7 @@ export class ListCollectionFilter extends React.Component {
   queryCollections () {
     dataInterface.getCollections().then((collections)=>{
       var availableCollections = collections.results.filter((value) => {
-        return value.access_type !== 'public';
+        return value.access_type !== ACCESS_TYPES.get('public');
       });
 
       this.setState({

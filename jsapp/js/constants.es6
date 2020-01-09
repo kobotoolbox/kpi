@@ -357,6 +357,14 @@ export const COMMON_QUERIES = new Map([
   ['qbtc', 'asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection']
 ]);
 
+export const ACCESS_TYPES = new Map();
+new Set([
+  'owned',
+  'shared',
+  'public',
+  'subscribed'
+]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
+
 export const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -373,5 +381,6 @@ export const constants = {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH,
-  COMMON_QUERIES
+  COMMON_QUERIES,
+  ACCESS_TYPES
 };

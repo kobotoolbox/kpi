@@ -363,8 +363,8 @@ export var dataInterface;
     },
     searchMyLibraryAssets(params = {}) {
       const searchData = {
-        q: COMMON_QUERIES.get('qbtc'),
-        parent: '', // we only want orphans (assets not inside collection)
+        // we only want orphans (assets not inside collection)
+        q: `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
         limit: params.pageSize || 100,
         offset: params.page * params.pageSize || 0
       };
@@ -386,6 +386,7 @@ export var dataInterface;
     },
     searchPublicCollections(params = {}) {
       const searchData = {
+        q: `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
         all_public: true,
         limit: params.pageSize || 100,
         offset: params.page * params.pageSize || 0
@@ -400,7 +401,7 @@ export var dataInterface;
       }
 
       return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/`,
+        url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
         data: searchData,
         method: 'GET'

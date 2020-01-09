@@ -15,7 +15,8 @@ import Dropzone from 'react-dropzone';
 import {t, validFileTypes} from '../utils';
 import {
   ASSET_TYPES,
-  COMMON_QUERIES
+  COMMON_QUERIES,
+  ACCESS_TYPES
 } from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
@@ -44,7 +45,7 @@ class SearchCollectionList extends Reflux.Component {
       dataInterface.getCollections().then((collections) => {
         this.setState({
           ownedCollections: collections.results.filter((value) => {
-            if (value.access_type === 'shared') {
+            if (value.access_type === ACCESS_TYPES.get('shared')) {
               // TODO: include shared assets with edit (change) permission for current user
               // var hasChangePermission = false;
               // value.permissions.forEach((perm, index) => {
@@ -54,7 +55,7 @@ class SearchCollectionList extends Reflux.Component {
               // return hasChangePermission;
               return false;
             } else {
-              return value.access_type === 'owned';
+              return value.access_type === ACCESS_TYPES.get('owned');
             }
           })
         });

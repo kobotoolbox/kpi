@@ -9,7 +9,8 @@ import {
   MODAL_TYPES,
   QUESTION_TYPES,
   ANON_USERNAME,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
+  ACCESS_TYPES
 } from 'js/constants';
 
 /**
@@ -170,7 +171,7 @@ export function getAssetIcon(asset) {
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
     if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
-    } else if (asset.access_type === 'shared') {
+    } else if (asset.access_type === ACCESS_TYPES.get('shared')) {
       return 'k-icon-folder-shared';
     } else {
       return 'k-icon-folder';
@@ -359,22 +360,6 @@ export function isSelfOwned(asset) {
   );
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @return {boolean}
- */
-export function isUserSubscribedToAsset(asset) {
-  let username = null;
-
-  if (stores.session.currentAccount && stores.session.currentAccount.username) {
-    username = stores.session.currentAccount.username;
-  }
-
-  // TODO write this logic
-
-  return false;
-}
-
 export default {
   cleanupTags,
   getAssetOwnerDisplayName,
@@ -395,6 +380,5 @@ export default {
   getFlatQuestionsList,
   isAssetPublicReady,
   isAssetPublic,
-  isSelfOwned,
-  isUserSubscribedToAsset
+  isSelfOwned
 };

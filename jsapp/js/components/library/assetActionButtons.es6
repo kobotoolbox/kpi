@@ -19,7 +19,10 @@ import {bem} from 'js/bem';
 import {t} from 'js/utils';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
-import {ASSET_TYPES} from 'js/constants';
+import {
+  ASSET_TYPES,
+  ACCESS_TYPES
+} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
 
@@ -162,7 +165,7 @@ class AssetActionButtons extends React.Component {
     );
     const isDeployable = true;
     const downloads = [];
-    const isUserSubscribed = assetUtils.isUserSubscribedToAsset(this.props.asset);
+    const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
     const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
 
