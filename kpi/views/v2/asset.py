@@ -25,7 +25,11 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
-from kpi.filters import KpiObjectPermissionsFilter, SearchFilter
+from kpi.filters import (
+    AssetOrderingFilter,
+    KpiObjectPermissionsFilter,
+    SearchFilter
+)
 from kpi.highlighters import highlight_xform
 from kpi.models import Asset
 from kpi.models.object_permission import (
@@ -192,8 +196,18 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
-
+    filter_backends = (
+        KpiObjectPermissionsFilter,
+        SearchFilter,
+        AssetOrderingFilter
+    )
+    ordering_fields = [
+        'asset_type',
+        'date_modified',
+        'name',
+        'owner__username',
+        'subscribers_count',
+    ]
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
                         SSJsonRenderer,
