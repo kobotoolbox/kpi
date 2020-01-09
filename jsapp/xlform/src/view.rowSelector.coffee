@@ -115,6 +115,9 @@ module.exports = do ->
 
       rowDetails.label = questionLabelValue
 
+      if questionLabelValue != ''
+        rowDetails.name = questionLabelValue.toLowerCase().replace(/ /g,"_").replace(/\W/g, '')
+
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)
         options.after = rowBefore
@@ -122,6 +125,8 @@ module.exports = do ->
       else
         survey = @options.survey
         options.at = 0
+
+      rowDetails.isNewRow = true
 
       newRow = survey.addRow(rowDetails, options)
       newRow.linkUp(warnings: [], errors: [])
