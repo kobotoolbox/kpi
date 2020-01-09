@@ -335,7 +335,6 @@ export function isAssetPublicReady(name, organization, sector) {
  * @returns {boolean} Is asset public.
  */
 export function isAssetPublic(permissions) {
-  let isVisibleToAnonymous = false;
   let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
     if (
@@ -345,7 +344,7 @@ export function isAssetPublic(permissions) {
       isDiscoverableByAnonymous = true;
     }
   });
-   return isVisibleToAnonymous && isDiscoverableByAnonymous;
+   return isDiscoverableByAnonymous;
 }
 
 /**

@@ -1,4 +1,6 @@
 .asset-action-buttons {
+  display: flex;
+  align-items: center;
   height: 32px;
   margin: 0;
   padding: 0;
@@ -8,15 +10,49 @@
     font-size: 32px;
     color: inherit;
   }
+
+  .popover-menu__toggle .k-icon {
+    display: block;
+  }
+}
+
+.asset-action-buttons__button,
+.asset-action-buttons__icon-button {
+  display: block;
+  cursor: pointer;
+
+  .k-icon { display: block; }
+}
+
+.asset-action-buttons__button {
+  border: 1px solid currentColor;
+  height: 28px;
+  text-transform: uppercase;
+  overflow: hidden;
+  position: relative;
+  padding: 3px 6px 0 28px;
+  color: $cool-blue;
+  border-radius: 2px;
+
+  &:hover {
+    color: darken($cool-blue, 5%);
+  }
+
+  .k-icon {
+    position: absolute;
+    top: -3px;
+    left: -2px;
+  }
 }
 
 .asset-action-buttons__icon-button {
-  display: inline-block;
-  vertical-align: middle;
-  cursor: pointer;
   color: $cool-gray;
 
   &:hover {
     color: $cool-blue;
   }
+}
+
+.asset-action-buttons__button + .asset-action-buttons__icon-button {
+  margin-left: 5px;
 }

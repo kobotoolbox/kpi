@@ -275,11 +275,13 @@ bem.AssetsTableRow__buttons = bem.AssetsTableRow.__('buttons');
 bem.AssetsTableRow__column = bem.AssetsTableRow.__('column');
 bem.AssetsTableRow__tags = bem.AssetsTableRow.__('tags', '<ul>');
 bem.AssetsTableRow__tag = bem.AssetsTableRow.__('tag', '<li>');
+bem.AssetsTableRow__dot = bem.AssetsTableRow.__('dot', '<span>');
 bem.AssetsTablePagination = BEM('assets-table-pagination');
 bem.AssetsTablePagination__button = bem.AssetsTablePagination.__('button', '<button>');
 bem.AssetsTablePagination__index = bem.AssetsTablePagination.__('index');
 
 bem.AssetActionButtons = BEM('asset-action-buttons', '<menu>');
+bem.AssetActionButtons__button = bem.AssetActionButtons.__('button', '<a>');
 bem.AssetActionButtons__iconButton = bem.AssetActionButtons.__('icon-button', '<a>');
 
 bem.tagSelect = BEM('tag-select');

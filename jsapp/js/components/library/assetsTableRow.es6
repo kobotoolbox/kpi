@@ -4,7 +4,10 @@ import {bem} from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
 import ui from 'js/ui';
 import {formatTime} from 'js/utils';
-import {ASSET_TYPES} from 'js/constants';
+import {
+  ASSET_TYPES,
+  ACCESS_TYPES
+} from 'js/constants';
 import assetUtils from 'js/assetUtils';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
 
@@ -37,6 +40,8 @@ class AssetsTableRow extends React.Component {
       rowCount = this.props.asset.children.count;
     }
 
+    const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
+
     return (
       <bem.AssetsTableRow m='asset'>
         <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`}/>
@@ -55,6 +60,8 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>
+          {isUserSubscribed && <bem.AssetsTableRow__dot/>}
+
           <ui.AssetName {...this.props.asset}/>
 
           {this.props.asset.settings && this.props.asset.settings.tags && this.props.asset.settings.tags.length > 0 &&

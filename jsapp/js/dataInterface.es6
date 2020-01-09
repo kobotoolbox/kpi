@@ -291,7 +291,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/asset_subscriptions/`,
         data: {
-          collection__uid: uid
+          asset__uid: uid
         },
         method: 'GET'
       }).then((data) => {
@@ -364,7 +364,7 @@ export var dataInterface;
     searchMyLibraryAssets(params = {}) {
       const searchData = {
         // we only want orphans (assets not inside collection)
-        q: `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
+        q: `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
         limit: params.pageSize || 100,
         offset: params.page * params.pageSize || 0
       };

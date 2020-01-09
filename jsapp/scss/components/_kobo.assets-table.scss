@@ -203,6 +203,16 @@ $c-assets-table-row-hover: $cool-whitegray;
   }
 }
 
+.assets-table-row__dot {
+  display: inline-block;
+  vertical-align: 2px;
+  margin-right: 3px;
+  background-color: $cool-blue;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
 /* ==========================================================================
  * AssetsTableRow tags
  * ========================================================================== */
