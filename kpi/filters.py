@@ -1,6 +1,6 @@
 # coding: utf-8
 import re
-from distutils.util import strtobool
+from collections import OrderedDict
 
 import haystack
 from django.conf import settings
@@ -15,7 +15,13 @@ from rest_framework import filters
 from whoosh.qparser import QueryParser
 from whoosh.query import Term
 
-from kpi.constants import PERM_DISCOVER_ASSET
+from kpi.constants import (
+    PERM_DISCOVER_ASSET,
+    ASSET_STATUS_SHARED,
+    ASSET_STATUS_DISCOVERABLE,
+    ASSET_STATUS_PRIVATE,
+    ASSET_STATUS_PUBLIC
+)
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
@@ -40,66 +46,178 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(**fields)
 
 
-class KpiObjectPermissionsFilter:
+class FilteredQuerySetMixin:
+    """
+    Handles `q` query string parameter.
+
+    Main purpose is to avoid duplicate code between `SearchFilter`
+    and `KpiObjectPermissionsFilter`.
+    Because `q` now supports `parent` and `status`.
+    `status` is processed within `KpiObjectPermissionsFilter` and
+    `parent`&`asset_type` are processed within `SearchFilter
+    TODO Review/refactor in https://github.com/kobotoolbox/kpi/issues/2514
+    """
+
+    def get_discoverable(self, queryset):
+        # We were asked not to consider subscriptions; return all
+        # discoverable objects
+        return get_objects_for_user(
+            get_anonymous_user(), PERM_DISCOVER_ASSET,
+            queryset
+        )
+
+    def get_filtered_queryset(self, request, queryset, skipped_fields):
+
+        self._matched_field = False
+        user = request.user
+
+        try:
+            q = request.query_params['q']
+        except KeyError:
+            return queryset
+
+        # Short-circuit some commonly used queries
+        common_query_to_orm_filter = {
+            'asset_type:block': {'asset_type': 'block'},
+            'asset_type:question': {'asset_type': 'question'},
+            'asset_type:template': {'asset_type': 'template'},
+            'asset_type:survey': {'asset_type': 'survey'},
+            'asset_type:collection': {'asset_type': 'collection'},
+            'asset_type:question OR asset_type:block': {
+                'asset_type__in': ('question', 'block')
+            },
+            'asset_type:question OR asset_type:block OR asset_type:template': {
+                'asset_type__in': ('question', 'block', 'template')
+            },
+            'asset_type:question OR asset_type:block OR asset_type:template '
+            'OR asset_type:collection': {
+                'asset_type__in': ('question', 'block', 'template', 'collection')
+            },
+        }
+
+        query_parts = q.split('AND')
+        filters_ = {}
+
+        for part in query_parts:
+            part = part.strip()
+            if skipped_fields.get('parent') is not True \
+                    and part.startswith('parent:'):
+                self._matched_field = True
+                value = self.__get_value(part, 'parent')
+                null_values = ['none', 'null', '']
+                if any(x == value for x in null_values):
+                    filters_['parent'] = None
+                else:
+                    filters_['parent__uid'] = value
+                continue
+
+            if skipped_fields.get('asset_type') is not True and \
+                    part.startswith('asset_type:'):
+                self._matched_field = True
+                filters_.update(common_query_to_orm_filter[part])
+                continue
+
+            if skipped_fields.get('status') is not True \
+                    and part.startswith('status:'):
+                self._matched_field = True
+                value = self.__get_value(part, 'status')
+                if value == ASSET_STATUS_PRIVATE:
+                    filters_['owner_id'] = request.user.id
+                elif value == ASSET_STATUS_SHARED:
+                    return get_objects_for_user(
+                            user, self._permission,
+                            queryset.filter(**filters_))
+
+                elif value == ASSET_STATUS_PUBLIC:
+                    public = self.get_public(queryset.filter(**filters_))
+                    subscribed = self.get_subscribed(public, user)
+                    return subscribed
+
+                elif value == ASSET_STATUS_DISCOVERABLE:
+                    discoverable = self.get_discoverable(
+                        self.get_public(queryset.filter(**filters_)))
+                    # We were asked not to consider subscriptions; return all
+                    # discoverable objects
+                    return discoverable
+
+                continue
+
+        return queryset.filter(**filters_)
+
+    @staticmethod
+    def __get_value(str_, key):
+        return str_[len(key) + 1:].lower()  # get everything after `<key>:`
+
+    def get_owned_and_explicitly_shared(self, queryset, user):
+        if user.is_anonymous:
+            # Avoid giving anonymous users special treatment when viewing
+            # public objects
+            owned_and_explicitly_shared = queryset.none()
+        else:
+            owned_and_explicitly_shared = get_objects_for_user(
+                user, self._permission, queryset)
+
+        return owned_and_explicitly_shared
+
+    def get_public(self, queryset):
+        return get_objects_for_user(get_anonymous_user(),
+                                    self._permission, queryset)
+
+    def get_subscribed(self, queryset, user):
+        # Of the public objects, determine to which the user has
+        # subscribed
+        if user.is_anonymous:
+            user = get_anonymous_user()
+        try:
+            subscribed = queryset.filter(userassetsubscription__user=user)
+            # TODO: should this expand beyond the immediate parents to include
+            # all ancestors to which the user has subscribed?
+            subscribed |= queryset.filter(
+                parent__userassetsubscription__user=user
+            )
+        except FieldError:
+            # The model does not have a subscription relation
+            subscribed = queryset.none()
+
+        return subscribed
+
+
+class KpiObjectPermissionsFilter(FilteredQuerySetMixin):
+
     perm_format = '%(app_label)s.view_%(model_name)s'
 
     def filter_queryset(self, request, queryset, view):
 
         user = request.user
+
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
             return queryset
-        # Governs whether unsubscribed (but publicly discoverable) objects are
-        # included. Exclude them by default
-        all_public = bool(strtobool(
-            request.query_params.get('all_public', 'false').lower()))
 
         model_cls = queryset.model
         kwargs = {
             'app_label': model_cls._meta.app_label,
             'model_name': model_cls._meta.model_name,
         }
-        permission = self.perm_format % kwargs
+        self._permission = self.perm_format % kwargs
 
-        if user.is_anonymous:
-            user = get_anonymous_user()
-            # Avoid giving anonymous users special treatment when viewing
-            # public objects
-            owned_and_explicitly_shared = queryset.none()
-        else:
-            owned_and_explicitly_shared = get_objects_for_user(
-                user, permission, queryset)
-        public = get_objects_for_user(
-            get_anonymous_user(), permission, queryset)
+        skipped_fields = {'parent': True, 'asset_type': True}
+        queryset = self.get_filtered_queryset(request, queryset,
+                                              skipped_fields)
+        if self._matched_field:
+            return queryset.distinct()
+
+        owned_and_explicitly_shared = self.get_owned_and_explicitly_shared(
+            queryset, user)
+
+        public = self.get_public(queryset)
+
         if view.action != 'list':
             # Not a list, so discoverability doesn't matter
             return (owned_and_explicitly_shared | public).distinct()
 
-        # For a list, do not include public objects unless they are also
-        # discoverable
-        # FIXME: clearly asset-specific, not generic; should not be here
-        discoverable = get_objects_for_user(
-            get_anonymous_user(), PERM_DISCOVER_ASSET, public
-        )
-
-        if all_public:
-            # We were asked not to consider subscriptions; return all
-            # discoverable objects
-            return (owned_and_explicitly_shared | discoverable).distinct()
-
-        # Of the discoverable objects, determine to which the user has
-        # subscribed
-        try:
-            subscribed = public.filter(userassetsubscription__user=user)
-            # TODO: should this expand beyond the immediate parents to include
-            # all ancestors to which the user has subscribed?
-            subscribed |= public.filter(
-                parent__userassetsubscription__user=user
-            )
-        except FieldError:
-            # The model does not have a subscription relation
-            subscribed = public.none()
+        subscribed = self.get_subscribed(queryset, user)
 
         return (owned_and_explicitly_shared | subscribed).distinct()
 
@@ -121,7 +239,7 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
         return queryset.filter(asset__in=available_assets)
 
 
-class SearchFilter(filters.BaseFilterBackend):
+class SearchFilter(filters.BaseFilterBackend, FilteredQuerySetMixin):
     """
     Filter objects by searching with Whoosh if the request includes a `q`
     parameter. Another parameter, `parent`, is recognized when its value is an
@@ -133,34 +251,10 @@ class SearchFilter(filters.BaseFilterBackend):
     )
 
     def filter_queryset(self, request, queryset, view):
-        if ('parent' in request.query_params and
-                request.query_params['parent'] == ''):
-            # Empty string means query for null parent
-            queryset = queryset.filter(parent=None)
-        try:
-            q = request.query_params['q']
-        except KeyError:
-            return queryset
 
-        # Short-circuit some commonly used queries
-        COMMON_QUERY_TO_ORM_FILTER = {
-            'asset_type:block': {'asset_type': 'block'},
-            'asset_type:question': {'asset_type': 'question'},
-            'asset_type:template': {'asset_type': 'template'},
-            'asset_type:survey': {'asset_type': 'survey'},
-            'asset_type:collection': {'asset_type': 'collection'},
-            'asset_type:question OR asset_type:block': {
-                'asset_type__in': ('question', 'block')
-            },
-            'asset_type:question OR asset_type:block OR asset_type:template': {
-                'asset_type__in': ('question', 'block', 'template')
-            },
-            'asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection': {
-                'asset_type__in': ('question', 'block', 'template', 'collection')
-            },
-        }
         try:
-            return queryset.filter(**COMMON_QUERY_TO_ORM_FILTER[q])
+            skipped_fields = {'status': True}
+            return self.get_filtered_queryset(request, queryset, skipped_fields)
         except KeyError:
             # We don't know how to short-circuit this query; pass it along
             pass
@@ -171,6 +265,7 @@ class SearchFilter(filters.BaseFilterBackend):
 
         # Queries for library questions/blocks inside collections are also
         # common (and buggy when using Whoosh: see #1707)
+        q = request.query_params['q']
         library_collection_match = self.library_collection_pattern.match(q)
         if library_collection_match:
             asset_types = [
