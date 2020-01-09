@@ -72,5 +72,7 @@ class Command(BaseCommand):
             except OperationalError as e:
                 if str(e).strip().endswith('does not exist'):
                     results.append(True)
+                else:
+                    raise
 
         self.stdout.write('\t'.join([str(x) for x in results]))
