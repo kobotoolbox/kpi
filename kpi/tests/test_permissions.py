@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
 
 from kpi.constants import (
@@ -745,3 +745,15 @@ class PermissionsTestCase(BasePermissionsTestCase):
         partial_perms = asset.get_partial_perms(grantee.id, with_filters=True)
         self.assertDictEqual(expected_partial_perms, partial_perms)
 
+    def test_user_without_perms_get_anonymous_perms(self):
+
+        asset = self.admin_asset
+        grantee = self.someuser
+        anonymous_user = AnonymousUser()
+
+        self.assertFalse(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertFalse(anonymous_user.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+        self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
+        self.assertTrue(list(asset.get_perms(grantee)),
+                        list(asset.get_perms(anonymous_user)))

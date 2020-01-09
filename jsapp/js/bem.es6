@@ -232,6 +232,7 @@ bem.AccountSettings__left = bem.AccountSettings.__('left');
 bem.AccountSettings__right = bem.AccountSettings.__('right');
 bem.AccountSettings__item = bem.FormModal.__('item');
 bem.AccountSettings__desc = bem.AccountSettings.__('desc');
+bem.AccountSettings__actions = bem.AccountSettings.__('actions');
 
 bem.ChangePassword = BEM('change-password');
 bem.ChangePassword__item = bem.FormModal.__('item');
