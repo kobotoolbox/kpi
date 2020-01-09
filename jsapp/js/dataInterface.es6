@@ -363,7 +363,7 @@ export var dataInterface;
     },
     searchMyLibraryAssets(params = {}) {
       const searchData = {
-        q: `(${COMMON_QUERIES.get('qbtc')})`,
+        q: COMMON_QUERIES.get('qbtc'),
         parent: '', // we only want orphans (assets not inside collection)
         limit: params.pageSize || 100,
         offset: params.page * params.pageSize || 0

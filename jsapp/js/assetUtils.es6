@@ -327,6 +327,7 @@ export function isAssetPublicReady(name, organization, sector) {
 
 /**
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
+ * Note that `view_asset` is implied when you have `discover_asset`.
  *
  * @param {Object[]} permissions - Asset permissions.
  *
@@ -336,12 +337,6 @@ export function isAssetPublic(permissions) {
   let isVisibleToAnonymous = false;
   let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
-    if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
-      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
-    ) {
-      isVisibleToAnonymous = true;
-    }
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
       perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
