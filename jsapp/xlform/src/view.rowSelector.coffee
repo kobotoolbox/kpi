@@ -115,6 +115,9 @@ module.exports = do ->
 
       rowDetails.label = questionLabelValue
 
+      if questionLabelValue != ''
+        rowDetails.name = questionLabelValue.toLowerCase().replace(/ /g,"_").replace(/\W/g, '')
+
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)
         options.after = rowBefore
