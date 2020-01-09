@@ -42,13 +42,12 @@ module.exports = do ->
     # expandRowSelector: ->
     #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
 
-    isNewRow: ->
-      if 'isNewRow' not of @model.attributes
-        false
-      else
-        @model.get('isNewRow') && @model.get('isNewRow').get('value') is true
-
     render: (opts={})->
+      isNewRow = false
+      if @model.get('isNewRow') && @model.get('isNewRow').get('value') is true
+        isNewRow = true
+        delete @model.attributes.isNewRow
+
       fixScroll = opts.fixScroll
 
       if @already_rendered
@@ -63,7 +62,7 @@ module.exports = do ->
         @_renderError()
       else
         @_renderRow()
-        if @isNewRow()
+        if isNewRow
           @toggleSettings(true)
 
       @is_expanded = @$card?.hasClass('card--expandedchoices')
