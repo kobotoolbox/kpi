@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 
 from kpi.constants import (
@@ -38,10 +39,10 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
         fields = ('url', 'asset', 'uid')
 
     def validate_asset(self, asset):
-
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             raise serializers.ValidationError(
                 _('Invalid asset type. Only `{asset_type}`').format(
                     asset_type=ASSET_TYPE_COLLECTION
                 )
             )
+        return asset
