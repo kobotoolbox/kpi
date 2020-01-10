@@ -26,7 +26,11 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
-from kpi.filters import KpiObjectPermissionsFilter, SearchFilter
+from kpi.filters import (
+    AssetOrderingFilter,
+    KpiObjectPermissionsFilter,
+    SearchFilter
+)
 from kpi.highlighters import highlight_xform
 from kpi.models import Asset
 from kpi.models.object_permission import (
@@ -193,8 +197,18 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
-
+    filter_backends = (
+        KpiObjectPermissionsFilter,
+        SearchFilter,
+        AssetOrderingFilter
+    )
+    ordering_fields = [
+        'asset_type',
+        'date_modified',
+        'name',
+        'owner__username',
+        'subscribers_count',
+    ]
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
                         SSJsonRenderer,
@@ -247,12 +261,14 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             ).order_by(
                 'user__username', 'permission__codename'
             )
+
             object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:
                 object_permissions_per_asset[op.object_id].append(op)
 
             context_['object_permissions_per_asset'] = object_permissions_per_asset
+            print('OBJECT_PERMISSIONS_PER_ASSET', object_permissions_per_asset, flush=True)
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = UserAssetSubscription.objects. \
