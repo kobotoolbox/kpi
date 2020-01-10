@@ -33,11 +33,13 @@ class AssetsListApiTests(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         self.list_url = reverse(self._get_endpoint('asset-list'))
 
+    def login_as_other_user(self, username, password):
+        self.client.logout()
+        self.client.login(username=username, password=password)
+
     def test_login_as_other_users(self):
-        self.client.logout()
-        self.client.login(username='admin', password='pass')
-        self.client.logout()
-        self.client.login(username='anotheruser', password='anotheruser')
+        self.login_as_other_user(username='admin', password='pass')
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
         self.client.logout()
 
     def test_create_asset(self):
@@ -94,6 +96,51 @@ class AssetsListApiTests(BaseAssetTestCase):
         hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
+
+    def test_filter_assets(self):
+        another_user = User.objects.get(username="anotheruser")
+        survey_response = self.create_asset(asset_type='survey')
+        survey_uid = survey_response.data.get('uid')
+        self.create_asset(asset_type='block')
+        self.create_asset(asset_type='template')
+
+        # Retrieve all assets. Should have 3
+        response = self.client.get(self.list_url)
+        self.assertTrue(response.data.get('count') == 3)
+
+        # Logged in as another user, retrieve all assets. Should have none
+        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        response = self.client.get(self.list_url)
+        self.assertTrue(response.data.get('count') == 0)
+
+        # Grant `view_asset` to `anotheruser` on `survey`
+        survey = Asset.objects.get(uid=survey_uid)
+        survey.assign_perm(another_user, PERM_VIEW_ASSET)
+
+        # Logged in as `anotheruser, retrieve all assets. Should have 1
+        response = self.client.get(self.list_url)
+        self.assertTrue(response.data.get('count') == 1)
+
+        # Logged in as `anotheruser, retrieve 'survey' assets. Should have 1
+        query_string = 'asset_type:survey'
+        url = f'{self.list_url}?q={query_string}'
+        response = self.client.get(url)
+        self.assertTrue(response.data.get('count') == 1)
+
+        # Logged in as `anotheruser, retrieve 'block' or 'template' assets.
+        # Should have 0
+        query_string = 'asset_type:block OR asset_type:template'
+        url = f'{self.list_url}?q={query_string}'
+        response = self.client.get(url)
+        self.assertTrue(response.data.get('count') == 0)
+
+        # Logged in as `someuser, retrieve 'block' or 'template' assets.
+        # Should have 2
+        self.login_as_other_user(username="someuser", password="someuser")
+        query_string = 'asset_type:block OR asset_type:template'
+        url = f'{self.list_url}?q={query_string}'
+        response = self.client.get(url)
+        self.assertTrue(response.data.get('count') == 2)
 
 
 class AssetVersionApiTests(BaseTestCase):

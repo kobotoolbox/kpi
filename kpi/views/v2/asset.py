@@ -260,6 +260,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             ).order_by(
                 'user__username', 'permission__codename'
             )
+
             object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:

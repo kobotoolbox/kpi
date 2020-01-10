@@ -67,9 +67,9 @@ class FilteredQuerySetMixin:
 
     Main purpose is to avoid duplicate code between `SearchFilter`
     and `KpiObjectPermissionsFilter`.
-    Because `q` now supports `parent` and `status`.
+    Because `q` now supports `parent__uid:none` and `status`.
     `status` is processed within `KpiObjectPermissionsFilter` and
-    `parent`&`asset_type` are processed within `SearchFilter
+    `parent__uid`&`asset_type` are processed within `SearchFilter
     TODO Review/refactor(/remove?) in https://github.com/kobotoolbox/kpi/issues/2514
     """
 
@@ -81,7 +81,32 @@ class FilteredQuerySetMixin:
             queryset
         )
 
-    def get_filtered_queryset(self, request, queryset, skipped_fields):
+    def get_filtered_queryset(self, request, queryset, skipped_fields,
+                              skip_subsequent_filtering=False):
+        """
+        Gets edit URL of the submission from `kc` through proxy
+
+        Args:
+            request
+            queryset
+            skipped_fields (dict): fields in `q` parameter to be skipped when
+                filtering queryset. Supported fields are:
+                - `status`
+                - `asset_type`
+                - `summary__languages`
+                - `settings__country__value`
+                - `settings__organization`
+                - `settings__sector__value`
+                - `parent__uid
+                It is useful to avoid applying same filters on queryset when
+                calling the method several times from different Filter classes.
+            skip_subsequent_filtering (bool): Set value of
+                `_return_filtered_queryset` when `q` parameter is empty or
+                does not exist. It allows to keep filtering (or not) within
+                the Filter class after the call of this method.
+        Returns:
+            QuerySet
+        """
 
         self._return_filtered_queryset = False
         user = request.user
@@ -89,10 +114,10 @@ class FilteredQuerySetMixin:
         try:
             q = request.query_params['q'].strip()
             if q == '':
-                self._return_filtered_queryset = True
+                self._return_filtered_queryset = skip_subsequent_filtering
                 return queryset
         except KeyError:
-            self._return_filtered_queryset = True
+            self._return_filtered_queryset = skip_subsequent_filtering
             return queryset
 
         query_parts = q.split(' AND ')  # Can be risky if one of values contains ` AND `
@@ -124,8 +149,8 @@ class FilteredQuerySetMixin:
                 Q(asset_type__contains='collection') |
                 Q(asset_type__contains='template')
 
-            Useful when `IN` cannot be used. For example: `languages` which part
-            of `summary` field which is not a JSONBField.
+            Useful when `IN` cannot be used. For example: `languages`
+            which is part of `summary` field which is not a JSONBField.
 
             :param query_part_: splitted part of querystring
             :param real_field: real field name of the model
@@ -175,7 +200,7 @@ class FilteredQuerySetMixin:
                 query_parts.remove(query_part)
                 continue
 
-            if add_filter(query_part, 'language', 'summary'):
+            if add_filter(query_part, 'summary__languages', 'summary'):
                 query_parts.remove(query_part)
                 continue
 
@@ -207,6 +232,7 @@ class FilteredQuerySetMixin:
                 if value == ASSET_STATUS_PRIVATE:
                     filters_.append(Q(owner_id=request.user.id))
                     query_parts.remove(query_part)
+
                 elif value == ASSET_STATUS_SHARED:
                     return get_objects_for_user(
                             user, self._permission, get_queryset())
@@ -225,9 +251,10 @@ class FilteredQuerySetMixin:
 
                 continue
 
-        # if `query_parts` is not empty, user may try to search with
-        # fields indexed by Whoosh.
-        self._return_filtered_queryset = len(query_parts) == 0
+        if skip_subsequent_filtering:
+            # if `query_parts` is not empty, user may try to search with
+            # fields indexed by Whoosh.
+            self._return_filtered_queryset = len(query_parts) == 0
 
         # Build query to pass to Whoosh with remaining parts
         self._q = ' AND '.join(query_parts)
@@ -290,13 +317,12 @@ class KpiObjectPermissionsFilter(FilteredQuerySetMixin):
         skipped_fields = {
             'parent__uid': True,
             'asset_type': True,
-            'language': True,
+            'summary__languages': True,
             'settings__country__value': True,
             'settings__organization': True,
             'settings__sector__value': True,
         }
-        queryset = self.get_filtered_queryset(request, queryset,
-                                              skipped_fields)
+        queryset = self.get_filtered_queryset(request, queryset, skipped_fields)
         if self._return_filtered_queryset:
             return queryset.distinct()
 
@@ -346,7 +372,9 @@ class SearchFilter(filters.BaseFilterBackend, FilteredQuerySetMixin):
 
         try:
             skipped_fields = {'status': True}
-            queryset = self.get_filtered_queryset(request, queryset, skipped_fields)
+            queryset = self.get_filtered_queryset(request, queryset,
+                                                  skipped_fields,
+                                                  skip_subsequent_filtering=True)
             if self._return_filtered_queryset:
                 return queryset
         except FieldError as e:
