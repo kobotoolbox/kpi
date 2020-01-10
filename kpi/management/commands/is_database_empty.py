@@ -4,6 +4,21 @@ from django.db import connections
 from django.db.utils import ConnectionDoesNotExist, OperationalError
 
 
+def test_table_exists_and_has_any_row(cursor, table):
+    cursor.execute(
+        'SELECT (1) AS "exists" FROM "pg_tables" '
+        'WHERE "tablename" = %s '
+        'LIMIT 1;', [table]
+    )
+    if not cursor.fetchone():
+        return False
+
+    cursor.execute(
+        f'SELECT (1) AS "exists" FROM "{table}" LIMIT 1;'
+    )
+    return cursor.fetchone() is not None
+
+
 class Command(BaseCommand):
     help = (
         'Determine if one or more databases are empty, returning a '
@@ -18,21 +33,6 @@ class Command(BaseCommand):
             nargs='+',
             help='a database configured in django.conf.settings.DATABASES'
         )
-
-    @staticmethod
-    def test_table_exists_and_has_any_row(cursor, table):
-        cursor.execute(
-            'SELECT (1) AS "exists" FROM "pg_tables" '
-            'WHERE "tablename" = %s '
-            'LIMIT 1;', [table]
-        )
-        if not cursor.fetchone():
-            return False
-
-        cursor.execute(
-            f'SELECT (1) AS "exists" FROM "{table}" LIMIT 1;'
-        )
-        return cursor.fetchone() is not None
 
     def handle(self, *args, **options):
         connection_keys = options.get('database')
@@ -65,7 +65,7 @@ class Command(BaseCommand):
             try:
                 with connection.cursor() as cursor:
                     results.append(
-                        not self.test_table_exists_and_has_any_row(
+                        not test_table_exists_and_has_any_row(
                             cursor, table_to_test
                         )
                     )

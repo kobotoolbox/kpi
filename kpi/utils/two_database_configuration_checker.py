@@ -4,6 +4,10 @@ from django.core.checks import Error
 from django.db import connections
 from django.utils.translation import ugettext as _
 
+from kpi.management.commands.is_database_empty import (
+    test_table_exists_and_has_any_row,
+)
+
 
 class TwoDatabaseConfigurationChecker:
     """
@@ -63,6 +67,15 @@ class TwoDatabaseConfigurationChecker:
             ))
             return False
         return True
+
+    def check_for_kpi_data_in_kobocat_database(self):
+        """
+        If there's no KPI data in the KoBoCAT database, there's no need to run
+        `check_for_migration_from_shared_database()`
+        """
+        connection = connections['kobocat']
+        with connection.cursor() as cursor:
+            return test_table_exists_and_has_any_row(cursor, 'kpi_asset')
 
     def check_for_migration_from_shared_database(self):
         def db_contains_app_migrations(db_connection, app):
@@ -125,6 +138,7 @@ class TwoDatabaseConfigurationChecker:
         checks = [
             self.check_for_two_databases,
             self.check_for_distinct_databases,
+            self.check_for_kpi_data_in_kobocat_database,
             self.check_for_migration_from_shared_database,
         ]
         for check in checks:
