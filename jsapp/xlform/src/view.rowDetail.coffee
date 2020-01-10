@@ -509,10 +509,12 @@ module.exports = do ->
     html: ->
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
-        if @is_theme_grid()
-          return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
-        else
-          return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
+        this_field = ''
+        if @is_form_style_exist()
+          if @is_form_style_pages()
+            return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
+          if @is_form_style_theme_grid()
+            return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
       else
         appearances = @getTypes()
         if appearances?
@@ -529,8 +531,17 @@ module.exports = do ->
     model_type: (model) ->
       @model._parent.getValue('type').split(' ')[0]
 
-    is_theme_grid: () ->
-      sessionStorage.getItem('kpi.editable-form.form-style').indexOf('theme-grid') isnt -1
+    is_form_style_exist: () ->
+      sessionStorage.getItem('kpi.editable-form.form-style') != ''
+
+    is_form_style: (style) ->
+      sessionStorage.getItem('kpi.editable-form.form-style').indexOf(style) isnt -1
+
+    is_form_style_pages: () ->
+      @is_form_style('pages')
+
+    is_form_style_theme_grid: () ->
+      @is_form_style('theme-grid')
 
     afterRender: ->
       $select = @$('select')
@@ -557,22 +568,42 @@ module.exports = do ->
             $input.remove()
       else
         $input = @$('input')
-        if $input.attr('type') == 'text'
-          if @model_is_group(@model) and @is_theme_grid()
-            $labelText = $('<span/>').text(_t('Number of columns (default is w4)') + '')
-            @$('input[type=text]').parent().prepend($labelText)
-          @$('input[type=text]').val(modelValue)
-          @listenForInputChange()
-        else if $input.attr('type') == 'checkbox'
-          fieldListStr = 'field-list'
-          if @model.get('value') == fieldListStr
-            $input.prop('checked', true)
+        if @model_is_group(@model)
+          $labelText = $('<span/>', { style: 'display: block; margin-top: 5px;' }).text(_t('Number of columns (default is w4)') + '')
 
-          $input.on 'change', () =>
-            if $input.prop('checked')
-              @model.set 'value', fieldListStr
-            else
-              @model.set 'value', ''
+          if $input.attr('type') == 'text' # theme-grid
+            @$('input[type=text]').parent().prepend($labelText)
+            @$('input[type=text]').val(modelValue)
+            @listenForInputChange()
+          else if $input.attr('type') == 'checkbox' # pages
+            $textbox = $('<input/>', {class:'text', type: 'text', style: 'display: block'})
+
+            fieldListStr = 'field-list'
+            nonFieldListStrPos = 0
+            if @model.get('value').indexOf(fieldListStr) != -1
+              $input.prop('checked', true)
+              nonFieldListStrPos += fieldListStr.length + 1 # plus space
+
+            if @is_form_style_theme_grid()
+              @$('.settings__input').append $labelText
+              @$('.settings__input').append $textbox
+              textbox_val = @model.get('value').substring(nonFieldListStrPos)
+              $textbox.val(textbox_val)
+
+            $input.on 'change', () =>
+              if $input.prop('checked')
+                if @model.get('value') != ''
+                  @model.set 'value', fieldListStr + ' ' + @model.get('value')
+                else
+                  @model.set 'value', fieldListStr
+              else
+                @model.set 'value', @model.get('value').replace(fieldListStr, '').trim()
+
+            $textbox.on 'change', () =>
+              if $input.prop('checked')
+                @model.set 'value', fieldListStr + ' ' + $textbox.val().trim()
+              else
+                @model.set 'value', $textbox.val()
 
   viewRowDetail.DetailViewMixins.oc_item_group =
     onOcCustomEvent: (ocCustomEventArgs)->
