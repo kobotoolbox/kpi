@@ -405,6 +405,25 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
+              console.log('q: ' + q + ' q.type: ' + q.type + ' row.value: ' + row.value);
+
+              if (q.type == 'image') {
+                return <a href="https://google.com">hello</a>;
+              }
+
+              if (q.type == 'audio') {
+                var kc_server = document.createElement('a');
+                //kc_server.href = this.props.asset.deployment__identifier;
+                // // if this has more components than /{username}/forms/{uid}, it's safe to assume kobocat is running under a
+                // // KOBOCAT_ROOT_URI_PREFIX
+                // const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
+                // var kc_base = `${kc_server.origin}${kc_prefix}`;
+
+                // // build media attachment URL using the KC endpoint
+                // attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(filename)}`;
+                // return <a href={attachmentUrl} target='_blank'>{originalFilename}</a>
+              }
+
               // show proper labels for choice questions
               if (q.type == 'select_one') {
                 let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
@@ -748,14 +767,19 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
-
+    let ind = 0;
     this.state.tableData.forEach(function(r) {
+          console.log(r);
       if (isChecked) {
         s[r._id] = true;
       } else {
         delete s[r._id];
       }
-    });
+    },
+
+    //console.log(this.state.tableData.valueOf())
+    console.log(this.state.tableData[ind]),
+    );
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
@@ -774,6 +798,16 @@ export class DataTable extends React.Component {
     }
 
   }
+
+  addLinksToFileNames() {
+
+    for (var i = 0; i<this.state.tableData.length; i++) {
+      console.log('@: ' + this.state.tableData[i].valueOf());
+    }
+
+    return this.state.tableData
+  }
+
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
     const selectAll = this.state.selectAll;
