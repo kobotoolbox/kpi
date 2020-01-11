@@ -90,6 +90,10 @@ const ownedCollectionsStore = Reflux.createStore({
       pageSize: 0 // zero gives all results with no limit
     });
   },
+
+  find(uid) {
+    return this.data.collections.find((asset) => {return asset.uid === uid;});
+  }
 });
 
 export default ownedCollectionsStore;

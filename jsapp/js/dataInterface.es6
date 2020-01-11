@@ -278,11 +278,11 @@ export var dataInterface;
         method: 'DELETE'
       });
     },
-    subscribeToCollection(collectionUrl) {
+    subscribeToCollection(assetUrl) {
       return $ajax({
         url: `${ROOT_URL}/asset_subscriptions/`,
         data: {
-          asset: collectionUrl
+          asset: assetUrl
         },
         method: 'POST'
       });

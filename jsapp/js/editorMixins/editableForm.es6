@@ -33,6 +33,7 @@ import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
+import assetUtils from 'js/assetUtils';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -277,6 +278,9 @@ export default assign({
       } else {
         params.asset_type = 'block';
       }
+      if (this.state.parentAsset) {
+        params.parent = assetUtils.buildAssetUrl(this.state.parentAsset);
+      }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
           hashHistory.push(this.state.backRoute);
@@ -473,6 +477,8 @@ export default assign({
   },
 
   safeNavigateToList() {
+    // TODO this should go back to collection properly
+
     if (this.state.asset_type) {
       if (this.state.asset_type === ASSET_TYPES.survey.id) {
         this.safeNavigateToRoute('/forms/');
