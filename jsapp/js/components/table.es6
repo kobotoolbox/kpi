@@ -413,6 +413,9 @@ export class DataTable extends React.Component {
 
               if (q.type == 'audio') {
                 var kc_server = document.createElement('a');
+                //var deployment_id = this.props.asset.deployment__identifier;
+                console.log('asset: ' + this.props.asset);
+                console.log('hello????');
                 //kc_server.href = this.props.asset.deployment__identifier;
                 // // if this has more components than /{username}/forms/{uid}, it's safe to assume kobocat is running under a
                 // // KOBOCAT_ROOT_URI_PREFIX
