@@ -11,6 +11,7 @@ from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentVi
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.data import DataViewSet
+from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
@@ -64,7 +65,8 @@ hook_routes.register(r'logs',
                      )
 
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
-
+router_api_v2.register(
+    r'asset_subscriptions', UserAssetSubscriptionViewSet)
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 

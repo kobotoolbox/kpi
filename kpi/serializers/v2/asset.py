@@ -483,6 +483,8 @@ class AssetListSerializer(AssetSerializer):
         try:
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'].get(asset.pk)
+            print('ASSET PK', asset.pk, flush=True)
+            print('ASSET_PERMISSION_ASSIGNMENTS', asset_permission_assignments, flush=True)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should be always
