@@ -491,18 +491,13 @@ export var dataInterface;
       if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
 
-      console.log('entire query: ' + query + s + f);
-      console.log('# of fields: ' + fields.length);
-
       if (fields.length > 2) {
         const query_no_limit = `&start=${page}`;
-        console.log('in the if');
         return $ajax({
           url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query_no_limit}${s}${f}${filter}`,
           method: 'GET'
         });
       } else {
-        console.log('in the else');
         return $ajax({
           url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
           method: 'GET'
