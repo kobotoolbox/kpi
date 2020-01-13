@@ -25,7 +25,8 @@ import {
   t,
   notify,
   formatTimeDate,
-  renderCheckbox
+  renderCheckbox,
+  getMediaDownloadLink
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
@@ -321,7 +322,6 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-
     uniqueKeys.forEach(function(key){
       var q = undefined;
       var qParentG = [];
@@ -405,26 +405,16 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
-              console.log('q: ' + q + ' q.type: ' + q.type + ' row.value: ' + row.value);
-
               if (q.type == 'image') {
-                return <a href="https://google.com">hello</a>;
+                return <a href="https://google.com">{row.value}</a>;
               }
 
               if (q.type == 'audio') {
-                var kc_server = document.createElement('a');
-                //var deployment_id = this.props.asset.deployment__identifier;
-                console.log('asset: ' + this.props.asset);
-                console.log('hello????');
-                //kc_server.href = this.props.asset.deployment__identifier;
-                // // if this has more components than /{username}/forms/{uid}, it's safe to assume kobocat is running under a
-                // // KOBOCAT_ROOT_URI_PREFIX
-                // const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
-                // var kc_base = `${kc_server.origin}${kc_prefix}`;
+                return <a href="https://google.com">{row.value}</a>;
+              }
 
-                // // build media attachment URL using the KC endpoint
-                // attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(filename)}`;
-                // return <a href={attachmentUrl} target='_blank'>{originalFilename}</a>
+              if (q.type == 'video') {
+                return <a href="https://google.com">{row.value}</a>;
               }
 
               // show proper labels for choice questions
@@ -751,6 +741,12 @@ export class DataTable extends React.Component {
     this.fetchData(this.state.fetchState, this.state.fetchInstance);
     this.setState({ promptRefresh: false });
   }
+
+  printAssets(){
+    console.log('-----assets:------');
+    console.dir(this.props.asset);
+  }
+
   clearPromptRefresh() {
     this.setState({ promptRefresh: false });
   }

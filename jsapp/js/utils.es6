@@ -524,3 +524,8 @@ export function renderCheckbox(id, label, isImportant) {
   }
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
 };
+
+export function getMediaDownloadLink(asset) {
+  console.log('------assets:-----');
+  console.dir(asset);
+}
