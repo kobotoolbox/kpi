@@ -11,6 +11,7 @@ const myLibraryStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
+  previousPath: null,
   PAGE_SIZE: 100,
   DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
 
@@ -25,7 +26,6 @@ const myLibraryStore = Reflux.createStore({
       totalSearchAssets: null,
       assets: []
     };
-    this.previousPath = null;
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
@@ -42,6 +42,22 @@ const myLibraryStore = Reflux.createStore({
     this.fetchData();
   },
 
+  // methods for handling search and data fetch
+
+  fetchData() {
+    if (this.abortFetchData) {
+      this.abortFetchData();
+    }
+
+    actions.library.searchMyLibraryAssets({
+      searchPhrase: searchBoxStore.getSearchPhrase(),
+      pageSize: this.PAGE_SIZE,
+      page: this.data.currentPage,
+      sort: this.data.sortColumn.backendProp,
+      order: this.data.isOrderAsc ? -1 : 1
+    });
+  },
+
   onRouteChange(data) {
     // refresh data when navigating into library from other place
     if (
@@ -54,8 +70,6 @@ const myLibraryStore = Reflux.createStore({
     this.previousPath = data.pathname;
   },
 
-  // methods for handling search parameters
-
   searchBoxStoreChanged() {
     // reset to first page when search changes
     this.data.currentPage = 0;
@@ -64,7 +78,41 @@ const myLibraryStore = Reflux.createStore({
     this.fetchData();
   },
 
-  // methods for reacting to assets changes
+  onSearchStarted(abort) {
+    this.abortFetchData = abort;
+    this.data.isFetchingData = true;
+    this.trigger(this.data);
+  },
+
+  onSearchCompleted(response) {
+    delete this.abortFetchData;
+
+    this.data.hasNextPage = response.next !== null;
+    this.data.hasPreviousPage = response.previous !== null;
+
+    this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
+
+    this.data.assets = response.results;
+    this.data.totalSearchAssets = response.count;
+
+    // update total count for the first time and the ones that will get a full count
+    if (
+      this.data.totalUserAssets === null ||
+      searchBoxStore.getSearchPhrase() === ''
+    ) {
+      this.data.totalUserAssets = this.data.totalSearchAssets;
+    }
+    this.data.isFetchingData = false;
+    this.trigger(this.data);
+  },
+
+  onSearchFailed() {
+    delete this.abortFetchData;
+    this.data.isFetchingData = false;
+    this.trigger(this.data);
+  },
+
+  // methods for handling actions that update assets
 
   onMoveToCollectionCompleted(asset) {
     if (assetUtils.isLibraryAsset(asset.asset_type)) {
@@ -119,42 +167,6 @@ const myLibraryStore = Reflux.createStore({
     }
   },
 
-  // methods for handling data fetch
-
-  onSearchStarted(abort) {
-    this.abortFetchData = abort;
-    this.data.isFetchingData = true;
-    this.trigger(this.data);
-  },
-
-  onSearchCompleted(response) {
-    delete this.abortFetchData;
-
-    this.data.hasNextPage = response.next !== null;
-    this.data.hasPreviousPage = response.previous !== null;
-
-    this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
-
-    this.data.assets = response.results;
-    this.data.totalSearchAssets = response.count;
-
-    // update total count for the first time and the ones that will get a full count
-    if (
-      this.data.totalUserAssets === null ||
-      searchBoxStore.getSearchPhrase() === ''
-    ) {
-      this.data.totalUserAssets = this.data.totalSearchAssets;
-    }
-    this.data.isFetchingData = false;
-    this.trigger(this.data);
-  },
-
-  onSearchFailed() {
-    delete this.abortFetchData;
-    this.data.isFetchingData = false;
-    this.trigger(this.data);
-  },
-
   // public methods
 
   setCurrentPage(newCurrentPage) {
@@ -171,23 +183,7 @@ const myLibraryStore = Reflux.createStore({
       this.data.isOrderAsc = isOrderAsc;
       this.fetchData();
     }
-  },
-
-  // the method for fetching new data
-
-  fetchData() {
-    if (this.abortFetchData) {
-      this.abortFetchData();
-    }
-
-    actions.library.searchMyLibraryAssets({
-      searchPhrase: searchBoxStore.getSearchPhrase(),
-      pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage,
-      sort: this.data.sortColumn.backendProp,
-      order: this.data.isOrderAsc ? -1 : 1
-    });
-  },
+  }
 });
 
 export default myLibraryStore;
