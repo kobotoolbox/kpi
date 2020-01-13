@@ -579,21 +579,19 @@ module.exports = do ->
             $textbox = $('<input/>', {class:'text', type: 'text', style: 'display: block'})
 
             fieldListStr = 'field-list'
-            nonFieldListStrPos = 0
             if @model.get('value').indexOf(fieldListStr) != -1
               $input.prop('checked', true)
-              nonFieldListStrPos += fieldListStr.length + 1 # plus space
 
             if @is_form_style_theme_grid()
               @$('.settings__input').append $labelText
               @$('.settings__input').append $textbox
-              textbox_val = @model.get('value').substring(nonFieldListStrPos)
+              textbox_val = @model.get('value').replace(fieldListStr, '').trim()
               $textbox.val(textbox_val)
 
             $input.on 'change', () =>
               if $input.prop('checked')
                 if @model.get('value') != ''
-                  @model.set 'value', fieldListStr + ' ' + @model.get('value')
+                  @model.set 'value', @model.get('value') + ' ' + fieldListStr
                 else
                   @model.set 'value', fieldListStr
               else
@@ -601,9 +599,12 @@ module.exports = do ->
 
             $textbox.on 'change', () =>
               if $input.prop('checked')
-                @model.set 'value', fieldListStr + ' ' + $textbox.val().trim()
+                @model.set 'value', $textbox.val().trim() + ' ' + fieldListStr
               else
                 @model.set 'value', $textbox.val()
+        else
+          @$('input[type=text]').val(modelValue)
+          @listenForInputChange el: $input
 
   viewRowDetail.DetailViewMixins.oc_item_group =
     onOcCustomEvent: (ocCustomEventArgs)->
