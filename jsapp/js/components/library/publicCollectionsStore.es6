@@ -31,10 +31,6 @@ const publicCollectionsStore = Reflux.createStore({
       assets: []
     };
 
-    // TODO update this list whenever existing item is changed
-
-    // TODO reset data properly on some actions or when leaving route out of library
-
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
@@ -120,7 +116,7 @@ const publicCollectionsStore = Reflux.createStore({
   // methods for handling actions that update assets
 
   onSubscribeCompleted(subscriptionData) {
-    this.onAssetAccessTypeChanged(subscriptionData.url, ACCESS_TYPES.get('subscribed'));
+    this.onAssetAccessTypeChanged(subscriptionData.asset, ACCESS_TYPES.get('subscribed'));
   },
 
   onUnsubscribeCompleted(assetUid) {
