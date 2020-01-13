@@ -49,7 +49,8 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
-    SESSION_COOKIE_AGE = 60*60 # Session age is 1 hour
+    SESSION_COOKIE_AGE = 60*60*24 # Session age is 24 hour
+    SESSION_SAVE_EVERY_REQUEST = True # Renew session every request made
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
