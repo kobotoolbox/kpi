@@ -251,9 +251,10 @@ class FilteredQuerySetMixin:
 
                 continue
 
-        # if `query_parts` is not empty, user may try to search with
-        # fields indexed by Whoosh.
-        self._return_filtered_queryset = len(query_parts) == 0
+        if skip_subsequent_filtering:
+            # if `query_parts` is not empty, user may try to search with
+            # fields indexed by Whoosh.
+            self._return_filtered_queryset = len(query_parts) == 0
 
         # Build query to pass to Whoosh with remaining parts
         self._q = ' AND '.join(query_parts)
