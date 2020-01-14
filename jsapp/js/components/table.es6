@@ -25,8 +25,7 @@ import {
   t,
   notify,
   formatTimeDate,
-  renderCheckbox,
-  getMediaDownloadLink
+  renderCheckbox
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
@@ -322,7 +321,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-    uniqueKeys.forEach(function(key){
+    uniqueKeys.forEach((key) => {
       var q = undefined;
       var qParentG = [];
       if (key.includes('/')) {
@@ -405,18 +404,10 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
-              if (q.type == 'image') {
-                return <a href="https://google.com">{row.value}</a>;
+              if (q.type == 'image' || q.type == 'audio' || q.type == 'video') {
+                var mediaURL = this.getMediaDownloadLink(row.value);
+                return <a href={mediaURL}>{row.value}</a>;
               }
-
-              if (q.type == 'audio') {
-                return <a href="https://google.com">{row.value}</a>;
-              }
-
-              if (q.type == 'video') {
-                return <a href="https://google.com">{row.value}</a>;
-              }
-
               // show proper labels for choice questions
               if (q.type == 'select_one') {
                 let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
@@ -635,7 +626,7 @@ export class DataTable extends React.Component {
     stores.pageState.hideModal();
     this.setState({
       overrideLabelsAndGroups: overrides
-    }, function() {
+    }, () => {
       this._prepColumns(this.state.tableData);
     });
   }
@@ -990,6 +981,24 @@ export class DataTable extends React.Component {
         }
       </bem.FormView__item>
     );
+  }
+  getMediaDownloadLink(fileName) {
+    var attachmentUrl = null;
+    this.state.tableData.some(function(a) {
+        a._attachments.some(function(b) {
+          if (b.filename.includes(fileName)) {
+            fileName = b.filename;
+          }
+        });
+
+    });
+
+    var kc_server = document.createElement('a');
+    kc_server.href = this.props.asset.deployment__identifier;
+    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
+    var kc_base = `${kc_server.origin}${kc_prefix}`;
+    attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
+    return attachmentUrl;
   }
   render () {
     if (this.state.error) {
