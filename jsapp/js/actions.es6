@@ -662,7 +662,7 @@ actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
 // reload so a new csrf token is issued
 actions.auth.logout.completed.listen(function(){
   window.setTimeout(function(){
-    window.location.replace('', '');
+    window.location.reload();
   }, 1);
 });
 

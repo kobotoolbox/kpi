@@ -24,8 +24,6 @@ alertify.defaults.notifier.closeButton = true;
 
 const cookies = new Cookies();
 
-const IDLE_LOGOUT_TIME = 3600;
-
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
@@ -503,7 +501,13 @@ export function writeParameters(obj) {
   return params.join(';');
 }
 
-var crossStorageClient = null;
+let crossStorageClient = null;
+let crossStorageCheckIntervalID = null;
+
+const CROSS_STORAGE_TIMEOUT_KEY = 'OCAppTimeout';
+const CROSS_STORAGE_USER_KEY = 'currentUser';
+const CROSS_STORAGE_CHECK_INTERVAL = 60*1000; // 1min
+const CROSS_STORAGE_IDLE_LOGOUT_TIME = 60*60; // 1hr
 
 export function initCrossStorageClient() {
   var crossStorageHub = window.location.origin.replace('formdesigner', 'build') + '/hub/hub.html';
@@ -521,9 +525,48 @@ export function getCrossStorageClient() {
 
 export function updateCrossStorageTimeOut() {
   crossStorageClient.onConnect().then(function() {
-    const newTimeoutMoment = moment().add(IDLE_LOGOUT_TIME, 's');
-    crossStorageClient.set('OCAppTimeout', newTimeoutMoment.valueOf());
+    const newTimeoutMoment = moment().add(CROSS_STORAGE_IDLE_LOGOUT_TIME, 's');
+    console.log('updateCrossStorageTimeOut', newTimeoutMoment.valueOf());
+    crossStorageClient.set(CROSS_STORAGE_TIMEOUT_KEY, newTimeoutMoment.valueOf());
   });
+}
+
+export function checkCrossStorageUser(userName) {
+  return crossStorageClient.onConnect().then(function() {
+    return crossStorageClient.get(CROSS_STORAGE_USER_KEY).then(function(userValue) {
+      if (userValue === null) {
+        console.log('checkCrossStorageUser userValue null');
+        return Promise.reject('logout');
+      } else if (userValue !== userName) {
+        console.log('checkCrossStorageUser userValue different');
+        return Promise.reject('user-changed');
+      }
+      return Promise.resolve();
+    });
+  });
+}
+
+export function checkCrossStorageTimeOut() {
+  return crossStorageClient.onConnect().then(function() {
+    return crossStorageClient.get(CROSS_STORAGE_TIMEOUT_KEY).then(function(timeOutValue) {
+      if (timeOutValue === null) {
+        console.log('checkCrossStorageTimeOut timeOutValue null');
+        return Promise.reject('logout');
+      }
+      const currentMoment = moment();
+      const timeoutMoment = moment(parseInt(timeOutValue, 10));
+      if (currentMoment.isAfter(timeoutMoment)) {
+        console.log('checkCrossStorageTimeOut timeOutValue isAfter');
+        return Promise.reject('logout');
+      } else {
+        return Promise.resolve();
+      }
+    });
+  });
+}
+
+export function setPeriodicCrossStorageCheck(checkFunction) {
+  crossStorageCheckIntervalID = setInterval(checkFunction, CROSS_STORAGE_CHECK_INTERVAL);
 }
 
 export function addCustomEventListener(selector, event, handler) {
