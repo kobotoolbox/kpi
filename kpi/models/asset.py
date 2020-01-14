@@ -578,6 +578,7 @@ class Asset(ObjectPermissionMixin,
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
+        PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),

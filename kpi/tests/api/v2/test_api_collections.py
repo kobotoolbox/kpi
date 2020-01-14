@@ -117,7 +117,7 @@ class CollectionsTests(BaseTestCase):
 
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
         # TODO Remove the line below when `discover_asset` implies `view_asset
-        public_collection.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
+        # public_collection.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
 
         # Retrieve all assets. Should have 5
         response = self.client.get(list_url)
