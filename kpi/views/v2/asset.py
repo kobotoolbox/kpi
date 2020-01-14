@@ -268,7 +268,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 object_permissions_per_asset[op.object_id].append(op)
 
             context_['object_permissions_per_asset'] = object_permissions_per_asset
-            print('OBJECT_PERMISSIONS_PER_ASSET', object_permissions_per_asset, flush=True)
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = UserAssetSubscription.objects. \
