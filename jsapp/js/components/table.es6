@@ -984,8 +984,8 @@ export class DataTable extends React.Component {
   }
   getMediaDownloadLink(fileName) {
     var attachmentUrl = null;
-    this.state.tableData.some(function(a) {
-        a._attachments.some(function(b) {
+    this.state.tableData.forEach(function(a) {
+        a._attachments.forEach(function(b) {
           if (b.filename.includes(fileName)) {
             fileName = b.filename;
           }
