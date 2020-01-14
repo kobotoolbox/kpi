@@ -1,9 +1,12 @@
 # coding: utf-8
+from collections import OrderedDict
+
 from django.conf import settings
 from rest_framework.pagination import (
     LimitOffsetPagination,
     PageNumberPagination,
 )
+from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
 
@@ -23,6 +26,60 @@ class Paginated(LimitOffsetPagination):
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
+
+
+class AssetPagination(Paginated):
+
+    def get_paginated_response(self, data, metadata):
+
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('previous', self.get_previous_link()),
+            ('metadata', metadata),
+            ('results', data)
+        ]))
+
+    def get_paginated_response_schema(self, schema):
+        return {
+            'type': 'object',
+            'properties': {
+                'count': {
+                    'type': 'integer',
+                    'example': 123,
+                },
+                'next': {
+                    'type': 'string',
+                    'nullable': True,
+                },
+                'previous': {
+                    'type': 'string',
+                    'nullable': True,
+                },
+                'metadata': {
+                    'type': 'object',
+                    'properties': {
+                        'languages': {
+                            'type': 'list',
+                            'example': ['English (en)']
+                        },
+                        'countries': {
+                            'type': 'list',
+                            'example': [['FRA', 'France']]
+                        },
+                        'sectors': {
+                            'type': 'list',
+                            'example': [['Public Administration', 'Public Administration']]
+                        },
+                        'organizations': {
+                            'type': 'list',
+                            'example': ['Kobotoolbox']
+                        }
+                    }
+                },
+                'results': schema,
+            }
+        }
 
 
 class TinyPaginated(PageNumberPagination):
