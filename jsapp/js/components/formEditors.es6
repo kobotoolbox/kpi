@@ -4,55 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import editableFormMixin from '../editorMixins/editableForm';
-import {
-  update_states,
-  ASSET_TYPES
-} from 'js/constants';
-
-export class LibraryAssetCreator extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      asset_updated: update_states.UP_TO_DATE,
-      multioptionsExpanded: true,
-      surveyAppRendered: false,
-      name: '',
-      asset: false,
-      editorState: 'new',
-      backRoute: '/library'
-    };
-
-    if (this.props.location.pathname === '/library/new/template') {
-      this.state.desiredAssetType = ASSET_TYPES.template.id;
-    }
-
-    autoBind(this);
-  }
-}
-reactMixin(LibraryAssetCreator.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryAssetCreator.prototype, editableFormMixin);
-LibraryAssetCreator.contextTypes = {router: PropTypes.object};
-
-export class LibraryChildAssetCreator extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      asset_updated: update_states.UP_TO_DATE,
-      multioptionsExpanded: true,
-      surveyAppRendered: false,
-      name: '',
-      asset: false,
-      parentAsset: this.props.params.uid,
-      editorState: 'new',
-      backRoute: `/library/asset/${this.props.params.uid}`
-    };
-
-    autoBind(this);
-  }
-}
-reactMixin(LibraryChildAssetCreator.prototype, Reflux.ListenerMixin);
-reactMixin(LibraryChildAssetCreator.prototype, editableFormMixin);
-LibraryChildAssetCreator.contextTypes = {router: PropTypes.object};
+import {update_states} from 'js/constants';
 
 export class FormPage extends React.Component {
   constructor(props) {
@@ -62,7 +14,7 @@ export class FormPage extends React.Component {
       multioptionsExpanded: true,
       surveyAppRendered: false,
       name: '',
-      editorState: 'existing',
+      isNewAsset: false,
       backRoute: '/forms'
     };
     autoBind(this);
@@ -80,10 +32,28 @@ export class LibraryAssetEditor extends React.Component {
       multioptionsExpanded: true,
       surveyAppRendered: false,
       name: '',
-      editorState: 'existing',
+      isNewAsset: true,
       backRoute: '/library'
     };
     autoBind(this);
+
+    if (this.props.route.path === 'asset/:uid/edit') {
+      this.state.isNewAsset = false;
+    }
+
+    if (this.props.route.path === 'asset/new') {
+      this.state.asset = false;
+    }
+
+    if (this.props.route.path === 'asset/:uid/new') {
+      this.state.asset = false;
+      this.state.parentAsset = this.props.params.uid;
+      this.state.backRoute = `/library/asset/${this.props.params.uid}`;
+    }
+
+    if (this.props.location.query.back) {
+      this.state.backRoute = this.props.location.query.back;
+    }
   }
 }
 reactMixin(LibraryAssetEditor.prototype, Reflux.ListenerMixin);

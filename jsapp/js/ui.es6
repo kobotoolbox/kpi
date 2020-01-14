@@ -193,7 +193,11 @@ class AssetName extends React.Component {
     const classNames = ['asset-name'];
     const summary = this.props.summary;
 
-    if (displayName.question && summary.row_count) {
+    if (
+      !displayName.original &&
+      displayName.question &&
+      summary.row_count
+    ) {
       if (summary.row_count === 2) {
         extra = <small>{t('and one other question')}</small>;
       } else if (summary.row_count > 2) {

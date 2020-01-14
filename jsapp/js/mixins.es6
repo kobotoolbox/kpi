@@ -737,7 +737,7 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder () {
-    if (this.context.router.isActive('/library/new-asset')) {
+    if (this.context.router.isActive('/library/asset/new')) {
       return true;
     }
 
@@ -745,6 +745,7 @@ mixins.contextRouter = {
     return (
       uid !== undefined &&
       this.context.router.isActive(`/library/asset/${uid}/edit`) ||
+      this.context.router.isActive(`/library/asset/${uid}/new`) ||
       this.context.router.isActive(`/forms/${uid}/edit`)
     );
   }

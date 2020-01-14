@@ -52,7 +52,7 @@ export default assign({
 
     this.loadAsideSettings();
 
-    if (this.state.editorState === 'existing') {
+    if (!this.state.isNewAsset) {
       let uid = this.props.params.assetid || this.props.params.uid;
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
@@ -267,7 +267,7 @@ export default assign({
 
     params = koboMatrixParser(params);
 
-    if (this.state.editorState === 'new') {
+    if (this.state.isNewAsset) {
       // we're intentionally leaving after creating new asset,
       // so there is nothing unsaved here
       this.unpreventClosingTab();
@@ -362,7 +362,7 @@ export default assign({
       ooo.hasSettings = this.state.backRoute === '/forms';
       ooo.styleValue = this.state.settings__style;
     }
-    if (this.state.editorState === 'new') {
+    if (this.state.isNewAsset) {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
       ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
@@ -477,18 +477,12 @@ export default assign({
   },
 
   safeNavigateToList() {
-    // TODO this should go back to collection properly
-
-    if (this.state.asset_type) {
-      if (this.state.asset_type === ASSET_TYPES.survey.id) {
-        this.safeNavigateToRoute('/forms/');
-      } else {
-        this.safeNavigateToRoute('/library/');
-      }
-    } else if (this.props.location.pathname.startsWith('/library/new')) {
-      this.safeNavigateToRoute('/library/');
+    if (this.state.backRoute) {
+      this.safeNavigateToRoute(this.state.backRoute);
+    } else if (this.props.location.pathname.startsWith('/library')) {
+      this.safeNavigateToRoute('/library');
     } else {
-      this.safeNavigateToRoute('/forms/');
+      this.safeNavigateToRoute('/forms');
     }
   },
 
