@@ -1,7 +1,13 @@
 import Reflux from 'reflux';
+import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
+import assetUtils from 'js/assetUtils';
 import {actions} from 'js/actions';
 import {ASSETS_TABLE_COLUMNS} from './assetsTable';
+import {
+  ASSET_TYPES,
+  ACCESS_TYPES
+} from 'js/constants';
 
 const publicCollectionsStore = Reflux.createStore({
   /**
@@ -9,6 +15,7 @@ const publicCollectionsStore = Reflux.createStore({
    * It doesn't need to be defined, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
+  previousPath: null,
   PAGE_SIZE: 100,
   DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
 
@@ -24,19 +31,50 @@ const publicCollectionsStore = Reflux.createStore({
       assets: []
     };
 
-    // TODO update this list whenever existing item is changed
-
-    // TODO reset data properly on some actions or when leaving route out of library
-
+    hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
     actions.library.searchPublicCollections.failed.listen(this.onSearchFailed);
+    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted);
+    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted);
+    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
+    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
+    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
+    actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
+    actions.resources.createResource.completed.listen(this.onAssetCreated);
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
     this.fetchData();
   },
 
-  // methods for handling search parameters
+  // methods for handling search and data fetch
+
+  fetchData() {
+    if (this.abortFetchData) {
+      this.abortFetchData();
+    }
+
+    actions.library.searchPublicCollections({
+      searchPhrase: searchBoxStore.getSearchPhrase(),
+      pageSize: this.PAGE_SIZE,
+      page: this.data.currentPage,
+      sort: this.data.sortColumn.backendProp,
+      order: this.data.isOrderAsc ? -1 : 1
+    });
+  },
+
+  onRouteChange(data) {
+    // refresh data when navigating into library from other place
+    if (
+      this.previousPath !== null &&
+      this.previousPath.split('/')[1] !== 'library' &&
+      data.pathname.split('/')[1] === 'library'
+    ) {
+      this.fetchData();
+    }
+    this.previousPath = data.pathname;
+  },
 
   searchBoxStoreChanged() {
     // reset to first page when search changes
@@ -45,8 +83,6 @@ const publicCollectionsStore = Reflux.createStore({
     this.data.totalSearchAssets = null;
     this.fetchData();
   },
-
-  // methods for handling actions
 
   onSearchStarted(abort) {
     this.abortFetchData = abort;
@@ -77,6 +113,82 @@ const publicCollectionsStore = Reflux.createStore({
     this.trigger(this.data);
   },
 
+  // methods for handling actions that update assets
+
+  onSubscribeCompleted(subscriptionData) {
+    this.onAssetAccessTypeChanged(subscriptionData.asset, ACCESS_TYPES.get('subscribed'));
+  },
+
+  onUnsubscribeCompleted(assetUid) {
+    this.onAssetAccessTypeChanged(assetUid, ACCESS_TYPES.get('public'));
+  },
+
+  onAssetAccessTypeChanged(assetUidOrUrl, accessType) {
+    let wasUpdated = false;
+    for (let i = 0; i < this.data.assets.length; i++) {
+      if (
+        this.data.assets[i].uid === assetUidOrUrl ||
+        this.data.assets[i].url === assetUidOrUrl
+      ) {
+        this.data.assets[i].access_type = accessType;
+        wasUpdated = true;
+        break;
+      }
+    }
+    if (wasUpdated) {
+      this.trigger(this.data);
+    }
+  },
+
+  onMoveToCollectionCompleted(asset) {
+    if (
+      asset.asset_type === ASSET_TYPES.collection.id &&
+      assetUtils.isAssetPublic(asset.permissions)
+    ) {
+      this.fetchData();
+    }
+  },
+
+  onAssetChanged(asset) {
+    if (
+      asset.asset_type === ASSET_TYPES.collection.id &&
+      assetUtils.isAssetPublic(asset.permissions) &&
+      this.data.assets.length !== 0
+    ) {
+      let wasUpdated = false;
+      for (let i = 0; i < this.data.assets.length; i++) {
+        if (this.data.assets[i].uid === asset.uid) {
+          this.data.assets[i] = asset;
+          wasUpdated = true;
+          break;
+        }
+      }
+      if (wasUpdated) {
+        this.trigger(this.data);
+      }
+    }
+  },
+
+  onAssetCreated(asset) {
+    if (
+      asset.asset_type === ASSET_TYPES.collection.id &&
+      assetUtils.isAssetPublic(asset.permissions)
+    ) {
+      this.fetchData();
+    }
+  },
+
+  onDeleteAssetCompleted({uid, assetType}) {
+    if (assetType === ASSET_TYPES.collection.id) {
+      const found = this.data.assets.find((asset) => {return asset.uid === uid;});
+      if (found) {
+        this.fetchData();
+      }
+      // if not found it is possible it is on other page of results, but it is
+      // not important enough to do a data fetch
+    }
+  },
+
   // public methods
 
   setCurrentPage(newCurrentPage) {
@@ -93,23 +205,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.isOrderAsc = isOrderAsc;
       this.fetchData();
     }
-  },
-
-  // the method for fetching new data
-
-  fetchData() {
-    if (this.abortFetchData) {
-      this.abortFetchData();
-    }
-
-    actions.library.searchPublicCollections({
-      searchPhrase: searchBoxStore.getSearchPhrase(),
-      pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage,
-      sort: this.data.sortColumn.backendProp,
-      order: this.data.isOrderAsc ? -1 : 1
-    });
-  },
+  }
 });
 
 export default publicCollectionsStore;

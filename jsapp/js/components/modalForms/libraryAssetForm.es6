@@ -4,6 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import Select from 'react-select';
+import PropTypes from 'prop-types';
 import TextBox from 'js/components/textBox';
 import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
@@ -20,6 +21,8 @@ import {
   renderBackButton
 } from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
+import mixins from 'js/mixins';
+import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -129,7 +132,7 @@ export class LibraryAssetForm extends React.Component {
         }
       );
     } else {
-      actions.resources.createResource({
+      const params = {
         name: this.state.data.name,
         asset_type: this.getFormAssetType(),
         settings: JSON.stringify({
@@ -139,7 +142,21 @@ export class LibraryAssetForm extends React.Component {
           tags: this.state.data.tags,
           description: this.state.data.description
         })
-      });
+      };
+
+      if (
+        this.isLibrarySingle() &&
+        params.asset_type !== ASSET_TYPES.collection.id
+      ) {
+        const found = ownedCollectionsStore.find(this.currentAssetID());
+        if (found && found.asset_type === ASSET_TYPES.collection.id) {
+          // when creating from within a collection page, make the new asset
+          // a child of this collection
+          params.parent = found.url;
+        }
+      }
+
+      actions.resources.createResource(params);
     }
   }
 
@@ -278,3 +295,8 @@ export class LibraryAssetForm extends React.Component {
 }
 
 reactMixin(LibraryAssetForm.prototype, Reflux.ListenerMixin);
+reactMixin(LibraryAssetForm.prototype, mixins.contextRouter);
+
+LibraryAssetForm.contextTypes = {
+  router: PropTypes.object
+};

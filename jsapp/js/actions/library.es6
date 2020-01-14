@@ -72,10 +72,10 @@ libraryActions.searchPublicCollections.listen((params) => {
 });
 
 /**
- * @param {string} collectionUrl
+ * @param {string} assetUrl - url of target collection.
  */
-libraryActions.subscribeToCollection.listen((collectionUrl) => {
-  dataInterface.subscribeToCollection(collectionUrl)
+libraryActions.subscribeToCollection.listen((assetUrl) => {
+  dataInterface.subscribeToCollection(assetUrl)
     .done(libraryActions.subscribeToCollection.completed)
     .fail(libraryActions.subscribeToCollection.failed);
 });

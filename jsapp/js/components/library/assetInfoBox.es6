@@ -55,7 +55,7 @@ class AssetInfoBox extends React.Component {
   }
 
   onGetUserFailed() {
-    // TODO notify
+    notify(t('Failed to get owner data.'), 'error');
   }
 
   onSetAssetPublicCompleted(assetUid) {

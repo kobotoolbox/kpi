@@ -10,7 +10,8 @@ import {
   QUESTION_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  ROOT_URL
 } from 'js/constants';
 
 /**
@@ -359,6 +360,10 @@ export function isSelfOwned(asset) {
   );
 }
 
+export function buildAssetUrl(assetUid) {
+  return `${ROOT_URL}/api/v2/assets/${assetUid}/`;
+}
+
 export default {
   cleanupTags,
   getAssetOwnerDisplayName,
@@ -379,5 +384,6 @@ export default {
   getFlatQuestionsList,
   isAssetPublicReady,
   isAssetPublic,
-  isSelfOwned
+  isSelfOwned,
+  buildAssetUrl
 };

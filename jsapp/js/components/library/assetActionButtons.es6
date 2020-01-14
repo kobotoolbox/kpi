@@ -156,6 +156,23 @@ class AssetActionButtons extends React.Component {
     hashHistory.push(`/library/asset/${parentAssetUid}`);
   }
 
+  getFormBuilderLink() {
+    let link = `#/library/asset/${this.props.asset.uid}/edit`;
+
+    // when editing a child from within a collection page
+    // make sure the "Return to list" button goes back to collection
+    const currentAssetUid = this.currentAssetID();
+    if (
+      this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
+      this.props.asset.parent !== null &&
+      this.props.asset.parent.includes(currentAssetUid)
+    ) {
+      link += `?back=/library/asset/${currentAssetUid}`;
+    }
+
+    return link;
+  }
+
   renderMoreActions() {
     const assetType = this.props.asset.asset_type;
     let downloads = [];
@@ -330,7 +347,7 @@ class AssetActionButtons extends React.Component {
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.AssetActionButtons__iconButton
-            href={`#/library/asset/${this.props.asset.uid}/edit`}
+            href={this.getFormBuilderLink()}
             data-tip={t('Edit in Form Builder')}
             className='right-tooltip'
           >
