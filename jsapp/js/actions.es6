@@ -360,48 +360,33 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
-  dataInterface.patchAsset(uid, values)
-    .done((asset) => {
-      actions.resources.updateAsset.completed(asset, uid, values);
-      window.parent.postMessage('form_savecomplete', '*');
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(asset, uid, values);
-      }
-      notify(t('successfully updated'));
-    })
-    .fail(function(resp){
-      actions.resources.updateAsset.failed(resp);
-      if (params.onFailed) {
-        params.onFailed(resp);
-      }
-    });
-  // var crossStorage = getCrossStorageClient();
-  // crossStorage.onConnect()
-  // .then(function() {
-  //   return crossStorage.get('currentUser');
-  // })
-  // .then(function(res) {
-  //   if (!res || res == '') {
-  //     actions.auth.logout();
-  //   } else {
-  //     window.parent.postMessage('form_saveinprogress', '*');
-  //     dataInterface.patchAsset(uid, values)
-  //       .done((asset) => {
-  //         actions.resources.updateAsset.completed(asset, uid, values);
-  //         window.parent.postMessage('form_savecomplete', '*');
-  //         if (typeof params.onComplete === 'function') {
-  //           params.onComplete(asset, uid, values);
-  //         }
-  //         notify(t('successfully updated'));
-  //       })
-  //       .fail(function(resp){
-  //         actions.resources.updateAsset.failed(resp);
-  //         if (params.onFailed) {
-  //           params.onFailed(resp);
-  //         }
-  //       });
-  //   }
-  // });
+  var crossStorage = getCrossStorageClient();
+  crossStorage.onConnect()
+  .then(function() {
+    return crossStorage.get('currentUser');
+  })
+  .then(function(res) {
+    if (!res || res == '') {
+      actions.auth.logout();
+    } else {
+      window.parent.postMessage('form_saveinprogress', '*');
+      dataInterface.patchAsset(uid, values)
+        .done((asset) => {
+          actions.resources.updateAsset.completed(asset, uid, values);
+          window.parent.postMessage('form_savecomplete', '*');
+          if (typeof params.onComplete === 'function') {
+            params.onComplete(asset, uid, values);
+          }
+          notify(t('successfully updated'));
+        })
+        .fail(function(resp){
+          actions.resources.updateAsset.failed(resp);
+          if (params.onFailed) {
+            params.onFailed(resp);
+          }
+        });
+    }
+  });
 
 });
 
