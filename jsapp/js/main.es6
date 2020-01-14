@@ -10,7 +10,16 @@ import 'babel-polyfill'; // required to support Array.prototypes.includes in IE1
 import {Cookies} from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
-import { initCrossStorageClient, addCustomEventListener, updateCrossStorageTimeOut } from './utils';
+import {
+  initCrossStorageClient,
+  addCustomEventListener,
+  setPeriodicCrossStorageCheck,
+  checkCrossStorageTimeOut,
+  checkCrossStorageUser,
+  updateCrossStorageTimeOut
+} from './utils';
+import actions from './actions';
+import stores from './stores';
 
 require('../scss/main.scss');
 
@@ -38,6 +47,25 @@ $.ajaxSetup({
 
 initCrossStorageClient();
 
+function crossStorageCheck() {
+  const currentUserName = stores.session.currentAccount.username;
+  if (currentUserName !== '') {
+    const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
+    checkCrossStorageUser(crossStorageUserName)
+      .then(checkCrossStorageTimeOut)
+      .then(updateCrossStorageTimeOut)
+      .catch(function(err) {
+        if (err == 'logout') {
+          logout();
+        }
+      });
+  }
+}
+
+function logout() {
+  actions.auth.logout();
+}
+
 [ { element: 'button', event: 'click' },
   { element: '.btn', event: 'click' },
   { element: '.questiontypelist__item', event: 'click' },
@@ -46,9 +74,11 @@ initCrossStorageClient();
   { element: 'body', event: 'keydown' }
 ].forEach(function(elementEvent) {
   addCustomEventListener(elementEvent.element, elementEvent.event, function() {
-    updateCrossStorageTimeOut();
+    crossStorageCheck();
   });
 });
+
+setPeriodicCrossStorageCheck(crossStorageCheck);
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
 
