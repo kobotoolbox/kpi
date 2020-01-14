@@ -50,6 +50,7 @@ initCrossStorageClient();
 function crossStorageCheck() {
   const currentUserName = stores.session.currentAccount.username;
   if (currentUserName !== '') {
+    console.log('main check');
     const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
     checkCrossStorageUser(crossStorageUserName)
       .then(checkCrossStorageTimeOut)
@@ -57,12 +58,15 @@ function crossStorageCheck() {
       .catch(function(err) {
         if (err == 'logout') {
           logout();
+        } else if (err == 'user-changed') {
+          logout();
         }
       });
   }
 }
 
 function logout() {
+  console.log('main logout');
   actions.auth.logout();
 }
 

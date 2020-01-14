@@ -526,6 +526,7 @@ export function getCrossStorageClient() {
 export function updateCrossStorageTimeOut() {
   crossStorageClient.onConnect().then(function() {
     const newTimeoutMoment = moment().add(CROSS_STORAGE_IDLE_LOGOUT_TIME, 's');
+    console.log('updateCrossStorageTimeOut', newTimeoutMoment.valueOf());
     crossStorageClient.set(CROSS_STORAGE_TIMEOUT_KEY, newTimeoutMoment.valueOf());
   });
 }
@@ -533,8 +534,12 @@ export function updateCrossStorageTimeOut() {
 export function checkCrossStorageUser(userName) {
   return crossStorageClient.onConnect().then(function() {
     return crossStorageClient.get(CROSS_STORAGE_USER_KEY).then(function(userValue) {
-      if (userValue === null || userValue !== userName) {
+      if (userValue === null) {
+        console.log('checkCrossStorageUser userValue null');
         return Promise.reject('logout');
+      } else if (userValue !== userName) {
+        console.log('checkCrossStorageUser userValue different');
+        return Promise.reject('user-changed');
       }
       return Promise.resolve();
     });
@@ -545,11 +550,13 @@ export function checkCrossStorageTimeOut() {
   return crossStorageClient.onConnect().then(function() {
     return crossStorageClient.get(CROSS_STORAGE_TIMEOUT_KEY).then(function(timeOutValue) {
       if (timeOutValue === null) {
+        console.log('checkCrossStorageTimeOut timeOutValue null');
         return Promise.reject('logout');
       }
       const currentMoment = moment();
       const timeoutMoment = moment(parseInt(timeOutValue, 10));
       if (currentMoment.isAfter(timeoutMoment)) {
+        console.log('checkCrossStorageTimeOut timeOutValue isAfter');
         return Promise.reject('logout');
       } else {
         return Promise.resolve();

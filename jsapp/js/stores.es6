@@ -26,6 +26,9 @@ import {
   t,
   notify,
   assign,
+  checkCrossStorageTimeOut,
+  checkCrossStorageUser,
+  updateCrossStorageTimeOut
 } from './utils';
 
 const cookies = new Cookies();
@@ -262,6 +265,23 @@ var sessionStore = Reflux.createStore({
   },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
+    const currentUserName = this.currentAccount.username;
+    if (currentUserName !== '') {
+      const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
+      console.log('triggerLoggedIn check');
+      checkCrossStorageUser(crossStorageUserName)
+        .then(checkCrossStorageTimeOut)
+        .then(updateCrossStorageTimeOut)
+        .catch(function(err) {
+          if (err == 'logout') {
+            console.log('triggerLoggedIn logout');
+            actions.auth.logout();
+          } else if (err == 'user-changed') {
+            console.log('triggerLoggedIn user changed');
+            actions.auth.logout();
+          }
+        });
+    }
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,
