@@ -19,8 +19,8 @@ class PublicCollectionsRoute extends React.Component {
       isLoading: publicCollectionsStore.data.isFetchingData,
       assets: publicCollectionsStore.data.assets,
       totalAssets: publicCollectionsStore.data.totalSearchAssets,
-      sortColumn: publicCollectionsStore.data.sortColumn,
-      isOrderAsc: publicCollectionsStore.data.isOrderAsc,
+      column: publicCollectionsStore.data.column,
+      columnValue: publicCollectionsStore.data.columnValue,
       currentPage: publicCollectionsStore.data.currentPage,
       totalPages: publicCollectionsStore.data.totalPages
     };
@@ -39,15 +39,15 @@ class PublicCollectionsRoute extends React.Component {
       isLoading: publicCollectionsStore.data.isFetchingData,
       assets: publicCollectionsStore.data.assets,
       totalAssets: publicCollectionsStore.data.totalSearchAssets,
-      sortColumn: publicCollectionsStore.data.sortColumn,
-      isOrderAsc: publicCollectionsStore.data.isOrderAsc,
+      column: publicCollectionsStore.data.column,
+      columnValue: publicCollectionsStore.data.columnValue,
       currentPage: publicCollectionsStore.data.currentPage,
       totalPages: publicCollectionsStore.data.totalPages
     });
   }
 
-  onAssetsTableReorder(sortColumn, isOrderAsc) {
-    publicCollectionsStore.setOrder(sortColumn, isOrderAsc);
+  onAssetsTableColumnChange(column, columnValue) {
+    publicCollectionsStore.setOrder(column, columnValue);
   }
 
   onAssetsTableSwitchPage(pageNumber) {
@@ -63,9 +63,9 @@ class PublicCollectionsRoute extends React.Component {
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
             isLoading={this.state.isLoading}
-            sortColumn={this.state.sortColumn}
-            isOrderAsc={this.state.isOrderAsc}
-            onReorder={this.onAssetsTableReorder.bind(this)}
+            column={this.state.column}
+            columnValue={this.state.columnValue}
+            onColumnChange={this.onAssetsTableColumnChange.bind(this)}
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}

@@ -374,7 +374,7 @@ export var dataInterface;
       }
 
       if (params.sort && params.order) {
-        searchData.sort = `{"${params.sort}":${params.order}}`;
+        searchData.ordering = `${params.order}${params.sort}`;
       }
 
       return $ajax({
@@ -397,7 +397,7 @@ export var dataInterface;
       }
 
       if (params.sort && params.order) {
-        searchData.sort = `{"${params.sort}":${params.order}}`;
+        searchData.ordering = `${params.order}${params.sort}`;
       }
 
       return $ajax({

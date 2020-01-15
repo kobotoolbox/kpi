@@ -21,8 +21,8 @@ class MyLibraryRoute extends React.Component {
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
       totalAssets: myLibraryStore.data.totalSearchAssets,
-      sortColumn: myLibraryStore.data.sortColumn,
-      isOrderAsc: myLibraryStore.data.isOrderAsc,
+      column: myLibraryStore.data.column,
+      columnValue: myLibraryStore.data.columnValue,
       currentPage: myLibraryStore.data.currentPage,
       totalPages: myLibraryStore.data.totalPages
     };
@@ -39,15 +39,15 @@ class MyLibraryRoute extends React.Component {
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
       totalAssets: myLibraryStore.data.totalSearchAssets,
-      sortColumn: myLibraryStore.data.sortColumn,
-      isOrderAsc: myLibraryStore.data.isOrderAsc,
+      column: myLibraryStore.data.column,
+      columnValue: myLibraryStore.data.columnValue,
       currentPage: myLibraryStore.data.currentPage,
       totalPages: myLibraryStore.data.totalPages
     });
   }
 
-  onAssetsTableReorder(sortColumn, isOrderAsc) {
-    myLibraryStore.setOrder(sortColumn, isOrderAsc);
+  onAssetsTableColumnChange(column, columnValue) {
+    myLibraryStore.setOrder(column, columnValue);
   }
 
   onAssetsTableSwitchPage(pageNumber) {
@@ -70,9 +70,9 @@ class MyLibraryRoute extends React.Component {
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
             isLoading={this.state.isLoading}
-            sortColumn={this.state.sortColumn}
-            isOrderAsc={this.state.isOrderAsc}
-            onReorder={this.onAssetsTableReorder.bind(this)}
+            column={this.state.column}
+            columnValue={this.state.columnValue}
+            onColumnChange={this.onAssetsTableColumnChange.bind(this)}
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}

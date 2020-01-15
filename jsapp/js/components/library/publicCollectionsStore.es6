@@ -3,7 +3,10 @@ import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {actions} from 'js/actions';
-import {ASSETS_TABLE_COLUMNS} from './assetsTable';
+import {
+  ORDER_DIRECTIONS,
+  ASSETS_TABLE_COLUMNS
+} from './assetsTable';
 import {
   ASSET_TYPES,
   ACCESS_TYPES
@@ -22,8 +25,8 @@ const publicCollectionsStore = Reflux.createStore({
   init() {
     this.data = {
       isFetchingData: false,
-      sortColumn: this.DEFAULT_COLUMN,
-      isOrderAsc: this.DEFAULT_COLUMN.defaultIsOrderAsc,
+      column: this.DEFAULT_COLUMN,
+      columnValue: this.DEFAULT_COLUMN.defaultValue,
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
@@ -59,8 +62,8 @@ const publicCollectionsStore = Reflux.createStore({
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      sort: this.data.sortColumn.backendProp,
-      order: this.data.isOrderAsc ? -1 : 1
+      sort: this.data.column.orderBy || this.data.column.filterBy,
+      order: this.data.columnValue === ORDER_DIRECTIONS.get('ascending') ? '+' : '-'
     });
   },
 
@@ -196,13 +199,13 @@ const publicCollectionsStore = Reflux.createStore({
     this.fetchData();
   },
 
-  setOrder(sortColumn, isOrderAsc) {
+  setOrder(column, columnValue) {
     if (
-      this.data.sortColumn.id !== sortColumn.id ||
-      this.data.isOrderAsc !== isOrderAsc
+      this.data.column.id !== column.id ||
+      this.data.columnValue !== columnValue
     ) {
-      this.data.sortColumn = sortColumn;
-      this.data.isOrderAsc = isOrderAsc;
+      this.data.column = column;
+      this.data.columnValue = columnValue;
       this.fetchData();
     }
   }
