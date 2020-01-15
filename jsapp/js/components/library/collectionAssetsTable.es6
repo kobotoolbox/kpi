@@ -5,10 +5,11 @@ import {getAssetDisplayName} from 'js/assetUtils';
 import {
   AssetsTable,
   ASSETS_TABLE_CONTEXTS,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_COLUMNS,
+  ORDER_DIRECTIONS
 } from './assetsTable';
 
-const defaultColumn = ASSETS_TABLE_COLUMNS.get('last-modified');
+const defaultColumn = ASSETS_TABLE_COLUMNS.get('date-modified');
 
 /**
  * A wrapper component over AssetsTable for usage on collection landing page.
@@ -21,17 +22,14 @@ class CollectionAssetsTable extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      sortColumn: defaultColumn,
-      isOrderAsc: defaultColumn.defaultIsOrderAsc
+      column: defaultColumn,
+      columnValue: defaultColumn.defaultValue
     };
     autoBind(this);
   }
 
-  onAssetsTableReorder(sortColumn, isOrderAsc) {
-    this.setState({
-      sortColumn,
-      isOrderAsc
-    });
+  onAssetsTableColumnChange(column, columnValue) {
+    this.setState({column, columnValue});
   }
 
   nameOrderFunction(asset) {
@@ -45,19 +43,19 @@ class CollectionAssetsTable extends React.Component {
   }
 
   defaultOrderFunction(asset) {
-    return asset[this.state.sortColumn.backendProp];
+    return asset[this.state.column.orderBy || this.state.column.filterBy];
   }
 
   /**
-   * Returns asset children ordered by sortColumn and isOrderAsc properties
+   * Returns asset children ordered by column and columnValue
    * @return {Array}
    */
   getOrderedChildren() {
     let orderFn = this.defaultOrderFunction.bind(this);
-    if (this.state.sortColumn.id === ASSETS_TABLE_COLUMNS.get('name').id) {
+    if (this.state.column.id === ASSETS_TABLE_COLUMNS.get('name').id) {
       orderFn = this.nameOrderFunction.bind(this);
     }
-    const orderDirection = this.state.isOrderAsc ? 'asc' : 'desc';
+    const orderDirection = this.state.columnValue === ORDER_DIRECTIONS.get('ascending') ? 'asc' : 'desc';
 
     return orderBy(
       this.props.asset.children.results,
@@ -76,9 +74,9 @@ class CollectionAssetsTable extends React.Component {
         context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
         assets={orderedChildren}
         totalAssets={orderedChildren.length}
-        sortColumn={this.state.sortColumn}
-        isOrderAsc={this.state.isOrderAsc}
-        onReorder={this.onAssetsTableReorder.bind(this)}
+        column={this.state.column}
+        columnValue={this.state.columnValue}
+        onColumnChange={this.onAssetsTableColumnChange.bind(this)}
       />
     );
   }

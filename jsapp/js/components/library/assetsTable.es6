@@ -9,13 +9,13 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  * Displays a table of assets.
  *
  * @prop {string} context - One of ASSETS_TABLE_CONTEXTS.
+ * @prop {boolean} [isLoading] - To display spinner.
  * @prop {Array<object>} assets - List of assets to be displayed.
  * @prop {number} totalAssets - Number of assets on all pages.
- * @prop {string} [emptyMessage] - To replace the default empty message.
- * @prop {boolean} [isLoading] - To display spinner.
- * @prop {AssetsTableColumn} sortColumn - Current order column, one of ASSETS_TABLE_COLUMNS.
- * @prop {boolean} isOrderAsc - Current order direction.
- * @prop {reorderCallback} onReorder - Called when user clicks column header for reordering.
+ * @prop {Array<object>} availableFilters - List of available filters values.
+ * @prop {AssetsTableColumn} column - Seleceted column, one of ASSETS_TABLE_COLUMNS.
+ * @prop {string} columnValue - Seleceted column value.
+ * @prop {columnChangeCallback} onColumnChange - Called when user selects a column for odering or filtering.
  * @prop {number} [currentPage] - For displaying pagination.
  * @prop {number} [totalPages] - For displaying pagination.
  * @prop {switchPageCallback} [onSwitchPage] - Called when user clicks page change.
@@ -39,13 +39,19 @@ export class AssetsTable extends React.Component {
    * @param {string} columnId
    */
   reorder(columnId) {
-    if (this.props.sortColumn.id === columnId) {
+    if (this.props.column.id === columnId) {
       // clicking already selected column results in switching the order direction
-      this.props.onReorder(this.props.sortColumn, !this.props.isOrderAsc);
+      let newVal;
+      if (this.props.columnValue === ORDER_DIRECTIONS.get('ascending')) {
+        newVal = ORDER_DIRECTIONS.get('descending');
+      } else if (this.props.columnValue === ORDER_DIRECTIONS.get('descending')) {
+        newVal = ORDER_DIRECTIONS.get('ascending');
+      }
+      this.props.onColumnChange(this.props.column, newVal);
     } else {
       // change column and revert order direction to ascending
       const newColumn = ASSETS_TABLE_COLUMNS.get(columnId);
-      this.props.onReorder(newColumn, newColumn.defaultIsOrderAsc);
+      this.props.onColumnChange(newColumn, newColumn.defaultValue);
     }
   }
 
@@ -55,10 +61,11 @@ export class AssetsTable extends React.Component {
   renderHeaderColumn(columnDef) {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
-    if (this.props.sortColumn.id === columnDef.id) {
-      if (this.props.isOrderAsc) {
+    if (this.props.column.id === columnDef.id) {
+      if (this.props.columnValue === ORDER_DIRECTIONS.get('ascending')) {
         icon = (<i className='k-icon k-icon-up'/>);
-      } else {
+      }
+      if (this.props.columnValue === ORDER_DIRECTIONS.get('descending')) {
         icon = (<i className='k-icon k-icon-down'/>);
       }
     }
@@ -136,13 +143,13 @@ export class AssetsTable extends React.Component {
             {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
             {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
             {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-              this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('subscribers'))
+              this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('subscribers-count'))
             }
             {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))}
             {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))}
             {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
             {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('last-modified'))}
+            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('date-modified'))}
           </bem.AssetsTableRow>
         </bem.AssetsTable__header>
 
@@ -153,7 +160,7 @@ export class AssetsTable extends React.Component {
 
           {!this.props.isLoading && this.props.assets.length === 0 &&
             <bem.AssetsTableRow m='empty-message'>
-              {this.props.emptyMessage || t('There are no assets to display.')}
+              {t('There are no assets to display.')}
             </bem.AssetsTableRow>
           }
 
@@ -181,92 +188,95 @@ new Set([
   'public-collections'
 ]).forEach((name) => {ASSETS_TABLE_CONTEXTS.set(name, name);});
 
+export const ORDER_DIRECTIONS = new Map();
+new Set([
+  'ascending',
+  'descending'
+]).forEach((name) => {ORDER_DIRECTIONS.set(name, name);});
+
 /**
  * @typedef AssetsTableColumn
  * @prop {string} label
  * @prop {string} id
- * @prop {string} backendProp - path to property data (for ordering)
- * @prop {boolean} defaultIsOrderAsc
+ * @prop {string} [filterBy] - a backend filter property
+ * @prop {string} [orderBy] - a backend order property
+ * @prop {boolean} [defaultValue]
  */
 export const ASSETS_TABLE_COLUMNS = new Map([
-  [
-    'country', {
-      label: t('Country'),
-      id: 'country',
-      backendProp: 'settings.country',
-      defaultIsOrderAsc: true
-    }
-  ],
   [
     'icon-status', {
       label: null,
       id: 'icon-status',
-      backendProp: 'asset_type',
-      defaultIsOrderAsc: true
+      orderBy: 'asset_type',
+      defaultValue: ORDER_DIRECTIONS.get('ascending')
     }
   ],
   [
-    'languages', {
-      label: t('Languages'),
-      id: 'languages',
-      backendProp: 'settings.languages',
-      defaultIsOrderAsc: true
-    }
-  ],
-  [
-    'last-modified', {
+    'date-modified', {
       label: t('Last Modified'),
-      id: 'last-modified',
-      backendProp: 'date_modified',
-      defaultIsOrderAsc: false
+      id: 'date-modified',
+      orderBy: 'date_modified',
+      defaultValue: ORDER_DIRECTIONS.get('descending')
     }
   ],
   [
     'name', {
       label: t('Name'),
       id: 'name',
-      backendProp: 'name',
-      defaultIsOrderAsc: true
-    }
-  ],
-  [
-    'organization', {
-      label: t('Organization'),
-      id: 'organization',
-      backendProp: 'settings.organization',
-      defaultIsOrderAsc: true
+      orderBy: 'name',
+      defaultValue: ORDER_DIRECTIONS.get('ascending')
     }
   ],
   [
     'owner', {
       label: t('Owner'),
       id: 'owner',
-      backendProp: 'owner__username',
-      defaultIsOrderAsc: true
+      orderBy: 'owner__username',
+      defaultValue: ORDER_DIRECTIONS.get('ascending')
+    }
+  ],
+  [
+    'subscribers-count', {
+      label: t('Subscribers'),
+      id: 'subscribers-count',
+      orderBy: 'subscribers_count',
+      defaultValue: ORDER_DIRECTIONS.get('ascending')
+    }
+  ],
+  [
+    'languages', {
+      label: t('Languages'),
+      id: 'languages',
+      filterBy: 'summary__languages'
+    }
+  ],
+  [
+    'organization', {
+      label: t('Organization'),
+      id: 'organization',
+      filterBy: 'settings__organization'
     }
   ],
   [
     'primary-sector', {
       label: t('Primary Sector'),
       id: 'primary-sector',
-      backendProp: 'settings.sector',
-      defaultIsOrderAsc: true
+      filterBy: 'settings__sector_label'
     }
   ],
   [
-    'subscribers', {
-      label: t('Subscribers'),
-      id: 'subscribers',
-      backendProp: 'subscribers_count',
-      defaultIsOrderAsc: true
+    'country', {
+      label: t('Country'),
+      id: 'country',
+      filterBy: 'settings__country__label'
     }
-  ]
+  ],
 ]);
 
 /**
- * @callback reorderCallback
- * @param {AssetsTableColumn} sortColumn
- * @param {boolean} isOrderAsc
+ * @callback columnChangeCallback
+ * @param {AssetsTableColumn} column
+ * @param {string} columnValue
  */
 
 /**

@@ -3,7 +3,10 @@ import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {actions} from 'js/actions';
-import {ASSETS_TABLE_COLUMNS} from './assetsTable';
+import {
+  ORDER_DIRECTIONS,
+  ASSETS_TABLE_COLUMNS
+} from './assetsTable';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -13,19 +16,22 @@ const myLibraryStore = Reflux.createStore({
   abortFetchData: undefined,
   previousPath: null,
   PAGE_SIZE: 100,
-  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
+  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   init() {
     this.data = {
       isFetchingData: false,
-      sortColumn: this.DEFAULT_COLUMN,
-      isOrderAsc: this.DEFAULT_COLUMN.defaultIsOrderAsc,
+      column: this.DEFAULT_COLUMN,
+      columnValue: this.DEFAULT_COLUMN.defaultValue,
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
       totalSearchAssets: null,
       assets: []
     };
+
+    // TODO react to upload(s) finishing (debounced because of multiple uploads)
+    // or don't react at all ;-)
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
@@ -53,8 +59,8 @@ const myLibraryStore = Reflux.createStore({
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      sort: this.data.sortColumn.backendProp,
-      order: this.data.isOrderAsc ? -1 : 1
+      sort: this.data.column.orderBy || this.data.column.filterBy,
+      order: this.data.columnValue === ORDER_DIRECTIONS.get('ascending') ? '+' : '-'
     });
   },
 
@@ -174,13 +180,13 @@ const myLibraryStore = Reflux.createStore({
     this.fetchData();
   },
 
-  setOrder(sortColumn, isOrderAsc) {
+  setOrder(column, columnValue) {
     if (
-      this.data.sortColumn.id !== sortColumn.id ||
-      this.data.isOrderAsc !== isOrderAsc
+      this.data.column.id !== column.id ||
+      this.data.columnValue !== columnValue
     ) {
-      this.data.sortColumn = sortColumn;
-      this.data.isOrderAsc = isOrderAsc;
+      this.data.column = column;
+      this.data.columnValue = columnValue;
       this.fetchData();
     }
   }

@@ -172,7 +172,7 @@ $c-assets-table-row-hover: $cool-whitegray;
       width: 10%;
     }
 
-    &.assets-table-row__column--subscribers {
+    &.assets-table-row__column--subscribers-count {
       width: 10%;
     }
 
@@ -192,7 +192,7 @@ $c-assets-table-row-hover: $cool-whitegray;
       width: 7.5%;
     }
 
-    &.assets-table-row__column--last-modified {
+    &.assets-table-row__column--date-modified {
       width: 17.5%;
       text-align: right;
     }
