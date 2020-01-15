@@ -24,9 +24,9 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 * Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
 * To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
 
-## Searching assets and collections
+## Searching assets
 
-Top-level (null-parent) assets and collections can be found by including `parent=` in the query string. For other searches, construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:
+For searches, construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:
 
 * `name`: a tokenized\* representation of the name;
 * `name__exact`: a space- and comma-escaped representation of the name, e.g. "Fun, Exciting Asset" would be indexed as "Fun--Exciting-Asset";
@@ -34,13 +34,18 @@ Top-level (null-parent) assets and collections can be found by including `parent
 * `owner__username__exact`: a space- and comma-escaped representation of the owner's username;
 * `parent__name`: a tokenized\* representation of the parent object's name;
 * `parent__name__exact`: a space- and comma-escaped representation of the parent object's name;
-* `parent__uid`: the UID of the parent collection;
+* `parent__uid`: the UID of the parent collection; To retrieve top-level (null-parent) assets, you can use `null` (e.g. `parent__uid:null`)
 * `ancestor__uid`: a multi-value field containing the UIDs of all ancestor collections;
 * `tag`: a multi-valued field holding space- and comma-escaped representations of each tag assigned to the object;
-* `asset_type` (for assets only): a space- and comma-escaped representation of the asset's type string;
+* `asset_type`: an escaped representation of the asset's type string; <sup>1</sup>
+* `summary__languages`: an escaped representation of languages; <sup>1</sup>
+* `settings__country__value`: an escaped representation of country values; <sup>1</sup>
+* `settings__sector__value`: an escaped representation of sector values; e.g: <sup>1</sup>
 * `text`: the search "document," which is built by [text templates](https://github.com/kobotoolbox/kpi/tree/master/kpi/templates/search/indexes/kpi).
 
-When the `q` parameter contains a search term without a specified field, e.g. `/collections/?q=health`, that term is matched against the search "document" (the `text` field). 
+<sup>1. Several value can be searched at once by joining them with ` OR `, e.g. `q=field:value1 OR field:value2`</sup>
+
+When the `q` parameter contains a search term without a specified field, e.g. `/api/v2/assets/?q=health`, that term is matched against the search "document" (the `text` field). 
 
 ## Searching tags
 
