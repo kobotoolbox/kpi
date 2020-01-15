@@ -71,6 +71,9 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/assets/
 
+    Search can be made with `q` parameter. Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
+    for more details
+
     Get an hash of all `version_id`s of assets.
     Useful to detect any changes in assets with only one call to `API`
 
