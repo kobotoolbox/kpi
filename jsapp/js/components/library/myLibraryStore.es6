@@ -13,7 +13,7 @@ const myLibraryStore = Reflux.createStore({
   abortFetchData: undefined,
   previousPath: null,
   PAGE_SIZE: 100,
-  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('last-modified'),
+  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   init() {
     this.data = {
@@ -26,6 +26,9 @@ const myLibraryStore = Reflux.createStore({
       totalSearchAssets: null,
       assets: []
     };
+
+    // TODO react to upload(s) finishing (debounced because of multiple uploads)
+    // or don't react at all ;-)
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);

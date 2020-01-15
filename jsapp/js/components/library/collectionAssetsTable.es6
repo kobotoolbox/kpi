@@ -8,7 +8,7 @@ import {
   ASSETS_TABLE_COLUMNS
 } from './assetsTable';
 
-const defaultColumn = ASSETS_TABLE_COLUMNS.get('last-modified');
+const defaultColumn = ASSETS_TABLE_COLUMNS.get('date-modified');
 
 /**
  * A wrapper component over AssetsTable for usage on collection landing page.

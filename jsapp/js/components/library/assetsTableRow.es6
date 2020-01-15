@@ -78,7 +78,7 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__column>
 
         {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-          <bem.AssetsTableRow__column m='subscribers'>
+          <bem.AssetsTableRow__column m='subscribers-count'>
             {this.props.asset.subscribers_count}
           </bem.AssetsTableRow__column>
         }
@@ -99,7 +99,7 @@ class AssetsTableRow extends React.Component {
           {assetUtils.getCountryDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
-        <bem.AssetsTableRow__column m='last-modified'>
+        <bem.AssetsTableRow__column m='date-modified'>
           {formatTime(this.props.asset.date_modified)}
         </bem.AssetsTableRow__column>
       </bem.AssetsTableRow>
