@@ -264,14 +264,17 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
-            # 4) Get the languages per asset
+            # 4) Get the languages & children count per asset
             records = Asset.objects.filter(parent_id__in=asset_ids). \
                 values('parent_id', 'summary').order_by('parent_id')
             summaries_per_asset = defaultdict(list)
+            children_count_per_asset = defaultdict(int)
             for record in records:
                 summaries_per_asset[record['parent_id']].append(record['summary'])
+                children_count_per_asset[record['parent_id']] += 1
 
             context_['summaries_per_asset'] = summaries_per_asset
+            context_['children_count_per_asset'] = children_count_per_asset
 
         return context_
 

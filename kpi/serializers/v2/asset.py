@@ -460,6 +460,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
 
+    children = serializers.SerializerMethodField()
+
     class Meta(AssetSerializer.Meta):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
@@ -490,7 +492,22 @@ class AssetListSerializer(AssetSerializer):
                   'subscribers_count',
                   'status',
                   'access_type',
+                  'children'
                   )
+
+    def get_children(self, asset):
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
+            return {'count': 0}
+
+        try:
+            children_count = self.context['children_count_per_asset'].get(asset.pk, 0)
+        except KeyError:
+            # Maybe overkill, there are no reasons to enter here.
+            # in the list context, `children_count` should be always
+            # a property of `self.context`
+            children_count = asset.children.count()
+
+        return {'count': children_count}
 
     def get_languages(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
