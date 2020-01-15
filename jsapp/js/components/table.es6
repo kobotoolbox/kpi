@@ -406,7 +406,7 @@ export class DataTable extends React.Component {
             if (showLabels && q && q.type && row.value) {
               if (q.type == 'image' || q.type == 'audio' || q.type == 'video') {
                 var mediaURL = this.getMediaDownloadLink(row.value);
-                return <a href={mediaURL}>{row.value}</a>;
+                return <a href={mediaURL} target="_blank">{row.value}</a>;
               }
               // show proper labels for choice questions
               if (q.type == 'select_one') {
