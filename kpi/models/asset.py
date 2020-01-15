@@ -7,6 +7,7 @@ from io import BytesIO
 
 import six
 import xlwt
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -655,6 +656,18 @@ class Asset(ObjectPermissionMixin,
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
 
+    @property
+    def discoverable_when_public(self):
+        # This property is only needed when `self` is a collection.
+        # We want to make a distinction between a collection which is not
+        # discoverable and an asset which is not a collection
+        # (which implies cannot be discoverable)
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
+                                       user_id=settings.ANONYMOUS_USER_ID).exists()
+
     def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
         Returns the list of filters for a specific permission `perm`
@@ -746,6 +759,16 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
+    def has_subscribed_user(self, user_id):
+        # This property is only needed when `self` is a collection.
+        # We want to make a distinction between a collection which does not have
+        # the subscribed user and an asset which is not a collection
+        # (which implies cannot have subscriptions)
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        return self.userassetsubscription_set.filter(user_id=user_id).exists()
 
     @property
     def latest_deployed_version(self):
