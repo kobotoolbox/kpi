@@ -63,7 +63,7 @@ module.exports = do ->
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{_t("Item label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
-            <input type="text" placeholder="#{_t("Enter question hint here (optional)")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Enter question hint (optional)")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>

@@ -302,7 +302,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Name"), 'text', 'Enter variable name here'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Name"), 'text', 'Enter variable name'
     afterRender: ->
       @makeRequired()
       @listenForInputChange(transformFn: (value)=>
@@ -616,7 +616,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text', 'Enter variable data group name here'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Group"), 'text', 'Enter data set name'
     afterRender: ->
       @listenForInputChange()
 
@@ -624,7 +624,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Brief Description"), 'text', 'Enter variable title here (optional)', '40'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Brief Description"), 'text', 'Enter variable title (may be used in display table column headers) (optional)', '40'
     afterRender: ->
       @listenForInputChange()
 
@@ -675,7 +675,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Description"), 'text', 'Enter variable definition here (optional)', '3999'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Description"), 'text', 'Enter variable definition (e.g., CDASH data definition) (optional)', '3999'
     afterRender: ->
       @listenForInputChange()
 
