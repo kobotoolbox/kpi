@@ -48,6 +48,81 @@ module.exports = do ->
         isNewRow = true
         delete @model.attributes.isNewRow
 
+        if @model.get('type').get('typeId') isnt 'note'
+          itemGroupPrependVal = 'group'
+          itemGroupVal = ''
+
+          isInGroup = @model._parent?._parent?.constructor.kls is "Group"
+          isInRepeatGroup = isInGroup and @model._parent?._parent?._isRepeat() is true
+
+          repeatGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls is "Group" and model?._isRepeat()
+          repeatGroupsItemGroupNames = []
+          repeatGroupsIntVals = []
+          if repeatGroups.length > 0
+            repeatGroups.forEach (group) =>
+              groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
+              if groupRowModels.length > 0
+                groupRowModels.forEach (model) =>
+                  itemGroupName = group.rows.models[0].attributes['bind::oc:itemgroup'].get('value')
+                  if itemGroupName && itemGroupName != ''
+                    repeatGroupsItemGroupNames.push(itemGroupName)
+                    itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
+                    repeatGroupsIntVals.push(itemGroupIntVal)
+            _.uniq(repeatGroupsItemGroupNames)
+            _.uniq(repeatGroupsIntVals)
+
+          nonRepeatGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls is "Group" and not model?._isRepeat()
+          nonRepeatGroupsItemGroupNames = []
+          nonRepeatGroupsIntVals = []
+          if nonRepeatGroups.length > 0
+            nonRepeatGroups.forEach (group) =>
+              groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
+              if groupRowModels.length > 0
+                groupRowModels.forEach (model) =>
+                  itemGroupName = group.rows.models[0].attributes['bind::oc:itemgroup'].get('value')
+                  if itemGroupName && itemGroupName != ''
+                    nonRepeatGroupsItemGroupNames.push(itemGroupName)
+                    itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
+                    nonRepeatGroupsIntVals.push(itemGroupIntVal)
+            _.uniq(nonRepeatGroupsItemGroupNames)
+            _.uniq(nonRepeatGroupsIntVals)
+
+          nonGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
+          nonGroupsItemGroupNames = []
+          nonGroupsIntVals = []
+          if nonGroups.length > 0
+            nonGroups.forEach (model) =>
+              itemGroupName = model.attributes['bind::oc:itemgroup'].get('value')
+              if itemGroupName && itemGroupName != ''
+                nonGroupsItemGroupNames.push(itemGroupName)
+                itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
+                nonGroupsIntVals.push(itemGroupIntVal)
+            _.uniq(nonGroupsItemGroupNames)
+            _.uniq(nonGroupsIntVals)
+
+          if isInRepeatGroup
+            repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
+            console.log 'repeatGroupRowsModel', repeatGroupRowsModel
+            if repeatGroupRowsModel
+              itemGroupName = repeatGroupRowsModel.attributes['bind::oc:itemgroup'].get('value')
+              itemGroupVal = itemGroupName if itemGroupName && itemGroupName != ''
+            else
+              maxIntVal = 0
+              allIntVals = _.union(repeatGroupsIntVals, nonRepeatGroupsIntVals, nonGroupsIntVals)
+              if allIntVals.length > 0
+                maxIntVal = Math.max.apply null, allIntVals
+              itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
+          else
+            if nonRepeatGroups.length == 0 and nonGroups.length == 0
+              maxIntVal = 0
+              if repeatGroupsIntVals.length > 0
+                maxIntVal = Math.max.apply null, repeatGroupsIntVals
+              itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
+            else
+              itemGroupVal =  _.first(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
+
+          @model.attributes['bind::oc:itemgroup'].set('value', itemGroupVal)
+
       fixScroll = opts.fixScroll
 
       if @already_rendered

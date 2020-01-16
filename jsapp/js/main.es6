@@ -50,15 +50,28 @@ initCrossStorageClient();
 function crossStorageCheck() {
   const currentUserName = stores.session.currentAccount.username;
   if (currentUserName !== '') {
-    console.log('main check');
+    console.log('crossStorageCheck');
+    const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
+    checkCrossStorageUser(crossStorageUserName)
+      .then(checkCrossStorageTimeOut)
+      .catch(function(err) {
+        if (err == 'logout' || err == 'user-changed') {
+          logout();
+        }
+      });
+  }
+}
+
+function crossStorageCheckAndUpdate() {
+  const currentUserName = stores.session.currentAccount.username;
+  if (currentUserName !== '') {
+    console.log('crossStorageCheckAndUpdate');
     const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
     checkCrossStorageUser(crossStorageUserName)
       .then(checkCrossStorageTimeOut)
       .then(updateCrossStorageTimeOut)
       .catch(function(err) {
-        if (err == 'logout') {
-          logout();
-        } else if (err == 'user-changed') {
+        if (err == 'logout' || err == 'user-changed') {
           logout();
         }
       });
@@ -78,7 +91,7 @@ function logout() {
   { element: 'body', event: 'keydown' }
 ].forEach(function(elementEvent) {
   addCustomEventListener(elementEvent.element, elementEvent.event, function() {
-    crossStorageCheck();
+    crossStorageCheckAndUpdate();
   });
 });
 
