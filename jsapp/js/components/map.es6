@@ -82,7 +82,8 @@ export class FormMap extends React.Component {
       componentRefreshed: false,
       showMapSettings: false,
       overridenStyles: false,
-      clearDisaggregatedPopover: false
+      clearDisaggregatedPopover: false,
+      noData: false
     };
 
     autoBind(this);
@@ -95,8 +96,6 @@ export class FormMap extends React.Component {
   }
 
   componentDidMount () {
-    if (!this.state.hasGeoPoint)
-      return false;
 
     var fields = [];
     let fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text'];
@@ -372,7 +371,7 @@ export class FormMap extends React.Component {
       }
     });
 
-    if (prepPoints.length > 0) {
+    if (prepPoints.length >= 0) {
       let markers;
       if (viewby) {
         markers = L.featureGroup(prepPoints);
@@ -401,9 +400,13 @@ export class FormMap extends React.Component {
 
       markers.on('click', this.launchSubmissionModal).addTo(map);
 
-      if (!viewby || !this.state.componentRefreshed)
+      if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
         map.fitBounds(markers.getBounds());
-
+    }
+      if(prepPoints == 0) {
+        map.fitBounds([[42.373, -71.124]]);
+        this.setState({noData: true});
+      }
       this.setState({
           markers: markers
         }
@@ -619,17 +622,6 @@ export class FormMap extends React.Component {
   }
 
   render () {
-    if (!this.state.hasGeoPoint) {
-      return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('The map is not available because this form does not have a "geopoint" field.')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
-      );
-    }
 
     if (this.state.error) {
       return (
@@ -657,6 +649,10 @@ export class FormMap extends React.Component {
           label = `${t('Disaggregated using:')} ${f.label[langIndex]}`;
         }
       });
+    } else if (this.state.noData && this.state.hasGeoPoint) {
+      label = `${t('No GeoPoint Data to show')}`;
+    } else if (!this.state.hasGeoPoint) {
+      label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
     }
 
     const formViewModifiers = ['map'];
@@ -697,7 +693,9 @@ export class FormMap extends React.Component {
             <i className='k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
-        <ui.PopoverMenu type='viewby-menu'
+        
+        { this.state.hasGeoPoint && !this.state.noData && 
+          <ui.PopoverMenu type='viewby-menu'
                         triggerLabel={label}
                         m={'above'}
                         clearPopover={this.state.clearDisaggregatedPopover}
@@ -732,7 +730,30 @@ export class FormMap extends React.Component {
                   </bem.PopoverMenu__link>
                 );
             })}
-        </ui.PopoverMenu>
+          </ui.PopoverMenu>
+
+        }
+
+        {this.state.noData && !this.state.hasGeoPoint &&
+         <div className="map-transparent-background">
+           <div className="map-no-geopoint-wrapper">
+            <p className="map-no-geopoint">
+              {t('The map does not show data because this form does not have a "geopoint" field.')}
+            </p>
+          </div>
+         </div>
+        }
+
+        {this.state.noData && this.state.hasGeoPoint &&
+         <div className="map-transparent-background">
+           <div className="map-no-geopoint-wrapper">
+            <p className="map-no-geopoint">
+              {t('No GeoPoint Data to show.')}
+            </p>
+          </div>
+         </div>
+        }
+
         {this.state.markerMap && this.state.markersVisible &&
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
