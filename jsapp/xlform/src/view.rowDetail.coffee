@@ -497,13 +497,11 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->
       types =
-        text: ['multiline', 'numbers']
-        select_one: ['minimal', 'quick', 'horizontal-compact', 'horizontal', 'likert', 'compact', 'quickcompact', 'label', 'list-nolabel']
-        select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
-        image: ['signature', 'draw', 'annotate']
+        text: ['multiline']
+        select_one: ['minimal', 'columns', 'columns-pack', 'columns-4', 'columns no-buttons', 'columns-pack no-buttons', 'columns-4 no-buttons', 'likert', 'image-map']
+        select_multiple: ['minimal', 'columns', 'columns-pack', 'columns-4', 'columns no-buttons', 'columns-pack no-buttons', 'columns-4 no-buttons', 'image-map']
+        image: ['draw', 'annotate', 'signature']
         date: ['month-year', 'year']
-        group: ['select', 'field-list', 'table-list', 'other']
-        range: ['range', 'vertical', 'no-ticks', 'picker', 'rating', 'distress']
 
       types[@model_type(@model)]
     html: ->
@@ -516,14 +514,14 @@ module.exports = do ->
           if @is_form_style_theme_grid()
             return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
       else
-        appearances = @getTypes()
-        if appearances?
-          if @model_type(@model) isnt 'range'
+        if @model_type(@model) isnt 'calculate'
+          appearances = @getTypes()
+          if appearances?
             appearances.push 'other'
             appearances.unshift 'select'
-          return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, _t("Appearance (advanced)")
-        else
-          return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
+            return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, _t("Appearance (advanced)")
+          else
+            return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
 
     model_is_group: (model) ->
       model._parent.constructor.key == 'group'
