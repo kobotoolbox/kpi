@@ -27,17 +27,23 @@ class PermValidator extends React.Component {
     let allImplied = [];
     let allContradictory = [];
 
+    const appendUserUrl = (permission, userUrl) => `${permission}###${userUrl}`;
+    const appendUserUrls = (permissions, userUrl) => {
+      return permissions.map((permission) => appendUserUrl(permission, userUrl));
+    };
+
     permissionAssignments.forEach((assignment) => {
       const permDef = permConfig.getPermission(assignment.permission);
-      allImplied = _.union(allImplied, permDef.implied);
-      allContradictory = _.union(allContradictory, permDef.contradictory);
+      allImplied = _.union(allImplied, appendUserUrls(permDef.implied, assignment.user));
+      allContradictory = _.union(allContradictory, appendUserUrls(permDef.contradictory, assignment.user));
     });
 
     let hasAllImplied = true;
     allImplied.forEach((implied) => {
       let isFound = false;
       permissionAssignments.forEach((assignment) => {
-        if (assignment.permission === implied) {
+        let permission = appendUserUrl(assignment.permission, assignment.user);
+        if (permission === implied) {
           isFound = true;
         }
       });
@@ -49,7 +55,8 @@ class PermValidator extends React.Component {
     let hasAnyContradictory = false;
     allContradictory.forEach((contradictory) => {
       permissionAssignments.forEach((assignment) => {
-        if (assignment.permission === contradictory) {
+        let permission = appendUserUrl(assignment.permission, assignment.user);
+        if (permission === contradictory) {
           hasAnyContradictory = true;
         }
       });
