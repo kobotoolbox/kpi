@@ -3,7 +3,7 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import permConfig from './permConfig';
-import actions from 'js/actions';
+import {actions} from '../../actions';
 import _ from 'underscore';
 import {
   t,
