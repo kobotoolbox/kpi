@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from django.db import models
 from shortuuid import ShortUUID
 
@@ -17,10 +15,10 @@ class KpiUidField(models.CharField):
     def __init__(self, uid_prefix):
         self.uid_prefix = uid_prefix
         total_length = len(uid_prefix) + UUID_LENGTH
-        super(KpiUidField, self).__init__(max_length=total_length, unique=True)
+        super().__init__(max_length=total_length, unique=True)
 
     def deconstruct(self):
-        name, path, args, kwargs = super(KpiUidField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         kwargs['uid_prefix'] = self.uid_prefix
         del kwargs['max_length']
         del kwargs['unique']

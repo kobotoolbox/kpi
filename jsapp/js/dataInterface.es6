@@ -15,7 +15,7 @@ import {
 } from './utils';
 import {ROOT_URL} from './constants';
 
-var dataInterface;
+export var dataInterface;
 (function(){
   var $ajax = (o)=> {
     return $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
@@ -612,5 +612,3 @@ var dataInterface;
     }
   });
 }).call(dataInterface = {});
-
-export default {dataInterface: dataInterface};

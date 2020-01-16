@@ -30,6 +30,6 @@ export function getSurveyFlatPaths(survey) {
   return output;
 }
 
-export default {
+export const assetUtils = {
   getSurveyFlatPaths
 };

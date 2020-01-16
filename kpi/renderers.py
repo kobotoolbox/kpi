@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 import json
 
 from dicttoxml import dicttoxml
-from django.utils.six import text_type
 from rest_framework import renderers
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -13,6 +10,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+
 
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
@@ -41,23 +39,24 @@ class XMLRenderer(DRFXMLRenderer):
                 return getattr(obj, relationship).xml
             return obj.xml
         else:
-            return super(XMLRenderer, self).render(data=data,
-                                                   accepted_media_type=accepted_media_type,
-                                                   renderer_context=renderer_context)
+            return super().render(data=data,
+                                  accepted_media_type=accepted_media_type,
+                                  renderer_context=renderer_context)
 
 
 class XFormRenderer(XMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super(XFormRenderer, self).render(data=data,
-                                                 accepted_media_type=accepted_media_type,
-                                                 renderer_context=renderer_context,
-                                                 relationship="snapshot")
+        return super().render(data=data,
+                              accepted_media_type=accepted_media_type,
+                              renderer_context=renderer_context,
+                              relationship="snapshot")
 
 
 class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
     media_type = 'application/json'
     format = 'geojson'
+
     def render(self, data, accepted_media_type=None, renderer_context=None):
         view = renderer_context['view']
         # `AssetNestedObjectViewsetMixin` provides the asset
@@ -79,7 +78,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         if not geo_question_name:
             # No geo question specified; use the first one in the latest
             # version of the form
-            latest_version = next(reversed(pack.versions.values()))
+            latest_version = next(reversed(list(pack.versions.values())))
             first_section = next(iter(latest_version.sections.values()))
             geo_questions = (field for field in first_section.fields.values()
                              if field.data_type in GEO_QUESTION_TYPES)
@@ -104,7 +103,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
             # does not recognize this type and treat each character as xml node.
             for k, v in data.items():
                 if isinstance(v, ErrorDetail):
-                    data[k] = text_type(v)
+                    data[k] = str(v)
 
             # FIXME new `v2` list endpoint enters this block
             # Submissions are wrapped in `<item>` nodes.

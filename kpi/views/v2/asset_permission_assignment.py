@@ -1,22 +1,28 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import exceptions, viewsets, status, renderers
-from rest_framework.decorators import list_route
+from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
     DestroyModelMixin, ListModelMixin
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import CLONE_ARG_NAME, PERM_VIEW_ASSET, PERM_SHARE_ASSET
+from kpi.constants import (
+    CLONE_ARG_NAME,
+    PERM_SHARE_ASSET,
+    PERM_VIEW_ASSET,
+)
+from kpi.deployment_backends.kc_access.utils import \
+    remove_applicable_kc_permissions
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetNestedObjectPermission
-from kpi.serializers.v2.asset_permission_assignment import AssetPermissionAssignmentSerializer, \
-    AssetBulkInsertPermissionSerializer
+from kpi.serializers.v2.asset_permission_assignment import (
+    AssetBulkInsertPermissionSerializer,
+    AssetPermissionAssignmentSerializer,
+)
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -156,8 +162,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetNestedObjectPermission,)
     pagination_class = None
 
-    @list_route(methods=['POST'], renderer_classes=[renderers.JSONRenderer],
-                url_path='bulk')
+    @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
+            url_path='bulk')
     def bulk_assignments(self, request, *args, **kwargs):
         """
         Assigns all permissions at once for the same asset.
@@ -174,12 +180,18 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
             # First delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
-            self.asset.permissions.exclude(user__username=self.asset.owner.username).delete()
+            perms_to_delete = self.asset.permissions.exclude(
+                user__username=self.asset.owner.username)
+            for perm in perms_to_delete.all():
+                self.asset.remove_perm(perm.user,
+                                       perm.permission.codename)
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
                 if 'partial_permissions' in assignment:
-                    context_.update({'partial_permissions': assignment['partial_permissions']})
+                    context_.update({
+                        'partial_permissions': assignment['partial_permissions']
+                    })
                 serializer = AssetBulkInsertPermissionSerializer(
                     data=assignment,
                     context=context_
@@ -191,7 +203,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
             # see all permissions.
             return self.list(request, *args, **kwargs)
 
-    @list_route(methods=['PATCH'], renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=['PATCH'],
+            renderer_classes=[renderers.JSONRenderer])
     def clone(self, request, *args, **kwargs):
 
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
@@ -230,7 +243,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         Inject asset_uid to avoid extra queries to DB inside the serializer.
         """
 
-        context_ = super(AssetPermissionAssignmentViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         context_.update({
             'asset_uid': self.asset.uid
         })

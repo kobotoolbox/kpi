@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
-import actions from '../actions';
+import {actions} from '../actions';
 
 // NOTE: change this boolean to switch to custom button (just make sure to
 // check the TODO comment below)

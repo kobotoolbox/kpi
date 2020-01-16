@@ -11,7 +11,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
 import {KEY_CODES} from 'js/constants';
-import bem from './bem';
+import {bem} from './bem';
 import {t, assign} from './utils';
 import classNames from 'classnames';
 
@@ -91,10 +91,7 @@ class Modal extends React.Component {
   }
   render() {
     return (
-      <bem.Modal__backdrop
-        className='modal__backdrop'
-        onClick={this.backdropClick}
-      >
+      <bem.Modal__backdrop onClick={this.backdropClick}>
         <div className={classNames(
           'modal',
           this.props.className,

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.translation import get_language
@@ -6,7 +6,7 @@ from django.utils.translation import get_language
 from ..models import SitewideMessage
 
 
-class I18nUtils(object):
+class I18nUtils:
 
     @staticmethod
     def get_sitewide_message(slug="welcome_message", lang=None):

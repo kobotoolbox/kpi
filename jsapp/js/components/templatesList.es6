@@ -8,8 +8,8 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import bem from '../bem';
-import stores from '../stores';
+import {bem} from '../bem';
+import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {
   t,

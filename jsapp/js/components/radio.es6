@@ -12,7 +12,7 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from '../bem';
+import {bem} from '../bem';
 
 class Radio extends React.Component {
   constructor(props){

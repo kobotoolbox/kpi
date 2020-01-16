@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from rest_framework import serializers
+
 from kpi.constants import PERM_VIEW_COLLECTION
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Collection
 from kpi.models import UserCollectionSubscription
-from kpi.models.object_permission import get_anonymous_user
-from kpi.models.object_permission import get_objects_for_user
+from kpi.models.object_permission import get_anonymous_user, get_objects_for_user
 
 
 class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
@@ -23,8 +21,7 @@ class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
 
     def __init__(self, *args, **kwargs):
-        super(UserCollectionSubscriptionSerializer, self).__init__(
-            *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['collection'].queryset = get_objects_for_user(
             get_anonymous_user(),
             PERM_VIEW_COLLECTION,

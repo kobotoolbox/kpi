@@ -1,4 +1,5 @@
-from base_handlers import GroupHandler
+# coding: utf-8
+from .base_handlers import GroupHandler
 
 COLS = {
     'rank-cmessage': 'kobo--rank-constraint-message',
@@ -7,7 +8,7 @@ COLS = {
 
 
 class KoboRankGroup(GroupHandler):
-    '''
+    """
     Convert KoboRankGroup:
     #survey
     |     type    | name |    label     | kobo--rank-items |
@@ -40,17 +41,17 @@ class KoboRankGroup(GroupHandler):
     | needs     | food    | Food    |
     | needs     | water   | Water   |
     | needs     | shelter | Shelter |
-    '''
+    """
     name = 'Kobo rank group'
     description = '''Ask a user to rank a number of things.'''
 
     def begin(self, initial_row):
-        super(KoboRankGroup, self).begin(initial_row)
+        super().begin(initial_row)
         self._previous_levels = []
 
-        begin_group = {u'type': u'begin_group',
-                       u'name': self.name,
-                       u'appearance': u'field-list'}
+        begin_group = {'type': 'begin_group',
+                       'name': self.name,
+                       'appearance': 'field-list'}
 
         if 'required' in initial_row:
             del initial_row['required']

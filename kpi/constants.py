@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 INSTANCE_FORMAT_TYPE_XML = "xml"
 INSTANCE_FORMAT_TYPE_JSON = "json"
 
