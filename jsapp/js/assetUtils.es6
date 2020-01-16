@@ -1,4 +1,4 @@
-import actions from 'js/actions';
+import {actions} from './actions';
 import {QUESTION_TYPES} from 'js/constants';
 
 /**
