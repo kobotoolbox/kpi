@@ -4,12 +4,11 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import _ from 'underscore';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
-
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
   t,
   assign,
@@ -120,8 +119,15 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
-      if (this.state.asset.deployment__active) {
+      if (
+        this.state.asset.deployment__active &&
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('view_submissions'), this.state.asset) &&
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), this.state.asset)
+      ) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
+      }
+
+      if (this.state.asset.deployment__active) {
         sideTabs.push({label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'});
       }
     }
