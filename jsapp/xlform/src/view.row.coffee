@@ -123,6 +123,9 @@ module.exports = do ->
 
           @model.attributes['bind::oc:itemgroup'].set('value', itemGroupVal)
 
+        if @model.get('type').get('typeId') is 'note'
+          @model.attributes['readonly'].set('value', true)
+
       fixScroll = opts.fixScroll
 
       if @already_rendered
