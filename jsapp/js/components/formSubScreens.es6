@@ -16,6 +16,7 @@ import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
 import {t} from '../utils';
+import ui from '../ui';
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -41,12 +42,12 @@ export class FormSubScreens extends React.Component {
       return false;
 
     if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !permAccess) {
-      return this.renderDenied();
+      return (<ui.AccessDeniedMessage/>);
     }
 
     if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
         !this.userCan('change_asset', this.state)) {
-      return this.renderDenied();
+      return (<ui.AccessDeniedMessage/>);
     }
 
     var iframeUrl = '';
@@ -144,20 +145,6 @@ export class FormSubScreens extends React.Component {
           {t('loading...')}
         </bem.Loading__inner>
       </bem.Loading>
-    );
-  }
-  renderDenied() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('Access Denied')}
-            </h3>
-            {t('You do not have permission to view this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
     );
   }
 }

@@ -9,7 +9,6 @@ import assetUtils from 'js/assetUtils';
 import ui from '../ui';
 import {stores} from '../stores';
 import mixins from '../mixins';
-import {dataInterface} from '../dataInterface';
 import {
   KEY_CODES,
   ASSET_TYPES
@@ -31,6 +30,7 @@ class AssetRow extends React.Component {
     this.escFunction = this.escFunction.bind(this);
     autoBind(this);
   }
+
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
@@ -40,6 +40,7 @@ class AssetRow extends React.Component {
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
   }
+
   clickTagsToggle () {
     const isTagsInputVisible = !this.state.isTagsInputVisible;
     if (isTagsInputVisible) {
@@ -49,47 +50,27 @@ class AssetRow extends React.Component {
     }
     this.setState({isTagsInputVisible: isTagsInputVisible});
   }
+
   escFunction (evt) {
     if (evt.keyCode === KEY_CODES.get('ESC') && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }
-  componentDidMount () {
-    this.prepParentCollection();
-  }
-  prepParentCollection () {
-    this.setState({
-      parent: this.props.parent,
-    });
-  }
+
   moveToCollection (evt) {
-    var uid = this.props.uid;
-    var collid = '/collections/' + evt.currentTarget.dataset.collid + '/';
-    var parent = evt.currentTarget.dataset.parent;
-
-    if (parent == 'true') {
-      collid = null;
-    }
-
-    dataInterface.patchAsset(uid, {
-      parent: collid,
-    }).done(()=>{
-      this.setState({
-        parent: collid,
-      });
-    });
+    assetUtils.moveToCollection(this.props.uid, evt.currentTarget.dataset.collid);
   }
-  preventDefault (evt) {
-    evt.preventDefault();
-  }
+
   clearPopover () {
     if (this.state.popoverVisible) {
       this.setState({clearPopover: true, popoverVisible: false});
     }
   }
+
   popoverSetVisible () {
     this.setState({popoverVisible: true});
   }
+
   render () {
     const isSelfOwned = assetUtils.isSelfOwned(this.props);
     var _rc = this.props.summary && this.props.summary.row_count || 0;
