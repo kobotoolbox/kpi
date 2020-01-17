@@ -14,6 +14,7 @@ $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
+arrayMiddleOut = require('utils').processArrayMiddleOut
 alertify = require 'alertifyjs'
 
 module.exports = do ->
@@ -67,7 +68,7 @@ module.exports = do ->
                   if itemGroupName && itemGroupName != ''
                     repeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    repeatGroupsIntVals.push(itemGroupIntVal)
+                    repeatGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
             _.uniq(repeatGroupsItemGroupNames)
             _.uniq(repeatGroupsIntVals)
 
@@ -83,7 +84,7 @@ module.exports = do ->
                   if itemGroupName && itemGroupName != ''
                     nonRepeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    nonRepeatGroupsIntVals.push(itemGroupIntVal)
+                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
             _.uniq(nonRepeatGroupsItemGroupNames)
             _.uniq(nonRepeatGroupsIntVals)
 
@@ -96,13 +97,12 @@ module.exports = do ->
               if itemGroupName && itemGroupName != ''
                 nonGroupsItemGroupNames.push(itemGroupName)
                 itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                nonGroupsIntVals.push(itemGroupIntVal)
+                nonGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
             _.uniq(nonGroupsItemGroupNames)
             _.uniq(nonGroupsIntVals)
 
           if isInRepeatGroup
             repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
-            console.log 'repeatGroupRowsModel', repeatGroupRowsModel
             if repeatGroupRowsModel
               itemGroupName = repeatGroupRowsModel.attributes['bind::oc:itemgroup'].get('value')
               itemGroupVal = itemGroupName if itemGroupName && itemGroupName != ''
@@ -111,15 +111,29 @@ module.exports = do ->
               allIntVals = _.union(repeatGroupsIntVals, nonRepeatGroupsIntVals, nonGroupsIntVals)
               if allIntVals.length > 0
                 maxIntVal = Math.max.apply null, allIntVals
+                maxIntVal = 0 if maxIntVal is NaN
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
           else
             if nonRepeatGroups.length == 0 and nonGroups.length == 0
               maxIntVal = 0
               if repeatGroupsIntVals.length > 0
                 maxIntVal = Math.max.apply null, repeatGroupsIntVals
+                maxIntVal = 0 if maxIntVal is NaN
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
             else
-              itemGroupVal =  _.first(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
+              if @model.collection?.models?.length > 0
+                currentModelCollectionIndex = @model.collection.models.findIndex (model) => model.cid == @model.cid
+                if currentModelCollectionIndex != -1 # found
+                  modelCollectionMiddleOut = arrayMiddleOut @model.collection.models, currentModelCollectionIndex, 'left'
+
+                  for model in modelCollectionMiddleOut.slice 1
+                    itemGroupName = model.attributes['bind::oc:itemgroup'].get('value')
+                    if itemGroupName && itemGroupName != ''
+                      itemGroupVal = itemGroupName
+                      break
+
+              if itemGroupVal == ''
+                itemGroupVal =  _.last(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
 
           @model.attributes['bind::oc:itemgroup'].set('value', itemGroupVal)
 
