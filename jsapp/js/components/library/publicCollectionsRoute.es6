@@ -18,6 +18,7 @@ class PublicCollectionsRoute extends React.Component {
     this.state = {
       isLoading: publicCollectionsStore.data.isFetchingData,
       assets: publicCollectionsStore.data.assets,
+      metadata: publicCollectionsStore.data.metadata,
       totalAssets: publicCollectionsStore.data.totalSearchAssets,
       column: publicCollectionsStore.data.column,
       columnValue: publicCollectionsStore.data.columnValue,
@@ -38,6 +39,7 @@ class PublicCollectionsRoute extends React.Component {
     this.setState({
       isLoading: publicCollectionsStore.data.isFetchingData,
       assets: publicCollectionsStore.data.assets,
+      metadata: publicCollectionsStore.data.metadata,
       totalAssets: publicCollectionsStore.data.totalSearchAssets,
       column: publicCollectionsStore.data.column,
       columnValue: publicCollectionsStore.data.columnValue,
@@ -60,11 +62,12 @@ class PublicCollectionsRoute extends React.Component {
         <div className='public-collections-wrapper'>
           <AssetsTable
             context={ASSETS_TABLE_CONTEXTS.get('public-collections')}
+            isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
-            isLoading={this.state.isLoading}
             column={this.state.column}
             columnValue={this.state.columnValue}
+            columnValues={this.state.metadata}
             onColumnChange={this.onAssetsTableColumnChange.bind(this)}
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}

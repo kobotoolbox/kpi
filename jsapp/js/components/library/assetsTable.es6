@@ -12,9 +12,9 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  * @prop {boolean} [isLoading] - To display spinner.
  * @prop {Array<object>} assets - List of assets to be displayed.
  * @prop {number} totalAssets - Number of assets on all pages.
- * @prop {Array<object>} availableFilters - List of available filters values.
  * @prop {AssetsTableColumn} column - Seleceted column, one of ASSETS_TABLE_COLUMNS.
  * @prop {string} columnValue - Seleceted column value.
+ * @prop {Array<object>} columnValues - List of available filters values.
  * @prop {columnChangeCallback} onColumnChange - Called when user selects a column for odering or filtering.
  * @prop {number} [currentPage] - For displaying pagination.
  * @prop {number} [totalPages] - For displaying pagination.
@@ -247,28 +247,36 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     'languages', {
       label: t('Languages'),
       id: 'languages',
-      filterBy: 'summary__languages'
+      filterBy: 'summary__languages',
+      filterByPath: ['summary', 'languages'],
+      filterByMetadataName: 'languages'
     }
   ],
   [
     'organization', {
       label: t('Organization'),
       id: 'organization',
-      filterBy: 'settings__organization'
+      filterBy: 'settings__organization',
+      filterByPath: ['settings', 'organization'],
+      filterByMetadataName: 'organizations'
     }
   ],
   [
     'primary-sector', {
       label: t('Primary Sector'),
       id: 'primary-sector',
-      filterBy: 'settings__sector_label'
+      filterBy: 'settings__sector__value',
+      filterByPath: ['settings', 'sector', 'value'],
+      filterByMetadataName: 'sectors'
     }
   ],
   [
     'country', {
       label: t('Country'),
       id: 'country',
-      filterBy: 'settings__country__label'
+      filterBy: 'settings__country__value',
+      filterByPath: ['settings', 'country', 'value'],
+      filterByMetadataName: 'countries'
     }
   ],
 ]);

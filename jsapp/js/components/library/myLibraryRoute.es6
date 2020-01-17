@@ -20,6 +20,7 @@ class MyLibraryRoute extends React.Component {
     this.state = {
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
+      metadata: myLibraryStore.data.metadata,
       totalAssets: myLibraryStore.data.totalSearchAssets,
       column: myLibraryStore.data.column,
       columnValue: myLibraryStore.data.columnValue,
@@ -38,6 +39,7 @@ class MyLibraryRoute extends React.Component {
     this.setState({
       isLoading: myLibraryStore.data.isFetchingData,
       assets: myLibraryStore.data.assets,
+      metadata: myLibraryStore.data.metadata,
       totalAssets: myLibraryStore.data.totalSearchAssets,
       column: myLibraryStore.data.column,
       columnValue: myLibraryStore.data.columnValue,
@@ -67,11 +69,12 @@ class MyLibraryRoute extends React.Component {
         >
           <AssetsTable
             context={ASSETS_TABLE_CONTEXTS.get('my-library')}
+            isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
-            isLoading={this.state.isLoading}
             column={this.state.column}
             columnValue={this.state.columnValue}
+            columnValues={this.state.metadata}
             onColumnChange={this.onAssetsTableColumnChange.bind(this)}
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}

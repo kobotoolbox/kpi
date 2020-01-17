@@ -31,7 +31,8 @@ const publicCollectionsStore = Reflux.createStore({
       totalPages: null,
       totalUserAssets: null,
       totalSearchAssets: null,
-      assets: []
+      assets: [],
+      metadata: {}
     };
 
     hashHistory.listen(this.onRouteChange.bind(this));
@@ -102,6 +103,7 @@ const publicCollectionsStore = Reflux.createStore({
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
 
     this.data.assets = response.results;
+    this.data.metadata = response.metadata;
     this.data.totalSearchAssets = response.count;
     if (this.data.totalUserAssets === null) {
       this.data.totalUserAssets = this.data.totalSearchAssets;

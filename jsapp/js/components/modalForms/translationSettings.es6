@@ -15,7 +15,7 @@ export class TranslationSettings extends React.Component {
     super(props);
 
     let translations;
-    if (props.asset) {
+    if (props.asset && props.asset.content) {
       translations = props.asset.content.translations;
     }
 

@@ -205,16 +205,6 @@ class AssetActionButtons extends React.Component {
           </bem.PopoverMenu__link>
         }
 
-        {userCanEdit &&
-          assetType === ASSET_TYPES.survey.id &&
-          this.props.has_deployment &&
-          !this.props.deployment__active &&
-          <bem.PopoverMenu__link onClick={this.unarchive}>
-            <i className='k-icon k-icon-archived'/>
-            {t('Unarchive')}
-          </bem.PopoverMenu__link>
-        }
-
         {userCanEdit && assetType === ASSET_TYPES.survey.id &&
           <bem.PopoverMenu__link onClick={this.replace}>
             <i className='k-icon k-icon-replace'/>
@@ -226,6 +216,13 @@ class AssetActionButtons extends React.Component {
           <bem.PopoverMenu__link onClick={this.editLanguages}>
             <i className='k-icon k-icon-language'/>
             {t('Manage Translations')}
+          </bem.PopoverMenu__link>
+        }
+
+        {userCanEdit && assetType === ASSET_TYPES.survey.id &&
+          <bem.PopoverMenu__link onClick={this.cloneAsTemplate}>
+            <i className='k-icon k-icon-template'/>
+            {t('Create template')}
           </bem.PopoverMenu__link>
         }
 
@@ -284,17 +281,20 @@ class AssetActionButtons extends React.Component {
         {userCanEdit &&
           assetType === ASSET_TYPES.survey.id &&
           this.props.has_deployment &&
+          !this.props.deployment__active &&
+          <bem.PopoverMenu__link onClick={this.unarchive}>
+            <i className='k-icon k-icon-archived'/>
+            {t('Unarchive')}
+          </bem.PopoverMenu__link>
+        }
+
+        {userCanEdit &&
+          assetType === ASSET_TYPES.survey.id &&
+          this.props.has_deployment &&
           this.props.deployment__active &&
           <bem.PopoverMenu__link onClick={this.archive}>
             <i className='k-icon k-icon-archived'/>
             {t('Archive')}
-          </bem.PopoverMenu__link>
-        }
-
-        {userCanEdit && assetType === ASSET_TYPES.survey.id &&
-          <bem.PopoverMenu__link onClick={this.cloneAsTemplate}>
-            <i className='k-icon k-icon-template'/>
-            {t('Create template')}
           </bem.PopoverMenu__link>
         }
 
@@ -385,13 +385,15 @@ class AssetActionButtons extends React.Component {
           </bem.AssetActionButtons__iconButton>
         }
 
-        <bem.AssetActionButtons__iconButton
-          onClick={this.clone}
-          data-tip={t('Clone')}
-          className='right-tooltip'
-        >
-          <i className='k-icon k-icon-clone'/>
-        </bem.AssetActionButtons__iconButton>
+        {assetType !== ASSET_TYPES.collection.id &&
+          <bem.AssetActionButtons__iconButton
+            onClick={this.clone}
+            data-tip={t('Clone')}
+            className='right-tooltip'
+          >
+            <i className='k-icon k-icon-clone'/>
+          </bem.AssetActionButtons__iconButton>
+        }
 
         {userCanEdit && assetType === ASSET_TYPES.template.id &&
           <bem.AssetActionButtons__iconButton

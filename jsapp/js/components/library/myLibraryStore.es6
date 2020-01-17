@@ -27,7 +27,8 @@ const myLibraryStore = Reflux.createStore({
       totalPages: null,
       totalUserAssets: null,
       totalSearchAssets: null,
-      assets: []
+      assets: [],
+      metadata: {}
     };
 
     // TODO react to upload(s) finishing (debounced because of multiple uploads)
@@ -99,6 +100,7 @@ const myLibraryStore = Reflux.createStore({
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
 
     this.data.assets = response.results;
+    this.data.metadata = response.metadata;
     this.data.totalSearchAssets = response.count;
 
     // update total count for the first time and the ones that will get a full count

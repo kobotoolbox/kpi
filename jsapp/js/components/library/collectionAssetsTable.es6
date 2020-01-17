@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
 import orderBy from 'lodash.orderby';
@@ -66,8 +67,28 @@ class CollectionAssetsTable extends React.Component {
     );
   }
 
+  getMetadataFromAssets(assets) {
+    const metadata = {};
+    metadata[ASSETS_TABLE_COLUMNS.get('languages').filterByMetadataName] = [];
+    metadata[ASSETS_TABLE_COLUMNS.get('organization').filterByMetadataName] = [];
+    metadata[ASSETS_TABLE_COLUMNS.get('primary-sector').filterByMetadataName] = [];
+    metadata[ASSETS_TABLE_COLUMNS.get('country').filterByMetadataName] = [];
+
+    assets.forEach((asset) => {
+      metadata[ASSETS_TABLE_COLUMNS.get('languages').filterByMetadataName] = _.union(
+        metadata[ASSETS_TABLE_COLUMNS.get('languages').filterByMetadataName],
+        _.property(asset, ASSETS_TABLE_COLUMNS.get('languages').filterByPath)
+      );
+
+      // TODO organizations, sectors, countries
+    });
+
+    return metadata;
+  }
+
   render() {
     const orderedChildren = this.getOrderedChildren();
+    const columnValues = this.getMetadataFromAssets(this.props.asset.children);
 
     return (
       <AssetsTable
@@ -76,6 +97,7 @@ class CollectionAssetsTable extends React.Component {
         totalAssets={orderedChildren.length}
         column={this.state.column}
         columnValue={this.state.columnValue}
+        columnValues={columnValues}
         onColumnChange={this.onAssetsTableColumnChange.bind(this)}
       />
     );

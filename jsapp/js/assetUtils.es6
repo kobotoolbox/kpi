@@ -360,6 +360,10 @@ export function isSelfOwned(asset) {
   );
 }
 
+/**
+ * @param {string} assetUid
+ * @return {string} assetUrl
+ */
 export function buildAssetUrl(assetUid) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`;
 }
