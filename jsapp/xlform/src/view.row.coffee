@@ -50,6 +50,7 @@ module.exports = do ->
         delete @model.attributes.isNewRow
 
         if @model.get('type').get('typeId') isnt 'note'
+          itemGroupKey = 'bind::oc:itemgroup'
           itemGroupPrependVal = 'group'
           itemGroupVal = ''
 
@@ -64,7 +65,7 @@ module.exports = do ->
               groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
               if groupRowModels.length > 0
                 groupRowModels.forEach (model) =>
-                  itemGroupName = group.rows.models[0].attributes['bind::oc:itemgroup'].get('value')
+                  itemGroupName = group.rows.models[0].attributes[itemGroupKey].get('value')
                   if itemGroupName && itemGroupName != ''
                     repeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
@@ -80,7 +81,7 @@ module.exports = do ->
               groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
               if groupRowModels.length > 0
                 groupRowModels.forEach (model) =>
-                  itemGroupName = group.rows.models[0].attributes['bind::oc:itemgroup'].get('value')
+                  itemGroupName = group.rows.models[0].attributes[itemGroupKey].get('value')
                   if itemGroupName && itemGroupName != ''
                     nonRepeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
@@ -93,7 +94,7 @@ module.exports = do ->
           nonGroupsIntVals = []
           if nonGroups.length > 0
             nonGroups.forEach (model) =>
-              itemGroupName = model.attributes['bind::oc:itemgroup'].get('value')
+              itemGroupName = model.attributes[itemGroupKey].get('value')
               if itemGroupName && itemGroupName != ''
                 nonGroupsItemGroupNames.push(itemGroupName)
                 itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
@@ -104,7 +105,7 @@ module.exports = do ->
           if isInRepeatGroup
             repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
             if repeatGroupRowsModel
-              itemGroupName = repeatGroupRowsModel.attributes['bind::oc:itemgroup'].get('value')
+              itemGroupName = repeatGroupRowsModel.attributes[itemGroupKey].get('value')
               itemGroupVal = itemGroupName if itemGroupName && itemGroupName != ''
             else
               maxIntVal = 0
@@ -125,17 +126,17 @@ module.exports = do ->
                 currentModelCollectionIndex = @model.collection.models.findIndex (model) => model.cid == @model.cid
                 if currentModelCollectionIndex != -1 # found
                   modelCollectionMiddleOut = arrayMiddleOut @model.collection.models, currentModelCollectionIndex, 'left'
-
                   for model in modelCollectionMiddleOut.slice 1
-                    itemGroupName = model.attributes['bind::oc:itemgroup'].get('value')
-                    if itemGroupName && itemGroupName != ''
-                      itemGroupVal = itemGroupName
-                      break
+                    if itemGroupKey in model.attributes
+                      itemGroupName = model.attributes[itemGroupKey].get('value')
+                      if itemGroupName && itemGroupName != ''
+                        itemGroupVal = itemGroupName
+                        break
 
               if itemGroupVal == ''
                 itemGroupVal =  _.last(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
 
-          @model.attributes['bind::oc:itemgroup'].set('value', itemGroupVal)
+          @model.attributes[itemGroupKey].set('value', itemGroupVal)
 
         if @model.get('type').get('typeId') is 'note'
           @model.attributes['readonly'].set('value', true)
