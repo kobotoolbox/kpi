@@ -365,7 +365,7 @@ new Set([
   'subscribed'
 ]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
 
-export const constants = {
+const constants = {
   ROOT_URL,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
@@ -384,3 +384,5 @@ export const constants = {
   COMMON_QUERIES,
   ACCESS_TYPES
 };
+
+export default constants;
