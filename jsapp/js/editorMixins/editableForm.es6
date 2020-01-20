@@ -36,7 +36,7 @@ import {dataInterface} from '../dataInterface';
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
 
-var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
+var formDesignerSupportUrl = 'https://docs.openclinica.com/oc4/design-study/form-designer';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
 
@@ -868,9 +868,9 @@ export default assign({
               <bem.FormBuilderAside__header>
                 {t('Form style')}
                 <a
-                  href={webformStylesSupportUrl}
+                  href={formDesignerSupportUrl}
                   target='_blank'
-                  data-tip={t('Read more about form styles')}
+                  data-tip={t('Learn more about Form Designer')}
                 >
                   <i className='k-icon k-icon-help'/>
                 </a>
