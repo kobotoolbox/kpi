@@ -800,15 +800,6 @@ export default assign({
               <i className='k-icon-attach' />
             </bem.FormBuilderHeader__button>
 
-            { this.toggleCascade !== undefined &&
-              <bem.FormBuilderHeader__button
-                m={['cascading']}
-                onClick={this.toggleCascade}
-                data-tip={t('Insert cascading select')}
-              >
-                <i className='k-icon-cascading' />
-              </bem.FormBuilderHeader__button>
-            }
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m='verticalRule'/>
