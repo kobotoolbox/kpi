@@ -591,3 +591,37 @@ export function addCustomEventListener(selector, event, handler) {
     }, true);
   }
 }
+
+export function processArrayMiddleOut(array, startIndex, direction){
+  if (startIndex < 0){
+      startIndex = 0;
+  }
+  else if ( startIndex > array.length){
+      startIndex = array.lenght-1;
+  };
+
+  let newArray = [];
+  let i = startIndex;
+  let j = 0;
+
+  if (direction === 'right'){
+      j = i + 1;
+      while (j < array.length || i >= 0 ){
+          if (i >= 0) newArray.push(array[i]);
+          if (j < array.length) newArray.push(array[j]);
+          i--;
+          j++;
+      };
+  }
+  else if(direction === 'left'){
+      j = i - 1;
+      while (j >= 0 || i < array.length ){
+          if (i < array.length) newArray.push(array[i]);
+          if (j >= 0) newArray.push(array[j]);
+          i++;
+          j--;
+      };
+  };
+
+  return newArray;
+}

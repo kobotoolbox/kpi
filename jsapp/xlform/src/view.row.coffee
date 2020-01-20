@@ -14,6 +14,7 @@ $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
+arrayMiddleOut = require('utils').processArrayMiddleOut
 alertify = require 'alertifyjs'
 
 module.exports = do ->
@@ -49,6 +50,7 @@ module.exports = do ->
         delete @model.attributes.isNewRow
 
         if @model.get('type').get('typeId') isnt 'note'
+          itemGroupKey = 'bind::oc:itemgroup'
           itemGroupPrependVal = 'group'
           itemGroupVal = ''
 
@@ -63,11 +65,11 @@ module.exports = do ->
               groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
               if groupRowModels.length > 0
                 groupRowModels.forEach (model) =>
-                  itemGroupName = group.rows.models[0].attributes['bind::oc:itemgroup'].get('value')
+                  itemGroupName = group.rows.models[0].attributes[itemGroupKey].get('value')
                   if itemGroupName && itemGroupName != ''
                     repeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    repeatGroupsIntVals.push(itemGroupIntVal)
+                    repeatGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
             _.uniq(repeatGroupsItemGroupNames)
             _.uniq(repeatGroupsIntVals)
 
@@ -79,11 +81,11 @@ module.exports = do ->
               groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
               if groupRowModels.length > 0
                 groupRowModels.forEach (model) =>
-                  itemGroupName = group.rows.models[0].attributes['bind::oc:itemgroup'].get('value')
+                  itemGroupName = group.rows.models[0].attributes[itemGroupKey].get('value')
                   if itemGroupName && itemGroupName != ''
                     nonRepeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    nonRepeatGroupsIntVals.push(itemGroupIntVal)
+                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
             _.uniq(nonRepeatGroupsItemGroupNames)
             _.uniq(nonRepeatGroupsIntVals)
 
@@ -92,36 +94,52 @@ module.exports = do ->
           nonGroupsIntVals = []
           if nonGroups.length > 0
             nonGroups.forEach (model) =>
-              itemGroupName = model.attributes['bind::oc:itemgroup'].get('value')
+              itemGroupName = model.attributes[itemGroupKey].get('value')
               if itemGroupName && itemGroupName != ''
                 nonGroupsItemGroupNames.push(itemGroupName)
                 itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                nonGroupsIntVals.push(itemGroupIntVal)
+                nonGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
             _.uniq(nonGroupsItemGroupNames)
             _.uniq(nonGroupsIntVals)
 
           if isInRepeatGroup
             repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
-            console.log 'repeatGroupRowsModel', repeatGroupRowsModel
             if repeatGroupRowsModel
-              itemGroupName = repeatGroupRowsModel.attributes['bind::oc:itemgroup'].get('value')
+              itemGroupName = repeatGroupRowsModel.attributes[itemGroupKey].get('value')
               itemGroupVal = itemGroupName if itemGroupName && itemGroupName != ''
             else
               maxIntVal = 0
               allIntVals = _.union(repeatGroupsIntVals, nonRepeatGroupsIntVals, nonGroupsIntVals)
               if allIntVals.length > 0
                 maxIntVal = Math.max.apply null, allIntVals
+                maxIntVal = 0 if maxIntVal is NaN
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
           else
             if nonRepeatGroups.length == 0 and nonGroups.length == 0
               maxIntVal = 0
               if repeatGroupsIntVals.length > 0
                 maxIntVal = Math.max.apply null, repeatGroupsIntVals
+                maxIntVal = 0 if maxIntVal is NaN
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
             else
-              itemGroupVal =  _.first(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
+              if @model.collection?.models?.length > 0
+                currentModelCollectionIndex = @model.collection.models.findIndex (model) => model.cid == @model.cid
+                if currentModelCollectionIndex != -1 # found
+                  modelCollectionMiddleOut = arrayMiddleOut @model.collection.models, currentModelCollectionIndex, 'left'
+                  for model in modelCollectionMiddleOut.slice 1
+                    if itemGroupKey in model.attributes
+                      itemGroupName = model.attributes[itemGroupKey].get('value')
+                      if itemGroupName && itemGroupName != ''
+                        itemGroupVal = itemGroupName
+                        break
 
-          @model.attributes['bind::oc:itemgroup'].set('value', itemGroupVal)
+              if itemGroupVal == ''
+                itemGroupVal =  _.last(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
+
+          @model.attributes[itemGroupKey].set('value', itemGroupVal)
+
+        if @model.get('type').get('typeId') is 'note'
+          @model.attributes['readonly'].set('value', true)
 
       fixScroll = opts.fixScroll
 
