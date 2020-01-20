@@ -38,10 +38,10 @@ const update_states = {
 };
 
 const AVAILABLE_FORM_STYLES = [
-  {value: '', label: t('Default - single page')},
-  {value: 'pages', label: t('Multiple pages')},
-  {value: 'theme-grid', label: t('Grid theme')},
-  {value: 'pages theme-grid', label: t('Multiple pages + Grid theme')},
+  {value: '', label: t('Simple - single page')},
+  {value: 'pages', label: t('Simple - multiple pages')},
+  {value: 'theme-grid', label: t('Grid - single page')},
+  {value: 'pages theme-grid', label: t('Grid - multiple pages')},
 ];
 
 const VALIDATION_STATUSES = {

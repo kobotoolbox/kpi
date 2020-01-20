@@ -567,6 +567,10 @@ export default assign({
       _state.savedName = _state.name;
     }
 
+    if (!_state.settings__style) {
+      _state.settings__style = 'pages theme-grid';
+    }
+
     let isEmptySurvey = (
         survey &&
         Object.keys(survey.settings).length === 0 &&
@@ -604,6 +608,8 @@ export default assign({
       survey.rows.on('sort', this.onSurveyChange);
       survey.on('change', this.onSurveyChange);
     }
+
+
 
     this.setState(_state);
   },
