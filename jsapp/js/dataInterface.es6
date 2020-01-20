@@ -361,10 +361,9 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    searchMyLibraryAssets(params = {}) {
+    searchAssetsWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
-        // we only want orphans (assets not inside collection)
-        q: `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+        q: predefinedQuery,
         limit: params.pageSize || 100,
         offset: params.page * params.pageSize || 0
       };
@@ -388,28 +387,18 @@ export var dataInterface;
         method: 'GET'
       });
     },
+    searchMyLibraryAssets(params = {}) {
+      return this.searchAssetsWithPredefinedQuery(
+        params,
+        // we only want orphans (assets not inside collection)
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+      );
+    },
     searchPublicCollections(params = {}) {
-      const searchData = {
-        q: `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
-        all_public: true,
-        limit: params.pageSize || 100,
-        offset: params.page * params.pageSize || 0
-      };
-
-      if (params.searchPhrase) {
-        searchData.q += ` AND ${params.searchPhrase}`;
-      }
-
-      if (params.sort && params.order) {
-        searchData.ordering = `${params.order}${params.sort}`;
-      }
-
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/`,
-        dataType: 'json',
-        data: searchData,
-        method: 'GET'
-      });
+      return this.searchAssetsWithPredefinedQuery(
+        params,
+        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+      );
     },
     assetsHash () {
       return $ajax({

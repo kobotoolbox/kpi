@@ -16,13 +16,15 @@ const myLibraryStore = Reflux.createStore({
   abortFetchData: undefined,
   previousPath: null,
   PAGE_SIZE: 100,
-  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
+  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   init() {
     this.data = {
       isFetchingData: false,
-      column: this.DEFAULT_COLUMN,
-      columnValue: this.DEFAULT_COLUMN.defaultValue,
+      orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
+      orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue,
+      filterColumnId: null,
+      filterValue: null,
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
@@ -61,13 +63,15 @@ const myLibraryStore = Reflux.createStore({
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
     };
-    if (this.data.column.orderBy) {
-      const direction = this.data.columnValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
-      params.ordering = `${direction}${this.data.column.orderBy}`;
-    }
-    if (this.data.column.filterBy) {
-      params.filterProperty = this.data.column.filterBy;
-      params.filterValue = this.data.columnValue;
+
+    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
+    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+    params.ordering = `${direction}${orderColumn.orderBy}`;
+
+    if (this.data.filterColumnId !== null) {
+      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      params.filterProperty = filterColumn.filterBy;
+      params.filterValue = this.data.filterValue;
     }
 
     actions.library.searchMyLibraryAssets(params);
@@ -161,6 +165,16 @@ const myLibraryStore = Reflux.createStore({
     }
   },
 
+  onAssetCreated(asset) {
+    if (
+      assetUtils.isLibraryAsset(asset.asset_type) &&
+      asset.parent === null
+    ) {
+      this.data.totalUserAssets++;
+      this.fetchData();
+    }
+  },
+
   onDeleteAssetCompleted({uid, assetType}) {
     if (assetUtils.isLibraryAsset(assetType)) {
       const found = this.data.assets.find((asset) => {return asset.uid === uid;});
@@ -173,16 +187,6 @@ const myLibraryStore = Reflux.createStore({
     }
   },
 
-  onAssetCreated(asset) {
-    if (
-      assetUtils.isLibraryAsset(asset.asset_type) &&
-      asset.parent === null
-    ) {
-      this.data.totalUserAssets++;
-      this.fetchData();
-    }
-  },
-
   // public methods
 
   setCurrentPage(newCurrentPage) {
@@ -191,19 +195,31 @@ const myLibraryStore = Reflux.createStore({
   },
 
   /**
-   * @param {AssetsTableColumn|null} column - pass null to reset to default column
-   * @param {string|null} columnValue - pass null to reset to default column
+   * @param {string} orderColumnId
+   * @param {string} orderValue
    */
-  setColumn(column, columnValue) {
-    console.debug('setColumn', column, columnValue);
-
-    if (column === null || columnValue === null) {
-      this.data.column = this.DEFAULT_COLUMN;
-      this.data.columnValue = this.DEFAULT_COLUMN.defaultValue;
+  setOrder(orderColumnId, orderValue) {
+    if (
+      this.data.orderColumnId !== orderColumnId ||
+      this.data.orderValue !== orderValue
+    ) {
+      this.data.orderColumnId = orderColumnId;
+      this.data.orderValue = orderValue;
       this.fetchData();
-    } else if (this.data.column.id !== column.id || this.data.columnValue !== columnValue) {
-      this.data.column = column;
-      this.data.columnValue = columnValue;
+    }
+  },
+
+  /**
+   * @param {string|null} filterColumnId - pass null to clear filter column
+   * @param {string} filterValue - pass null to clear filter column
+   */
+  setFilter(filterColumnId, filterValue) {
+    if (
+      this.data.filterColumnId !== filterColumnId ||
+      this.data.filterValue !== filterValue
+    ) {
+      this.data.filterColumnId = filterColumnId;
+      this.data.filterValue = filterValue;
       this.fetchData();
     }
   }

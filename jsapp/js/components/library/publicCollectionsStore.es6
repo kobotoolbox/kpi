@@ -15,18 +15,20 @@ import {
 const publicCollectionsStore = Reflux.createStore({
   /**
    * A method for aborting current XHR fetch request.
-   * It doesn't need to be defined, but I'm adding it here for clarity.
+   * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
   previousPath: null,
   PAGE_SIZE: 100,
-  DEFAULT_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
+  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   init() {
     this.data = {
       isFetchingData: false,
-      column: this.DEFAULT_COLUMN,
-      columnValue: this.DEFAULT_COLUMN.defaultValue,
+      orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
+      orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue,
+      filterColumnId: null,
+      filterValue: null,
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
@@ -59,13 +61,23 @@ const publicCollectionsStore = Reflux.createStore({
       this.abortFetchData();
     }
 
-    actions.library.searchPublicCollections({
+    const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      sort: this.data.column.orderBy || this.data.column.filterBy,
-      order: this.data.columnValue === ORDER_DIRECTIONS.get('ascending') ? '+' : '-'
-    });
+    };
+
+    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
+    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+    params.ordering = `${direction}${orderColumn.orderBy}`;
+
+    if (this.data.filterColumnId !== null) {
+      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      params.filterProperty = filterColumn.filterBy;
+      params.filterValue = this.data.filterValue;
+    }
+
+    actions.library.searchPublicCollections(params);
   },
 
   onRouteChange(data) {
@@ -201,13 +213,32 @@ const publicCollectionsStore = Reflux.createStore({
     this.fetchData();
   },
 
-  setColumn(column, columnValue) {
+  /**
+   * @param {string} orderColumnId
+   * @param {string} orderValue
+   */
+  setOrder(orderColumnId, orderValue) {
     if (
-      this.data.column.id !== column.id ||
-      this.data.columnValue !== columnValue
+      this.data.orderColumnId !== orderColumnId ||
+      this.data.orderValue !== orderValue
     ) {
-      this.data.column = column;
-      this.data.columnValue = columnValue;
+      this.data.orderColumnId = orderColumnId;
+      this.data.orderValue = orderValue;
+      this.fetchData();
+    }
+  },
+
+  /**
+   * @param {string|null} filterColumnId - pass null to clear filter column
+   * @param {string} filterValue - pass null to clear filter column
+   */
+  setFilter(filterColumnId, filterValue) {
+    if (
+      this.data.filterColumnId !== filterColumnId ||
+      this.data.filterValue !== filterValue
+    ) {
+      this.data.filterColumnId = filterColumnId;
+      this.data.filterValue = filterValue;
       this.fetchData();
     }
   }

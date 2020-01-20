@@ -13,10 +13,13 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  * @prop {boolean} [isLoading] - To display spinner.
  * @prop {Array<object>} assets - List of assets to be displayed.
  * @prop {number} totalAssets - Number of assets on all pages.
- * @prop {AssetsTableColumn} column - Seleceted column, one of ASSETS_TABLE_COLUMNS.
- * @prop {string} columnValue - Seleceted column value.
  * @prop {Array<object>} metadata - List of available filters values.
- * @prop {columnChangeCallback} onColumnChange - Called when user selects a column for odering or filtering.
+ * @prop {string} orderColumnId - Seleceted order column id, one of ASSETS_TABLE_COLUMNS.
+ * @prop {string} orderValue - Seleceted order column value.
+ * @prop {columnChangeCallback} onOrderChange - Called when user selects a column for odering.
+ * @prop {string} filterColumnId - Seleceted filter column, one of ASSETS_TABLE_COLUMNS.
+ * @prop {string} filterValue - Seleceted filter column value.
+ * @prop {columnChangeCallback} onFilterChange - Called when user selects a column for filtering.
  * @prop {number} [currentPage] - For displaying pagination.
  * @prop {number} [totalPages] - For displaying pagination.
  * @prop {switchPageCallback} [onSwitchPage] - Called when user clicks page change.
@@ -44,19 +47,18 @@ export class AssetsTable extends React.Component {
    * @param {string} columnId
    */
   onChangeOrder(columnId) {
-    if (this.props.column.id === columnId) {
+    if (this.props.orderColumnId === columnId) {
       // clicking already selected column results in switching the order direction
       let newVal;
-      if (this.props.columnValue === ORDER_DIRECTIONS.get('ascending')) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.get('ascending')) {
         newVal = ORDER_DIRECTIONS.get('descending');
-      } else if (this.props.columnValue === ORDER_DIRECTIONS.get('descending')) {
+      } else if (this.props.orderValue === ORDER_DIRECTIONS.get('descending')) {
         newVal = ORDER_DIRECTIONS.get('ascending');
       }
-      this.props.onColumnChange(this.props.column, newVal);
+      this.props.onOrderChange(this.props.orderColumnId, newVal);
     } else {
-      // change column and revert order direction to ascending
-      const newColumn = ASSETS_TABLE_COLUMNS.get(columnId);
-      this.props.onColumnChange(newColumn, newColumn.defaultValue);
+      // change column and revert order direction to default
+      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS.get(columnId).defaultValue);
     }
   }
 
@@ -64,18 +66,17 @@ export class AssetsTable extends React.Component {
    * This function is only a callback handler, as the asset filtering itself
    * should be handled by the component that is providing the assets list.
    * @param {string} columnId
-   * @param {string} columnValue
+   * @param {string} filterValue
    */
-  onChangeFilter(columnId, columnValue) {
+  onChangeFilter(columnId, filterValue) {
     if (
-      this.props.column.id === columnId &&
-      this.props.columnValue === columnValue
+      this.props.filterColumnId === columnId &&
+      this.props.filterValue === filterValue
     ) {
-      // when clicking selected item, clear selected item
-      this.props.onColumnChange(null, null);
+      // when clicking already selected item, clear it
+      this.props.onFilterChange(null, null);
     } else {
-      const newColumn = ASSETS_TABLE_COLUMNS.get(columnId);
-      this.props.onColumnChange(newColumn, columnValue);
+      this.props.onFilterChange(columnId, filterValue);
     }
   }
 
@@ -119,7 +120,7 @@ export class AssetsTable extends React.Component {
 
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
-    if (this.props.column.id === columnDef.id) {
+    if (this.props.filterColumnId === columnDef.id) {
       icon = (<i className='k-icon k-icon-check'/>);
     }
 
@@ -149,7 +150,7 @@ export class AssetsTable extends React.Component {
                 key={`option-${index}`}
               >
                 {optionLabel}
-                {optionValue === this.props.columnValue &&
+                {optionValue === this.props.filterValue &&
                   <i className='k-icon k-icon-check'/>
                 }
               </bem.PopoverMenu__link>
@@ -163,11 +164,11 @@ export class AssetsTable extends React.Component {
   renderOrderableHeader(columnDef) {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
-    if (this.props.column.id === columnDef.id) {
-      if (this.props.columnValue === ORDER_DIRECTIONS.get('ascending')) {
+    if (this.props.orderColumnId === columnDef.id) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.get('ascending')) {
         icon = (<i className='k-icon k-icon-up'/>);
       }
-      if (this.props.columnValue === ORDER_DIRECTIONS.get('descending')) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.get('descending')) {
         icon = (<i className='k-icon k-icon-down'/>);
       }
     }
@@ -387,7 +388,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
 
 /**
  * @callback columnChangeCallback
- * @param {AssetsTableColumn} column
+ * @param {string} columnId
  * @param {string} columnValue
  */
 

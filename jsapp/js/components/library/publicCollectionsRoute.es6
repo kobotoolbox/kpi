@@ -14,19 +14,23 @@ import {
 class PublicCollectionsRoute extends React.Component {
   constructor(props) {
     super(props);
+    this.state = this.getFreshState();
+    autoBind(this);
+  }
 
-    this.state = {
+  getFreshState() {
+    return {
       isLoading: publicCollectionsStore.data.isFetchingData,
       assets: publicCollectionsStore.data.assets,
       metadata: publicCollectionsStore.data.metadata,
       totalAssets: publicCollectionsStore.data.totalSearchAssets,
-      column: publicCollectionsStore.data.column,
-      columnValue: publicCollectionsStore.data.columnValue,
+      orderColumnId: publicCollectionsStore.data.orderColumnId,
+      orderValue: publicCollectionsStore.data.orderValue,
+      filterColumnId: publicCollectionsStore.data.filterColumnId,
+      filterValue: publicCollectionsStore.data.filterValue,
       currentPage: publicCollectionsStore.data.currentPage,
       totalPages: publicCollectionsStore.data.totalPages
     };
-
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -34,22 +38,15 @@ class PublicCollectionsRoute extends React.Component {
   }
 
   publicCollectionsStoreChanged() {
-    console.debug('publicCollectionsStoreChanged', publicCollectionsStore.data);
-
-    this.setState({
-      isLoading: publicCollectionsStore.data.isFetchingData,
-      assets: publicCollectionsStore.data.assets,
-      metadata: publicCollectionsStore.data.metadata,
-      totalAssets: publicCollectionsStore.data.totalSearchAssets,
-      column: publicCollectionsStore.data.column,
-      columnValue: publicCollectionsStore.data.columnValue,
-      currentPage: publicCollectionsStore.data.currentPage,
-      totalPages: publicCollectionsStore.data.totalPages
-    });
+    this.setState(this.getFreshState());
   }
 
-  onAssetsTableColumnChange(column, columnValue) {
-    publicCollectionsStore.setColumn(column, columnValue);
+  onAssetsTableOrderChange(orderColumnId, orderValue) {
+    publicCollectionsStore.setOrder(orderColumnId, orderValue);
+  }
+
+  onAssetsTableFilterChange(filterColumnId, filterValue) {
+    publicCollectionsStore.setFilter(filterColumnId, filterValue);
   }
 
   onAssetsTableSwitchPage(pageNumber) {
@@ -66,9 +63,12 @@ class PublicCollectionsRoute extends React.Component {
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
             metadata={this.state.metadata}
-            column={this.state.column}
-            columnValue={this.state.columnValue}
-            onColumnChange={this.onAssetsTableColumnChange.bind(this)}
+            orderColumnId={this.state.orderColumnId}
+            orderValue={this.state.orderValue}
+            onOrderChange={this.onAssetsTableOrderChange.bind(this)}
+            filterColumnId={this.state.filterColumnId}
+            filterValue={this.state.filterValue}
+            onFilterChange={this.onAssetsTableFilterChange.bind(this)}
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
