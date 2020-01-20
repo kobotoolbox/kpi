@@ -80,6 +80,7 @@
 
 $z-assets-table-row-link: 10;
 $z-assets-table-row-buttons: 20;
+$z-assets-table-row-header: 30;
 $c-assets-table-row-hover: $cool-whitegray;
 
 .assets-table-row {
@@ -136,7 +137,34 @@ $c-assets-table-row-hover: $cool-whitegray;
       font-size: 20px;
       // to take up space when empty
       min-width: 20px;
+      width: 20px;
       display: inline-block;
+    }
+
+    .popover-menu {
+      display: block;
+
+      .popover-menu__toggle {
+        display: block;
+        color: currentColor;
+
+        &:hover {
+          color: currentColor;
+        }
+
+        .k-icon {
+          margin: -5px;
+        }
+      }
+
+      .popover-menu__content {
+        top: 30px - 2px;
+        z-index: $z-assets-table-row-header;
+
+        .k-icon {
+          margin: -2px;
+        }
+      }
     }
   }
 
@@ -158,6 +186,10 @@ $c-assets-table-row-hover: $cool-whitegray;
   .assets-table-row__column {
     border-top: 1px solid $divider-color;
     padding: 10px;
+
+    &[disabled] {
+      pointer-events: none;
+    }
 
     &.assets-table-row__column--icon-status {
       width: 50px;

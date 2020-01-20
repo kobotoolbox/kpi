@@ -56,13 +56,21 @@ const myLibraryStore = Reflux.createStore({
       this.abortFetchData();
     }
 
-    actions.library.searchMyLibraryAssets({
+    const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      sort: this.data.column.orderBy || this.data.column.filterBy,
-      order: this.data.columnValue === ORDER_DIRECTIONS.get('ascending') ? '+' : '-'
-    });
+    };
+    if (this.data.column.orderBy) {
+      const direction = this.data.columnValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+      params.ordering = `${direction}${this.data.column.orderBy}`;
+    }
+    if (this.data.column.filterBy) {
+      params.filterProperty = this.data.column.filterBy;
+      params.filterValue = this.data.columnValue;
+    }
+
+    actions.library.searchMyLibraryAssets(params);
   },
 
   onRouteChange(data) {
@@ -182,11 +190,18 @@ const myLibraryStore = Reflux.createStore({
     this.fetchData();
   },
 
-  setOrder(column, columnValue) {
-    if (
-      this.data.column.id !== column.id ||
-      this.data.columnValue !== columnValue
-    ) {
+  /**
+   * @param {AssetsTableColumn|null} column - pass null to reset to default column
+   * @param {string|null} columnValue - pass null to reset to default column
+   */
+  setColumn(column, columnValue) {
+    console.debug('setColumn', column, columnValue);
+
+    if (column === null || columnValue === null) {
+      this.data.column = this.DEFAULT_COLUMN;
+      this.data.columnValue = this.DEFAULT_COLUMN.defaultValue;
+      this.fetchData();
+    } else if (this.data.column.id !== column.id || this.data.columnValue !== columnValue) {
       this.data.column = column;
       this.data.columnValue = columnValue;
       this.fetchData();

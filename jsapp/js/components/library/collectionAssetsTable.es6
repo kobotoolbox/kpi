@@ -88,16 +88,16 @@ class CollectionAssetsTable extends React.Component {
 
   render() {
     const orderedChildren = this.getOrderedChildren();
-    const columnValues = this.getMetadataFromAssets(this.props.asset.children);
+    const metadata = this.getMetadataFromAssets(this.props.asset.children);
 
     return (
       <AssetsTable
         context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
         assets={orderedChildren}
         totalAssets={orderedChildren.length}
+        metadata={metadata}
         column={this.state.column}
         columnValue={this.state.columnValue}
-        columnValues={columnValues}
         onColumnChange={this.onAssetsTableColumnChange.bind(this)}
       />
     );

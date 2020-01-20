@@ -373,8 +373,12 @@ export var dataInterface;
         searchData.q += ` AND ${params.searchPhrase}`;
       }
 
-      if (params.sort && params.order) {
-        searchData.ordering = `${params.order}${params.sort}`;
+      if (params.filterProperty && params.filterValue) {
+        searchData.q += ` AND ${params.filterProperty}:${params.filterValue}`;
+      }
+
+      if (params.ordering) {
+        searchData.ordering = params.ordering;
       }
 
       return $ajax({

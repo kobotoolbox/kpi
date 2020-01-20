@@ -1,5 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
@@ -14,7 +15,7 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  * @prop {number} totalAssets - Number of assets on all pages.
  * @prop {AssetsTableColumn} column - Seleceted column, one of ASSETS_TABLE_COLUMNS.
  * @prop {string} columnValue - Seleceted column value.
- * @prop {Array<object>} columnValues - List of available filters values.
+ * @prop {Array<object>} metadata - List of available filters values.
  * @prop {columnChangeCallback} onColumnChange - Called when user selects a column for odering or filtering.
  * @prop {number} [currentPage] - For displaying pagination.
  * @prop {number} [totalPages] - For displaying pagination.
@@ -23,6 +24,10 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
 export class AssetsTable extends React.Component {
   constructor(props){
     super(props);
+    this.state = {
+      shouldHidePopover: false,
+      isPopoverVisible: false
+    };
     autoBind(this);
   }
 
@@ -38,7 +43,7 @@ export class AssetsTable extends React.Component {
    * should be handled by the component that is providing the assets list.
    * @param {string} columnId
    */
-  reorder(columnId) {
+  onChangeOrder(columnId) {
     if (this.props.column.id === columnId) {
       // clicking already selected column results in switching the order direction
       let newVal;
@@ -56,9 +61,106 @@ export class AssetsTable extends React.Component {
   }
 
   /**
+   * This function is only a callback handler, as the asset filtering itself
+   * should be handled by the component that is providing the assets list.
+   * @param {string} columnId
+   * @param {string} columnValue
+   */
+  onChangeFilter(columnId, columnValue) {
+    if (
+      this.props.column.id === columnId &&
+      this.props.columnValue === columnValue
+    ) {
+      // when clicking selected item, clear selected item
+      this.props.onColumnChange(null, null);
+    } else {
+      const newColumn = ASSETS_TABLE_COLUMNS.get(columnId);
+      this.props.onColumnChange(newColumn, columnValue);
+    }
+  }
+
+  /**
    * @param {AssetsTableColumn} columnDef - Given column definition.
    */
-  renderHeaderColumn(columnDef) {
+  renderHeader(columnDef) {
+    if (columnDef.orderBy) {
+      return this.renderOrderableHeader(columnDef);
+    }
+    if (columnDef.filterBy) {
+      return this.renderFilterableHeader(columnDef);
+    }
+  }
+
+  onMouseLeave() {
+    // force hide popover in next render cycle
+    // (ui.PopoverMenu interface handles it this way)
+    if (this.state.isPopoverVisible) {
+      this.setState({shouldHidePopover: true});
+    }
+  }
+
+  onPopoverSetVisible() {
+    this.setState({isPopoverVisible: true});
+  }
+
+  renderFilterableHeader(columnDef) {
+    let options = [];
+    if (this.props.metadata[columnDef.filterByMetadataName]) {
+      options = this.props.metadata[columnDef.filterByMetadataName];
+    }
+
+    if (options.length === 0) {
+      return (
+        <bem.AssetsTableRow__column m={columnDef.id} disabled>
+          {columnDef.label}
+        </bem.AssetsTableRow__column>
+      );
+    }
+
+    // empty icon to take up space in column
+    let icon = (<i className='k-icon'/>);
+    if (this.props.column.id === columnDef.id) {
+      icon = (<i className='k-icon k-icon-check'/>);
+    }
+
+    return (
+      <bem.AssetsTableRow__column m={columnDef.id}>
+        <ui.PopoverMenu
+          triggerLabel={<span>{columnDef.label} {icon}</span>}
+          clearPopover={this.state.shouldHidePopover}
+          popoverSetVisible={this.onPopoverSetVisible}
+        >
+          {options.map((option, index) => {
+            let optionValue;
+            let optionLabel;
+
+            if (typeof option === 'string') {
+              optionValue = option;
+              optionLabel = option;
+            }
+            if (Array.isArray(option)) {
+              optionValue = option[0];
+              optionLabel = option[1];
+            }
+
+            return (
+              <bem.PopoverMenu__link
+                onClick={this.onChangeFilter.bind(this, columnDef.id, optionValue)}
+                key={`option-${index}`}
+              >
+                {optionLabel}
+                {optionValue === this.props.columnValue &&
+                  <i className='k-icon k-icon-check'/>
+                }
+              </bem.PopoverMenu__link>
+            );
+          })}
+        </ui.PopoverMenu>
+      </bem.AssetsTableRow__column>
+    );
+  }
+
+  renderOrderableHeader(columnDef) {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
     if (this.props.column.id === columnDef.id) {
@@ -72,7 +174,7 @@ export class AssetsTable extends React.Component {
     return (
       <bem.AssetsTableRow__column
         m={columnDef.id}
-        onClick={this.reorder.bind(this, columnDef.id)}
+        onClick={this.onChangeOrder.bind(this, columnDef.id)}
       >
         {columnDef.label}
         {icon}
@@ -139,17 +241,17 @@ export class AssetsTable extends React.Component {
       <bem.AssetsTable m={this.props.context}>
         <bem.AssetsTable__header>
           <bem.AssetsTableRow m='header'>
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('icon-status'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('name'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('owner'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('name'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('owner'))}
             {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-              this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('subscribers-count'))
+              this.renderHeader(ASSETS_TABLE_COLUMNS.get('subscribers-count'))
             }
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('organization'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('languages'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('country'))}
-            {this.renderHeaderColumn(ASSETS_TABLE_COLUMNS.get('date-modified'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('organization'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('languages'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('country'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'))}
           </bem.AssetsTableRow>
         </bem.AssetsTable__header>
 
@@ -199,6 +301,8 @@ new Set([
  * @prop {string} label
  * @prop {string} id
  * @prop {string} [filterBy] - a backend filter property
+ * @prop {string} [filterByPath] - a path to asset property that holds the data
+ * @prop {string} [filterByMetadataName] - name of the metadata property that holds the values for the filter
  * @prop {string} [orderBy] - a backend order property
  * @prop {boolean} [defaultValue]
  */

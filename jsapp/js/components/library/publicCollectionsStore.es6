@@ -201,7 +201,7 @@ const publicCollectionsStore = Reflux.createStore({
     this.fetchData();
   },
 
-  setOrder(column, columnValue) {
+  setColumn(column, columnValue) {
     if (
       this.data.column.id !== column.id ||
       this.data.columnValue !== columnValue

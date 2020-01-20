@@ -49,7 +49,7 @@ class MyLibraryRoute extends React.Component {
   }
 
   onAssetsTableColumnChange(column, columnValue) {
-    myLibraryStore.setOrder(column, columnValue);
+    myLibraryStore.setColumn(column, columnValue);
   }
 
   onAssetsTableSwitchPage(pageNumber) {
@@ -72,9 +72,9 @@ class MyLibraryRoute extends React.Component {
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
+            metadata={this.state.metadata}
             column={this.state.column}
             columnValue={this.state.columnValue}
-            columnValues={this.state.metadata}
             onColumnChange={this.onAssetsTableColumnChange.bind(this)}
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}
