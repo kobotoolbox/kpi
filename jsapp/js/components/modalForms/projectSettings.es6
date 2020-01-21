@@ -425,6 +425,11 @@ class ProjectSettings extends React.Component {
         'share-metadata': this.state['share-metadata']
       }),
       asset_type: 'survey',
+      content: JSON.stringify({
+        settings: {
+          style: 'pages theme-grid'
+        }
+      })
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
     }).fail(function(r){

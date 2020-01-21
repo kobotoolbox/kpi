@@ -138,8 +138,8 @@ module.exports = do ->
 
           @model.attributes[itemGroupKey].set('value', itemGroupVal)
 
-        if @model.get('type').get('typeId') is 'note'
-          @model.attributes['readonly'].set('value', true)
+      if @model.get('type').get('typeId') is 'note'
+        @model.attributes['readonly'].set('value', true)
 
       fixScroll = opts.fixScroll
 

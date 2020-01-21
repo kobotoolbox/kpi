@@ -171,8 +171,6 @@ export default assign({
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        sessionStorage.setItem(FORM_STYLE_CACHE_NAME, asset.settings__style);
-
         this.launchAppForSurveyContent(asset.content, {
           name: asset.name,
           settings__style: asset.settings__style,
@@ -567,9 +565,7 @@ export default assign({
       _state.savedName = _state.name;
     }
 
-    if (!_state.settings__style) {
-      _state.settings__style = 'pages theme-grid';
-    }
+    sessionStorage.setItem(FORM_STYLE_CACHE_NAME, _state.settings__style);
 
     let isEmptySurvey = (
         survey &&
@@ -608,8 +604,6 @@ export default assign({
       survey.rows.on('sort', this.onSurveyChange);
       survey.on('change', this.onSurveyChange);
     }
-
-
 
     this.setState(_state);
   },
