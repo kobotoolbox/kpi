@@ -127,10 +127,10 @@ MIDDLEWARE_CLASSES = (
     'hub.middleware.UsernameInResponseHeaderMiddleware',
 )
 
-CSP_FRAME_ANCESTORS = "https://*.openclinica-dev.io"
+CSP_FRAME_ANCESTORS = "https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io"
 CSP_STYLE_SRC = "'self' 'unsafe-inline'"
-CSP_CONNECT_SRC = "'self' https://*.openclinica-dev.io"
-CSP_FRAME_SRC = "'self' https://*.openclinica-dev.io"
+CSP_CONNECT_SRC = "'self' https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io"
+CSP_FRAME_SRC = "'self' https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io"
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
@@ -717,14 +717,14 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
-KEYCLOAK_AUTH_URI = "https://auth.openclinica-dev.io/auth/realms/cust1-aws-dev"
-KEYCLOAK_CLIENT_ID = "formdesigner"
-KEYCLOAK_CLIENT_SECRET = "client-secret"
-PUBLIC_URI_FOR_KEYCLOAK = "https://cust1.formdesigner.openclinica-dev.io"
+KEYCLOAK_AUTH_URI = os.environ.get('KEYCLOAK_AUTH_URI', 'https://auth.openclinica-dev.io/auth/realms/cust1-aws-dev')
+KEYCLOAK_CLIENT_ID = os.environ.get('KEYCLOAK_CLIENT_ID', 'formdesigner')
+KEYCLOAK_CLIENT_SECRET = os.environ.get('KEYCLOAK_CLIENT_SECRET', 'client-secret')
+PUBLIC_URI_FOR_KEYCLOAK = os.environ.get('PUBLIC_URI', 'https://cust1.formdesigner.openclinica-dev.io')
 
 KEYCLOAK_MASTER_REALM = 'master'
 KEYCLOAK_ADMIN_CLIENT_ID = 'admin-cli'
-KEYCLOAK_ADMIN_CLIENT_SECRET = '3fa0dfb9-43ca-4e74-9a46-4d9fe421ec1a'
+KEYCLOAK_ADMIN_CLIENT_SECRET = os.environ.get('KEYCLOAK_ADMIN_CLIENT_SECRET', '3fa0dfb9-43ca-4e74-9a46-4d9fe421ec1a')
 
 if KEYCLOAK_AUTH_URI != '' and KEYCLOAK_CLIENT_ID != '' and KEYCLOAK_CLIENT_SECRET != '' and PUBLIC_URI_FOR_KEYCLOAK != '':
     from bossoidc.settings import *

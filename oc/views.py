@@ -2,6 +2,7 @@
 
 import logging
 import requests
+from requests import Response
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -18,6 +19,7 @@ from bossoidc.settings import configure_oidc
 from keycloak.realm import KeycloakRealm
 
 from kpi.utils.domain import get_subdomain
+from kpi.utils.log import logging as kpi_logging
 
 logger = logging.getLogger(__name__)
 
@@ -66,13 +68,20 @@ def __get_realm(request):
     if 'openclinica' in full_uri_with_path:
         current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
     subdomain = get_subdomain(request)
+    realm_name = subdomain
 
     allowed_connections_url = '{}://{}.build.{}/customer-service/api/allowed-connections'.format(request.scheme, subdomain, current_domain)
-    allowed_connections_response = requests.get(
-            allowed_connections_url,
-            params={'subdomain': subdomain}
-        )
-    realm_name = allowed_connections_response.json()[0]
+    try:
+        allowed_connections_response = requests.get(
+                allowed_connections_url,
+                params={'subdomain': subdomain}
+            )
+    except Exception as e:
+        kpi_logging.error("oc_views {}".format(str(e)), exc_info=True)
+
+    if isinstance(allowed_connections_response, Response):
+        realm_name = allowed_connections_response.json()[0]
+    
     return realm_name
 
 def __configure(request):
