@@ -38,7 +38,7 @@ class MyLibraryRoute extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      this.listenTo(myLibraryStore, this.myLibraryStoreChanged)
+      myLibraryStore.listen(this.myLibraryStoreChanged)
     );
   }
 

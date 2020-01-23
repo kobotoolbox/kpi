@@ -184,7 +184,9 @@ export class AssetsTable extends React.Component {
         onClick={this.onChangeOrder.bind(this, columnDef.id)}
         {...attrs}
       >
-        {columnDef.label}
+        <bem.AssetsTableRow__headerLabel>
+          {columnDef.label}
+        </bem.AssetsTableRow__headerLabel>
         {icon}
       </bem.AssetsTableRow__column>
     );

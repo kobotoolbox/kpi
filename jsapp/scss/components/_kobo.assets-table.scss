@@ -116,6 +116,12 @@ $c-assets-table-row-hover: $cool-whitegray;
     border-top: 0;
   }
 
+  // columns get very narrow
+  .assets-table-row__header-label,
+  &.assets-table-row--header .assets-table-row__column .popover-menu__toggle {
+    font-size: 0.9rem;
+  }
+
   &.assets-table-row--header .assets-table-row__column {
     border-top: 0;
     border-bottom: 2px solid $divider-color;

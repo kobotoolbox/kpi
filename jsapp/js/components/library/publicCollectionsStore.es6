@@ -25,10 +25,6 @@ const publicCollectionsStore = Reflux.createStore({
   init() {
     this.data = {
       isFetchingData: false,
-      orderColumnId: this.DEFAULT_ORDER_COLUMN.id,
-      orderValue: this.DEFAULT_ORDER_COLUMN.defaultValue,
-      filterColumnId: null,
-      filterValue: null,
       currentPage: 0,
       totalPages: null,
       totalUserAssets: null,
@@ -36,6 +32,7 @@ const publicCollectionsStore = Reflux.createStore({
       assets: [],
       metadata: {}
     };
+    this.resetColumnsToDefault();
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
@@ -52,6 +49,13 @@ const publicCollectionsStore = Reflux.createStore({
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
     this.fetchData();
+  },
+
+  resetColumnsToDefault() {
+    this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
+    this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
+    this.data.filterColumnId = null;
+    this.data.filterValue = null;
   },
 
   // methods for handling search and data fetch
@@ -87,6 +91,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.previousPath.split('/')[1] !== 'library' &&
       data.pathname.split('/')[1] === 'library'
     ) {
+      this.resetColumnsToDefault();
       this.fetchData();
     }
     this.previousPath = data.pathname;

@@ -273,6 +273,7 @@ bem.AssetsTableRow = BEM('assets-table-row');
 bem.AssetsTableRow__link = bem.AssetsTableRow.__('link', '<a>');
 bem.AssetsTableRow__buttons = bem.AssetsTableRow.__('buttons');
 bem.AssetsTableRow__column = bem.AssetsTableRow.__('column');
+bem.AssetsTableRow__headerLabel = bem.AssetsTableRow.__('header-label', 'span');
 bem.AssetsTableRow__tags = bem.AssetsTableRow.__('tags', '<ul>');
 bem.AssetsTableRow__tag = bem.AssetsTableRow.__('tag', '<li>');
 bem.AssetsTableRow__dot = bem.AssetsTableRow.__('dot', '<span>');

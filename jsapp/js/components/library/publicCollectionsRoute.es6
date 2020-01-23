@@ -36,7 +36,7 @@ class PublicCollectionsRoute extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      this.listenTo(publicCollectionsStore, this.publicCollectionsStoreChanged)
+      publicCollectionsStore.listen(this.publicCollectionsStoreChanged)
     );
   }
 
