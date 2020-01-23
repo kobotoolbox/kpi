@@ -62,19 +62,16 @@ def __configure_oidc(auth_uri, client_id, public_uri, scope=None, client_secret=
         oidc_providers['KeyCloak']['behaviour']['scope'] = scope
 
 def __get_realm(request):
-    full_uri_with_path = request.build_absolute_uri()
-    extracted_full_uri_with_path = extract(full_uri_with_path)
-    current_domain = 'openclinica-dev.io'
-    if 'openclinica' in full_uri_with_path:
-        current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
     subdomain = get_subdomain(request)
     realm_name = subdomain
 
-    allowed_connections_url = '{}://{}.build.{}/customer-service/api/allowed-connections'.format(request.scheme, subdomain, current_domain)
+    kpi_logging.warning('__get_realm OC_BUILD_URL {}', settings.OC_BUILD_URL)
+
+    allowed_connections_url = '{}/customer-service/api/allowed-connections'.format(settings.OC_BUILD_URL)
     try:
         allowed_connections_response = requests.get(
                 allowed_connections_url,
-                params={'subdomain': subdomain}
+                params = { 'subdomain': subdomain }
             )
     except Exception as e:
         kpi_logging.error("oc_views {}".format(str(e)), exc_info=True)

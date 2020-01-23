@@ -717,6 +717,8 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+OC_BUILD_URL = os.environ.get('OC_BUILD_URL', '')
+
 KEYCLOAK_AUTH_URI = os.environ.get('KEYCLOAK_AUTH_URI', 'https://auth.openclinica-dev.io/auth/realms/cust1-aws-dev')
 KEYCLOAK_CLIENT_ID = os.environ.get('KEYCLOAK_CLIENT_ID', 'formdesigner')
 KEYCLOAK_CLIENT_SECRET = os.environ.get('KEYCLOAK_CLIENT_SECRET', 'client-secret')
