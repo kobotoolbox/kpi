@@ -719,7 +719,7 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 OC_BUILD_URL = os.environ.get('OC_BUILD_URL', '')
 
-KEYCLOAK_AUTH_URI = os.environ.get('KEYCLOAK_AUTH_URI', 'https://auth.openclinica-dev.io/auth/realms/cust1-aws-dev')
+KEYCLOAK_AUTH_URI = os.environ.get('KEYCLOAK_AUTH_URI', 'https://auth.openclinica-dev.io')
 KEYCLOAK_CLIENT_ID = os.environ.get('KEYCLOAK_CLIENT_ID', 'formdesigner')
 KEYCLOAK_CLIENT_SECRET = os.environ.get('KEYCLOAK_CLIENT_SECRET', 'client-secret')
 PUBLIC_URI_FOR_KEYCLOAK = os.environ.get('PUBLIC_URI', 'https://cust1.formdesigner.openclinica-dev.io')
@@ -730,4 +730,4 @@ KEYCLOAK_ADMIN_CLIENT_SECRET = os.environ.get('KEYCLOAK_ADMIN_CLIENT_SECRET', '3
 
 if KEYCLOAK_AUTH_URI != '' and KEYCLOAK_CLIENT_ID != '' and KEYCLOAK_CLIENT_SECRET != '' and PUBLIC_URI_FOR_KEYCLOAK != '':
     from bossoidc.settings import *
-    configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)
+    configure_oidc('{}/auth/realms/cust1-aws-dev'.format(KEYCLOAK_AUTH_URI), KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)

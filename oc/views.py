@@ -88,13 +88,9 @@ def __configure(request):
 
     current_root_uri = '{}://{}'.format(parsed_full_uri_with_path.scheme, parsed_full_uri_with_path.netloc)
 
-    current_domain = 'openclinica-dev.io'
-    if 'openclinica' in full_uri_with_path:
-        current_domain = '{}.{}'.format(extracted_full_uri_with_path.domain, extracted_full_uri_with_path.suffix)
-
     realm_name = __get_realm(request)
 
-    master_realm = KeycloakRealm(server_url='https://auth.{}/'.format(current_domain), realm_name=settings.KEYCLOAK_MASTER_REALM)
+    master_realm = KeycloakRealm(server_url=settings.KEYCLOAK_AUTH_URI, realm_name=settings.KEYCLOAK_MASTER_REALM)
     master_realm_client = master_realm.open_id_connect(
             client_id=settings.KEYCLOAK_ADMIN_CLIENT_ID,
             client_secret=settings.KEYCLOAK_ADMIN_CLIENT_SECRET
@@ -118,12 +114,11 @@ def __configure(request):
         client_secret = admin_client.realms.by_name(realm_name).clients.by_id(client_id).client_secret()['value']
 
     if client_secret is not None:
-        KEYCLOAK_AUTH_URI = "https://auth.{}/auth/realms/{}".format(current_domain, realm_name)
         KEYCLOAK_CLIENT_ID = clientId
         KEYCLOAK_CLIENT_SECRET = client_secret
         PUBLIC_URI_FOR_KEYCLOAK = current_root_uri
 
-        __configure_oidc(KEYCLOAK_AUTH_URI, KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)
+        __configure_oidc('{}/auth/realms/{}'.format(settings.KEYCLOAK_AUTH_URI, realm_name), KEYCLOAK_CLIENT_ID, PUBLIC_URI_FOR_KEYCLOAK, client_secret=KEYCLOAK_CLIENT_SECRET)
 
         CLIENTS = OIDCClients(oc_settings)
 
