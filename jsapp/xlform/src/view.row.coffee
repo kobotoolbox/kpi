@@ -65,7 +65,7 @@ module.exports = do ->
               groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
               if groupRowModels.length > 0
                 groupRowModels.forEach (model) =>
-                  itemGroupName = group.rows.models[0].attributes[itemGroupKey].get('value')
+                  itemGroupName = model.attributes[itemGroupKey].get('value')
                   if itemGroupName && itemGroupName != ''
                     repeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
@@ -81,7 +81,7 @@ module.exports = do ->
               groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
               if groupRowModels.length > 0
                 groupRowModels.forEach (model) =>
-                  itemGroupName = group.rows.models[0].attributes[itemGroupKey].get('value')
+                  itemGroupName = model.attributes[itemGroupKey].get('value')
                   if itemGroupName && itemGroupName != ''
                     nonRepeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
@@ -89,7 +89,7 @@ module.exports = do ->
             _.uniq(nonRepeatGroupsItemGroupNames)
             _.uniq(nonRepeatGroupsIntVals)
 
-          nonGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
+          nonGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid and model.attributes[itemGroupKey].get('value') isnt ''
           nonGroupsItemGroupNames = []
           nonGroupsIntVals = []
           if nonGroups.length > 0
@@ -134,7 +134,11 @@ module.exports = do ->
                         break
 
               if itemGroupVal == ''
-                itemGroupVal =  _.last(_.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames)))
+                groupNames = _.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames))
+                if groupNames.length > 0
+                  itemGroupVal =  _.last(groupNames)
+                else
+                  itemGroupVal = itemGroupPrependVal + 1
 
           @model.attributes[itemGroupKey].set('value', itemGroupVal)
 
