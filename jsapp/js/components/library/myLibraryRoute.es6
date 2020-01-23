@@ -17,6 +17,7 @@ class MyLibraryRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = this.getFreshState();
+    this.unlisteners = [];
     autoBind(this);
   }
 
@@ -36,7 +37,13 @@ class MyLibraryRoute extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
+    this.unlisteners.push(
+      this.listenTo(myLibraryStore, this.myLibraryStoreChanged)
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   myLibraryStoreChanged() {

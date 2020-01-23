@@ -15,6 +15,7 @@ class PublicCollectionsRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = this.getFreshState();
+    this.unlisteners = [];
     autoBind(this);
   }
 
@@ -34,7 +35,13 @@ class PublicCollectionsRoute extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(publicCollectionsStore, this.publicCollectionsStoreChanged);
+    this.unlisteners.push(
+      this.listenTo(publicCollectionsStore, this.publicCollectionsStoreChanged)
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   publicCollectionsStoreChanged() {

@@ -16,24 +16,30 @@ import AssetContentSummary from './assetContentSummary';
 import CollectionAssetsTable from './collectionAssetsTable';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
-class LibraryAsset extends React.Component {
+class AssetRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       asset: false
     };
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
-    actions.resources.loadAsset.completed.listen(this.onAssetChanged);
-    actions.resources.updateAsset.completed.listen(this.onAssetChanged);
-    actions.resources.cloneAsset.completed.listen(this.onAssetChanged);
-    actions.resources.createResource.completed.listen(this.onAssetChanged);
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
-
+    this.unlisteners.push(
+      actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted),
+      actions.resources.loadAsset.completed.listen(this.onAssetChanged),
+      actions.resources.updateAsset.completed.listen(this.onAssetChanged),
+      actions.resources.cloneAsset.completed.listen(this.onAssetChanged),
+      actions.resources.createResource.completed.listen(this.onAssetChanged),
+      actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted)
+    );
     this.loadCurrentAsset();
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   componentWillReceiveProps(nextProps) {
@@ -96,9 +102,9 @@ class LibraryAsset extends React.Component {
       const newChildren = Array.from(updatedAsset.children.results);
       const index = _.findIndex(updatedAsset.children.results, {uid: asset.uid});
       if (index === -1) {
-        newChildren[index] = asset;
-      } else {
         newChildren.push(asset);
+      } else {
+        newChildren[index] = asset;
       }
       updatedAsset.children.results = newChildren;
       this.setState({asset: updatedAsset});
@@ -158,11 +164,11 @@ class LibraryAsset extends React.Component {
   }
 }
 
-reactMixin(LibraryAsset.prototype, mixins.contextRouter);
-reactMixin(LibraryAsset.prototype, Reflux.ListenerMixin);
+reactMixin(AssetRoute.prototype, mixins.contextRouter);
+reactMixin(AssetRoute.prototype, Reflux.ListenerMixin);
 
-LibraryAsset.contextTypes = {
+AssetRoute.contextTypes = {
   router: PropTypes.object
 };
 
-export default LibraryAsset;
+export default AssetRoute;

@@ -172,10 +172,17 @@ export class AssetsTable extends React.Component {
         icon = (<i className='k-icon k-icon-down'/>);
       }
     }
+
+    const attrs = {};
+    if (columnDef.tooltip) {
+      attrs['data-tip'] = columnDef.tooltip;
+    }
+
     return (
       <bem.AssetsTableRow__column
         m={columnDef.id}
         onClick={this.onChangeOrder.bind(this, columnDef.id)}
+        {...attrs}
       >
         {columnDef.label}
         {icon}
@@ -311,6 +318,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
   [
     'icon-status', {
       label: null,
+      tooltip: t('Asset type'),
       id: 'icon-status',
       orderBy: 'asset_type',
       defaultValue: ORDER_DIRECTIONS.get('ascending')
@@ -371,7 +379,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
       label: t('Primary Sector'),
       id: 'primary-sector',
       filterBy: 'settings__sector__value',
-      filterByPath: ['settings', 'sector', 'value'],
+      filterByPath: ['settings', 'sector'],
       filterByMetadataName: 'sectors'
     }
   ],
@@ -380,7 +388,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
       label: t('Country'),
       id: 'country',
       filterBy: 'settings__country__value',
-      filterByPath: ['settings', 'country', 'value'],
+      filterByPath: ['settings', 'country'],
       filterByMetadataName: 'countries'
     }
   ],
