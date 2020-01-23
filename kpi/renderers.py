@@ -92,7 +92,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionXMLRenderer(DRFXMLRenderer):
+class RawXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
@@ -109,8 +109,9 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
             # Submissions are wrapped in `<item>` nodes.
             return dicttoxml(data, attr_type=False)
 
-        if renderer_context.get("view").action == "list":
-            return "<root>{}</root>".format("".join(data))
+        if renderer_context.get('view').action == 'list':
+            data_to_str = ''.join(data)
+            return f'<root>{data_to_str}</root>'
         else:
             return data
 
