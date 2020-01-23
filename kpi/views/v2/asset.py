@@ -13,6 +13,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rest_framework_xml.renderers import XMLRenderer
 
 from kpi.constants import (
     ASSET_TYPES,
@@ -43,7 +44,7 @@ from kpi.paginators import AssetPagination
 from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
     get_perm_name, ReportPermission
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
-    XlsRenderer
+    XlsRenderer, RawXMLRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.serializers.v2.reports import ReportsDetailSerializer

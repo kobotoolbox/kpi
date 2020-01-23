@@ -28,7 +28,7 @@ from kpi.permissions import (
     SubmissionPermission,
     SubmissionValidationStatusPermission,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import SubmissionGeoJsonRenderer, RawXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -268,7 +268,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
                         SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer
+                        RawXMLRenderer
                         )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
