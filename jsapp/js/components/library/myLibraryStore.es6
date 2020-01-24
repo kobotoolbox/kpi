@@ -36,6 +36,8 @@ const myLibraryStore = Reflux.createStore({
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
+    actions.library.subscribeToCollection.completed.listen(this.fetchData);
+    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData);
     actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted);
     actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted);
     actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed);

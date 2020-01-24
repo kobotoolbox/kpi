@@ -14,7 +14,7 @@ export class TranslationSettings extends React.Component {
   constructor(props){
     super(props);
 
-    let translations;
+    let translations = null;
     if (props.asset && props.asset.content) {
       translations = props.asset.content.translations;
     }
@@ -22,15 +22,20 @@ export class TranslationSettings extends React.Component {
     this.state = {
       assetUid: props.assetUid,
       asset: props.asset,
-      translations: translations || [],
+      translations: translations,
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
       renameLanguageIndex: -1
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.onAssetsChange);
+
+    if (this.state.asset && !this.state.asset.content) {
+      stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
+      actions.resources.loadAsset({id: this.state.asset.uid});
+    }
 
     if (!this.state.asset && this.state.assetUid) {
       if (stores.asset.data[this.state.assetUid]) {
@@ -221,7 +226,7 @@ export class TranslationSettings extends React.Component {
     };
     dialog.set(opts).show();
   }
-  updateAsset (content) {
+  updateAsset(content) {
     actions.resources.updateAsset(
       this.state.asset.uid,
       {content: JSON.stringify(content)},
@@ -398,8 +403,12 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     );
   }
-  render () {
-    if (!this.state.asset) {
+  render() {
+    if (
+      !this.state.asset ||
+      !this.state.asset.content ||
+      this.state.translations === null
+    ) {
       return this.renderLoadingMessage();
     }
 

@@ -14,7 +14,9 @@ const ownedCollectionsStore = Reflux.createStore({
     stores.session.listen(this.onSessionChanged);
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted);
     actions.library.getCollections.failed.listen(this.onGetCollectionsFailed);
-    actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
+    // NOTE: this could update the list of collections, but currently nothing is using
+    // these parts of data that will be updated by this, thus it is commented out:
+    // // actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
     actions.resources.loadAsset.completed.listen(this.onAssetChangedOrCreated);
     actions.resources.updateAsset.completed.listen(this.onAssetChangedOrCreated);
     actions.resources.cloneAsset.completed.listen(this.onAssetChangedOrCreated);
@@ -43,10 +45,6 @@ const ownedCollectionsStore = Reflux.createStore({
   onGetCollectionsFailed() {
     this.data.isFetchingData = false;
     this.trigger(this.data);
-  },
-
-  onMoveToCollectionCompleted(asset) {
-    // TODO update this.data.collections collection children count?
   },
 
   onAssetChangedOrCreated(asset) {

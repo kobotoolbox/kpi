@@ -85,6 +85,7 @@ class AssetRoute extends React.Component {
       if (newChildren) {
         const updatedAsset = this.state.asset;
         updatedAsset.children.results = newChildren;
+        updatedAsset.children.count = newChildren.length;
         this.setState({asset: updatedAsset});
       }
     }
@@ -107,7 +108,14 @@ class AssetRoute extends React.Component {
         newChildren[index] = asset;
       }
       updatedAsset.children.results = newChildren;
+      updatedAsset.children.count = newChildren.length;
       this.setState({asset: updatedAsset});
+    } else if (
+      this.state.asset &&
+      this.state.asset.asset_type === ASSET_TYPES.collection.id &&
+      asset.parent !== this.state.asset.url
+    ) {
+      this.onAssetRemoved(asset.uid);
     }
   }
 
