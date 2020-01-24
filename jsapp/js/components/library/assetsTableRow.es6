@@ -35,8 +35,6 @@ class AssetsTableRow extends React.Component {
       this.props.asset.asset_type === ASSET_TYPES.collection.id &&
       this.props.asset.children
     ) {
-      // TODO this works only if children property is available
-      // (collection asset in asset listing doesn't have it)
       rowCount = this.props.asset.children.count;
     }
 

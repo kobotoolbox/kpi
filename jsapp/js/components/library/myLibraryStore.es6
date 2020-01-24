@@ -30,8 +30,8 @@ const myLibraryStore = Reflux.createStore({
     };
     this.resetColumnsToDefault();
 
-    // TODO react to upload(s) finishing (debounced because of multiple uploads)
-    // or don't react at all ;-)
+    // TODO react to uploads being finished (debounced reaction because of
+    // possible multiple uploads) or don't react at all?
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
