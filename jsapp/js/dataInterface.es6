@@ -491,18 +491,10 @@ export var dataInterface;
       if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
 
-      if (fields.length > 3) {
-        const query_no_limit = `&start=${page}`;
-        return $ajax({
-          url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query_no_limit}${s}${f}${filter}`,
-          method: 'GET'
-        });
-      } else {
-        return $ajax({
+      return $ajax({
           url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
           method: 'GET'
         });
-      }
     },
     getSubmission(uid, sid) {
       return $ajax({
