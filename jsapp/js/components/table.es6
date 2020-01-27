@@ -753,7 +753,6 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
-    let ind = 0;
     this.state.tableData.forEach(function(r) {
       if (isChecked) {
         s[r._id] = true;
