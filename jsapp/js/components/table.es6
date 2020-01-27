@@ -19,7 +19,8 @@ import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
+  QUESTION_TYPES
 } from '../constants';
 import {
   t,
@@ -404,7 +405,7 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
-              if (q.type == 'image' || q.type == 'audio' || q.type == 'video') {
+              if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
                 var mediaURL = this.getMediaDownloadLink(row.value);
                 return <a href={mediaURL} target="_blank">{row.value}</a>;
               }
@@ -733,11 +734,6 @@ export class DataTable extends React.Component {
     this.setState({ promptRefresh: false });
   }
 
-  printAssets(){
-    console.log('-----assets:------');
-    console.dir(this.props.asset);
-  }
-
   clearPromptRefresh() {
     this.setState({ promptRefresh: false });
   }
@@ -759,16 +755,12 @@ export class DataTable extends React.Component {
     let s = this.state.selectedRows;
     let ind = 0;
     this.state.tableData.forEach(function(r) {
-          console.log(r);
       if (isChecked) {
         s[r._id] = true;
       } else {
         delete s[r._id];
       }
-    },
-
-    //console.log(this.state.tableData.valueOf())
-    console.log(this.state.tableData[ind]),
+    }
     );
 
     // If the entirety of the results has been selected, selectAll should be true
@@ -787,15 +779,6 @@ export class DataTable extends React.Component {
       });
     }
 
-  }
-
-  addLinksToFileNames() {
-
-    for (var i = 0; i<this.state.tableData.length; i++) {
-      console.log('@: ' + this.state.tableData[i].valueOf());
-    }
-
-    return this.state.tableData
   }
 
   onBulkUpdateStatus(evt) {
