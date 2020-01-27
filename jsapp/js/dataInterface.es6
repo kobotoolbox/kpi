@@ -492,9 +492,9 @@ export var dataInterface;
         f = `&fields=${JSON.stringify(fields)}`;
 
       return $ajax({
-          url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-          method: 'GET'
-        });
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
+        method: 'GET'
+      });
     },
     getSubmission(uid, sid) {
       return $ajax({
