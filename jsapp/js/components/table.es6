@@ -965,7 +965,6 @@ export class DataTable extends React.Component {
     );
   }
   getMediaDownloadLink(fileName) {
-    var attachmentUrl = null;
     this.state.tableData.forEach(function(a) {
         a._attachments.forEach(function(b) {
           if (b.filename.includes(fileName)) {
@@ -979,8 +978,7 @@ export class DataTable extends React.Component {
     kc_server.href = this.props.asset.deployment__identifier;
     const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
     var kc_base = `${kc_server.origin}${kc_prefix}`;
-    attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
-    return attachmentUrl;
+    return `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
   }
   render () {
     if (this.state.error) {
