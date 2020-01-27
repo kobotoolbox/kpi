@@ -241,7 +241,7 @@ class MainHeader extends Reflux.Component {
                 />
               </div>
             }
-            { this.isFormSingle() || this.isLibrarySingle() && this.state.asset &&
+            { this.state.asset && this.isFormSingle() || this.isLibrarySingle() &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 
