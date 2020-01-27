@@ -12,7 +12,7 @@ import _ from 'underscore';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {KEY_CODES} from 'js/constants';
 import {bem} from './bem';
-import {t, assign} from './utils';
+import {t, hasLongWords} from './utils';
 import classNames from 'classnames';
 
 class SearchBox extends React.Component {
@@ -208,6 +208,10 @@ class AssetName extends React.Component {
     if (displayName.empty) {
       // if we display empty name fallback, we style it differently
       classNames.push('asset-name--empty');
+    }
+
+    if (hasLongWords(displayName.final)) {
+      classNames.push('asset-name--has-long-words');
     }
 
     return (

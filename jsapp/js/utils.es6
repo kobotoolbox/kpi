@@ -521,4 +521,15 @@ export function renderCheckbox(id, label, isImportant) {
     additionalClass += 'alertify-toggle-important';
   }
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-};
+}
+
+/**
+ * @param {string} text
+ * @param {number} [limit] - how long the long word is
+ * @return {boolean}
+ */
+export function hasLongWords(text, limit = 25) {
+  const textArr = text.split(' ');
+  const maxLength = Math.max(...(textArr.map((el) => {return el.length;})));
+  return maxLength >= limit;
+}
