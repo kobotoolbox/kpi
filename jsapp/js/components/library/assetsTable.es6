@@ -193,7 +193,7 @@ export class AssetsTable extends React.Component {
   }
 
   /**
-   * Safe: would return nothing if pagination properties are not set.
+   * Safe: returns nothing if pagination properties are not set.
    */
   renderPagination() {
     const hasPagination = (
@@ -215,11 +215,12 @@ export class AssetsTable extends React.Component {
           </bem.AssetsTablePagination__button>
 
           <bem.AssetsTablePagination__index>
-            {naturalCurrentPage}/{this.props.totalPages}
+            {/* we avoid displaying 1/0 as it doesn't make sense to humans */}
+            {naturalCurrentPage}/{this.props.totalPages || 1}
           </bem.AssetsTablePagination__index>
 
           <bem.AssetsTablePagination__button
-            disabled={naturalCurrentPage === this.props.totalPages}
+            disabled={naturalCurrentPage >= this.props.totalPages}
             onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
           >
             {t('Next page')}

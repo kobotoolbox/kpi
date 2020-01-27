@@ -87,6 +87,15 @@ $headerAccountTextColor: #dbedf7;
     flex-grow: 1;
   }
 
+  .header__link {
+    color: $white;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
   .search {
     vertical-align: middle;
     margin: 0px 6px;

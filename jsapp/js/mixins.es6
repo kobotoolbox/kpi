@@ -11,6 +11,7 @@
  * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
  */
 
+import _ from 'underscore';
 import React from 'react';
 import alertify from 'alertifyjs';
 import {hashHistory} from 'react-router';
@@ -579,7 +580,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel} "${name}"`,
+          title: `${t('Delete')} ${assetTypeLabel} "${_.escape(name)}"`,
           message: msg,
           labels: {
             ok: t('Delete'),
@@ -712,31 +713,37 @@ mixins.permissions = {
 };
 
 mixins.contextRouter = {
-  isFormList () {
+  isFormList() {
     return this.context.router.isActive('forms') && this.currentAssetID() === undefined;
   },
-  isLibrary () {
+  isLibrary() {
     return this.context.router.isActive('library');
   },
-  isLibraryList () {
+  isMyLibrary() {
+    return this.context.router.isActive('library/my-library');
+  },
+  isPublicCollections() {
+    return this.context.router.isActive('library/public-collections');
+  },
+  isLibraryList() {
     return this.context.router.isActive('library') && this.currentAssetID() === undefined;
   },
-  isLibrarySingle () {
+  isLibrarySingle() {
     return this.context.router.isActive('library') && this.currentAssetID() !== undefined;
   },
-  isFormSingle () {
+  isFormSingle() {
     return this.context.router.isActive('forms') && this.currentAssetID() !== undefined;
   },
-  currentAssetID () {
+  currentAssetID() {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
-  currentAsset () {
+  currentAsset() {
     return stores.asset.data[this.currentAssetID()];
   },
-  isActiveRoute (path, indexOnly = false) {
+  isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
   },
-  isFormBuilder () {
+  isFormBuilder() {
     if (this.context.router.isActive('/library/asset/new')) {
       return true;
     }

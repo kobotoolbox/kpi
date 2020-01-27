@@ -24,6 +24,7 @@ import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
+import publicCollectionsStore from 'js/components/library/publicCollectionsStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -32,7 +33,6 @@ class MainHeader extends Reflux.Component {
       asset: false,
       currentLang: currentLang(),
       isLanguageSelectorVisible: false,
-      isSearchBoxDisabled: this.getIsSearchBoxDisabled(),
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: COMMON_QUERIES.get('qbt'),
@@ -50,12 +50,19 @@ class MainHeader extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
+    this.unlisteners = [];
     autoBind(this);
   }
   componentDidMount() {
     document.body.classList.add('hide-edge');
-    this.listenTo(stores.asset, this.onAssetLoad);
-    this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
+    this.unlisteners.push(
+      stores.asset.listen(this.onAssetLoad),
+      publicCollectionsStore.listen(this.forceRender),
+      myLibraryStore.listen(this.forceRender)
+    );
+  }
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
@@ -64,13 +71,16 @@ class MainHeader extends Reflux.Component {
       // action triggered by other component (route component)
     }
   }
-  myLibraryStoreChanged() {
-    this.setState({
-      isSearchBoxDisabled: this.getIsSearchBoxDisabled()
-    });
+  forceRender() {
+    this.setState(this.state);
   }
-  getIsSearchBoxDisabled() {
-    return myLibraryStore.data.totalUserAssets === null;
+  isSearchBoxDisabled() {
+    if (this.isMyLibrary()) {
+      // disable search for when user has zero assets
+      return myLibraryStore.data.totalUserAssets === null;
+    } else {
+      return false;
+    }
   }
   onAssetLoad(data) {
     const asset = data[this.props.assetid];
@@ -181,9 +191,7 @@ class MainHeader extends Reflux.Component {
         );
     }
 
-    return (
-          <span>{t('n/a')}</span>
-    );
+    return null;
   }
   renderGitRevInfo () {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
@@ -237,11 +245,28 @@ class MainHeader extends Reflux.Component {
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
                   placeholder={t('Search Library')}
-                  disabled={this.state.isSearchBoxDisabled}
+                  disabled={this.isSearchBoxDisabled()}
                 />
+
+                {this.isMyLibrary() && !myLibraryStore.hasAllDefaultValues() &&
+                  <a
+                    className='header__link'
+                    onClick={myLibraryStore.resetOrderAndFilter}
+                  >
+                    {t('Reset filters')}
+                  </a>
+                }
+                {this.isPublicCollections() && !publicCollectionsStore.hasAllDefaultValues() &&
+                  <a
+                    className='header__link'
+                    onClick={publicCollectionsStore.resetOrderAndFilter}
+                  >
+                    {t('Reset filters')}
+                  </a>
+                }
               </div>
             }
-            { this.state.asset && this.isFormSingle() || this.isLibrarySingle() &&
+            { this.state.asset && (this.isFormSingle() || this.isLibrarySingle()) &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 

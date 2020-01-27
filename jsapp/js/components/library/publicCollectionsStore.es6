@@ -27,12 +27,11 @@ const publicCollectionsStore = Reflux.createStore({
       isFetchingData: false,
       currentPage: 0,
       totalPages: null,
-      totalUserAssets: null,
       totalSearchAssets: null,
       assets: [],
       metadata: {}
     };
-    this.resetColumnsToDefault();
+    this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
@@ -51,7 +50,7 @@ const publicCollectionsStore = Reflux.createStore({
     this.fetchData();
   },
 
-  resetColumnsToDefault() {
+  setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
     this.data.filterColumnId = null;
@@ -91,7 +90,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.previousPath.split('/')[1] !== 'library' &&
       data.pathname.split('/')[1] === 'library'
     ) {
-      this.resetColumnsToDefault();
+      this.setDefaultColumns();
       this.fetchData();
     }
     this.previousPath = data.pathname;
@@ -114,17 +113,11 @@ const publicCollectionsStore = Reflux.createStore({
   onSearchCompleted(response) {
     delete this.abortFetchData;
 
-    this.data.hasNextPage = response.next !== null;
-    this.data.hasPreviousPage = response.previous !== null;
-
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
 
     this.data.assets = response.results;
     this.data.metadata = response.metadata;
     this.data.totalSearchAssets = response.count;
-    if (this.data.totalUserAssets === null) {
-      this.data.totalUserAssets = this.data.totalSearchAssets;
-    }
     this.data.isFetchingData = false;
     this.trigger(this.data);
   },
@@ -246,6 +239,20 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterValue = filterValue;
       this.fetchData();
     }
+  },
+
+  resetOrderAndFilter() {
+    this.setDefaultColumns();
+    this.fetchData();
+  },
+
+  hasAllDefaultValues() {
+    return (
+      this.data.orderColumnId === this.DEFAULT_ORDER_COLUMN.id &&
+      this.data.orderValue === this.DEFAULT_ORDER_COLUMN.defaultValue &&
+      this.data.filterColumnId === null &&
+      this.data.filterValue === null
+    );
   }
 });
 
