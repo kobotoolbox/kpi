@@ -28,7 +28,7 @@ const myLibraryStore = Reflux.createStore({
       assets: [],
       metadata: {}
     };
-    this.resetColumnsToDefault();
+    this.setDefaultColumns();
 
     // TODO react to uploads being finished (debounced reaction because of
     // possible multiple uploads) or don't react at all?
@@ -50,7 +50,7 @@ const myLibraryStore = Reflux.createStore({
     this.fetchData();
   },
 
-  resetColumnsToDefault() {
+  setDefaultColumns() {
     this.data.orderColumnId = this.DEFAULT_ORDER_COLUMN.id;
     this.data.orderValue = this.DEFAULT_ORDER_COLUMN.defaultValue;
     this.data.filterColumnId = null;
@@ -90,7 +90,7 @@ const myLibraryStore = Reflux.createStore({
       this.previousPath.split('/')[1] !== 'library' &&
       data.pathname.split('/')[1] === 'library'
     ) {
-      this.resetColumnsToDefault();
+      this.setDefaultColumns();
       this.fetchData();
     }
     this.previousPath = data.pathname;
@@ -112,9 +112,6 @@ const myLibraryStore = Reflux.createStore({
 
   onSearchCompleted(response) {
     delete this.abortFetchData;
-
-    this.data.hasNextPage = response.next !== null;
-    this.data.hasPreviousPage = response.previous !== null;
 
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
 
@@ -229,6 +226,20 @@ const myLibraryStore = Reflux.createStore({
       this.data.filterValue = filterValue;
       this.fetchData();
     }
+  },
+
+  resetOrderAndFilter() {
+    this.setDefaultColumns();
+    this.fetchData();
+  },
+
+  hasAllDefaultValues() {
+    return (
+      this.data.orderColumnId === this.DEFAULT_ORDER_COLUMN.id &&
+      this.data.orderValue === this.DEFAULT_ORDER_COLUMN.defaultValue &&
+      this.data.filterColumnId === null &&
+      this.data.filterValue === null
+    );
   }
 });
 
