@@ -64,8 +64,13 @@ class AssetsListApiTests(BaseAssetTestCase):
                          msg=list_response.data)
         expected_list_data = {
             field: detail_response.data[field]
-            for field in AssetListSerializer.Meta.fields
+            for field in AssetListSerializer.Meta.fields if field != 'children'
         }
+        # list endpoint only exposes children count.
+        expected_list_data['children'] = {
+            'count': detail_response.data['children']['count']
+        }
+
         list_result_detail = None
         for result in list_response.data['results']:
             if result['uid'] == expected_list_data['uid']:
