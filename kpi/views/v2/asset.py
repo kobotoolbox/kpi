@@ -225,10 +225,9 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_metadata(self, queryset):
         """
-
-        :param args:
-        :param kwargs:
-        :return:
+        Prepare metadata to inject in list endpoint.
+        Useful to retrieve values needed for search
+        :return: dict
         """
         metadata = {
             'languages': set(),

@@ -8,13 +8,14 @@ from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
 from kpi.constants import ASSET_TYPE_SURVEY, PREFIX_PARTIAL_PERMS
+from kpi.exceptions import BadContentTypeException
 from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
@@ -31,10 +32,8 @@ def perm_parse(perm, obj=None):
     try:
         app_label, codename = perm.split('.', 1)
         if obj_app_label is not None and app_label != obj_app_label:
-            raise serializers.ValidationError({
-                'permission': 'The given object does not belong to the app '
-                              'specified in the permission string.'
-            })
+            raise ValidationError('The given object does not belong to the app '
+                                  'specified in the permission string.')
 
     except ValueError:
         app_label = obj_app_label
@@ -95,11 +94,9 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
         if '.' in perm:
             new_app_label, codename = perm.split('.', 1)
             if app_label is not None and app_label != new_app_label:
-                raise serializers.ValidationError({
-                    'permission': "Given perms must have same app"
-                                  " label (%s != %s)" %
-                                  (app_label, new_app_label)
-                })
+                raise ValidationError(
+                    'Given perms must have same app label '
+                    f'({app_label} != {new_app_label})')
             else:
                 app_label = new_app_label
         else:
@@ -109,18 +106,15 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
             new_ctype = ContentType.objects.get(app_label=app_label,
                                                 permission__codename=codename)
             if ctype is not None and ctype != new_ctype:
-                raise serializers.ValidationError({
-                    'permission': 'Computed ContentTypes do not match '
-                                  '(%s != %s)' % (ctype, new_ctype)
-                })
+                raise BadContentTypeException(
+                    'Computed ContentTypes do not match '
+                    f'({ctype} != {new_ctype})')
             else:
                 ctype = new_ctype
 
     # Compute queryset and ctype if still missing
     if ctype is None and klass is None:
-        raise serializers.ValidationError({
-            'permission': 'Cannot determine content type'
-        })
+        raise BadContentTypeException('Cannot determine content type')
     elif ctype is None and klass is not None:
         queryset = _get_queryset(klass)
         ctype = ContentType.objects.get_for_model(queryset.model)
@@ -129,9 +123,8 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     else:
         queryset = _get_queryset(klass)
         if ctype.model_class() != queryset.model:
-            raise serializers.ValidationError({
-                'permission': 'Content type for given perms and klass differs'
-            })
+            raise BadContentTypeException('Content type for given perms and '
+                                          'klass differs')
 
     # At this point, we should have both ctype and queryset and they should
     # match which means: ctype.model_class() == queryset.model
@@ -244,10 +237,8 @@ class ObjectPermission(models.Model):
                                   '__get_all_user_permissions',))
     def save(self, *args, **kwargs):
         if self.permission.content_type_id is not self.content_type_id:
-            raise serializers.ValidationError({
-                'permission': 'The content type of the permission does not '
-                              'match that of the object.'
-            })
+            raise BadContentTypeException('The content type of the permission '
+                                          'does not match that of the object.')
         super().save(*args, **kwargs)
 
     @void_cache_for_request(keys=('__get_all_object_permissions',
@@ -838,7 +829,7 @@ class ObjectPermissionMixin:
         for implied_perm in implied_perms:
             self.assign_perm(
                 user_obj, implied_perm, deny=deny, defer_recalc=True)
-        # We might have been called by ourself to assign a related
+        # We might have been called by ourselves to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return new_permission
