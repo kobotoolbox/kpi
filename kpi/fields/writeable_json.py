@@ -14,6 +14,11 @@ class WritableJSONField(serializers.Field):
         super().__init__(**kwargs)
 
     def to_internal_value(self, data):
+        # If data is sent to serializer as `dict`, not `str`
+        # Return as is (e.g. `data` is equals `{}`)
+        if isinstance(data, dict):
+            return data
+
         if (not data) and (not self.required):
             return None
         else:
