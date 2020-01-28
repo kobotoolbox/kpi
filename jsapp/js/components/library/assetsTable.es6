@@ -1,8 +1,13 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
-import {t} from 'js/utils';
+import {
+  t,
+  hasVerticalScrollbar,
+  getScrollbarWidth
+} from 'js/utils';
 import AssetsTableRow from './assetsTableRow';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
@@ -29,9 +34,38 @@ export class AssetsTable extends React.Component {
     super(props);
     this.state = {
       shouldHidePopover: false,
-      isPopoverVisible: false
+      isPopoverVisible: false,
+      scrollbarWidth: null
     };
+    this.bodyRef = React.createRef();
     autoBind(this);
+  }
+
+  componentDidMount() {
+    this.updateScrollbarWidth();
+    window.addEventListener('resize', this.updateScrollbarWidth);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateScrollbarWidth);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.isLoading !== this.props.isLoading) {
+      this.updateScrollbarWidth();
+    }
+  }
+
+  updateScrollbarWidth() {
+    if (
+      this.bodyRef &&
+      this.bodyRef.current &&
+      hasVerticalScrollbar(ReactDOM.findDOMNode(this.bodyRef.current))
+    ) {
+      this.setState({scrollbarWidth: getScrollbarWidth()});
+    } else {
+      this.setState({scrollbarWidth: null});
+    }
   }
 
   /**
@@ -263,10 +297,17 @@ export class AssetsTable extends React.Component {
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('country'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'))}
+
+            {this.state.scrollbarWidth &&
+              <div
+                className='assets-table__scrollbar-padding'
+                style={{width: `${this.state.scrollbarWidth}px`}}
+              />
+            }
           </bem.AssetsTableRow>
         </bem.AssetsTable__header>
 
-        <bem.AssetsTable__body>
+        <bem.AssetsTable__body ref={this.bodyRef}>
           {this.props.isLoading &&
             renderLoading()
           }
