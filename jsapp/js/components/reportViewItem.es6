@@ -217,8 +217,16 @@ class ReportViewItem extends React.Component {
         var item = {};
         var choiceLabel = val[2] || val[0];
         item.label = _this.truncateLabel(choiceLabel, 20);
-        item.data = val[1].percentages;
-        allPercentages = [...new Set([...allPercentages ,...val[1].percentages])];
+        let itemPerc = [];
+        if (Array.isArray(val[1].percentage)) {
+          itemPerc = val[1].percentage;
+        }
+        if (Array.isArray(val[1].percentages)) {
+          itemPerc = val[1].percentages;
+        }
+
+        item.data = itemPerc;
+        allPercentages = [...new Set([...allPercentages, ...itemPerc])];
         item.backgroundColor = colors[i];
         datasets.push(item);
       });
