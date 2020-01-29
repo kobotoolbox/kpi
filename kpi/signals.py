@@ -130,3 +130,6 @@ def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
+    if instance.parent:
+        instance.parent.update_languages()
+
