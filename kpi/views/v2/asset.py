@@ -510,7 +510,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             metadata = None
-            if request.GET.get('metadata', 'on') == 'on':
+            if request.GET.get('metadata') == 'on':
                 metadata = self.get_metadata(queryset)
             return self.get_paginated_response(serializer.data, metadata)
 
