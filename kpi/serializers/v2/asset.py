@@ -86,9 +86,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
     )
 
-    languages = serializers.SerializerMethodField()
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    access_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -133,9 +133,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'settings',
                   'data',
                   'children',
-                  'languages',
                   'subscribers_count',
                   'status',
+                  'access_type',
                   )
         extra_kwargs = {
             'parent': {
@@ -322,14 +322,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             }
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
-    def get_languages(self, asset):
-
-        if asset.asset_type != ASSET_TYPE_COLLECTION:
-            return asset.summary.get('languages', [])
-
-        summaries = asset.children.values_list('summary', flat=True).all()
-        return self._get_languages(summaries)
-
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return 0
@@ -363,32 +355,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                    many=True, read_only=True,
                                                    context=context).data
 
+    def get_access_type(self, obj):
+        # Avoid extra queries if obj is not a collection
+        if obj.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        try:
+            request = self.context['request']
+        except KeyError:
+            return None
+        if request.user == obj.owner:
+            return 'owned'
+        # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
+        # cost a query. This ugly loop takes advantage of having already called
+        # `prefetch_related()`
+        for permission in obj.permissions.all():
+            if not permission.deny and permission.user == request.user:
+                return 'shared'
+        if obj.has_subscribed_user(request.user.pk):
+            return 'subscribed'
+        if obj.discoverable_when_public:
+            return 'public'
+        if request.user.is_superuser:
+            return 'superuser'
+        raise Exception(
+            f'{request.user.username} has unexpected access to {obj.uid}')
+
     def _content(self, obj):
         return json.dumps(obj.content)
-
-    def _get_languages(self, summaries):
-        """
-        Returns distinct languages found in `summaries`
-
-        Args:
-            summaries (list<str>): List of Asset.summary
-        Returns:
-            list
-        """
-        languages = set()
-        for summary in summaries:
-            try:
-                child_languages = json.loads(summary).get('languages', [])
-                child_languages = [language
-                                   for language in child_languages
-                                   if language is not None]
-            except ValueError:
-                continue
-
-            if child_languages:
-                languages = set(list(languages) + child_languages)
-
-        return list(languages)
 
     def _get_status(self, perm_assignments):
         """
@@ -432,6 +426,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
 
+    children = serializers.SerializerMethodField()
+
     class Meta(AssetSerializer.Meta):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
@@ -458,24 +454,25 @@ class AssetListSerializer(AssetSerializer):
                   'permissions',
                   'downloads',
                   'data',
-                  'languages',
                   'subscribers_count',
                   'status',
+                  'access_type',
+                  'children'
                   )
 
-    def get_languages(self, asset):
+    def get_children(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
-            return asset.summary.get('languages', [])
+            return {'count': 0}
 
         try:
-            summaries = self.context['summaries_per_asset'].get(asset.pk, [])
+            children_count = self.context['children_count_per_asset'].get(asset.pk, 0)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `summaries_per_asset` should be always
+            # in the list context, `children_count` should be always
             # a property of `self.context`
-            return super().get_languages(asset)
+            children_count = asset.children.count()
 
-        return self._get_languages(summaries)
+        return {'count': children_count}
 
     def get_permissions(self, asset):
         try:

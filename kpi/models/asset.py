@@ -1,12 +1,14 @@
 # coding: utf-8
 # 😬
 import copy
+import json
 import sys
 from collections import OrderedDict
 from io import BytesIO
 
 import six
 import xlwt
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -81,16 +83,25 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
-        created = super().create(*args, **kwargs)
+        # created = super().create(*args, **kwargs)
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
+        created = self.model(**kwargs)
+        self._for_write = True
+        created.save(force_insert=True, using=self.db,
+                     update_parent_languages=update_parent_languages)
+
         if tag_string:
-            created.tag_string= tag_string
+            created.tag_string = tag_string
         if children_to_create:
             new_assets = []
             for asset in children_to_create:
                 asset['parent'] = created
-                new_assets.append(Asset.objects.create(**asset))
+                new_assets.append(Asset.objects.create(
+                    update_parent_languages=False, **asset))
             # bulk_create comes with a number of caveats
             # Asset.objects.bulk_create(new_assets)
+            created.update_languages(new_assets)
         return created
 
     def filter_by_tag_name(self, tag_name):
@@ -610,6 +621,10 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__previous_parent_id = self.parent_id
+
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
@@ -655,6 +670,19 @@ class Asset(ObjectPermissionMixin,
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
+
+    @property
+    def discoverable_when_public(self):
+        # This property is only needed when `self` is a collection.
+        # We want to make a distinction between a collection which is not
+        # discoverable and an asset which is not a collection
+        # (which implies cannot be discoverable)
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        # ToDo: See if using a loop can reduce the number of SQL queries.
+        return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
+                                       user_id=settings.ANONYMOUS_USER_ID).exists()
 
     def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
@@ -748,6 +776,17 @@ class Asset(ObjectPermissionMixin,
         """
         return self.hooks.filter(active=True).exists()
 
+    def has_subscribed_user(self, user_id):
+        # This property is only needed when `self` is a collection.
+        # We want to make a distinction between a collection which does not have
+        # the subscribed user and an asset which is not a collection
+        # (which implies cannot have subscriptions)
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        # ToDo: See if using a loop can reduce the number of SQL queries.
+        return self.userassetsubscription_set.filter(user_id=user_id).exists()
+
     @property
     def latest_deployed_version(self):
         return self.deployed_versions.first()
@@ -824,13 +863,16 @@ class Asset(ObjectPermissionMixin,
         if self.content is None:
             self.content = {}
 
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
         if kwargs.pop('adjust_content', True):
             self.adjust_content_on_save()
 
         # populate summary
-        self._populate_summary()
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -848,6 +890,19 @@ class Asset(ObjectPermissionMixin,
 
         _create_version = kwargs.pop('create_version', True)
         super().save(*args, **kwargs)
+
+        if self.parent is not None and update_parent_languages:
+            if self.parent_id != self.__previous_parent_id and \
+               self.__previous_parent_id is not None:
+                try:
+                    previous_parent = Asset.objects.get(
+                        pk=self.__previous_parent_id)
+                    previous_parent.update_languages()
+                    self.__previous_parent_id = self.parent_id
+                except Asset.DoesNotExist:
+                    pass
+
+            self.parent.update_languages([self])
 
         if _create_version:
             self.asset_versions.create(name=self.name,
@@ -902,9 +957,58 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_languages(self, children=None):
+        """
+        Updates object's languages by aggregating all its children's languages
+
+        Args:
+            children (list<Asset>): Optional. When specified, `children`'s languages
+            are merged with `self`'s languages. Otherwise, when it's `None`,
+            DB is fetched to build the list according to `self.children`
+
+        """
+        # If object is not a collection, it should not have any children.
+        # No need to go further.
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return
+
+        obj_languages = self.summary.get('languages', [])
+        languages = set()
+
+        if children:
+            summaries = [child.summary for child in children]
+            languages = set(obj_languages)
+        else:
+            # ToDo validate whether all children should be included
+            # (e.g. archives?)
+            summaries = self.children.values_list('summary', flat=True)
+
+        for summary in summaries:
+            if isinstance(summary, str):
+                try:
+                    summary = json.loads(summary)
+                except ValueError:
+                    continue
+            child_languages = [language
+                               for language in summary.get('languages', [])
+                               if language is not None]
+
+            if child_languages:
+                languages = set(list(languages) + child_languages)
+
+        languages = list(languages)
+        # If languages are still the same, no needs to update the object
+        if obj_languages == languages:
+            return
+
+        self.summary['languages'] = languages
+        self.save(update_fields=['summary'],
+                  adjust_content=False,
+                  create_version=False)
+
     @property
     def version__content_hash(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
+        # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
@@ -912,7 +1016,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
+        # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:

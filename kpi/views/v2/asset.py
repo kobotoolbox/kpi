@@ -358,14 +358,19 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
-            # 4) Get the languages per asset
+            # 4) Get children count per asset
+            # ToDo Verify if all children must be included in count (e.g. Archives)
             records = Asset.objects.filter(parent_id__in=asset_ids). \
-                values('parent_id', 'summary').order_by('parent_id')
-            summaries_per_asset = defaultdict(list)
-            for record in records:
-                summaries_per_asset[record['parent_id']].append(record['summary'])
+                values('parent_id').annotate(children_count=Count('id'))
+            # Ordering must be cleared otherwise group_by is wrong
+            # (i.e. default ordered field `date_modified` must be removed)
+            records.query.clear_ordering(True)
 
-            context_['summaries_per_asset'] = summaries_per_asset
+            children_count_per_asset = {
+                r.get('parent_id'): r.get('children_count', 0)
+                for r in records if r.get('parent_id') is not None
+            }
+            context_['children_count_per_asset'] = children_count_per_asset
 
         return context_
 
