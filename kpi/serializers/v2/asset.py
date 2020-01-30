@@ -86,7 +86,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
     )
 
-    languages = serializers.SerializerMethodField()
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_type = serializers.SerializerMethodField()
@@ -134,7 +133,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'settings',
                   'data',
                   'children',
-                  'languages',
                   'subscribers_count',
                   'status',
                   'access_type',
@@ -324,14 +322,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             }
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
-    def get_languages(self, asset):
-
-        if asset.asset_type != ASSET_TYPE_COLLECTION:
-            return asset.summary.get('languages', [])
-
-        summaries = asset.children.values_list('summary', flat=True).all()
-        return self._get_languages(summaries)
-
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return 0
@@ -393,30 +383,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _content(self, obj):
         return json.dumps(obj.content)
-
-    def _get_languages(self, summaries):
-        """
-        Returns distinct languages found in `summaries`
-
-        Args:
-            summaries (list<str>): List of Asset.summary
-        Returns:
-            list
-        """
-        languages = set()
-        for summary in summaries:
-            try:
-                child_languages = json.loads(summary).get('languages', [])
-                child_languages = [language
-                                   for language in child_languages
-                                   if language is not None]
-            except ValueError:
-                continue
-
-            if child_languages:
-                languages = set(list(languages) + child_languages)
-
-        return list(languages)
 
     def _get_status(self, perm_assignments):
         """
@@ -488,7 +454,6 @@ class AssetListSerializer(AssetSerializer):
                   'permissions',
                   'downloads',
                   'data',
-                  'languages',
                   'subscribers_count',
                   'status',
                   'access_type',
@@ -508,20 +473,6 @@ class AssetListSerializer(AssetSerializer):
             children_count = asset.children.count()
 
         return {'count': children_count}
-
-    def get_languages(self, asset):
-        if asset.asset_type != ASSET_TYPE_COLLECTION:
-            return asset.summary.get('languages', [])
-
-        try:
-            summaries = self.context['summaries_per_asset'].get(asset.pk, [])
-        except KeyError:
-            # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `summaries_per_asset` should be always
-            # a property of `self.context`
-            return super().get_languages(asset)
-
-        return self._get_languages(summaries)
 
     def get_permissions(self, asset):
         try:
