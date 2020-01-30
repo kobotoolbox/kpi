@@ -380,6 +380,10 @@ export var dataInterface;
         searchData.ordering = params.ordering;
       }
 
+      if (params.metadata === true) {
+        searchData.metadata = 'on';
+      }
+
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',

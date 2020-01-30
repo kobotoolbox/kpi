@@ -564,3 +564,11 @@ export function getScrollbarWidth() {
 
   return scrollbarWidth;
 }
+
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function toTitleCase(str) {
+  return str.replace(/(^|\s)\S/g, (t) => {return t.toUpperCase();});
+}

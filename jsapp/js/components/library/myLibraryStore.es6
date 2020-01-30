@@ -36,8 +36,8 @@ const myLibraryStore = Reflux.createStore({
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
-    actions.library.subscribeToCollection.completed.listen(this.fetchData);
-    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData);
+    actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
+    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted);
     actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted);
     actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed);
@@ -47,7 +47,7 @@ const myLibraryStore = Reflux.createStore({
     actions.resources.createResource.completed.listen(this.onAssetCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
-    this.fetchData();
+    this.fetchData(true);
   },
 
   setDefaultColumns() {
@@ -59,7 +59,14 @@ const myLibraryStore = Reflux.createStore({
 
   // methods for handling search and data fetch
 
-  fetchData() {
+  fetchMetadata() {
+    // TODO call metadata fatch when endpoint is ready
+  },
+
+  /**
+   * @param {boolean} needsMetadata
+   */
+  fetchData(needsMetadata = false) {
     if (this.abortFetchData) {
       this.abortFetchData();
     }
@@ -68,6 +75,7 @@ const myLibraryStore = Reflux.createStore({
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
+      metadata: needsMetadata
     };
 
     const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
@@ -91,7 +99,7 @@ const myLibraryStore = Reflux.createStore({
       data.pathname.split('/')[1] === 'library'
     ) {
       this.setDefaultColumns();
-      this.fetchData();
+      this.fetchData(true);
     }
     this.previousPath = data.pathname;
   },
@@ -101,7 +109,7 @@ const myLibraryStore = Reflux.createStore({
     this.data.currentPage = 0;
     this.data.totalPages = null;
     this.data.totalSearchAssets = null;
-    this.fetchData();
+    this.fetchData(true);
   },
 
   onSearchStarted(abort) {
@@ -116,7 +124,10 @@ const myLibraryStore = Reflux.createStore({
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
 
     this.data.assets = response.results;
-    this.data.metadata = response.metadata;
+    if (response.metadata) {
+      // if we didn't fetch metadata, we assume it didn't change so leave current one
+      this.data.metadata = response.metadata;
+    }
     this.data.totalSearchAssets = response.count;
 
     // update total count for the first time and the ones that will get a full count
@@ -146,7 +157,7 @@ const myLibraryStore = Reflux.createStore({
       } else {
         this.data.totalUserAssets--;
       }
-      this.fetchData();
+      this.fetchData(true);
     }
   },
 
@@ -165,6 +176,7 @@ const myLibraryStore = Reflux.createStore({
       }
       if (wasUpdated) {
         this.trigger(this.data);
+        this.fetchMetadata();
       }
     }
   },
@@ -175,7 +187,7 @@ const myLibraryStore = Reflux.createStore({
       asset.parent === null
     ) {
       this.data.totalUserAssets++;
-      this.fetchData();
+      this.fetchData(true);
     }
   },
 
@@ -184,7 +196,7 @@ const myLibraryStore = Reflux.createStore({
       const found = this.data.assets.find((asset) => {return asset.uid === uid;});
       if (found) {
         this.data.totalUserAssets--;
-        this.fetchData();
+        this.fetchData(true);
       }
       // if not found it is possible it is on other page of results, but it is
       // not important enough to do a data fetch
@@ -224,13 +236,13 @@ const myLibraryStore = Reflux.createStore({
     ) {
       this.data.filterColumnId = filterColumnId;
       this.data.filterValue = filterValue;
-      this.fetchData();
+      this.fetchData(true);
     }
   },
 
   resetOrderAndFilter() {
     this.setDefaultColumns();
-    this.fetchData();
+    this.fetchData(true);
   },
 
   hasAllDefaultValues() {
