@@ -81,13 +81,14 @@ def _load_library_content(structure):
                         content=scontent,
                         asset_type='question',
                         owner=structure['owner'],
-                        parent=collection
+                        parent=collection,
+                        update_parent_languages=False,
                     )
                     created_asset_pks.append(sa.pk)
                     for tag_name in row_tags:
                         ti = TaggedItem.objects.create(
-                            tag_id = tag_name_to_pk[tag_name],
-                            content_object = sa
+                            tag_id=tag_name_to_pk[tag_name],
+                            content_object=sa
                         )
             else:
                 block_rows = []
@@ -103,21 +104,26 @@ def _load_library_content(structure):
                     asset_type='block',
                     name=block_name,
                     parent=collection,
-                    owner=structure['owner']
+                    owner=structure['owner'],
+                    update_parent_languages=False,
                 )
                 created_asset_pks.append(sa.pk)
                 for tag_name in block_tags:
                     ti = TaggedItem.objects.create(
-                        tag_id = tag_name_to_pk[tag_name],
-                        content_object = sa
+                        tag_id=tag_name_to_pk[tag_name],
+                        content_object=sa
                     )
 
     # Update the search index
     for tag_pk in tag_name_to_pk.values():
         update_object_in_search_index(Tag.objects.get(pk=tag_pk))
+    children = []
     for asset_pk in created_asset_pks:
         asset = Asset.objects.get(pk=asset_pk)
         update_object_in_search_index(asset)
+        children.append(asset)
+
+    collection.update_languages(children)
 
     return collection
 
