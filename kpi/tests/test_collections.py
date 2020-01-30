@@ -68,10 +68,10 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(self.coll.children.count(), 2)
 
     def test_assets_are_deleted_with_collection(self):
-        '''
+        """
         right now, this does make it easy to delete assets within a
         collection.
-        '''
+        """
         asset = self.coll.children.create(name='test', content={'survey': [
             {'type': 'text', 'label': 'Q1', 'name': 'q1'},
             {'type': 'text', 'label': 'Q2', 'name': 'q2'},
