@@ -32,13 +32,16 @@ class AssetPagination(Paginated):
 
     def get_paginated_response(self, data, metadata):
 
-        return Response(OrderedDict([
+        response = OrderedDict([
             ('count', self.count),
             ('next', self.get_next_link()),
             ('previous', self.get_previous_link()),
-            ('metadata', metadata),
             ('results', data)
-        ]))
+        ])
+        if metadata is not None:
+            response['metadata'] = metadata
+
+        return Response(response)
 
     def get_paginated_response_schema(self, schema):
         return {
