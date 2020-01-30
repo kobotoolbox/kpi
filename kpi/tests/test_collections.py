@@ -1,5 +1,4 @@
 # coding: utf-8
-from django.db import IntegrityError
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -10,6 +9,7 @@ from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
+    ASSET_TYPE_QUESTION,
     PERM_CHANGE_ASSET,
     PERM_DISCOVER_ASSET,
     PERM_SHARE_ASSET,
@@ -26,7 +26,7 @@ class CreateCollectionTests(TestCase):
             asset_type=ASSET_TYPE_COLLECTION, owner=self.user
         )
         self.asset = Asset.objects.get(name='fixture asset')
-        self.initial_asset_count= Asset.objects.exclude(
+        self.initial_asset_count = Asset.objects.exclude(
             asset_type=ASSET_TYPE_COLLECTION
         ).count()
         self.initial_collection_count= Asset.objects.filter(
@@ -570,8 +570,10 @@ class ShareCollectionTests(TestCase):
             PERM_CHANGE_ASSET, self.standalone_coll))
 
     def test_anonymous_as_baseline_for_authenticated(self):
-        ''' If the public can view an object, then all users should be able
-        to do the same. '''
+        """
+        If the public can view an object, then all users should be able
+        to do the same.
+        """
         # No one should have any permission yet
         for user_obj in AnonymousUser(), self.someuser:
             self.assertFalse(user_obj.has_perm(
@@ -605,3 +607,87 @@ class DiscoverablePublicCollectionTests(TestCase):
             PERM_VIEW_ASSET, self.coll))
         self.assertFalse(AnonymousUser().has_perm(
             PERM_DISCOVER_ASSET, self.coll))
+
+
+class LanguagesCollectionTests(TestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.user = User.objects.get(username='someuser')
+        self.one_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.user,
+            name='One collection'
+        )
+
+        self.other_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.user,
+            name='Another collection'
+        )
+
+    def add_child(self, update_parent_languages=True):
+        question_content = {
+            'survey': [
+                {
+                    'type': 'text',
+                    'label': ['Une question', 'Una pregunta']
+                }
+            ],
+            'translations': ['Français (fr)', 'Español (es)'],
+            'translated': ['label'],
+            'schema': '1',
+            'settings': {}
+        }
+        child = Asset.objects.create(
+            asset_type=ASSET_TYPE_QUESTION,
+            owner=self.user,
+            parent=self.one_collection,
+            content=question_content,
+            update_parent_languages=update_parent_languages
+        )
+        return child
+
+    def test_add_child(self):
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        child = self.add_child()
+        self.assertEqual(self.one_collection.summary.get('languages').sort(),
+                         child.summary.get('languages').sort())
+        return child
+
+    def test_move_child_to_another_collection(self):
+        child = self.add_child()
+        self.assertEqual(self.other_collection.summary.get('languages', []), [])
+        self.assertEqual(self.one_collection.summary.get('languages').sort(),
+                         child.summary.get('languages').sort())
+
+        child.parent = self.other_collection
+        child.save()
+
+        self.one_collection.refresh_from_db()
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        self.assertEqual(self.other_collection.summary.get('languages').sort(),
+                         child.summary.get('languages').sort())
+
+    def test_delete_children(self):
+        first_child = self.add_child()
+        second_child = self.add_child()
+        first_child.delete()
+        self.assertEqual(self.one_collection.summary.get('languages').sort(),
+                         second_child.summary.get('languages').sort())
+
+        second_child.delete()
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+
+    def test_bulk_insert_children(self):
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        first_child = self.add_child(update_parent_languages=False)
+        second_child = self.add_child(update_parent_languages=False)
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        self.one_collection.update_languages([first_child, second_child])
+
+        children_languages = list(set(first_child.summary.get('languages')
+                                      + second_child.summary.get('languages')))
+        self.assertEqual(self.one_collection.summary.get('languages').sort(),
+                         children_languages.sort())
+
