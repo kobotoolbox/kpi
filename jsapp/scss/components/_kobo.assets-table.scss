@@ -5,6 +5,20 @@
 .assets-table {
   width: 100%;
   background-color: $white;
+  // for small screens we want the table to still be readable and it can't get to narrow
+  overflow-x: auto;
+}
+
+.assets-table__header,
+.assets-table__body,
+.assets-table__footer {
+  min-width: 800px;
+}
+
+.assets-table__scrollbar-padding {
+  // for taking the same space as scrollbar, width is being set in JS code
+  border-bottom: 2px solid $divider-color;
+  align-self: stretch;
 }
 
 .assets-table__footer {
