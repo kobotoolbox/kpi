@@ -116,13 +116,14 @@ export class AssetsTable extends React.Component {
 
   /**
    * @param {AssetsTableColumn} columnDef - Given column definition.
+   * @param {string} [option] - Currently either 'first' or 'last'.
    */
-  renderHeader(columnDef) {
+  renderHeader(columnDef, option) {
     if (columnDef.orderBy) {
-      return this.renderOrderableHeader(columnDef);
+      return this.renderOrderableHeader(columnDef, option);
     }
     if (columnDef.filterBy) {
-      return this.renderFilterableHeader(columnDef);
+      return this.renderFilterableHeader(columnDef, option);
     }
   }
 
@@ -195,7 +196,7 @@ export class AssetsTable extends React.Component {
     );
   }
 
-  renderOrderableHeader(columnDef) {
+  renderOrderableHeader(columnDef, option) {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
@@ -208,14 +209,18 @@ export class AssetsTable extends React.Component {
     }
 
     const attrs = {};
+    const classNames = [];
     if (columnDef.tooltip) {
       attrs['data-tip'] = columnDef.tooltip;
+      if (option === 'first') {classNames.push('left-tooltip');}
+      if (option === 'last') {classNames.push('right-tooltip');}
     }
 
     return (
       <bem.AssetsTableRow__column
         m={columnDef.id}
         onClick={this.onChangeOrder.bind(this, columnDef.id)}
+        classNames={classNames}
         {...attrs}
       >
         <bem.AssetsTableRow__headerLabel>
@@ -286,7 +291,7 @@ export class AssetsTable extends React.Component {
       <bem.AssetsTable m={this.props.context}>
         <bem.AssetsTable__header>
           <bem.AssetsTableRow m='header'>
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'), 'first')}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('name'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('owner'))}
             {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
@@ -296,7 +301,7 @@ export class AssetsTable extends React.Component {
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('languages'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('country'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'), 'last')}
 
             {this.state.scrollbarWidth &&
               <div
