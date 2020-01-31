@@ -57,8 +57,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
 
-    <span class='label label-danger'>TODO</span> Complete documentation
-
     ## List of asset endpoints
 
     Lists the asset endpoints accessible to requesting user, for anonymous access
@@ -72,8 +70,28 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/assets/
 
-    Search can be made with `q` parameter. Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
-    for more details
+    Search can be made with `q` parameter.
+    Search filters can be returned with results by passing `metadata=on` to querystring.
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?metadata=on
+    >       {
+    >           "count": 0
+    >           "next": ...
+    >           "previous": ...
+    >           "results": []
+    >           "metadata": {
+    >               "languages": [],
+    >               "countries": [],
+    >               "sectors": [],
+    >               "organizations": []
+    >           }
+    >       }
+
+    Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
+    for more details.
+
+    <hr>
 
     Get an hash of all `version_id`s of assets.
     Useful to detect any changes in assets with only one call to `API`
@@ -393,21 +411,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         for other in others.all():
             try:
-                if other['country']['value'] not in metadata['countries']:
+                value = other['country']['value']
+                if value and value not in metadata['countries']:
                     metadata['countries'][other['country']['value']] = \
                         other['country']['label']
             except (KeyError, TypeError):
                 pass
 
             try:
-                if other['sector']['value'] not in metadata['sectors']:
+                value = other['sector']['value']
+                if value and value not in metadata['sectors']:
                     metadata['sectors'][other['sector']['value']] = \
                         other['sector']['label']
             except (KeyError, TypeError):
                 pass
 
             try:
-                metadata['organizations'].add(other['organization'])
+                if other['organization']:
+                    metadata['organizations'].add(other['organization'])
             except KeyError:
                 pass
 
