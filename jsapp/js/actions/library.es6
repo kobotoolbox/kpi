@@ -18,9 +18,23 @@ const libraryActions = Reflux.createActions({
     ]
   },
 
+  searchMyLibraryMetadata: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+
   searchPublicCollections: {
     children: [
       'started',
+      'completed',
+      'failed'
+    ]
+  },
+
+  searchPublicCollectionsMetadata: {
+    children: [
       'completed',
       'failed'
     ]
@@ -55,7 +69,11 @@ const libraryActions = Reflux.createActions({
   },
 });
 
-// 'started' callback returns abort method immediately
+/**
+ * Gets library assets and metadata (with a flag)
+ * Note: `started` callback returns abort method immediately
+ * @param {object} params
+ */
 libraryActions.searchMyLibraryAssets.listen((params) => {
   const xhr = dataInterface.searchMyLibraryAssets(params)
     .done(libraryActions.searchMyLibraryAssets.completed)
@@ -63,12 +81,36 @@ libraryActions.searchMyLibraryAssets.listen((params) => {
   libraryActions.searchMyLibraryAssets.started(xhr.abort);
 });
 
-// 'started' callback returns abort method immediately
+/**
+ * Gets metadata for library assets
+ * @param {object} params
+ */
+libraryActions.searchMyLibraryMetadata.listen((params) => {
+  dataInterface.searchMyLibraryMetadata(params)
+    .done(libraryActions.searchMyLibraryMetadata.completed)
+    .fail(libraryActions.searchMyLibraryMetadata.failed);
+});
+
+/**
+ * Gets public collections and metadata (with a flag)
+ * Note: `started` callback returns abort method immediately
+ * @param {object} params
+ */
 libraryActions.searchPublicCollections.listen((params) => {
   const xhr = dataInterface.searchPublicCollections(params)
     .done(libraryActions.searchPublicCollections.completed)
     .fail(libraryActions.searchPublicCollections.failed);
   libraryActions.searchPublicCollections.started(xhr.abort);
+});
+
+/**
+ * Gets metadata for public collections
+ * @param {object} params
+ */
+libraryActions.searchPublicCollectionsMetadata.listen((params) => {
+  dataInterface.searchPublicCollectionsMetadata(params)
+    .done(libraryActions.searchPublicCollectionsMetadata.completed)
+    .fail(libraryActions.searchPublicCollectionsMetadata.failed);
 });
 
 /**
@@ -100,11 +142,20 @@ libraryActions.moveToCollection.listen((assetUid, collectionUrl) => {
     .fail(libraryActions.moveToCollection.failed);
 });
 
+/**
+ * Gets a list of collections.
+ * @param {object} params
+ * @param {string} [params.owner]
+ * @param {number} [params.pageSize]
+ * @param {number} [params.page]
+ */
 libraryActions.getCollections.listen((params) => {
   dataInterface.getCollections(params)
     .done(libraryActions.getCollections.completed)
     .fail(libraryActions.getCollections.failed);
 });
+
+// global notifications for actions
 
 libraryActions.moveToCollection.completed.listen((asset) => {
   if (asset.parent === null) {
@@ -116,5 +167,16 @@ libraryActions.moveToCollection.completed.listen((asset) => {
 libraryActions.moveToCollection.failed.listen(() => {
   notify(t('Move to collection failed'), 'error');
 });
+
+const onAnySearchFailed = (response) => {
+  if (response.statusText !== 'abort') {
+    notify(t('Failed to get the results'), 'error');
+  }
+};
+
+libraryActions.searchMyLibraryAssets.failed.listen(onAnySearchFailed);
+libraryActions.searchMyLibraryMetadata.failed.listen(onAnySearchFailed);
+libraryActions.searchPublicCollections.failed.listen(onAnySearchFailed);
+libraryActions.searchPublicCollectionsMetadata.failed.listen(onAnySearchFailed);
 
 export default libraryActions;

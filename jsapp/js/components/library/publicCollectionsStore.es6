@@ -38,8 +38,9 @@ const publicCollectionsStore = Reflux.createStore({
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
     actions.library.searchPublicCollections.failed.listen(this.onSearchFailed);
-    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted.bind(this, true));
-    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted.bind(this, true));
+    actions.library.searchPublicCollectionsMetadata.completed.listen(this.onSearchMetadataCompleted);
+    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted);
+    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
     actions.resources.loadAsset.completed.listen(this.onAssetChanged);
     actions.resources.updateAsset.completed.listen(this.onAssetChanged);
@@ -59,8 +60,27 @@ const publicCollectionsStore = Reflux.createStore({
 
   // methods for handling search and data fetch
 
+  /**
+   * @return {object} search params shared by all searches
+   */
+  getSearchParams() {
+    const params = {
+      searchPhrase: searchBoxStore.getSearchPhrase(),
+      pageSize: this.PAGE_SIZE,
+      page: this.data.currentPage
+    };
+
+    if (this.data.filterColumnId !== null) {
+      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      params.filterProperty = filterColumn.filterBy;
+      params.filterValue = this.data.filterValue;
+    }
+
+    return params;
+  },
+
   fetchMetadata() {
-    // TODO call metadata fatch when endpoint is ready
+    actions.library.searchPublicCollectionsMetadata(this.getSearchParams());
   },
 
   /**
@@ -71,22 +91,13 @@ const publicCollectionsStore = Reflux.createStore({
       this.abortFetchData();
     }
 
-    const params = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
-      pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage,
-      metadata: needsMetadata
-    };
+    const params = this.getSearchParams();
+
+    params.metadata = needsMetadata;
 
     const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
     const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
-
-    if (this.data.filterColumnId !== null) {
-      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
-      params.filterProperty = filterColumn.filterBy;
-      params.filterValue = this.data.filterValue;
-    }
 
     actions.library.searchPublicCollections(params);
   },
@@ -120,11 +131,12 @@ const publicCollectionsStore = Reflux.createStore({
 
   onSearchCompleted(response) {
     delete this.abortFetchData;
-
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
-
     this.data.assets = response.results;
-    this.data.metadata = response.metadata;
+    // if we didn't fetch metadata, we assume it didn't change so leave current one
+    if (response.metadata) {
+      this.data.metadata = response.metadata;
+    }
     this.data.totalSearchAssets = response.count;
     this.data.isFetchingData = false;
     this.trigger(this.data);
@@ -133,6 +145,11 @@ const publicCollectionsStore = Reflux.createStore({
   onSearchFailed() {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
+    this.trigger(this.data);
+  },
+
+  onSearchMetadataCompleted(response) {
+    this.data.metadata = response;
     this.trigger(this.data);
   },
 
