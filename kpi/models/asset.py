@@ -860,6 +860,9 @@ class Asset(ObjectPermissionMixin,
         self.save()
 
     def save(self, *args, **kwargs):
+
+        is_new = self.pk is None
+
         if self.content is None:
             self.content = {}
 
@@ -902,7 +905,14 @@ class Asset(ObjectPermissionMixin,
                 except Asset.DoesNotExist:
                     pass
 
-            self.parent.update_languages([self])
+            # If object is new, we can add its languages to its parent without
+            # worrying about removing its old values. It avoids an extra query.
+            if is_new:
+                self.parent.update_languages([self])
+            else:
+                # Otherwise, because we cannot know which languages are from
+                # this object, update will be perform with all parent's children.
+                self.parent.update_languages()
 
         if _create_version:
             self.asset_versions.create(name=self.name,
