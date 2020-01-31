@@ -996,7 +996,7 @@ class Asset(ObjectPermissionMixin,
             if child_languages:
                 languages = set(list(languages) + child_languages)
 
-        languages = list(languages)
+        languages = AssetContentAnalyzer.format_translations(list(languages))
         # If languages are still the same, no needs to update the object
         if obj_languages == languages:
             return

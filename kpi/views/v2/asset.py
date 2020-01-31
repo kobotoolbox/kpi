@@ -392,21 +392,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         for other in others.all():
             try:
-                if other['country']['value'] not in metadata['countries']:
+                value = other['country']['value']
+                if value and value not in metadata['countries']:
                     metadata['countries'][other['country']['value']] = \
                         other['country']['label']
             except (KeyError, TypeError):
                 pass
 
             try:
-                if other['sector']['value'] not in metadata['sectors']:
+                value = other['sector']['value']
+                if value and value not in metadata['sectors']:
                     metadata['sectors'][other['sector']['value']] = \
                         other['sector']['label']
             except (KeyError, TypeError):
                 pass
 
             try:
-                metadata['organizations'].add(other['organization'])
+                if other['organization']:
+                    metadata['organizations'].add(other['organization'])
             except KeyError:
                 pass
 

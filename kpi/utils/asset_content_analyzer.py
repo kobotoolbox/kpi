@@ -9,7 +9,8 @@ class AssetContentAnalyzer:
         self.survey = kwargs.get('survey')
         self.settings = kwargs.get('settings', False)
         self.choices = kwargs.get('choices', [])
-        self.translations = kwargs.get('translations', [])
+        self.translations = self.format_translations(
+            kwargs.get('translations', []))
         self.default_translation = False
         if len(self.translations) > 0:
             self.default_translation = self.translations[0]
@@ -61,3 +62,16 @@ class AssetContentAnalyzer:
         if len(naming_conflicts) > 0:
             summary['naming_conflicts'] = naming_conflicts
         return summary
+
+    @staticmethod
+    def format_translations(translations):
+        if not translations:
+            return translations
+
+        formatted_translations = []
+        for translation in translations:
+            print('TRANSALTION', translation, flush=True)
+            if translation is not None:
+                formatted_translations.append(translation.capitalize())
+
+        return formatted_translations
