@@ -35,7 +35,8 @@ export class AssetsTable extends React.Component {
     this.state = {
       shouldHidePopover: false,
       isPopoverVisible: false,
-      scrollbarWidth: null
+      scrollbarWidth: null,
+      isFullscreen: false
     };
     this.bodyRef = React.createRef();
     autoBind(this);
@@ -54,6 +55,10 @@ export class AssetsTable extends React.Component {
     if (prevProps.isLoading !== this.props.isLoading) {
       this.updateScrollbarWidth();
     }
+  }
+
+  toggleFullscreen() {
+    this.setState({isFullscreen: !this.state.isFullscreen});
   }
 
   updateScrollbarWidth() {
@@ -162,6 +167,7 @@ export class AssetsTable extends React.Component {
     return (
       <bem.AssetsTableRow__column m={columnDef.id}>
         <ui.PopoverMenu
+          type='assets-table'
           triggerLabel={<span>{columnDef.label} {icon}</span>}
           clearPopover={this.state.shouldHidePopover}
           popoverSetVisible={this.onPopoverSetVisible}
@@ -196,7 +202,17 @@ export class AssetsTable extends React.Component {
     );
   }
 
-  renderOrderableHeader(columnDef, option) {
+  renderOrderableHeader(columnDef) {
+    let hideIcon = false;
+    let hideLabel = false;
+
+    // for `icon-status` we don't display empty icon, because the column is
+    // too narrow to display label and icon together
+    if (columnDef.id === ASSETS_TABLE_COLUMNS.get('icon-status').id) {
+      hideIcon = this.props.orderColumnId !== columnDef.id;
+      hideLabel = this.props.orderColumnId === columnDef.id;
+    }
+
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
@@ -208,25 +224,18 @@ export class AssetsTable extends React.Component {
       }
     }
 
-    const attrs = {};
     const classNames = [];
-    if (columnDef.tooltip) {
-      attrs['data-tip'] = columnDef.tooltip;
-      if (option === 'first') {classNames.push('left-tooltip');}
-      if (option === 'last') {classNames.push('right-tooltip');}
-    }
 
     return (
       <bem.AssetsTableRow__column
         m={columnDef.id}
         onClick={this.onChangeOrder.bind(this, columnDef.id)}
         classNames={classNames}
-        {...attrs}
       >
-        <bem.AssetsTableRow__headerLabel>
-          {columnDef.label}
-        </bem.AssetsTableRow__headerLabel>
-        {icon}
+        {!hideLabel &&
+          <bem.AssetsTableRow__headerLabel>{columnDef.label}</bem.AssetsTableRow__headerLabel>
+        }
+        {!hideIcon && icon}
       </bem.AssetsTableRow__column>
     );
   }
@@ -250,7 +259,7 @@ export class AssetsTable extends React.Component {
             onClick={this.switchPage.bind(this, this.props.currentPage - 1)}
           >
             <i className='k-icon k-icon-prev'/>
-            {t('Previous page')}
+            {t('Previous')}
           </bem.AssetsTablePagination__button>
 
           <bem.AssetsTablePagination__index>
@@ -262,7 +271,7 @@ export class AssetsTable extends React.Component {
             disabled={naturalCurrentPage >= this.props.totalPages}
             onClick={this.switchPage.bind(this, this.props.currentPage + 1)}
           >
-            {t('Next page')}
+            {t('Next')}
             <i className='k-icon k-icon-next'/>
           </bem.AssetsTablePagination__button>
         </bem.AssetsTablePagination>
@@ -277,18 +286,33 @@ export class AssetsTable extends React.Component {
       <bem.AssetsTable__footer>
         {this.props.totalAssets !== null &&
           <span>
-            {t('##count## items available').replace('##count##', this.props.totalAssets)}
+            {t('##count## items').replace('##count##', this.props.totalAssets)}
           </span>
         }
 
         {this.renderPagination()}
+
+        {this.props.totalAssets !== null &&
+          <button
+            className='mdl-button'
+            onClick={this.toggleFullscreen}
+          >
+            {t('Toggle fullscreen')}
+            <i className='k-icon k-icon-expand' />
+          </button>
+        }
       </bem.AssetsTable__footer>
     );
   }
 
   render() {
+    const modifiers = [this.props.context];
+    if (this.state.isFullscreen) {
+      modifiers.push('fullscreen');
+    }
+
     return (
-      <bem.AssetsTable m={this.props.context}>
+      <bem.AssetsTable m={modifiers}>
         <bem.AssetsTable__header>
           <bem.AssetsTableRow m='header'>
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'), 'first')}
@@ -366,8 +390,7 @@ new Set([
 export const ASSETS_TABLE_COLUMNS = new Map([
   [
     'icon-status', {
-      label: null,
-      tooltip: t('Asset type'),
+      label: t('Type'),
       id: 'icon-status',
       orderBy: 'asset_type',
       defaultValue: ORDER_DIRECTIONS.get('ascending')

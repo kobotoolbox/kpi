@@ -359,6 +359,13 @@ $mdl-layout-width: 1440px;
   width: 100%;
 }
 
+.popover-menu--assets-table {
+  .popover-menu__content {
+    max-height: 26px * 7.5;
+    overflow: auto;
+  }
+}
+
 .popover-menu--bulkUpdate-menu {
   vertical-align: top;
 
