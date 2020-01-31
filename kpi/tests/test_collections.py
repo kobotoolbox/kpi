@@ -626,8 +626,8 @@ class LanguagesCollectionTests(TestCase):
             name='Another collection'
         )
 
-    def add_child(self, update_parent_languages=True):
-        question_content = {
+    def add_child(self, update_parent_languages=True, content=None):
+        question_content = content or {
             'survey': [
                 {
                     'type': 'text',
@@ -651,30 +651,41 @@ class LanguagesCollectionTests(TestCase):
     def test_add_child(self):
         self.assertEqual(self.one_collection.summary.get('languages', []), [])
         child = self.add_child()
-        self.assertEqual(self.one_collection.summary.get('languages').sort(),
-                         child.summary.get('languages').sort())
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
         return child
 
     def test_move_child_to_another_collection(self):
         child = self.add_child()
         self.assertEqual(self.other_collection.summary.get('languages', []), [])
-        self.assertEqual(self.one_collection.summary.get('languages').sort(),
-                         child.summary.get('languages').sort())
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
 
         child.parent = self.other_collection
         child.save()
 
         self.one_collection.refresh_from_db()
         self.assertEqual(self.one_collection.summary.get('languages', []), [])
-        self.assertEqual(self.other_collection.summary.get('languages').sort(),
-                         child.summary.get('languages').sort())
+        self.assertEqual(sorted(self.other_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
 
     def test_delete_children(self):
         first_child = self.add_child()
-        second_child = self.add_child()
+        second_child = self.add_child(content={
+            'survey': [
+                {
+                    'type': 'text',
+                    'label': ['One question', 'Jedno pytanie', 'Une question']
+                }
+            ],
+            'translations': ['English (en)', 'Polski (pl)', 'Français (fr)'],
+            'translated': ['label'],
+            'schema': '1',
+            'settings': {}
+        })
         first_child.delete()
-        self.assertEqual(self.one_collection.summary.get('languages').sort(),
-                         second_child.summary.get('languages').sort())
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(second_child.summary.get('languages')))
 
         second_child.delete()
         self.assertEqual(self.one_collection.summary.get('languages', []), [])
@@ -682,12 +693,33 @@ class LanguagesCollectionTests(TestCase):
     def test_bulk_insert_children(self):
         self.assertEqual(self.one_collection.summary.get('languages', []), [])
         first_child = self.add_child(update_parent_languages=False)
-        second_child = self.add_child(update_parent_languages=False)
+        second_child = self.add_child(update_parent_languages=False, content={
+            'survey': [
+                {
+                    'type': 'text',
+                    'label': ['One question', 'Jedno pytanie', 'Une question']
+                }
+            ],
+            'translations': ['English (en)', 'Polski (pl)', 'Français (fr)'],
+            'translated': ['label'],
+            'schema': '1',
+            'settings': {}
+        })
         self.assertEqual(self.one_collection.summary.get('languages', []), [])
         self.one_collection.update_languages([first_child, second_child])
 
         children_languages = list(set(first_child.summary.get('languages')
                                       + second_child.summary.get('languages')))
-        self.assertEqual(self.one_collection.summary.get('languages').sort(),
-                         children_languages.sort())
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(children_languages))
 
+    def test_rename_child_language(self):
+        child = self.add_child()
+        self.assertEqual(self.one_collection.summary.get('languages').sort(),
+                         child.summary.get('languages').sort())
+
+        child.content['translations'] = ['Français (fra)', 'Español (es)']
+        child.save()
+        self.one_collection.refresh_from_db()
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
