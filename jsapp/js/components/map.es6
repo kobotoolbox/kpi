@@ -238,15 +238,13 @@ export class FormMap extends React.Component {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
     var fq = ['_id', '_geolocation'];
-    var queryLimit = 5000;
+    var queryLimit = 2;
+    if (document.getElementById('sliderr') != null) queryLimit = this.getSliderValue();
+    console.log('slider: ' + this.getSliderValue());
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
 
     const sort = [{id: '_id', desc: true}];
-
-    if (fq.length > 3) {
-      queryLimit = 20000;
-    } 
 
     // TODO: handle forms with over 5000 results
     dataInterface.getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq).done((data) => {
@@ -626,6 +624,16 @@ export class FormMap extends React.Component {
     return flatPaths[fieldName];
   }
 
+  getSliderValue() {
+    console.log("im being called: " + document.getElementById('sliderr').value);
+    return document.getElementById('sliderr').value;
+  }
+
+  setNewQueryLimit() {
+    this.requestData(this.state.map, this.props.viewby);
+    document.getElementById('sliderr').value = this.getSliderValue();
+  }
+
   render () {
 
     if (this.state.error) {
@@ -758,6 +766,10 @@ export class FormMap extends React.Component {
           </div>
          </div>
         }
+
+        <div className="map-querylimit-slider">
+          <input id="sliderr" type="range" min="1" max="3" step="1" value="2" onChange={this.setNewQueryLimit}/>
+        </div>
 
         {this.state.markerMap && this.state.markersVisible &&
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>

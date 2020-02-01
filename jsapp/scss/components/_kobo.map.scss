@@ -421,6 +421,16 @@ body .leaflet-control-layers,
   background: rgba(100, 100, 100, 0.7);
 }
 
+.map-querylimit-slider {
+  background: white;
+  position: absolute;
+  z-index: 700;
+  top: 15px;
+  padding: 3px;
+  left: 65px;
+  border-radius: 6px;
+}
+
 // ClusterMarker overrides
 
 .marker-cluster-small {
