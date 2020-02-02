@@ -768,12 +768,32 @@ export class FormMap extends React.Component {
          </div>
         }
 
-        <div className="map-querylimit-slider">
+        <div className="map-querylimit-slider left-tooltip" data-tip="Changes limit to data shown on map. Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points.">
           <form onInput={this.setNewQueryLimit}>
             <input id="range1" type="range" step="1" min="1" max="10" defaultValue="5"/>  
             <output id="range1value" htmlFor="range1" >5</output>
           </form>
         </div>
+
+      {/*Proposed change to display*/}
+      {/*
+      <div class="modal__content"><header class="modal__header"><h4 class="modal__title">Change Data Pull Limit</h4><a class="modal__x" type="button"><i class="k-icon-close"></i></a></header><div class="graph-settings"><div class="modal__tabs" style="
+          display: none;
+      "><button class="mdl-button mdl-button--tab active" data-tabname="geoquestion">Geopoint question</button><button class="mdl-button mdl-button--tab " data-tabname="overlays">Overlays</button><button class="mdl-button mdl-button--tab " data-tabname="colors">Marker Colors</button></div><div class="modal__body"><div class="tabs-content map-settings"><div class="map-settings__GeoQuestions"><p>Choose limit for the Geopoint data shown:</p>
+      <p style="color:red">Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points.
+      </p><form oninput="{this.setNewQueryLimit}" style="
+          text-align: center;
+      ">
+                  <input id="range1" type="range" step="1" min="1" max="10" defaultvalue="6000" style="
+          width: 100%;
+      ">  
+                  <output id="range1value" htmlfor="range1">6000</output>
+                </form><label for="GeopointQuestion-1" style="
+          display: none;
+      "><input type="radio" name="trnsltn" id="GeopointQuestion-1" value="q2">q2</label><label for="GeopointQuestion-2" style="
+          display: none;
+      "><input type="radio" name="trnsltn" id="GeopointQuestion-2" value="q3" checked="">q3</label></div></div></div><footer class="modal__footer"><button class="modal__footer-button">Reset</button><button class="modal__footer-button modal__footer-button--primary">Save</button></footer></div></div>
+      */}
 
         {this.state.markerMap && this.state.markersVisible &&
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
