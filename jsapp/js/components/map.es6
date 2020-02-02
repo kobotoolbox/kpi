@@ -239,8 +239,8 @@ export class FormMap extends React.Component {
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
     var fq = ['_id', '_geolocation'];
     var queryLimit = 2;
-    if (document.getElementById('sliderr') != null) queryLimit = this.getSliderValue();
-    console.log('slider: ' + this.getSliderValue());
+    if (document.getElementById('range1') != null) queryLimit = this.getSliderValue();
+    //console.log('slider: ' + this.getSliderValue());
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
 
@@ -625,13 +625,13 @@ export class FormMap extends React.Component {
   }
 
   getSliderValue() {
-    console.log("im being called: " + document.getElementById('sliderr').value);
-    return document.getElementById('sliderr').value;
+    return document.getElementById('range1').value;
   }
 
   setNewQueryLimit() {
-    this.requestData(this.state.map, this.props.viewby);
-    document.getElementById('sliderr').value = this.getSliderValue();
+    document.getElementById('range1value').value = document.getElementById('range1').value;
+     let map = this.refreshMap();
+     this.requestData(map, this.props.viewby);
   }
 
   render () {
@@ -768,7 +768,10 @@ export class FormMap extends React.Component {
         }
 
         <div className="map-querylimit-slider">
-          <input id="sliderr" type="range" min="1" max="3" step="1" value="2" onChange={this.setNewQueryLimit}/>
+          <form name="myform" onInput={this.setNewQueryLimit}>
+            <input id="range1" type="range" step="1" min="0" max="4" defaultValue="1"/>  
+            <output id="range1value" htmlFor="range1" >1</output>
+          </form>
         </div>
 
         {this.state.markerMap && this.state.markersVisible &&
