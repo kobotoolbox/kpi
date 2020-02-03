@@ -217,6 +217,8 @@ class MapSettings extends React.Component {
         return t('Marker Colors');
       case 'geoquestion':
         return t('Geopoint question');
+      case 'querylimit':
+        return t('Query Limit');  
     }
   }
   colorChange(val) {
