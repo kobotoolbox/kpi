@@ -400,6 +400,27 @@ body .leaflet-control-layers,
   }
 }
 
+.map-settings__querylimit {
+  label {
+    display: block;
+    margin-bottom: 10px;
+
+    input {
+      margin-right: 8px;
+    }
+  }
+  .change-limit-warning {
+    color: red;
+  }
+  .change-limit-slider {
+    width: 100%;
+  }
+  .change-limit-slider-value {
+    display: block;
+    text-align: center;
+  }
+}
+
 .map-no-geopoint {
   text-align: center;
   font-weight: bold;

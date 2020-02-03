@@ -484,7 +484,6 @@ export var dataInterface;
     },
     getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
       const query = `limit=${pageSize}&start=${page}`;
-      console.log('query------' + query);
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
       if (sort.length)

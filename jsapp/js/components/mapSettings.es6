@@ -123,6 +123,18 @@ class MapSettings extends React.Component {
     settings.selectedQuestion = evt.target.value;
     this.setState({ mapSettings: settings });
   }
+  queryLimitChange(evt) {
+    let settings = this.state.mapSettings;
+    settings.querylimit = evt.target.value;
+    this.setState({ mapSettings: settings });
+  }
+  updateSliderValue() {
+    if (document.getElementById('limit-slider') != null ) {
+      return document.getElementById('limit-slider').value;
+    } else {
+      return this.state.mapSettings.querylimit;
+    }
+  }
   resetMapSettings() {
     actions.map.setMapSettings(this.props.asset.uid, {});
     this.props.toggleMapSettings();
@@ -229,12 +241,16 @@ class MapSettings extends React.Component {
   render() {
     let asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
-      activeTab = this.state.activeModalTab;
+      activeTab = this.state.activeModalTab,
+      queryLimit = this.state.mapSettings.querylimit;
 
     var tabs = ['colors'];
 
     if (this.userCan('change_asset', asset)) tabs.unshift('overlays');
-    if (geoQuestions.length > 1) tabs.unshift('geoquestion');
+    if (geoQuestions.length > 1) {
+      tabs.unshift('geoquestion');
+      tabs.unshift('querylimit');
+    }
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
@@ -341,10 +357,22 @@ class MapSettings extends React.Component {
                 </div>
               </bem.FormModal__item>
             )}
+            {activeTab === 'querylimit' && (
+              <bem.FormModal__item>
+                <div className="map-settings__querylimit">
+                  {t('Set the amount of data displayed on the map.')}
+                  <p className="change-limit-warning">Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points.</p>
+                  <form onInput={this.updateSliderValue}>
+                    <input id="limit-slider" className="change-limit-slider" type="range" step="1" min="1" max="10" value={queryLimit} onChange={this.queryLimitChange}/>  
+                    <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="range1">{this.updateSliderValue()}</output>
+                  </form>
+                </div>
+              </bem.FormModal__item>
+            )}
           </div>
         </ui.Modal.Body>
 
-        {(activeTab === 'geoquestion' || activeTab === 'colors') &&
+        {(activeTab === 'geoquestion' || activeTab === 'colors' || activeTab === 'querylimit') &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) &&
               <bem.Modal__footerButton
