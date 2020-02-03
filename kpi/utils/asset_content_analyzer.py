@@ -70,7 +70,6 @@ class AssetContentAnalyzer:
 
         formatted_translations = []
         for translation in translations:
-            print('TRANSALTION', translation, flush=True)
             if translation is not None:
                 formatted_translations.append(translation.capitalize())
 
