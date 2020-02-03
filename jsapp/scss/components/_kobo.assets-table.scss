@@ -7,6 +7,18 @@
   background-color: $white;
   // for small screens we want the table to still be readable and it can't get to narrow
   overflow-x: auto;
+
+  &.assets-table--fullscreen {
+    position: fixed;
+    z-index: $z-fullscreen;
+    border: 15px solid $root-background;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .assets-table__header,
@@ -30,6 +42,21 @@
   border-top: 2px solid $divider-color;
   color: $cool-gray;
   height: 40px;
+
+  .mdl-button {
+    margin-left: 0;
+    margin-right: 0;
+    padding-right: 0;
+    padding-left: 12px;
+    line-height: 32px;
+    height: 32px;
+    min-height: 32px;
+
+    .k-icon {
+      font-size: 32px;
+      float: right;
+    }
+  }
 }
 
 .assets-table--my-library,
@@ -233,7 +260,7 @@ $c-assets-table-row-hover: $cool-whitegray;
     }
 
     &.assets-table-row__column--languages {
-      width: 10%;
+      width: 12.5%;
     }
 
     &.assets-table-row__column--primary-sector {

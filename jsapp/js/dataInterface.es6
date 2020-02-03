@@ -361,7 +361,7 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    searchAssetsWithPredefinedQuery(params, predefinedQuery) {
+    _searchAssetsWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
         q: predefinedQuery,
         limit: params.pageSize || 100,
@@ -391,15 +391,54 @@ export var dataInterface;
         method: 'GET'
       });
     },
+    _searchMetadataWithPredefinedQuery(params, predefinedQuery) {
+      const searchData = {
+        q: predefinedQuery,
+        limit: params.pageSize || 100,
+        offset: params.page * params.pageSize || 0
+      };
+
+      if (params.searchPhrase) {
+        searchData.q += ` AND ${params.searchPhrase}`;
+      }
+
+      if (params.filterProperty && params.filterValue) {
+        searchData.q += ` AND ${params.filterProperty}:${params.filterValue}`;
+      }
+
+      if (params.ordering) {
+        searchData.ordering = params.ordering;
+      }
+
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/metadata/`,
+        dataType: 'json',
+        data: searchData,
+        method: 'GET'
+      });
+    },
     searchMyLibraryAssets(params = {}) {
-      return this.searchAssetsWithPredefinedQuery(
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        // we only want orphans (assets not inside collection)
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+      );
+    },
+    searchMyLibraryMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
         `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
       );
     },
     searchPublicCollections(params = {}) {
-      return this.searchAssetsWithPredefinedQuery(
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+      );
+    },
+    searchPublicCollectionsMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
         params,
         `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
       );

@@ -1,5 +1,3 @@
-$z-form-view-fullscreen: 101;
-
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
   .form-view {
@@ -28,7 +26,7 @@ $z-form-view-fullscreen: 101;
 
   &.form-view--fullscreen {
     position: fixed;
-    z-index: $z-form-view-fullscreen;
+    z-index: $z-fullscreen;
     top: 0;
     left: 0;
     bottom: 0;

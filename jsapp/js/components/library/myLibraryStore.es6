@@ -41,6 +41,7 @@ const myLibraryStore = Reflux.createStore({
     actions.library.searchMyLibraryAssets.started.listen(this.onSearchStarted);
     actions.library.searchMyLibraryAssets.completed.listen(this.onSearchCompleted);
     actions.library.searchMyLibraryAssets.failed.listen(this.onSearchFailed);
+    actions.library.searchMyLibraryMetadata.completed.listen(this.onSearchMetadataCompleted);
     actions.resources.loadAsset.completed.listen(this.onAssetChanged);
     actions.resources.updateAsset.completed.listen(this.onAssetChanged);
     actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
@@ -59,8 +60,27 @@ const myLibraryStore = Reflux.createStore({
 
   // methods for handling search and data fetch
 
+  /**
+   * @return {object} search params shared by all searches
+   */
+  getSearchParams() {
+    const params = {
+      searchPhrase: searchBoxStore.getSearchPhrase(),
+      pageSize: this.PAGE_SIZE,
+      page: this.data.currentPage
+    };
+
+    if (this.data.filterColumnId !== null) {
+      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      params.filterProperty = filterColumn.filterBy;
+      params.filterValue = this.data.filterValue;
+    }
+
+    return params;
+  },
+
   fetchMetadata() {
-    // TODO call metadata fatch when endpoint is ready
+    actions.library.searchMyLibraryMetadata(this.getSearchParams());
   },
 
   /**
@@ -71,22 +91,13 @@ const myLibraryStore = Reflux.createStore({
       this.abortFetchData();
     }
 
-    const params = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
-      pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage,
-      metadata: needsMetadata
-    };
+    const params = this.getSearchParams();
+
+    params.metadata = needsMetadata;
 
     const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
     const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
-
-    if (this.data.filterColumnId !== null) {
-      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
-      params.filterProperty = filterColumn.filterBy;
-      params.filterValue = this.data.filterValue;
-    }
 
     actions.library.searchMyLibraryAssets(params);
   },
@@ -120,21 +131,15 @@ const myLibraryStore = Reflux.createStore({
 
   onSearchCompleted(response) {
     delete this.abortFetchData;
-
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
-
     this.data.assets = response.results;
+    // if we didn't fetch metadata, we assume it didn't change so leave current one
     if (response.metadata) {
-      // if we didn't fetch metadata, we assume it didn't change so leave current one
       this.data.metadata = response.metadata;
     }
     this.data.totalSearchAssets = response.count;
-
     // update total count for the first time and the ones that will get a full count
-    if (
-      this.data.totalUserAssets === null ||
-      searchBoxStore.getSearchPhrase() === ''
-    ) {
+    if (this.data.totalUserAssets === null || searchBoxStore.getSearchPhrase() === '') {
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
@@ -144,6 +149,11 @@ const myLibraryStore = Reflux.createStore({
   onSearchFailed() {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
+    this.trigger(this.data);
+  },
+
+  onSearchMetadataCompleted(response) {
+    this.data.metadata = response;
     this.trigger(this.data);
   },
 
