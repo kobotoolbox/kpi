@@ -16,6 +16,14 @@
     }
   }
 
+  > .survey__row__item {
+    &.survey__row__item--question {
+      > .card__header {
+        min-height: 82px;
+      }
+    }
+  }
+
   .btn--addrow {
     display: none;
   }
