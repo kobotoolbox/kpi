@@ -92,6 +92,12 @@ actions.search = Reflux.createActions({
 });
 
 actions.resources = Reflux.createActions({
+  createImport: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   loadAsset: {
     children: [
       'completed',
@@ -283,6 +289,18 @@ actions.misc.getServerEnvironment.listen(function(){
   dataInterface.serverEnvironment()
     .done(actions.misc.getServerEnvironment.completed)
     .fail(actions.misc.getServerEnvironment.failed);
+});
+
+actions.resources.createImport.listen((params, onCompleted, onFailed) => {
+  dataInterface.createImport(params)
+    .done((...args) => {
+      actions.resources.createImport.completed(...args);
+      if (typeof onCompleted === 'function') {onCompleted(...args);}
+    })
+    .fail((...args) => {
+      actions.resources.createImport.failed(...args);
+      if (typeof onFailed === 'function') {onFailed(...args);}
+    });
 });
 
 actions.resources.createSnapshot.listen(function(details){

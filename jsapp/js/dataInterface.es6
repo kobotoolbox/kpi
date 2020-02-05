@@ -502,9 +502,9 @@ export var dataInterface;
         }
       });
     },
-    postCreateImport (contents) {
+    createImport(contents) {
       var formData = new FormData();
-      Object.keys(contents).forEach(function(key){
+      Object.keys(contents).forEach((key) => {
         formData.append(key, contents[key]);
       });
       return $.ajax({

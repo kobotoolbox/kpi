@@ -32,6 +32,7 @@ const myLibraryStore = Reflux.createStore({
 
     // TODO react to uploads being finished (debounced reaction because of
     // possible multiple uploads) or don't react at all?
+    // BLOCKED BY https://github.com/kobotoolbox/kpi/issues/476
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
