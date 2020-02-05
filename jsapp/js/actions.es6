@@ -92,12 +92,6 @@ actions.search = Reflux.createActions({
 });
 
 actions.resources = Reflux.createActions({
-  createImport: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   loadAsset: {
     children: [
       'completed',
@@ -289,29 +283,6 @@ actions.misc.getServerEnvironment.listen(function(){
   dataInterface.serverEnvironment()
     .done(actions.misc.getServerEnvironment.completed)
     .fail(actions.misc.getServerEnvironment.failed);
-});
-
-actions.resources.createImport.listen(function(contents){
-  if (contents.base64Encoded) {
-    dataInterface.postCreateImport(contents)
-      .done(actions.resources.createImport.completed)
-      .fail(actions.resources.createImport.failed);
-  } else if (contents.content) {
-    dataInterface.createResource(contents);
-  }
-});
-
-actions.resources.createImport.completed.listen(function(contents){
-  if (contents.status) {
-    if(contents.status === 'processing') {
-      notify(t('successfully uploaded file; processing may take a few minutes'));
-      log('processing import ' + contents.uid, contents);
-    } else {
-      notify(t('unexpected import status ##STATUS##').replace('##STATUS##', contents.status), 'error');
-    }
-  } else {
-    notify(t('Error: import.status not available'));
-  }
 });
 
 actions.resources.createSnapshot.listen(function(details){
