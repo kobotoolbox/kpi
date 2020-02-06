@@ -507,7 +507,7 @@ export var dataInterface;
       Object.keys(contents).forEach((key) => {
         formData.append(key, contents[key]);
       });
-      return $.ajax({
+      return $ajax({
         method: 'POST',
         url: `${ROOT_URL}/imports/`,
         data: formData,

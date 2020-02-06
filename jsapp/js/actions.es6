@@ -17,7 +17,6 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import {
-  log,
   t,
   notify,
   replaceSupportEmail,
@@ -40,142 +39,37 @@ actions.navigation = Reflux.createActions([
 ]);
 
 actions.auth = Reflux.createActions({
-  verifyLogin: {
-    children: [
-      'loggedin',
-      'anonymous',
-      'failed'
-    ]
-  },
-  logout: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  changePassword: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getEnvironment: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getApiToken: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
+  verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
+  logout: {children: ['completed', 'failed']},
+  changePassword: {children: ['completed', 'failed']},
+  getEnvironment: {children: ['completed', 'failed']},
+  getApiToken: {children: ['completed', 'failed']},
 });
 
 actions.survey = Reflux.createActions({
-  addExternalItemAtPosition: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  }
+  addExternalItemAtPosition: {children: ['completed', 'failed']}
 });
 
 actions.search = Reflux.createActions({
-  assets: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  }
+  assets: {children: ['completed', 'failed']}
 });
 
 actions.resources = Reflux.createActions({
-  createImport: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  deployAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  setDeploymentActive: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createSnapshot: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  cloneAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  deleteAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  listTags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAssetSubResource: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAssetContent: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createResource: {
-    asyncResult: true
-  },
-  updateAsset: {
-    asyncResult: true
-  },
-  updateSubmissionValidationStatus: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
-  removeSubmissionValidationStatus: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
-  getAssetFiles: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
+  createImport: {children: ['completed', 'failed']},
+  loadAsset: {children: ['completed', 'failed']},
+  deployAsset: {children: ['completed', 'failed']},
+  setDeploymentActive: {children: ['completed', 'failed']},
+  createSnapshot: {children: ['completed', 'failed']},
+  cloneAsset: {children: ['completed', 'failed']},
+  deleteAsset: {children: ['completed', 'failed']},
+  listTags: {children: ['completed', 'failed']},
+  loadAssetSubResource: {children: ['completed', 'failed']},
+  loadAssetContent: {children: ['completed', 'failed']},
+  createResource: {asyncResult: true},
+  updateAsset: {asyncResult: true},
+  updateSubmissionValidationStatus: {children: ['completed', 'failed']},
+  removeSubmissionValidationStatus: {children: ['completed', 'failed']},
+  getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
 });
 
@@ -190,31 +84,10 @@ actions.hooks = Reflux.createActions({
 });
 
 actions.misc = Reflux.createActions({
-  getUser: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  checkUsername: {
-    asyncResult: true,
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  updateProfile: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getServerEnvironment: {
-    children: [
-      'completed',
-      'failed',
-    ]
-  },
+  getUser: {children: ['completed', 'failed']},
+  checkUsername: {asyncResult: true, children: ['completed', 'failed']},
+  updateProfile: {children: ['completed', 'failed']},
+  getServerEnvironment: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -293,13 +166,13 @@ actions.misc.getServerEnvironment.listen(function(){
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
   dataInterface.createImport(params)
-    .done((...args) => {
-      actions.resources.createImport.completed(...args);
-      if (typeof onCompleted === 'function') {onCompleted(...args);}
+    .done((response) => {
+      actions.resources.createImport.completed(response);
+      if (typeof onCompleted === 'function') {onCompleted(response);}
     })
-    .fail((...args) => {
-      actions.resources.createImport.failed(...args);
-      if (typeof onFailed === 'function') {onFailed(...args);}
+    .fail((response) => {
+      actions.resources.createImport.failed(response);
+      if (typeof onFailed === 'function') {onFailed(response);}
     });
 });
 

@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
@@ -19,6 +20,7 @@ const myLibraryStore = Reflux.createStore({
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   init() {
+    this.fetchDataDebounced = _.debounce(this.fetchData.bind(true), 2500);
     this.data = {
       isFetchingData: false,
       currentPage: 0,
@@ -29,10 +31,6 @@ const myLibraryStore = Reflux.createStore({
       metadata: {}
     };
     this.setDefaultColumns();
-
-    // TODO react to uploads being finished (debounced reaction because of
-    // possible multiple uploads) or don't react at all?
-    // BLOCKED BY https://github.com/kobotoolbox/kpi/issues/476
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
@@ -48,6 +46,9 @@ const myLibraryStore = Reflux.createStore({
     actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
     actions.resources.createResource.completed.listen(this.onAssetCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
+    // TODO Improve reaction to uploads being finished after task is done:
+    // https://github.com/kobotoolbox/kpi/issues/476
+    actions.resources.createImport.completed.listen(this.fetchDataDebounced);
 
     this.fetchData(true);
   },
