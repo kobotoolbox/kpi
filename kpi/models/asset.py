@@ -419,6 +419,7 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
+        self._survey_remove_given_name(content)
         self._settings_ensure_form_id(content)
         self._settings_maintain_key_order(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
@@ -454,6 +455,13 @@ class XlsExportable(object):
                     content['survey'][survey_col_idx]['readonly'] = survey_col['oc_readonly'][:req_col_append_string_pos - 1]
                 del content['survey'][survey_col_idx]['oc_readonly']
 
+    def _survey_remove_given_name(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if '$given_name' in survey_col:
+                del content['survey'][survey_col_idx]['$given_name']
+    
     def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
         dictionary of lists of dictionaries in the following format:
