@@ -3,8 +3,7 @@ import multiprocessing
 import os
 import subprocess
 from datetime import timedelta
-# TODO remove this import when Python2 support is dropped
-from future.utils import bytes_to_native_str as n
+from urllib.parse import quote
 
 import dj_database_url
 import django.conf.locale
@@ -696,15 +695,20 @@ MONGO_DATABASE = {
 }
 
 if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = (
-        "mongodb://%(USER)s:%(PASSWORD)s@%(HOST)s:%(PORT)s/%(NAME)s") % MONGO_DATABASE
+    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+        format(
+            user=MONGO_DATABASE['USER'],
+            password=quote(MONGO_DATABASE['PASSWORD']),
+            host=MONGO_DATABASE['HOST'],
+            port=MONGO_DATABASE['PORT'],
+            db_name=MONGO_DATABASE['NAME']
+        )
 else:
     MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
-
 
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
