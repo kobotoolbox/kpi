@@ -83,7 +83,8 @@ export class FormMap extends React.Component {
       showMapSettings: false,
       overridenStyles: false,
       clearDisaggregatedPopover: false,
-      noData: false
+      noData: false,
+      queryLimit: 5
     };
 
     autoBind(this);
@@ -237,10 +238,8 @@ export class FormMap extends React.Component {
   requestData(map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
-    var queryLimit = 5;
-    if (this.props.asset.map_styles.querylimit > 0) {
-      queryLimit = this.props.asset.map_styles.querylimit;
-    }
+    var queryLimit = this.state.queryLimit;
+    console.log('querylimit in map.es6: ' + queryLimit);
     var fq = ['_id', '_geolocation'];
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
@@ -546,6 +545,7 @@ export class FormMap extends React.Component {
     var map = this.state.map;
     map.removeLayer(this.state.markers);
     map.removeLayer(this.state.heatmap);
+    this.state.queryLimit = this.props.asset.map_styles.querylimit;
     return map;
   }
   launchSubmissionModal (evt) {

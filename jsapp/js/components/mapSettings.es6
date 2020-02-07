@@ -249,8 +249,8 @@ class MapSettings extends React.Component {
     if (this.userCan('change_asset', asset)) tabs.unshift('overlays');
     if (geoQuestions.length > 1) {
       tabs.unshift('geoquestion');
-      tabs.unshift('querylimit');
     }
+    tabs.unshift('querylimit');
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
