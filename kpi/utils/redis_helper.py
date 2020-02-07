@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 import re
-from urllib.parse import unquote
+from urllib.parse import unquote_plus
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -33,7 +33,7 @@ class RedisHelper:
         if match.group('password') is None:
             password = None
         else:
-            password = unquote(match.group('password'))
+            password = unquote_plus(match.group('password'))
 
         redis_connection_dict = {
             'host': match.group('host'),

@@ -3,7 +3,7 @@ import multiprocessing
 import os
 import subprocess
 from datetime import timedelta
-from urllib.parse import quote
+from urllib.parse import quote_plus
 
 import dj_database_url
 import django.conf.locale
@@ -693,7 +693,7 @@ if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
     MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
         format(
             user=MONGO_DATABASE['USER'],
-            password=quote(MONGO_DATABASE['PASSWORD']),
+            password=quote_plus(MONGO_DATABASE['PASSWORD']),
             host=MONGO_DATABASE['HOST'],
             port=MONGO_DATABASE['PORT'],
             db_name=MONGO_DATABASE['NAME']
