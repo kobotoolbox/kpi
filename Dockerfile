@@ -37,6 +37,7 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 ##########################################
 # Install `apt` packages.                #
 ##########################################
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 
 RUN apt -qq update && \
     apt -qq -y install \
