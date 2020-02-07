@@ -363,7 +363,7 @@ class MapSettings extends React.Component {
                   {t('Set the amount of data displayed on the map.')}
                   <p className="change-limit-warning">Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points.</p>
                   <form onInput={this.updateSliderValue}>
-                    <input id="limit-slider" className="change-limit-slider" type="range" step="1" min="1" max="10" value={queryLimit} onChange={this.queryLimitChange}/>  
+                    <input id="limit-slider" className="change-limit-slider" type="range" step="1000" min="1000" max="30000" value={queryLimit} onChange={this.queryLimitChange}/>  
                     <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="limit-slider">{this.updateSliderValue()}</output>
                   </form>
                 </div>

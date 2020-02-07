@@ -84,7 +84,7 @@ export class FormMap extends React.Component {
       overridenStyles: false,
       clearDisaggregatedPopover: false,
       noData: false,
-      queryLimit: 5
+      queryLimit: 5000
     };
 
     autoBind(this);
@@ -239,7 +239,6 @@ export class FormMap extends React.Component {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
     var queryLimit = this.state.queryLimit;
-    console.log('querylimit in map.es6: ' + queryLimit);
     var fq = ['_id', '_geolocation'];
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
