@@ -361,7 +361,7 @@ class MapSettings extends React.Component {
               <bem.FormModal__item>
                 <div className="map-settings__querylimit">
                   {t('Set the amount of data displayed on the map.')}
-                  <p className="change-limit-warning">Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points.</p>
+                  <p className="change-limit-warning">Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points. The limit is reset to 5,000 after a browser refresh to prevent crashing.</p>
                   <form onInput={this.updateSliderValue}>
                     <input id="limit-slider" className="change-limit-slider" type="range" step="1000" min="1000" max="30000" value={queryLimit} onChange={this.queryLimitChange}/>  
                     <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="limit-slider">{this.updateSliderValue()}</output>
