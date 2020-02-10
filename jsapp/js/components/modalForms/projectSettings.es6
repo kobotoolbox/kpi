@@ -152,10 +152,6 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  getFilenameFromURI(url) {
-    return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0]);
-  }
-
   /*
    * handling user input
    */
