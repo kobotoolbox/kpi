@@ -126,8 +126,8 @@ module.exports = do ->
                 currentModelCollectionIndex = @model.collection.models.findIndex (model) => model.cid == @model.cid
                 if currentModelCollectionIndex != -1 # found
                   modelCollectionMiddleOut = arrayMiddleOut @model.collection.models, currentModelCollectionIndex, 'left'
-                  for model in modelCollectionMiddleOut.slice 1
-                    if itemGroupKey in model.attributes
+                  for model in modelCollectionMiddleOut[1..]
+                    if itemGroupKey of model.attributes
                       itemGroupName = model.attributes[itemGroupKey].get('value')
                       if itemGroupName && itemGroupName != ''
                         itemGroupVal = itemGroupName
