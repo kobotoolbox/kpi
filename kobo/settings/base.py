@@ -56,7 +56,8 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
-CORS_MODEL = 'external_integrations.CorsModel'
+CORS_MODEL = None
+CORS_ORIGIN_REGEX_WHITELIST = (r'^(https?://)?(\w+\.){1,2}openclinica\.io$', r'^(https?://)?(\w+\.){1,2}openclinica-dev\.io$')
 CORS_ALLOW_CREDENTIALS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
