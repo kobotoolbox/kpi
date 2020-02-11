@@ -18,7 +18,7 @@ import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
-import {MODAL_TYPES} from '../constants';
+import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
 
 import {
   t,
@@ -237,11 +237,15 @@ export class FormMap extends React.Component {
   requestData(map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
+    this.props.asset.content.survey.forEach(function(row, i) {
+      if (row.label != null && selectedQuestion === row.label[0] && row.type != QUESTION_TYPES.get('geopoint')) {
+        selectedQuestion = null; //Ignore if not a geopoint question type
+      }
+    });
     var fq = ['_id', '_geolocation'];
     var queryLimit = 5000;
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
-
     const sort = [{id: '_id', desc: true}];
 
     if (fq.length > 3) {
