@@ -12,10 +12,10 @@ describe('permParser', () => {
     it('should hide anonymous user permissions from output by default', () => {
       // in original data there are total 7 permissions (6 of asset owner and
       // one of anonymous user)
-      chai.expect(endpoints.assetWithAnon.results.length).to.equal(7);
+      chai.expect(endpoints.assetWithAnonymousUser.results.length).to.equal(7);
       const parsed = permParser.parseBackendData(
-        endpoints.assetWithAnon.results,
-        endpoints.assetWithAnon.results[0].user
+        endpoints.assetWithAnonymousUser.results,
+        endpoints.assetWithAnonymousUser.results[0].user
       );
       // parsed data should only contain data of owner
       chai.expect(parsed.length).to.equal(1);
@@ -25,10 +25,10 @@ describe('permParser', () => {
     it('should show anonymous user permissions from output when ordered to', () => {
       // in original data there are total 7 permissions (6 of asset owner and
       // one of anonymous user)
-      chai.expect(endpoints.assetWithAnon.results.length).to.equal(7);
+      chai.expect(endpoints.assetWithAnonymousUser.results.length).to.equal(7);
       const parsed = permParser.parseBackendData(
-        endpoints.assetWithAnon.results,
-        endpoints.assetWithAnon.results[0].user,
+        endpoints.assetWithAnonymousUser.results,
+        endpoints.assetWithAnonymousUser.results[0].user,
         true
       );
       // parsed data should contain data of owner and anonymous user
@@ -40,10 +40,10 @@ describe('permParser', () => {
     it('should group permissions by users properly', () => {
       // in original data there are total 9 permissions (6 of asset owner,
       // 2 of one user and 1 of another)
-      chai.expect(endpoints.assetWithMulti.results.length).to.equal(9);
+      chai.expect(endpoints.assetWithMultipleUsers.results.length).to.equal(9);
       const parsed = permParser.parseBackendData(
-        endpoints.assetWithMulti.results,
-        endpoints.assetWithMulti.results[0].user
+        endpoints.assetWithMultipleUsers.results,
+        endpoints.assetWithMultipleUsers.results[0].user
       );
 
       // parsed data should contain data of 3 users
@@ -81,8 +81,8 @@ describe('permParser', () => {
   describe('buildFormData', () => {
     it('should check proper options', () => {
       const parsed = permParser.parseBackendData(
-        endpoints.assetWithMulti.results,
-        endpoints.assetWithMulti.results[0].user
+        endpoints.assetWithMultipleUsers.results,
+        endpoints.assetWithMultipleUsers.results[0].user
       );
 
       const built = permParser.buildFormData(parsed[1].permissions);
@@ -169,8 +169,8 @@ describe('permParser', () => {
   describe('parseUserWithPermsList', () => {
     it('should return flat list of permissions', () => {
       const userWithPermsList = permParser.parseBackendData(
-        endpoints.assetWithMulti.results,
-        endpoints.assetWithMulti.results[0].user
+        endpoints.assetWithMultipleUsers.results,
+        endpoints.assetWithMultipleUsers.results[0].user
       );
       const parsed = permParser.parseUserWithPermsList(userWithPermsList);
 
