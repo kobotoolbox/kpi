@@ -47,14 +47,17 @@ if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
 # Domain must not exclude KoBoCAT when sharing sessions
 if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
+    CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
     SESSION_COOKIE_AGE = 60*60*24 # Session age is 24 hour
     SESSION_SAVE_EVERY_REQUEST = True # Renew session every request made
+    SESSION_COOKIE_SECURE = True
 
 # Instances of this model will be treated as allowed origins; see
 # https://github.com/ottoyiu/django-cors-headers#cors_model
-CORS_MODEL = 'external_integrations.CorsModel'
+CORS_MODEL = None
+CORS_ORIGIN_REGEX_WHITELIST = (r'^(https?://)?(\w+\.){1,2}openclinica\.io$', r'^(https?://)?(\w+\.){1,2}openclinica-dev\.io$')
 CORS_ALLOW_CREDENTIALS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -127,10 +130,10 @@ MIDDLEWARE_CLASSES = (
     'hub.middleware.UsernameInResponseHeaderMiddleware',
 )
 
-CSP_FRAME_ANCESTORS = "https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io"
+CSP_FRAME_ANCESTORS = "https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io https://*.staging.openclinica.io"
 CSP_STYLE_SRC = "'self' 'unsafe-inline'"
-CSP_CONNECT_SRC = "'self' https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io"
-CSP_FRAME_SRC = "'self' https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io"
+CSP_CONNECT_SRC = "'self' https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io https://*.staging.openclinica.io"
+CSP_FRAME_SRC = "'self' https://*.openclinica-dev.io https://*.openclinica-staging.io https://*.openclinica.io https://*.staging.openclinica.io"
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
@@ -720,10 +723,10 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 OC_BUILD_URL = os.environ.get('OC_BUILD_URL', '')
 
 KEYCLOAK_AUTH_URI = os.environ.get('KEYCLOAK_AUTH_URI', 'https://auth.openclinica-dev.io')
-KEYCLOAK_DEFAULT_REALM = os.environ.get('KEYCLOAK_DEFAULT_REALM', 'cust1-aws-dev') 
+KEYCLOAK_DEFAULT_REALM = os.environ.get('KEYCLOAK_DEFAULT_REALM', 'cust2-aws-dev') 
 KEYCLOAK_CLIENT_ID = os.environ.get('KEYCLOAK_CLIENT_ID', 'formdesigner')
 KEYCLOAK_CLIENT_SECRET = os.environ.get('KEYCLOAK_CLIENT_SECRET', 'client-secret')
-PUBLIC_URI_FOR_KEYCLOAK = os.environ.get('PUBLIC_URI', 'https://cust1.formdesigner.openclinica-dev.io')
+PUBLIC_URI_FOR_KEYCLOAK = os.environ.get('PUBLIC_URI', 'https://cust2.formdesigner.openclinica-dev.io')
 
 KEYCLOAK_MASTER_REALM = 'master'
 KEYCLOAK_ADMIN_CLIENT_ID = 'admin-cli'

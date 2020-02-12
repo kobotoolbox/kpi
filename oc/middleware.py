@@ -17,7 +17,9 @@ from django.utils.six.moves.urllib.parse import urlparse
 
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.middleware.csrf import CsrfViewMiddleware, REASON_NO_REFERER, REASON_BAD_REFERER, REASON_NO_CSRF_COOKIE, REASON_BAD_TOKEN, CSRF_KEY_LENGTH
+from http.cookies import Morsel
 
+Morsel._reserved["samesite"] = "SameSite"
 logger = logging.getLogger('oc.middleware')
 
 def _get_current_domain(request):
@@ -66,6 +68,7 @@ class OCSessionMiddleware(SessionMiddleware):
                                 path=settings.SESSION_COOKIE_PATH,
                                 secure=settings.SESSION_COOKIE_SECURE or None,
                                 httponly=settings.SESSION_COOKIE_HTTPONLY or None)
+                        response.cookies[settings.SESSION_COOKIE_NAME]['samesite'] = 'None'
         return response
 
 def _get_failure_view():
@@ -255,6 +258,7 @@ class OCCsrfViewMiddleware(CsrfViewMiddleware):
                             secure=settings.CSRF_COOKIE_SECURE,
                             httponly=settings.CSRF_COOKIE_HTTPONLY
                             )
+        response.cookies[settings.CSRF_COOKIE_NAME]['samesite'] = 'None'
         # Content varies with the CSRF cookie, so set the Vary header.
         patch_vary_headers(response, ('Cookie',))
         response.csrf_processing_done = True

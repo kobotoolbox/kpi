@@ -180,12 +180,6 @@ module.exports = do ->
         defaultValue: 1
       }
     }
-    image: {
-      'max-pixels': {
-        type: configs.paramTypes.number
-        defaultValue: 1024
-      }
-    }
     select_one: {
       randomize: {
         type: configs.paramTypes.boolean

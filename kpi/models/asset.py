@@ -419,6 +419,7 @@ class XlsExportable(object):
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
         content = OrderedDict(content)
+        self._survey_column_oc_adjustments(content)
         self._settings_ensure_form_id(content)
         self._settings_maintain_key_order(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
@@ -430,15 +431,15 @@ class XlsExportable(object):
             survey_col = survey[survey_col_idx]
             if 'required' in survey_col:
                 if survey_col['required'] == True:
-                    content['survey'][survey_col_idx]['required'] = 'yes+{}'.format(CUSTOM_COL_APPEND_STRING)
+                    survey_col['required'] = 'yes+{}'.format(CUSTOM_COL_APPEND_STRING)
                 elif survey_col['required'] == False:
-                    content['survey'][survey_col_idx]['required'] = '+{}'.format(CUSTOM_COL_APPEND_STRING)
+                    survey_col['required'] = '+{}'.format(CUSTOM_COL_APPEND_STRING)
             if 'readonly' in survey_col:
                 if survey_col['readonly'] == 'true':
-                    content['survey'][survey_col_idx]['oc_readonly'] = 'yes+{}'.format(CUSTOM_COL_APPEND_STRING)
+                    survey_col['oc_readonly'] = 'yes+{}'.format(CUSTOM_COL_APPEND_STRING)
                 elif survey_col['readonly'] == 'false':
-                    content['survey'][survey_col_idx]['oc_readonly'] = '+{}'.format(CUSTOM_COL_APPEND_STRING)
-                del content['survey'][survey_col_idx]['readonly']
+                    survey_col['oc_readonly'] = '+{}'.format(CUSTOM_COL_APPEND_STRING)
+                del survey_col['readonly']
 
     def _survey_revert_custom_col_value(self, content):
         survey = content.get('survey', [])
@@ -447,13 +448,29 @@ class XlsExportable(object):
             if 'required' in survey_col:
                 if CUSTOM_COL_APPEND_STRING in survey_col['required']:
                     req_col_append_string_pos = survey_col['required'].find(CUSTOM_COL_APPEND_STRING)
-                    content['survey'][survey_col_idx]['required'] = survey_col['required'][:req_col_append_string_pos - 1]
+                    survey_col['required'] = survey_col['required'][:req_col_append_string_pos - 1]
             if 'oc_readonly' in survey_col:
                 if CUSTOM_COL_APPEND_STRING in survey_col['oc_readonly']:
                     req_col_append_string_pos = survey_col['oc_readonly'].find(CUSTOM_COL_APPEND_STRING)
-                    content['survey'][survey_col_idx]['readonly'] = survey_col['oc_readonly'][:req_col_append_string_pos - 1]
-                del content['survey'][survey_col_idx]['oc_readonly']
+                    survey_col['readonly'] = survey_col['oc_readonly'][:req_col_append_string_pos - 1]
+                del survey_col['oc_readonly']
 
+    def _survey_column_oc_adjustments(self, content):
+        survey = content.get('survey', [])
+        for survey_col_idx in range(len(survey)):
+            survey_col = survey[survey_col_idx]
+            if '$given_name' in survey_col:
+                del survey_col['$given_name']
+            elif 'type' in survey_col:
+                if survey_col['type'] == 'begin_group':
+                    survey_col['type'] = 'begin group'
+                elif survey_col['type'] == 'end_group':
+                    survey_col['type'] = 'end group'
+                elif survey_col['type'] == 'begin_repeat':
+                    survey_col['type'] = 'begin repeat'
+                elif survey_col['type'] == 'end_repeat':
+                    survey_col['type'] = 'end repeat'    
+    
     def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
         dictionary of lists of dictionaries in the following format:

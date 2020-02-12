@@ -88,11 +88,13 @@ module.exports = do ->
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
       @p = $("<span class=\"js-cancel-select-row\">")
       @c = $("<code><label>#{_t("Value:")}</label> <span class=\"js-cancel-select-row\">#{_t("AUTOMATIC")}</span></code>")
+      @i = $("<code><label>#{_t("Image:")}</label> <span class=\"js-cancel-select-row\">#{_t("None")}</span></code>")
       @d = $('<div>')
       if @model
         @p.html @model.get("label") || 'Empty'
         @$el.attr("data-option-id", @model.cid)
         $('span', @c).html @model.get("name")
+        $('span', @i).html @model.get('media::image')
         @model.set('setManually', true)
       else
         @model = new $choices.Option()
@@ -124,6 +126,20 @@ module.exports = do ->
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
         newValue: val
+
+      @j = $('span', @i)
+      $viewUtils.makeEditable @, @model, @j, edit_callback: (val) =>
+        if val is ''
+          @model.unset('media::image')
+          @model.set('setManually', false)
+          val = 'None'
+          @$el.trigger("choice-list-update", @options.cl.cid)
+        else
+          @model.set('media::image', val)
+          @model.set('setManually', true)
+          @$el.trigger("choice-list-update", @options.cl.cid)
+        newValue: val
+
       @pw.html(@p)
 
       @pw.on 'click', (event) =>
@@ -133,6 +149,7 @@ module.exports = do ->
       @d.append(@pw)
       @d.append(@t)
       @d.append(@c)
+      @d.append(@i)
       @$el.html(@d)
       @
     keyupinput: (evt)->
