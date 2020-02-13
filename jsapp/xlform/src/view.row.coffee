@@ -69,7 +69,7 @@ module.exports = do ->
                   if itemGroupName && itemGroupName != ''
                     repeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    repeatGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
+                    repeatGroupsIntVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
             _.uniq(repeatGroupsItemGroupNames)
             _.uniq(repeatGroupsIntVals)
 
@@ -85,7 +85,7 @@ module.exports = do ->
                   if itemGroupName && itemGroupName != ''
                     nonRepeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
+                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if not isNan(itemGroupIntVal)
             _.uniq(nonRepeatGroupsItemGroupNames)
             _.uniq(nonRepeatGroupsIntVals)
 
@@ -98,7 +98,7 @@ module.exports = do ->
               if itemGroupName && itemGroupName != ''
                 nonGroupsItemGroupNames.push(itemGroupName)
                 itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                nonGroupsIntVals.push(itemGroupIntVal) if itemGroupIntVal isnt NaN
+                nonGroupsIntVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
             _.uniq(nonGroupsItemGroupNames)
             _.uniq(nonGroupsIntVals)
 
@@ -112,14 +112,14 @@ module.exports = do ->
               allIntVals = _.union(repeatGroupsIntVals, nonRepeatGroupsIntVals, nonGroupsIntVals)
               if allIntVals.length > 0
                 maxIntVal = Math.max.apply null, allIntVals
-                maxIntVal = 0 if maxIntVal is NaN
+                maxIntVal = 0 if isNaN(maxIntVal)
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
           else
             if nonRepeatGroups.length == 0 and nonGroups.length == 0
               maxIntVal = 0
               if repeatGroupsIntVals.length > 0
                 maxIntVal = Math.max.apply null, repeatGroupsIntVals
-                maxIntVal = 0 if maxIntVal is NaN
+                maxIntVal = 0 if isNaN(maxIntVal)
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
             else
               if @model.collection?.models?.length > 0
