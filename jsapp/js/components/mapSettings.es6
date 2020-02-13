@@ -92,7 +92,6 @@ class MapSettings extends React.Component {
         });
       }
     });
-
     var queryCount = props.asset.deployment__submission_count;
 
     let defaultActiveTab = 'colors';
@@ -115,7 +114,6 @@ class MapSettings extends React.Component {
       actions.resources.getAssetFiles.completed,
       this.updateFileList
     );
-
     this.props.asset.map_styles.querylimit = null;
   }
   toggleTab(evt) {
@@ -250,8 +248,6 @@ class MapSettings extends React.Component {
       activeTab = this.state.activeModalTab,
       queryLimit = this.state.mapSettings.querylimit || 5000,
       queryCount = this.state.queryCount;
-
-    console.log('active tab:-----' + activeTab);
 
     var tabs = ['colors'];
 
