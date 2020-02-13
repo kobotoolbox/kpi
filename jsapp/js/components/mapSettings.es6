@@ -93,16 +93,20 @@ class MapSettings extends React.Component {
       }
     });
 
+    var queryCount = props.asset.deployment__submission_count;
+
     let defaultActiveTab = 'colors';
     if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
     if (geoQuestions.length > 1) defaultActiveTab = 'geoquestion';
+    if (queryCount > 1000) defaultActiveTab = 'querylimit';
 
     this.state = {
       activeModalTab: defaultActiveTab,
       geoQuestions: geoQuestions,
       mapSettings: this.props.asset.map_styles,
       files: [],
-      layerName: ''
+      layerName: '',
+      queryCount: queryCount
     };
   }
   componentDidMount() {
@@ -111,6 +115,8 @@ class MapSettings extends React.Component {
       actions.resources.getAssetFiles.completed,
       this.updateFileList
     );
+
+    this.props.asset.map_styles.querylimit = null;
   }
   toggleTab(evt) {
     var n = evt.target.getAttribute('data-tabname');
@@ -242,7 +248,10 @@ class MapSettings extends React.Component {
     let asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
       activeTab = this.state.activeModalTab,
-      queryLimit = this.state.mapSettings.querylimit;
+      queryLimit = this.state.mapSettings.querylimit || 5000,
+      queryCount = this.state.queryCount;
+
+    console.log('active tab:-----' + activeTab);
 
     var tabs = ['colors'];
 
@@ -250,7 +259,7 @@ class MapSettings extends React.Component {
     if (geoQuestions.length > 1) {
       tabs.unshift('geoquestion');
     }
-    tabs.unshift('querylimit');
+    if (queryCount > 1000) tabs.unshift('querylimit');
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
@@ -360,11 +369,11 @@ class MapSettings extends React.Component {
             {activeTab === 'querylimit' && (
               <bem.FormModal__item>
                 <div className="map-settings__querylimit">
-                  {t('Set the amount of data displayed on the map.')}
-                  <p className="change-limit-warning">Warning: Displaying more than 5,000 responses requires a lot of memory. If your browser stops responding please close and reopen the map and try using fewer points. The limit is reset to 5,000 after a browser refresh to prevent crashing.</p>
+                  {t('By default the map is limited to the 5000 most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.')}
+                  <p className="change-limit-warning">Warning: Displaying a large number of points requires a lot of memory.</p>
                   <form onInput={this.updateSliderValue}>
                     <input id="limit-slider" className="change-limit-slider" type="range" step="1000" min="1000" max="30000" value={queryLimit} onChange={this.queryLimitChange}/>  
-                    <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="limit-slider">{this.updateSliderValue()}</output>
+                    <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="limit-slider">{queryLimit}</output>
                   </form>
                 </div>
               </bem.FormModal__item>

@@ -127,7 +127,7 @@ export class FormMap extends React.Component {
     );
 
     if(this.props.asset.deployment__submission_count > 5000) {
-      notify(t('This map display is currently limited to 5000 records for performance reasons.'));
+      notify(t('Map limited to the 5000 most recent submissions for performance reasons. Go to map settings to increase this limit.'));
     }
 
     this.requestData(map, this.props.viewby);
