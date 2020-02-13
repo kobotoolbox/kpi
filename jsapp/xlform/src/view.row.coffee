@@ -103,10 +103,9 @@ module.exports = do ->
             _.uniq(nonGroupsIntVals)
 
           if isInRepeatGroup
-            repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
-            if repeatGroupRowsModel
-              itemGroupName = repeatGroupRowsModel.attributes[itemGroupKey].get('value')
-              itemGroupVal = itemGroupName if itemGroupName && itemGroupName != ''
+            repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid and model.attributes[itemGroupKey].get('value') != ''
+            if repeatGroupRowsModel?
+              itemGroupVal = repeatGroupRowsModel.attributes[itemGroupKey].get('value')
             else
               maxIntVal = 0
               allIntVals = _.union(repeatGroupsIntVals, nonRepeatGroupsIntVals, nonGroupsIntVals)
