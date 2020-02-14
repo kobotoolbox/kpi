@@ -52,7 +52,7 @@ module.exports = do ->
     processModels: (models) ->
       for model in models
         if @isGroup model
-          if model.get('type').get('value') is 'repeat'
+          if model.get('_isRepeat').get('value')?
             @repeatGroups.push model
           else
             @nonRepeatGroups.push model
