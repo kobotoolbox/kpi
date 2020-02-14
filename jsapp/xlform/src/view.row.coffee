@@ -85,7 +85,7 @@ module.exports = do ->
                   if itemGroupName && itemGroupName != ''
                     nonRepeatGroupsItemGroupNames.push(itemGroupName)
                     itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if not isNan(itemGroupIntVal)
+                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
             _.uniq(nonRepeatGroupsItemGroupNames)
             _.uniq(nonRepeatGroupsIntVals)
 
