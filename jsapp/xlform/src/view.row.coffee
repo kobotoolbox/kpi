@@ -33,12 +33,33 @@ module.exports = do ->
       @model.on "detail-change", (key, value, ctxt)=>
         customEventName = $viewUtils.normalizeEventName("row-detail-change-#{key}")
         @$(".on-#{customEventName}").trigger(customEventName, key, value, ctxt)
+      @repeatGroups = []
+      @nonRepeatGroups = []
+      @nonGroups = []
 
     drop: (evt, index)->
       @$el.trigger("update-sort", [@model, index])
 
     getApp: ->
       @surveyView.getApp()
+
+    isGroup: (model) ->
+      model.constructor.kls is "Group"
+
+    isInGroup: (model) ->
+      model._parent?._parent?.constructor.kls is "Group"
+
+    processModels: (models) ->
+      for model in models
+        if @isGroup model
+          if model.get('type').get('value') is 'repeat'
+            @repeatGroups.push model
+          else
+            @nonRepeatGroups.push model
+          @processModels model.rows?.models
+        else
+          if not @isInGroup model
+            @nonGroups.push model
 
     # expandRowSelector: ->
     #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
@@ -54,10 +75,11 @@ module.exports = do ->
           itemGroupPrependVal = 'group'
           itemGroupVal = ''
 
-          isInGroup = @model._parent?._parent?.constructor.kls is "Group"
-          isInRepeatGroup = isInGroup and @model._parent?._parent?._isRepeat() is true
+          @processModels @ngScope?.survey?.rows?.models
 
-          repeatGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls is "Group" and model?._isRepeat()
+          isInRepeatGroup = @model._parent?._parent?.constructor.kls is "Group" and @model._parent?._parent?._isRepeat() is true
+
+          repeatGroups = @repeatGroups
           repeatGroupsItemGroupNames = []
           repeatGroupsIntVals = []
           if repeatGroups.length > 0
@@ -73,7 +95,7 @@ module.exports = do ->
             _.uniq(repeatGroupsItemGroupNames)
             _.uniq(repeatGroupsIntVals)
 
-          nonRepeatGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls is "Group" and not model?._isRepeat()
+          nonRepeatGroups = @nonRepeatGroups
           nonRepeatGroupsItemGroupNames = []
           nonRepeatGroupsIntVals = []
           if nonRepeatGroups.length > 0
@@ -89,7 +111,7 @@ module.exports = do ->
             _.uniq(nonRepeatGroupsItemGroupNames)
             _.uniq(nonRepeatGroupsIntVals)
 
-          nonGroups = @ngScope?.survey?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid and model.attributes[itemGroupKey].get('value') isnt ''
+          nonGroups = @nonGroups.filter (model) => model.cid != @model.cid and model.attributes[itemGroupKey].get('value') isnt ''
           nonGroupsItemGroupNames = []
           nonGroupsIntVals = []
           if nonGroups.length > 0
@@ -137,7 +159,11 @@ module.exports = do ->
                 if groupNames.length > 0
                   itemGroupVal =  _.last(groupNames)
                 else
-                  itemGroupVal = itemGroupPrependVal + 1
+                  maxIntVal = 0
+                  if repeatGroupsIntVals.length > 0
+                    maxIntVal = Math.max.apply null, repeatGroupsIntVals
+                    maxIntVal = 0 if isNaN(maxIntVal)
+                  itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
 
           @model.attributes[itemGroupKey].set('value', itemGroupVal)
 
