@@ -572,3 +572,7 @@ export function getScrollbarWidth() {
 export function toTitleCase(str) {
   return str.replace(/(^|\s)\S/g, (t) => {return t.toUpperCase();});
 }
+
+export function launchPrinting() {
+  window.print();
+}
