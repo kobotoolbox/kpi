@@ -238,7 +238,7 @@ export class FormMap extends React.Component {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
     this.props.asset.content.survey.forEach(function(row, i) {
-      if (row.label != null && selectedQuestion === row.label[0] && row.type != QUESTION_TYPES.get('geopoint')) {
+      if (row.label != null && selectedQuestion === row.label[0] && row.type !== QUESTION_TYPES.get('geopoint').id) {
         selectedQuestion = null; //Ignore if not a geopoint question type
       }
     });
@@ -250,7 +250,7 @@ export class FormMap extends React.Component {
 
     if (fq.length > 3) {
       queryLimit = 20000;
-    } 
+    }
 
     // TODO: handle forms with over 5000 results
     dataInterface.getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq).done((data) => {
@@ -702,8 +702,8 @@ export class FormMap extends React.Component {
             <i className='k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
-        
-        { this.state.hasGeoPoint && !this.state.noData && 
+
+        { this.state.hasGeoPoint && !this.state.noData &&
           <ui.PopoverMenu type='viewby-menu'
                         triggerLabel={label}
                         m={'above'}
