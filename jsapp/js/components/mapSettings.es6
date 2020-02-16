@@ -10,6 +10,7 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
+import QUERY_LIMIT_DEFAULT from './map';
 
 import { assign, t, validFileTypes } from '../utils';
 import { dataInterface } from '../dataInterface';
@@ -83,6 +84,9 @@ class MapSettings extends React.Component {
     autoBind(this);
 
     var geoQuestions = [];
+    const QUERY_LIMIT_MINIMUM = 1000;
+    const QUERY_LIMIT_MAXIMUM = 30000;
+    //console.log('hello?');
 
     props.asset.content.survey.forEach(function(question) {
       if (question.type && question.type === 'geopoint') {
@@ -97,7 +101,7 @@ class MapSettings extends React.Component {
     let defaultActiveTab = 'colors';
     if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
     if (geoQuestions.length > 1) defaultActiveTab = 'geoquestion';
-    if (queryCount > 1000) defaultActiveTab = 'querylimit';
+    /*if (queryCount > QUERY_LIMIT_MINIMUM)*/ defaultActiveTab = 'querylimit';
 
     this.state = {
       activeModalTab: defaultActiveTab,
@@ -114,7 +118,6 @@ class MapSettings extends React.Component {
       actions.resources.getAssetFiles.completed,
       this.updateFileList
     );
-    this.props.asset.map_styles.querylimit = null;
   }
   toggleTab(evt) {
     var n = evt.target.getAttribute('data-tabname');
@@ -234,7 +237,7 @@ class MapSettings extends React.Component {
       case 'geoquestion':
         return t('Geopoint question');
       case 'querylimit':
-        return t('Query Limit');  
+        return t('Query Limit');
     }
   }
   colorChange(val) {
@@ -246,7 +249,7 @@ class MapSettings extends React.Component {
     let asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
       activeTab = this.state.activeModalTab,
-      queryLimit = this.state.mapSettings.querylimit || 5000,
+      queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT,
       queryCount = this.state.queryCount;
 
     var tabs = ['colors'];
@@ -255,7 +258,7 @@ class MapSettings extends React.Component {
     if (geoQuestions.length > 1) {
       tabs.unshift('geoquestion');
     }
-    if (queryCount > 1000) tabs.unshift('querylimit');
+    /*if (queryCount > QUERY_LIMIT_MINIMUM)*/ tabs.unshift('querylimit');
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
@@ -368,7 +371,7 @@ class MapSettings extends React.Component {
                   {t('By default the map is limited to the 5000 most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.')}
                   <p className="change-limit-warning">Warning: Displaying a large number of points requires a lot of memory.</p>
                   <form onInput={this.updateSliderValue}>
-                    <input id="limit-slider" className="change-limit-slider" type="range" step="1000" min="1000" max="30000" value={queryLimit} onChange={this.queryLimitChange}/>  
+                    <input id="limit-slider" className="change-limit-slider" type="range" step="1000" min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
                     <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="limit-slider">{queryLimit}</output>
                   </form>
                 </div>
