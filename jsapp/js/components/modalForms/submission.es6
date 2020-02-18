@@ -9,7 +9,7 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
-import {t, notify} from 'js/utils';
+import {t, notify, launchPrinting} from 'js/utils';
 import {stores} from 'js/stores';
 import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
@@ -517,6 +517,12 @@ class Submission extends React.Component {
                 {!this.state.isEditLoading && t('Edit')}
               </a>
             }
+
+            <button className='mdl-button mdl-button--icon report-button__print'
+                    onClick={launchPrinting}
+                    data-tip={t('Print')}>
+              <i className='k-icon-print' />
+            </button>
 
             {this.userCan('change_submissions', this.props.asset) &&
               <a

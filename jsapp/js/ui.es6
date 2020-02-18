@@ -91,10 +91,7 @@ class Modal extends React.Component {
   }
   render() {
     return (
-      <bem.Modal__backdrop
-        className='modal__backdrop'
-        onClick={this.backdropClick}
-      >
+      <bem.Modal__backdrop onClick={this.backdropClick}>
         <div className={classNames(
           'modal',
           this.props.className,
@@ -303,7 +300,25 @@ class PopoverMenu extends React.Component {
   }
 };
 
+class AccessDeniedMessage extends React.Component {
+  render() {
+    return (
+      <bem.FormView>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <h3>
+              {t('Access Denied')}
+            </h3>
+            {t('You do not have permission to view this page.')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      </bem.FormView>
+    );
+  }
+}
+
 var ui = {
+  AccessDeniedMessage,
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,
