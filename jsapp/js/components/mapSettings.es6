@@ -10,13 +10,15 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
-import QUERY_LIMIT_DEFAULT from './map';
+import { QUERY_LIMIT_DEFAULT } from './map';
 
 import { assign, t, validFileTypes } from '../utils';
 import { dataInterface } from '../dataInterface';
 
 let colorSets = ['a', 'b', 'c', 'd', 'e'];
 // see kobo.map.marker-colors.scss for styling details of each set
+const QUERY_LIMIT_MINIMUM = 1000;
+const QUERY_LIMIT_MAXIMUM = 30000;
 
 class MapColorPicker extends React.Component {
   constructor(props) {
@@ -84,8 +86,6 @@ class MapSettings extends React.Component {
     autoBind(this);
 
     var geoQuestions = [];
-    const QUERY_LIMIT_MINIMUM = 1000;
-    const QUERY_LIMIT_MAXIMUM = 30000;
     //console.log('hello?');
 
     props.asset.content.survey.forEach(function(question) {
@@ -102,6 +102,8 @@ class MapSettings extends React.Component {
     if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
     if (geoQuestions.length > 1) defaultActiveTab = 'geoquestion';
     /*if (queryCount > QUERY_LIMIT_MINIMUM)*/ defaultActiveTab = 'querylimit';
+        console.log('qld: ' + QUERY_LIMIT_DEFAULT);
+
 
     this.state = {
       activeModalTab: defaultActiveTab,
@@ -134,13 +136,6 @@ class MapSettings extends React.Component {
     let settings = this.state.mapSettings;
     settings.querylimit = evt.target.value;
     this.setState({ mapSettings: settings });
-  }
-  updateSliderValue() {
-    if (document.getElementById('limit-slider') != null ) {
-      return document.getElementById('limit-slider').value;
-    } else {
-      return this.state.mapSettings.querylimit;
-    }
   }
   resetMapSettings() {
     actions.map.setMapSettings(this.props.asset.uid, {});
@@ -254,11 +249,9 @@ class MapSettings extends React.Component {
 
     var tabs = ['colors'];
 
-    if (this.userCan('change_asset', asset)) tabs.unshift('overlays');
-    if (geoQuestions.length > 1) {
-      tabs.unshift('geoquestion');
-    }
-    /*if (queryCount > QUERY_LIMIT_MINIMUM)*/ tabs.unshift('querylimit');
+    if (this.userCan('change_asset', asset)) {tabs.unshift('overlays');}
+    if (geoQuestions.length > 1) {tabs.unshift('geoquestion');}
+    if (queryCount > QUERY_LIMIT_MINIMUM) {tabs.unshift('querylimit');}
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
@@ -367,12 +360,12 @@ class MapSettings extends React.Component {
             )}
             {activeTab === 'querylimit' && (
               <bem.FormModal__item>
-                <div className="map-settings__querylimit">
-                  {t('By default the map is limited to the 5000 most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.')}
-                  <p className="change-limit-warning">Warning: Displaying a large number of points requires a lot of memory.</p>
-                  <form onInput={this.updateSliderValue}>
-                    <input id="limit-slider" className="change-limit-slider" type="range" step="1000" min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
-                    <output id="limit-slider-value" className="change-limit-slider-value" htmlFor="limit-slider">{queryLimit}</output>
+                <div className='map-settings__querylimit'>
+                  {t('By default the map is limited to the ' + QUERY_LIMIT_DEFAULT + ' most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.')}
+                  <p className='change-limit-warning'>Warning: Displaying a large number of points requires a lot of memory.</p>
+                  <form>
+                    <input id='limit-slider' className='change-limit-slider' type='range' step='1000' min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
+                    <output id='limit-slider-value' className='change-limit-slider-value' htmlFor='limit-slider'>{queryLimit}</output>
                   </form>
                 </div>
               </bem.FormModal__item>

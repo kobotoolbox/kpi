@@ -400,25 +400,20 @@ body .leaflet-control-layers,
   }
 }
 
-.map-settings__querylimit {
-  label {
-    display: block;
-    margin-bottom: 10px;
+.change-limit-warning {
+  color: red;
+}
 
-    input {
-      margin-right: 8px;
-    }
-  }
-  .change-limit-warning {
-    color: red;
-  }
-  .change-limit-slider {
-    width: 100%;
-  }
-  .change-limit-slider-value {
-    display: block;
-    text-align: center;
-  }
+.change-limit-slider {
+  width: 75%;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.change-limit-slider-value {
+  margin-left: 12px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .map-no-geopoint {
@@ -440,16 +435,6 @@ body .leaflet-control-layers,
   width: 100%;
   z-index: $z-map-overlay;
   background: rgba(100, 100, 100, 0.7);
-}
-
-.map-querylimit-slider {
-  background: white;
-  position: absolute;
-  z-index: 700;
-  top: 15px;
-  padding: 3px;
-  left: 65px;
-  border-radius: 6px;
 }
 
 // ClusterMarker overrides

@@ -127,7 +127,7 @@ export class FormMap extends React.Component {
     );
 
     if(this.props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
-      notify(t('Map limited to the 5000 most recent submissions for performance reasons. Go to map settings to increase this limit.'));
+      notify(t('Map limited to the ' + QUERY_LIMIT_DEFAULT + ' most recent submissions for performance reasons. Go to map settings to increase this limit.'));
     }
 
     this.requestData(map, this.props.viewby);
@@ -245,8 +245,6 @@ export class FormMap extends React.Component {
 
     const sort = [{id: '_id', desc: true}];
 
-    // TODO: handle forms with over 5000 results
-    console.log('query: ' + queryLimit);
     dataInterface.getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq).done((data) => {
       let results = data.results;
       if (selectedQuestion) {
@@ -622,10 +620,6 @@ export class FormMap extends React.Component {
   nameOfFieldInGroup(fieldName) {
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
     return flatPaths[fieldName];
-  }
-
-  getSliderValue() {
-    return document.getElementById('range1').value;
   }
 
   setNewQueryLimit() {
