@@ -33,12 +33,6 @@ class MainHeader extends Reflux.Component {
       asset: false,
       currentLang: currentLang(),
       isLanguageSelectorVisible: false,
-      libraryFiltersContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: COMMON_QUERIES.get('qbt'),
-        },
-        filterTags: COMMON_QUERIES.get('qbt'),
-      }),
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
           assetType: COMMON_QUERIES.get('s'),
@@ -135,10 +129,6 @@ class MainHeader extends Reflux.Component {
 
       return (
         <bem.AccountBox>
-          {/*<bem.AccountBox__notifications className="is-edge">
-            <i className="fa fa-bell"></i>
-            <bem.AccountBox__notifications__count> 2 </bem.AccountBox__notifications__count>
-          </bem.AccountBox__notifications>*/}
           <ui.PopoverMenu type='account-menu'
                           triggerLabel={accountMenuLabel}
                           buttonType='text'>
