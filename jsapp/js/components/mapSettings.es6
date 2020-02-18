@@ -12,7 +12,7 @@ import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
 import { QUERY_LIMIT_DEFAULT } from './map';
 
-import { assign, t, validFileTypes } from '../utils';
+import { assign, t, validFileTypes, notify } from '../utils';
 import { dataInterface } from '../dataInterface';
 
 let colorSets = ['a', 'b', 'c', 'd', 'e'];
@@ -140,16 +140,25 @@ class MapSettings extends React.Component {
   }
   saveMapSettings() {
     let settings = this.state.mapSettings,
+      new_querylimit = settings.querylimit,
       assetUid = this.props.asset.uid;
-
-    if (this.userCan('change_asset', this.props.asset)) {
-      actions.map.setMapSettings(assetUid, settings);
+      console.log(new_querylimit);
+      console.log('t/f? : ' + 'null: ' + new_querylimit === '' + ' the rest: ' + new_querylimit < QUERY_LIMIT_MINIMUM || new_querylimit > QUERY_LIMIT_MAXIMUM);
+    if (!new_querylimit === null || (new_querylimit < QUERY_LIMIT_MINIMUM || new_querylimit > QUERY_LIMIT_MAXIMUM)) {
+        notify(t('Please enter an integer greater than ' + QUERY_LIMIT_MINIMUM + ' or less than ' + QUERY_LIMIT_MAXIMUM + '.'));
     } else {
-      // pass settings to parent component directly
-      // for users with no permission to edit asset
-      this.props.overrideStyles(settings);
+      if (new_querylimit === null) {
+        settings.querylimit = QUERY_LIMIT_DEFAULT;
+      }
+      if (this.userCan('change_asset', this.props.asset)) {
+        actions.map.setMapSettings(assetUid, settings);
+      } else {
+        // pass settings to parent component directly
+        // for users with no permission to edit asset
+        this.props.overrideStyles(settings);
+      }
+      this.props.toggleMapSettings();
     }
-    this.props.toggleMapSettings();
   }
   updateFileList(data) {
     if (data.results) {
