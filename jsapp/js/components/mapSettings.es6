@@ -78,7 +78,7 @@ class MapColorPicker extends React.Component {
       <bem.GraphSettings__colors>{radioButtons}</bem.GraphSettings__colors>
     );
   }
-};
+}
 
 class MapSettings extends React.Component {
   constructor(props) {
