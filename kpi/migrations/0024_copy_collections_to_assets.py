@@ -43,6 +43,7 @@ def migrate_collections_to_assets(apps, schema_editor):
             content_type_id=asset_ct.pk,
             name='Can discover asset in public lists',
         ).pk
+    view_collection_pk = get_perm_pk('view_collection')
 
     # store the pk of the new asset created for each collection. we'll need
     # this when handling parents and subscriptions.
@@ -82,7 +83,7 @@ def migrate_collections_to_assets(apps, schema_editor):
         Asset.objects.bulk_create([asset])  # avoid save() shenanigans
         collection_pks_to_asset_pks[collection.pk] = asset.pk
 
-        # copy simple permissions
+        # copy permissions
         new_perms = []
         for collection_perm in ObjectPermission.objects.filter(
             content_type=collection_ct, object_id=collection.pk
@@ -94,16 +95,24 @@ def migrate_collections_to_assets(apps, schema_editor):
             for attr in ['user_id', 'deny', 'inherited']:
                 setattr(asset_perm, attr, getattr(collection_perm, attr))
             new_perms.append(asset_perm)
-        ObjectPermission.objects.bulk_create(new_perms)
 
-        # deal with an attribute that became a permission
-        if collection.discoverable_when_public:
-            asset_perm = ObjectPermission()
-            asset_perm.content_type = asset_ct
-            asset_perm.object_id = asset.pk
-            asset_perm.permission_id = discover_asset_pk
-            asset_perm.user_id = collection_perm.user_id
-            asset_perm.save()
+            # "public" for a collection meant having both `view_collection`
+            # assigned to the anonymous user *and* `discoverable_when_public`
+            # set to `True`
+            if (
+                collection_perm.permission_id == view_collection_pk
+                and collection_perm.user_id == settings.ANONYMOUS_USER_ID
+                and not collection_perm.deny
+            ):
+                # `discover_asset` replaces `discoverable_when_public`
+                asset_perm = ObjectPermission()
+                asset_perm.content_type = asset_ct
+                asset_perm.object_id = asset.pk
+                asset_perm.permission_id = discover_asset_pk
+                asset_perm.user_id = settings.ANONYMOUS_USER_ID
+                asset_perm.inherited = collection_perm.inherited
+                asset_perm.save()
+        ObjectPermission.objects.bulk_create(new_perms)
 
         # update all tag assignments in place
         TaggedItem.objects.filter(
