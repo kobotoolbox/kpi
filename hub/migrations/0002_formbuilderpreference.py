@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             name='FormBuilderPreference',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('preferred_builder', models.CharField(default=b'D', max_length=1, choices=[(b'K', b'kpi'), (b'D', b'dkobo')])),
+                ('preferred_builder', models.CharField(default='D', max_length=1, choices=[('K', 'kpi'), ('D', 'dkobo')])),
                 ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
