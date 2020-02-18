@@ -13,31 +13,31 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='uid',
-            field=kpi.fields.KpiUidField(uid_prefix=b'a'),
+            field=kpi.fields.KpiUidField(uid_prefix='a'),
         ),
         migrations.AlterField(
             model_name='assetsnapshot',
             name='uid',
-            field=kpi.fields.KpiUidField(uid_prefix=b's'),
+            field=kpi.fields.KpiUidField(uid_prefix='s'),
         ),
         migrations.AlterField(
             model_name='collection',
             name='uid',
-            field=kpi.fields.KpiUidField(uid_prefix=b'c'),
+            field=kpi.fields.KpiUidField(uid_prefix='c'),
         ),
         migrations.AlterField(
             model_name='importtask',
             name='uid',
-            field=kpi.fields.KpiUidField(uid_prefix=b'i'),
+            field=kpi.fields.KpiUidField(uid_prefix='i'),
         ),
         migrations.AlterField(
             model_name='objectpermission',
             name='uid',
-            field=kpi.fields.KpiUidField(uid_prefix=b'p'),
+            field=kpi.fields.KpiUidField(uid_prefix='p'),
         ),
         migrations.AlterField(
             model_name='taguid',
             name='uid',
-            field=kpi.fields.KpiUidField(uid_prefix=b't'),
+            field=kpi.fields.KpiUidField(uid_prefix='t'),
         ),
     ]
