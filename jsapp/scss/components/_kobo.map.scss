@@ -410,10 +410,26 @@ body .leaflet-control-layers,
   vertical-align: middle;
 }
 
-.change-limit-slider-value {
-  margin-left: 12px;
+.change-limit-input {
+  width: 10%;
+  margin-left: 10px;
   display: inline-block;
   vertical-align: middle;
+}
+
+@media screen and (max-width: 1265px) {
+  .change-limit-slider {
+    width: 60%;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .change-limit-input {
+    width: 30%;
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
+  }
 }
 
 .map-no-geopoint {

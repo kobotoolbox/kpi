@@ -362,7 +362,7 @@ class MapSettings extends React.Component {
                   <p className='change-limit-warning'>Warning: Displaying a large number of points requires a lot of memory.</p>
                   <form>
                     <input id='limit-slider' className='change-limit-slider' type='range' step='1000' min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
-                    <output id='limit-slider-value' className='change-limit-slider-value' htmlFor='limit-slider'>{queryLimit}</output>
+                    <input id='limit-input' className='change-limit-input' type='number' step='1000' min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
                   </form>
                 </div>
               </bem.FormModal__item>

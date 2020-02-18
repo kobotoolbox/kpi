@@ -244,7 +244,6 @@ export class FormMap extends React.Component {
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
 
     const sort = [{id: '_id', desc: true}];
-
     dataInterface.getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq).done((data) => {
       let results = data.results;
       if (selectedQuestion) {
