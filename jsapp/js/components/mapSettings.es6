@@ -86,7 +86,6 @@ class MapSettings extends React.Component {
     autoBind(this);
 
     var geoQuestions = [];
-    //console.log('hello?');
 
     props.asset.content.survey.forEach(function(question) {
       if (question.type && question.type === 'geopoint') {
@@ -99,11 +98,9 @@ class MapSettings extends React.Component {
     var queryCount = props.asset.deployment__submission_count;
 
     let defaultActiveTab = 'colors';
-    if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
-    if (geoQuestions.length > 1) defaultActiveTab = 'geoquestion';
-    /*if (queryCount > QUERY_LIMIT_MINIMUM)*/ defaultActiveTab = 'querylimit';
-        console.log('qld: ' + QUERY_LIMIT_DEFAULT);
-
+    if (this.userCan('change_asset', this.props.asset)) {defaultActiveTab = 'overlays';}
+    if (geoQuestions.length > 1) {defaultActiveTab = 'geoquestion';}
+    if (queryCount > QUERY_LIMIT_MINIMUM) {defaultActiveTab = 'querylimit';}
 
     this.state = {
       activeModalTab: defaultActiveTab,
