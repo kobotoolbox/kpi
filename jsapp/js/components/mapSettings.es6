@@ -130,8 +130,13 @@ class MapSettings extends React.Component {
     this.setState({ mapSettings: settings });
   }
   queryLimitChange(evt) {
-    let settings = this.state.mapSettings;
-    settings.querylimit = evt.target.value;
+    let settings = this.state.mapSettings,
+      new_querylimit = evt.target.value;
+    if (new_querylimit.length === 0) {
+      settings.querylimit = '';
+    } else {
+      settings.querylimit = new_querylimit;
+    }
     this.setState({ mapSettings: settings });
   }
   resetMapSettings() {
@@ -142,14 +147,9 @@ class MapSettings extends React.Component {
     let settings = this.state.mapSettings,
       new_querylimit = settings.querylimit,
       assetUid = this.props.asset.uid;
-      console.log(new_querylimit);
-      console.log('t/f? : ' + 'null: ' + new_querylimit === '' + ' the rest: ' + new_querylimit < QUERY_LIMIT_MINIMUM || new_querylimit > QUERY_LIMIT_MAXIMUM);
-    if (!new_querylimit === null || (new_querylimit < QUERY_LIMIT_MINIMUM || new_querylimit > QUERY_LIMIT_MAXIMUM)) {
+    if (new_querylimit < QUERY_LIMIT_MINIMUM || new_querylimit > QUERY_LIMIT_MAXIMUM) {
         notify(t('Please enter an integer greater than ' + QUERY_LIMIT_MINIMUM + ' or less than ' + QUERY_LIMIT_MAXIMUM + '.'));
     } else {
-      if (new_querylimit === null) {
-        settings.querylimit = QUERY_LIMIT_DEFAULT;
-      }
       if (this.userCan('change_asset', this.props.asset)) {
         actions.map.setMapSettings(assetUid, settings);
       } else {
@@ -250,10 +250,12 @@ class MapSettings extends React.Component {
     let asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
       activeTab = this.state.activeModalTab,
-      queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT,
+      queryLimit = this.state.mapSettings.querylimit,
       queryCount = this.state.queryCount;
-
-    var tabs = ['colors'];
+    if (queryLimit === undefined) {
+      queryLimit = QUERY_LIMIT_DEFAULT;
+    }
+    var tabs = ['colors']; console.log('render querylimit: ' + queryLimit + 'the state: ' + this.state.mapSettings.querylimit);
 
     if (this.userCan('change_asset', asset)) {tabs.unshift('overlays');}
     if (geoQuestions.length > 1) {tabs.unshift('geoquestion');}
