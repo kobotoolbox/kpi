@@ -1,6 +1,6 @@
 {
   "name": "kpi",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "KoBoToolbox frontend interface.",
   "devDependencies": {
     "@mapbox/leaflet-omnivore": "^0.3.4",
