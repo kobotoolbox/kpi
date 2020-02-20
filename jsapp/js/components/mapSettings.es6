@@ -131,11 +131,11 @@ class MapSettings extends React.Component {
   }
   queryLimitChange(evt) {
     let settings = this.state.mapSettings,
-      new_querylimit = evt.target.value;
-    if (new_querylimit.length === 0) {
+      newQueryLimit = evt.target.value;
+    if (newQueryLimit.length === 0) {
       settings.querylimit = '';
     } else {
-      settings.querylimit = new_querylimit;
+      settings.querylimit = newQueryLimit;
     }
     this.setState({ mapSettings: settings });
   }
@@ -145,9 +145,9 @@ class MapSettings extends React.Component {
   }
   saveMapSettings() {
     let settings = this.state.mapSettings,
-      new_querylimit = settings.querylimit,
+      newQueryLimit = settings.querylimit,
       assetUid = this.props.asset.uid;
-    if (new_querylimit < QUERY_LIMIT_MINIMUM || new_querylimit > QUERY_LIMIT_MAXIMUM) {
+    if (newQueryLimit < QUERY_LIMIT_MINIMUM || newQueryLimit > QUERY_LIMIT_MAXIMUM) {
         notify(t('Please enter an integer greater than ' + QUERY_LIMIT_MINIMUM + ' or less than ' + QUERY_LIMIT_MAXIMUM + '.'));
     } else {
       if (this.userCan('change_asset', this.props.asset)) {
@@ -252,10 +252,8 @@ class MapSettings extends React.Component {
       activeTab = this.state.activeModalTab,
       queryLimit = this.state.mapSettings.querylimit,
       queryCount = this.state.queryCount;
-    if (queryLimit === undefined) {
-      queryLimit = QUERY_LIMIT_DEFAULT;
-    }
-    var tabs = ['colors']; console.log('render querylimit: ' + queryLimit + 'the state: ' + this.state.mapSettings.querylimit);
+    if (queryLimit === undefined) {queryLimit = QUERY_LIMIT_DEFAULT;}
+    var tabs = ['colors'];
 
     if (this.userCan('change_asset', asset)) {tabs.unshift('overlays');}
     if (geoQuestions.length > 1) {tabs.unshift('geoquestion');}
