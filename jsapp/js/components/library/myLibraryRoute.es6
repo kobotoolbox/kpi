@@ -89,6 +89,11 @@ class MyLibraryRoute extends React.Component {
             totalPages={this.state.totalPages}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
           />
+
+          <div className='dropzone-active-overlay'>
+            <i className='k-icon k-icon-upload'/>
+            {t('Drop files to upload')}
+          </div>
         </Dropzone>
       </DocumentTitle>
     );
