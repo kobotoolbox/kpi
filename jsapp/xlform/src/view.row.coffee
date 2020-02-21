@@ -57,7 +57,7 @@ module.exports = do ->
             repeatGroups.push model
           else
             nonRepeatGroups.push model
-          @processAllModels model.rows?.models
+          @processAllModels model.rows?.models, repeatGroups, nonRepeatGroups, nonGroups
         else
           if not @isInGroup model
             nonGroups.push model
