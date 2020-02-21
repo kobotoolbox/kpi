@@ -129,7 +129,7 @@ module.exports = do ->
                 maxIntVal = 0 if isNaN(maxIntVal)
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
           else
-            if @nonRepeatGroups.length == 0 and @nonGroups.length == 0
+            if @nonRepeatGroups.length == 0 and nonGroups.length == 0
               maxIntVal = 0
               if repeatGroupsIntVals.length > 0
                 maxIntVal = Math.max.apply null, repeatGroupsIntVals
