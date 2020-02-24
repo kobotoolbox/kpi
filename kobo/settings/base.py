@@ -376,6 +376,11 @@ HAYSTACK_SIGNAL_MODELS = (
 # http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
 HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 
+''' Search parser configuration '''
+# Lookup to use when a search term appears by itself without a specified field
+SEARCH_DEFAULT_FIELD_LOOKUP = 'summary__icontains'
+
+
 # Enketo settings copied from dkobo.
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER

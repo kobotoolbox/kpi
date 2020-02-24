@@ -119,34 +119,28 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
 
 class SearchFilter(filters.BaseFilterBackend):
     """
-    Filter objects by searching with Whoosh if the request includes a `q`
-    parameter. Another parameter, `parent`, is recognized when its value is an
-    empty string; this restricts the queryset to objects without parents.
+    If the request includes a `q` parameter specifying a Boolean search string
+    with a Whoosh-like syntax, filter the queryset accordingly using the ORM.
+    If no `q` is present, return the queryset untouched. If `q` is not
+    parseable, references a field that does not exist, or specifies an invalid
+    value for a field (e.g. text for an integer field), return an empty
+    queryset to make the problem obvious.
     """
 
-    library_collection_pattern = re.compile(
-        r'\(((?:asset_type:(?:[^ ]+)(?: OR )*)+)\) AND \(parent__uid:([^)]+)\)'
-    )
-
     def filter_queryset(self, request, queryset, view):
-        if ('parent' in request.query_params and
-                request.query_params['parent'] == ''):
-            # Empty string means query for null parent
-            queryset = queryset.filter(parent=None)
         try:
             q = request.query_params['q']
         except KeyError:
             return queryset
 
-
         try:
-            q_obj = parse(q,queryset.model)
+            q_obj = parse(q)
         except ParseError:
             return queryset.model.objects.none()
-        
+
         try:
             return queryset.filter(q_obj)
-        except FieldError:
+        except (FieldError, ValueError):
             return queryset.model.objects.none()
 
 
