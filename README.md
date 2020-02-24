@@ -30,7 +30,7 @@ Results from the `tags` and `api/v2/assets` endpoints can be filtered by a
 Boolean query specified in the `q` parameter. For example:
 `api/v2/assets?q=owner__username:meg AND name__icontains:quixotic` would return
 assets whose owner has the username "meg" (case sensitive) and whose name
-contains "quixotic" anyhwere (case insensitive). For more details about the
+contains "quixotic" anywhere (case insensitive). For more details about the
 syntax, see the documentation at the top of
 [kpi/utils/query_parser/query_parser.py](./kpi/utils/query_parser/query_parser.py).
 
