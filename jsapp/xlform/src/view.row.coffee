@@ -142,16 +142,17 @@ module.exports = do ->
                   modelCollectionMiddleOut = arrayMiddleOut @model.collection.models, currentModelCollectionIndex, 'left'
                   for model in modelCollectionMiddleOut[1..]
                     if @isGroup model
-                      currentGroupFieldModels = []
-                      @processAllNonRepeatFieldModels model.rows?.models, currentGroupFieldModels
-                      for fieldModel in currentGroupFieldModels
-                        if @itemGroupKey of fieldModel.attributes
-                          itemGroupName = fieldModel.attributes[@itemGroupKey].get('value')
-                          if itemGroupName && itemGroupName != ''
-                            itemGroupVal = itemGroupName
-                            break
-                      if itemGroupVal != ''
-                        break
+                      if not model.get('_isRepeat').get('value')?
+                        currentGroupFieldModels = []
+                        @processAllNonRepeatFieldModels model.rows?.models, currentGroupFieldModels
+                        for fieldModel in currentGroupFieldModels
+                          if @itemGroupKey of fieldModel.attributes
+                            itemGroupName = fieldModel.attributes[@itemGroupKey].get('value')
+                            if itemGroupName && itemGroupName != ''
+                              itemGroupVal = itemGroupName
+                              break
+                        if itemGroupVal != ''
+                          break
                     else
                       if @itemGroupKey of model.attributes
                         itemGroupName = model.attributes[@itemGroupKey].get('value')
