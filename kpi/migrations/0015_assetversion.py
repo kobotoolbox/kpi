@@ -1,4 +1,5 @@
 # coding: utf-8
+import jsonfield.fields
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import migrations, models
@@ -69,7 +70,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='summary',
-            field=JSONBField(default=dict, null=True),
+            field=jsonfield.fields.JSONField(default=dict, null=True),
         ),
         migrations.AddField(
             model_name='asset',
