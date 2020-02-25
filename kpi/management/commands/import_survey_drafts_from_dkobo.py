@@ -19,6 +19,7 @@ class SurveyDraft(models.Model):
     """
     SurveyDrafts belong to a user and contain the minimal representation of
     the draft survey of the user and of the question library.
+    # ToDo check if this command is still valid during PR review
     """
     class Meta:
         app_label = 'koboform'

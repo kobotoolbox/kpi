@@ -13,10 +13,10 @@ import dateutil.parser
 import pytz
 import requests
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.urls import Resolver404, resolve
 from django.db import models, transaction
-from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
@@ -82,8 +82,9 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    data = JSONField()
-    messages = JSONField(default={})
+    # ToDo validate whether both fields below need to be changed to jsonbfield
+    data = JSONBField()
+    messages = JSONBField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -600,9 +601,8 @@ class ExportTask(ImportExportTask):
     def _filter_by_source_kludge(queryset, source):
         """
         A disposable way to filter a queryset by source URL.
-        TODO: make `data` a `JSONBField` and use proper filtering
         """
-        return queryset.filter(data__contains=source)
+        return queryset.filter(data__source=source)
 
     @classmethod
     @transaction.atomic
