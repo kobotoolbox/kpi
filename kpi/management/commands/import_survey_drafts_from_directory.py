@@ -15,7 +15,7 @@ from pyxform.xls2json_backends import csv_to_dict
 
 from kpi.models import Asset
 from kpi.models import Collection
-from .sync_kobocat_xforms import _set_auto_field_update
+from kpi.model_utils import _set_auto_field_update
 
 
 def _csv_to_dict(content):

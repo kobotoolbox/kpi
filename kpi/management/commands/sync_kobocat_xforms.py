@@ -20,15 +20,16 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
-from ...deployment_backends.kc_access.shadow_models import (
+from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatPermission,
     KobocatUserObjectPermission,
     ReadOnlyKobocatXForm,
     ShadowModel,
 )
-from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...models import Asset, ObjectPermission
-from ...models.object_permission import get_anonymous_user
+from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.models import Asset, ObjectPermission
+from kpi.models.object_permission import get_anonymous_user
+from kpi.model_utils import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -192,12 +193,6 @@ def _get_kc_backend_response(xform):
         ])
     backend_response = response.json()
     return backend_response
-
-
-def _set_auto_field_update(cls_, field_name, val):
-    field = [f for f in cls_._meta.fields if f.name == field_name][0]
-    field.auto_now = val
-    field.auto_now_add = val
 
 
 def _sync_form_content(asset, xform, changes):

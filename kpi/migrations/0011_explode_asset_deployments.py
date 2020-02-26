@@ -1,9 +1,8 @@
 # coding: utf-8
 from django.db import migrations, models
 
-from ..deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ..management.commands.sync_kobocat_xforms import \
-    _set_auto_field_update
+from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.model_utils import _set_auto_field_update
 
 
 def explode_assets(apps, schema_editor):
