@@ -472,7 +472,7 @@ class MockDataExports(TestCase):
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        created_export_tasks = ExportTask._filter_by_source_kludge(
+        created_export_tasks = ExportTask.filter_by_source(
             ExportTask.objects.filter(user=self.user),
             task_data['source']
         )
@@ -487,7 +487,7 @@ class MockDataExports(TestCase):
         self.assertFalse(result.storage.exists(result.name))
         self.assertListEqual( # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
-            list(ExportTask._filter_by_source_kludge(
+            list(ExportTask.filter_by_source(
                 ExportTask.objects.filter(
                     user=self.user),
                 task_data['source']
@@ -501,7 +501,7 @@ class MockDataExports(TestCase):
         }
         self.assertEqual(
             0,
-            ExportTask._filter_by_source_kludge(
+            ExportTask.filter_by_source(
                 ExportTask.objects.filter(
                     user=self.user),
                 task_data['source']
@@ -518,7 +518,7 @@ class MockDataExports(TestCase):
             export_task.save()
         self.assertSequenceEqual(
             [ExportTask.CREATED, ExportTask.PROCESSING],
-            ExportTask._filter_by_source_kludge(
+            ExportTask.filter_by_source(
                 ExportTask.objects.filter(
                     user=self.user),
                 task_data['source']
@@ -533,7 +533,7 @@ class MockDataExports(TestCase):
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
             [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
-            ExportTask._filter_by_source_kludge(
+            ExportTask.filter_by_source(
                 ExportTask.objects.filter(
                     user=self.user),
                 task_data['source']
