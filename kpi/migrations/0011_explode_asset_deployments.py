@@ -2,7 +2,7 @@
 from django.db import migrations, models
 
 from ..deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ..management.commands.import_survey_drafts_from_dkobo import \
+from ..management.commands.sync_kobocat_xforms import \
     _set_auto_field_update
 
 

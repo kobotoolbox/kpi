@@ -20,7 +20,6 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
-from .import_survey_drafts_from_dkobo import _set_auto_field_update
 from ...deployment_backends.kc_access.shadow_models import (
     KobocatPermission,
     KobocatUserObjectPermission,
@@ -193,6 +192,12 @@ def _get_kc_backend_response(xform):
         ])
     backend_response = response.json()
     return backend_response
+
+
+def _set_auto_field_update(cls_, field_name, val):
+    field = [f for f in cls_._meta.fields if f.name == field_name][0]
+    field.auto_now = val
+    field.auto_now_add = val
 
 
 def _sync_form_content(asset, xform, changes):

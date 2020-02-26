@@ -15,6 +15,7 @@ from pyxform.xls2json_backends import csv_to_dict
 
 from kpi.models import Asset
 from kpi.models import Collection
+from .sync_kobocat_xforms import _set_auto_field_update
 
 
 def _csv_to_dict(content):
@@ -23,12 +24,6 @@ def _csv_to_dict(content):
         if not re.search(r'_header$', key):
             out_dict[key] = sheet
     return out_dict
-
-
-def _set_auto_field_update(kls, field_name, val):
-    field = [f for f in kls._meta.fields if f.name == field_name][0]
-    field.auto_now = val
-    field.auto_now_add = val
 
 
 def _import_user_drafts(server, username, draft_id, fpath):
