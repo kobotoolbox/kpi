@@ -63,7 +63,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/assets/
 
-    Get an hash of all `version_id`s of assets.
+    Get a hash of all `version_id`s of assets.
     Useful to detect any changes in assets with only one call to `API`
 
     <pre class="prettyprint">
