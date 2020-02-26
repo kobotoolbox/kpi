@@ -82,7 +82,6 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    # ToDo validate whether both fields below need to be changed to jsonbfield
     data = JSONBField()
     messages = JSONBField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
@@ -598,7 +597,7 @@ class ExportTask(ImportExportTask):
         self.remove_excess(self.user, source_url)
 
     @staticmethod
-    def _filter_by_source_kludge(queryset, source):
+    def filter_by_source(queryset, source):
         """
         A disposable way to filter a queryset by source URL.
         """
@@ -626,7 +625,7 @@ class ExportTask(ImportExportTask):
             user=user,
             date_created__lt=oldest_allowed_timestamp
         ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
-        stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
+        stuck_exports = cls.filter_by_source(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
                 'Stuck export {}: type {}, username {}, source {}, '
@@ -651,7 +650,7 @@ class ExportTask(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        user_source_exports = cls._filter_by_source_kludge(
+        user_source_exports = cls.filter_by_source(
             cls.objects.filter(user=user), source
         ).order_by('-date_created')
         excess_exports = user_source_exports[
