@@ -111,6 +111,12 @@ def _load_library_content(structure):
     return collection
 
 
+def _set_auto_field_update(kls, field_name, val):
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
+    field.auto_now = val
+    field.auto_now_add = val
+
+
 def create_assets(kls, structure, **options):
     if kls == "collection":
         obj = Collection.objects.create(**structure)
