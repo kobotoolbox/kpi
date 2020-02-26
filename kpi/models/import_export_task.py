@@ -596,13 +596,6 @@ class ExportTask(ImportExportTask):
         # exports in excess of the per-user, per-form limit
         self.remove_excess(self.user, source_url)
 
-    @staticmethod
-    def filter_by_source(queryset, source):
-        """
-        A disposable way to filter a queryset by source URL.
-        """
-        return queryset.filter(data__source=source)
-
     @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
@@ -623,9 +616,9 @@ class ExportTask(ImportExportTask):
         oldest_allowed_timestamp = this_moment - max_allowed_export_age
         stuck_exports = cls.objects.filter(
             user=user,
-            date_created__lt=oldest_allowed_timestamp
+            date_created__lt=oldest_allowed_timestamp,
+            data__source=source,
         ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
-        stuck_exports = cls.filter_by_source(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
                 'Stuck export {}: type {}, username {}, source {}, '
@@ -650,8 +643,8 @@ class ExportTask(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        user_source_exports = cls.filter_by_source(
-            cls.objects.filter(user=user), source
+        user_source_exports = cls.objects.filter(
+            user=user, data__source=source
         ).order_by('-date_created')
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
