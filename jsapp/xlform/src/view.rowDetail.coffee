@@ -98,19 +98,24 @@ module.exports = do ->
             # triggers element change event
             $el.val(modelVal)
 
-      reflectValueInEl()
-      @model.on 'change:value', reflectValueInEl
-
-      $el.on 'change', ()=>
+      detectAndChangeValue = () =>
         $elVal = $el.val()
         if transformFn
           $elVal = transformFn($elVal)
         changeModelValue($elVal)
 
-      $el.on('keyup', (evt) =>
+      reflectValueInEl()
+      @model.on 'change:value', reflectValueInEl
+
+      $el.on 'change', ()=>
+        detectAndChangeValue()
+
+      $el.on 'keyup', (evt) =>
         if evt.key is 'Enter' or evt.keyCode is 13
           $el.blur()
-      )
+        else
+          detectAndChangeValue()
+
       return
 
     _insertInDOM: (where, how) ->
