@@ -2,13 +2,17 @@
 
 import logging
 import requests
+import os
+import json
 from requests import Response
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import login as auth_login_view, logout as auth_logout_view
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
 from django.shortcuts import redirect, render, resolve_url
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import serializers
 from urlparse import parse_qs, urlparse
 from tldextract import extract
 
@@ -275,3 +279,30 @@ def logout(request, next_page=None):
         auth_logout(request)
         if next_page:
             request.session['next'] = next_page
+
+class OCAppInfo(object):
+    def __init__(self, **kwargs):
+        setattr(self, 'name', kwargs.get('name', 'FormDesigner'))
+        setattr(self, 'version', kwargs.get('version', None))
+
+class OCAppInfoSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=256)
+    version = serializers.CharField(max_length=256)
+
+    def create(self, app_info):
+        return OCAppInfo(**app_info)
+
+@csrf_exempt
+def app_info(request):
+    if request.method == 'GET':
+        package_info = {}
+        try:
+            config_file = os.path.join(settings.BASE_DIR, 'package.json')
+            with open(config_file, "r") as f:
+                package_info = json.loads(f.read())
+        except IOError:
+            return HttpResponseNotFound()
+
+        appInfo = OCAppInfo(version=package_info['version'])
+        serializer = OCAppInfoSerializer(appInfo)
+        return JsonResponse(serializer.data)

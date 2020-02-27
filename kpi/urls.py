@@ -35,7 +35,7 @@ from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 from hub.models import ConfigurationFile
 from kobo.apps.hook.views import HookViewSet, HookLogViewSet
-from oc.views import openid as oc_openid, authz_cb as oc_login_cb, logout as oc_logout
+from oc.views import openid as oc_openid, authz_cb as oc_login_cb, logout as oc_logout, app_info
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -139,4 +139,5 @@ urlpatterns = [
         'kobo.apps.superuser_stats.views.user_report'),
     url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
         'kobo.apps.superuser_stats.views.retrieve_user_report'),
+    url(r'app_info$', app_info, name='app_info'),
 ]

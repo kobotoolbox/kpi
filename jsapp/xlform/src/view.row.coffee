@@ -36,6 +36,7 @@ module.exports = do ->
       @repeatGroups = []
       @nonRepeatGroups = []
       @nonGroups = []
+      @itemGroupKey = 'bind::oc:itemgroup'
 
     drop: (evt, index)->
       @$el.trigger("update-sort", [@model, index])
@@ -49,17 +50,41 @@ module.exports = do ->
     isInGroup: (model) ->
       model._parent?._parent?.constructor.kls is "Group"
 
-    processModels: (models) ->
+    processAllModels: (models, repeatGroups, nonRepeatGroups, nonGroups) ->
       for model in models
         if @isGroup model
           if model.get('_isRepeat').get('value')?
-            @repeatGroups.push model
+            repeatGroups.push model
           else
-            @nonRepeatGroups.push model
-          @processModels model.rows?.models
+            nonRepeatGroups.push model
+          @processAllModels model.rows?.models, repeatGroups, nonRepeatGroups, nonGroups
         else
           if not @isInGroup model
-            @nonGroups.push model
+            nonGroups.push model
+
+    processFieldModels: (models, names, intVals) ->
+      if models.length > 0
+        for model in models
+          itemGroupName = model.attributes[@itemGroupKey].get('value')
+          if itemGroupName && itemGroupName != ''
+            names.push(itemGroupName)
+            itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
+            intVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
+        _.uniq(names)
+        _.uniq(intVals)
+
+    processGroupFieldModels: (groups, groupNames, groupIntVals) ->
+      for group in groups
+        groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
+        @processFieldModels groupRowModels, groupNames, groupIntVals
+
+    processAllNonRepeatFieldModels: (models, nonRepeatFieldModels) ->
+      for model in models
+        if @isGroup model
+          if not model.get('_isRepeat').get('value')?
+            @processAllFieldModels model.rows?.models
+        else
+          nonRepeatFieldModels.push model
 
     # expandRowSelector: ->
     #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
@@ -71,63 +96,31 @@ module.exports = do ->
         delete @model.attributes.isNewRow
 
         if @model.get('type').get('typeId') isnt 'note'
-          itemGroupKey = 'bind::oc:itemgroup'
+
           itemGroupPrependVal = 'group'
           itemGroupVal = ''
 
-          @processModels @ngScope?.survey?.rows?.models
+          @processAllModels @ngScope?.survey?.rows?.models, @repeatGroups, @nonRepeatGroups, @nonGroups
 
           isInRepeatGroup = @model._parent?._parent?.constructor.kls is "Group" and @model._parent?._parent?._isRepeat() is true
 
-          repeatGroups = @repeatGroups
           repeatGroupsItemGroupNames = []
           repeatGroupsIntVals = []
-          if repeatGroups.length > 0
-            repeatGroups.forEach (group) =>
-              groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
-              if groupRowModels.length > 0
-                groupRowModels.forEach (model) =>
-                  itemGroupName = model.attributes[itemGroupKey].get('value')
-                  if itemGroupName && itemGroupName != ''
-                    repeatGroupsItemGroupNames.push(itemGroupName)
-                    itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    repeatGroupsIntVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
-            _.uniq(repeatGroupsItemGroupNames)
-            _.uniq(repeatGroupsIntVals)
+          @processGroupFieldModels @repeatGroups, repeatGroupsItemGroupNames, repeatGroupsIntVals
 
-          nonRepeatGroups = @nonRepeatGroups
           nonRepeatGroupsItemGroupNames = []
           nonRepeatGroupsIntVals = []
-          if nonRepeatGroups.length > 0
-            nonRepeatGroups.forEach (group) =>
-              groupRowModels = group?.rows?.models?.filter (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid
-              if groupRowModels.length > 0
-                groupRowModels.forEach (model) =>
-                  itemGroupName = model.attributes[itemGroupKey].get('value')
-                  if itemGroupName && itemGroupName != ''
-                    nonRepeatGroupsItemGroupNames.push(itemGroupName)
-                    itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                    nonRepeatGroupsIntVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
-            _.uniq(nonRepeatGroupsItemGroupNames)
-            _.uniq(nonRepeatGroupsIntVals)
+          @processGroupFieldModels @nonRepeatGroups, nonRepeatGroupsItemGroupNames, nonRepeatGroupsIntVals
 
-          nonGroups = @nonGroups.filter (model) => model.cid != @model.cid and model.attributes[itemGroupKey].get('value') isnt ''
+          nonGroups = @nonGroups.filter (model) => model.cid != @model.cid and model.attributes[@itemGroupKey].get('value') isnt ''
           nonGroupsItemGroupNames = []
           nonGroupsIntVals = []
-          if nonGroups.length > 0
-            nonGroups.forEach (model) =>
-              itemGroupName = model.attributes[itemGroupKey].get('value')
-              if itemGroupName && itemGroupName != ''
-                nonGroupsItemGroupNames.push(itemGroupName)
-                itemGroupIntVal = parseInt(itemGroupName.replace(/\D/g, ''), 10)
-                nonGroupsIntVals.push(itemGroupIntVal) if not isNaN(itemGroupIntVal)
-            _.uniq(nonGroupsItemGroupNames)
-            _.uniq(nonGroupsIntVals)
+          @processFieldModels nonGroups, nonGroupsItemGroupNames, nonGroupsIntVals
 
           if isInRepeatGroup
-            repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid and model.attributes[itemGroupKey].get('value') != ''
+            repeatGroupRowsModel = @model._parent?._parent?.rows?.models.find (model) => model?.constructor.kls isnt "Group" and model.cid != @model.cid and model.attributes[@itemGroupKey].get('value') != ''
             if repeatGroupRowsModel?
-              itemGroupVal = repeatGroupRowsModel.attributes[itemGroupKey].get('value')
+              itemGroupVal = repeatGroupRowsModel.attributes[@itemGroupKey].get('value')
             else
               maxIntVal = 0
               allIntVals = _.union(repeatGroupsIntVals, nonRepeatGroupsIntVals, nonGroupsIntVals)
@@ -136,7 +129,7 @@ module.exports = do ->
                 maxIntVal = 0 if isNaN(maxIntVal)
               itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
           else
-            if nonRepeatGroups.length == 0 and nonGroups.length == 0
+            if @nonRepeatGroups.length == 0 and nonGroups.length == 0
               maxIntVal = 0
               if repeatGroupsIntVals.length > 0
                 maxIntVal = Math.max.apply null, repeatGroupsIntVals
@@ -148,16 +141,29 @@ module.exports = do ->
                 if currentModelCollectionIndex != -1 # found
                   modelCollectionMiddleOut = arrayMiddleOut @model.collection.models, currentModelCollectionIndex, 'left'
                   for model in modelCollectionMiddleOut[1..]
-                    if itemGroupKey of model.attributes
-                      itemGroupName = model.attributes[itemGroupKey].get('value')
-                      if itemGroupName && itemGroupName != ''
-                        itemGroupVal = itemGroupName
-                        break
+                    if @isGroup model
+                      if not model.get('_isRepeat').get('value')?
+                        currentGroupFieldModels = []
+                        @processAllNonRepeatFieldModels model.rows?.models, currentGroupFieldModels
+                        for fieldModel in currentGroupFieldModels
+                          if @itemGroupKey of fieldModel.attributes
+                            itemGroupName = fieldModel.attributes[@itemGroupKey].get('value')
+                            if itemGroupName && itemGroupName != ''
+                              itemGroupVal = itemGroupName
+                              break
+                        if itemGroupVal != ''
+                          break
+                    else
+                      if @itemGroupKey of model.attributes
+                        itemGroupName = model.attributes[@itemGroupKey].get('value')
+                        if itemGroupName && itemGroupName != ''
+                          itemGroupVal = itemGroupName
+                          break
 
               if itemGroupVal == ''
                 groupNames = _.uniq(_.union(nonGroupsItemGroupNames, nonRepeatGroupsItemGroupNames))
                 if groupNames.length > 0
-                  itemGroupVal =  _.last(groupNames)
+                  itemGroupVal =  _.first(groupNames)
                 else
                   maxIntVal = 0
                   if repeatGroupsIntVals.length > 0
@@ -165,7 +171,7 @@ module.exports = do ->
                     maxIntVal = 0 if isNaN(maxIntVal)
                   itemGroupVal = itemGroupPrependVal + (maxIntVal + 1)
 
-          @model.attributes[itemGroupKey].set('value', itemGroupVal)
+          @model.attributes[@itemGroupKey].set('value', itemGroupVal)
 
       if @model.get('type').get('typeId') is 'note'
         @model.attributes['readonly'].set('value', true)

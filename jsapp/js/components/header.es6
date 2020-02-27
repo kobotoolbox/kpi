@@ -176,12 +176,21 @@ class MainHeader extends Reflux.Component {
       var gitRev = stores.session.currentAccount.git_rev;
       return (
         <bem.GitRev>
+          { !!gitRev.branch &&
           <bem.GitRev__item>
             branch: {gitRev.branch}
           </bem.GitRev__item>
+          }
+          { !!gitRev.short &&
           <bem.GitRev__item>
             commit: {gitRev.short}
           </bem.GitRev__item>
+          }
+          { !!gitRev.tag &&
+          <bem.GitRev__item>
+            tag: {gitRev.tag}
+          </bem.GitRev__item>
+          }
         </bem.GitRev>
       );
     }
