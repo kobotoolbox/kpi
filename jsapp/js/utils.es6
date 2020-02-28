@@ -9,6 +9,7 @@
  */
 
 import clonedeep from 'lodash.clonedeep';
+import _ from 'underscore';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
@@ -534,10 +535,10 @@ export function updateCrossStorageTimeOut() {
 export function checkCrossStorageUser(userName) {
   return crossStorageClient.onConnect().then(function() {
     return crossStorageClient.get(CROSS_STORAGE_USER_KEY).then(function(userValue) {
-      if (userValue === null) {
+      if (_.isEmpty(userValue)) {
         console.log('checkCrossStorageUser userValue null');
         return Promise.reject('logout');
-      } else if (userValue !== userName) {
+      } else if (userValue.toLowerCase() !== userName.toLowerCase()) {
         console.log('checkCrossStorageUser userValue different');
         return Promise.reject('user-changed');
       }
