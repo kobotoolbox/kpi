@@ -63,6 +63,12 @@ class MyLibraryRoute extends React.Component {
   }
 
   render() {
+    let contextualEmptyMessage;
+
+    if (!this.state.isLoading && this.state.totalAssets === 0) {
+      contextualEmptyMessage = t('Your search returned no results.');
+    }
+
     return (
       <DocumentTitle title={`${t('My Library')} | KoboToolbox`}>
         <Dropzone
@@ -88,6 +94,7 @@ class MyLibraryRoute extends React.Component {
             currentPage={this.state.currentPage}
             totalPages={this.state.totalPages}
             onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
+            emptyMessage={contextualEmptyMessage}
           />
 
           <div className='dropzone-active-overlay'>

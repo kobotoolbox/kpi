@@ -16,6 +16,7 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  *
  * @prop {string} context - One of ASSETS_TABLE_CONTEXTS.
  * @prop {boolean} [isLoading] - To display spinner.
+ * @prop {string} [emptyMessage] - To display contextual empty message when zero assets.
  * @prop {Array<object>} assets - List of assets to be displayed.
  * @prop {number} totalAssets - Number of assets on all pages.
  * @prop {Array<object>} metadata - List of available filters values.
@@ -343,7 +344,7 @@ export class AssetsTable extends React.Component {
 
           {!this.props.isLoading && this.props.assets.length === 0 &&
             <bem.AssetsTableRow m='empty-message'>
-              {t('There are no assets to display.')}
+              {this.props.emptyMessage || t('There are no assets to display.')}
             </bem.AssetsTableRow>
           }
 
