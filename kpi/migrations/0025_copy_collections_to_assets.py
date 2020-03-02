@@ -159,7 +159,7 @@ def migrate_collections_to_assets(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0023_partial_permissions'),
+        ('kpi', '0024_alter_jsonfield_to_jsonbfield'),
     ]
 
     operations = [

@@ -9,13 +9,10 @@
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
 
-# TODO: Get Haystack from PyPI again once https://github.com/django-haystack/django-haystack/issues/1662 is fixed
--e git+https://github.com/jnm/django-haystack@3a3b04564e189c11fdc20a4be43e360b5396708c#egg=django_haystack
-
-# TODO²: Get `django-markitup` from PyPI again once it supports Django 2.1
+# TODO: Get `django-markitup` from PyPI again once it supports Django 2.1
 -e git+https://github.com/st8st8/django-markitup@1370b43dc519b1441510a17330b8e980d29a7bf3#egg=django_markitup
 
-# TODO³: Get `django-request-cache` from PyPI again once https://github.com/anexia-it/django-request-cache/pull/6 is merged
+# TODO²: Get `django-request-cache` from PyPI again once https://github.com/anexia-it/django-request-cache/pull/6 is merged
 -e git+https://github.com/kobotoolbox/django-request-cache@c240abdd660cc59f5f5280beee30b3e011332a34#egg=django_request_cache
 
 # Regular PyPI packages
@@ -72,7 +69,6 @@ static3
 tabulate
 unicodecsv
 uWSGI
-Whoosh==2.7.4
 xlrd
 xlwt
 
