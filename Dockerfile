@@ -7,7 +7,6 @@ ENV LC_ALL=en_US.UTF-8
 ENV VIRTUAL_ENV=/opt/venv
 
 ENV KPI_LOGS_DIR=/srv/logs \
-    KPI_WHOOSH_DIR=/srv/whoosh \
     DJANGO_SETTINGS_MODULE=kobo.settings.prod \
     # The mountpoint of a volume shared with the `nginx` container. Static files will
     #   be copied there.
@@ -37,6 +36,8 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 ##########################################
 # Install `apt` packages.                #
 ##########################################
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 
 RUN apt -qq update && \
     apt -qq -y install \
@@ -110,11 +111,11 @@ RUN git submodule init && \
     git submodule update --remote && \
     python manage.py compilemessages
 
-#################################################################
-# Persist the log directory, email directory, and Whoosh index. #
-#################################################################
+##########################################
+# Persist the log and email directories. #
+##########################################
 
-RUN mkdir -p "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
+RUN mkdir -p "${KPI_LOGS_DIR}/" "${KPI_SRC_DIR}/emails"
 
 #################################################
 # Handle runtime tasks and create main process. #
