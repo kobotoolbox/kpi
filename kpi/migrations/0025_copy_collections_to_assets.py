@@ -21,7 +21,17 @@ def migrate_collections_to_assets(apps, schema_editor):
     )
 
     asset_ct = ContentType.objects.get(app_label='kpi', model='asset')
-    collection_ct = ContentType.objects.get(app_label='kpi', model='collection')
+    try:
+        collection_ct = ContentType.objects.get(app_label='kpi', model='collection')
+    except ContentType.DoesNotExist:
+        collection_ct = None
+    if not Collection.objects.exists():
+        # There's no work for us to do.
+        return
+    if not collection_ct:
+        raise RuntimeError(
+            'The database contains collections but no content type for them.'
+        )
 
     def get_perm_pk(codename):
         return Permission.objects.get(codename=codename).pk
