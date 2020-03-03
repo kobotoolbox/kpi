@@ -253,12 +253,11 @@ class MapSettings extends React.Component {
       queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT,
       queryCount = this.state.queryCount;
     var tabs = ['colors'];
-    if (this.state.resetPressed) {queryLimit = QUERY_LIMIT_DEFAULT;}
 
+    if (this.state.resetPressed) {queryLimit = QUERY_LIMIT_DEFAULT;}
     if (this.userCan('change_asset', asset)) {tabs.unshift('overlays');}
     if (geoQuestions.length > 1) {tabs.unshift('geoquestion');}
     if (queryCount > QUERY_LIMIT_MINIMUM) {tabs.unshift('querylimit');}
-    console.log('render queryLimit: ' + queryLimit);
     var modalTabs = tabs.map(function(tab, i) {
       return (
         <button
