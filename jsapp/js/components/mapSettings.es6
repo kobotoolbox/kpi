@@ -108,7 +108,8 @@ class MapSettings extends React.Component {
       mapSettings: this.props.asset.map_styles,
       files: [],
       layerName: '',
-      queryCount: queryCount
+      queryCount: queryCount,
+      resetPressed: false
     };
   }
   componentDidMount() {
@@ -130,27 +131,27 @@ class MapSettings extends React.Component {
     this.setState({ mapSettings: settings });
   }
   queryLimitChange(evt) {
+    this.state.resetPressed = false;
     let settings = this.state.mapSettings,
       newQueryLimit = evt.target.value;
-    if (newQueryLimit.length === 0) {
-      settings.querylimit = '';
-    } else {
-      settings.querylimit = newQueryLimit;
-    }
+    settings.querylimit = newQueryLimit;
     this.setState({ mapSettings: settings });
   }
   resetMapSettings() {
     actions.map.setMapSettings(this.props.asset.uid, {});
-    this.props.toggleMapSettings();
+    if (this.state.activeModalTab === 'querylimit') {
+      this.state.resetPressed = true;
+    } else {
+      this.props.toggleMapSettings();
+    }
   }
   saveMapSettings() {
     let settings = this.state.mapSettings,
-      newQueryLimit = settings.querylimit,
       assetUid = this.props.asset.uid;
-    if (newQueryLimit < QUERY_LIMIT_MINIMUM || newQueryLimit > QUERY_LIMIT_MAXIMUM) {
-        notify(t('Please enter an integer greater than ' + QUERY_LIMIT_MINIMUM + ' or less than ' + QUERY_LIMIT_MAXIMUM + '.'));
-    } else {
       if (this.userCan('change_asset', this.props.asset)) {
+        if (this.state.resetPressed) {
+          settings.querylimit = QUERY_LIMIT_DEFAULT;
+        }
         actions.map.setMapSettings(assetUid, settings);
       } else {
         // pass settings to parent component directly
@@ -158,7 +159,6 @@ class MapSettings extends React.Component {
         this.props.overrideStyles(settings);
       }
       this.props.toggleMapSettings();
-    }
   }
   updateFileList(data) {
     if (data.results) {
@@ -250,15 +250,15 @@ class MapSettings extends React.Component {
     let asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
       activeTab = this.state.activeModalTab,
-      queryLimit = this.state.mapSettings.querylimit,
+      queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT,
       queryCount = this.state.queryCount;
-    if (queryLimit === undefined) {queryLimit = QUERY_LIMIT_DEFAULT;}
     var tabs = ['colors'];
+    if (this.state.resetPressed) {queryLimit = QUERY_LIMIT_DEFAULT;}
 
     if (this.userCan('change_asset', asset)) {tabs.unshift('overlays');}
     if (geoQuestions.length > 1) {tabs.unshift('geoquestion');}
     if (queryCount > QUERY_LIMIT_MINIMUM) {tabs.unshift('querylimit');}
-
+    console.log('render queryLimit: ' + queryLimit);
     var modalTabs = tabs.map(function(tab, i) {
       return (
         <button
@@ -367,11 +367,11 @@ class MapSettings extends React.Component {
             {activeTab === 'querylimit' && (
               <bem.FormModal__item>
                 <div className='map-settings__querylimit'>
-                  {t('By default the map is limited to the ' + QUERY_LIMIT_DEFAULT + ' most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.')}
+                  {t('By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.').replace('##QUERY_LIMIT_DEFAULT##', QUERY_LIMIT_DEFAULT)}
                   <p className='change-limit-warning'>Warning: Displaying a large number of points requires a lot of memory.</p>
                   <form>
                     <input id='limit-slider' className='change-limit-slider' type='range' step='1000' min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
-                    <input id='limit-input' className='change-limit-input' type='number' step='1000' min={QUERY_LIMIT_MINIMUM} max={QUERY_LIMIT_MAXIMUM} value={queryLimit} onChange={this.queryLimitChange}/>
+                    <output id='limit-slider-value' className='change-limit-slider-value' htmlFor='limit-slider'>{queryLimit}</output>
                   </form>
                 </div>
               </bem.FormModal__item>
@@ -381,7 +381,7 @@ class MapSettings extends React.Component {
 
         {(activeTab === 'geoquestion' || activeTab === 'colors' || activeTab === 'querylimit') &&
           <bem.Modal__footer>
-            {this.userCan('change_asset', this.props.asset) &&
+            {(this.userCan('change_asset', this.props.asset) && !this.state.resetPressed) &&
               <bem.Modal__footerButton
                 onClick={this.resetMapSettings}
               >

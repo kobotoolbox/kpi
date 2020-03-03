@@ -127,7 +127,7 @@ export class FormMap extends React.Component {
     );
 
     if(this.props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
-      notify(t('Map limited to the ' + QUERY_LIMIT_DEFAULT + ' most recent submissions for performance reasons. Go to map settings to increase this limit.'));
+      notify(t('Map limited to the  ##QUERY_LIMIT_DEFAULT##  most recent submissions for performance reasons. Go to map settings to increase this limit.').replace('##QUERY_LIMIT_DEFAULT##', QUERY_LIMIT_DEFAULT));
     }
 
     this.requestData(map, this.props.viewby);
