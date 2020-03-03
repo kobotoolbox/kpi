@@ -258,6 +258,7 @@ class MapSettings extends React.Component {
     if (this.userCan('change_asset', asset)) {tabs.unshift('overlays');}
     if (geoQuestions.length > 1) {tabs.unshift('geoquestion');}
     if (queryCount > QUERY_LIMIT_MINIMUM) {tabs.unshift('querylimit');}
+    if (activeTab !== 'querylimit') {this.state.resetPressed = false;}
     var modalTabs = tabs.map(function(tab, i) {
       return (
         <button
@@ -380,7 +381,7 @@ class MapSettings extends React.Component {
 
         {(activeTab === 'geoquestion' || activeTab === 'colors' || activeTab === 'querylimit') &&
           <bem.Modal__footer>
-            {(this.userCan('change_asset', this.props.asset) && !this.state.resetPressed) &&
+            {(this.userCan('change_asset', this.props.asset) && (!this.state.resetPressed)) &&
               <bem.Modal__footerButton
                 onClick={this.resetMapSettings}
               >
