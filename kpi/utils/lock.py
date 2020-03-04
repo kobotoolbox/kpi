@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 import os
 from functools import wraps
 
 import redis
 from django.conf import settings
-
 
 REDIS_LOCK_CLIENT = redis.Redis(**settings.LOCK_REDIS)
 
