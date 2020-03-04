@@ -59,7 +59,6 @@ export class FormMap extends React.Component {
     super(props);
 
     let survey = props.asset.content.survey;
-    props.asset.map_styles.querylimit = QUERY_LIMIT_DEFAULT;
     var hasGeoPoint = false;
     survey.forEach(function(s) {
       if (s.type == 'geopoint')
@@ -127,15 +126,13 @@ export class FormMap extends React.Component {
     );
 
     if(this.props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
-      notify(t('Map limited to the  ##QUERY_LIMIT_DEFAULT##  most recent submissions for performance reasons. Go to map settings to increase this limit.').replace('##QUERY_LIMIT_DEFAULT##', QUERY_LIMIT_DEFAULT));
+      notify(t('By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.').replace('##number##', QUERY_LIMIT_DEFAULT));
     }
 
     this.requestData(map, this.props.viewby);
-    this.listenTo(actions.map.setMapSettings, this.mapSettingsListener);
-    this.listenTo(
-      actions.resources.getAssetFiles.completed,
-      this.updateOverlayList
-    );
+    this.listenTo(actions.map.setMapStyles.started, this.onSetMapStylesStarted);
+    this.listenTo(actions.map.setMapStyles.completed, this.onSetMapStylesCompleted);
+    this.listenTo(actions.resources.getAssetFiles.completed, this.updateOverlayList);
     actions.resources.getAssetFiles(this.props.asset.uid);
   }
   loadOverlayLayers(map) {
@@ -222,23 +219,39 @@ export class FormMap extends React.Component {
       }
     });
   }
-  mapSettingsListener(uid, changes) {
-    let map = this.refreshMap();
 
-    if (Object.keys(changes).length === 0) {
-      this.setState({
-        overridenStyles: {colorSet: 'a'}
-      });
+  onSetMapStylesCompleted() {
+    // asset is updated, no need to store oberriden styles as they are identical
+    this.setState({overridenStyles: false});
+  }
+
+  /**
+   * We don't want to wait for the asset (`asset.map_styles`) to be updated
+   * we use the settings being saved and fetch data with them
+   */
+  onSetMapStylesStarted(assetUid, upcomingMapSettings) {
+    if (!upcomingMapSettings.colorSet) {
+      upcomingMapSettings.colorSet = 'a';
     }
 
-    this.setState({ filteredByMarker: false, componentRefreshed: true });
-    this.requestData(map, this.props.viewby);
+    if (!upcomingMapSettings.querylimit) {
+      upcomingMapSettings.querylimit = QUERY_LIMIT_DEFAULT.toString();
+    }
+
+    this.overrideStyles(upcomingMapSettings);
   }
 
   requestData(map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
-    var queryLimit = this.props.asset.map_styles.querylimit || QUERY_LIMIT_DEFAULT;
+
+    let queryLimit = QUERY_LIMIT_DEFAULT;
+    if (this.state.overridenStyles && this.state.overridenStyles.querylimit) {
+      queryLimit = this.state.overridenStyles.querylimit;
+    } else if (this.props.asset.map_styles.querylimit) {
+      queryLimit = this.props.asset.map_styles.querylimit;
+    }
+
     var fq = ['_id', '_geolocation'];
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
@@ -563,15 +576,19 @@ export class FormMap extends React.Component {
       showMapSettings: !this.state.showMapSettings
     });
   }
-  overrideStyles(settings) {
+  overrideStyles(mapStyles) {
     this.setState({
       filteredByMarker: false,
       componentRefreshed: true,
-      overridenStyles: settings
+      overridenStyles: mapStyles
     });
 
     let map = this.refreshMap();
-    this.requestData(map, this.props.viewby);
+
+    // HACK switch to setState callback after updating to React 16+
+    window.setTimeout(() => {
+      this.requestData(map, this.props.viewby);
+    }, 0);
   }
   toggleFullscreen () {
     this.setState({isFullscreen: !this.state.isFullscreen});
@@ -621,16 +638,7 @@ export class FormMap extends React.Component {
     return flatPaths[fieldName];
   }
 
-  setNewQueryLimit() {
-    document.getElementById('range1value').innerHTML = document.getElementById('range1').value;
-    window.setTimeout(()=>{
-      let map = this.refreshMap();
-      this.requestData(map, this.props.viewby);
-    }, 1000);
-  }
-
   render () {
-
     if (this.state.error) {
       return (
         <ui.Panel>
@@ -640,7 +648,7 @@ export class FormMap extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
-        )
+      );
     }
 
     const fields = this.state.fields,
@@ -814,6 +822,7 @@ export class FormMap extends React.Component {
               asset={this.props.asset}
               toggleMapSettings={this.toggleMapSettings}
               overrideStyles={this.overrideStyles}
+              overridenStyles={this.state.overridenStyles}
             />
           </ui.Modal>
         )}
