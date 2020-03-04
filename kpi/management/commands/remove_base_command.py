@@ -1,20 +1,22 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import sys
 
 from django.core.management.base import BaseCommand
 from django.db import transaction, connection
 
 
+# TODO: Remove `remove_base_command` from the output of `./manage.py --help`
+# or print an informative message if someone tries to use it. Currently,
+# it just raises `AttributeError: 'module' object has no attribute 'Command'`
+
 class RemoveBaseCommand(BaseCommand):
 
     def __init__(self, stdout=None, stderr=None, no_color=False):
-        super(RemoveBaseCommand, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
+        super().__init__(stdout=stdout, stderr=stderr, no_color=no_color)
         self._model = None
 
     def add_arguments(self, parser):
-        super(RemoveBaseCommand, self).add_arguments(parser)
+        super().add_arguments(parser)
         parser.add_argument(
             "--days",
             default=90,

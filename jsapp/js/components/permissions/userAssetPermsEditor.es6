@@ -5,11 +5,10 @@ import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
-import stores from 'js/stores';
-import actions from 'js/actions';
-import bem from 'js/bem';
-import classNames from 'classnames';
-import permParser from './permParser';
+import {stores} from 'js/stores';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
+import {permParser} from './permParser';
 import permConfig from './permConfig';
 import {
   assign,
@@ -18,6 +17,7 @@ import {
   buildUserUrl
 } from 'js/utils';
 import {
+  ANON_USERNAME,
   KEY_CODES,
   PERMISSIONS_CODENAMES
 } from 'js/constants';
@@ -333,7 +333,9 @@ class UserAssetPermsEditor extends React.Component {
       !this.state.isEditingUsername &&
       !this.state.isAddingPartialUsernames &&
       this.state.username.length > 0 &&
-      this.state.usernamesBeingChecked.size === 0
+      this.state.usernamesBeingChecked.size === 0 &&
+      // we don't allow manual setting anonymous user permissions through UI
+      this.state.username !== ANON_USERNAME
     );
   }
 

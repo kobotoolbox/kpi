@@ -1,13 +1,11 @@
 # coding: utf-8
 # 😇
-from __future__ import unicode_literals
-
 import datetime
 
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.conf import settings
 from django.db import models
 from django.utils.module_loading import import_string
-from jsonbfield.fields import JSONField
 from markdownx.models import MarkdownxField
 from markdownx.settings import MARKDOWNX_MARKDOWNIFY_FUNCTION
 from private_storage.fields import PrivateFileField
@@ -36,7 +34,7 @@ class InAppMessage(models.Model):
     # Make the author deliberately set these dates to something valid
     valid_from = models.DateTimeField(default=EPOCH_BEGINNING)
     valid_until = models.DateTimeField(default=EPOCH_BEGINNING)
-    last_editor = models.ForeignKey(settings.AUTH_USER_MODEL)
+    last_editor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return '{} ({})'.format(self.title, self.uid)
@@ -72,9 +70,9 @@ class InAppMessageFile(models.Model):
 
 
 class InAppMessageUserInteractions(models.Model):
-    message = models.ForeignKey(InAppMessage)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    interactions = JSONField(default=dict)
+    message = models.ForeignKey(InAppMessage, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    interactions = JSONBField(default=dict)
 
     class Meta:
         unique_together = ('message', 'user')

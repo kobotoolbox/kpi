@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import os
 import re
 
 from django.core.exceptions import ImproperlyConfigured
 
 
-class RedisHelper(object):
+class RedisHelper:
     """
     Redis's helper.
 

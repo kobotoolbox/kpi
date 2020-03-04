@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import posixpath
 
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
-from jsonbfield.fields import JSONField as JSONBField
 from private_storage.fields import PrivateFileField
 
 from kpi.fields import KpiUidField
@@ -32,10 +30,12 @@ class AssetFile(models.Model):
         (MAP_LAYER, MAP_LAYER),
     )
     uid = KpiUidField(uid_prefix='af')
-    asset = models.ForeignKey('Asset', related_name='asset_files')
+    asset = models.ForeignKey('Asset', related_name='asset_files',
+                              on_delete=models.CASCADE)
     # Keep track of the uploading user, who could be anyone with `change_asset`
     # rights, not just the asset owner
-    user = models.ForeignKey('auth.User', related_name='asset_files')
+    user = models.ForeignKey('auth.User', related_name='asset_files',
+                             on_delete=models.CASCADE)
     file_type = models.CharField(choices=TYPE_CHOICES, max_length=32)
     name = models.CharField(max_length=255)
     date_created = models.DateTimeField(default=timezone.now)

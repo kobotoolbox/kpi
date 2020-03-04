@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 from rest_framework import status, exceptions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -19,7 +17,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
     lookup_field = 'uid'
 
     def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             return ExportTask.objects.none()
 
         queryset = ExportTask.objects.filter(
@@ -35,9 +33,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             return queryset
         if q.startswith('source:'):
             q = remove_string_prefix(q, 'source:')
-            # This is exceedingly crude... but support for querying inside
-            # JSONField not available until Django 1.9
-            queryset = queryset.filter(data__contains=q)
+            queryset = queryset.filter(data__source=q)
         elif q.startswith('uid__in:'):
             q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]
@@ -49,7 +45,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous():
+        if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
         # Read valid options from POST data

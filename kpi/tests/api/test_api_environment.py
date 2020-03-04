@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😇
-from __future__ import absolute_import, unicode_literals
-
 import constance
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpRequest
 from django.template import Template, RequestContext
 from rest_framework import status

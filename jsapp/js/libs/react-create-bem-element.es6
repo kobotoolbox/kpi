@@ -150,4 +150,4 @@ reactCreateBemElement.logClassNames = function(tf){
   return reactCreateBemElement;
 };
 
-export default reactCreateBemElement;
+export const BEM = reactCreateBemElement;

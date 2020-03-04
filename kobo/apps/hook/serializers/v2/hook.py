@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import json
 
 import constance
@@ -74,4 +72,4 @@ class HookSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        return super(HookSerializer, self).validate(attrs)
+        return super().validate(attrs)

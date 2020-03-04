@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 import copy
 import json
 from collections import defaultdict
@@ -11,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -40,6 +38,7 @@ from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
     XlsRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -64,7 +63,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X GET https://[kpi]/api/v2/assets/
 
-    Get an hash of all `version_id`s of assets.
+    Get a hash of all `version_id`s of assets.
     Useful to detect any changes in assets with only one call to `API`
 
     <pre class="prettyprint">
@@ -207,7 +206,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(AssetViewSet, self).get_queryset(*args, **kwargs)
+        queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.model.optimize_queryset_for_list(queryset)
         else:
@@ -220,21 +219,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         Extra context provided to the serializer class.
         """
 
-        context_ = super(AssetViewSet, self).get_serializer_context()
+        context_ = super().get_serializer_context()
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
             # to retrieve object permissions, we make a big one at beginning
             # to build an dict key-ed by asset ids.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
-            queryset = super(AssetViewSet, self).get_queryset()
+            queryset = super().get_queryset()
             asset_content_type = ContentType.objects.get_for_model(Asset)
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
-            object_permissions = ObjectPermission.objects.\
-                filter(content_type_id=asset_content_type.pk,
-                       object_id__in=asset_ids).\
-                select_related('user', 'permission')
-
+            object_permissions = ObjectPermission.objects.filter(
+                content_type_id=asset_content_type.pk,
+                object_id__in=asset_ids
+            ).select_related(
+                'user', 'permission'
+            ).order_by(
+                'user__username', 'permission__codename'
+            )
             object_permissions_per_object = defaultdict(list)
 
             for op in object_permissions:
@@ -357,7 +359,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @list_route(methods=["GET"], renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=["GET"],
+            renderer_classes=[renderers.JSONRenderer])
     def hash(self, request):
         """
         Creates an hash of `version_id` of all accessible assets by the user.
@@ -367,7 +370,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         :return: JSON
         """
         user = self.request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             raise exceptions.NotAuthenticated()
         else:
             accessible_assets = get_objects_for_user(
@@ -379,7 +382,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash = md5("".join(assets_version_ids)).hexdigest()
+                hash = md5(hashable_str("".join(assets_version_ids))).hexdigest()
             else:
                 hash = ""
 
@@ -387,7 +390,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 "hash": hash
             })
 
-    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
         asset = self.get_object()
         return Response({
@@ -396,7 +399,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'data': asset.to_ss_structure(),
         })
 
-    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def valid_content(self, request, uid):
         asset = self.get_object()
         return Response({
@@ -405,23 +408,23 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'data': to_xlsform_structure(asset.content),
         })
 
-    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
         asset = self.get_object()
         return Response({'asset': asset, }, template_name='koboform.html')
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa.ordered_xlsform_content())
         return Response('<!doctype html>\n'
                         '<html><body><code><pre>' + md_table.strip())
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
 
-    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
         export = asset._snapshot(regenerate=True)
@@ -435,7 +438,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
-    @detail_route(
+    @action(detail=True, 
         methods=['get', 'post', 'patch'],
         permission_classes=[PostMappedToChangePermission]
     )
@@ -522,7 +525,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         # django.contrib.auth.models.AnonymousUser object doesn't work for
         # queries.
         user = self.request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
         serializer.save(owner=user)
 
@@ -541,7 +544,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         if hasattr(instance, 'has_deployment') and instance.has_deployment:
             instance.deployment.delete()
-        return super(AssetViewSet, self).perform_destroy(instance)
+        return super().perform_destroy(instance)
 
     def finalize_response(self, request, response, *args, **kwargs):
         """ Manipulate the headers as appropriate for the requested format.
@@ -562,5 +565,5 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                     request.accepted_renderer.format
                 )
 
-        return super(AssetViewSet, self).finalize_response(
+        return super().finalize_response(
             request, response, *args, **kwargs)

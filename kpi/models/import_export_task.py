@@ -1,66 +1,38 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-import re
-import pytz
+# coding: utf-8
 import base64
 import datetime
-import requests
-import tempfile
 import posixpath
-import dateutil.parser
+import re
+import tempfile
+from collections import defaultdict
 from io import BytesIO
 from os.path import splitext
-from collections import defaultdict
+from urllib.parse import urlparse
 
-from jsonfield import JSONField
+import dateutil.parser
+import pytz
+import requests
 from django.conf import settings
-from rest_framework import exceptions
-from django.db import models, transaction
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
+from django.urls import Resolver404, resolve
+from django.db import models, transaction
 from private_storage.fields import PrivateFileField
-from django.core.urlresolvers import Resolver404, resolve
-from django.utils.six.moves.urllib import parse as urlparse
+from pyxform import xls2json_backends
+from rest_framework import exceptions
 
 import formpack.constants
-from pyxform import xls2json_backends
-from formpack.utils.string import ellipsize
 from formpack.schema.fields import ValidationStatusCopyField
-
+from formpack.utils.string import ellipsize
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 from kpi.utils.log import logging
-from kobo.apps.reports.report_data import build_formpack
-
+from kpi.utils.strings import to_str
 from ..fields import KpiUidField
+from ..model_utils import create_assets, _load_library_content, \
+    remove_string_prefix
 from ..models import Collection, Asset
 from ..zip_importer import HttpContentParse
-from ..model_utils import create_assets, _load_library_content, \
-                          remove_string_prefix
-from ..deployment_backends.mock_backend import MockDeploymentBackend
-
-
-# TODO: Remove lines below (38:58) when django and django-storages are upgraded
-# to latest version.
-# Because current version of Django is 1.8, we can't upgrade `django-storages`.
-# `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.1) requires `Django 1.11`
-from storages.backends.s3boto3 import S3Boto3StorageFile
-
-
-def _flush_write_buffer(self):
-    """
-    Flushes the write buffer.
-    """
-    if self._buffer_file_size:
-        self._write_counter += 1
-        self.file.seek(0)
-        part = self._multipart.Part(self._write_counter)
-        part.upload(Body=self.file.read())
-        self.file.seek(0)
-        self.file.truncate()
-
-
-# Monkey Patch S3Boto3StorageFile class with 1.7.1 version of the method
-S3Boto3StorageFile._flush_write_buffer = _flush_write_buffer
 
 
 def utcnow(*args, **kwargs):
@@ -73,7 +45,7 @@ def utcnow(*args, **kwargs):
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
-        item_path = urlparse.urlparse(item_path).path
+        item_path = urlparse(item_path).path
     try:
         match = resolve(item_path)
     except Resolver404:
@@ -83,9 +55,9 @@ def _resolve_url_to_asset_or_collection(item_path):
 
     uid = match.kwargs.get('uid')
     if match.url_name == 'asset-detail':
-        return ('asset', Asset.objects.get(uid=uid))
+        return 'asset', Asset.objects.get(uid=uid)
     elif match.url_name == 'collection-detail':
-        return ('collection', Collection.objects.get(uid=uid))
+        return 'collection', Collection.objects.get(uid=uid)
 
 
 class ImportExportTask(models.Model):
@@ -109,9 +81,9 @@ class ImportExportTask(models.Model):
         (COMPLETE, COMPLETE),
     )
 
-    user = models.ForeignKey('auth.User')
-    data = JSONField()
-    messages = JSONField(default={})
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    data = JSONBField()
+    messages = JSONBField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -145,7 +117,7 @@ class ImportExportTask(models.Model):
             self.status = self.COMPLETE
         except Exception as err:
             msgs['error_type'] = type(err).__name__
-            msgs['error'] = err.message
+            msgs['error'] = str(err)
             self.status = self.ERROR
             logging.error(
                 'Failed to run %s: %s' % (self._meta.model_name, repr(err)),
@@ -162,7 +134,7 @@ class ImportExportTask(models.Model):
         except TypeError as e:
             self.status = self.ERROR
             logging.error('Failed to save %s: %s' % (self._meta.model_name,
-                                                   repr(e)),
+                                                     repr(e)),
                           exc_info=True)
             self.save(update_fields=['status'])
 
@@ -204,7 +176,7 @@ class ImportTask(ImportExportTask):
             # multiple XLS files in a directory structure within a ZIP archive
             response = requests.get(self.data['single_xls_url'])
             response.raise_for_status()
-            encoded_xls = base64.b64encode(response.content)
+            encoded_xls = to_str(base64.b64encode(response.content))
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
@@ -234,7 +206,7 @@ class ImportTask(ImportExportTask):
         fif.remove_empty_collections()
 
         destination_collection = destination \
-                if (destination_kls == 'collection') else False
+            if destination_kls == 'collection' else False
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -461,8 +433,8 @@ class ExportTask(ImportExportTask):
             version = 'latest version'
 
         filename_template = (
-            u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
-            u'.{ext}'.format(
+            '{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
+            '.{ext}'.format(
                 version=version,
                 date=utcnow(),
                 ext=extension
@@ -554,7 +526,7 @@ class ExportTask(ImportExportTask):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
             raise exceptions.PermissionDenied(
-                u'{user} cannot export {source}'.format(
+                '{user} cannot export {source}'.format(
                     user=self.user, source=source)
             )
 
@@ -591,7 +563,7 @@ class ExportTask(ImportExportTask):
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
-                    output_file.write((line + u"\r\n").encode('utf-8'))
+                    output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)
@@ -624,14 +596,6 @@ class ExportTask(ImportExportTask):
         # exports in excess of the per-user, per-form limit
         self.remove_excess(self.user, source_url)
 
-    @staticmethod
-    def _filter_by_source_kludge(queryset, source):
-        """
-        A disposable way to filter a queryset by source URL.
-        TODO: make `data` a `JSONBField` and use proper filtering
-        """
-        return queryset.filter(data__contains=source)
-
     @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
@@ -652,12 +616,12 @@ class ExportTask(ImportExportTask):
         oldest_allowed_timestamp = this_moment - max_allowed_export_age
         stuck_exports = cls.objects.filter(
             user=user,
-            date_created__lt=oldest_allowed_timestamp
+            date_created__lt=oldest_allowed_timestamp,
+            data__source=source,
         ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
-        stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
-                u'Stuck export {}: type {}, username {}, source {}, '
+                'Stuck export {}: type {}, username {}, source {}, '
                 'age {}'.format(
                     stuck_export.uid,
                     stuck_export.data.get('type'),
@@ -679,8 +643,8 @@ class ExportTask(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        user_source_exports = cls._filter_by_source_kludge(
-            cls.objects.filter(user=user), source
+        user_source_exports = cls.objects.filter(
+            user=user, data__source=source
         ).order_by('-date_created')
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
@@ -698,7 +662,8 @@ def _b64_xls_to_dict(base64_encoded_upload):
 
 
 def _strip_header_keys(survey_dict):
-    for sheet_name, sheet in survey_dict.items():
+    survey_dict_copy = dict(survey_dict)
+    for sheet_name, sheet in survey_dict_copy.items():
         if re.search(r'_header$', sheet_name):
             del survey_dict[sheet_name]
     return survey_dict
