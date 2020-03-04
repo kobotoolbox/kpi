@@ -397,7 +397,7 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.hook.tasks.failures_reports',
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kpi_queue'},
-        'enabled': False,
+        'enabled': True,
     },
     # Schedule every Saturday at 4:00 AM UTC. Can be customized in admin section
     'remove-s3-orphans': {
