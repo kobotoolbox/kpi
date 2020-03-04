@@ -282,6 +282,7 @@ var sessionStore = Reflux.createStore({
           }
         });
     }
+    window.parent.postMessage('fd_loggedin', '*');
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,
