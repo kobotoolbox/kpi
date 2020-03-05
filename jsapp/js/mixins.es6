@@ -743,7 +743,7 @@ mixins.cloneAssetAsNewType = {
     const opts = {
       title: params.promptTitle,
       message: params.promptMessage,
-      value: params.sourceName,
+      value: _.escape(params.sourceName),
       labels: {ok: t('Create'), cancel: t('Cancel')},
       onok: (evt, value) => {
         // disable buttons
