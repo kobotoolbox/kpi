@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -123,7 +122,7 @@ export function getAssetDisplayName(asset) {
     output.empty = t('untitled');
   }
   output.final = output.original || output.question || output.empty;
-  return _.escape(output);
+  return output;
 }
 
 /**
