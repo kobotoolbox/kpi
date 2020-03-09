@@ -1,7 +1,8 @@
+# coding: utf-8
 import base64
-import unittest
 
 import responses
+import unittest
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -10,6 +11,7 @@ from rest_framework.reverse import reverse
 
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.strings import to_str
 
 
 class AssetImportTaskTest(BaseTestCase):
@@ -66,7 +68,7 @@ class AssetImportTaskTest(BaseTestCase):
     def test_import_asset_base64_xls(self):
         encoded_xls = base64.b64encode(self.asset.to_xls_io().read())
         task_data = {
-            'base64Encoded': 'base64:' + encoded_xls,
+            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
             'name': 'I was imported via base64-encoded XLS!',
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
@@ -82,7 +84,9 @@ class AssetImportTaskTest(BaseTestCase):
                                                                    self.asset)
 
     def test_import_non_xls_url(self):
-        ''' Make sure the import fails with a meaningful error '''
+        """
+        Make sure the import fails with a meaningful error
+        """
         task_data = {
             'url': 'https://www.google.com/',
             'name': 'I was doomed from the start! (non-XLS)',
@@ -102,7 +106,9 @@ class AssetImportTaskTest(BaseTestCase):
 
     @unittest.skip
     def test_import_invalid_host_url(self):
-        ''' Make sure the import fails with a meaningful error '''
+        """
+        Make sure the import fails with a meaningful error
+        """
         task_data = {
             'url': 'https://invalid-host-test.u6Bqpwgms2/',
             'name': 'I was doomed from the start! (invalid hostname)',

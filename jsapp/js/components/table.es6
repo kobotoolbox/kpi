@@ -7,10 +7,10 @@ import $ from 'jquery';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
-import actions from '../actions';
-import bem from '../bem';
+import {actions} from '../actions';
+import {bem} from '../bem';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import mixins from '../mixins';
 import alertify from 'alertifyjs';
 import ReactTable from 'react-table';
@@ -19,12 +19,14 @@ import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
+  QUESTION_TYPES
 } from '../constants';
 import {
   t,
   notify,
-  formatTimeDate
+  formatTimeDate,
+  renderCheckbox
 } from '../utils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
@@ -320,8 +322,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-
-    uniqueKeys.forEach(function(key){
+    uniqueKeys.forEach((key) => {
       var q = undefined;
       var qParentG = [];
       if (key.includes('/')) {
@@ -404,6 +405,10 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
+              if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
+                var mediaURL = this.getMediaDownloadLink(row.value);
+                return <a href={mediaURL} target="_blank">{row.value}</a>;
+              }
               // show proper labels for choice questions
               if (q.type == 'select_one') {
                 let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
@@ -622,7 +627,7 @@ export class DataTable extends React.Component {
     stores.pageState.hideModal();
     this.setState({
       overrideLabelsAndGroups: overrides
-    }, function() {
+    }, () => {
       this._prepColumns(this.state.tableData);
     });
   }
@@ -728,6 +733,7 @@ export class DataTable extends React.Component {
     this.fetchData(this.state.fetchState, this.state.fetchInstance);
     this.setState({ promptRefresh: false });
   }
+
   clearPromptRefresh() {
     this.setState({ promptRefresh: false });
   }
@@ -747,14 +753,14 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
-
     this.state.tableData.forEach(function(r) {
       if (isChecked) {
         s[r._id] = true;
       } else {
         delete s[r._id];
       }
-    });
+    }
+    );
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
@@ -773,6 +779,7 @@ export class DataTable extends React.Component {
     }
 
   }
+
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
     const selectAll = this.state.selectAll;
@@ -845,12 +852,33 @@ export class DataTable extends React.Component {
       data.submission_ids = Object.keys(this.state.selectedRows);
       selectedCount = data.submission_ids.length;
     }
-
+    let msg, onshow;
+    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
+    msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
+    msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
     const dialog = alertify.dialog('confirm');
+    onshow = (evt) => {
+      let ok_button = dialog.elements.buttons.primary.firstChild;
+      let $els = $('.alertify-toggle input');
+
+      ok_button.disabled = true;
+
+      $els.each(function() {$(this).prop('checked', false);});
+      $els.change(function() {
+        ok_button.disabled = false;
+        $els.each(function () {
+          if (!$(this).prop('checked')) {
+            ok_button.disabled = true;
+          }
+        });
+      });
+    };
+
     const opts = {
       title: t('Delete selected submissions'),
-      message: t('You have selected ##count## submissions. Are you sure you would like to delete them? This action is irreversible.').replace('##count##', selectedCount),
+      message: msg,
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
+      onshow: onshow,
       onok: () => {
         apiFn(this.props.asset.uid, data).done(() => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
@@ -900,9 +928,7 @@ export class DataTable extends React.Component {
           </span>
         }
 
-        { // TODO: re-enable after dealing with
-          // https://github.com/kobotoolbox/kpi/issues/2389
-          false && !this.state.selectAll &&
+        { !this.state.selectAll &&
           Object.keys(selected).length === maxPageRes &&
           resultsTotal > pageSize &&
           <span>
@@ -937,6 +963,22 @@ export class DataTable extends React.Component {
         }
       </bem.FormView__item>
     );
+  }
+  getMediaDownloadLink(fileName) {
+    this.state.tableData.forEach(function(a) {
+        a._attachments.forEach(function(b) {
+          if (b.filename.includes(fileName)) {
+            fileName = b.filename;
+          }
+        });
+
+    });
+
+    var kc_server = document.createElement('a');
+    kc_server.href = this.props.asset.deployment__identifier;
+    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
+    var kc_base = `${kc_server.origin}${kc_prefix}`;
+    return `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
   }
   render () {
     if (this.state.error) {

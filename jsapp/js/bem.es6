@@ -4,8 +4,8 @@
  * use `<bem.ModuleName__partial m={['modifier1', 'modifier2']}>` in your JSX.
  */
 
-var BEM = require('./libs/react-create-bem-element');
-var bem = BEM.init();
+import {BEM} from './libs/react-create-bem-element';
+export const bem = BEM.init();
 
 bem.Button = BEM('mdl-button', '<button>');
 
@@ -36,6 +36,7 @@ bem.AssetRow__typeIcon  = bem.AssetRow.__('type-icon', '<span>');
 bem.ServiceRow = BEM('service-row');
 bem.ServiceRow__column = bem.ServiceRow.__('column');
 bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
+bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
 bem.FormBuilder = bem('formBuilder');
@@ -43,6 +44,7 @@ bem.FormBuilder__row = bem.FormBuilder.__('row');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
+bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
 bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
 bem.FormBuilderMeta__row = bem.FormBuilderMeta.__('row');
 
@@ -231,6 +233,7 @@ bem.AccountSettings__left = bem.AccountSettings.__('left');
 bem.AccountSettings__right = bem.AccountSettings.__('right');
 bem.AccountSettings__item = bem.FormModal.__('item');
 bem.AccountSettings__desc = bem.AccountSettings.__('desc');
+bem.AccountSettings__actions = bem.AccountSettings.__('actions');
 
 bem.ChangePassword = BEM('change-password');
 bem.ChangePassword__item = bem.FormModal.__('item');
@@ -269,6 +272,7 @@ bem.collectionFilter = BEM('collection-filter');
 
 bem.TextBox = BEM('text-box', '<label>');
 bem.TextBox__label = bem.TextBox.__('label');
+bem.TextBox__labelLink = bem.TextBox.__('label-link', '<a>');
 bem.TextBox__input = bem.TextBox.__('input', '<input>');
 bem.TextBox__description = bem.TextBox.__('description');
 bem.TextBox__error = bem.TextBox.__('error');
@@ -296,5 +300,3 @@ bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
 bem.create = BEM;
-
-export default bem;

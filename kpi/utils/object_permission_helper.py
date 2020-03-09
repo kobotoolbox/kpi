@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+# coding: utf-8
+from django.conf import settings
 
-from kpi.constants import PERM_SHARE_SUBMISSIONS
+from kpi.constants import PERM_SHARE_SUBMISSIONS, PERM_FROM_KC_ONLY
 
 
-class ObjectPermissionHelper(object):
+class ObjectPermissionHelper:
 
     @staticmethod
     def user_can_share(affected_object, user_object, codename=''):
@@ -47,19 +47,22 @@ class ObjectPermissionHelper(object):
         # `affected_object.permissions` is a `GenericRelation(ObjectPermission)`
         # Don't Prefetch `content_object`.
         # See `AssetPermissionAssignmentSerializer.to_representation()`
-        queryset = affected_object.permissions. \
-            select_related('permission',
-                           'user').all()
+        queryset = affected_object.permissions.select_related(
+            'permission', 'user'
+        ).order_by(
+                'user__username', 'permission__codename'
+        ).exclude(permission__codename=PERM_FROM_KC_ONLY).all()
 
         # Filtering is done in `get_queryset` instead of FilteredBackend class
         # because it's specific to `ObjectPermission`.
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             queryset = queryset.filter(user_id=affected_object.owner_id)
         elif not cls.user_can_share(affected_object, user):
             # Display only users' permissions if they are not allowed to modify
             # others' permissions
             queryset = queryset.filter(user_id__in=[user.pk,
-                                                    affected_object.owner_id])
+                                                    affected_object.owner_id,
+                                                    settings.ANONYMOUS_USER_ID])
 
         return queryset
 
@@ -83,12 +86,14 @@ class ObjectPermissionHelper(object):
         user_permission_assignments = []
         filtered_user_ids = None
 
-        if not user or user.is_anonymous():
+        if not user or user.is_anonymous:
             filtered_user_ids = [affected_object.owner_id]
         elif not cls.user_can_share(affected_object, user):
             # Display only users' permissions if they are not allowed to modify
             # others' permissions
-            filtered_user_ids = [affected_object.owner_id, user.pk]
+            filtered_user_ids = [affected_object.owner_id,
+                                 user.pk,
+                                 settings.ANONYMOUS_USER_ID]
 
         for permission_assignment in object_permission_assignments:
             if (filtered_user_ids is None or

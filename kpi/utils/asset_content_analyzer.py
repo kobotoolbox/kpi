@@ -1,9 +1,10 @@
-import re
+# coding: utf-8
 from collections import OrderedDict
 
 from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
 
-class AssetContentAnalyzer(object):
+
+class AssetContentAnalyzer:
     def __init__(self, *args, **kwargs):
         self.survey = kwargs.get('survey')
         self.settings = kwargs.get('settings', False)
@@ -45,7 +46,7 @@ class AssetContentAnalyzer(object):
                 types.add(_type)
                 if isinstance(_label, list) and len(_label) > 0:
                     labels.append(_label[0])
-                elif isinstance(_label, basestring) and len(_label) > 0:
+                elif isinstance(_label, str) and len(_label) > 0:
                     labels.append(_label)
                 keys.update(OrderedDict.fromkeys(row.keys()))
 
@@ -55,7 +56,7 @@ class AssetContentAnalyzer(object):
             'default_translation': self.default_translation,
             'geo': geo,
             'labels': labels[0:5],
-            'columns': filter(lambda k: not k.startswith('$'), keys.keys()),
+            'columns': [k for k in keys.keys() if not k.startswith('$')],
         }
         if len(naming_conflicts) > 0:
             summary['naming_conflicts'] = naming_conflicts

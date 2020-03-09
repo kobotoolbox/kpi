@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 """
 Created on Jun 15, 2015
 
 @author: esmail
 """
-from __future__ import absolute_import
-
 import json
 import unittest
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \

@@ -8,7 +8,7 @@ import alertify from 'alertifyjs';
 import editableFormMixin from '../editorMixins/editableForm';
 import moment from 'moment';
 import Checkbox from './checkbox';
-import bem from '../bem';
+import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';
 import {

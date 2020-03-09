@@ -1,22 +1,17 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import os
-import mock
-import xlrd
 import zipfile
-import datetime
-import unittest
 from collections import defaultdict
 
+import datetime
+import mock
+import xlrd
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 
 from kobo.apps.reports import report_data
-from formpack import FormPack
-
 from kpi.constants import PERM_PARTIAL_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
 from kpi.models import Asset, ExportTask
 
@@ -48,7 +43,7 @@ class MockDataExports(TestCase):
                       {'$autovalue': 'yes__and_some_',
                        '$kuid': 'WrTMETvzY',
                        'label': ['Yes, and some extracellular space',
-                                  'S\xed, y alg\xfan espacio extracelular'],
+                                 'S\xed, y alg\xfan espacio extracelular'],
                        'list_name': 'fluids',
                        'name': 'yes__and_some_'},
                       {'$autovalue': 'no___unsure',
@@ -79,13 +74,13 @@ class MockDataExports(TestCase):
                      {'$autoname': 'external_characteristics',
                       '$kuid': 'cbc4ba77',
                       'label': ['External Characteristics',
-                                 'Caracter\xedsticas externas'],
+                                'Caracter\xedsticas externas'],
                       'name': 'external_characteristics',
                       'type': 'begin_group'},
                      {'$autoname': 'What_kind_of_symmetry_do_you_have',
                       '$kuid': 'f073bdb4',
                       'label': ['What kind of symmetry do you have?',
-                                 '\xbfQu\xe9 tipo de simetr\xeda tiene?'],
+                                '\xbfQu\xe9 tipo de simetr\xeda tiene?'],
                       'name': 'What_kind_of_symmetry_do_you_have',
                       'required': False,
                       'select_from_list_name': 'symmetry',
@@ -94,7 +89,7 @@ class MockDataExports(TestCase):
                      {'$autoname': 'How_many_segments_does_your_body_have',
                       '$kuid': '2b4d8728',
                       'label': ['How many segments does your body have?',
-                                 '\xbfCu\xe1ntos segmentos tiene tu cuerpo?'],
+                                '\xbfCu\xe1ntos segmentos tiene tu cuerpo?'],
                       'name': 'How_many_segments_does_your_body_have',
                       'required': False,
                       'tags': ['hxl:#segments'],
@@ -103,7 +98,7 @@ class MockDataExports(TestCase):
                      {'$autoname': 'Do_you_have_body_flu_intracellular_space',
                       '$kuid': '5fa1fc59',
                       'label': ['Do you have body fluids that occupy intracellular space?',
-                                 '\xbfTienes fluidos corporales que ocupan espacio intracelular?'],
+                                '\xbfTienes fluidos corporales que ocupan espacio intracelular?'],
                       'name': 'Do_you_have_body_flu_intracellular_space',
                       'required': False,
                       'select_from_list_name': 'fluids',
@@ -112,7 +107,7 @@ class MockDataExports(TestCase):
                      {'$autoname': 'Do_you_descend_from_unicellular_organism',
                       '$kuid': 'bfde6907',
                       'label': ['Do you descend from an ancestral unicellular organism?',
-                                 '\xbfDesciende de un organismo unicelular ancestral?'],
+                                '\xbfDesciende de un organismo unicelular ancestral?'],
                       'name': 'Do_you_descend_from_unicellular_organism',
                       'required': False,
                       'select_from_list_name': 'yes_no',
@@ -210,7 +205,7 @@ class MockDataExports(TestCase):
         )
 
     def run_csv_export_test(self, expected_lines, export_options=None, user=None):
-        '''
+        """
         Repeat yourself less while writing CSV export tests.
 
         `expected_lines`: a list of strings *without* trailing newlines whose
@@ -218,7 +213,7 @@ class MockDataExports(TestCase):
                           result
         `export_options`: a list of extra options for `ExportTask.data`. Do not
                           include `source` or `type`
-        '''
+        """
         export_task = ExportTask()
         export_task.user = self.user if user is None else user
         export_task.data = {
@@ -233,6 +228,7 @@ class MockDataExports(TestCase):
             (line + '\r\n').encode('utf-8') for line in expected_lines
         ]
         result_lines = list(export_task.result)
+
         self.assertEqual(result_lines, expected_lines)
         self.assertFalse(messages)
 
@@ -269,22 +265,20 @@ class MockDataExports(TestCase):
             row_index += 1
 
     def test_csv_export_default_options(self):
-        # FIXME: Is this right? English is listed as the first translation
         expected_lines = [
-            '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
             '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"1"',
+            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
         ]
         self.run_csv_export_test(expected_lines)
 
     def test_csv_export_default_options_partial_submissions(self):
-        # FIXME: Is this right? English is listed as the first translation
         expected_lines = [
-            '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
             '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"1"',
         ]
         self.run_csv_export_test(expected_lines, user=self.anotheruser)
 
@@ -345,11 +339,11 @@ class MockDataExports(TestCase):
     def test_csv_export_hierarchy_in_labels(self):
         export_options = {'hierarchy_in_labels': 'true'}
         expected_lines = [
-            '"start";"end";"Características externas/¿Qué tipo de simetría tiene?";"Características externas/¿Qué tipo de simetría tiene?/Esférico";"Características externas/¿Qué tipo de simetría tiene?/Radial";"Características externas/¿Qué tipo de simetría tiene?/Bilateral";"Características externas/¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
+            '"start";"end";"External Characteristics/What kind of symmetry do you have?";"External Characteristics/What kind of symmetry do you have?/Spherical";"External Characteristics/What kind of symmetry do you have?/Radial";"External Characteristics/What kind of symmetry do you have?/Bilateral";"External Characteristics/How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
             '"";"";"#symmetry";"#symmetry";"#symmetry";"#symmetry";"#segments";"#fluids";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"1"',
+            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -391,7 +385,7 @@ class MockDataExports(TestCase):
         self.assertFalse(messages)
         self.assertEqual(
             os.path.split(export_task.result.name)[-1],
-            'Identificaci\xf3n de animales - all versions - SPSS Labels - '
+            'Identificaci\xf3n_de_animales_-_all_versions_-_SPSS_Labels_-_'
             '{date:%Y-%m-%d-%H-%M-%S}.zip'.format(date=utcnow)
         )
         expected_file_names_and_content_lines = {
@@ -478,9 +472,8 @@ class MockDataExports(TestCase):
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        created_export_tasks = ExportTask._filter_by_source_kludge(
-            ExportTask.objects.filter(user=self.user),
-            task_data['source']
+        created_export_tasks = ExportTask.objects.filter(
+            user=self.user, data__source=task_data['source']
         )
         self.assertEqual(excess_count + 1, created_export_tasks.count())
         # Identify which exports should be kept
@@ -491,13 +484,13 @@ class MockDataExports(TestCase):
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         # Verify the cleanup
         self.assertFalse(result.storage.exists(result.name))
-        self.assertListEqual( # assertSequenceEqual isn't working...
+        self.assertListEqual(  # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
-            list(ExportTask._filter_by_source_kludge(
+            list(
                 ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).order_by('-date_created').values_list('pk', flat=True))
+                    user=self.user, data__source=task_data['source']
+                ).order_by('-date_created').values_list('pk', flat=True)
+            ),
         )
 
     def test_log_and_mark_stuck_exports_as_errored(self):
@@ -507,11 +500,9 @@ class MockDataExports(TestCase):
         }
         self.assertEqual(
             0,
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).count()
+            ExportTask.objects.filter(
+                user=self.user, data__source=task_data['source']
+            ).count(),
         )
         # Simulate a few stuck exports
         for status in (ExportTask.CREATED, ExportTask.PROCESSING):
@@ -524,11 +515,9 @@ class MockDataExports(TestCase):
             export_task.save()
         self.assertSequenceEqual(
             [ExportTask.CREATED, ExportTask.PROCESSING],
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).order_by('pk').values_list('status', flat=True)
+            ExportTask.objects.filter(
+                user=self.user, data__source=task_data['source']
+            ).order_by('pk').values_list('status', flat=True),
         )
         # Run another export, which invokes the cleanup logic
         export_task = ExportTask()
@@ -539,11 +528,9 @@ class MockDataExports(TestCase):
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
             [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).order_by('pk').values_list('status', flat=True)
+            ExportTask.objects.filter(
+                user=self.user, data__source=task_data['source']
+            ).order_by('pk').values_list('status', flat=True),
         )
 
     def test_export_long_form_title(self):
@@ -585,7 +572,7 @@ class MockDataExports(TestCase):
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
         expected_lines = [
-            '"¿Desciende de... etiqueta nueva";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
+            '"Do you descend... new label";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
             '"no";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"1"',
             '"no";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"2"',
             '"yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"'

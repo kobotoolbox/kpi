@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 import json
 import logging
 
 import requests
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
-from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
+
+
 from kpi.utils.log import logging
 from .shadow_models import (
     safe_kc_read,
@@ -129,8 +128,8 @@ def set_kc_require_auth(user_id, require_auth):
         try:
             profile = KobocatUserProfile.objects.get(user_id=user_id)
         except ProgrammingError as e:
-            raise ProgrammingError(u'set_kc_require_auth error accessing '
-                                   u'kobocat tables: {}'.format(repr(e)))
+            raise ProgrammingError('set_kc_require_auth error accessing '
+                                   'kobocat tables: {}'.format(repr(e)))
         else:
             if profile.require_auth != require_auth:
                 profile.require_auth = require_auth
@@ -154,7 +153,7 @@ def _get_content_type_kwargs_for_related(obj):
         )
     # Prepend 'content_type__' to each field name in KC_CONTENT_TYPE_KWARGS
     content_type_kwargs = {
-        'content_type__' + k: v for k, v in content_type_kwargs.iteritems()
+        'content_type__' + k: v for k, v in content_type_kwargs.items()
     }
     return content_type_kwargs
 
@@ -178,7 +177,7 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
         logging.warning(
             '{} object missing KC_PERMISSIONS_MAP'.format(type(obj)))
         return []
-    if isinstance(kpi_codenames, basestring):
+    if isinstance(kpi_codenames, str):
         kpi_codenames = [kpi_codenames]
     # Map KPI codenames to KC
     kc_codenames = []
@@ -278,7 +277,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             '{} object missing KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS'.format(
                 type(obj)))
         return
-    if isinstance(kpi_codenames, basestring):
+    if isinstance(kpi_codenames, str):
         kpi_codenames = [kpi_codenames]
     # Find which KC `XForm` flags need to be switched
     xform_updates = {}
@@ -289,7 +288,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             # This permission doesn't map to anything in KC
             continue
         if remove:
-            flags = {flag: not value for flag, value in flags.iteritems()}
+            flags = {flag: not value for flag, value in flags.items()}
         xform_updates.update(flags)
     # Write to the KC database
     ReadOnlyKobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
@@ -314,7 +313,7 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
+    if user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
     xform_content_type = KobocatContentType.objects.get(
@@ -352,7 +351,7 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
+    if user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID:
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs_for_related(obj)

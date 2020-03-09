@@ -3,15 +3,15 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import actions from '../actions';
-import bem from '../bem';
-import stores from '../stores';
+import {actions} from '../actions';
+import {bem} from '../bem';
+import {stores} from '../stores';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import DataTable from './table';
-
+import ui from '../ui';
 import {ProjectDownloads} from './formEditors';
 
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -47,12 +47,12 @@ export class FormSubScreens extends React.Component {
       return false;
 
     if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !permAccess) {
-      return this.renderDenied();
+      return (<ui.AccessDeniedMessage/>);
     }
 
     if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
         !this.userCan('change_asset', this.state)) {
-      return this.renderDenied();
+      return (<ui.AccessDeniedMessage/>);
     }
 
     var iframeUrl = '';
@@ -83,9 +83,7 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/data/downloads`:
           return this.renderProjectDownloads();
         case `/forms/${this.state.uid}/settings`:
-          if (deployment__identifier != '')
-            iframeUrl = deployment__identifier+'/form_settings';
-          return this.renderSettingsEditor(iframeUrl);
+          return this.renderSettingsEditor();
         case `/forms/${this.state.uid}/settings/media`:
           iframeUrl = deployment__identifier+'/form_settings';
           break;
@@ -115,7 +113,7 @@ export class FormSubScreens extends React.Component {
         </DocumentTitle>
       );
   }
-  renderSettingsEditor(iframeUrl) {
+  renderSettingsEditor() {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -123,7 +121,6 @@ export class FormSubScreens extends React.Component {
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
               formAsset={this.state}
-              iframeUrl={iframeUrl}
             />
           </bem.FormView>
         </DocumentTitle>
@@ -152,20 +149,6 @@ export class FormSubScreens extends React.Component {
           {t('loading...')}
         </bem.Loading__inner>
       </bem.Loading>
-    );
-  }
-  renderDenied() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('Access Denied')}
-            </h3>
-            {t('You do not have permission to view this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
     );
   }
 }

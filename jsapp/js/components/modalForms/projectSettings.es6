@@ -8,13 +8,13 @@ import Select from 'react-select';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/textBox';
 import Checkbox from 'js/components/checkbox';
-import bem from 'js/bem';
+import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
-import stores from 'js/stores';
+import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
-import actions from 'js/actions';
+import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
   t,
@@ -22,7 +22,10 @@ import {
   isAValidUrl,
   escapeHtml
 } from 'js/utils';
-import {PROJECT_SETTINGS_CONTEXTS} from 'js/constants';
+import {
+  NAME_MAX_LENGTH,
+  PROJECT_SETTINGS_CONTEXTS
+} from 'js/constants';
 
 const formViaUrlHelpLink = 'http://help.kobotoolbox.org/creating-forms/importing-an-xlsform-via-url';
 
@@ -570,6 +573,7 @@ class ProjectSettings extends React.Component {
               });
             },
             (response) => {
+              this.setState({isUploadFilePending: false});
               const errLines = [];
               errLines.push(t('Import Failed!'));
               if (files[0].name) {
@@ -611,6 +615,14 @@ class ProjectSettings extends React.Component {
   /*
    * rendering
    */
+
+  getNameInputLabel(nameVal) {
+    let label = t('Project Name');
+    if (nameVal.length >= NAME_MAX_LENGTH - 99) {
+      label += ` (${t('##count## characters left').replace('##count##', NAME_MAX_LENGTH - nameVal.length)})`;
+    }
+    return label;
+  }
 
   renderChooseTemplateButton() {
     return (
@@ -753,6 +765,7 @@ class ProjectSettings extends React.Component {
   renderStepProjectDetails() {
     const sectors = stores.session.environment.available_sectors;
     const countries = stores.session.environment.available_countries;
+    const isSelfOwned = this.userIsOwner(this.state.formAsset);
 
     return (
       <bem.FormModal__form
@@ -781,9 +794,11 @@ class ProjectSettings extends React.Component {
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
             <bem.FormModal__item>
               <label htmlFor='name'>
-                {t('Project Name')}
+                {this.getNameInputLabel(this.state.name)}
               </label>
-              <input type='text'
+              <input
+                type='text'
+                maxLength={NAME_MAX_LENGTH}
                 id='name'
                 placeholder={t('Enter title of project here')}
                 value={this.state.name}
@@ -900,7 +915,7 @@ class ProjectSettings extends React.Component {
             </bem.FormModal__item>
           }
 
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
+          {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
               <button
                 type='button'
@@ -910,12 +925,6 @@ class ProjectSettings extends React.Component {
                 {t('Delete Project and Data')}
               </button>
             </bem.FormModal__item>
-          }
-
-          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
           }
         </bem.FormModal__item>
       </bem.FormModal__form>
@@ -974,6 +983,7 @@ class ProjectSettings extends React.Component {
 }
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
+reactMixin(ProjectSettings.prototype, mixins.permissions);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 reactMixin(ProjectSettings.prototype, mixins.dmix);
 

@@ -1,13 +1,11 @@
+# coding: utf-8
 import contextlib
 import copy
 import re
+from collections import defaultdict
 
 from django.apps import apps
 from taggit.models import Tag, TaggedItem
-from .models import Asset
-from .models import Collection
-from .haystack_utils import update_object_in_search_index
-
 
 '''
 This circular import will bite you if you don't import kpi.models before
@@ -19,9 +17,12 @@ importing kpi.model_utils:
   File "kpi/models/import_task.py", line 6, in <module>
     from kpi.model_utils import create_assets
 '''
+from .models import Asset
+from .models import Collection
+
 
 TAG_RE = r'tag:(.*)'
-from collections import defaultdict
+
 
 def _load_library_content(structure):
     content = structure.get('content', {})
@@ -38,7 +39,7 @@ def _load_library_content(structure):
         # preserve the additional sheets of imported library (but not the library)
         row_tags = []
         for key, val in row.items():
-            if unicode(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
+            if str(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):
                 tag_name = re.match(TAG_RE, key).groups()[0]
@@ -67,55 +68,54 @@ def _load_library_content(structure):
     collection = Collection.objects.create(
         owner=structure['owner'], name=collection_name)
 
-    with apps.get_app_config('haystack').signal_processor.defer():
-        for block_name, rows in grouped.items():
-            if block_name is None:
-                for (row, row_tags) in rows:
-                    scontent = copy.deepcopy(content)
-                    scontent['survey'] = [row]
-                    sa = Asset.objects.create(
-                        content=scontent,
-                        asset_type='question',
-                        owner=structure['owner'],
-                        parent=collection
-                    )
-                    created_asset_pks.append(sa.pk)
-                    for tag_name in row_tags:
-                        ti = TaggedItem.objects.create(
-                            tag_id = tag_name_to_pk[tag_name],
-                            content_object = sa
-                        )
-            else:
-                block_rows = []
-                block_tags = set()
-                for (row, row_tags) in rows:
-                    for tag in row_tags:
-                        block_tags.add(tag)
-                    block_rows.append(row)
+    for block_name, rows in grouped.items():
+        if block_name is None:
+            for (row, row_tags) in rows:
                 scontent = copy.deepcopy(content)
-                scontent['survey'] = block_rows
+                scontent['survey'] = [row]
                 sa = Asset.objects.create(
                     content=scontent,
-                    asset_type='block',
-                    name=block_name,
-                    parent=collection,
-                    owner=structure['owner']
+                    asset_type='question',
+                    owner=structure['owner'],
+                    parent=collection
                 )
                 created_asset_pks.append(sa.pk)
-                for tag_name in block_tags:
+                for tag_name in row_tags:
                     ti = TaggedItem.objects.create(
                         tag_id = tag_name_to_pk[tag_name],
                         content_object = sa
                     )
-
-    # Update the search index
-    for tag_pk in tag_name_to_pk.values():
-        update_object_in_search_index(Tag.objects.get(pk=tag_pk))
-    for asset_pk in created_asset_pks:
-        asset = Asset.objects.get(pk=asset_pk)
-        update_object_in_search_index(asset)
+        else:
+            block_rows = []
+            block_tags = set()
+            for (row, row_tags) in rows:
+                for tag in row_tags:
+                    block_tags.add(tag)
+                block_rows.append(row)
+            scontent = copy.deepcopy(content)
+            scontent['survey'] = block_rows
+            sa = Asset.objects.create(
+                content=scontent,
+                asset_type='block',
+                name=block_name,
+                parent=collection,
+                owner=structure['owner']
+            )
+            created_asset_pks.append(sa.pk)
+            for tag_name in block_tags:
+                ti = TaggedItem.objects.create(
+                    tag_id = tag_name_to_pk[tag_name],
+                    content_object = sa
+                )
 
     return collection
+
+
+def _set_auto_field_update(kls, field_name, val):
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
+    field.auto_now = val
+    field.auto_now_add = val
+
 
 def create_assets(kls, structure, **options):
     if kls == "collection":
@@ -127,9 +127,10 @@ def create_assets(kls, structure, **options):
             obj = Asset.objects.create(**structure)
     return obj
 
+
 @contextlib.contextmanager
 def disable_auto_field_update(kls, field_name):
-    field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
     original_auto_now = field.auto_now
     original_auto_now_add = field.auto_now_add
     field.auto_now = False
@@ -139,6 +140,7 @@ def disable_auto_field_update(kls, field_name):
     finally:
         field.auto_now = original_auto_now
         field.auto_now_add = original_auto_now_add
+
 
 def remove_string_prefix(string, prefix):
     return string[len(prefix):] if string.startswith(prefix) else string

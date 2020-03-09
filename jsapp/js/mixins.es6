@@ -11,6 +11,7 @@
  * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
  */
 
+import _ from 'underscore';
 import React from 'react';
 import alertify from 'alertifyjs';
 import {hashHistory} from 'react-router';
@@ -22,8 +23,8 @@ import {
   ANON_USERNAME
 } from './constants';
 import {dataInterface} from './dataInterface';
-import stores from './stores';
-import actions from './actions';
+import {stores} from './stores';
+import {actions} from './actions';
 import $ from 'jquery';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -32,7 +33,8 @@ import {
   assign,
   notify,
   escapeHtml,
-  buildUserUrl
+  buildUserUrl,
+  renderCheckbox
 } from './utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
@@ -448,14 +450,6 @@ mixins.collectionList = {
   },
 };
 
-const renderCheckbox = (id, label, isImportant) => {
-  let additionalClass = '';
-  if (isImportant) {
-    additionalClass += 'alertify-toggle-important';
-  }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-};
-
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
@@ -520,6 +514,7 @@ mixins.clickAssets = {
           hashHistory.push(`/forms/${uid}/edit`);
       },
       delete: function(uid, name, callback) {
+        const safeName = _.escape(name);
         const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
@@ -568,7 +563,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel} "${name}"`,
+          title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
           message: msg,
           labels: {
             ok: t('Delete'),
@@ -661,6 +656,13 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
+  userIsOwner(asset) {
+    return (
+      asset &&
+      stores.session.currentAccount &&
+      asset.owner__username === stores.session.currentAccount.username
+    );
+  },
   userCan (permName, asset) {
     if (!asset.permissions) {
       return false;
@@ -741,7 +743,7 @@ mixins.cloneAssetAsNewType = {
     const opts = {
       title: params.promptTitle,
       message: params.promptMessage,
-      value: params.sourceName,
+      value: _.escape(params.sourceName),
       labels: {ok: t('Create'), cancel: t('Cancel')},
       onok: (evt, value) => {
         // disable buttons

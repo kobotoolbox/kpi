@@ -1,5 +1,4 @@
-from abc import ABCMeta, abstractmethod
-
+# coding: utf-8
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
@@ -40,16 +39,12 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
     Common methods are property are defined within this class.
     """
 
-    __metaclass__ = ABCMeta
-
     @property
     def perms_map(self):
         raise NotImplementedError
 
-    @abstractmethod
     def has_permission(self, request, view):
-        # This method should be overridden in subclasses
-        return False
+        raise NotImplementedError
 
     def has_object_permission(self, request, view, obj):
         # Because authentication checks have already executed via has_permission,
@@ -171,7 +166,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         parent_object = self._get_parent_object(view)
 
         user = request.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             user = get_anonymous_user()
 
         user_permissions = self._get_user_permissions(parent_object, user)
@@ -202,29 +197,23 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
-class AssetOwnerNestedObjectPermission(BaseAssetNestedObjectPermission):
+class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     """
-    Permissions for objects that are nested under Asset which only owner should access.
+    Permissions for objects that are nested under Asset whose only users can
+    change/edit and need to view submissions
     Others should receive a 404 response (instead of 403) to avoid revealing existence
     of objects.
     """
 
-    perms_map = {}
-
-    def has_permission(self, request, view):
-
-        if not request.user or (request.user and
-                                not request.user.is_authenticated()):
-            return False
-        elif request.user.is_superuser:
-            return True
-
-        asset = self._get_asset(view)
-
-        if request.user != asset.owner:
-            raise Http404
-
-        return True
+    required_permissions = ['%(app_label)s.change_asset',
+                            '%(app_label)s.view_submissions']
+    perms_map = {
+        'GET': required_permissions,
+        'POST': required_permissions,
+        'PUT': required_permissions,
+        'PATCH': required_permissions,
+        'DELETE': required_permissions
+    }
 
 
 class CollectionNestedObjectPermission(BaseCollectionNestedObjectPermission,
@@ -296,7 +285,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
         :param user: auth.User
         :return: list
         """
-        user_permissions = super(SubmissionPermission, self)._get_user_permissions(
+        user_permissions = super()._get_user_permissions(
             asset, user)
 
         if PERM_PARTIAL_SUBMISSIONS in user_permissions:

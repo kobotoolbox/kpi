@@ -13,8 +13,8 @@ import alertify from 'alertifyjs';
 import Reflux from 'reflux';
 import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
-import permissionsActions from './actions/permissions';
-import helpActions from './actions/help';
+import {permissionsActions} from './actions/permissions';
+import {helpActions} from './actions/help';
 import {
   log,
   t,
@@ -25,7 +25,7 @@ import {
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
 
-const actions = {
+export const actions = {
   permissions: permissionsActions,
   help: helpActions
 };
@@ -63,10 +63,16 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getApiToken: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
-  addItemAtPosition: {
+  addExternalItemAtPosition: {
     children: [
       'completed',
       'failed'
@@ -360,7 +366,7 @@ actions.resources.listTags.completed.listen(function(results){
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
-      actions.resources.updateAsset.completed(asset, uid, values);
+      actions.resources.updateAsset.completed(asset);
       if (typeof params.onComplete === 'function') {
         params.onComplete(asset, uid, values);
       }
@@ -466,16 +472,20 @@ actions.reports = Reflux.createActions({
 });
 
 actions.reports.setStyle.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_styles: JSON.stringify(details),
-  }).done(actions.reports.setStyle.completed)
+  dataInterface.patchAsset(assetId, {report_styles: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setStyle.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setStyle.failed);
 });
 
 actions.reports.setCustom.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_custom: JSON.stringify(details),
-  }).done(actions.reports.setCustom.completed)
+  dataInterface.patchAsset(assetId, {report_custom: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setCustom.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setCustom.failed);
 });
 
@@ -489,26 +499,34 @@ actions.table = Reflux.createActions({
 });
 
 actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {
-    settings: JSON.stringify(settings),
-  }).done(actions.table.updateSettings.completed)
+  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+    .done((asset) => {
+      actions.table.updateSettings.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.table.updateSettings.failed);
 });
 
 
 actions.map = Reflux.createActions({
-  setMapSettings: {
-    children: ['completed', 'failed']
+  setMapStyles: {
+    children: ['started', 'completed', 'failed']
   }
 });
 
-actions.map.setMapSettings.listen(function(assetId, details) {
-  dataInterface
-    .patchAsset(assetId, {
-      map_styles: JSON.stringify(details)
+/**
+ * Note: `started` callback returns parameters with wich the action was called
+ * @param {string} assetUid
+ * @param {object} mapStyles
+ */
+actions.map.setMapStyles.listen(function(assetUid, mapStyles) {
+  dataInterface.patchAsset(assetUid, {map_styles: JSON.stringify(mapStyles)})
+    .done((asset) => {
+      actions.map.setMapStyles.completed(asset);
+      actions.resources.updateAsset.completed(asset);
     })
-    .done(actions.map.setMapSettings.completed)
-    .fail(actions.map.setMapSettings.failed);
+    .fail(actions.map.setMapStyles.failed);
+  actions.map.setMapStyles.started(assetUid, mapStyles);
 });
 
 
@@ -646,21 +664,34 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
+actions.auth.getApiToken.listen(() => {
+  dataInterface.apiToken()
+    .done((response) => {
+      actions.auth.getApiToken.completed(response.token);
+    })
+    .fail(actions.auth.getApiToken.failed);
+});
+actions.auth.getApiToken.failed.listen(() => {
+  notify(t('failed to load API token'), 'error');
+});
+
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
     dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
-  } else {
+  } else if (params.id) {
     dispatchMethodName = {
       c: 'getCollection',
       a: 'getAsset'
     }[params.id[0]];
   }
 
-  dataInterface[dispatchMethodName](params)
-    .done(actions.resources.loadAsset.completed)
-    .fail(actions.resources.loadAsset.failed);
+  if (dispatchMethodName) {
+    dataInterface[dispatchMethodName](params)
+      .done(actions.resources.loadAsset.completed)
+      .fail(actions.resources.loadAsset.failed);
+  }
 });
 
 actions.resources.loadAssetContent.listen(function(params){
@@ -748,11 +779,11 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
       }
     });
 });
-actions.hooks.update.completed.listen((response) => {
+actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((response) => {
-  notify(t('Failed saving REST Service'), 'error');
+actions.hooks.update.failed.listen(() => {
+  alertify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
@@ -839,5 +870,3 @@ actions.hooks.retryLogs.completed.listen((response) => {
 actions.hooks.retryLogs.failed.listen((response) => {
   notify(t('Retrying all submissions failed'), 'error');
 });
-
-module.exports = actions;

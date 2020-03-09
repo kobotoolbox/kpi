@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
+# coding: utf-8
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 

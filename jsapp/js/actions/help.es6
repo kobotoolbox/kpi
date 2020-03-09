@@ -9,7 +9,7 @@ import {
   notify
 } from '../utils';
 
-const helpActions = Reflux.createActions({
+export const helpActions = Reflux.createActions({
   getInAppMessages: {
     children: [
       'completed',
@@ -60,5 +60,3 @@ helpActions.setMessageAcknowledged.listen((uid, isAcknowledged) => {
 helpActions.setMessageAcknowledged.failed.listen(() => {
   notify(t('Failed to set message acknowledged.'), 'error');
 });
-
-export default helpActions;

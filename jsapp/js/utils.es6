@@ -12,10 +12,8 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-import {
-  ROOT_URL,
-  ANON_USERNAME
-} from 'js/constants';
+// imporitng whole constants, as we override ROOT_URL in tests
+import constants from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -51,7 +49,7 @@ export function getAnonymousUserPermission(permissions) {
     if (perm.user__username === undefined) {
       perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
     }
-    return perm.user__username === ANON_USERNAME;
+    return perm.user__username === constants.ANON_USERNAME;
   })[0];
 }
 
@@ -218,7 +216,7 @@ export function buildUserUrl(username) {
     console.error("buildUserUrl() called with URL instead of username (incomplete v2 migration)");
     return username;
   }
-  return `${ROOT_URL}/api/v2/users/${username}/`;
+  return `${constants.ROOT_URL}/api/v2/users/${username}/`;
 }
 
 export function parsePermissions(owner, permissions) {
@@ -236,7 +234,7 @@ export function parsePermissions(owner, permissions) {
     }
     return perm;
   }).filter((perm)=> {
-    return ( perm.user__username !== owner && perm.user__username !== ANON_USERNAME);
+    return ( perm.user__username !== owner && perm.user__username !== constants.ANON_USERNAME);
   }).forEach((perm)=> {
     if(users.indexOf(perm.user__username) === -1) {
       users.push(perm.user__username);
@@ -515,4 +513,16 @@ export function writeParameters(obj) {
     }
   });
   return params.join(';');
+}
+
+export function renderCheckbox(id, label, isImportant) {
+  let additionalClass = '';
+  if (isImportant) {
+    additionalClass += 'alertify-toggle-important';
+  }
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
+};
+
+export function launchPrinting() {
+  window.print();
 }
