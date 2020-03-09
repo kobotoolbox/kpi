@@ -63,10 +63,17 @@ class MyLibraryRoute extends React.Component {
   }
 
   render() {
-    let contextualEmptyMessage;
+    let contextualEmptyMessage = t('Your search returned no results.');
 
-    if (!this.state.isLoading && this.state.totalAssets === 0) {
-      contextualEmptyMessage = t('Your search returned no results.');
+    if (myLibraryStore.data.totalUserAssets === 0) {
+      contextualEmptyMessage = (
+        <div>
+          {t("Let's get started by creating your first library question, block, template or collection. Click the New button to create it.")}
+          <div className='pro-tip'>
+            {t('Advanced users: You can also drag and drop XLSForms here and they will be uploaded and converted to library items.')}
+          </div>
+        </div>
+      );
     }
 
     return (

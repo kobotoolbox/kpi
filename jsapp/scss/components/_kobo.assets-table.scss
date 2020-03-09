@@ -217,7 +217,14 @@ $c-assets-table-row-hover: $cool-whitegray;
 
   &.assets-table-row--empty-message {
     padding: 40px;
+    font-size: 1.2rem;
     justify-content: center;
+    text-align: center;
+
+    .pro-tip {
+      font-size: 1rem;
+      margin-top: 20px;
+    }
   }
 
   .assets-table-row__link {
