@@ -1,10 +1,12 @@
 # coding: utf-8
 from copy import deepcopy
 
+from django.db.models import Q
 from django.test import TestCase
 
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
+from kpi.utils.query_parser.query_parser import parse, ParseError
 from kpi.utils.sluggify import sluggify, sluggify_label
 
 
@@ -160,3 +162,18 @@ class UtilsTestCase(TestCase):
         part1 = 'العربية'
         part2 = '_001'
         self.assertEqual(surv['choices'][1]['$autovalue'], part1 + part2)
+
+    def test_query_parser(self):
+        query_string = '''
+            (a:a OR b:b AND c:c) AND d:d OR (
+                snakes:🐍🐍 AND NOT alphabet:🍲soup
+            ) NOT 'in a house' NOT "with a mouse"
+        '''
+        expected_q = (
+            (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
+                Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
+            )
+            & ~Q(summary__icontains='in a house')
+            & ~Q(summary__icontains='with a mouse')
+        )
+        self.assertEqual(repr(expected_q), repr(parse(query_string)))

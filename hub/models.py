@@ -9,7 +9,6 @@ from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from jsonfield import JSONField
 from markitup.fields import MarkupField
 
 from kpi.models.object_permission import get_anonymous_user
@@ -112,7 +111,7 @@ class ExtraUserDetail(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,
                                 related_name='extra_details',
                                 on_delete=models.CASCADE)
-    data = JSONField(default={})
+    data = JSONBField(default=dict)
 
     def __str__(self):
         return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))

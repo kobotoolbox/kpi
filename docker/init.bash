@@ -47,6 +47,13 @@ fi
 echo "Copying static files to nginx volume..."
 rsync -aq --delete --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
 
+if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" ]]; then
+    echo "Fetching translations..."
+    git submodule init && \
+    git submodule update --remote && \
+    python manage.py compilemessages
+fi
+
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
 if [[ -d /srv/pydev_orig && ! -z "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
     echo 'Enabling PyDev remote debugging.'

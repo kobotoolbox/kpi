@@ -102,81 +102,97 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.asset.assign_perm(self.someuser, PERM_CHANGE_ASSET)
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
 
-    def test_viewers_see_only_their_own_assignments_and_owner_s(self):
+    def test_viewers_see_only_self_anon_and_owner_assignments(self):
 
-        # Checks if can see all permissions
         self.client.login(username='anotheruser', password='anotheruser')
-        permission_list_response = self.client.get(self.asset_permissions_list_url,
-                                                   format='json')
-        self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
-        admin_perms = self.asset.get_perms(self.admin)
-        anotheruser_perms = self.asset.get_perms(self.anotheruser)
+        permission_list_response = self.client.get(
+            self.asset_permissions_list_url, format='json'
+        )
+        self.assertEqual(
+            permission_list_response.status_code, status.HTTP_200_OK
+        )
         results = permission_list_response.data
 
-        # `anotheruser` can only see the owner's permissions `self.admin` and
-        # `anotheruser`'s permissions. Should not see `someuser`s ones.
+        # `anotheruser` must see only permissions assigned to themselves, the
+        # owner (`self.admin`) and the anonymous user. Permissions assigned to
+        # `someuser` must not appear
+        assignable_perms = Asset.get_assignable_permissions()
         expected_perms = []
-        for admin_perm in admin_perms:
-            if admin_perm in Asset.get_assignable_permissions():
-                expected_perms.append((self.admin.username, admin_perm))
-        for anotheruser_perm in anotheruser_perms:
-            if anotheruser_perm in Asset.get_assignable_permissions():
-                expected_perms.append((self.anotheruser.username, anotheruser_perm))
+        for user in [self.admin, self.anotheruser, get_anonymous_user()]:
+            user_perms = self.asset.get_perms(user)
+            expected_perms.extend(
+                (user.username, perm)
+                for perm in set(user_perms).intersection(assignable_perms)
+            )
+        expected_perms = sorted(
+            expected_perms, key=lambda element: (element[0], element[1])
+        )
 
-        expected_perms = sorted(expected_perms, key=lambda element: (element[0],
-                                                                     element[1]))
         obj_perms = []
         for assignment in results:
             object_permission = self.url_to_obj(assignment.get('url'))
-            obj_perms.append((object_permission.user.username,
-                              object_permission.permission.codename))
-
-        obj_perms = sorted(obj_perms, key=lambda element: (element[0],
-                                                           element[1]))
+            obj_perms.append(
+                (
+                    object_permission.user.username,
+                    object_permission.permission.codename,
+                )
+            )
+        obj_perms = sorted(
+            obj_perms, key=lambda element: (element[0], element[1])
+        )
 
         self.assertEqual(expected_perms, obj_perms)
+
 
     def test_editors_see_all_assignments(self):
 
         self.client.login(username='someuser', password='someuser')
-        permission_list_response = self.client.get(self.asset_permissions_list_url,
-                                                   format='json')
-        self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
-        admin_perms = self.asset.get_perms(self.admin)
-        someuser_perms = self.asset.get_perms(self.someuser)
-        anotheruser_perms = self.asset.get_perms(self.anotheruser)
+        permission_list_response = self.client.get(
+            self.asset_permissions_list_url, format='json'
+        )
+        self.assertEqual(
+            permission_list_response.status_code, status.HTTP_200_OK
+        )
         results = permission_list_response.data
 
-        # As an editor of the asset. `someuser` should see all.
+        # As an editor of the asset, `someuser` should see all.
+        assignable_perms = Asset.get_assignable_permissions()
         expected_perms = []
-        for admin_perm in admin_perms:
-            if admin_perm in Asset.get_assignable_permissions():
-                expected_perms.append((self.admin.username, admin_perm))
-        for someuser_perm in someuser_perms:
-            if someuser_perm in Asset.get_assignable_permissions():
-                expected_perms.append((self.someuser.username, someuser_perm))
-        for anotheruser_perm in anotheruser_perms:
-            if anotheruser_perm in Asset.get_assignable_permissions():
-                expected_perms.append((self.anotheruser.username, anotheruser_perm))
+        for user in [
+            self.admin,
+            self.someuser,
+            self.anotheruser,
+            get_anonymous_user(),
+        ]:
+            user_perms = self.asset.get_perms(user)
+            expected_perms.extend(
+                (user.username, perm)
+                for perm in set(user_perms).intersection(assignable_perms)
+            )
+        expected_perms = sorted(
+            expected_perms, key=lambda element: (element[0], element[1])
+        )
 
-        expected_perms = sorted(expected_perms, key=lambda element: (element[0],
-                                                                     element[1]))
         obj_perms = []
         for assignment in results:
             object_permission = self.url_to_obj(assignment.get('url'))
-            obj_perms.append((object_permission.user.username,
-                              object_permission.permission.codename))
-
-        obj_perms = sorted(obj_perms, key=lambda element: (element[0],
-                                                           element[1]))
+            obj_perms.append(
+                (
+                    object_permission.user.username,
+                    object_permission.permission.codename,
+                )
+            )
+        obj_perms = sorted(
+            obj_perms, key=lambda element: (element[0], element[1])
+        )
 
         self.assertEqual(expected_perms, obj_perms)
 
     def test_anonymous_get_only_owner_s_assignments(self):
 
         self.client.logout()
-        self.asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
         permission_list_response = self.client.get(self.asset_permissions_list_url,
                                                    format='json')
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)

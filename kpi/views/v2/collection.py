@@ -92,9 +92,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
         return super().perform_update(serializer, *args, **kwargs)
 
-    def perform_destroy(self, instance):
-        instance.delete_with_deferred_indexing()
-
     def get_serializer_class(self):
         if self.action == 'list':
             return CollectionListSerializer
