@@ -174,37 +174,6 @@ class FormpackXLSFormUtils(object):
             if sht in content:
                 content[sht] += rows
 
-    def _settings_ensure_form_id(self, content):
-        # Show form_id and remove id_string in downloaded xls
-        if 'settings' in content:
-            settings = content['settings']
-            
-            # Remove id_string from settings sheet
-            if 'id_string' in settings:
-                settings['form_id'] = settings['id_string']
-                del settings['id_string']
-    
-    def _settings_maintain_key_order(self, content):
-        if 'settings' in content:
-            settings = content['settings']
-            
-            # Maintains key order of settings sheet
-            settingsKeyOrder = [
-                'form_title', 
-                'form_id', 
-                'version', 
-                'style', 
-                'namespaces', 
-                'Read Me - Form template created by OpenClinica Form Designer'
-            ]
-            settingsRemainingKeyOrder = []
-            for settingsKey in settings.keys():
-                if settingsKey not in settingsKeyOrder:
-                    settingsRemainingKeyOrder.append(settingsKey)
-
-            settingsKeyOrder = settingsKeyOrder + settingsRemainingKeyOrder
-            content['settings'] = OrderedDict(sorted(settings.items(), key=lambda i:settingsKeyOrder.index(i[0])))
-
     def _xlsform_structure(self, content, ordered=True, kobo_specific=False):
         opts = copy.deepcopy(FLATTEN_OPTS)
 
@@ -403,6 +372,35 @@ class FormpackXLSFormUtils(object):
 
 
 class XlsExportable(object):
+    
+    surveyCols = [
+        'type',
+        'name',
+        'label',
+        'bind::oc:itemgroup',
+        'hint',
+        'appearance',
+        'bind::oc:briefdescription',
+        'bind::oc:description',
+        'relevant',
+        'required',
+        'required_message',
+        'constraint',
+        'constraint_message',
+        'calculation',
+        'readonly',
+        'image',
+        'repeat_count',
+        'bind::oc:external'
+    ]
+
+    choicesCols = [
+        'list_name',
+        'label',
+        'name', 
+        'image',
+    ]
+    
     def ordered_xlsform_content(self,
                                 kobo_specific_types=False,
                                 append=None):
@@ -422,7 +420,10 @@ class XlsExportable(object):
         self._survey_column_oc_adjustments(content)
         self._settings_ensure_form_id(content)
         self._settings_maintain_key_order(content)
+        self._choices_column_oc_adjustments(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
+        self._survey_maintain_key_order(content)
+        self._choices_maintain_key_order(content)
         return content
 
     def _survey_prepare_custom_col_value(self, content):
@@ -457,20 +458,114 @@ class XlsExportable(object):
 
     def _survey_column_oc_adjustments(self, content):
         survey = content.get('survey', [])
-        for survey_col_idx in range(len(survey)):
-            survey_col = survey[survey_col_idx]
-            if '$given_name' in survey_col:
-                del survey_col['$given_name']
-            elif 'type' in survey_col:
-                if survey_col['type'] == 'begin_group':
-                    survey_col['type'] = 'begin group'
-                elif survey_col['type'] == 'end_group':
-                    survey_col['type'] = 'end group'
-                elif survey_col['type'] == 'begin_repeat':
-                    survey_col['type'] = 'begin repeat'
-                elif survey_col['type'] == 'end_repeat':
-                    survey_col['type'] = 'end repeat'    
+
+        if len(survey) > 0:
+            for survey_col_idx in range(len(survey)):
+                survey_col = survey[survey_col_idx]
+                
+                for surveyCol in self.surveyCols:
+                    if surveyCol not in survey_col:
+                        survey_col[surveyCol] = ''
+
+                if '$given_name' in survey_col:
+                    del survey_col['$given_name']
+
+                if 'type' in survey_col:
+                    if survey_col['type'] == 'begin_group':
+                        survey_col['type'] = 'begin group'
+                    elif survey_col['type'] == 'end_group':
+                        survey_col['type'] = 'end group'
+                    elif survey_col['type'] == 'begin_repeat':
+                        survey_col['type'] = 'begin repeat'
+                    elif survey_col['type'] == 'end_repeat':
+                        survey_col['type'] = 'end repeat'
+        else:
+            cols = OrderedDict()
+            for surveyCol in self.surveyCols:
+                cols[surveyCol] = ''
+            content['survey'].append(cols)
+
+    def _survey_maintain_key_order(self, content):
+        if 'survey' in content:
+            survey = content['survey']
+            
+            # Maintains key order of survey sheet
+            surveyKeyOrder = self.surveyCols
+            
+            for idx, col in enumerate(survey):
+                surveyRemainingKeyOrder = []
+                for surveyKey in col.keys():
+                    if surveyKey not in surveyKeyOrder:
+                        surveyRemainingKeyOrder.append(surveyKey)
+                surveyKeyOrder = surveyKeyOrder + surveyRemainingKeyOrder
+
+                content['survey'][idx] = OrderedDict(sorted(col.items(), key=lambda i:surveyKeyOrder.index(i[0])))
     
+    def _settings_ensure_form_id(self, content):
+        # Show form_id and remove id_string in downloaded xls
+        if 'settings' in content:
+            settings = content['settings']
+            
+            # Remove id_string from settings sheet
+            if 'id_string' in settings:
+                settings['form_id'] = settings['id_string']
+                del settings['id_string']
+    
+    def _settings_maintain_key_order(self, content):
+        if 'settings' in content:
+            settings = content['settings']
+            
+            # Maintains key order of settings sheet
+            settingsKeyOrder = [
+                'form_title',
+                'form_id',
+                'version', 
+                'style',
+                'crossform_references',
+                'namespaces', 
+                'Read Me - Form template created by OpenClinica Form Designer'
+            ]
+            settingsRemainingKeyOrder = []
+            for settingsKey in settings.keys():
+                if settingsKey not in settingsKeyOrder:
+                    settingsRemainingKeyOrder.append(settingsKey)
+
+            settingsKeyOrder = settingsKeyOrder + settingsRemainingKeyOrder
+            content['settings'] = OrderedDict(sorted(settings.items(), key=lambda i:settingsKeyOrder.index(i[0])))
+    
+    def _choices_column_oc_adjustments(self, content):
+        choices = content.get('choices', [])
+
+        if len(choices) > 0:
+            for choices_col_idx in range(len(choices)):
+                choices_col = choices[choices_col_idx]
+
+                for choicesCol in self.choicesCols:
+                    if choicesCol not in choices_col:
+                        choices_col[choicesCol] = ''
+        else:
+            cols = OrderedDict()
+            for choicesCol in self.choicesCols:
+                cols[choicesCol] = ''
+            content['choices'] = []
+            content['choices'].append(cols)
+    
+    def _choices_maintain_key_order(self, content):
+        if 'choices' in content:
+            choices = content['choices']
+            
+            # Maintains key order of choices sheet
+            choiceKeyOrder = self.choicesCols
+            
+            for idx, choice in enumerate(choices):
+                choiceRemainingKeyOrder = []
+                for choiceKey in choice.keys():
+                    if choiceKey not in choiceKeyOrder:
+                        choiceRemainingKeyOrder.append(choiceKey)
+                choiceKeyOrder = choiceKeyOrder + choiceRemainingKeyOrder
+
+                content['choices'][idx] = OrderedDict(sorted(choice.items(), key=lambda i:choiceKeyOrder.index(i[0])))
+
     def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
         dictionary of lists of dictionaries in the following format:
@@ -484,6 +579,7 @@ class XlsExportable(object):
             append_settings.update(
                 {
                     'form_title': self.name,
+                    'crossform_references': '',
                     'namespaces': 'oc="http://openclinica.org/xforms" , OpenClinica="http://openclinica.com/odm"',
                     'Read Me - Form template created by OpenClinica Form Designer': ''
                 }
@@ -506,9 +602,14 @@ class XlsExportable(object):
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
+            ordered_ss_dict = OrderedDict()
+            for t in ['settings', 'choices', 'survey']:
+                if t in ss_dict:
+                    ordered_ss_dict[t] = ss_dict[t]
 
             workbook = xlwt.Workbook()
-            for (sheet_name, contents) in ss_dict.iteritems():
+            
+            for (sheet_name, contents) in ordered_ss_dict.iteritems():
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
