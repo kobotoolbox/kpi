@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 import jsonbfield.fields
 import six
-import xlwt
+import xlsxwriter
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -434,23 +434,23 @@ class XlsExportable(object):
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
-
-            workbook = xlwt.Workbook()
-            for (sheet_name, contents) in ss_dict.iteritems():
-                cur_sheet = workbook.add_sheet(sheet_name)
-                _add_contents_to_sheet(cur_sheet, contents)
+            output = BytesIO()
+            with xlsxwriter.Workbook(output) as workbook:
+                for sheet_name, contents in ss_dict.items():
+                    cur_sheet = workbook.add_worksheet(sheet_name)
+                    _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
             six.reraise(
-                Exception,
-                "asset.content improperly formatted for XLS "
-                "export: %s" % repr(e),
-                sys.exc_info()[2]
+                type(e),
+                type(e)(
+                    "asset.content improperly formatted for XLS "
+                    "export: %s" % repr(e)
+                ),
+                sys.exc_info()[2],
             )
 
-        string_io = StringIO.StringIO()
-        workbook.save(string_io)
-        string_io.seek(0)
-        return string_io
+        output.seek(0)
+        return output
 
 
 class Asset(ObjectPermissionMixin,
