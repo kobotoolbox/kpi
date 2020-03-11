@@ -33,6 +33,10 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
+if (
+    os.environ.get(PUBLIC_REQUEST_SCHEME, '').lower() == 'https'
+    or 'SECURE_PROXY_SSL_HEADER' in os.environ
+):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
