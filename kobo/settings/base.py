@@ -33,6 +33,13 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
+if (
+    os.environ.get(PUBLIC_REQUEST_SCHEME, '').lower() == 'https'
+    or 'SECURE_PROXY_SSL_HEADER' in os.environ
+):
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
 if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
@@ -427,14 +434,6 @@ if 'KOBOCAT_URL' in os.environ:
                         'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
         }
 
-'''
-Distinct projects using Celery need their own queues. Example commands for
-RabbitMQ queue creation:
-    rabbitmqctl add_user kpi kpi
-    rabbitmqctl add_vhost kpi
-    rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
-See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
-'''
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 
 
