@@ -7,19 +7,18 @@ import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
-import {Cookies} from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
 
 require('../scss/main.scss');
-
-const cookies = new Cookies();
 
 var el = (function(){
   var $d = $('<div>', {'class': 'kpiapp'});
   $('body').prepend($d);
   return $d.get(0);
 })();
+
+const csrftoken = $('meta[name=csrf-token]').attr('content');
 
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
@@ -28,7 +27,7 @@ function csrfSafeMethod(method) {
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader('X-CSRFToken', cookies.get('csrftoken'));
+            xhr.setRequestHeader('X-CSRFToken', csrftoken);
         }
     }
 });
