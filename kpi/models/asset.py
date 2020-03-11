@@ -374,31 +374,31 @@ class FormpackXLSFormUtils(object):
 class XlsExportable(object):
     
     surveyCols = [
-        'type',
-        'name',
-        'label',
-        'bind::oc:itemgroup',
-        'hint',
-        'appearance',
-        'bind::oc:briefdescription',
-        'bind::oc:description',
-        'relevant',
-        'required',
-        'required_message',
-        'constraint',
-        'constraint_message',
-        'calculation',
-        'readonly',
-        'image',
-        'repeat_count',
-        'bind::oc:external'
+        u'type',
+        u'name',
+        u'label',
+        u'bind::oc:itemgroup',
+        u'hint',
+        u'appearance',
+        u'bind::oc:briefdescription',
+        u'bind::oc:description',
+        u'relevant',
+        u'required',
+        u'required_message',
+        u'constraint',
+        u'constraint_message',
+        u'calculation',
+        u'readonly',
+        u'image',
+        u'repeat_count',
+        u'bind::oc:external'
     ]
 
     choicesCols = [
-        'list_name',
-        'label',
-        'name', 
-        'image',
+        u'list_name',
+        u'label',
+        u'name', 
+        u'image'
     ]
     
     def ordered_xlsform_content(self,
@@ -482,7 +482,10 @@ class XlsExportable(object):
         else:
             cols = OrderedDict()
             for surveyCol in self.surveyCols:
-                cols[surveyCol] = ''
+                if 'translated' in content.keys() and surveyCol in content['translated']:
+                    cols[surveyCol] = [u'']
+                else:
+                    cols[surveyCol] = u''
             content['survey'].append(cols)
 
     def _survey_maintain_key_order(self, content):
@@ -546,9 +549,12 @@ class XlsExportable(object):
         else:
             cols = OrderedDict()
             for choicesCol in self.choicesCols:
-                cols[choicesCol] = ''
-            content['choices'] = []
-            content['choices'].append(cols)
+                if 'translated' in content.keys() and choicesCol in content['translated']:
+                    cols[choicesCol] = [u'']
+                else:
+                    cols[choicesCol] = u''
+            content[u'choices'] = []
+            content[u'choices'].append(cols)
     
     def _choices_maintain_key_order(self, content):
         if 'choices' in content:
