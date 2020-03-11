@@ -116,6 +116,7 @@ module.exports = do ->
           @model.set('setManually', false)
           val = 'AUTOMATIC'
           @$el.trigger("choice-list-update", @options.cl.cid)
+          @model.getSurvey()?.trigger('change')
         else
           val = $modelUtils.sluggify(val, {
                     preventDuplicates: other_names
@@ -129,6 +130,7 @@ module.exports = do ->
           @model.set('name', val)
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
+          @model.getSurvey()?.trigger('change')
         newValue: val
 
       @j = $('span', @i)
@@ -138,10 +140,12 @@ module.exports = do ->
           @model.set('setManually', false)
           val = 'None'
           @$el.trigger("choice-list-update", @options.cl.cid)
+          @model.getSurvey()?.trigger('change')
         else
           @model.set(@optionImageField, val)
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
+          @model.getSurvey()?.trigger('change')
         newValue: val
 
       @pw.html(@p)
