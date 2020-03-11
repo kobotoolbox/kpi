@@ -72,6 +72,7 @@ unicodecsv
 uWSGI
 xlrd
 xlwt
+XlsxWriter
 
 # These packages allow `requests` to support SNI
 pyopenssl
