@@ -51,6 +51,9 @@ module.exports = do ->
         i = @model.options.length
         @addEmptyOption("Option #{i+1}")
         @model.getSurvey()?.trigger('change')
+        setTimeout =>
+          @ul.find('li').last().find('.editable-wrapper').trigger('click')
+        , 1
       )
 
       @$el.append(btn)
