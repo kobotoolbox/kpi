@@ -7,7 +7,7 @@
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@a08b7626507c2ceff35b816f1e1e0845c85cce26#egg=formpack  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest  # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/ssrf-protect@e52c61e1cc8df5c2c14ec5749334c74034a2d2c1#egg=ssrf_protect  # via -r dependencies/pip/requirements.in
+-e git+https://github.com/kobotoolbox/ssrf-protect@755efe16694273ce66060a51e04f973dc034ca4e#egg=ssrf_protect  # via -r dependencies/pip/requirements.in
 amqp==2.5.2               # via -r dependencies/pip/requirements.in, kombu
 anyjson==0.3.3            # via -r dependencies/pip/requirements.in
 argparse==1.4.0           # via unittest2
@@ -114,7 +114,7 @@ requests==2.22.0          # via -r dependencies/pip/requirements.in, django-oaut
 responses==0.10.6         # via -r dependencies/pip/requirements.in
 s3transfer==0.2.1         # via boto3
 shortuuid==0.5.0          # via -r dependencies/pip/requirements.in
-six==1.13.0               # via bcrypt, cryptography, django-extensions, jsonschema, mock, packaging, prompt-toolkit, pynacl, pyopenssl, pyrsistent, python-dateutil, responses, traitlets, unittest2
+six==1.13.0               # via bcrypt, cryptography, django-extensions, jsonschema, mock, packaging, prompt-toolkit, pynacl, pyopenssl, pyrsistent, python-dateutil, responses, ssrf-protect, traitlets, unittest2
 sqlparse==0.3.0           # via -r dependencies/pip/requirements.in, django, django-debug-toolbar
 static3==0.7.0            # via -r dependencies/pip/requirements.in, dj-static
 statistics==1.0.3.5       # via formpack
