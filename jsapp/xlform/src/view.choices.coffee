@@ -116,7 +116,7 @@ module.exports = do ->
                     lowerCase: false
                     lrstrip: true
                     incrementorPadding: false
-                    characterLimit: 99
+                    characterLimit: 40
                     validXmlTag: false
                     nonWordCharsExceptions: '+-.'
                   })

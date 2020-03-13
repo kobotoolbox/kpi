@@ -129,7 +129,7 @@ module.exports = do ->
             preventDuplicates: names
             lowerCase: true
             lrstrip: true
-            characterLimit: 99
+            characterLimit: 40
             incrementorPadding: false
             validXmlTag: false
           })
