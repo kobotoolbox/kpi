@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import migrations, models
 from django.utils import timezone
+from jsonfield.fields import JSONField
 
 import kpi.fields
 from kpi.management.commands.populate_assetversions import populate_assetversions
@@ -69,7 +70,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='summary',
-            field=JSONBField(default=dict, null=True),
+            field=JSONField(default=dict, null=True),
         ),
         migrations.AddField(
             model_name='asset',

@@ -1,4 +1,6 @@
 # coding: utf-8
+from django.conf import settings
+
 from kpi.constants import PERM_SHARE_SUBMISSIONS, PERM_FROM_KC_ONLY
 
 
@@ -59,7 +61,8 @@ class ObjectPermissionHelper:
             # Display only users' permissions if they are not allowed to modify
             # others' permissions
             queryset = queryset.filter(user_id__in=[user.pk,
-                                                    affected_object.owner_id])
+                                                    affected_object.owner_id,
+                                                    settings.ANONYMOUS_USER_ID])
 
         return queryset
 
@@ -88,7 +91,9 @@ class ObjectPermissionHelper:
         elif not cls.user_can_share(affected_object, user):
             # Display only users' permissions if they are not allowed to modify
             # others' permissions
-            filtered_user_ids = [affected_object.owner_id, user.pk]
+            filtered_user_ids = [affected_object.owner_id,
+                                 user.pk,
+                                 settings.ANONYMOUS_USER_ID]
 
         for permission_assignment in object_permission_assignments:
             if (filtered_user_ids is None or

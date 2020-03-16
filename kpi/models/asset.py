@@ -6,7 +6,7 @@ from collections import OrderedDict
 from io import BytesIO
 
 import six
-import xlwt
+import xlsxwriter
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -15,7 +15,6 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.translation import ugettext_lazy as _
-from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -435,22 +434,23 @@ class XlsExportable:
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
-            workbook = xlwt.Workbook()
-            for sheet_name, contents in ss_dict.items():
-                cur_sheet = workbook.add_sheet(sheet_name)
-                _add_contents_to_sheet(cur_sheet, contents)
+            output = BytesIO()
+            with xlsxwriter.Workbook(output) as workbook:
+                for sheet_name, contents in ss_dict.items():
+                    cur_sheet = workbook.add_worksheet(sheet_name)
+                    _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
             six.reraise(
-                Exception,
-                "asset.content improperly formatted for XLS "
-                "export: %s" % repr(e),
-                sys.exc_info()[2]
+                type(e),
+                type(e)(
+                    "asset.content improperly formatted for XLS "
+                    "export: %s" % repr(e)
+                ),
+                sys.exc_info()[2],
             )
 
-        obj = BytesIO()
-        workbook.save(obj)
-        obj.seek(0)
-        return obj
+        output.seek(0)
+        return output
 
 
 class Asset(ObjectPermissionMixin,
@@ -462,8 +462,8 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONField(null=True)
-    summary = JSONField(null=True, default=dict)
+    content = JSONBField(null=True)
+    summary = JSONBField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
@@ -481,7 +481,7 @@ class Asset(ObjectPermissionMixin,
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
-    _deployment_data = JSONField(default=dict)
+    _deployment_data = JSONBField(default=dict)
 
     permissions = GenericRelation(ObjectPermission)
 
@@ -1075,8 +1075,8 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONField(null=True)
-    details = JSONField(default=dict)
+    source = JSONBField(null=True)
+    details = JSONBField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey(Asset, null=True, on_delete=models.CASCADE)
