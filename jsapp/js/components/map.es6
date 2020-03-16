@@ -61,8 +61,9 @@ export class FormMap extends React.Component {
     let survey = props.asset.content.survey;
     var hasGeoPoint = false;
     survey.forEach(function(s) {
-      if (s.type == 'geopoint')
+      if (s.type === QUESTION_TYPES.get('geopoint').id) {
         hasGeoPoint = true;
+      }
     });
 
     this.state = {
@@ -210,7 +211,7 @@ export class FormMap extends React.Component {
               l.bindPopup(name);
             } else {
               // when no name or title, load full list of feature's properties
-              l.bindPopup('<pre>'+JSON.stringify(fprops, null, 2).replace(/[{}"]/g,'')+'</pre>');
+              l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>');
             }
           });
         });
@@ -245,8 +246,8 @@ export class FormMap extends React.Component {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
 
-    this.props.asset.content.survey.forEach(function(row, i) {
-      if (row.label != null && selectedQuestion === row.label[0] && row.type !== QUESTION_TYPES.get('geopoint').id) {
+    this.props.asset.content.survey.forEach(function(row) {
+      if (row.label !== null && selectedQuestion === row.label[0] && row.type !== QUESTION_TYPES.get('geopoint').id) {
         selectedQuestion = null; //Ignore if not a geopoint question type
       }
     });
@@ -287,7 +288,7 @@ export class FormMap extends React.Component {
     });
   }
   calculateClusterRadius(zoom) {
-    if(zoom >=12) {return 12;}
+    if(zoom >= 12) {return 12;}
     return 20;
   }
   calcColorSet() {
