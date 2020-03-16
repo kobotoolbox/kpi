@@ -18,7 +18,7 @@ import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
-import {MODAL_TYPES} from '../constants';
+import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
 
 import {
   t,
@@ -61,8 +61,9 @@ export class FormMap extends React.Component {
     let survey = props.asset.content.survey;
     var hasGeoPoint = false;
     survey.forEach(function(s) {
-      if (s.type == 'geopoint')
+      if (s.type === QUESTION_TYPES.get('geopoint').id) {
         hasGeoPoint = true;
+      }
     });
 
     this.state = {
@@ -210,7 +211,7 @@ export class FormMap extends React.Component {
               l.bindPopup(name);
             } else {
               // when no name or title, load full list of feature's properties
-              l.bindPopup('<pre>'+JSON.stringify(fprops, null, 2).replace(/[{}"]/g,'')+'</pre>');
+              l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>');
             }
           });
         });
@@ -245,6 +246,12 @@ export class FormMap extends React.Component {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
 
+    this.props.asset.content.survey.forEach(function(row) {
+      if (row.label !== null && selectedQuestion === row.label[0] && row.type !== QUESTION_TYPES.get('geopoint').id) {
+        selectedQuestion = null; //Ignore if not a geopoint question type
+      }
+    });
+
     let queryLimit = QUERY_LIMIT_DEFAULT;
     if (this.state.overridenStyles && this.state.overridenStyles.querylimit) {
       queryLimit = this.state.overridenStyles.querylimit;
@@ -255,7 +262,6 @@ export class FormMap extends React.Component {
     var fq = ['_id', '_geolocation'];
     if (selectedQuestion) fq.push(selectedQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
-
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq).done((data) => {
       let results = data.results;
@@ -282,7 +288,7 @@ export class FormMap extends React.Component {
     });
   }
   calculateClusterRadius(zoom) {
-    if(zoom >=12) {return 12;}
+    if(zoom >= 12) {return 12;}
     return 20;
   }
   calcColorSet() {
