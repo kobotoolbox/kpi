@@ -2,10 +2,10 @@
 # 😬
 from __future__ import absolute_import
 
-import StringIO
 import copy
 import sys
 from collections import OrderedDict
+from io import BytesIO
 
 import jsonbfield.fields
 import six
