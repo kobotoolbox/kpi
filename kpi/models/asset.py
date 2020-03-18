@@ -465,7 +465,10 @@ class XlsExportable(object):
                 
                 for surveyCol in self.surveyCols:
                     if surveyCol not in survey_col:
-                        survey_col[surveyCol] = ''
+                        if 'translated' in content.keys() and surveyCol in content['translated']:
+                            survey_col[surveyCol] = [u'']
+                        else:
+                            survey_col[surveyCol] = u''
 
                 if '$given_name' in survey_col:
                     del survey_col['$given_name']
@@ -479,6 +482,11 @@ class XlsExportable(object):
                         survey_col['type'] = 'begin repeat'
                     elif survey_col['type'] == 'end_repeat':
                         survey_col['type'] = 'end repeat'
+                    elif survey_col['type'] == 'select_one_from_file':
+                        survey_col['type'] = 'select_one_from_file' + ' ' + survey_col['select_one_from_file_filename']
+
+                if 'select_one_from_file_filename' in survey_col:
+                    del survey_col['select_one_from_file_filename']
         else:
             cols = OrderedDict()
             for surveyCol in self.surveyCols:
@@ -832,6 +840,7 @@ class Asset(ObjectPermissionMixin,
                 self.asset_type = ASSET_TYPE_BLOCK
 
         self._populate_report_styles()
+        self._survey_column_oc_save_adjustments()
 
         _create_version = kwargs.pop('create_version', True)
         super(Asset, self).save(*args, **kwargs)
@@ -844,6 +853,31 @@ class Asset(ObjectPermissionMixin,
                                        # DeploymentSerializer
                                        deployed=False,
                                        )
+
+    def _survey_column_oc_save_adjustments(self):
+        survey = self.content.get('survey', [])
+        if len(survey) > 0:
+            select_one_file_col_found = False
+            select_one_file_col = 'select_one_from_file'
+            select_one_filename_col = 'select_one_from_file_filename'
+            for survey_col_idx in range(len(survey)):
+                survey_col = survey[survey_col_idx]
+                if 'type' in survey_col:
+                    if survey_col['type'].find(select_one_file_col) is not -1:
+                        select_one_file_col_found = True
+
+            for survey_col_idx in range(len(survey)):
+                survey_col = survey[survey_col_idx]
+                if select_one_file_col_found and select_one_filename_col not in survey_col:
+                    survey_col[select_one_filename_col] = ''
+
+            for survey_col_idx in range(len(survey)):
+                survey_col = survey[survey_col_idx]
+                if 'type' in survey_col:
+                    type_col = survey_col['type']
+                    if type_col.find(select_one_file_col) is not -1 and len(type_col) != len(select_one_file_col):
+                        survey_col[select_one_filename_col] = type_col[type_col.find(select_one_file_col) + len(select_one_file_col):].strip()
+                        survey_col['type'] = select_one_file_col
 
     def rename_translation(self, _from, _to):
         if not self._has_translations(self.content, 2):

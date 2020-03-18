@@ -203,6 +203,7 @@ module.exports = do ->
     "bind::oc:itemgroup",
     "bind::oc:briefdescription",
     'bind::oc:description',
+    'select_one_from_file_filename',
     'appearance',
     "type",
     "label",
@@ -241,7 +242,8 @@ module.exports = do ->
       ["rank", "Rank"],
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
-      ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
+      ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true],
+      ["select_one_from_file", "Text"]
     ]
 
     class Type
@@ -309,6 +311,8 @@ module.exports = do ->
     "bind::oc:briefdescription":
       value: ''
     "bind::oc:description":
+      value: ''
+    "select_one_from_file_filename":
       value: ''
 
   configs.newGroupDetails =

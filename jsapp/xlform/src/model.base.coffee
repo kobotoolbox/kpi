@@ -164,7 +164,8 @@ module.exports = do ->
                   "calculation", "default", "appearance",
                   "constraint_message", "tags",
                   "bind::oc:itemgroup", "bind::oc:external",
-                  "bind::oc:briefdescription", "bind::oc:description", "readonly"] or @key.match(/^.+::.+/)
+                  "bind::oc:briefdescription", "bind::oc:description",
+                  "readonly", "select_one_from_file_filename"] or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
 

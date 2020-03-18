@@ -352,14 +352,17 @@ module.exports = do ->
             model: @model.get('required')
           }).render().insertInDOM(@)
         else
-          if questionType is 'calculate'
-            if key isnt 'readonly'
+          if questionType is 'select_one_from_file'
+            new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
+          else if questionType is 'calculate'
+            if key not in ['readonly', 'select_one_from_file_filename']
               new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
           else if questionType is 'note'
-            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external', 'calculation', 'bind::oc:briefdescription', 'bind::oc:description']
+            if key not in ['readonly', 'bind::oc:itemgroup', 'bind::oc:external', 'calculation', 'bind::oc:briefdescription', 'bind::oc:description', 'select_one_from_file_filename']
               new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
           else
-            new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
+            if key isnt 'select_one_from_file_filename'
+              new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
       if (
         $configs.questionParams[questionType] and

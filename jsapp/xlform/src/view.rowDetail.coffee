@@ -143,6 +143,8 @@ module.exports = do ->
       $el.on 'keyup', ->
         showOrHideRequired()
 
+      showOrHideRequired()
+
     removeRequired: (opts={})->
       el = opts.el || @$('input').get(0)
       $el = $(el)
@@ -312,7 +314,6 @@ module.exports = do ->
       else
         viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Name"), 'text', 'Enter variable name'
     afterRender: ->
-      @makeRequired()
       @listenForInputChange(transformFn: (value)=>
         value_chars = value.split('')
         if !/[\w_]/.test(value_chars[0])
@@ -325,6 +326,7 @@ module.exports = do ->
       update_view()
 
       @model._parent.get('label').on 'change:value', update_view
+      @makeRequired()
   # insertInDom: (rowView)->
     #   # default behavior...
     #   rowView.defaultRowDetailParent.append(@el)
@@ -672,10 +674,10 @@ module.exports = do ->
       viewRowDetail.Templates.textbox @cid, @model.key, _t("Calculation"), 'text'
     afterRender: ->
       questionType = @model._parent.get('type').get('typeId')
-      if questionType is 'calculate'
-        @makeRequired()
 
       @listenForInputChange()
+      if questionType is 'calculate'
+        @makeRequired()
 
   viewRowDetail.DetailViewMixins.oc_description =
     html: ->
@@ -684,5 +686,14 @@ module.exports = do ->
       viewRowDetail.Templates.textbox @cid, @model.key, _t("Item Description"), 'text', 'Enter variable definition (e.g., CDASH data definition) (optional)', '3999'
     afterRender: ->
       @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.select_one_from_file_filename =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("External List Filename"), 'text', 'Enter external list filename'
+    afterRender: ->
+      @listenForInputChange()
+      @makeRequired()
 
   viewRowDetail
