@@ -20,7 +20,9 @@ import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
-  QUESTION_TYPES
+  QUESTION_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 } from '../constants';
 import {
   t,
@@ -28,6 +30,7 @@ import {
   formatTimeDate,
   renderCheckbox
 } from '../utils';
+import {getSurveyFlatPaths} from 'js/assetUtils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
@@ -176,19 +179,14 @@ export class DataTable extends React.Component {
       return Object.assign(result, obj);
     }, {}));
 
-    const surveyKeys = [];
-    this.props.asset.content.survey.forEach((row) => {
-      if (row.name) {
-        surveyKeys.push(row.name);
-      } else if (row.$autoname) {
-        surveyKeys.push(row.$autoname);
-      }
-    });
+    const surveyKeys = Object.values(getSurveyFlatPaths(this.props.asset.content.survey));
 
     // make sure the survey columns are displayed, even if current data's
     // submissions doesn't have them
     let uniqueKeys = [...new Set([...dataKeys, ...surveyKeys])];
-    uniqueKeys = uniqueKeys.filter((key) => excludedKeys.includes(key) === false);
+    uniqueKeys = uniqueKeys.filter((key) => {
+      return excludedKeys.includes(key) === false;
+    });
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
@@ -1061,7 +1059,7 @@ export class DataTable extends React.Component {
               {t('Loading...')}
             </span>
           }
-          noDataText={t('Your filters returned no submissions.')} 
+          noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
