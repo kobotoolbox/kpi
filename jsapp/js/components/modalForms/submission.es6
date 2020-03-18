@@ -290,8 +290,16 @@ class Submission extends React.Component {
           translationIndex = this.state.translationIndex,
           _this = this;
     const openedGroups = [];
-    const groupTypes = GROUP_TYPES_BEGIN.keys();
-    const groupTypesEnd = GROUP_TYPES_END.keys();
+    const groupTypes = [
+      GROUP_TYPES_BEGIN.get('begin_score'),
+      GROUP_TYPES_BEGIN.get('begin_rank'),
+      GROUP_TYPES_BEGIN.get('begin_group')
+    ];
+    const groupTypesEnd = [
+      GROUP_TYPES_END.get('end_score'),
+      GROUP_TYPES_END.get('end_rank'),
+      GROUP_TYPES_END.get('end_group')
+    ];
 
     const getGroupedName = (name) => {
       if (openedGroups.length === 0) {

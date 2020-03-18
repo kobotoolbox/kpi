@@ -351,14 +351,16 @@ export const GROUP_TYPES_BEGIN = new Map();
 new Set([
   'begin_score',
   'begin_rank',
-  'begin_group'
+  'begin_group',
+  'begin_repeat'
 ]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
 
 export const GROUP_TYPES_END = new Map();
 new Set([
   'end_score',
   'end_rank',
-  'end_group'
+  'end_group',
+  'end_repeat'
 ]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
 
 const constants = {

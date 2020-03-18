@@ -14,10 +14,10 @@ export function getSurveyFlatPaths(survey) {
   const openedGroups = [];
 
   survey.forEach((row) => {
-    if (GROUP_TYPES_BEGIN.has(row.type)) {
+    if ([GROUP_TYPES_BEGIN.get('begin_group'), GROUP_TYPES_BEGIN.get('begin_repeat')].includes(row.type)) {
       openedGroups.push(row.name || row.$autoname);
     }
-    if (GROUP_TYPES_END.has(row.type)) {
+    if ([GROUP_TYPES_END.get('end_group'), GROUP_TYPES_END.get('end_repeat')].includes(row.type)) {
       openedGroups.pop();
     }
 
