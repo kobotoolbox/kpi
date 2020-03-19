@@ -164,22 +164,6 @@ class Drawer extends Reflux.Component {
           { stores.session.currentAccount &&
             <SupportHelpBubble/>
           }
-          { stores.session.currentAccount &&
-            <a href={stores.session.currentAccount.projects_url}
-              className='k-drawer__link'
-              target='_blank'
-              data-tip={t('Forms (legacy)')}
-            >
-              <i className='k-icon k-icon-globe' />
-            </a>
-          }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.source_code_url &&
-            <a href={stores.serverEnvironment.state.source_code_url}
-              className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-github' />
-            </a>
-          }
         </bem.KDrawer__secondaryIcons>
       </bem.KDrawer>
       );
