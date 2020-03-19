@@ -72,6 +72,12 @@ module.exports = do ->
     ,
 
     # r4
+      label: _t("Select One (External List)")
+      faClass: "circle"
+      grouping: "r4"
+      id: "select_one_from_file"
+    ,
+
     # r5
     # r6
     ]

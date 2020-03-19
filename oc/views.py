@@ -69,9 +69,8 @@ def __get_realm(request):
     subdomain = get_subdomain(request)
     realm_name = subdomain
 
-    kpi_logging.warning('__get_realm OC_BUILD_URL {}', settings.OC_BUILD_URL)
-
     allowed_connections_url = '{}/customer-service/api/allowed-connections'.format(settings.OC_BUILD_URL)
+    allowed_connections_response = None
     try:
         allowed_connections_response = requests.get(
                 allowed_connections_url,

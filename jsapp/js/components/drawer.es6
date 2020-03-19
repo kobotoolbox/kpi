@@ -159,25 +159,12 @@ class Drawer extends Reflux.Component {
 
         <bem.KDrawer__secondaryIcons>
           { stores.session.currentAccount &&
-            <IntercomHelpBubble/>
-          }
-          { stores.session.currentAccount &&
-            <SupportHelpBubble/>
-          }
-          { stores.session.currentAccount &&
-            <a href={stores.session.currentAccount.projects_url}
+            <a href='https://docs.openclinica.com/oc4/design-study/form-designer'
               className='k-drawer__link'
               target='_blank'
-              data-tip={t('Forms (legacy)')}
+              data-tip={t('Learn more about Form Designer')}
             >
-              <i className='k-icon k-icon-globe' />
-            </a>
-          }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.source_code_url &&
-            <a href={stores.serverEnvironment.state.source_code_url}
-              className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-github' />
+              <i className='k-icon k-icon-help' />
             </a>
           }
         </bem.KDrawer__secondaryIcons>

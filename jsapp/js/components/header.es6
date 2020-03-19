@@ -115,54 +115,6 @@ class MainHeader extends Reflux.Component {
             <i className="fa fa-bell"></i>
             <bem.AccountBox__notifications__count> 2 </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>*/}
-          <ui.PopoverMenu type='account-menu'
-                          triggerLabel={accountMenuLabel}
-                          buttonType='text'>
-              <bem.AccountBox__menu>
-                <bem.AccountBox__menuLI key='1'>
-                  <bem.AccountBox__menuItem m={'avatar'}>
-                    {accountMenuLabel}
-                  </bem.AccountBox__menuItem>
-                  <bem.AccountBox__menuItem m={'mini-profile'}>
-                    <span className='account-username'>{accountName}</span>
-                    <span className='account-email'>{accountEmail}</span>
-                  </bem.AccountBox__menuItem>
-                  <bem.AccountBox__menuItem m={'settings'}>
-                    <button onClick={this.accountSettings} className='mdl-button mdl-button--raised mdl-button--colored'>
-                      {t('Account Settings')}
-                    </button>
-                  </bem.AccountBox__menuItem>
-                </bem.AccountBox__menuLI>
-                {stores.session && stores.session.environment &&
-                  <bem.AccountBox__menuLI key='2' className='environment-links'>
-                    <a href={stores.session.environment.terms_of_service_url} target='_blank'>
-                      {t('Terms of Service')}
-                    </a>
-                    <a href={stores.session.environment.privacy_policy_url} target='_blank'>
-                      {t('Privacy Policy')}
-                    </a>
-                  </bem.AccountBox__menuLI>
-                }
-                <bem.AccountBox__menuLI m={'lang'} key='3'>
-                  <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
-                    <i className='k-icon-language' />
-                    {t('Language')}
-                  </bem.AccountBox__menuLink>
-
-                  {this.state.isLanguageSelectorVisible &&
-                    <ul>
-                      {langs.map(this.renderLangItem)}
-                    </ul>
-                  }
-                </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'logout'} key='4'>
-                  <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className='k-icon-logout' />
-                    {t('Logout')}
-                  </bem.AccountBox__menuLink>
-                </bem.AccountBox__menuLI>
-              </bem.AccountBox__menu>
-          </ui.PopoverMenu>
         </bem.AccountBox>
         );
     }
