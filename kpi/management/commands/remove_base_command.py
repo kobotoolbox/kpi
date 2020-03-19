@@ -2,6 +2,7 @@
 import sys
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from django.db import transaction, connection
 
 
@@ -45,6 +46,13 @@ class RemoveBaseCommand(BaseCommand):
             help="Run `VACUUM FULL` instead of `VACUUM`.",
         )
 
+        parser.add_argument(
+            "--dry-run",
+            action='store_true',
+            default=False,
+            help="Print out what will be deleted without deleting it",
+        )
+
     def handle(self, *args, **options):
 
         chunks = options["chunks"]
@@ -59,6 +67,23 @@ class RemoveBaseCommand(BaseCommand):
         chunked_delete_ids = []
         chunks_counter = 1
         total = delete_queryset.count()
+
+        if options["dry_run"]:
+            try:
+                first = delete_queryset.order_by('date_created').first()
+                if first:
+                    days_ago = '. Oldest is {} days'.format(
+                        (timezone.now() - first.date_created).days,
+                    )
+                else:
+                    days_ago = ''
+                print("{} items to delete{}".format(total,
+                    days_ago,
+                ))
+            except Exception as err:
+                print("{} items to delete".format(total)
+                pass
+            return
 
         for record_id in delete_queryset.values_list("id", flat=True).iterator():
 
