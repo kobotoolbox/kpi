@@ -518,12 +518,20 @@ export default assign({
       ooo.versionValue = this.state.settings__version;
       ooo.formIdValue = this.state.settings__form_id;
     }
+
+    var saveButtonText = 'save';
+    if (this.state.asset_type === 'survey') {
+      saveButtonText = 'save draft';
+    } else {
+      saveButtonText = 'save changes';
+    }
+
     if (this.state.editorState === 'new') {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
-      ooo.saveButtonText = `${t('save draft')} (${t('retry')}) `;
+      ooo.saveButtonText = `${t(saveButtonText)} (${t('retry')}) `;
     } else {
-      ooo.saveButtonText = t('save draft');
+      ooo.saveButtonText = `${t(saveButtonText)}`;
     }
     return ooo;
   },
