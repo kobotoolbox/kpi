@@ -88,7 +88,7 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
-      if questionType is 'calculate'
+      if questionType is 'calculate' or questionType is 'hidden'
         @$hint.hide()
 
       if 'getList' of @model and (cl = @model.getList())
