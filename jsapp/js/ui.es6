@@ -274,11 +274,7 @@ class PopoverMenu extends React.Component {
       // 20px is a nice safety margin
       const $assetRow = $(evt.target).parents('.asset-row');
       const $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
-      if ($assetRow.offset().top > $popoverMenu.outerHeight() + $assetRow.outerHeight() + 20) {
-        this.setState({placement: 'above'});
-      } else {
-        this.setState({placement: 'below'});
-      }
+      this.setState({placement: 'below'});
     }
   }
   componentWillReceiveProps(nextProps) {
