@@ -299,7 +299,7 @@ class LibrarySidebar extends Reflux.Component {
               m={{selected: !this.state.publicCollectionsVisible}}
               onClick={this.clickFilterByCollection}>
                   <i className='k-icon-library' />
-                  {t('My Library')}
+                  {t('Library')}
               <bem.FormSidebar__labelCount>
                 {this.state.defaultQueryCount}
               </bem.FormSidebar__labelCount>
