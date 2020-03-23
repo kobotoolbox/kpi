@@ -108,7 +108,7 @@ class SearchCollectionList extends Reflux.Component {
       (
         <bem.List__heading key='1'>
           <span className={this.state.parentName ? 'parent' : ''}>
-            {t('My Library')}
+            {t('Library')}
           </span>
 
           {this.state.parentName &&

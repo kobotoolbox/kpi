@@ -120,6 +120,7 @@ class AssetRow extends React.Component {
           hasParent: p
         };
       });
+      this.props.downloads = this.props.downloads.filter(dl => dl.format !== 'xml');
     }
 
     return (
@@ -349,7 +350,7 @@ class AssetRow extends React.Component {
                   {t('Replace form')}
                 </bem.PopoverMenu__link>
               }
-              { userCanEdit &&
+              { userCanEdit && !this.isLibrary() &&
                 <bem.PopoverMenu__link
                   data-action={'translations'}
                   data-asset-uid={this.props.uid}
