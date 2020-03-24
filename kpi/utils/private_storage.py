@@ -21,7 +21,7 @@ def superuser_or_username_matches_prefix(private_file):
 
     user = private_file.request.user
 
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         # Try all the DRF authentication methods before giving up
         request = DRFRequest(
             private_file.request,
@@ -30,7 +30,7 @@ def superuser_or_username_matches_prefix(private_file):
             ]
         )
         user = request.user
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return False
 
     if user.is_superuser:
