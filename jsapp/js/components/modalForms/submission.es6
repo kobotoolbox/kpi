@@ -273,9 +273,9 @@ class Submission extends React.Component {
       case 'begin_repeat': {
         const list = submissionValue.map((r) => {
           const stringified = JSON.stringify(r);
-          return <li key={stringified}>{stringified}</li>
+          return (<li key={stringified}>{stringified}</li>);
         });
-        return <ul>{list}</ul>
+        return (<ul>{list}</ul>);
       }
       default: {
         return submissionValue;
