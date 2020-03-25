@@ -25,7 +25,7 @@ class Submission extends React.Component {
         translationOptions = [];
 
     if (translations.length > 1) {
-      translationOptions = translations.map((trns, i) => {
+      translationOptions = translations.map((trns) => {
         return {
           value: trns,
           label: trns || t('Unnamed language')
@@ -56,7 +56,7 @@ class Submission extends React.Component {
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
   }
 
-  refreshSubmissionValidationStatus(result, sid) {
+  refreshSubmissionValidationStatus(result) {
     if (result && result.uid) {
       this.state.submission._validation_status = result;
     } else {
@@ -74,12 +74,14 @@ class Submission extends React.Component {
       var prev = -1, next = -1;
 
       if (this.props.ids && sid) {
-        const c = this.props.ids.findIndex(k => k==sid);
+        const c = this.props.ids.findIndex((k) => {return k === sid;});
         let tableInfo = this.props.tableInfo || false;
-        if (this.props.ids[c - 1])
+        if (this.props.ids[c - 1]) {
           prev = this.props.ids[c - 1];
-        if (this.props.ids[c + 1])
+        }
+        if (this.props.ids[c + 1]) {
           next = this.props.ids[c + 1];
+        }
 
         // table submissions pagination
         if (tableInfo) {
@@ -88,14 +90,15 @@ class Submission extends React.Component {
             next = -2;
           }
 
-          if (tableInfo.currentPage > 0 && prev == -1)
+          if (tableInfo.currentPage > 0 && prev === -1) {
             prev = -2;
+          }
         }
       }
 
       const survey = this.props.asset.content.survey;
       const betaQuestions = ['begin_kobomatrix'];
-      const hasBetaQuestion = survey.find(q => betaQuestions.includes(q.type)) || false;
+      const hasBetaQuestion = survey.find((q) => {return betaQuestions.includes(q.type);}) || false;
 
       this.setState({
         submission: data,
@@ -104,13 +107,14 @@ class Submission extends React.Component {
         previous: prev,
         hasBetaQuestion: hasBetaQuestion
       });
-    }).fail((error)=>{
-      if (error.responseText)
+    }).fail((error) => {
+      if (error.responseText) {
         this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
+      } else if (error.statusText) {
         this.setState({error: error.statusText, loading: false});
-      else
+      } else {
         this.setState({error: t('Error: could not load data.'), loading: false});
+      }
     });
   }
 
@@ -129,8 +133,8 @@ class Submission extends React.Component {
       title: t('Delete submission?'),
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: {ok: t('Delete'), cancel: t('Cancel')},
-      onok: (evt, val) => {
-        dataInterface.deleteSubmission(this.props.asset.uid, this.props.sid).done((data) => {
+      onok: () => {
+        dataInterface.deleteSubmission(this.props.asset.uid, this.props.sid).done(() => {
           stores.pageState.hideModal();
           notify(t('submission deleted'));
         });
@@ -176,9 +180,9 @@ class Submission extends React.Component {
     attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(filename)}`;
 
     if (type === 'image') {
-      return <img src={attachmentUrl} />
+      return (<img src={attachmentUrl} />);
     } else {
-      return <a href={attachmentUrl} target='_blank'>{originalFilename}</a>
+      return (<a href={attachmentUrl} target='_blank'>{originalFilename}</a>);
     }
   }
 
@@ -230,39 +234,42 @@ class Submission extends React.Component {
   }
 
   languageChange(e) {
-    let index = this.state.translationOptions.findIndex(x => x==e);
+    let index = this.state.translationOptions.findIndex((x) => {return x === e;});
     this.setState({
       translationIndex: index || 0
     });
   }
 
   responseDisplayHelper(q, s, overrideValue = false, name) {
-    if (!q) return false;
+    if (!q) {return false;}
     const choices = this.props.asset.content.choices;
     let translationIndex = this.state.translationIndex;
 
     var submissionValue = s[name];
 
-    if (overrideValue)
+    if (overrideValue) {
       submissionValue = overrideValue;
+    }
 
     switch(q.type) {
       case 'select_one': {
-        const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === submissionValue);
-        if (choice && choice.label && choice.label[translationIndex])
+        const choice = choices.find((x) => {return x.list_name === q.select_from_list_name && x.name === submissionValue;});
+        if (choice && choice.label && choice.label[translationIndex]) {
           return choice.label[translationIndex];
-        else
+        } else {
           return submissionValue;
+        }
       }
       case 'select_multiple': {
         var responses = submissionValue.split(' ');
-        var list = responses.map((r)=> {
-          const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
-          if (choice && choice.label && choice.label[translationIndex])
+        var list = responses.map((r) => {
+          const choice = choices.find((x) => {return x.list_name === q.select_from_list_name && x.name === r;});
+          if (choice && choice.label && choice.label[translationIndex]) {
             return <li key={r}>{choice.label[translationIndex]}</li>;
-          else
+          } else {
             return <li key={r}>{r}</li>;
-        })
+          }
+        });
         return <ul>{list}</ul>;
       }
       case 'image':
@@ -296,9 +303,9 @@ class Submission extends React.Component {
         return name;
       }
       return `${openedGroups.join('/')}/${name}`;
-    }
+    };
 
-    return survey.map((q)=> {
+    return survey.map((q) => {
       var name = q.name || q.$autoname || q.$kuid;
 
       if (q.type === 'begin_repeat') {
@@ -311,17 +318,20 @@ class Submission extends React.Component {
                 {t('Repeat group: ')}
                 {q.label && q.label[translationIndex] ? q.label[translationIndex] : t('Unlabelled')}
               </h4>
-              {s[groupedName] && s[groupedName].map((repQ, i)=> {
+              {s[groupedName] && s[groupedName].map((repQ, i) => {
                 var response = [];
                 for (var pN in repQ) {
                   var qName = pN.split('/').pop(-1);
-                  const subQ = survey.find(x => x.name == qName || x.$autoname == qName);
+                  const subQ = survey.find((x) => {
+                    return x.name === qName || x.$autoname === qName;
+                  });
 
                   if (subQ) {
                     const icon = icons._byId[subQ.type];
                     var type = q.type;
-                    if (icon)
-                      type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
+                    if (icon) {
+                      type = (<i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>);
+                    }
                     response.push(
                       <tr key={`row-${pN}`}>
                         <td className='submission--question-type'>{type}</td>
@@ -348,8 +358,9 @@ class Submission extends React.Component {
         );
       }
 
-      if (q.type === 'end_repeat')
+      if (q.type === 'end_repeat') {
         return false;
+      }
 
       if (groupTypes.includes(q.type)) {
         openedGroups.push(name);
@@ -375,13 +386,14 @@ class Submission extends React.Component {
 
       let groupedName = getGroupedName(name);
 
-      if (q.label == undefined || s[groupedName] == undefined) { return false;}
+      if (typeof q.label === 'undefined' || typeof s[groupedName] === 'undefined') {return false;}
 
       const response = this.responseDisplayHelper(q, s, false, groupedName);
       const icon = icons._byId[q.type];
       var type = q.type;
-      if (icon)
-        type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
+      if (icon) {
+        type = (<i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>);
+      }
 
       return (
         <tr key={`row-${groupedName}`}>
@@ -413,7 +425,7 @@ class Submission extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
-        )
+      );
     }
 
     const s = this.state.submission;
@@ -479,7 +491,7 @@ class Submission extends React.Component {
               </a>
             }
 
-            {this.state.previous == -2 &&
+            {this.state.previous === -2 &&
               <a onClick={this.prevTablePage}
                     className='mdl-button mdl-button--colored'>
                 <i className='k-icon-prev' />
@@ -497,7 +509,7 @@ class Submission extends React.Component {
               </a>
             }
 
-            {this.state.next == -2 &&
+            {this.state.next === -2 &&
               <a onClick={this.nextTablePage}
                     className='mdl-button mdl-button--colored'>
                 {t('Next')}
@@ -583,7 +595,7 @@ class Submission extends React.Component {
       </bem.FormModal>
     );
   }
-};
+}
 
 reactMixin(Submission.prototype, Reflux.ListenerMixin);
 reactMixin(Submission.prototype, mixins.permissions);
