@@ -520,10 +520,12 @@ export default assign({
     }
 
     var saveButtonText = 'save';
+    var backButtonText = 'back';
     if (this.state.asset_type === 'survey') {
       saveButtonText = 'save draft';
     } else {
       saveButtonText = 'save changes';
+      backButtonText = 'back to library';
     }
 
     if (this.state.editorState === 'new') {
@@ -533,6 +535,7 @@ export default assign({
     } else {
       ooo.saveButtonText = `${t(saveButtonText)}`;
     }
+    ooo.backButtonText = `${t(backButtonText)}`;
     return ooo;
   },
 
@@ -665,7 +668,8 @@ export default assign({
   },
 
   canNavigateToList() {
-    return false;
+    return this.state.surveyAppRendered && 
+      (this.state.asset_type !== 'survey' || this.props.location.pathname.startsWith('/library/new'));
   },
 
   // rendering methods
@@ -677,6 +681,7 @@ export default assign({
       showAllOpen,
       showAllAvailable,
       saveButtonText,
+      backButtonText,
     } = this.buttonStates();
 
     let nameFieldLabel;
@@ -714,16 +719,6 @@ export default assign({
     return (
       <bem.FormBuilderHeader>
         <bem.FormBuilderHeader__row m='primary'>
-          {this.canNavigateToList() &&
-            <bem.FormBuilderHeader__cell
-              m={'logo'}
-              data-tip={t('Return to list')}
-              className='left-tooltip'
-              onClick={this.safeNavigateToList}
-            >
-              <i className='k-icon-kobo' />
-            </bem.FormBuilderHeader__cell>
-          }
 
           <bem.FormBuilderHeader__cell m={'name'} >
             <bem.FormModal__item>
@@ -744,6 +739,16 @@ export default assign({
             <bem.FormBuilderHeader__button m={['share']} className='is-edge'>
               {t('share')}
             </bem.FormBuilderHeader__button>
+              
+            {this.canNavigateToList() &&
+              <bem.FormBuilderHeader__button
+                m={['back']}
+                onClick={this.safeNavigateToList}
+                disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
+              >
+                {backButtonText}
+              </bem.FormBuilderHeader__button>
+            }
 
             <bem.FormBuilderHeader__button
               m={['save', {
