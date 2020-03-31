@@ -22,6 +22,8 @@ module.exports = do ->
       reqVal = @getChangedValue()
       template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", reqVal))
       @$el.html(template)
+      if reqVal isnt 'true' and reqVal isnt 'false'
+        @$el.find('.js-mandatory-setting-custom-text').val(reqVal)
       return @
 
     insertInDOM: (rowView)->
@@ -40,6 +42,10 @@ module.exports = do ->
     onCustomTextKeyup: (evt) ->
       if evt.key is 'Enter' or evt.keyCode is 13 or evt.which is 13
         evt.target.blur()
+      else
+        val = evt.currentTarget.value
+        @setNewValue(val)
+        @$el.find('.js-mandatory-setting-custom-text').focus()
       return
 
     onCustomTextBlur: (evt) ->
@@ -55,7 +61,11 @@ module.exports = do ->
       return String(val)
 
     setNewValue: (val) ->
-      @model.set('value', val)
+      if @model.get('value') is true or @model.get('value') is false
+        if val isnt ''
+          @model.set('value', val)
+      else
+        @model.set('value', val)
       return
 
   MandatorySettingView: MandatorySettingView

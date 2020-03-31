@@ -283,7 +283,7 @@ module.exports = do ->
               <input
                 type="text"
                 class="text-box__input js-mandatory-setting-custom-text"
-                value="#{currentValue}"
+                value=""
                 placeholder="#{_t('Conditional value')}"
               >
             </label>
