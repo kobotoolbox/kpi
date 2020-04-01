@@ -27,10 +27,8 @@ import {
   formatTimeDate,
   renderCheckbox
 } from '../utils';
-import {
-  getRepeatGroupAnswers,
-  getSurveyFlatPaths
-} from 'js/assetUtils';
+import {getSurveyFlatPaths} from 'js/assetUtils';
+import {getRepeatGroupAnswers} from 'js/submissionUtils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
