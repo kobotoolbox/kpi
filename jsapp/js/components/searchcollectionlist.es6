@@ -121,17 +121,20 @@ class SearchCollectionList extends Reflux.Component {
       ),
       (
         <bem.AssetListSorts className='mdl-grid' key='2'>
-          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone'>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--2-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
+          <bem.AssetListSorts__item m={'type'} className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
             {t('Type')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
-            {t('Owner')}
+            {t('Created By')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'modified'} className='mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
             {t('Last Modified')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'actions'} className='mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
+            {t('Actions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       )];
@@ -139,10 +142,10 @@ class SearchCollectionList extends Reflux.Component {
   renderGroupedHeadings () {
     return (
         <bem.AssetListSorts className='mdl-grid' style={{width: this.state.fixedHeadingsWidth}}>
-          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone'>
+          <bem.AssetListSorts__item m={'name'} className='mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--2-col-phone'>
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
+          <bem.AssetListSorts__item m={'owner'} className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone'>
             {t('Shared by')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'created'} className='mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone'>
@@ -153,6 +156,9 @@ class SearchCollectionList extends Reflux.Component {
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'submissions'} className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone' >
             {t('Submissions')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'actions'} className='mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'>
+            {t('Actions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
