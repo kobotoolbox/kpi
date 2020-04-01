@@ -347,6 +347,8 @@ new Set([
 
 export const NAME_MAX_LENGTH = 255;
 
+export const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,

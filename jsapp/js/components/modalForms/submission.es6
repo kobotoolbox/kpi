@@ -15,7 +15,8 @@ import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
+  DETAIL_NOT_FOUND
 } from 'js/constants';
 
 class Submission extends React.Component {
@@ -105,12 +106,16 @@ class Submission extends React.Component {
         hasBetaQuestion: hasBetaQuestion
       });
     }).fail((error)=>{
-      if (error.responseText)
-        this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
-        this.setState({error: error.statusText, loading: false});
-      else
+      if (error.responseText) {
+        let error_message = error.responseText;
+        if (error_message === DETAIL_NOT_FOUND)
+          error_message = 'The submission could not be found. It may have been deleted. Submission ID: ' + sid;
+        this.setState({error: error_message, loading: false});
+      } else if (error.statusText) {
+          this.setState({error: error.statusText, loading: false});
+      } else {
         this.setState({error: t('Error: could not load data.'), loading: false});
+      }
     });
   }
 
