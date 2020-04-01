@@ -316,7 +316,8 @@ $t-form-builder-aside-open: 200ms;
     color: white;
   }
 
-  &.formBuilder-header__button--share {
+  &.formBuilder-header__button--share,
+  &.formBuilder-header__button--back {
     min-width: 85px;
     text-transform: uppercase;
 

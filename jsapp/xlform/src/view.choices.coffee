@@ -114,12 +114,14 @@ module.exports = do ->
         other_names = @options.cl.getNames()
         if @model.get('name')? && val.toLowerCase() == @model.get('name').toLowerCase()
           other_names.splice _.indexOf(other_names, @model.get('name')), 1
+        valChanged = false
         if val is ''
+          valChanged = true if val isnt @model.get('name')
           @model.unset('name')
           @model.set('setManually', false)
           val = 'AUTOMATIC'
           @$el.trigger("choice-list-update", @options.cl.cid)
-          @model.getSurvey()?.trigger('change')
+          @model.getSurvey()?.trigger('change') if valChanged
         else
           val = $modelUtils.sluggify(val, {
                     preventDuplicates: other_names
@@ -130,25 +132,33 @@ module.exports = do ->
                     validXmlTag: false
                     nonWordCharsExceptions: '+-.'
                   })
+          valChanged = true if val isnt @model.get('name')
           @model.set('name', val)
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
-          @model.getSurvey()?.trigger('change')
+          @model.getSurvey()?.trigger('change') if valChanged
         newValue: val
 
       @j = $('span', @i)
       $viewUtils.makeEditable @, @model, @j, edit_callback: (val) =>
+        valChanged = false
         if val is ''
+          valChanged = true if val isnt @model.get(@optionImageField)
           @model.unset(@optionImageField)
           @model.set('setManually', false)
           val = 'None'
           @$el.trigger("choice-list-update", @options.cl.cid)
-          @model.getSurvey()?.trigger('change')
+          @model.getSurvey()?.trigger('change') if valChanged
         else
-          @model.set(@optionImageField, val)
-          @model.set('setManually', true)
-          @$el.trigger("choice-list-update", @options.cl.cid)
-          @model.getSurvey()?.trigger('change')
+          valChanged = true if val isnt @model.get(@optionImageField)
+          if val is 'None' and @model.get(@optionImageField) is undefined
+            valChanged = false
+            
+          if valChanged
+            @model.set(@optionImageField, val)
+            @model.set('setManually', true)
+            @$el.trigger("choice-list-update", @options.cl.cid)
+            @model.getSurvey()?.trigger('change') 
         newValue: val
 
       @pw.html(@p)
@@ -192,6 +202,8 @@ module.exports = do ->
 
       if nval
         nval = nval.replace /\t/g, ' '
+        valChanged = false
+        valChanged = true if nval isnt @model.get('label')
         @model.set("label", nval, silent: true)
         other_names = @options.cl.getNames()
         if !@model.get('setManually')
@@ -204,7 +216,8 @@ module.exports = do ->
             validXmlTag: true
           @model.set("name", $modelUtils.sluggify(nval, sluggifyOpts))
         @$el.trigger("choice-list-update", @options.cl.cid)
-        @model.getSurvey()?.trigger('change')
+
+        @model.getSurvey()?.trigger('change') if valChanged
         return
       else
         return newValue: @model.get "label"

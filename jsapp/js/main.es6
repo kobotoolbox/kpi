@@ -50,7 +50,7 @@ initCrossStorageClient();
 function crossStorageCheck() {
   const currentUserName = stores.session.currentAccount.username;
   if (currentUserName !== '') {
-    console.log('crossStorageCheck');
+    // console.log('crossStorageCheck');
     const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
     checkCrossStorageUser(crossStorageUserName)
       .then(checkCrossStorageTimeOut)
@@ -65,7 +65,7 @@ function crossStorageCheck() {
 function crossStorageCheckAndUpdate() {
   const currentUserName = stores.session.currentAccount.username;
   if (currentUserName !== '') {
-    console.log('crossStorageCheckAndUpdate');
+    // console.log('crossStorageCheckAndUpdate');
     const crossStorageUserName = currentUserName.slice(0, currentUserName.lastIndexOf('+'))
     checkCrossStorageUser(crossStorageUserName)
       .then(checkCrossStorageTimeOut)

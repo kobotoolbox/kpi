@@ -97,7 +97,8 @@ class AssetRow extends React.Component {
 
     var isDeployable = this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.deployed_version_id === null;
 
-    const userCanEdit = this.userCan('change_asset', this.props);
+    // const userCanEdit = this.userCan('change_asset', this.props);
+    const userCanEdit = true;
 
     const assetName = this.props.name || this.props.firstQuestionLabel;
 
@@ -151,7 +152,7 @@ class AssetRow extends React.Component {
             {/* "title" column */}
             <bem.AssetRow__cell
               m={'title'}
-              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone']}
+              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--4-col mdl-cell--2-col-tablet mdl-cell--2-col-phone']}
             >
               { this.props.asset_type && (
                   this.props.asset_type == ASSET_TYPES.template.id ||
@@ -178,7 +179,7 @@ class AssetRow extends React.Component {
               ) &&
               <bem.AssetRow__cell
                 m={'type'}
-                className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}
+                className={['mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}
               >
                 {ASSET_TYPES[this.props.asset_type].label}
               </bem.AssetRow__cell>
@@ -190,7 +191,7 @@ class AssetRow extends React.Component {
               key={'userlink'}
               className={[
                 'mdl-cell',
-                this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'
+                this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'
               ]}
             >
               { this.props.asset_type == ASSET_TYPES.survey.id &&
@@ -214,7 +215,7 @@ class AssetRow extends React.Component {
             <bem.AssetRow__cell
               m={'date-modified'}
               key={'date-modified'}
-              className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}
+              className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--hide-phone']}
             >
               <span className='date date--modified'>{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
@@ -232,6 +233,204 @@ class AssetRow extends React.Component {
                 }
               </bem.AssetRow__cell>
             }
+            
+            {/* "actions" column */}
+            <bem.AssetRow__cell
+              m={'actions'}
+              key={'actions'}
+              className={['mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone cell-actions']}
+            >
+              {userCanEdit &&
+                <bem.AssetRow__actionIcon
+                    m='edit'
+                    key='edit'
+                    data-action='edit'
+                    data-tip={t('Edit')}
+                    data-asset-type={this.props.kind}
+                    data-disabled={false}
+                    >
+                  <i className='k-icon-edit' />
+                </bem.AssetRow__actionIcon>
+              }
+
+              {userCanEdit &&
+                <bem.AssetRow__actionIcon
+                    m='tagsToggle'
+                    onClick={this.clickTagsToggle}
+                    data-tip= {t('Labels')}
+                    >
+                  <i className='k-icon-tag' />
+                </bem.AssetRow__actionIcon>
+              }
+
+              {userCanEdit &&
+                <bem.AssetRow__actionIcon
+                    m='sharing'
+                    key='sharing'
+                    data-action='sharing'
+                    data-asset-type={this.props.kind}
+                    data-tip= {t('Share')}
+                    data-disabled={false}
+                    >
+                  <i className='k-icon-share' />
+                </bem.AssetRow__actionIcon>
+              }
+
+              <bem.AssetRow__actionIcon
+                  m='clone'
+                  key='clone'
+                  data-action='clone'
+                  data-tip={t('Clone')}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={assetName}
+                  data-disabled={false}
+                  >
+                <i className='k-icon-clone' />
+              </bem.AssetRow__actionIcon>
+
+              { this.props.asset_type &&
+                this.props.asset_type === ASSET_TYPES.template.id &&
+                userCanEdit &&
+                <bem.AssetRow__actionIcon
+                  m={'cloneAsSurvey'}
+                  key='cloneAsSurvey'
+                  data-action={'cloneAsSurvey'}
+                  data-tip={t('Create project')}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={assetName}
+                  data-disabled={false}
+                >
+                  <i className='k-icon-projects' />
+                </bem.AssetRow__actionIcon>
+              }
+
+              { this.props.kind === 'collection' &&
+                [/*'view',*/ 'sharing'].map((actn)=>{
+                  return (
+                        <bem.AssetRow__actionIcon
+                          m={actn === 'view' ? 'view-collection' : actn}
+                            data-action={actn}
+                            data-asset-type={this.props.kind}
+                            data-disabled={false}
+                            data-tip={actn}
+                            >
+                          <i />
+                        </bem.AssetRow__actionIcon>
+                      );
+                })
+              }
+              
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
+                <bem.AssetRow__actionIcon
+                      m={'unarchive'}
+                      data-action={'unarchive'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i className='k-icon-archived' />
+                  {t('Unarchive')}
+                </bem.AssetRow__actionIcon>
+              }
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit &&
+                <bem.AssetRow__actionIcon
+                  m={'refresh'}
+                  data-action={'refresh'}
+                  data-asset-type={this.props.kind}
+                  data-tip={t('Replace form')}
+                >
+                  <i className='k-icon-replace' />
+                </bem.AssetRow__actionIcon>
+              }
+              { userCanEdit && !this.isLibrary() &&
+                <bem.AssetRow__actionIcon
+                  data-action={'translations'}
+                  data-asset-uid={this.props.uid}
+                  data-tip={t('Manage Translations')}
+                >
+                  <i className='k-icon-language' />
+                </bem.AssetRow__actionIcon>
+              }
+              {this.props.downloads.map((dl)=>{
+                const format = dl.format.toString().toUpperCase();
+                return (
+                    <bem.AssetRow__actionIcon 
+                      m={`dl-${dl.format}`} 
+                      href={dl.url}
+                      key={`dl-${dl.format}`}
+                      data-tip={`${t('Download')} ${format}`}
+                    >
+                      <i className={`k-icon-${dl.format}-file`}/>
+                    </bem.AssetRow__actionIcon>
+                  );
+              })}
+              { this.props.asset_type && this.props.asset_type != ASSET_TYPES.survey.id &&
+                <ui.PopoverMenu
+                  type='assetrow-menu'
+                  triggerLabel={<i className='k-icon-folder-move-to' />}
+                  triggerTip={t('Move to collection')}
+                  popoverSetVisible={this.popoverSetVisible}
+                >
+                  { ownedCollections.length <= 0 &&
+                    <bem.PopoverMenu__heading>
+                      {t('None available')}
+                    </bem.PopoverMenu__heading>
+                  }
+                  { ownedCollections.length > 0 &&
+                    <bem.PopoverMenu__moveTo>
+                      {ownedCollections.map((col)=>{
+                        return (
+                            <bem.PopoverMenu__item
+                              onClick={this.moveToCollection}
+                              data-collid={col.value}
+                              data-parent={col.hasParent ? 'true' : 'false'}
+                              key={col.value}
+                              title={col.label}
+                              m='move-coll-item'>
+                                <i className='k-icon-folder' />
+                                {col.label}
+                                {col.hasParent &&
+                                  <span className='has-parent'>&bull;</span>
+                                }
+                            </bem.PopoverMenu__item>
+                          );
+                      })}
+                    </bem.PopoverMenu__moveTo>
+                  }
+                </ui.PopoverMenu>
+              }
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
+                <bem.AssetRow__actionIcon
+                      m={'archive'}
+                      data-action={'archive'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i className='k-icon-archived' />
+                  {t('Archive')}
+                </bem.AssetRow__actionIcon>
+              }
+              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit &&
+                <bem.AssetRow__actionIcon
+                  m={'cloneAsTemplate'}
+                  data-action={'cloneAsTemplate'}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={assetName}
+                  data-tip={t('Create template')}
+                >
+                  <i className='k-icon-template' />
+                </bem.AssetRow__actionIcon>
+              }
+              {userCanEdit &&
+                <bem.AssetRow__actionIcon
+                  m={'delete'}
+                  data-action={'delete'}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={assetName}
+                  data-tip={t('Delete')}
+                >
+                  <i className='k-icon-trash' />
+                </bem.AssetRow__actionIcon>
+              }
+            </bem.AssetRow__cell>
+
           </bem.AssetRow__cell>
 
           { this.state.isTagsInputVisible &&
@@ -242,193 +441,8 @@ class AssetRow extends React.Component {
               <TagInput uid={this.props.uid} tags={this.props.tags} />
             </bem.AssetRow__cell>
           }
-
-          <bem.AssetRow__buttons onClick={this.clickAssetButton}>
-            {userCanEdit &&
-              <bem.AssetRow__actionIcon
-                  m='edit'
-                  key='edit'
-                  data-action='edit'
-                  data-tip={t('Edit')}
-                  data-asset-type={this.props.kind}
-                  data-disabled={false}
-                  >
-                <i className='k-icon-edit' />
-              </bem.AssetRow__actionIcon>
-            }
-
-            {userCanEdit &&
-              <bem.AssetRow__actionIcon
-                  m='tagsToggle'
-                  onClick={this.clickTagsToggle}
-                  data-tip= {t('Labels')}
-                  >
-                <i className='k-icon-tag' />
-              </bem.AssetRow__actionIcon>
-            }
-
-            {userCanEdit &&
-              <bem.AssetRow__actionIcon
-                  m='sharing'
-                  key='sharing'
-                  data-action='sharing'
-                  data-asset-type={this.props.kind}
-                  data-tip= {t('Share')}
-                  data-disabled={false}
-                  >
-                <i className='k-icon-share' />
-              </bem.AssetRow__actionIcon>
-            }
-
-            <bem.AssetRow__actionIcon
-                m='clone'
-                key='clone'
-                data-action='clone'
-                data-tip={t('Clone')}
-                data-asset-type={this.props.kind}
-                data-asset-name={assetName}
-                data-disabled={false}
-                >
-              <i className='k-icon-clone' />
-            </bem.AssetRow__actionIcon>
-
-            { this.props.asset_type &&
-              this.props.asset_type === ASSET_TYPES.template.id &&
-              userCanEdit &&
-              <bem.AssetRow__actionIcon
-                m={'cloneAsSurvey'}
-                key='cloneAsSurvey'
-                data-action={'cloneAsSurvey'}
-                data-tip={t('Create project')}
-                data-asset-type={this.props.kind}
-                data-asset-name={assetName}
-                data-disabled={false}
-              >
-                <i className='k-icon-projects' />
-              </bem.AssetRow__actionIcon>
-            }
-
-            { this.props.kind === 'collection' &&
-              [/*'view',*/ 'sharing'].map((actn)=>{
-                return (
-                      <bem.AssetRow__actionIcon
-                        m={actn === 'view' ? 'view-collection' : actn}
-                          data-action={actn}
-                          data-asset-type={this.props.kind}
-                          data-disabled={false}
-                          data-tip={actn}
-                          >
-                        <i />
-                      </bem.AssetRow__actionIcon>
-                    );
-              })
-            }
-            <ui.PopoverMenu
-              type='assetrow-menu'
-              triggerLabel={<i className='k-icon-more' />}
-              triggerTip={t('More Actions')}
-              clearPopover={this.state.clearPopover}
-              popoverSetVisible={this.popoverSetVisible}
-            >
-              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
-                <bem.PopoverMenu__link
-                      m={'unarchive'}
-                      data-action={'unarchive'}
-                      data-asset-type={this.props.kind}
-                    >
-                  <i className='k-icon-archived' />
-                  {t('Unarchive')}
-                </bem.PopoverMenu__link>
-              }
-              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit &&
-                <bem.PopoverMenu__link
-                  m={'refresh'}
-                  data-action={'refresh'}
-                  data-asset-type={this.props.kind}
-                >
-                  <i className='k-icon-replace' />
-                  {t('Replace form')}
-                </bem.PopoverMenu__link>
-              }
-              { userCanEdit && !this.isLibrary() &&
-                <bem.PopoverMenu__link
-                  data-action={'translations'}
-                  data-asset-uid={this.props.uid}
-                >
-                  <i className='k-icon-language' />
-                  {t('Manage Translations')}
-                </bem.PopoverMenu__link>
-              }
-              {this.props.downloads.map((dl)=>{
-                return (
-                    <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                        key={`dl-${dl.format}`}>
-                      <i className={`k-icon-${dl.format}-file`}/>
-                      {t('Download')}&nbsp;
-                      {dl.format.toString().toUpperCase()}
-                    </bem.PopoverMenu__link>
-                  );
-              })}
-              { this.props.asset_type && this.props.asset_type != ASSET_TYPES.survey.id && ownedCollections.length > 0 &&
-                <bem.PopoverMenu__heading>
-                  {t('Move to')}
-                </bem.PopoverMenu__heading>
-              }
-              { this.props.asset_type && this.props.asset_type != ASSET_TYPES.survey.id && ownedCollections.length > 0 &&
-                <bem.PopoverMenu__moveTo>
-                  {ownedCollections.map((col)=>{
-                    return (
-                        <bem.PopoverMenu__item
-                          onClick={this.moveToCollection}
-                          data-collid={col.value}
-                          data-parent={col.hasParent ? 'true' : 'false'}
-                          key={col.value}
-                          title={col.label}
-                          m='move-coll-item'>
-                            <i className='k-icon-folder' />
-                            {col.label}
-                            {col.hasParent &&
-                              <span className='has-parent'>&bull;</span>
-                            }
-                        </bem.PopoverMenu__item>
-                      );
-                  })}
-                </bem.PopoverMenu__moveTo>
-              }
-              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
-                <bem.PopoverMenu__link
-                      m={'archive'}
-                      data-action={'archive'}
-                      data-asset-type={this.props.kind}
-                    >
-                  <i className='k-icon-archived' />
-                  {t('Archive')}
-                </bem.PopoverMenu__link>
-              }
-              { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && userCanEdit &&
-                <bem.PopoverMenu__link
-                  m={'cloneAsTemplate'}
-                  data-action={'cloneAsTemplate'}
-                  data-asset-type={this.props.kind}
-                  data-asset-name={assetName}
-                >
-                  <i className='k-icon-template' />
-                  {t('Create template')}
-                </bem.PopoverMenu__link>
-              }
-              {userCanEdit &&
-                <bem.PopoverMenu__link
-                  m={'delete'}
-                  data-action={'delete'}
-                  data-asset-type={this.props.kind}
-                  data-asset-name={assetName}
-                >
-                  <i className='k-icon-trash' />
-                  {t('Delete')}
-                </bem.PopoverMenu__link>
-              }
-            </ui.PopoverMenu>
-          </bem.AssetRow__buttons>
+          
+          
         </bem.AssetRow>
       );
   }

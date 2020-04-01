@@ -53,7 +53,7 @@ module.exports = do ->
       selector.hide()
       edit_box.select()
 
-      commit_edit = () ->
+      commit_edit = (source) ->
         parent_element.find('.error-message').remove()
         if options? && options.validate? && options.validate(edit_box.val())?
           new_value = options.validate(edit_box.val())
@@ -64,16 +64,19 @@ module.exports = do ->
           new_value = newValue: edit_box.val()
 
         if new_value.newValue?
-          edit_box.remove()
-          selector.show()
-          selector.html(_.escape(new_value.newValue))
+          if source.type is 'blur' or source.which is 13
+            edit_box.remove()
+            selector.show()
+            selector.html(_.escape(new_value.newValue))
         else
           error_box = $('<div class="error-message">' + new_value + '</div>')
           parent_element.append(error_box)
 
       edit_box.blur commit_edit
-      edit_box.keypress (event) ->
+      edit_box.keyup (event) ->
         if event.which == 13
+          commit_edit event
+        else
           commit_edit event
 
 
