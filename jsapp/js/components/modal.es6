@@ -160,13 +160,18 @@ class Modal extends React.Component {
     let title = t('Submission Record'),
         p = props.params,
         sid = parseInt(p.sid);
+    console.dir(p);
 
     if (p.tableInfo) {
       let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
       title =  `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
     } else {
       let index = p.ids.indexOf(sid);
-      title =  `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      if (p.ids.length === 1) {
+          title = `${t('Submission Record')}`;
+      } else {
+          title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      }
     }
 
     return title;
