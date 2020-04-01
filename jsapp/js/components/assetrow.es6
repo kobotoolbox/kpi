@@ -152,7 +152,7 @@ class AssetRow extends React.Component {
             {/* "title" column */}
             <bem.AssetRow__cell
               m={'title'}
-              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--2-col-phone']}
+              className={['mdl-cell', this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--4-col mdl-cell--2-col-tablet mdl-cell--2-col-phone']}
             >
               { this.props.asset_type && (
                   this.props.asset_type == ASSET_TYPES.template.id ||
@@ -191,7 +191,7 @@ class AssetRow extends React.Component {
               key={'userlink'}
               className={[
                 'mdl-cell',
-                this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone'
+                this.props.asset_type == ASSET_TYPES.survey.id ? 'mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'
               ]}
             >
               { this.props.asset_type == ASSET_TYPES.survey.id &&
@@ -215,7 +215,7 @@ class AssetRow extends React.Component {
             <bem.AssetRow__cell
               m={'date-modified'}
               key={'date-modified'}
-              className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}
+              className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--hide-phone']}
             >
               <span className='date date--modified'>{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
@@ -238,7 +238,7 @@ class AssetRow extends React.Component {
             <bem.AssetRow__cell
               m={'actions'}
               key={'actions'}
-              className={['mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}
+              className={['mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone cell-actions']}
             >
               {userCanEdit &&
                 <bem.AssetRow__actionIcon
