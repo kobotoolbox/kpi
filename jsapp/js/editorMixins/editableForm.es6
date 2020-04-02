@@ -1006,7 +1006,7 @@ export default assign({
     var docTitle = this.state.name || t('Untitled');
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | OpenClinica`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
