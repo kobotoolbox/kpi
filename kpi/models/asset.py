@@ -1162,6 +1162,11 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                     soup.model.insert(1, oc_clinicaldata_soup.instance)
             else:
                 all_instance[instance_count - 1].insert_after(oc_clinicaldata_soup.instance)
+            
+            body_class = soup.find('h:body')['class']
+            if 'no-text-transform' not in body_class:
+                body_class = body_class + ' no-text-transform'
+            soup.find('h:body')['class'] = body_class
 
             xml = str(soup)
 
