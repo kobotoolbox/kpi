@@ -25,7 +25,8 @@ import {
   Link,
   Route,
   hashHistory,
-  Router
+  Router,
+  Redirect
 } from 'react-router';
 
 import Select from 'react-select';
@@ -117,7 +118,7 @@ class App extends React.Component {
   render() {
     var assetid = this.props.params.assetid || null;
     return (
-      <DocumentTitle title='KoBoToolbox'>
+      <DocumentTitle title='OpenClinica'>
         <Shortcuts
           name='APP_SHORTCUTS'
           handler={this._handleShortcuts}
@@ -295,7 +296,8 @@ export var routes = (
       <IndexRoute component={LibrarySearchableList} />
     </Route>
 
-    <IndexRedirect to='forms' />
+    <IndexRedirect to='library' />
+    <Redirect from="/forms" to="/library" />
     <Route path='forms' >
       <IndexRoute component={FormsSearchableList} />
 
