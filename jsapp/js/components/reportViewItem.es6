@@ -218,6 +218,8 @@ class ReportViewItem extends React.Component {
         var choiceLabel = val[2] || val[0];
         item.label = _this.truncateLabel(choiceLabel, 20);
         let itemPerc = [];
+        // TODO: Make the backend behave consistently?
+        // https://github.com/kobotoolbox/kpi/issues/2562
         if (Array.isArray(val[1].percentage)) {
           itemPerc = val[1].percentage;
         }
