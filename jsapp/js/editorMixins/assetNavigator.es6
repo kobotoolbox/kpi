@@ -125,13 +125,11 @@ class AssetNavigatorListView extends React.Component {
                   </ol>
                 }
 
-                { stores.pageState.state.assetNavExpanded &&
-                  <bem.LibList__tags>
-                    {(item.tags || []).map((tg, i)=>{
-                      return <bem.LibList__tag key={i}>{tg}</bem.LibList__tag>;
-                    })}
-                  </bem.LibList__tags>
-                }
+                <bem.LibList__tags>
+                  {(item.tags || []).map((tg, i)=>{
+                    return <bem.LibList__tag key={i}>{tg}</bem.LibList__tag>;
+                  })}
+                </bem.LibList__tags>
               </bem.LibList__item>
             );
           })}
