@@ -26,9 +26,9 @@ python manage.py create_kobo_superuser
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
     if [[ "${FRONTEND_DEV_MODE}" == "host" ]]; then
-        echo "Dev mode is activated and `npm` should be run from host."
+        echo "Dev mode is activated and \`npm\` should be run from host."
         # Create folder to be sure following `rsync` command does not fail
-        mkdir -p ${KPI_SRC_DIR}/staticfiles
+        mkdir -p "${KPI_SRC_DIR}/staticfiles"
     else
         echo "Syncing \`npm\` packages..."
         check-dependencies --install
@@ -55,7 +55,7 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
 fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
-if [[ -d /srv/pydev_orig && ! -z "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
+if [[ -d /srv/pydev_orig && -n "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
     echo 'Enabling PyDev remote debugging.'
     "${KPI_SRC_DIR}/docker/setup_pydev.bash"
 fi
