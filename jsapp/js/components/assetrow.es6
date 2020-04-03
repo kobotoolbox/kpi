@@ -263,19 +263,6 @@ class AssetRow extends React.Component {
                 </bem.AssetRow__actionIcon>
               }
 
-              {userCanEdit &&
-                <bem.AssetRow__actionIcon
-                    m='sharing'
-                    key='sharing'
-                    data-action='sharing'
-                    data-asset-type={this.props.kind}
-                    data-tip= {t('Share')}
-                    data-disabled={false}
-                    >
-                  <i className='k-icon-share' />
-                </bem.AssetRow__actionIcon>
-              }
-
               <bem.AssetRow__actionIcon
                   m='clone'
                   key='clone'
