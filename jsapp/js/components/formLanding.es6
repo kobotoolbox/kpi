@@ -303,7 +303,7 @@ export class FormLanding extends React.Component {
 
             {chosenMethod === 'iframe_url' &&
               <pre>
-                {`<iframe src=${this.state.deployment__links[chosenMethod]} width="800" height="600"></iframe>`}
+                {`<iframe src="${this.state.deployment__links[chosenMethod]}" width="800" height="600"></iframe>`}
               </pre>
             }
 
