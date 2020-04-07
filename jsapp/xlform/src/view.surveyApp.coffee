@@ -244,7 +244,6 @@ module.exports = do ->
       @_getViewForTarget(evt).toggleSettings()
 
     toggleGroupExpansion: (evt)->
-      console.log evt
       view = @_getViewForTarget(evt)
       groupsAreShrunk = view.$el.hasClass('group--shrunk')
       @surveyStateStore.setState({
@@ -391,7 +390,7 @@ module.exports = do ->
         # while loop is potentially bad if there is a future change that no 
         # longer updates `group--shrunk` when collapsing groups
         while $('.survey__row--group.group--shrunk').length > 0
-            $('.survey__row--group.group--shrunk').each (i, el) => $(el).find('.group__caret').click()
+          $('.survey__row--group.group--shrunk').each (i, el) => $(el).find('.group__caret').click()
         @$(".card--selectquestion").each (i, el)=>
           @_getViewForTarget(currentTarget: el).showMultioptions()
           ``
@@ -401,7 +400,6 @@ module.exports = do ->
           multioptionsExpanded: _expanded
         })
       return
-
 
     closeWarningBox: (evt)->
       @$('.survey-warnings').hide()
@@ -460,7 +458,7 @@ module.exports = do ->
       group_rows = @formEditorEl.find('.group__rows')
       group_rows.each (index) =>
         $(group_rows[index]).sortable({
-          cancel: 'button, .btn--addrow, .well, ul.list-view, li.editor-message, .editableform, .row-extras, .js-cancel-sort, .js-cancel-group-sort'# + index
+          cancel: 'button, .btn--addrow, .well, ul.list-view, li.editor-message, .editableform, .row-extras, .js-cancel-sort, .js-cancel-group-sort' + index
           cursor: "move"
           distance: 5
           items: "> li"
