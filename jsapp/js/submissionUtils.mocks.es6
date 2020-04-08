@@ -39,51 +39,366 @@ export const simpleSurvey = [{
 }];
 
 export const simpleSurveySubmission = {
+  '__version__': 'vHNo5vFh3KoB7LWhucUkFy',
+  '_attachments': [],
+  '_bamboo_dataset_id': '',
+  '_geolocation': [null, null],
   '_id': 16,
   '_notes': [],
-  'group_favourites/Favourite_number': '24',
-  'First_name': 'Leszek',
-  'meta/instanceID': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
-  'end': '2020-04-06T13:11:41.006+02:00',
-  '_submission_time': '2020-04-06T11:11:47',
-  '_validation_status': {},
-  '_uuid': 'faa38eee-4e3f-419e-bac0-e95f1085d998',
-  '_bamboo_dataset_id': '',
-  '_tags': [],
-  '_attachments': [],
-  'start': '2020-04-06T13:11:31.421+02:00',
-  '_submitted_by': null,
-  '_geolocation': [null, null],
-  '_xform_id_string': 'afKfAnPYX3X7kojqM2cJDb',
-  'group_favourites/Favourite_color': 'pink',
   '_status': 'submitted_via_web',
+  '_submission_time': '2020-04-06T11:11:47',
+  '_submitted_by': null,
+  '_tags': [],
+  '_uuid': 'faa38eee-4e3f-419e-bac0-e95f1085d998',
+  '_validation_status': {},
+  '_xform_id_string': 'afKfAnPYX3X7kojqM2cJDb',
+  'end': '2020-04-06T13:11:41.006+02:00',
+  'First_name': 'Leszek',
+  'formhub/uuid': '57e6fd0b4065443280c9641be5670e89',
+  'group_favourites/Favourite_color': 'pink',
+  'group_favourites/Favourite_number': '24',
+  'meta/instanceID': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
+  'start': '2020-04-06T13:11:31.421+02:00',
+};
+
+export const simpleSurveySubmissionEmpty = {
   '__version__': 'vHNo5vFh3KoB7LWhucUkFy',
-  'formhub/uuid': '57e6fd0b4065443280c9641be5670e89'
+  '_attachments': [],
+  '_bamboo_dataset_id': '',
+  '_geolocation': [null, null],
+  '_id': 18,
+  '_notes': [],
+  '_status': 'submitted_via_web',
+  '_submission_time': '2020-04-08T08:46:47',
+  '_submitted_by': null,
+  '_tags': [],
+  '_uuid': '69ff2e33-4d4b-4891-8c81-82d7316cf51f',
+  '_validation_status': {},
+  '_xform_id_string': 'afKfAnPYX3X7kojqM2cJDb',
+  'end': '2020-04-08T10:46:41.882+02:00',
+  'formhub/uuid': '57e6fd0b4065443280c9641be5670e89',
+  'group_favourites/Favourite_number': '5',
+  'meta/instanceID': 'uuid:69ff2e33-4d4b-4891-8c81-82d7316cf51f',
+  'start': '2020-04-08T10:46:34.957+02:00',
 };
 
 export const simpleSurveyDisplayData = [
   {
+    type: 'text',
     label: 'First name',
     name: 'First_name',
-    type: 'text',
     data: 'Leszek'
   },
   {
+    type: 'regular',
     label: 'Favourites',
     name: 'group_favourites',
-    isRepeat: false,
     children: [
       {
+        type: 'select_one',
         label: 'Favourite color',
         name: 'Favourite_color',
-        type: 'select_one',
         data: 'pink'
       },
       {
+        type: 'integer',
         label: 'Favourite number',
         name: 'Favourite_number',
-        type: 'integer',
         data: '24'
+      }
+    ]
+  }
+];
+
+export const simpleSurveyDisplayDataEmpty = [
+  {
+    type: 'text',
+    label: 'First name',
+    name: 'First_name',
+    data: null
+  },
+  {
+    type: 'regular',
+    label: 'Favourites',
+    name: 'group_favourites',
+    children: [
+      {
+        type: 'select_one',
+        label: 'Favourite color',
+        name: 'Favourite_color',
+        data: null
+      },
+      {
+        type: 'integer',
+        label: 'Favourite number',
+        name: 'Favourite_number',
+        data: '5'
+      }
+    ]
+  }
+];
+
+export const repeatSurvey = [{
+  'name': 'start',
+  'type': 'start',
+  '$kuid': 'A1bj8s8Kl',
+  '$autoname': 'start'
+}, {
+  'name': 'end',
+  'type': 'end',
+  '$kuid': 'N74smzZX4',
+  '$autoname': 'end'
+}, {
+  'name': 'group_members',
+  'type': 'begin_repeat',
+  '$kuid': 'fd8yo77',
+  'label': ['Members'],
+  '$autoname': 'group_members'
+}, {
+  'type': 'text',
+  '$kuid': 'lm2ww64',
+  'label': ['First name'],
+  'required': false,
+  '$autoname': 'First_name'
+}, {
+  'type': 'text',
+  '$kuid': 'qt6mr31',
+  'label': ['Last name'],
+  'required': false,
+  '$autoname': 'Last_name'
+}, {
+  'type': 'end_repeat',
+  '$kuid': '/fd8yo77'
+}];
+
+export const repeatSurveySubmission = {
+  '_id': 17,
+  '_notes': [],
+  '__version__': 'v8khdgcT3SYb2HRJhMNtsE',
+  '_attachments': [],
+  '_bamboo_dataset_id': '',
+  '_geolocation': [null, null],
+  '_status': 'submitted_via_web',
+  '_submission_time': '2020-04-07T14:07:48',
+  '_submitted_by': null,
+  '_tags': [],
+  '_uuid': '651137b9-e465-49ed-9924-a67d7b1c6f76',
+  '_validation_status': {},
+  '_xform_id_string': 'afmcL74BTjjRpdAJy52WGX',
+  'end': '2020-04-07T16:07:41.931+02:00',
+  'formhub/uuid': 'b26f2a9b9b7a49608920ad76cba3c315',
+  'group_members': [{
+    'group_members/First_name': 'Leszek',
+    'group_members/Last_name': 'Pietrzak'
+  }, {
+    'group_members/First_name': 'Nieleszek',
+    'group_members/Last_name': 'Niepietrzak'
+  }],
+  'meta/instanceID': 'uuid:651137b9-e465-49ed-9924-a67d7b1c6f76',
+  'start': '2020-04-07T16:07:24.044+02:00',
+};
+
+export const repeatSurveyDisplayData = [
+  {
+    type: 'repeat',
+    label: 'Members',
+    name: 'group_members',
+    children: [
+      {
+        type: 'text',
+        label: 'First name',
+        name: 'First_name',
+        data: 'Leszek'
+      },
+      {
+        type: 'text',
+        label: 'Last name',
+        name: 'Last_name',
+        data: 'Pietrzak'
+      }
+    ]
+  },
+  {
+    type: 'repeat',
+    label: 'Members',
+    name: 'group_members',
+    children: [
+      {
+        type: 'text',
+        label: 'First name',
+        name: 'First_name',
+        data: 'Nieleszek'
+      },
+      {
+        type: 'text',
+        label: 'Last name',
+        name: 'Last_name',
+        data: 'Niepietrzak'
+      }
+    ]
+  }
+];
+
+export const nestedRepeatSurvey = [{
+  'name': 'start',
+  'type': 'start',
+  '$kuid': 'Rq36zKyog',
+  '$autoname': 'start'
+}, {
+  'name': 'end',
+  'type': 'end',
+  '$kuid': 'Redw9OtxY',
+  '$autoname': 'end'
+}, {
+  'type': 'begin_repeat',
+  'label': ['People'],
+  'name': 'group_people',
+  '$kuid': 'aj45t09',
+  '$autoname': 'group_people'
+}, {
+  'type': 'text',
+  'label': ['Name'],
+  'required': false,
+  '$kuid': 'bj78z02',
+  '$autoname': 'Name'
+}, {
+  'type': 'begin_repeat',
+  'label': ['Personal items'],
+  'name': 'group_items',
+  '$kuid': 'te04d01',
+  '$autoname': 'group_items'
+}, {
+  'type': 'text',
+  'label': ['Item name'],
+  'required': false,
+  '$kuid': 'fd1ec62',
+  '$autoname': 'Item_name'
+}, {
+  'type': 'end_repeat',
+  '$kuid': '/te04d01'
+}, {
+  'type': 'end_repeat',
+  '$kuid': '/aj45t09'
+}];
+
+export const nestedRepeatSurveySubmission = {
+  '__version__': 'v7sPQZCGQoW8JKYL5Kq79m',
+  '_attachments': [],
+  '_bamboo_dataset_id': '',
+  '_geolocation': [null, null],
+  '_id': 20,
+  '_notes': [],
+  '_status': 'submitted_via_web',
+  '_submission_time': '2020-04-08T11:12:20',
+  '_submitted_by': null,
+  '_tags': [],
+  '_uuid': '85397438-558e-4b24-94d7-901550744352',
+  '_validation_status': {},
+  '_xform_id_string': 'ahTnpQwdqrrp4fRKqUxj2p',
+  'end': '2020-04-08T13:12:13.955+02:00',
+  'formhub/uuid': 'd6123d44cf8c4fa78e38556b5af6bd68',
+  'group_people': [{
+    'group_people/group_items': [{
+      'group_people/group_items/Item_name': 'Notebook'
+    }, {
+      'group_people/group_items/Item_name': 'Pen'
+    }, {
+      'group_people/group_items/Item_name': 'Shoe'
+    }],
+    'group_people/Name': 'John'
+  }, {
+    'group_people/Name': 'Leszek'
+  }, {
+    'group_people/group_items': [{
+      'group_people/group_items/Item_name': 'Computer'
+    }],
+    'group_people/Name': 'Olivier'
+  }],
+  'meta/instanceID': 'uuid:85397438-558e-4b24-94d7-901550744352',
+  'start': '2020-04-08T13:11:29.840+02:00',
+};
+
+export const nestedRepeatSurveyDisplayData = [
+  {
+    type: 'repeat',
+    label: 'People',
+    name: 'group_people',
+    children: [
+      {
+        type: 'text',
+        label: 'Name',
+        name: 'Name',
+        data: 'John'
+      },
+      {
+        type: 'repeat',
+        label: 'Personal items',
+        name: 'group_items',
+        children: [
+          {
+            type: 'text',
+            label: 'Item name',
+            name: 'Item_name',
+            data: 'Notebook'
+          },
+          {
+            type: 'text',
+            label: 'Item name',
+            name: 'Item_name',
+            data: 'Pen'
+          },
+          {
+            type: 'text',
+            label: 'Item name',
+            name: 'Item_name',
+            data: 'Shoe'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    type: 'repeat',
+    label: 'People',
+    name: 'group_people',
+    children: [
+      {
+        type: 'text',
+        label: 'Name',
+        name: 'Name',
+        data: 'Leszek'
+      },
+      {
+        type: 'repeat',
+        label: 'Personal items',
+        name: 'group_items',
+        children: []
+      }
+    ]
+  },
+  {
+    type: 'repeat',
+    label: 'People',
+    name: 'group_people',
+    children: [
+      {
+        type: 'text',
+        label: 'Name',
+        name: 'Name',
+        data: 'Olivier'
+      },
+      {
+        type: 'repeat',
+        label: 'Personal items',
+        name: 'group_items',
+        children: [
+          {
+            type: 'text',
+            label: 'Item name',
+            name: 'Item_name',
+            data: 'Computer'
+          }
+        ]
       }
     ]
   }
@@ -493,270 +808,262 @@ export const complexSurveySubmission = {
 
 export const complexSurveyDisplayData = [
   {
+    type: 'text',
     label: 'Family name',
     name: 'Family_name',
-    type: 'text',
     data: 'Smith'
   },
   {
+    type: 'repeat',
     label: 'People',
     name: 'group_people',
-    isRepeat: true,
     children: [
       {
-        label: null,
-        name: null,
+        type: 'image',
+        label: 'Face',
+        name: 'Face',
+        data: '___Carroll Dunham - Bather-15_31_33.jpg'
+      },
+      {
+        type: 'integer',
+        label: 'Person age',
+        name: 'Person_age',
+        data: '66'
+      },
+      {
+        type: 'geopoint',
+        label: 'Secret place',
+        name: 'Secret_place',
+        data: '52.48278 18.099317 0 0'
+      },
+      {
+        type: 'date',
+        label: 'Born date',
+        name: 'Born_date',
+        data: '1990-02-06'
+      },
+      {
+        type: 'text',
+        label: 'Person name',
+        name: 'Person_name',
+        data: 'John'
+      },
+      {
+        type: 'regular',
+        label: 'Favourites',
+        name: 'group_favourites',
         children: [
           {
-            label: 'Face',
-            name: 'Face',
-            type: 'image',
-            data: '___Carroll Dunham - Bather-15_31_33.jpg'
+            type: 'select_multiple',
+            label: 'Food',
+            name: 'Food',
+            data: 'apple pizza'
           },
           {
-            label: 'Person age',
-            name: 'Person_age',
-            type: 'integer',
-            data: '66'
-          },
-          {
-            label: 'Secret place',
-            name: 'Secret_place',
-            type: 'geopoint',
-            data: '52.48278 18.099317 0 0'
-          },
-          {
-            label: 'Born date',
-            name: 'Born_date',
-            type: 'date',
-            data: '1990-02-06'
-          },
-          {
-            label: 'Person name',
-            name: 'Person_name',
-            type: 'text',
-            data: 'John'
-          },
-          {
-            label: 'Favourites',
-            name: 'group_favourites',
-            children: [
-              {
-                label: 'Food',
-                name: 'Food',
-                type: 'select_multiple',
-                data: 'apple pizza'
-              },
-              {
-                label: 'Colour',
-                name: 'Colour',
-                type: 'select_one',
-                data: 'goldenrod'
-              }
-            ]
-          },
-          {
-            label: 'Pets',
-            name: 'group_pets',
-            isRepeat: true,
-            children: [
-              {
-                label: null,
-                name: null,
-                children: [
-                  {
-                    label: 'Pet_name',
-                    name: 'Pet_name',
-                    type: 'text',
-                    data: 'Frank'
-                  },
-                  {
-                    label: 'Pet_age',
-                    name: 'Pet_age',
-                    type: 'integer',
-                    data: '1'
-                  }
-                ]
-              },
-              {
-                label: null,
-                name: null,
-                children: [
-                  {
-                    label: 'Pet_name',
-                    name: 'Pet_name',
-                    type: 'text',
-                    data: 'Zoe'
-                  },
-                  {
-                    label: 'Pet_age',
-                    name: 'Pet_age',
-                    type: 'integer',
-                    data: '6'
-                  }
-                ]
-              },
-              {
-                label: null,
-                name: null,
-                children: [
-                  {
-                    label: 'Pet_name',
-                    name: 'Pet_name',
-                    type: 'text',
-                    data: 'Moe'
-                  },
-                  {
-                    label: 'Pet_age',
-                    name: 'Pet_age',
-                    type: 'integer',
-                    data: '109'
-                  }
-                ]
-              }
-            ]
+            type: 'select_one',
+            label: 'Colour',
+            name: 'Colour',
+            data: 'goldenrod'
           }
         ]
       },
       {
-        label: null,
-        name: null,
+        type: 'repeat',
+        label: 'Pets',
+        name: 'group_pets',
         children: [
           {
-            label: 'Face',
-            name: 'Face',
-            type: 'image',
-            data: '___Screenshot 2019-05-03 at 17.21.59-15_32_27.png'
-          },
-          {
-            label: 'Person age',
-            name: 'Person_age',
-            type: 'integer',
-            data: '15'
-          },
-          {
-            label: 'Secret place',
-            name: 'Secret_place',
-            type: 'geopoint',
-            data: '39.909736 -81.589529 0 0'
-          },
-          {
-            label: 'Born date',
-            name: 'Born_date',
-            type: 'date',
-            data: '2009-11-25'
-          },
-          {
-            label: 'Person name',
-            name: 'Person_name',
             type: 'text',
-            data: 'Sally'
+            label: 'Pet name',
+            name: 'Pet_name',
+            data: 'Frank'
           },
           {
-            label: 'Favourites',
-            name: 'group_favourites',
-            children: [
-              {
-                label: 'Food',
-                name: 'Food',
-                type: 'select_multiple',
-                data: null
-              },
-              {
-                label: 'Colour',
-                name: 'Colour',
-                type: 'select_one',
-                data: 'chocolate'
-              }
-            ]
+            type: 'integer',
+            label: 'Pet age',
+            name: 'Pet_age',
+            data: '1'
+          }
+        ]
+      },
+      {
+        type: 'repeat',
+        label: 'Pets',
+        name: 'group_pets',
+        children: [
+          {
+            type: 'text',
+            label: 'Pet name',
+            name: 'Pet_name',
+            data: 'Zoe'
           },
           {
-            label: 'Pets',
-            name: 'group_pets',
-            isRepeat: true,
-            children: [
-              {
-                label: null,
-                name: null,
-                children: [
-                  {
-                    label: 'Pet_name',
-                    name: 'Pet_name',
-                    type: 'text',
-                    data: 'Cricket'
-                  },
-                  {
-                    label: 'Pet_age',
-                    name: 'Pet_age',
-                    type: 'integer',
-                    data: '0'
-                  }
-                ]
-              }
-            ]
+            type: 'integer',
+            label: 'Pet age',
+            name: 'Pet_age',
+            data: '6'
+          }
+        ]
+      },
+      {
+        type: 'repeat',
+        label: 'Pets',
+        name: 'group_pets',
+        children: [
+          {
+            type: 'text',
+            label: 'Pet name',
+            name: 'Pet_name',
+            data: 'Moe'
+          },
+          {
+            type: 'integer',
+            label: 'Pet age',
+            name: 'Pet_age',
+            data: '109'
           }
         ]
       }
     ]
   },
   {
+    type: 'repeat',
+    label: 'People',
+    name: 'group_people',
+    children: [
+      {
+        type: 'image',
+        label: 'Face',
+        name: 'Face',
+        data: '___Screenshot 2019-05-03 at 17.21.59-15_32_27.png'
+      },
+      {
+        type: 'integer',
+        label: 'Person age',
+        name: 'Person_age',
+        data: '15'
+      },
+      {
+        type: 'geopoint',
+        label: 'Secret place',
+        name: 'Secret_place',
+        data: '39.909736 -81.589529 0 0'
+      },
+      {
+        type: 'date',
+        label: 'Born date',
+        name: 'Born_date',
+        data: '2009-11-25'
+      },
+      {
+        type: 'text',
+        label: 'Person name',
+        name: 'Person_name',
+        data: 'Sally'
+      },
+      {
+        type: 'regular',
+        label: 'Favourites',
+        name: 'group_favourites',
+        children: [
+          {
+            type: 'select_multiple',
+            label: 'Food',
+            name: 'Food',
+            data: null
+          },
+          {
+            type: 'select_one',
+            label: 'Colour',
+            name: 'Colour',
+            data: 'chocolate'
+          }
+        ]
+      },
+      {
+        type: 'repeat',
+        label: 'Pets',
+        name: 'group_pets',
+        children: [
+          {
+            type: 'text',
+            label: 'Pet name',
+            name: 'Pet_name',
+            data: 'Cricket'
+          },
+          {
+            type: 'integer',
+            label: 'Pet age',
+            name: 'Pet_age',
+            data: '0'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    type: 'regular',
     label: 'Misc questions',
     name: 'group_misc_questions',
     children: [
       {
+        type: 'regular',
         label: 'How are you?',
         name: 'How_are_you',
         children: [
           {
+            type: 'select_one',
             label: 'Physically',
             name: 'Physically',
-            type: 'select_one',
             data: 'good'
           },
           {
+            type: 'select_one',
             label: 'Emotionally',
             name: 'Emotionally',
-            type: 'select_one',
             data: 'bad'
           }
         ]
       },
       {
+        type: 'regular',
         label: 'Show your skills',
         name: null,
         children: [
           {
+            type: 'regular',
             label: '5 and 6',
             name: 'skills_5_and_6',
             children: [
               {
+                type: 'integer',
                 label: 'Sum of 5 and 6',
                 name: 'skills_5_and_6_sum',
-                type: 'integer',
                 data: '11'
               },
               {
+                type: 'integer',
                 label: 'Multiple of 5 and 6',
                 name: 'skills_5_and_6_multiple',
-                type: 'integer',
                 data: '30'
               }
             ]
           },
           {
+            type: 'regular',
             label: '1 and 1',
             name: 'skills_1_and_1',
             children: [
               {
+                type: 'integer',
                 label: 'Sum of 1 and 1',
                 name: 'skills_1_and_1_sum',
-                type: 'integer',
                 data: '2'
               },
               {
+                type: 'integer',
                 label: 'Multiple of 1 and 1',
                 name: 'skills_1_and_1_multiple',
-                type: 'integer',
                 data: '1'
               }
             ]
@@ -764,23 +1071,24 @@ export const complexSurveyDisplayData = [
         ]
       },
       {
-        name: 'Best_things_in_life',
+        type: 'regular',
         label: 'Best things in life',
+        name: 'Best_things_in_life',
         children: [
           {
-            name: '_1st_choice',
             type: 'select_one',
             label: '1st choice',
+            name: '_1st_choice',
             data: 'conquest'
           }, {
-            name: '_2nd_choice',
             type: 'select_one',
             label: '2nd choice',
+            name: '_2nd_choice',
             data: 'food'
           }, {
-            name: '_3rd_choice',
             type: 'select_one',
             label: '3rd choice',
+            name: '_3rd_choice',
             data: 'swords'
           }
         ]
@@ -788,9 +1096,9 @@ export const complexSurveyDisplayData = [
     ]
   },
   {
-    name: 'Choose_a_range',
     type: 'range',
     label: 'Choose a range',
+    name: 'Choose_a_range',
     data: '3'
   }
 ];

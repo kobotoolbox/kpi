@@ -3,38 +3,47 @@ import {QUESTION_TYPES} from 'js/constants';
 
 /**
  * @typedef {Object} DisplayResponse
+ * @property {string} type - One of QUESTION_TYPES
  * @property {string} label - Localized display label
  * @property {string} name - Unique identifier
- * @property {string} type - One of QUESTION_TYPES
  * @property {string|null} data - User response, `null` for no response
  */
 
+const DISPLAY_GROUP_TYPES = new Map();
+new Set([
+  'root',
+  'repeat',
+  'regular'
+]).forEach((codename) => {DISPLAY_GROUP_TYPES.set(codename, codename);});
+
 /**
  * @typedef {Object} DisplayGroup
+ * @property {string} type - One of DISPLAY_GROUP_TYPES
  * @property {string} label - Localized display label
  * @property {string} name - Unique identifier
- * @property {boolean} isRepeat - Wheter this is a repeat group
- * @property {Array<DisplayResponse|DisplayGroup>} children - Responses or other groups
  */
 
 class DisplayGroup {
-  constructor(label = null, name = null, isRepeat = false) {
+  constructor(type, label = null, name = null) {
+    this.type = type;
     this.label = label;
     this.name = name;
-    this.isRepeat = isRepeat;
     this.children = [];
   }
 
+  /**
+   * @property {DisplayResponse|DisplayGroup} child
+   */
   addChild(child) {
     this.children.push(child);
   }
 }
 
 class DisplayResponse {
-  constructor(label, name, type, data = null) {
+  constructor(type, label, name, data = null) {
+    this.type = type;
     this.label = label;
     this.name = name;
-    this.type = type;
     this.data = data;
   }
 }
@@ -46,17 +55,16 @@ class DisplayResponse {
  * @returns {Array<DisplayResponse|DisplayGroup>}
  */
 export function getSubmissionDisplayData(survey, translationIndex, submissionData) {
-  // needed for laters
-  const flatPaths = getSurveyFlatPaths(survey);
-  console.log('flatPaths:');
-  console.log(flatPaths);
-
   // let's start with a root of survey being a group with special flag
-  const output = new DisplayGroup();
-  output.isRoot = true;
+  const output = new DisplayGroup(DISPLAY_GROUP_TYPES.get('root'));
 
-  // recursively generates a nested architecture of survey with data
-  function traverseSurvey(parentGroup, surveyStartIndex) {
+  /**
+   * recursively generates a nested architecture of survey with data
+   * @param {DisplayGroup} parentGroup
+   * @param {number} surveyStartIndex
+   * @param {number} dataIndex
+   */
+  function traverseSurvey(parentGroup, surveyStartIndex, dataIndex = null) {
     for (let i = surveyStartIndex; i < survey.length; i++) {
       const row = survey[i];
 
@@ -68,23 +76,44 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
         survey
       );
 
-      if (row.type === 'begin_group' || row.type === 'begin_repeat') {
+      if (row.type === 'begin_repeat') {
+        const repeatData = getRowData(rowName, survey, submissionData);
+        if (Array.isArray(repeatData)) {
+          repeatData.forEach((item, itemIndex) => {
+            let repeatObj = new DisplayGroup(
+              DISPLAY_GROUP_TYPES.get('repeat'),
+              rowLabel,
+              rowName
+            );
+            parentGroup.addChild(repeatObj);
+            // for a group start whole process again,
+            // begin at this place in survey with group as parent element
+            traverseSurvey(repeatObj, i + 1, itemIndex);
+          });
+        }
+      } else if (row.type === 'begin_group') {
         let rowObj = new DisplayGroup(
+          DISPLAY_GROUP_TYPES.get('regular'),
           rowLabel,
           rowName,
-          row.type === 'begin_repeat'
         );
         parentGroup.addChild(rowObj);
         // for a group start whole process again,
         // begin at this place in survey with group as parent element
-        traverseSurvey(rowObj, i + 1);
+        traverseSurvey(rowObj, i + 1, dataIndex);
       } else if (QUESTION_TYPES.has(row.type) && isRowCurrentLevel) {
+        let rowData = getRowData(rowName, survey, submissionData);
+        // for repeat groups, we are interested in current repeat item's data
+        if (Array.isArray(rowData) && dataIndex !== null) {
+          rowData = rowData[dataIndex];
+        }
+
         // for a resonse, add is as a child of current group
         let rowObj = new DisplayResponse(
+          row.type,
           rowLabel,
           rowName,
-          row.type,
-          getRowData(rowName, survey, submissionData)
+          rowData
         );
         parentGroup.addChild(rowObj);
       }
@@ -92,8 +121,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
   }
   traverseSurvey(output, 0);
 
-  console.log('traversed:');
-  console.log(output);
+  console.log(output.children);
 
   return output;
 }
@@ -103,20 +131,22 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
  * @param {string} name
  * @param {object} survey
  * @param {object} data - submission data
- * @returns {*} row data
+ * @returns {string|null|array<*>} row data, null is for identifying no answer, array for repeat groups
  */
 function getRowData(name, survey, data) {
   const flatPaths = getSurveyFlatPaths(survey);
   const path = flatPaths[name];
-  let rowData;
   if (data[path]) {
-    rowData = data[path];
+    return data[path];
   } else if (data[name]) {
-    rowData = data[name];
+    return data[name];
   } else if (path) {
-    rowData = getRepeatGroupAnswers(data, path);
+    let rowData = getRepeatGroupAnswers(data, path);
+    if (rowData.length >= 1) {
+      return rowData;
+    }
   }
-  return rowData;
+  return null;
 }
 
 /**
