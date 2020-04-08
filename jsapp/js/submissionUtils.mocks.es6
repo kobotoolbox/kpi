@@ -292,10 +292,10 @@ export const nestedRepeatSurveySubmission = {
   '_submission_time': '2020-04-08T11:12:20',
   '_submitted_by': null,
   '_tags': [],
-  '_uuid': '85397438-558e-4b24-94d7-901550744352',
+  '_uuid': '83aa0573-8a44-42f7-885b-aa7a3afffbd1',
   '_validation_status': {},
   '_xform_id_string': 'ahTnpQwdqrrp4fRKqUxj2p',
-  'end': '2020-04-08T13:12:13.955+02:00',
+  'end': '2020-04-08T13:22:56.270+02:00',
   'formhub/uuid': 'd6123d44cf8c4fa78e38556b5af6bd68',
   'group_people': [{
     'group_people/group_items': [{
@@ -311,10 +311,10 @@ export const nestedRepeatSurveySubmission = {
   }, {
     'group_people/group_items': [{
       'group_people/group_items/Item_name': 'Computer'
-    }],
-    'group_people/Name': 'Olivier'
+    }]
   }],
-  'meta/instanceID': 'uuid:85397438-558e-4b24-94d7-901550744352',
+  'meta/deprecatedID': 'uuid:85397438-558e-4b24-94d7-901550744352',
+  'meta/instanceID': 'uuid:83aa0573-8a44-42f7-885b-aa7a3afffbd1',
   'start': '2020-04-08T13:11:29.840+02:00',
 };
 
@@ -385,7 +385,7 @@ export const nestedRepeatSurveyDisplayData = [
         type: 'text',
         label: 'Name',
         name: 'Name',
-        data: 'Olivier'
+        data: null
       },
       {
         type: 'repeat',
