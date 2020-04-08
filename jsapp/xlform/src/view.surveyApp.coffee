@@ -378,14 +378,14 @@ module.exports = do ->
       @
 
     shrinkAllGroups: ->
-      $('.survey__row--group:not(.group--shrunk)').each (i, el) ->
+      @$('.survey__row--group:not(.group--shrunk)').each (i, el) ->
         if !$(el).hasClass('group--shrunk')
           $(el).find('.group__caret').click()
 
     expandAllGroups: ->
       depth = 0
-      while $('.survey__row--group.group--shrunk').length > 0
-        $('.survey__row--group.group--shrunk').each (i, el) ->
+      while @$('.survey__row--group.group--shrunk').length > 0
+        @$('.survey__row--group.group--shrunk').each (i, el) ->
           $(el).find('.group__caret').click()
         if depth++ > 10
           break
