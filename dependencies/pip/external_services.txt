@@ -4,7 +4,7 @@
 #
 #    make pip_compile
 #
--e git+https://github.com/gushil/boss-oidc.git@ffdf3d9f1fd6635fc29b0a1419dde1c5e019924c#egg=boss-oidc
+-e git+https://github.com/gushil/boss-oidc.git@1d4c6343e6b545dfa9a1f2255c604301386bf1b4#egg=boss-oidc
 -e git+https://github.com/gushil/django-oidc.git@1fbbe169e785bab04cd9da5410245c97a18f3e38#egg=django-oidc
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
 -e git+https://github.com/jhuapl-boss/drf-oidc-auth.git@a6083cc58740587b6f765ddd7643234762d9f3b8#egg=drf-oidc-auth
@@ -139,4 +139,4 @@ zipp==0.3.3               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip==20.0.2               # via django-markdownx
-# setuptools==44.0.0        # via py-gfm, tldextract
+# setuptools==44.1.0        # via py-gfm, tldextract
