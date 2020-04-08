@@ -387,10 +387,11 @@ module.exports = do ->
           ``
         _expanded = false
       else
-        # while loop is potentially bad if there is a future change that no 
-        # longer updates `group--shrunk` when collapsing groups
+        depth = 0
         while $('.survey__row--group.group--shrunk').length > 0
           $('.survey__row--group.group--shrunk').each (i, el) => $(el).find('.group__caret').click()
+          if depth++ > 10
+            break
         @$(".card--selectquestion").each (i, el)=>
           @_getViewForTarget(currentTarget: el).showMultioptions()
           ``
