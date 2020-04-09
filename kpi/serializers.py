@@ -17,6 +17,7 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
+from bossoidc.models import Keycloak as KeycloakModel
 
 from hub.models import SitewideMessage, ExtraUserDetail
 from .fields import PaginatedApiField, SerializerMethodFileField
@@ -1139,6 +1140,18 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             return None
         if request.user == obj.owner:
             return 'owned'
+
+        kc_user = None
+        kc_owner = None
+        try:
+            kc_user = KeycloakModel.objects.get(user=request.user)
+            kc_owner = KeycloakModel.objects.get(user=obj.owner)
+        except KeycloakModel.DoesNotExist:
+            pass
+
+        if kc_user is not None and kc_owner is not None:
+            if kc_user.subdomain == kc_owner.subdomain:
+                return 'subdomain'
         # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
         # cost a query. This ugly loop takes advantage of having already called
         # `prefetch_related()`

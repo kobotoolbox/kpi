@@ -15,7 +15,7 @@ from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
 from kpi.utils.domain import get_subdomain
 from bossoidc.models import Keycloak as KeycloakModel
 
-from .models import Asset, ObjectPermission
+from .models import Asset, ObjectPermission, Collection
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -55,9 +55,11 @@ class KpiObjectPermissionsFilter(object):
         permission = self.perm_format % kwargs
 
         user = request.user
+        
+        logging.warning('filter_queryset {}'.format(model_name))
 
-        # User can access assets created by users with same subdomain
-        if model_name == 'asset':
+        # User can access assets/collections created by users with same subdomain
+        if model_name == 'asset' or model_name == 'collection':
             kc_user = None
             try:
                 kc_user = KeycloakModel.objects.get(user=user)
@@ -67,8 +69,12 @@ class KpiObjectPermissionsFilter(object):
             if kc_user is not None:
                 subdomain = kc_user.subdomain
                 subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
-                subdomain_assetIds = Asset.objects.filter(owner__in=subdomain_userIds).values_list('id', flat=True)
-                return queryset.filter(pk__in=subdomain_assetIds)
+                if model_name == 'asset':
+                    subdomain_assetIds = Asset.objects.filter(owner__in=subdomain_userIds).values_list('id', flat=True)
+                    return queryset.filter(pk__in=subdomain_assetIds)
+                elif model_name == 'collection':
+                    subdomain_collectionIds = Collection.objects.filter(owner__in=subdomain_userIds).values_list('id', flat=True)
+                    return queryset.filter(pk__in=subdomain_collectionIds)
 
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
