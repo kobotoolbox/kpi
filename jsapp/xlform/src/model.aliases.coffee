@@ -24,12 +24,12 @@ module.exports = do ->
         "begin_score",
         "end_score",
       ]
-    rank: [
-        "begin_rank",
-        "end_rank",
-        "begin rank",
-        "end rank",
-      ]
+    #rank: [
+    #    "begin_rank",
+    #    "end_rank",
+    #    "begin rank",
+    #    "end rank",
+    #  ]
     kobomatrix: [
         "begin_kobomatrix",
         "end_kobomatrix",
@@ -43,7 +43,7 @@ module.exports = do ->
                 aliases('group')
                 aliases('repeat')
                 aliases('score')
-                aliases('rank')
+                #aliases('rank')
                 aliases('kobomatrix')
               ]
 
@@ -63,8 +63,8 @@ module.exports = do ->
       out = {type: 'repeat'}
     else if type in aliases_dict.score
       out = {type: 'score'}
-    else if type in aliases_dict.rank
-      out = {type: 'rank'}
+    #else if type in aliases_dict.rank
+    #  out = {type: 'rank'}
     else if type in aliases_dict.kobomatrix
       out = {type: 'kobomatrix'}
     if out and out.type

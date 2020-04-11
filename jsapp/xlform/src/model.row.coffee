@@ -115,8 +115,8 @@ module.exports = do ->
 
   class RankRow extends SimpleRow
     initialize: ->
-      @simpleEnsureKuid()
-      @set('type', 'rank__level')
+      #@simpleEnsureKuid()
+      #@set('type', 'rank__level')
     export_relevant_values: (surv, sheets)->
       surv.push @attributes
 
@@ -131,16 +131,16 @@ module.exports = do ->
       _.each @, extend_to_row
       extend_to_row(@forEachRow, 'forEachRow')
       _begin_kuid = rr.getValue('$kuid', false)
-      _end_json = @end_json({"$kuid": "/#{_begin_kuid}"})
+      #_end_json = @end_json({"$kuid": "/#{_begin_kuid}"})
 
-      rr._afterIterator = (cb, ctxt)->
-        obj =
-          export_relevant_values: (surv, addl)->
-            surv.push _.extend({}, _end_json)
-          toJSON: ->
-            _.extend({}, _end_json)
+      #rr._afterIterator = (cb, ctxt)->
+      #  obj =
+      #    export_relevant_values: (surv, addl)->
+      #      surv.push _.extend({}, _end_json)
+      #    toJSON: ->
+      #      _.extend({}, _end_json)
 
-        cb(obj)  if ctxt.includeGroupEnds
+      #  cb(obj)  if ctxt.includeGroupEnds
 
       _toJSON = rr.toJSON
 
@@ -164,7 +164,7 @@ module.exports = do ->
           r2._rankLevels = rr.getSurvey().choices.add(name: $utils.txtid())
           for item in rr.getList().options.models
             r2._rankLevels.options.add(item.toJSON())
-          r2.set('kobo--rank-items', r2._rankLevels.get('name'))
+          r2.set('rank-from', r2._rankLevels.get('name'))
           @convertAttributesToRowDetails()
           r2.get('type').set('list', r2._rankLevels)
         else
@@ -193,7 +193,7 @@ module.exports = do ->
     getValue: (which)->
       @get(which)
 
-    end_json: (mrg={})->
+    end_json: ()->
       _.extend({type: "end_#{@_beginEndKey()}"}, mrg)
 
     forEachRow: (cb, ctx)->
@@ -210,29 +210,29 @@ module.exports = do ->
       @_rankRows = new RankRows()
       @_rowAttributeName = '_rankRows'
       @_extendAll(rr)
-      rankConstraintMessageKey = 'kobo--rank-constraint-message'
-      if !rr.get(rankConstraintMessageKey)
-        rr.set(rankConstraintMessageKey, _t("Items cannot be selected more than once"))
+      #rankConstraintMessageKey = 'kobo--rank-constraint-message'
+      #if !rr.get(rankConstraintMessageKey)
+      #  rr.set(rankConstraintMessageKey, _t("Items cannot be selected more than once"))
 
     _beginEndKey: ->
       'rank'
 
     linkUp: (ctx)->
-      rank_list_id = @get('kobo--rank-items')?.get('value')
+      rank_list_id = @get('rank-from')?.get('value')
       if rank_list_id
         @_rankLevels = @getSurvey().choices.get(rank_list_id)
       else
         @_rankLevels = @getSurvey().choices.create()
       @_additionalJson = =>
-        'kobo--rank-items': @getList().get('name')
+        'rank-from': @getList().get('name')
       @getList = => @_rankLevels
 
     export_relevant_values: (survey_arr, additionalSheets)->
       if @_rankLevels
         additionalSheets['choices'].add(@_rankLevels)
       begin_xlsformrow = _.clone(@toJSON2())
-      begin_xlsformrow.type = "begin_rank"
-      begin_xlsformrow['kobo--rank-items'] = @getList().get('name')
+      begin_xlsformrow.type = "rank"
+      begin_xlsformrow['rank-from'] = @getList().get('name')
       survey_arr.push(begin_xlsformrow)
       ``
 

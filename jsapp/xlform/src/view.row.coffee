@@ -438,10 +438,10 @@ module.exports = do ->
         cid: model.cid
       template_args.rank_levels = rank_levels
 
-      while @model._rankRows.length < 1
-        @model._rankRows.add
-          label: '1st choice'
-          name: ''
+      #while @model._rankRows.length < 1
+      #  @model._rankRows.add
+      #    label: '1st choice'
+      #    name: ''
 
       rank_rows = for model in @model._rankRows.models
         _label = model.get('label')
