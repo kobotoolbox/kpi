@@ -138,6 +138,7 @@ FLATTEN_OPTS = {
             '$prev',
             'select_from_list_name',
             '_or_other',
+            'rank-from',
         ],
         'choices': []
     },
