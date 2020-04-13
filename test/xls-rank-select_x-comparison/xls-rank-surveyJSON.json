@@ -1,0 +1,34 @@
+{
+    "choices": [
+        {
+            "label": "Item to be ranked",
+            "list_name": "sj1xs66",
+            "name": "item_to_be_ranked"
+        },
+        {
+            "label": "Item to be ranked",
+            "list_name": "sj1xs66",
+            "name": "item_to_be_ranked_1"
+        }
+    ],
+    "settings": [
+        {}
+    ],
+    "survey": [
+        {
+            "$kuid": "um9zl46",
+            "label": "New Question",
+            "rank-from": "sj1xs66",
+            "required": "false",
+            "type": "rank"
+        },
+        {
+            "name": "start",
+            "type": "start"
+        },
+        {
+            "name": "end",
+            "type": "end"
+        }
+    ]
+}

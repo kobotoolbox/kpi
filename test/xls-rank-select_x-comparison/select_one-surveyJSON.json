@@ -1,0 +1,36 @@
+{
+    "choices": [
+        {
+            "label": "Option 1",
+            "list_name": "au7ll62",
+            "name": "option_1"
+        },
+        {
+            "label": "Option 2",
+            "list_name": "au7ll62",
+            "name": "option_2"
+        }
+    ],
+    "settings": [
+        {}
+    ],
+    "survey": [
+        {
+            "$kuid": "qq3lt15",
+            "label": "New Question",
+            "required": "false",
+            "select_from_list_name": "au7ll62",
+            "type": "select_one"
+        },
+        {
+            "name": "start",
+            "type": "start"
+        },
+        {
+            "name": "end",
+            "type": "end"
+        }
+    ]
+}
+
+
