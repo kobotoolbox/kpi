@@ -14,7 +14,7 @@ if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
         cp "dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
     fi
     echo "Running \`kpi\` container with uWSGI application server."
-    exec "${UWSGI_COMMAND}"
+    exec ${UWSGI_COMMAND}
 else
     cd "${KPI_SRC_DIR}"
     DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt")
