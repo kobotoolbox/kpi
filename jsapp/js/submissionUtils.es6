@@ -1,13 +1,9 @@
-import {getSurveyFlatPaths} from 'js/assetUtils';
+import {
+  getRowName,
+  getTranslatedRowLabel,
+  getSurveyFlatPaths
+} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
-
-/**
- * @typedef {Object} DisplayResponse
- * @property {string} type - One of QUESTION_TYPES
- * @property {string} label - Localized display label
- * @property {string} name - Unique identifier
- * @property {string|null} data - User response, `null` for no response
- */
 
 const DISPLAY_GROUP_TYPES = new Map();
 new Set([
@@ -22,7 +18,6 @@ new Set([
  * @property {string} label - Localized display label
  * @property {string} name - Unique identifier
  */
-
 class DisplayGroup {
   constructor(type, label = null, name = null) {
     this.type = type;
@@ -39,6 +34,13 @@ class DisplayGroup {
   }
 }
 
+/**
+ * @typedef {Object} DisplayResponse
+ * @property {string} type - One of QUESTION_TYPES
+ * @property {string} label - Localized display label
+ * @property {string} name - Unique identifier
+ * @property {string|null} data - User response, `null` for no response
+ */
 class DisplayResponse {
   constructor(type, label, name, data = null) {
     this.type = type;
@@ -55,6 +57,8 @@ class DisplayResponse {
  * @returns {Array<DisplayResponse|DisplayGroup>}
  */
 export function getSubmissionDisplayData(survey, translationIndex, submissionData) {
+  const flatPaths = getSurveyFlatPaths(survey, true);
+
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.get('root'));
 
@@ -70,11 +74,22 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
 
       const rowName = getRowName(row);
       const rowLabel = getTranslatedRowLabel(row.label, translationIndex);
+
+      let parentGroupPath = null;
+      if (parentGroup.name !== null) {
+        parentGroupPath = flatPaths[parentGroup.name];
+      }
+
       let isRowCurrentLevel = isRowFromCurrentGroupLevel(
         rowName,
-        parentGroup.name,
+        parentGroupPath,
         survey
       );
+
+      // we are interested only in questions from this group level
+      if (!isRowCurrentLevel) {
+        continue;
+      }
 
       if (row.type === 'begin_repeat') {
         const repeatData = getRowData(rowName, survey, submissionData);
@@ -101,7 +116,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
         // for a group start whole process again,
         // begin at this place in survey with group as parent element
         traverseSurvey(rowObj, i + 1, dataIndex);
-      } else if (QUESTION_TYPES.has(row.type) && isRowCurrentLevel) {
+      } else if (QUESTION_TYPES.has(row.type)) {
         let rowData = getRowData(rowName, survey, submissionData);
         // for repeat groups, we are interested in current repeat item's data
         if (Array.isArray(rowData) && dataIndex !== null) {
@@ -134,7 +149,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
  * @returns {string|null|array<*>} row data, null is for identifying no answer, array for repeat groups
  */
 function getRowData(name, survey, data) {
-  const flatPaths = getSurveyFlatPaths(survey);
+  const flatPaths = getSurveyFlatPaths(survey, true);
   const path = flatPaths[name];
   if (data[path]) {
     return data[path];
@@ -151,40 +166,17 @@ function getRowData(name, survey, data) {
 
 /**
  * HELPER FUNCTION
- * @param {object} row
- * @returns {string}
- */
-function getRowName(row) {
-  return row.name || row.$autoname || row.$kuid;
-}
-
-/**
- * HELPER FUNCTION
- * @param {array|string} label
- * @param {number} translationIndex
- * @returns {string}
- */
-function getTranslatedRowLabel(label, translationIndex) {
-  if (Array.isArray(label)) {
-    return label[translationIndex];
-  } else {
-    return label;
-  }
-}
-
-/**
- * HELPER FUNCTION
  * @param {string} rowName
  * @param {string|null} groupName
  * @param {object} survey
  * @returns {boolean}
  */
-function isRowFromCurrentGroupLevel(rowName, groupName, survey) {
-  const flatPaths = getSurveyFlatPaths(survey);
-  if (groupName === null) {
+function isRowFromCurrentGroupLevel(rowName, groupPath, survey) {
+  const flatPaths = getSurveyFlatPaths(survey, true);
+  if (groupPath === null) {
     return flatPaths[rowName] === rowName;
   } else {
-    return flatPaths[rowName] === `${groupName}/${rowName}`;
+    return flatPaths[rowName] === `${groupPath}/${rowName}`;
   }
 }
 

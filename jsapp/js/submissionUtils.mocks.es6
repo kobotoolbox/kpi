@@ -141,18 +141,19 @@ export const simpleSurveyDisplayDataEmpty = [
 export const repeatSurvey = [{
   'name': 'start',
   'type': 'start',
-  '$kuid': 'A1bj8s8Kl',
+  '$kuid': 'lMV6oqDcf',
   '$autoname': 'start'
 }, {
   'name': 'end',
   'type': 'end',
-  '$kuid': 'N74smzZX4',
+  '$kuid': 'sdwqjbndr',
   '$autoname': 'end'
 }, {
   'name': 'group_members',
   'type': 'begin_repeat',
   '$kuid': 'fd8yo77',
   'label': ['Members'],
+  'required': false,
   '$autoname': 'group_members'
 }, {
   'type': 'text',
@@ -160,6 +161,12 @@ export const repeatSurvey = [{
   'label': ['First name'],
   'required': false,
   '$autoname': 'First_name'
+}, {
+  'type': 'text',
+  '$kuid': 'nf9gq14',
+  'label': ['Middle name'],
+  'required': false,
+  '$autoname': 'Middle_name'
 }, {
   'type': 'text',
   '$kuid': 'qt6mr31',
@@ -171,6 +178,7 @@ export const repeatSurvey = [{
   '$kuid': '/fd8yo77'
 }];
 
+// NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
 export const repeatSurveySubmission = {
   '_id': 17,
   '_notes': [],
@@ -189,9 +197,9 @@ export const repeatSurveySubmission = {
   'formhub/uuid': 'b26f2a9b9b7a49608920ad76cba3c315',
   'group_members': [{
     'group_members/First_name': 'Leszek',
+    'group_members/Middle_name': 'Jan',
     'group_members/Last_name': 'Pietrzak'
   }, {
-    'group_members/First_name': 'Nieleszek',
     'group_members/Last_name': 'Niepietrzak'
   }],
   'meta/instanceID': 'uuid:651137b9-e465-49ed-9924-a67d7b1c6f76',
@@ -212,6 +220,12 @@ export const repeatSurveyDisplayData = [
       },
       {
         type: 'text',
+        label: 'Middle name',
+        name: 'Middle_name',
+        data: 'Jan'
+      },
+      {
+        type: 'text',
         label: 'Last name',
         name: 'Last_name',
         data: 'Pietrzak'
@@ -227,7 +241,13 @@ export const repeatSurveyDisplayData = [
         type: 'text',
         label: 'First name',
         name: 'First_name',
-        data: 'Nieleszek'
+        data: null
+      },
+      {
+        type: 'text',
+        label: 'Middle name',
+        name: 'Middle_name',
+        data: null
       },
       {
         type: 'text',

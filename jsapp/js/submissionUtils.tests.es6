@@ -43,8 +43,6 @@ describe('getSubmissionDisplayData', () => {
       expect(test).to.deep.equal(target);
   });
 
-  // TODO test how repeat group with empty middle responses work
-
   it('should return a valid data for a very complex survey', () => {
       const test = getSubmissionDisplayData(complexSurvey, 0, complexSurveySubmission).children;
       const target = complexSurveyDisplayData;
