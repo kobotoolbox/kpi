@@ -360,13 +360,27 @@ export const nestedRepeatSurveyDisplayData = [
             label: 'Item name',
             name: 'Item_name',
             data: 'Notebook'
-          },
+          }
+        ]
+      },
+      {
+        type: 'repeat',
+        label: 'Personal items',
+        name: 'group_items',
+        children: [
           {
             type: 'text',
             label: 'Item name',
             name: 'Item_name',
             data: 'Pen'
-          },
+          }
+        ]
+      },
+      {
+        type: 'repeat',
+        label: 'Personal items',
+        name: 'group_items',
+        children: [
           {
             type: 'text',
             label: 'Item name',
@@ -387,12 +401,6 @@ export const nestedRepeatSurveyDisplayData = [
         label: 'Name',
         name: 'Name',
         data: 'Leszek'
-      },
-      {
-        type: 'repeat',
-        label: 'Personal items',
-        name: 'group_items',
-        children: []
       }
     ]
   },
