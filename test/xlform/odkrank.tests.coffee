@@ -10,7 +10,7 @@ ODKRANK_SURVEY = () =>
         # select_one is a placeholder for odkrank because
         # new rank question is structured more like a select question than
         # like a group (begin_rank/end_rank)
-        type: 'select_one',
+        type: 'odkrank',
         select_from_list_name: 'colors',
         name: 'colors',
         label: 'Favorite color',
@@ -51,7 +51,7 @@ describe 'survey with a question of type=odkrank (new rank question)', =>
 
     row = json.survey[0]
     expect(row.select_from_list_name).not.to.be.a('undefined')
-    expect(row.type).to.equal('select_one')
+    expect(row.type).to.equal('odkrank')
     expect(row.select_from_list_name).to.equal('colors')
 
     expect(json.choices).not.to.be.a('undefined')
@@ -71,7 +71,7 @@ describe 'survey with a question of type=odkrank (new rank question)', =>
       survey = rank_surv()
       rr = survey.rows.at(0)
       _type = rr.getTypeId()
-      expect(_type).to.equal('select_one')
+      expect(_type).to.equal('odkrank')
       _listName = rr.get('select_from_list_name').getValue()
       expect(_listName).to.equal('colors')
 
