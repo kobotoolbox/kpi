@@ -25,8 +25,8 @@ module.exports = WebpackCommon({
   entry: {
     /* app is not building for me at the moment
     (possibly just a local problem. need to investigate)
-    app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
     */
+    app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
     tests: path.resolve(__dirname, '../test/index.js')
   },
   output: {
