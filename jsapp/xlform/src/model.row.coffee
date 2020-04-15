@@ -345,9 +345,16 @@ module.exports = do ->
       tpVal = typeDetail.get("value")
       select_from_list_name = @get("select_from_list_name")
       if select_from_list_name and tpVal
+        # space delimited type strings are not used anymore
         tpVal = "#{tpVal} #{select_from_list_name.get('value')}"
         typeDetail.set("value", tpVal, silent: true)
 
+      # the function 'processType' is old code from before KPI's asset model
+      # would standardize asset.content. So, the space-delimited field was
+      # necessary to handle recently uploaded XLSForms which had type in the
+      # format "select_one mylist". It's no longer necessary to parse the type
+      # string all the time, so this code could be removed (with proper testing)
+      # which would clear up some unexpected behavior
       processType = (rd, newType, ctxt)=>
         # if value changes, it could be set from an initialization value
         # or it could be changed elsewhere.
