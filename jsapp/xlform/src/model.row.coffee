@@ -91,6 +91,10 @@ module.exports = do ->
           outObj['type'] = val.get('typeId')
           outObj['select_from_list_name'] = val.get('listName')
           continue
+        else if key is 'type' and val.get('typeId') in ['odkrank']
+          outObj['type'] = 'odkrank'
+          outObj['rank_from'] = val.get('listName')
+          continue
         else
           result = @getValue(key)
         unless @hidden
@@ -342,6 +346,12 @@ module.exports = do ->
       @convertAttributesToRowDetails()
 
       typeDetail = @get("type")
+
+      if _type is 'odkrank'
+        _rankFromListName = @getValue('rank_from')
+        matchedList = @getSurvey().choices.get(_rankFromListName)
+        typeDetail.set('list', matchedList)
+
       tpVal = typeDetail.get("value")
       select_from_list_name = @get("select_from_list_name")
       if select_from_list_name and tpVal
