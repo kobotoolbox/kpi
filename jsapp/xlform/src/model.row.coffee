@@ -59,7 +59,17 @@ module.exports = do ->
       questions = []
       limit = false
 
-      non_selectable = ['datetime', 'time', 'note', 'calculate', 'group', 'kobomatrix', 'repeat', 'rank', 'score']
+      non_selectable = [
+        'datetime',
+        'time',
+        'note',
+        'calculate',
+        'group',
+        'kobomatrix',
+        'repeat',
+        'rank',
+        'score',
+      ]
 
       survey = @getSurvey()
       if survey == null
