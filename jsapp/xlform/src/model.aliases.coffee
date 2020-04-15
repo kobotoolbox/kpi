@@ -24,7 +24,12 @@ module.exports = do ->
         "begin_score",
         "end_score",
       ]
-    rank: [
+    # alias 'koborank' is only used in the internals of the form builder
+    koborank: [
+        # groups saved with type:begin_rank will load as (legacy) "rank" types
+        "begin_koborank",
+        "end_koborank",
+        # existing forms with 'begin_rank' and 'end_rank' will still load
         "begin_rank",
         "end_rank",
         "begin rank",
@@ -43,7 +48,7 @@ module.exports = do ->
                 aliases('group')
                 aliases('repeat')
                 aliases('score')
-                aliases('rank')
+                aliases('koborank')
                 aliases('kobomatrix')
               ]
 
@@ -63,8 +68,8 @@ module.exports = do ->
       out = {type: 'repeat'}
     else if type in aliases_dict.score
       out = {type: 'score'}
-    else if type in aliases_dict.rank
-      out = {type: 'rank'}
+    else if type in aliases_dict.koborank
+      out = {type: 'koborank'}
     else if type in aliases_dict.kobomatrix
       out = {type: 'kobomatrix'}
     if out and out.type

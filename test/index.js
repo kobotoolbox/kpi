@@ -1,3 +1,4 @@
+/*
 var chai = require('chai');
 var expect = chai.expect;
 
@@ -19,3 +20,5 @@ require('./xlform/utils.tests');
 require('../jsapp/js/utils.tests');
 require('../jsapp/js/components/permissions/permParser.tests');
 require('../jsapp/js/assetUtils.tests');
+*/
+require('./xlform/koborank.tests');

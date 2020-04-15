@@ -337,7 +337,7 @@ module.exports = do ->
 
       if _type is 'score'
         new ScoreMixin(@)
-      else if _type is 'rank'
+      else if _type is 'koborank'
         new RankMixin(@)
       @convertAttributesToRowDetails()
 

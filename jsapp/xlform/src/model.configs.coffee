@@ -233,7 +233,7 @@ module.exports = do ->
       ["select_one", "Select", orOtherOption: true, specifyChoice: true],
       ["score", "Score"],
       ["score__row", "Score Row"],
-      ["rank", "Rank"],
+      ["koborank", "KoboRank"],
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
