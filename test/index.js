@@ -22,3 +22,4 @@ require('../jsapp/js/components/permissions/permParser.tests');
 require('../jsapp/js/assetUtils.tests');
 */
 require('./xlform/koborank.tests');
+require('./xlform/odkrank.tests');
