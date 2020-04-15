@@ -8,7 +8,7 @@ module.exports = WebpackCommon({
   output: {
     library: 'tests',
     path: path.resolve(__dirname, '../test/compiled/'),
-    filename: 'app.js'
+    filename: 'mocha-test.js'
   },
   // mainly for hiding stylelint output
   stats: {

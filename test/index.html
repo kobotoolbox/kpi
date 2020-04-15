@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>KPI Tests</title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+    <meta name="kpi-root-path" value="/">
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+</head>
+<body>
+    <div id="mocha"></div>
+    <script>
+      mocha.setup('bdd');
+    </script>
+    <script src="/static/compiled/vendors.js"></script>
+    <script src="/static/compiled/tests.js"></script>
+    <script>
+      mocha.run();
+    </script>
+</body>
+</html>
