@@ -299,11 +299,11 @@ export const QUESTION_TYPES = new Map([
     }
   ],
   [
-    'rank',
+    'koborank',
     {
       label: t('Ranking'),
       faIcon: 'fa-sort-amount-desc',
-      id: 'rank'
+      id: 'koborank'
     }
   ],
   [

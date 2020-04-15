@@ -39,7 +39,7 @@ module.exports = do ->
   addIconToRow(constants.QUESTION_TYPES.get("geoshape"), "r5")
   addIconToRow(constants.QUESTION_TYPES.get("score"), "r5")
   addIconToRow(constants.QUESTION_TYPES.get("kobomatrix"), "r5")
-  addIconToRow(constants.QUESTION_TYPES.get("rank"), "r5")
+  addIconToRow(constants.QUESTION_TYPES.get("koborank"), "r5")
   # row 6
   addIconToRow(constants.QUESTION_TYPES.get("calculate"), "r6")
   addIconToRow(constants.QUESTION_TYPES.get("file"), "r6")

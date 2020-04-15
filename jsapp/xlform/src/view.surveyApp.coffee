@@ -548,7 +548,7 @@ module.exports = do ->
           rv = new $rowView.GroupView(model: row, ngScope: @ngScope, surveyView: @)
         else if row.get('type').getValue() is 'score'
           rv = new $rowView.ScoreView(model: row, ngScope: @ngScope, surveyView: @)
-        else if row.get('type').getValue() is 'rank'
+        else if row.get('type').getValue() is 'koborank'
           rv = new $rowView.RankView(model: row, ngScope: @ngScope, surveyView: @)
         else
           rv = new $rowView.RowView(model: row, ngScope: @ngScope, surveyView: @)

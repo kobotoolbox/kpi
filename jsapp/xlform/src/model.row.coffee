@@ -229,7 +229,7 @@ module.exports = do ->
         rr.set(rankConstraintMessageKey, _t("Items cannot be selected more than once"))
 
     _beginEndKey: ->
-      'rank'
+      'koborank'
 
     linkUp: (ctx)->
       rank_list_id = @get('kobo--rank-items')?.get('value')
@@ -245,7 +245,7 @@ module.exports = do ->
       if @_rankLevels
         additionalSheets['choices'].add(@_rankLevels)
       begin_xlsformrow = _.clone(@toJSON2())
-      begin_xlsformrow.type = "begin_rank"
+      begin_xlsformrow.type = "begin_koborank"
       begin_xlsformrow['kobo--rank-items'] = @getList().get('name')
       survey_arr.push(begin_xlsformrow)
       ``
