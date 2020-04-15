@@ -11,7 +11,7 @@ ODKRANK_SURVEY = () =>
         # new rank question is structured more like a select question than
         # like a group (begin_rank/end_rank)
         type: 'odkrank',
-        select_from_list_name: 'colors',
+        rank_from: 'colors',
         name: 'colors',
         label: 'Favorite color',
       }
@@ -45,14 +45,20 @@ describe 'survey with a question of type=odkrank (new rank question)', =>
   it 'imports without error', =>
     expect(rank_surv).not.to.throw()
 
+  it 'toJSON() works as expected', =>
+    survey = rank_surv()
+    json = survey.toJSON()
+    row = json.survey[0]
+    expect(row.type).to.equal('odkrank')
+
   it 'toFlatJSON() works', =>
     survey = rank_surv()
     json = survey.toFlatJSON()
 
     row = json.survey[0]
-    expect(row.select_from_list_name).not.to.be.a('undefined')
+    expect(row.rank_from).not.to.be.a('undefined')
     expect(row.type).to.equal('odkrank')
-    expect(row.select_from_list_name).to.equal('colors')
+    expect(row.rank_from).to.equal('colors')
 
     expect(json.choices).not.to.be.a('undefined')
     expect(json.choices.length).to.equal(3)
@@ -72,32 +78,20 @@ describe 'survey with a question of type=odkrank (new rank question)', =>
       rr = survey.rows.at(0)
       _type = rr.getTypeId()
       expect(_type).to.equal('odkrank')
-      _listName = rr.get('select_from_list_name').getValue()
+      _listName = rr.get('rank_from').getValue()
       expect(_listName).to.equal('colors')
-
-    describe 'with randomize property', =>
-      it 'and row can have randomize property', =>
-        survey = rank_surv('true')
-        rr = survey.rows.at(0)
-        _randomize_attr = rr.getValue('randomize')
-        expect(_randomize_attr).to.equal('true')
-
-      it 'and exported row has randomize property set', =>
-        survey = rank_surv('true')
-        json = survey.toFlatJSON()
-        expect(json.survey[0].randomize).to.equal('true')
 
     it 'and associated choice list is correct', =>
       survey = rank_surv()
-      rr = survey.rows.at(0)
-      _list = rr.getList()
-      expect(_list).not.to.be.a('undefined')
-      options = []
-      rr.getList().options.forEach (option)=>
-        options.push({
+      row = survey.rows.at(0)
+      list = row.getList()
+      expect(list).not.to.be.a('undefined')
+      expect(list.options.length).to.equal(3)
+      options = list.options.map (option)=>
+        {
           value: option.get('value'),
           label: option.get('label'),
-        })
+        }
       expect(options).to.eql([
         {
           value: "red"
@@ -112,3 +106,15 @@ describe 'survey with a question of type=odkrank (new rank question)', =>
           label: "Blue"
         },
       ])
+
+    describe 'with randomize property', =>
+      it 'and row can have randomize property', =>
+        survey = rank_surv('true')
+        rr = survey.rows.at(0)
+        _randomize_attr = rr.getValue('randomize')
+        expect(_randomize_attr).to.equal('true')
+
+        it 'and exported row has randomize property set', =>
+          survey = rank_surv('true')
+          json = survey.toFlatJSON()
+          expect(json.survey[0].randomize).to.equal('true')
