@@ -103,6 +103,27 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
       if (row.type === QUESTION_TYPES.get('note').id) {
         continue;
       }
+      /*
+       * For a complex form items (e.g. ranking) Backend constructs a pair of
+       * group and a row. The row serves a purpose of a label and we don't want
+       * it here as `getTranslatedRowLabel` handles this already.
+       */
+      let previousRow = survey[rowIndex - 1];
+      let previousRowName = previousRow ? getRowName(previousRow) : undefined;
+      if (
+        previousRow &&
+        !Object.prototype.hasOwnProperty.call(previousRow, 'label') &&
+        (
+          rowName === `${previousRowName}_label` &&
+          row.type === QUESTION_TYPES.get('note').id
+        ) ||
+        (
+          rowName === `${previousRowName}_header` &&
+          row.type === QUESTION_TYPES.get('select_one').id
+        )
+      ) {
+        continue;
+      }
 
       let rowData = getRowData(rowName, survey, parentData);
 
