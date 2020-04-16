@@ -80,8 +80,6 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
       const rowName = getRowName(row);
       const rowLabel = getTranslatedRowLabel(rowName, survey, translationIndex);
 
-
-
       let parentGroupPath = null;
       if (parentGroup.name !== null) {
         parentGroupPath = flatPaths[parentGroup.name];
@@ -97,9 +95,12 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
       if (!isRowCurrentLevel) {
         continue;
       }
-
       // we don't want to include special calculate row used to store form version
       if (row.type === QUESTION_TYPES.get('calculate').id && rowName === FORM_VERSION_NAME) {
+        continue;
+      }
+      // notes don't carry submission data, we ignore them
+      if (row.type === QUESTION_TYPES.get('note').id) {
         continue;
       }
 
@@ -243,13 +244,11 @@ export function getRepeatGroupAnswers(data, targetKey) {
  */
 function getRegularGroupAnswers(data, targetKey) {
   const answers = {};
-
   Object.keys(data).forEach((objKey) => {
     if (objKey.startsWith(`${targetKey}/`)) {
       answers[objKey] = data[objKey];
     }
   });
-
   return answers;
 }
 

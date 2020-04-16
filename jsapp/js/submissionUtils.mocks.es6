@@ -1041,15 +1041,15 @@ export const complexSurveyDisplayData = [
         children: [
           {
             type: 'select_one',
-            label: 'Physically',
-            name: 'Physically',
-            data: 'good'
-          },
-          {
-            type: 'select_one',
             label: 'Emotionally',
             name: 'Emotionally',
             data: 'bad'
+          },
+          {
+            type: 'select_one',
+            label: 'Physically',
+            name: 'Physically',
+            data: 'good'
           }
         ]
       },
