@@ -301,9 +301,17 @@ export const QUESTION_TYPES = new Map([
   [
     'koborank',
     {
-      label: t('Ranking'),
+      label: t('KoBo Ranking'),
       faIcon: 'fa-sort-amount-desc',
       id: 'koborank'
+    }
+  ],
+  [
+    'odkrank',
+    {
+      label: t('ODK Ranking'),
+      faIcon: 'fa-list-ol',
+      id: 'odkrank'
     }
   ],
   [

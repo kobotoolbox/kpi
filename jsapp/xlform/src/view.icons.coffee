@@ -44,6 +44,7 @@ module.exports = do ->
   addIconToRow(constants.QUESTION_TYPES.get("calculate"), "r6")
   addIconToRow(constants.QUESTION_TYPES.get("file"), "r6")
   addIconToRow(constants.QUESTION_TYPES.get("range"), "r6")
+  addIconToRow(constants.QUESTION_TYPES.get("odkrank"), "r6")
 
   class QtypeIcon extends Backbone.Model
     defaults:
