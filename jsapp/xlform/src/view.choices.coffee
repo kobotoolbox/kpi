@@ -21,16 +21,11 @@ module.exports = do ->
       if cardText.find('.card__buttons__multioptions.js-expand-multioptions').length is 0
         cardText.prepend $.parseHTML($viewTemplates.row.expandChoiceList())
       @$el.html (@ul = $("<ul>", class: @ulClasses))
-      if @row.get("type").get("rowType").specifyChoice
-        for option, i in @model.options.models
-          new OptionView(model: option, cl: @model).render().$el.appendTo @ul
-        if i == 0
-          while i < 2
-            @addEmptyOption("Option #{++i}")
-
-        @$el.removeClass("hidden")
-      else
-        @$el.addClass("hidden")
+      for option, i in @model.options.models
+        new OptionView(model: option, cl: @model).render().$el.appendTo @ul
+      if i == 0
+        while i < 2
+          @addEmptyOption("Option #{++i}")
       @ul.sortable({
           axis: "y"
           cursor: "move"
