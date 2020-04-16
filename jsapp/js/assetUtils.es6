@@ -65,35 +65,48 @@ export function getTranslatedRowLabel(rowName, survey, translationIndex) {
   if (Object.prototype.hasOwnProperty.call(foundRow, 'label')) {
     return getRowLabelAtIndex(foundRow, translationIndex);
   } else {
-    /*
-     * If a row doesn't have a label it is very possible that this is
-     * a complex type of form item (e.g. ranking, matrix) that was constructed
-     * as a group and a note (or other row) by Backend.
-     */
-    let foundRowName = getRowName(foundRow);
     // that mysterious row always comes as a next row
     let possibleRow = survey[foundRowIndex + 1];
-    let possibleRowName = possibleRow ? getRowName(possibleRow) : undefined;
-
-    if (
-      possibleRow &&
-      Object.prototype.hasOwnProperty.call(possibleRow, 'label') &&
-      (
-        // this handles ranking questions
-        possibleRowName === `${foundRowName}_label` &&
-        possibleRow.type === QUESTION_TYPES.get('note').id
-      ) ||
-      (
-        // this handles rating questions
-        possibleRowName === `${foundRowName}_header` &&
-        possibleRow.type === QUESTION_TYPES.get('select_one').id
-      )
-    ) {
+    if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
       return getRowLabelAtIndex(possibleRow, translationIndex);
     }
   }
 
   return null;
+}
+
+/**
+ * If a row doesn't have a label it is very possible that this is
+ * a complex type of form item (e.g. ranking, matrix) that was constructed
+ * as a group and a row by Backend. This function detects if this is the case.
+ * @param {object} mainRow
+ * @param {object} holderRow
+ * @returns {boolean}
+ */
+export function isRowSpecialLabelHolder(mainRow, holderRow) {
+  if (!holderRow || !Object.prototype.hasOwnProperty.call(holderRow, 'label')) {
+    return false;
+  } else {
+    let mainRowName = getRowName(mainRow);
+    let holderRowName = getRowName(holderRow);
+    return (
+      (
+        // this handles ranking questions
+        holderRowName === `${mainRowName}_label` &&
+        holderRow.type === QUESTION_TYPES.get('note').id
+      ) ||
+      (
+        // this handles matrix questions (partially)
+        holderRowName === `${mainRowName}_note` &&
+        holderRow.type === QUESTION_TYPES.get('note').id
+      ) ||
+      (
+        // this handles rating questions
+        holderRowName === `${mainRowName}_header` &&
+        holderRow.type === QUESTION_TYPES.get('select_one').id // rating
+      )
+    );
+  }
 }
 
 /**
