@@ -145,6 +145,8 @@ new Set([
   'collection'
 ]).forEach((kind) => {ASSET_KINDS.set(kind, kind);});
 
+export const FORM_VERSION_NAME = '__version__';
+
 export const QUESTION_TYPES = new Map([
   [
     'select_one',

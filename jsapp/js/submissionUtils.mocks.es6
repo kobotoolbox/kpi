@@ -90,7 +90,7 @@ export const simpleSurveyDisplayData = [
     data: 'Leszek'
   },
   {
-    type: 'regular',
+    type: 'group_regular',
     label: 'Favourites',
     name: 'group_favourites',
     children: [
@@ -118,7 +118,7 @@ export const simpleSurveyDisplayDataEmpty = [
     data: null
   },
   {
-    type: 'regular',
+    type: 'group_regular',
     label: 'Favourites',
     name: 'group_favourites',
     children: [
@@ -208,7 +208,7 @@ export const repeatSurveySubmission = {
 
 export const repeatSurveyDisplayData = [
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'Members',
     name: 'group_members',
     children: [
@@ -233,7 +233,7 @@ export const repeatSurveyDisplayData = [
     ]
   },
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'Members',
     name: 'group_members',
     children: [
@@ -340,7 +340,7 @@ export const nestedRepeatSurveySubmission = {
 
 export const nestedRepeatSurveyDisplayData = [
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'People',
     name: 'group_people',
     children: [
@@ -351,7 +351,7 @@ export const nestedRepeatSurveyDisplayData = [
         data: 'John'
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Personal items',
         name: 'group_items',
         children: [
@@ -364,7 +364,7 @@ export const nestedRepeatSurveyDisplayData = [
         ]
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Personal items',
         name: 'group_items',
         children: [
@@ -377,7 +377,7 @@ export const nestedRepeatSurveyDisplayData = [
         ]
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Personal items',
         name: 'group_items',
         children: [
@@ -392,7 +392,7 @@ export const nestedRepeatSurveyDisplayData = [
     ]
   },
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'People',
     name: 'group_people',
     children: [
@@ -405,7 +405,7 @@ export const nestedRepeatSurveyDisplayData = [
     ]
   },
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'People',
     name: 'group_people',
     children: [
@@ -416,7 +416,7 @@ export const nestedRepeatSurveyDisplayData = [
         data: null
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Personal items',
         name: 'group_items',
         children: [
@@ -842,15 +842,15 @@ export const complexSurveyDisplayData = [
     data: 'Smith'
   },
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'People',
     name: 'group_people',
     children: [
       {
-        type: 'image',
-        label: 'Face',
-        name: 'Face',
-        data: '___Carroll Dunham - Bather-15_31_33.jpg'
+        type: 'text',
+        label: 'Person name',
+        name: 'Person_name',
+        data: 'John'
       },
       {
         type: 'integer',
@@ -859,44 +859,25 @@ export const complexSurveyDisplayData = [
         data: '66'
       },
       {
-        type: 'geopoint',
-        label: 'Secret place',
-        name: 'Secret_place',
-        data: '52.48278 18.099317 0 0'
-      },
-      {
         type: 'date',
         label: 'Born date',
         name: 'Born_date',
         data: '1990-02-06'
       },
       {
-        type: 'text',
-        label: 'Person name',
-        name: 'Person_name',
-        data: 'John'
+        type: 'image',
+        label: 'Face',
+        name: 'Face',
+        data: '___Carroll Dunham - Bather-15_31_33.jpg'
       },
       {
-        type: 'regular',
-        label: 'Favourites',
-        name: 'group_favourites',
-        children: [
-          {
-            type: 'select_multiple',
-            label: 'Food',
-            name: 'Food',
-            data: 'apple pizza'
-          },
-          {
-            type: 'select_one',
-            label: 'Colour',
-            name: 'Colour',
-            data: 'goldenrod'
-          }
-        ]
+        type: 'geopoint',
+        label: 'Secret place',
+        name: 'Secret_place',
+        data: '52.48278 18.099317 0 0'
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Pets',
         name: 'group_pets',
         children: [
@@ -915,7 +896,7 @@ export const complexSurveyDisplayData = [
         ]
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Pets',
         name: 'group_pets',
         children: [
@@ -934,7 +915,7 @@ export const complexSurveyDisplayData = [
         ]
       },
       {
-        type: 'repeat',
+        type: 'group_repeat',
         label: 'Pets',
         name: 'group_pets',
         children: [
@@ -951,19 +932,38 @@ export const complexSurveyDisplayData = [
             data: '109'
           }
         ]
+      },
+      {
+        type: 'group_regular',
+        label: 'Favourites',
+        name: 'group_favourites',
+        children: [
+          {
+            type: 'select_multiple',
+            label: 'Food',
+            name: 'Food',
+            data: 'apple pizza'
+          },
+          {
+            type: 'select_one',
+            label: 'Colour',
+            name: 'Colour',
+            data: 'goldenrod'
+          }
+        ]
       }
     ]
   },
   {
-    type: 'repeat',
+    type: 'group_repeat',
     label: 'People',
     name: 'group_people',
     children: [
       {
-        type: 'image',
-        label: 'Face',
-        name: 'Face',
-        data: '___Screenshot 2019-05-03 at 17.21.59-15_32_27.png'
+        type: 'text',
+        label: 'Person name',
+        name: 'Person_name',
+        data: 'Sally'
       },
       {
         type: 'integer',
@@ -972,25 +972,44 @@ export const complexSurveyDisplayData = [
         data: '15'
       },
       {
-        type: 'geopoint',
-        label: 'Secret place',
-        name: 'Secret_place',
-        data: '39.909736 -81.589529 0 0'
-      },
-      {
         type: 'date',
         label: 'Born date',
         name: 'Born_date',
         data: '2009-11-25'
       },
       {
-        type: 'text',
-        label: 'Person name',
-        name: 'Person_name',
-        data: 'Sally'
+        type: 'image',
+        label: 'Face',
+        name: 'Face',
+        data: '___Screenshot 2019-05-03 at 17.21.59-15_32_27.png'
       },
       {
-        type: 'regular',
+        type: 'geopoint',
+        label: 'Secret place',
+        name: 'Secret_place',
+        data: '39.909736 -81.589529 0 0'
+      },
+      {
+        type: 'group_repeat',
+        label: 'Pets',
+        name: 'group_pets',
+        children: [
+          {
+            type: 'text',
+            label: 'Pet name',
+            name: 'Pet_name',
+            data: 'Cricket'
+          },
+          {
+            type: 'integer',
+            label: 'Pet age',
+            name: 'Pet_age',
+            data: '0'
+          }
+        ]
+      },
+      {
+        type: 'group_regular',
         label: 'Favourites',
         name: 'group_favourites',
         children: [
@@ -1008,34 +1027,15 @@ export const complexSurveyDisplayData = [
           }
         ]
       },
-      {
-        type: 'repeat',
-        label: 'Pets',
-        name: 'group_pets',
-        children: [
-          {
-            type: 'text',
-            label: 'Pet name',
-            name: 'Pet_name',
-            data: 'Cricket'
-          },
-          {
-            type: 'integer',
-            label: 'Pet age',
-            name: 'Pet_age',
-            data: '0'
-          }
-        ]
-      }
     ]
   },
   {
-    type: 'regular',
+    type: 'group_regular',
     label: 'Misc questions',
     name: 'group_misc_questions',
     children: [
       {
-        type: 'regular',
+        type: 'group_regular',
         label: 'How are you?',
         name: 'How_are_you',
         children: [
@@ -1054,12 +1054,12 @@ export const complexSurveyDisplayData = [
         ]
       },
       {
-        type: 'regular',
+        type: 'group_regular',
         label: 'Show your skills',
         name: null,
         children: [
           {
-            type: 'regular',
+            type: 'group_regular',
             label: '5 and 6',
             name: 'skills_5_and_6',
             children: [
@@ -1078,7 +1078,7 @@ export const complexSurveyDisplayData = [
             ]
           },
           {
-            type: 'regular',
+            type: 'group_regular',
             label: '1 and 1',
             name: 'skills_1_and_1',
             children: [
@@ -1099,7 +1099,7 @@ export const complexSurveyDisplayData = [
         ]
       },
       {
-        type: 'regular',
+        type: 'group_regular',
         label: 'Best things in life',
         name: 'Best_things_in_life',
         children: [
@@ -1108,16 +1108,18 @@ export const complexSurveyDisplayData = [
             label: '1st choice',
             name: '_1st_choice',
             data: 'conquest'
-          }, {
+          },
+          {
             type: 'select_one',
             label: '2nd choice',
             name: '_2nd_choice',
-            data: 'food'
-          }, {
+            data: 'swords'
+          },
+          {
             type: 'select_one',
             label: '3rd choice',
             name: '_3rd_choice',
-            data: 'swords'
+            data: 'food'
           }
         ]
       }

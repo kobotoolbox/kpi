@@ -3,7 +3,7 @@ import {QUESTION_TYPES} from 'js/constants';
 
 /**
  * NOTE: this works under a true assumption that all questions have unique names
- * @param {object} survey
+ * @param {Array<object>} survey
  * @param {boolean} [includeGroups] wheter to put groups into output
  * @returns {object} a pair of quesion names and their full paths
  */
@@ -46,16 +46,42 @@ export function getRowName(row) {
 }
 
 /**
- * @param {array|string} label
+ * @param {string} rowName
+ * @param {Array<object>} survey
  * @param {number} translationIndex
- * @returns {string}
+ * @returns {string|null} null for not found
  */
-export function getTranslatedRowLabel(label, translationIndex) {
-  if (Array.isArray(label)) {
-    return label[translationIndex];
+export function getTranslatedRowLabel(rowName, survey, translationIndex) {
+  let foundRow = survey.find((row) => {
+    return getRowName(row) === rowName;
+  });
+
+  if (Object.prototype.hasOwnProperty.call(foundRow, 'label')) {
+    if (Array.isArray(foundRow.label)) {
+      return foundRow.label[translationIndex];
+    } else {
+      return foundRow.label;
+    }
   } else {
-    return label;
+    /*
+     * if a row doesn't have a label
+     * it is possible this is a complex type of form item (e.g. ranking, matrix)
+     * that was rendered as a group and a note in resulted Backend survey
+     */
+    let foundNoteRow = survey.find((row) => {
+      return getRowName(row) === `${rowName}_label` && row.type === QUESTION_TYPES.get('note').id;
+    });
+
+    if (foundNoteRow && Object.prototype.hasOwnProperty.call(foundNoteRow, 'label')) {
+      if (Array.isArray(foundNoteRow.label)) {
+        return foundNoteRow.label[translationIndex];
+      } else {
+        return foundNoteRow.label;
+      }
+    }
   }
+
+  return null;
 }
 
 /**

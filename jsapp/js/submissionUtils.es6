@@ -3,20 +3,24 @@ import {
   getTranslatedRowLabel,
   getSurveyFlatPaths
 } from 'js/assetUtils';
-import {QUESTION_TYPES} from 'js/constants';
+import {
+  FORM_VERSION_NAME,
+  QUESTION_TYPES
+} from 'js/constants';
 
-const DISPLAY_GROUP_TYPES = new Map();
+export const DISPLAY_GROUP_TYPES = new Map();
 new Set([
-  'root',
-  'repeat',
-  'regular'
+  'group_root',
+  'group_repeat',
+  'group_regular'
 ]).forEach((codename) => {DISPLAY_GROUP_TYPES.set(codename, codename);});
 
 /**
  * @typedef {Object} DisplayGroup
  * @property {string} type - One of DISPLAY_GROUP_TYPES
- * @property {string} [label] - Localized display label
- * @property {string} [name] - Unique identifier
+ * @property {string} label - Localized display label
+ * @property {string} name - Unique identifier
+ * @property {Array<DisplayResponse|DisplayGroup>} children - List of groups and responses
  */
 class DisplayGroup {
   constructor(type, label = null, name = null) {
@@ -39,7 +43,7 @@ class DisplayGroup {
  * @property {string} type - One of QUESTION_TYPES
  * @property {string} label - Localized display label
  * @property {string} name - Unique identifier
- * @property {string|null} [data] - User response, `null` for no response
+ * @property {string|null} data - User response, `null` for no response
  */
 class DisplayResponse {
   constructor(type, label, name, data = null) {
@@ -52,7 +56,7 @@ class DisplayResponse {
 
 /**
  * @param {object} submissionData
- * @param {object} survey
+ * @param {Array<object>} survey
  * @param {number} translationIndex - for choosing label to display
  * @returns {Array<DisplayResponse|DisplayGroup>}
  */
@@ -60,7 +64,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
   const flatPaths = getSurveyFlatPaths(survey, true);
 
   // let's start with a root of survey being a group with special flag
-  const output = new DisplayGroup(DISPLAY_GROUP_TYPES.get('root'));
+  const output = new DisplayGroup(DISPLAY_GROUP_TYPES.get('group_root'));
 
   /**
    * recursively generates a nested architecture of survey with data
@@ -74,7 +78,9 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
       const row = survey[rowIndex];
 
       const rowName = getRowName(row);
-      const rowLabel = getTranslatedRowLabel(row.label, translationIndex);
+      const rowLabel = getTranslatedRowLabel(rowName, survey, translationIndex);
+
+
 
       let parentGroupPath = null;
       if (parentGroup.name !== null) {
@@ -92,6 +98,11 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
         continue;
       }
 
+      // we don't want to include special calculate row used to store form version
+      if (row.type === QUESTION_TYPES.get('calculate').id && rowName === FORM_VERSION_NAME) {
+        continue;
+      }
+
       let rowData = getRowData(rowName, survey, parentData);
 
       if (row.type === 'begin_repeat') {
@@ -99,7 +110,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
             let repeatObj = new DisplayGroup(
-              DISPLAY_GROUP_TYPES.get('repeat'),
+              DISPLAY_GROUP_TYPES.get('group_repeat'),
               rowLabel,
               rowName
             );
@@ -111,7 +122,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
         }
       } else if (row.type === 'begin_group') {
         let rowObj = new DisplayGroup(
-          DISPLAY_GROUP_TYPES.get('regular'),
+          DISPLAY_GROUP_TYPES.get('group_regular'),
           rowLabel,
           rowName,
         );
@@ -146,7 +157,7 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
 /**
  * Returns data for given row, works for groups too.
  * @param {string} name
- * @param {object} survey
+ * @param {Array<object>} survey
  * @param {object} data - submission data
  * @returns {string|null|array<*>|object} row data, null is for identifying
  * no answer, array for repeat groups and object for regular groups
@@ -184,7 +195,7 @@ function getRowData(name, survey, data) {
  * Tells if given row is an immediate child of given group
  * @param {string} rowName
  * @param {string|null} groupPath - null for root level rows
- * @param {object} survey
+ * @param {Array<object>} survey
  * @returns {boolean}
  */
 function isRowFromCurrentGroupLevel(rowName, groupPath, survey) {
