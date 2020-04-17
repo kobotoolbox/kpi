@@ -149,7 +149,7 @@ class Drawer extends Reflux.Component {
         <bem.KDrawer__sidebar>
           { this.isLibrary()
             ? <LibrarySidebar />
-            : <FormSidebar />
+            : (this.isFormList() || this.isFormSingle()) && <FormSidebar />
           }
         </bem.KDrawer__sidebar>
 

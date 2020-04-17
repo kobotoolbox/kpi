@@ -4,6 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
 import Reflux from 'reflux';
+import { hashHistory } from 'react-router';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -34,7 +35,8 @@ class LibrarySearchableList extends React.Component {
       searchContext: searches.getSearchContext('library', {
         filterParams: {assetType: this.TYPE_FILTER_DEFAULT},
         filterTags: this.TYPE_FILTER_DEFAULT,
-      })
+      }),
+      isSessionLoaded: !!stores.session.currentAccount,
     };
     autoBind(this);
   }
@@ -46,6 +48,17 @@ class LibrarySearchableList extends React.Component {
     });
   }
   componentDidMount () {
+    this.listenTo(stores.session, ({currentAccount}) => {
+      if (currentAccount) {
+        if (currentAccount.user_type.toLowerCase() == 'user') {
+          hashHistory.push('/access-denied');
+        } else {
+          this.setState({
+            isSessionLoaded: true,
+          });
+        }
+      }
+    });
     this.searchDefault();
     this.queryCollections();
   }
@@ -59,7 +72,20 @@ class LibrarySearchableList extends React.Component {
     });
     this.searchDefault();
   }
+  renderLoading(message = t('loading…')) {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {message}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
   render () {
+    if (!this.state.isSessionLoaded) {
+      return this.renderLoading();
+    }
     const typeFilterOptions = [
       {value: this.TYPE_FILTER.ALL, label: t('Show All')},
       {value: this.TYPE_FILTER.BY_QUESTION, label: t('Question')},

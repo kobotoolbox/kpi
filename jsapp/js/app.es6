@@ -279,19 +279,43 @@ class SectionNotFound extends React.Component {
   }
 };
 
+class AccessDenied extends React.Component {
+  render () {
+    return (
+        <ui.Panel className='k404'>
+          <i />
+          <em>access denied</em>
+        </ui.Panel>
+      );
+  }
+};
+
+function requireAdmin(nextState, replace) {
+  if (stores.session && stores.session.currentAccount) {
+    const currentUser = stores.session.currentAccount;
+    if (currentUser.user_type.toLowerCase() == 'user') {
+      replace({
+        path: "/access-denied",
+        state: {nextPathname: nextState.location.pathname}
+      });
+    }
+  }
+}
+
 export var routes = (
   <Route name='home' path='/' component={App}>
-    <Route path='account-settings' component={AccountSettings} />
-    <Route path='change-password' component={ChangePassword} />
+    <Route path='access-denied' component={AccessDenied} />
+    {/*<Route path='account-settings' component={AccountSettings} />*/}
+    {/*}<Route path='change-password' component={ChangePassword} />*/}
 
-    <Route path='library' >
-      <Route path='new' component={AddToLibrary} />
-      <Route path='new/template' component={AddToLibrary} />
-      <Route path='/library/:assetid'>
+    <Route path='library' onEnter={requireAdmin}>
+      <Route path='new' component={AddToLibrary} onEnter={requireAdmin} />
+      <Route path='new/template' component={AddToLibrary} onEnter={requireAdmin} />
+      <Route path='/library/:assetid' onEnter={requireAdmin} >
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
-        <Route path='json' component={FormJson} />,
-        <Route path='xform' component={FormXform} />,
-        <Route path='edit' component={LibraryPage} />
+        <Route path='json' component={FormJson} onEnter={requireAdmin} />,
+        <Route path='xform' component={FormXform} onEnter={requireAdmin} />,
+        <Route path='edit' component={LibraryPage} onEnter={requireAdmin} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
     </Route>

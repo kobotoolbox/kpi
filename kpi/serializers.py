@@ -919,6 +919,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
+    user_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -938,6 +939,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
+            'user_type',
         )
 
     def get_server_time(self, obj):
@@ -961,6 +963,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return settings.GIT_REV
         else:
             return False
+    
+    def get_user_type(self, obj):
+        request = self.context.get('request', False)
+        if request and request.user:
+            return KeycloakModel.objects.get(user=request.user).user_type
+        return False
 
     def to_representation(self, obj):
         if obj.is_anonymous():
