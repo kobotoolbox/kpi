@@ -5,6 +5,9 @@ from formpack.utils.replace_aliases import replace_aliases
 from formpack.utils.expand_content import expand_content, SCHEMA_VERSION
 
 ALLOWED_TYPES = {
+    'rank': [
+        'odkrank',
+    ],
     'score__row': True,
     'rank__level': True,
     'begin_score': [
@@ -13,11 +16,13 @@ ALLOWED_TYPES = {
     'end_score': [
         'end score',
     ],
-    'begin_rank': [
+    'begin_koborank': [
         'begin rank',
+        'begin_rank',
     ],
-    'end_rank': [
+    'end_koborank': [
         'end rank',
+        'end_rank',
     ],
     'begin_kobomatrix': [
         'begin kobomatrix',

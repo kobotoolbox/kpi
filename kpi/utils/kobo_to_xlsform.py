@@ -20,6 +20,7 @@ KOBO_CUSTOM_TYPE_HANDLERS = {
     'begin rank': KoboRankGroup,
     'begin_score': KoboScoreGroup,
     'begin_rank': KoboRankGroup,
+    'begin_koborank': KoboRankGroup,
     'begin_kobomatrix': KoboMatrixGroupHandler,
 }
 
@@ -102,6 +103,14 @@ def to_xlsform_structure(surv,
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
     return surv
+
+
+def convert_odkrank_to_rank_in_place(surv):
+    for row in surv.get('survey', []):
+        if row.get('type') == 'odkrank':
+            list_name = row.pop('rank_from')
+            row['type'] = 'rank'
+            row['select_from_list_name'] = list_name
 
 
 def expand_rank_and_score_in_place(surv):

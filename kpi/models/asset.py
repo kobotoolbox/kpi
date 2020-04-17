@@ -65,6 +65,7 @@ from kpi.utils.asset_translation_utils import (
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
+                                       convert_odkrank_to_rank_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
 from kpi.utils.log import logging
@@ -164,6 +165,7 @@ class FormpackXLSFormUtils:
 
     def _expand_kobo_qs(self, content):
         expand_rank_and_score_in_place(content)
+        convert_odkrank_to_rank_in_place(content)
 
     def _ensure_settings(self, content):
         # asset.settings should exist already, but
