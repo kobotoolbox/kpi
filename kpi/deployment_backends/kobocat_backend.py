@@ -367,9 +367,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'backend_response': json_response,
             })
         except KobocatDeploymentException as e:
-            if not (has_active_hooks is False and hasattr(e, 'response') and
-                    e.response.status_code != status.HTTP_404_NOT_FOUND):
-                raise e
+            if (
+                has_active_hooks is False
+                and hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
+            ):
+                # It's okay if we're trying to unset the active hooks flag and
+                # the KoBoCAT project is already gone. See #2497
+                pass
+            else:
+                raise
 
     def delete(self):
         """
@@ -379,7 +386,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
+            if (
+                hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
+            ):
                 # The KC project is already gone!
                 pass
             else:
