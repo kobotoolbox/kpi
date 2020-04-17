@@ -86,6 +86,36 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
         self.assert_object_in_object_list(self.someusers_public_asset, self.admin, self.admin_password,
                                           in_list=False)
 
+    def test_revoke_anon_from_asset_in_public_collection(self):
+        self.login(self.someuser.username, self.someuser_password)
+        public_collection = self.create_collection('public_collection')
+        child_asset = self.create_asset('child_asset_in_public_collection')
+        self.add_to_collection(child_asset, public_collection)
+        child_asset.refresh_from_db()
+
+        # Anon should have no access at this point
+        self.client.logout()
+        self.assert_viewable(child_asset, viewable=False)
+
+        # Grant anon access to the parent collection
+        self.login(self.someuser.username, self.someuser_password)
+        self.add_perm(public_collection, self.anon, 'view_')
+
+        # Verify anon can access the child asset
+        self.client.logout()
+        # Anon can only see a public asset by accessing the detail view
+        # directly; `assert_viewble()` will always fail because it expects the
+        # asset to be in the list view as well
+        self.assert_detail_viewable(child_asset)
+
+        # Revoke anon's access to the child asset
+        self.login(self.someuser.username, self.someuser_password)
+        self.remove_perm_v2_api(child_asset, self.anon,'view_asset')
+
+        # Make sure anon cannot access the child asset any longer
+        self.client.logout()
+        self.assert_viewable(child_asset, viewable=False)
+
 
 class ApiPermissionsTestCase(KpiTestCase):
     fixtures = ['test_data']

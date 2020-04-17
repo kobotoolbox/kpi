@@ -47,7 +47,7 @@ class ObjectPermissionHelper:
         # `affected_object.permissions` is a `GenericRelation(ObjectPermission)`
         # Don't Prefetch `content_object`.
         # See `AssetPermissionAssignmentSerializer.to_representation()`
-        queryset = affected_object.permissions.select_related(
+        queryset = affected_object.permissions.filter(deny=False).select_related(
             'permission', 'user'
         ).order_by(
                 'user__username', 'permission__codename'
