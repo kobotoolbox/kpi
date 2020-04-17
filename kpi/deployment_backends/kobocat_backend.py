@@ -317,7 +317,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def set_asset_uid(self, force=False):
         """
         Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
-        populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
+        populating the `kpi_asset_uid` field (use KoBoCAT proxy to PATCH XForm).
         Useful when a form is created from the legacy upload form.
         Store results in self.asset._deployment_data
 
@@ -347,7 +347,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def set_has_kpi_hooks(self):
         """
         PATCH `has_kpi_hooks` boolean of survey.
-        It lets KoBoCat know whether it needs to ping KPI
+        It lets KoBoCAT know whether it needs to ping KPI
         each time a submission comes in.
 
         Store results in self.asset._deployment_data
@@ -388,7 +388,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submission(self, pk, user):
         """
-        Deletes submission through `KoBoCat` proxy
+        Deletes submission through KoBoCAT proxy
         :param pk: int
         :param user: User
         :return: dict
@@ -401,7 +401,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submissions(self, data, user):
         """
-        Deletes submissions through `KoBoCat` proxy
+        Deletes submissions through KoBoCAT proxy
         :param user: User
         :return: dict
         """
@@ -735,7 +735,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _('KoBoCat returned an unexpected response: {}'.format(str(e)))
+                    'detail': _('KoBoCAT returned an unexpected response: {}'.format(str(e)))
                 }
 
         return prepared_drf_response
