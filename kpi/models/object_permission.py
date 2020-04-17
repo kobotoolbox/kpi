@@ -729,11 +729,14 @@ class ObjectPermissionMixin:
         ):
             # Is an anonymous user allowed to have this permission?
             fq_permission = f'{app_label}.{codename}'
-            if deny is False and \
-                    fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            if (
+                not deny
+                and fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
+            ):
                 raise ValidationError(
-                    'Anonymous users cannot have the permission {}.'.format(
-                        codename)
+                    'Anonymous users cannot be granted the permission {}.'.format(
+                        codename
+                    )
                 )
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
