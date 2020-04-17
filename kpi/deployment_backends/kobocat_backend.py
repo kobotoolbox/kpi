@@ -308,7 +308,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'downloadable': bool(active)
         }
         json_response = self._kobocat_request('PATCH', url, data=payload)
-        assert(json_response['downloadable'] == bool(active))
+        assert json_response['downloadable'] == bool(active)
         self.store_data({
             'active': json_response['downloadable'],
             'backend_response': json_response,
@@ -362,10 +362,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         try:
             json_response = self._kobocat_request('PATCH', url, data=payload)
-            assert (json_response['has_kpi_hooks'] == has_active_hooks)
-            self.store_data({
-                'backend_response': json_response,
-            })
         except KobocatDeploymentException as e:
             if (
                 has_active_hooks is False
@@ -377,6 +373,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
             else:
                 raise
+        else:
+            assert json_response['has_kpi_hooks'] == has_active_hooks
+            self.store_data({
+                'backend_response': json_response,
+            })
 
     def delete(self):
         """
