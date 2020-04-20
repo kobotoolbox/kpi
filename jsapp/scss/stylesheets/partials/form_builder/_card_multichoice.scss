@@ -163,7 +163,7 @@
 
 .odkrank_multioptions__option {
   margin-bottom: 4px;
-  margin-left: 4px;
+  margin-left: 70px;
   position: relative;
 
   div.editable-wrapper {
@@ -191,12 +191,24 @@
   }
 
   code {
-    display: none;
+    label {
+      position: absolute;
+      left: -100px;
+      top: 3px;
+      border: 1px solid #bdadad;
+      padding: 5px;
+      font-size: 12px;
+      padding-top: 5px;
+      margin-right: 12px;
+    }
+    span {
+      display: none;
+    }
   }
 
   i.fa-trash-o {
     position: absolute;
-    left: -30px;
+    margin-left: 12px;
     top: 6px;
     color: #D08B8C;
     font-size: 16px;
@@ -208,7 +220,7 @@
   position: relative;
 
   code {
-    display: none;  
+    display: none;
   }
 
 }

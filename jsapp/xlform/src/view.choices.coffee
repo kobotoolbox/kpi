@@ -16,6 +16,7 @@ module.exports = do ->
       @$el = @rowView.$(".list-view")
       @ulClasses = @$("ul").prop("className")
       @olClasses = @$("ol").prop("className")
+      @listIndex = 0
 
     render: ->
       cardText = @rowView.$el.find('.card__text')
@@ -23,10 +24,11 @@ module.exports = do ->
         cardText.prepend $.parseHTML($viewTemplates.row.expandChoiceList())
       # List options in an ordered list (with corresponding CSS) if displaying an ODKRank question, unordered otherwise
       if @row.get("type").get("rowType").label is 'ODKRank'
-        @$el.html (@ul = $("<ol>", class: @olClasses))
+        @$el.html (@ul = $("<ol type=\"A\">", class: @olClasses))
         for option, i in @model.options.models
+          @listIndex = i + 1
           nextOptionView = new OptionView(model: option, cl: @model).render().$el.removeClass("multioptions__option").addClass("odkrank_multioptions__option")
-          console.dir nextOptionView
+          nextOptionView.find("label").html (@listIndex + ". __")
           nextOptionView.appendTo @ul
         if i == 0
           while i < 2
@@ -75,6 +77,8 @@ module.exports = do ->
       @model.options.add(emptyOpt)
       if @row.get("type").get("rowType").label is 'ODKRank'
         nextOptionView = new OptionView(model: emptyOpt, cl: @model).render().$el.removeClass("multioptions__option").addClass("odkrank_multioptions__option")
+        @listIndex++
+        nextOptionView.find("label").html (@listIndex + ". __")
         nextOptionView.appendTo @ul
       else
         new OptionView(model: emptyOpt, cl: @model).render().$el.appendTo @ul
