@@ -16,6 +16,7 @@ module.exports = do ->
       @$el = @rowView.$(".list-view")
       @ulClasses = @$("ul").prop("className")
       @olClasses = @$("ol").prop("className")
+      @labelClasses = @$("label").prop("className")
       @listIndex = 0
 
     render: ->
@@ -25,11 +26,15 @@ module.exports = do ->
       # List options in an ordered list (with corresponding CSS) if displaying an ODKRank question, unordered otherwise
       if @row.get("type").get("rowType").label is 'ODKRank'
         @$el.html (@ul = $("<ol type=\"A\">", class: @olClasses))
+        @indexLabelWrapper = $("<div class=\"index-label-wrapper\">")
         for option, i in @model.options.models
           @listIndex = i + 1
           nextOptionView = new OptionView(model: option, cl: @model).render().$el.removeClass("multioptions__option").addClass("odkrank_multioptions__option")
-          nextOptionView.find("label").html (@listIndex + ". __")
+          @indexLabel = $("<label>", class: @labelClasses)
+          @indexLabel.html (@listIndex + " ")
+          @indexLabel.appendTo @indexLabelWrapper
           nextOptionView.appendTo @ul
+        @$el.append(@indexLabelWrapper)
         if i == 0
           while i < 2
             @addEmptyOption("Option #{++i}")
@@ -77,8 +82,10 @@ module.exports = do ->
       @model.options.add(emptyOpt)
       if @row.get("type").get("rowType").label is 'ODKRank'
         nextOptionView = new OptionView(model: emptyOpt, cl: @model).render().$el.removeClass("multioptions__option").addClass("odkrank_multioptions__option")
-        @listIndex++
-        nextOptionView.find("label").html (@listIndex + ". __")
+        @listIndex = @ul.children().length + 1
+        @indexLabel = $("<label>", class: @labelClasses)
+        @indexLabel.html (@listIndex + " ")
+        @indexLabel.appendTo @indexLabelWrapper
         nextOptionView.appendTo @ul
       else
         new OptionView(model: emptyOpt, cl: @model).render().$el.appendTo @ul
@@ -178,6 +185,20 @@ module.exports = do ->
       lis = $parent.find('li')
       if lis.length == 1
         lis.find('.js-remove-option').addClass('hidden')
+
+      # Get number of non hidden OptionViews and remove corresponding index  
+      numberOfOptionViews = 0
+      $parent.parent().find('.odkrank_multioptions__option').each (index) ->
+        if not $(this).hasClass('hidden')
+          numberOfOptionViews++
+        return
+      numberOfHidden = 0
+      $parent.parent().find('.index-label-wrapper').find('label').each (index) ->
+        if $(this).hasClass('hidden')
+          numberOfHidden++
+        if (index - numberOfHidden >= numberOfOptionViews)
+          $(this).addClass('hidden')
+        return
 
     saveValue: (nval)->
       # if new value has no non-space characters, it is invalid

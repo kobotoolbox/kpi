@@ -161,9 +161,33 @@
 // ODKRank Questions 
 // ==========================================================================
 
+.ui-sortable-placeholder.option-placeholder {
+  list-style-type: none;
+}
+
+.index-label-wrapper {
+  position: absolute;
+  left: 80px;
+  top: 26px;
+  display: grid;
+
+  label {
+    width: 25px;
+    text-align: center;
+    border: 1px solid #adadad;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 12px;
+    margin-right: 12px;
+    margin-bottom: 18px;
+  }
+}
+
 .odkrank_multioptions__option {
-  margin-bottom: 4px;
-  margin-left: 70px;
+  margin-bottom: 12px;
+  margin-left: 50px;
   position: relative;
 
   div.editable-wrapper {
@@ -191,19 +215,7 @@
   }
 
   code {
-    label {
-      position: absolute;
-      left: -100px;
-      top: 3px;
-      border: 1px solid #bdadad;
-      padding: 5px;
-      font-size: 12px;
-      padding-top: 5px;
-      margin-right: 12px;
-    }
-    span {
-      display: none;
-    }
+    display: none;
   }
 
   i.fa-trash-o {
@@ -233,4 +245,13 @@
   height: 100%;
   top: 0px;
   z-index: 1;
+}
+
+@media only screen and (max-width: 480px) {
+  .index-label-wrapper {
+    left: 30px;
+  }
+  .odkrank_multioptions__option {
+    margin-left: 25px;
+  }    
 }
