@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data', jsonfield.fields.JSONField()),
-                ('messages', jsonfield.fields.JSONField(default={})),
+                ('messages', jsonfield.fields.JSONField(default=dict)),
                 ('status', models.CharField(default=b'created', max_length=32, choices=[(b'created', b'created'), (b'processing', b'processing'), (b'error', b'error'), (b'complete', b'complete')])),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('uid', kpi.fields.KpiUidField(uid_prefix=b'e')),
