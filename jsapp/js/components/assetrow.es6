@@ -353,7 +353,7 @@ class AssetRow extends React.Component {
                 <ui.PopoverMenu
                   type='assetrow-menu'
                   triggerLabel={<i className='k-icon-folder-move-to' />}
-                  triggerTip={t('Move to collection')}
+                  triggerTip={t('Manage collection')}
                   popoverSetVisible={this.popoverSetVisible}
                 >
                   { ownedCollections.length <= 0 &&

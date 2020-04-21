@@ -17,6 +17,7 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
+from bossoidc.models import Keycloak as KeycloakModel
 
 from hub.models import SitewideMessage, ExtraUserDetail
 from .fields import PaginatedApiField, SerializerMethodFileField
@@ -602,8 +603,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             user = get_anonymous_user()
         if 'parent' in fields:
             # TODO: remove this restriction?
-            fields['parent'].queryset = fields['parent'].queryset.filter(
-                owner=user)
+            kc_user = None
+            try:
+                kc_user = KeycloakModel.objects.get(user=user)
+            except KeycloakModel.DoesNotExist:
+                pass
+            subdomain = kc_user.subdomain
+            subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
+            fields['parent'].queryset = fields['parent'].queryset.filter(owner__in=subdomain_userIds)
         # Honor requests to exclude fields
         # TODO: Actually exclude fields from tha database query! DRF grabs
         # all columns, even ones that are never named in `fields`
@@ -918,6 +925,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
+    user_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -937,6 +945,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
+            'user_type',
         )
 
     def get_server_time(self, obj):
@@ -960,6 +969,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return settings.GIT_REV
         else:
             return False
+    
+    def get_user_type(self, obj):
+        request = self.context.get('request', False)
+        if request and request.user:
+            return KeycloakModel.objects.get(user=request.user).user_type
+        return False
 
     def to_representation(self, obj):
         if obj.is_anonymous():
@@ -1139,6 +1154,18 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             return None
         if request.user == obj.owner:
             return 'owned'
+
+        kc_user = None
+        kc_owner = None
+        try:
+            kc_user = KeycloakModel.objects.get(user=request.user)
+            kc_owner = KeycloakModel.objects.get(user=obj.owner)
+        except KeycloakModel.DoesNotExist:
+            pass
+
+        if kc_user is not None and kc_owner is not None:
+            if kc_user.subdomain == kc_owner.subdomain:
+                return 'subdomain'
         # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
         # cost a query. This ugly loop takes advantage of having already called
         # `prefetch_related()`

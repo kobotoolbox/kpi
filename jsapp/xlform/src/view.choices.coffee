@@ -137,7 +137,7 @@ module.exports = do ->
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
           @model.getSurvey()?.trigger('change') if valChanged
-        newValue: val
+        return
 
       @j = $('span', @i)
       $viewUtils.makeEditable @, @model, @j, edit_callback: (val) =>
@@ -159,7 +159,7 @@ module.exports = do ->
             @model.set('setManually', true)
             @$el.trigger("choice-list-update", @options.cl.cid)
             @model.getSurvey()?.trigger('change') 
-        newValue: val
+        return
 
       @pw.html(@p)
 

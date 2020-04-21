@@ -1163,10 +1163,12 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             else:
                 all_instance[instance_count - 1].insert_after(oc_clinicaldata_soup.instance)
             
-            body_class = soup.find('h:body')['class']
-            if 'no-text-transform' not in body_class:
-                body_class = body_class + ' no-text-transform'
-            soup.find('h:body')['class'] = body_class
+            soup_body = soup.find('h:body')
+            if 'class' in soup_body.attrs:
+                if 'no-text-transform' not in soup_body['class']:
+                    soup_body['class'] = soup_body['class'] + ' no-text-transform'
+            else:
+                soup_body['class'] = 'no-text-transform'
 
             xml = str(soup)
 

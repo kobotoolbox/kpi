@@ -110,11 +110,15 @@ module.exports = do ->
       $el.on 'change', ()=>
         detectAndChangeValue()
 
+      $el.on 'blur', ()=>
+        detectAndChangeValue()
+
       $el.on 'keyup', (evt) =>
         if evt.key is 'Enter' or evt.keyCode is 13
           $el.blur()
         else
-          detectAndChangeValue()
+          if not transformFn
+            detectAndChangeValue()
 
       return
 

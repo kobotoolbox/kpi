@@ -283,7 +283,8 @@ $t-form-builder-aside-open: 200ms;
   }
 
   &.formBuilder-header__button--create,
-  &.formBuilder-header__button--save {
+  &.formBuilder-header__button--save,
+  &.formBuilder-header__button--back {
     margin-left: 10px;
     text-transform: uppercase;
     min-width: 85px;
@@ -316,8 +317,7 @@ $t-form-builder-aside-open: 200ms;
     color: white;
   }
 
-  &.formBuilder-header__button--share,
-  &.formBuilder-header__button--back {
+  &.formBuilder-header__button--share {
     min-width: 85px;
     text-transform: uppercase;
 
