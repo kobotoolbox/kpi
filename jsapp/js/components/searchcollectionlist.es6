@@ -57,7 +57,7 @@ class SearchCollectionList extends Reflux.Component {
               // return hasChangePermission;
               return false;
             } else {
-              return value.access_type === 'owned';
+              return value.access_type === 'owned' || value.access_type === 'subdomain';
             }
           })
         });

@@ -603,8 +603,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             user = get_anonymous_user()
         if 'parent' in fields:
             # TODO: remove this restriction?
-            fields['parent'].queryset = fields['parent'].queryset.filter(
-                owner=user)
+            kc_user = None
+            try:
+                kc_user = KeycloakModel.objects.get(user=user)
+            except KeycloakModel.DoesNotExist:
+                pass
+            subdomain = kc_user.subdomain
+            subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
+            fields['parent'].queryset = fields['parent'].queryset.filter(owner__in=subdomain_userIds)
         # Honor requests to exclude fields
         # TODO: Actually exclude fields from tha database query! DRF grabs
         # all columns, even ones that are never named in `fields`

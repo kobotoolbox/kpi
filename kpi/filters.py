@@ -55,8 +55,6 @@ class KpiObjectPermissionsFilter(object):
         permission = self.perm_format % kwargs
 
         user = request.user
-        
-        logging.warning('filter_queryset {}'.format(model_name))
 
         # User can access assets/collections created by users with same subdomain
         if model_name == 'asset' or model_name == 'collection':
