@@ -1,75 +1,51 @@
-import re
-import pytz
+# coding: utf-8
 import base64
 import datetime
-import requests
-import tempfile
 import posixpath
-import dateutil.parser
+import re
+import tempfile
+from collections import defaultdict
 from io import BytesIO
 from os.path import splitext
-from collections import defaultdict
+from urllib.parse import urlparse
 
-from jsonfield import JSONField
+import dateutil.parser
+import pytz
+import requests
 from django.conf import settings
-from rest_framework import exceptions
-from django.db import models, transaction
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
+from django.urls import Resolver404, resolve
+from django.db import models, transaction
 from private_storage.fields import PrivateFileField
-from django.core.urlresolvers import Resolver404, resolve
-from django.utils.six.moves.urllib import parse as urlparse
+from pyxform import xls2json_backends
+from rest_framework import exceptions
 
 import formpack.constants
-from pyxform import xls2json_backends
-from formpack.utils.string import ellipsize
 from formpack.schema.fields import ValidationStatusCopyField
-
-from kpi.utils.log import logging
+from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
-
+from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
+from kpi.utils.log import logging
+from kpi.utils.strings import to_str
 from ..fields import KpiUidField
+from ..model_utils import create_assets, _load_library_content, \
+    remove_string_prefix
 from ..models import Collection, Asset
 from ..zip_importer import HttpContentParse
-from ..model_utils import create_assets, _load_library_content, \
-                          remove_string_prefix
-from ..deployment_backends.mock_backend import MockDeploymentBackend
-
-
-# TODO: Remove lines below (38:58) when django and django-storages are upgraded
-# to latest version.
-# Because current version of Django is 1.8, we can't upgrade `django-storages`.
-# `Django 1.8` has been dropped in v1.6.6. Latest version (v1.7.1) requires `Django 1.11`
-from storages.backends.s3boto3 import S3Boto3StorageFile
-
-
-def _flush_write_buffer(self):
-    """
-    Flushes the write buffer.
-    """
-    if self._buffer_file_size:
-        self._write_counter += 1
-        self.file.seek(0)
-        part = self._multipart.Part(self._write_counter)
-        part.upload(Body=self.file.read())
-        self.file.seek(0)
-        self.file.truncate()
-
-
-# Monkey Patch S3Boto3StorageFile class with 1.7.1 version of the method
-S3Boto3StorageFile._flush_write_buffer = _flush_write_buffer
 
 
 def utcnow(*args, **kwargs):
-    '''
+    """
     Stupid, and exists only to facilitate mocking during unit testing.
     If you know of a better way, please remove this.
-    '''
+    """
     return datetime.datetime.utcnow()
 
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
-        item_path = urlparse.urlparse(item_path).path
+        item_path = urlparse(item_path).path
     try:
         match = resolve(item_path)
     except Resolver404:
@@ -79,16 +55,16 @@ def _resolve_url_to_asset_or_collection(item_path):
 
     uid = match.kwargs.get('uid')
     if match.url_name == 'asset-detail':
-        return ('asset', Asset.objects.get(uid=uid))
+        return 'asset', Asset.objects.get(uid=uid)
     elif match.url_name == 'collection-detail':
-        return ('collection', Collection.objects.get(uid=uid))
+        return 'collection', Collection.objects.get(uid=uid)
 
 
 class ImportExportTask(models.Model):
-    '''
+    """
     A common base model for asynchronous import and exports. Must be
     subclassed to be useful. Subclasses must implement the `_run_task()` method
-    '''
+    """
 
     class Meta:
         abstract = True
@@ -105,20 +81,20 @@ class ImportExportTask(models.Model):
         (COMPLETE, COMPLETE),
     )
 
-    user = models.ForeignKey('auth.User')
-    data = JSONField()
-    messages = JSONField(default={})
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    data = JSONBField()
+    messages = JSONBField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
 
     def run(self):
-        '''
+        """
         Starts the import/export job by calling the subclass' `_run_task()`
         method. Catches all exceptions!  Suitable to be called by an
         asynchronous task runner (Celery)
-        '''
+        """
         with transaction.atomic():
             _refetched_self = self._meta.model.objects.get(pk=self.pk)
             self.status = _refetched_self.status
@@ -141,7 +117,7 @@ class ImportExportTask(models.Model):
             self.status = self.COMPLETE
         except Exception as err:
             msgs['error_type'] = type(err).__name__
-            msgs['error'] = err.message
+            msgs['error'] = str(err)
             self.status = self.ERROR
             logging.error(
                 'Failed to run %s: %s' % (self._meta.model_name, repr(err)),
@@ -158,17 +134,17 @@ class ImportExportTask(models.Model):
         except TypeError as e:
             self.status = self.ERROR
             logging.error('Failed to save %s: %s' % (self._meta.model_name,
-                                                   repr(e)),
+                                                     repr(e)),
                           exc_info=True)
             self.save(update_fields=['status'])
 
 
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')
-    '''
+    """
     someting that would be done after the file has uploaded
     ...although we probably would need to store the file in a blob
-    '''
+    """
 
     def _run_task(self, messages):
         self.status = self.PROCESSING
@@ -200,7 +176,7 @@ class ImportTask(ImportExportTask):
             # multiple XLS files in a directory structure within a ZIP archive
             response = requests.get(self.data['single_xls_url'])
             response.raise_for_status()
-            encoded_xls = base64.b64encode(response.content)
+            encoded_xls = to_str(base64.b64encode(response.content))
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
@@ -230,7 +206,7 @@ class ImportTask(ImportExportTask):
         fif.remove_empty_collections()
 
         destination_collection = destination \
-                if (destination_kls == 'collection') else False
+            if destination_kls == 'collection' else False
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -352,21 +328,21 @@ class ImportTask(ImportExportTask):
 
 
 def export_upload_to(self, filename):
-    '''
+    """
     Please note that due to Python 2 limitations, you cannot serialize unbound
     method functions (e.g. a method declared and used in the same class body).
     Please move the function into the main module body to use migrations. For
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
-    '''
+    """
     return posixpath.join(self.user.username, 'exports', filename)
 
 
 class ExportTask(ImportExportTask):
-    '''
+    """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
-    * `type`: required; `xls` or `csv`
+    * `type`: required; `xls`, `csv`, or `spss_labels`
     * `source`: required; URL of a deployed `Asset`
     * `lang`: optional; the name of the translation to be used for headers and
               response values. Specify `_xml` to use question and choice names
@@ -396,7 +372,7 @@ class ExportTask(ImportExportTask):
              | 123                             |
 
         The default is `['hxl']`
-    '''
+    """
 
     uid = KpiUidField(uid_prefix='e')
     last_submission_time = models.DateTimeField(null=True)
@@ -428,13 +404,13 @@ class ExportTask(ImportExportTask):
         ).lower() == 'true'
 
     def _build_export_filename(self, export, export_type):
-        '''
+        """
         Internal method to build the export filename based on the export title
         (which should be set when calling the `FormPack()` constructor),
         whether the latest or all versions are included, the label language,
         the current date and time, and the appropriate extension for the given
         `export_type`
-        '''
+        """
 
         if export_type == 'xls':
             extension = 'xlsx'
@@ -457,8 +433,8 @@ class ExportTask(ImportExportTask):
             version = 'latest version'
 
         filename_template = (
-            u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
-            u'.{ext}'.format(
+            '{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
+            '.{ext}'.format(
                 version=version,
                 date=utcnow(),
                 ext=extension
@@ -476,10 +452,10 @@ class ExportTask(ImportExportTask):
         return filename
 
     def _build_export_options(self, pack):
-        '''
+        """
         Internal method to build formpack `Export` constructor arguments based
         on the options set in `self.data`
-        '''
+        """
         hierarchy_in_labels = self.data.get(
             'hierarchy_in_labels', ''
         ).lower() == 'true'
@@ -505,11 +481,11 @@ class ExportTask(ImportExportTask):
         }
 
     def _record_last_submission_time(self, submission_stream):
-        '''
+        """
         Internal generator that yields each submission in the given
         `submission_stream` while recording the most recent submission
         timestamp in `self.last_submission_time`
-        '''
+        """
         # FIXME: Mongo has only per-second resolution. Brutal.
         for submission in submission_stream:
             try:
@@ -529,11 +505,11 @@ class ExportTask(ImportExportTask):
             yield submission
 
     def _run_task(self, messages):
-        '''
+        """
         Generate the export and store the result in the `self.result`
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
-        '''
+        """
         source_url = self.data.get('source', False)
         if not source_url:
             raise Exception('no source specified for the export')
@@ -543,11 +519,14 @@ class ExportTask(ImportExportTask):
             raise NotImplementedError(
                 'only an `Asset` may be exported at this time')
 
-        if not source.has_perm(self.user, 'view_submissions'):
+        source_perms = source.get_perms(self.user)
+
+        if (PERM_VIEW_SUBMISSIONS not in source_perms and
+                PERM_PARTIAL_SUBMISSIONS not in source_perms):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
             raise exceptions.PermissionDenied(
-                u'{user} cannot export {source}'.format(
+                '{user} cannot export {source}'.format(
                     user=self.user, source=source)
             )
 
@@ -562,12 +541,7 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        if isinstance(source.deployment, MockDeploymentBackend):
-            # Currently used only for unit testing (`MockDeploymentBackend`)
-            # TODO: Have the KC backend also implement `_get_submissions()`?
-            submission_stream = source.deployment.get_submissions()
-        else:
-            submission_stream = None
+        submission_stream = source.deployment.get_submissions(self.user.id)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)
@@ -589,7 +563,7 @@ class ExportTask(ImportExportTask):
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
-                    output_file.write((line + u"\r\n").encode('utf-8'))
+                    output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)
@@ -602,14 +576,14 @@ class ExportTask(ImportExportTask):
                     # is fixed
                     # TODO: Check if monkey-patch (line 57) can restore writing
                     # by chunk
-                    '''
+                    """
                     while True:
                         chunk = xlsx_output_file.read(5 * 1024 * 1024)
                         if chunk:
                             output_file.write(chunk)
                         else:
                             break
-                    '''
+                    """
                     output_file.write(xlsx_output_file.read())
             elif export_type == 'spss_labels':
                 export.to_spss_labels(output_file)
@@ -622,23 +596,15 @@ class ExportTask(ImportExportTask):
         # exports in excess of the per-user, per-form limit
         self.remove_excess(self.user, source_url)
 
-    @staticmethod
-    def _filter_by_source_kludge(queryset, source):
-        '''
-        A disposable way to filter a queryset by source URL.
-        TODO: make `data` a `JSONBField` and use proper filtering
-        '''
-        return queryset.filter(data__contains=source)
-
     @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
-        '''
+        """
         Set the status to ERROR and log a warning for any export that's been in
         an incomplete state for too long.
 
         `source` is the source URL as included in the `data` attribute.
-        '''
+        """
         # How long can an export possibly run, not including time spent waiting
         # in the Celery queue?
         max_export_run_time = getattr(
@@ -650,12 +616,12 @@ class ExportTask(ImportExportTask):
         oldest_allowed_timestamp = this_moment - max_allowed_export_age
         stuck_exports = cls.objects.filter(
             user=user,
-            date_created__lt=oldest_allowed_timestamp
+            date_created__lt=oldest_allowed_timestamp,
+            data__source=source,
         ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
-        stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
-                u'Stuck export {}: type {}, username {}, source {}, '
+                'Stuck export {}: type {}, username {}, source {}, '
                 'age {}'.format(
                     stuck_export.uid,
                     stuck_export.data.get('type'),
@@ -670,15 +636,15 @@ class ExportTask(ImportExportTask):
     @classmethod
     @transaction.atomic
     def remove_excess(cls, user, source):
-        '''
+        """
         Remove a user's oldest exports if they have more than
         settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM exports for a particular
         form. Returns the number of exports removed.
 
         `source` is the source URL as included in the `data` attribute.
-        '''
-        user_source_exports = cls._filter_by_source_kludge(
-            cls.objects.filter(user=user), source
+        """
+        user_source_exports = cls.objects.filter(
+            user=user, data__source=source
         ).order_by('-date_created')
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
@@ -696,7 +662,8 @@ def _b64_xls_to_dict(base64_encoded_upload):
 
 
 def _strip_header_keys(survey_dict):
-    for sheet_name, sheet in survey_dict.items():
+    survey_dict_copy = dict(survey_dict)
+    for sheet_name, sheet in survey_dict_copy.items():
         if re.search(r'_header$', sheet_name):
             del survey_dict[sheet_name]
     return survey_dict

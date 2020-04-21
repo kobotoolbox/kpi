@@ -1,8 +1,7 @@
 # coding: utf-8
-
 import os
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from markdownx.forms import ImageForm
 
 from .models import InAppMessageFile
@@ -15,8 +14,8 @@ class InAppMessageImageForm(ImageForm):
     """
     def save(self, commit=True):
         if not commit:
-            return super(InAppMessageImageForm, self).save(commit=False)
-        image_data = super(InAppMessageImageForm, self).save(commit=False)
+            return super().save(commit=False)
+        image_data = super().save(commit=False)
         image_object = InAppMessageFile()
         image_object.content.save(
             os.path.split(image_data.path)[1], image_data.image

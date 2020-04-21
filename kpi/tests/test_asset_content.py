@@ -1,18 +1,13 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# 😬
-from __future__ import unicode_literals
+# coding: utf-8
+import inspect
+import json
+import string
+from collections import OrderedDict
+from copy import deepcopy
+from functools import reduce
 
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
-from pprint import pprint
-from collections import OrderedDict
-
-# import pytest
-import json
-import string
-import inspect
-from copy import deepcopy
 
 
 def test_expand_twice():
@@ -35,67 +30,68 @@ def _asset_constructor(fn):
 
 def rank_asset_content():
     return {
-        u'survey': [
-            {u'type': 'begin_rank', 'label': 'Top 3 needs?',
+        'survey': [
+            {'type': 'begin_rank', 'label': 'Top 3 needs?',
                 'kobo--rank-items': 'needs',
                 'kobo--rank-constraint-message': 'Rank these things'},
-            {u'type': 'rank__level', 'label': '1st need'},
-            {u'type': 'rank__level', 'label': '2nd need'},
-            {u'type': 'rank__level', 'label': '3rd need'},
-            {u'type': 'end_rank'}
+            {'type': 'rank__level', 'label': '1st need'},
+            {'type': 'rank__level', 'label': '2nd need'},
+            {'type': 'rank__level', 'label': '3rd need'},
+            {'type': 'end_rank'}
         ],
-        u'choices': [
-            {u'list_name': 'needs', u'label': 'Food'},
-            {u'list_name': 'needs', u'label': 'Water'},
-            {u'list_name': 'needs', u'label': 'Shelter'},
+        'choices': [
+            {'list_name': 'needs', 'label': 'Food'},
+            {'list_name': 'needs', 'label': 'Water'},
+            {'list_name': 'needs', 'label': 'Shelter'},
         ],
-        u'settings': {},
+        'settings': {},
     }
 
 
 def rank_asset_named_content():
     return {
-        u'survey': [
-            {u'type': 'begin_rank', 'label': 'Top 3 needs?',
+        'survey': [
+            {'type': 'begin_rank', 'label': 'Top 3 needs?',
                 'name': 'rank_q',
                 'kobo--rank-items': 'needs',
                 'kobo--rank-constraint-message': 'Rank these things'},
-            {u'type': 'rank__level', 'label': '1st need', 'name': 'r1'},
-            {u'type': 'rank__level', 'label': '2nd need', 'name': 'r2'},
-            {u'type': 'rank__level', 'label': '3rd need', 'name': 'r3'},
-            {u'type': 'end_rank'}
+            {'type': 'rank__level', 'label': '1st need', 'name': 'r1'},
+            {'type': 'rank__level', 'label': '2nd need', 'name': 'r2'},
+            {'type': 'rank__level', 'label': '3rd need', 'name': 'r3'},
+            {'type': 'end_rank'}
         ],
-        u'choices': [
-            {u'list_name': 'needs', u'label': 'Food', 'name': 'fd'},
-            {u'list_name': 'needs', u'label': 'Water', 'name': 'h2o'},
-            {u'list_name': 'needs', u'label': 'Shelter', 'name': 'sh'},
+        'choices': [
+            {'list_name': 'needs', 'label': 'Food', 'name': 'fd'},
+            {'list_name': 'needs', 'label': 'Water', 'name': 'h2o'},
+            {'list_name': 'needs', 'label': 'Shelter', 'name': 'sh'},
         ],
-        u'settings': {},
+        'settings': {},
     }
 
 
 def score_asset_content():
     return {
-        u'survey': [
-            {u'kobo--score-choices': u'nb7ud55',
-             u'label': [u'Rate Los Angeles'],
-             u'required': True,
-             u'type': u'begin_score'},
-            {u'label': [u'Food'], u'type': u'score__row'},
-            # {u'label': [u'Music'], u'type': u'score__row'},
-            # {u'label': [u'Night life'], u'type': u'score__row'},
-            # {u'label': [u'Housing'], u'type': u'score__row'},
-            # {u'label': [u'Culture'], u'type': u'score__row'},
-            {u'type': u'end_score'}],
-        u'choices': [
-            # {u'label': [u'Great'],
-            #  u'list_name': u'nb7ud55'},
-            {u'label': [u'OK'],
-             u'list_name': u'nb7ud55'},
-            # {u'label': [u'Bad'],
-            #  u'list_name': u'nb7ud55'}
+        'survey': [
+            {'kobo--score-choices': 'nb7ud55',
+             'label': ['Rate Los Angeles'],
+             'required': True,
+             'type': 'begin_score'},
+            {'label': ['Food'], 'type': 'score__row'},
+            # {'label': ['Music'], 'type': 'score__row'},
+            # {'label': ['Night life'], 'type': 'score__row'},
+            # {'label': ['Housing'], 'type': 'score__row'},
+            # {'label': ['Culture'], 'type': 'score__row'},
+            {'type': 'end_score'}],
+        'choices': [
+            # {'label': ['Great'],
+            #  'list_name': 'nb7ud55'},
+            {'label': ['OK'],
+             'list_name': 'nb7ud55'},
+            # {'label': ['Bad'],
+            #  'list_name': 'nb7ud55'}
         ],
     }
+
 
 score_asset = _asset_constructor(score_asset_content)
 
@@ -116,6 +112,7 @@ def color_picker_asset_content():
             'id_string': 'colorpik',
         }
     }
+
 
 color_picker_asset = _asset_constructor(color_picker_asset_content)
 
@@ -151,7 +148,7 @@ def _is_lambda(v):
 
 def for_each_row(content, *args):
     sheet_names = ['survey', 'choices']
-    if isinstance(args[0], basestring):
+    if isinstance(args[0], str):
         _pass_sheet_name = False
         sheet_names = [args[0]]
         fn = args[1]
@@ -221,12 +218,10 @@ def test_autoname_shortens_long_names():
         return [r['$autoname'] for r in content.get('survey', [])]
 
     LONG_NAME = ('four_score_and_seven_years_ago_our_fathers_brought_forth_on_'
-                 'this_contintent')
+                 'this_continent')
 
     # names are not shortened by default, because they were explicitly set
-    assert _name_to_autoname([
-        {'name': LONG_NAME}
-    ]) == [LONG_NAME]
+    assert _name_to_autoname([{'name': LONG_NAME}]) == [LONG_NAME]
 
     # if there is a name conflict we should throw a meaningful error
     # however, since this behavior is already present, it might be
@@ -238,22 +233,22 @@ def test_autoname_shortens_long_names():
     #     ])
 
     long_label = ('Four score and seven years ago, our fathers brought forth'
-                  ' on this contintent')
+                  ' on this continent')
     assert _name_to_autoname([
         {'label': long_label},
         {'label': long_label},
     ]) == [
-        'Four_score_and_seven_h_on_this_contintent',
-        'Four_score_and_seven_h_on_this_contintent_001',
+        'Four_score_and_seven_th_on_this_continent',
+        'Four_score_and_seven_th_on_this_continent_001',
     ]
 
     assert _name_to_autoname([{'label': x} for x in [
         "What is your favorite all-time place to go swimming?",
         "What is your favorite all-time place to go running?",
         "What is your favorite all-time place to go to relax?",
-    ]]) ==  ['What_is_your_favorit_place_to_go_swimming',
-             'What_is_your_favorit_place_to_go_running',
-             'What_is_your_favorit_place_to_go_to_relax']
+    ]]) == ['What_is_your_favorit_place_to_go_swimming',
+            'What_is_your_favorit_place_to_go_running',
+            'What_is_your_favorit_place_to_go_to_relax']
 
 
 def test_remove_empty_expressions():
@@ -305,16 +300,16 @@ def _score_item(_r):
     return [
         r.pop('type'),
         r.pop('$autoname', False),
-        u' '.join(sorted(r.keys())),
+        ' '.join(sorted(r.keys())),
     ]
 
 
 def test_sluggify_arabic():
     # this "_" value will get replaced with something else by `autoname`
-    ll = sluggify_label(u'مرحبا بالعالم')
+    ll = sluggify_label('مرحبا بالعالم')
     assert ll == '_'
 
-    ll = sluggify_label(u'بالعالم')
+    ll = sluggify_label('بالعالم')
     assert ll == '_'
 
 
@@ -326,9 +321,9 @@ def test_rank_to_xlsform_structure():
              for _r in content['survey']]
     assert _rows[0:3] == [
     #   name             $_autoname      type            appearance
-        [u'Top_3_needs', u'Top_3_needs', u'begin_group', u'field-list'],
-        [u'Top_3_needs_label', u'Top_3_needs_label', u'note', None],
-        [None, u'_1st_need', u'select_one', u'minimal'],
+        ['Top_3_needs', 'Top_3_needs', 'begin_group', 'field-list'],
+        ['Top_3_needs_label', 'Top_3_needs_label', 'note', None],
+        [None, '_1st_need', 'select_one', 'minimal'],
     ]
     assert _rows[5] == [None, None, 'end_group', None]
 
@@ -342,9 +337,9 @@ def test_named_rank_to_xlsform_structure():
     assert len(_rows[0:3]) == 3
     assert _rows[0:3] == [
     #   name        $_autoname type            appearance
-        [u'rank_q', u'rank_q', u'begin_group', u'field-list'],
-        [u'rank_q_label', u'rank_q_label', u'note', None],
-        [u'r1', u'r1', u'select_one', u'minimal'],
+        ['rank_q', 'rank_q', 'begin_group', 'field-list'],
+        ['rank_q_label', 'rank_q_label', 'note', None],
+        ['r1', 'r1', 'select_one', 'minimal'],
     ]
     assert _rows[5] == [None, None, 'end_group', None]
 
@@ -361,33 +356,33 @@ def test_score_to_xlsform_structure():
     a1._xlsform_structure(content, ordered=True)
 
     # ensure 'schema' sheet is removed
-    assert content.keys() == [u'survey', u'choices', u'settings']
+    assert list(content.keys()) == ['survey', 'choices', 'settings']
 
     _rows = content['survey']
     for row in _rows:
-        assert row.keys() == [u'type', u'name', u'label', u'appearance',
-                              u'required']
+        assert list(row.keys()) == ['type', 'name', 'label', 'appearance',
+                                    'required']
 
     def _drws(n):
         return dict(_rows[n])
 
-    assert _drws(0) == {u'type': u'begin_group',
-                        u'appearance': u'field-list',
-                        u'label': None,
-                        u'required': None,
-                        u'name': u'Rate_Los_Angeles',
+    assert _drws(0) == {'type': 'begin_group',
+                        'appearance': 'field-list',
+                        'label': None,
+                        'required': None,
+                        'name': 'Rate_Los_Angeles',
                         }
-    assert _drws(1) == {u'type': u'select_one nb7ud55',
-                        u'appearance': u'label',
-                        u'required': None,
-                        u'name': u'Rate_Los_Angeles_header',
-                        u'label': u'Rate Los Angeles',
+    assert _drws(1) == {'type': 'select_one nb7ud55',
+                        'appearance': 'label',
+                        'required': None,
+                        'name': 'Rate_Los_Angeles_header',
+                        'label': 'Rate Los Angeles',
                         }
-    assert _drws(2) == {u'type': u'select_one nb7ud55',
-                        u'appearance': u'list-nolabel',
-                        u'name': u'Food',
-                        u'label': u'Food',
-                        u'required': u'true',
+    assert _drws(2) == {'type': 'select_one nb7ud55',
+                        'appearance': 'list-nolabel',
+                        'name': 'Food',
+                        'label': 'Food',
+                        'required': 'true',
                         }
 
 
@@ -400,32 +395,32 @@ def test_score_question_compiles():
     assert _rows[2]['$autoname'] == 'Food'
 
     assert ([_score_item(r) for r in _rows]) == [
-        [u'begin_group', u'Rate_Los_Angeles',
-            u'$kuid appearance name'],
-        [u'select_one', u'Rate_Los_Angeles_header',
-            u'$kuid appearance label name select_from_list_name'],
-        [u'select_one', u'Food',
-            u'$kuid appearance label required select_from_list_name'],
-        [u'end_group', False,
-            u'$kuid']
+        ['begin_group', 'Rate_Los_Angeles',
+            '$kuid appearance name'],
+        ['select_one', 'Rate_Los_Angeles_header',
+            '$kuid appearance label name select_from_list_name'],
+        ['select_one', 'Food',
+            '$kuid appearance label required select_from_list_name'],
+        ['end_group', False,
+            '$kuid']
     ]
 
 
 def test_named_score_question_compiles():
     content = _compile_asset_content({
-        u'survey': [
-            {u'kobo--score-choices': u'nb7ud55',
-             u'label': [u'Rate Los Angeles'],
-             u'required': True,
-             u'name': 'skore',
-             u'type': u'begin_score'},
+        'survey': [
+            {'kobo--score-choices': 'nb7ud55',
+             'label': ['Rate Los Angeles'],
+             'required': True,
+             'name': 'skore',
+             'type': 'begin_score'},
 
-            {u'label': [u'Food'], u'type': u'score__row'},
+            {'label': ['Food'], 'type': 'score__row'},
 
-            {u'type': u'end_score'}],
-        u'choices': [
-            {u'label': [u'OK'],
-             u'list_name': u'nb7ud55'},
+            {'type': 'end_score'}],
+        'choices': [
+            {'label': ['OK'],
+             'list_name': 'nb7ud55'},
         ],
     })
 
@@ -439,24 +434,24 @@ def test_named_score_question_compiles():
         return [
             r.pop('type'),
             r.pop('$autoname', False),
-            u' '.join(sorted(r.keys())),
+            ' '.join(sorted(r.keys())),
         ]
 
     assert ([_score_item(r) for r in _rows]) == [
-        [u'begin_group', u'skore',
-            u'$kuid appearance name'],
-        [u'select_one', u'skore_header',
-            u'$kuid appearance label name select_from_list_name'],
-        [u'select_one', u'Food',
-            u'$kuid appearance label required select_from_list_name'],
-        [u'end_group', False,
-            u'$kuid']
+        ['begin_group', 'skore',
+            '$kuid appearance name'],
+        ['select_one', 'skore_header',
+            '$kuid appearance label name select_from_list_name'],
+        ['select_one', 'Food',
+            '$kuid appearance label required select_from_list_name'],
+        ['end_group', False,
+            '$kuid']
     ]
 
 
 def kobomatrix_content():
     return {
-        u'survey': [
+        'survey': [
             {'type': 'begin_kobomatrix',
                 'name': 'm1',
                 'label': 'Itéms',
@@ -542,7 +537,7 @@ def test_kobomatrix_content():
     _reqds = [r.get('required', None) for r in _survey]
 
     # assert constraints are not dropped
-    assert set(_constraints) == set([None, u'. = "yes"'])
+    assert set(_constraints) == set([None, '. = "yes"'])
 
     # appearance fields match
     assert [r.get('appearance', '').split(' ')[0] for r in _survey] == (
@@ -710,13 +705,13 @@ def test_xpath_fields_in_kobomatrix_are_preserved():
 
 
 def test_kobomatrix_missing_or_empty_names():
-    '''
+    """
     Test a mixture of survey elements containing:
         * An `$autoname` but no `name`;
         * An `$autoname` and an empty `name`;
         * An `$autovalue` and an empty `name`;
         * An `$autovalue` and no `name`.
-    '''
+    """
     content = {
         'survey': [
             {'type': 'begin_kobomatrix', 'kobo--matrix_list': 'matrix_qt2dy33',

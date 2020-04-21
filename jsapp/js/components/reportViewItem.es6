@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
-import bem from '../bem';
+import {bem} from '../bem';
 import $ from 'jquery';
 
 import {t, assign} from '../utils';
@@ -217,8 +217,18 @@ class ReportViewItem extends React.Component {
         var item = {};
         var choiceLabel = val[2] || val[0];
         item.label = _this.truncateLabel(choiceLabel, 20);
-        item.data = val[1].percentages;
-        allPercentages = [...new Set([...allPercentages ,...val[1].percentages])];
+        let itemPerc = [];
+        // TODO: Make the backend behave consistently?
+        // https://github.com/kobotoolbox/kpi/issues/2562
+        if (Array.isArray(val[1].percentage)) {
+          itemPerc = val[1].percentage;
+        }
+        if (Array.isArray(val[1].percentages)) {
+          itemPerc = val[1].percentages;
+        }
+
+        item.data = itemPerc;
+        allPercentages = [...new Set([...allPercentages, ...itemPerc])];
         item.backgroundColor = colors[i];
         datasets.push(item);
       });

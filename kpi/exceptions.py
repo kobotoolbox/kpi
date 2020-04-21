@@ -1,5 +1,9 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from rest_framework import exceptions
+
+
+class BadPermissionsException(Exception):
+    pass
 
 
 class BadAssetTypeException(Exception):
@@ -14,7 +18,7 @@ class ImportAssetException(Exception):
     pass
 
 
-class KoboCatProfileException(Exception):
+class KobocatProfileException(Exception):
     pass
 
 
@@ -22,7 +26,7 @@ class KobocatDeploymentException(exceptions.APIException):
     def __init__(self, *args, **kwargs):
         if 'response' in kwargs:
             self.response = kwargs.pop('response')
-        super(KobocatDeploymentException, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def invalid_form_id(self):

@@ -1,8 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
-import stores from '../stores';
-import actions from '../actions';
+import {stores} from '../stores';
+import {actions} from '../actions';
 import {t} from '../utils';
 
 class TagInput extends React.Component {

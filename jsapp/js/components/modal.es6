@@ -22,22 +22,22 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import actions from '../actions';
-import bem from '../bem';
+import {actions} from '../actions';
+import {bem} from '../bem';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES
 } from '../constants';
-import ProjectSettings from '../components/modalForms/projectSettings';
-import SharingForm from '../components/modalForms/sharingForm';
-import Submission from '../components/modalForms/submission';
-import TableColumnFilter from '../components/modalForms/tableColumnFilter';
-import TranslationSettings from '../components/modalForms/translationSettings';
-import TranslationTable from '../components/modalForms/translationTable';
-import RESTServicesForm from '../components/RESTServices/RESTServicesForm';
+import ProjectSettings from './modalForms/projectSettings';
+import Submission from './modalForms/submission';
+import TableColumnFilter from './modalForms/tableColumnFilter';
+import TranslationSettings from './modalForms/translationSettings';
+import TranslationTable from './modalForms/translationTable';
+import SharingForm from './permissions/sharingForm';
+import RESTServicesForm from './RESTServices/RESTServicesForm';
 
 class Modal extends React.Component {
   constructor(props) {

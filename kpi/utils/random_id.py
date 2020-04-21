@@ -1,3 +1,4 @@
+# coding: utf-8
 import string
 import random
 alphabet = string.ascii_letters + string.digits

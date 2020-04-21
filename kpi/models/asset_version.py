@@ -1,23 +1,25 @@
-import json
-import hashlib
+# coding: utf-8
 import datetime
-from django.utils import timezone
+import hashlib
+import json
 
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
-
-from jsonbfield.fields import JSONField as JSONBField
-from reversion.models import Version
-from ..fields import KpiUidField
-from ..utils.kobo_to_xlsform import to_xlsform_structure
-
+from django.utils import timezone
 from formpack.utils.expand_content import expand_content
+from reversion.models import Version
+
+from kpi.fields import KpiUidField
+from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.strings import hashable_str
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 
 class AssetVersion(models.Model):
     uid = KpiUidField(uid_prefix='v')
-    asset = models.ForeignKey('Asset', related_name='asset_versions')
+    asset = models.ForeignKey('Asset', related_name='asset_versions',
+                              on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=255)
     date_modified = models.DateTimeField(default=timezone.now)
 
@@ -30,7 +32,7 @@ class AssetVersion(models.Model):
     version_content = JSONBField()
     uid_aliases = JSONBField(null=True)
     deployed_content = JSONBField(null=True)
-    _deployment_data = JSONBField(default=False)
+    _deployment_data = JSONBField(default=dict)
     deployed = models.BooleanField(default=False)
 
     class Meta:
@@ -59,9 +61,10 @@ class AssetVersion(models.Model):
         # used to determine changes in the content from version to version
         # not saved, only compared with other asset_versions
         _json_string = json.dumps(self.version_content, sort_keys=True)
-        return hashlib.sha1(_json_string).hexdigest()
+        return hashlib.sha1(hashable_str(_json_string)).hexdigest()
 
-    def __unicode__(self):
-        return '{}@{} T{}{}'.format(self.asset.uid, self.uid,
-                    self.date_modified.strftime('%Y-%m-%d %H:%M'),
-                    ' (deployed)' if self.deployed else '')
+    def __str__(self):
+        return '{}@{} T{}{}'.format(
+            self.asset.uid, self.uid,
+            self.date_modified.strftime('%Y-%m-%d %H:%M'),
+            ' (deployed)' if self.deployed else '')

@@ -16,11 +16,9 @@
 
 import Reflux from 'reflux';
 import {Cookies} from 'react-cookie';
-import alertify from 'alertifyjs';
-
 import dkobo_xlform from '../xlform/src/_xlform.init';
-import assetParserUtils from './assetParserUtils';
-import actions from './actions';
+import {parsed, parseTags} from './assetParserUtils';
+import {actions} from './actions';
 import {
   log,
   t,
@@ -45,7 +43,7 @@ function changes(orig_obj, new_obj) {
   return out;
 }
 
-var stores = {};
+export var stores = {};
 
 var tagsStore = Reflux.createStore({
   init () {
@@ -176,39 +174,19 @@ stores.snapshots = Reflux.createStore({
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
-    this.relatedUsers = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
   },
 
-  noteRelatedUsers: function (data) {
-    // this preserves usernames in the store so that the list does not
-    // reorder or drop users depending on subsequent server responses
-    if (!this.relatedUsers[data.uid]) {
-      this.relatedUsers[data.uid] = [];
-    }
-
-    var relatedUsers = this.relatedUsers[data.uid];
-    data.permissions.forEach(function (perm) {
-      var username = perm.user.match(/\/users\/(.*)\//)[1];
-      var isOwnerOrAnon = username === data.owner__username || username === 'AnonymousUser';
-      if (!isOwnerOrAnon && relatedUsers.indexOf(username) === -1) {
-        relatedUsers.push(username);
-      }
-    });
-  },
-
   onUpdateAssetCompleted: function (resp/*, req, jqhr*/){
-    this.data[resp.uid] = assetParserUtils.parsed(resp);
-    this.noteRelatedUsers(resp);
+    this.data[resp.uid] = parsed(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
   onLoadAssetCompleted: function (resp/*, req, jqxhr*/) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
-    this.data[resp.uid] = assetParserUtils.parsed(resp);
-    this.noteRelatedUsers(resp);
+    this.data[resp.uid] = parsed(resp);
     this.trigger(this.data, resp.uid);
   }
 });
@@ -294,9 +272,9 @@ var assetContentStore = Reflux.createStore({
 
 var surveyCompanionStore = Reflux.createStore({
   init () {
-    this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
+    this.listenTo(actions.survey.addExternalItemAtPosition, this.addExternalItemAtPosition);
   },
-  addItemAtPosition ({position, survey, uid, groupId}) {
+  addExternalItemAtPosition ({position, survey, uid, groupId}) {
     stores.allAssets.whenLoaded(uid, function(asset){
       var _s = dkobo_xlform.model.Survey.loadDict(asset.content, survey)
       survey.insertSurvey(_s, position, groupId);
@@ -319,6 +297,10 @@ var allAssetsStore = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
   },
   whenLoaded (uid, cb) {
+    if (typeof uid !== 'string' || typeof cb !== 'function') {
+      return;
+    }
+
     if (this.byUid[uid] && this.byUid[uid].content) {
       cb.call(this, this.byUid[uid]);
     } else {
@@ -357,7 +339,7 @@ var allAssetsStore = Reflux.createStore({
     }, 500);
   },
   registerAssetOrCollection (asset) {
-    const parsedObj = assetParserUtils.parseTags(asset);
+    const parsedObj = parseTags(asset);
     asset.tags = parsedObj.tags;
     this.byUid[asset.uid] = asset;
     if (asset.content) {
@@ -415,7 +397,7 @@ var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
     this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
-    this.listenTo(actions.misc.checkUsername.failed_, this.usernameDoesntExist);
+    this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
   },
   checkUsername (username) {
     if (username in this.checked) {
@@ -501,5 +483,3 @@ assign(stores, {
   surveyState: surveyStateStore,
   serverEnvironment: serverEnvironmentStore,
 });
-
-module.exports = stores;

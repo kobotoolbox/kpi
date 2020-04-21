@@ -1,137 +1,49 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
+constants = require '../../js/constants'
 
 module.exports = do ->
   _t = require("utils").t
 
-  iconDetails = [
-    # row 1
-      label: _t("Select One")
-      faClass: "dot-circle-o"
-      grouping: "r1"
-      id: "select_one"
-    ,
-      label: _t("Select Many")
-      faClass: "list-ul"
-      grouping: "r1"
-      id: "select_multiple"
-    ,
-      label: _t("Text")
-      faClass: "lato-text"
-      grouping: "r1"
-      id: "text"
-    ,
-      label: _t("Number")
-      faClass: "lato-integer"
-      grouping: "r1"
-      id: "integer"
-    ,
+  addIconToRow = (typeDef, group) =>
+    iconDetails.push({
+      label: typeDef.label,
+      faClass: typeDef.faIcon.replace("fa-", ""),
+      grouping: group,
+      id: typeDef.id
+    })
+    return
 
-    # row 2
-      label: _t("Decimal")
-      faClass: "lato-decimal"
-      grouping: "r2"
-      id: "decimal"
-    ,
-      label: _t("Date")
-      faClass: "calendar"
-      grouping: "r2"
-      id: "date"
-    ,
-      label: _t("Time")
-      faClass: "clock-o"
-      grouping: "r2"
-      id: "time"
-    ,
-      label: _t("Date & time")
-      faClass: "calendar clock-over"
-      grouping: "r2"
-      id: "datetime"
-    ,
-
-    # r3
-      label: _t("Point")
-      faClass: "map-marker"
-      grouping: "r3"
-      id: "geopoint"
-    ,
-      label: _t("Photo")
-      faClass: "picture-o"
-      grouping: "r3"
-      id: "image"
-    ,
-      label: _t("Audio")
-      faClass: "volume-up"
-      grouping: "r3"
-      id: "audio"
-    ,
-      label: _t("Video")
-      faClass: "video-camera"
-      grouping: "r3"
-      id: "video"
-    ,
-
-    # r4
-      label: _t("Line")
-      faClass: "share-alt"
-      grouping: "r4"
-      id: "geotrace"
-    ,
-      label: _t("Note")
-      faClass: "bars"
-      grouping: "r4"
-      id: "note"
-    ,
-      label: _t("Barcode / QR Code")
-      faClass: "qrcode"
-      grouping: "r4"
-      id: "barcode"
-    ,
-      label: _t("Acknowledge")
-      faClass: "check-square-o"
-      grouping: "r4"
-      id: "acknowledge"
-    ,
-
-    # r5
-      label: _t("Area")
-      faClass: "square"
-      grouping: "r5"
-      id: "geoshape"
-    ,
-      label: _t("Rating")
-      faClass: "server"
-      grouping: "r5"
-      id: "score"
-    ,
-      label: _t("Question Matrix")
-      faClass: "table"
-      grouping: "r5"
-      id: "kobomatrix"
-    ,
-      label: _t("Ranking")
-      faClass: "sort-amount-desc"
-      grouping: "r5"
-      id: "rank"
-    ,
-
-    # r6
-      label: _t("Calculate")
-      faClass: "lato-calculate"
-      grouping: "r6"
-      id: "calculate"
-    ,
-      label: _t("File")
-      faClass: "file"
-      grouping: "r6"
-      id: "file"
-    ,
-      label: _t("Range")
-      faClass: "lato-range"
-      grouping: "r6"
-      id: "range"
-    ,
-    ]
+  iconDetails = []
+  # row 1
+  addIconToRow(constants.QUESTION_TYPES.get("select_one"),  "r1")
+  addIconToRow(constants.QUESTION_TYPES.get("select_multiple"), "r1")
+  addIconToRow(constants.QUESTION_TYPES.get("text"), "r1")
+  addIconToRow(constants.QUESTION_TYPES.get("integer"), "r1")
+  # row 2
+  addIconToRow(constants.QUESTION_TYPES.get("decimal"), "r2")
+  addIconToRow(constants.QUESTION_TYPES.get("date"), "r2")
+  addIconToRow(constants.QUESTION_TYPES.get("time"), "r2")
+  addIconToRow(constants.QUESTION_TYPES.get("datetime"), "r2")
+  # row 3
+  addIconToRow(constants.QUESTION_TYPES.get("geopoint"), "r3")
+  addIconToRow(constants.QUESTION_TYPES.get("image"), "r3")
+  addIconToRow(constants.QUESTION_TYPES.get("audio"), "r3")
+  addIconToRow(constants.QUESTION_TYPES.get("video"), "r3")
+  # row 4
+  addIconToRow(constants.QUESTION_TYPES.get("geotrace"), "r4")
+  addIconToRow(constants.QUESTION_TYPES.get("note"), "r4")
+  addIconToRow(constants.QUESTION_TYPES.get("barcode"), "r4")
+  addIconToRow(constants.QUESTION_TYPES.get("acknowledge"), "r4")
+  # row 5
+  addIconToRow(constants.QUESTION_TYPES.get("geoshape"), "r5")
+  addIconToRow(constants.QUESTION_TYPES.get("score"), "r5")
+  addIconToRow(constants.QUESTION_TYPES.get("kobomatrix"), "r5")
+  addIconToRow(constants.QUESTION_TYPES.get("rank"), "r5")
+  # row 6
+  addIconToRow(constants.QUESTION_TYPES.get("calculate"), "r6")
+  addIconToRow(constants.QUESTION_TYPES.get("file"), "r6")
+  addIconToRow(constants.QUESTION_TYPES.get("range"), "r6")
 
   class QtypeIcon extends Backbone.Model
     defaults:

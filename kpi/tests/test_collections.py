@@ -1,3 +1,5 @@
+# coding: utf-8
+from django.db import IntegrityError
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -7,6 +9,7 @@ from ..models.asset import Asset
 from ..models.collection import Collection
 from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
+from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
 
 
 class CreateCollectionTests(TestCase):
@@ -25,7 +28,7 @@ class CreateCollectionTests(TestCase):
     def test_collections_cannot_be_anonymous(self):
         def _create_collection_with_no_owner():
             Collection.objects.create()
-        self.assertRaises(_create_collection_with_no_owner)
+        self.assertRaises(IntegrityError, _create_collection_with_no_owner)
 
     def test_collection_can_be_tagged(self):
         def _list_tag_names():
@@ -181,10 +184,10 @@ class ShareCollectionTests(TestCase):
         self.assertEqual(user.has_perm(perm, coll), False)
 
     def test_user_view_permission_on_standalone_collection(self):
-        self.grant_and_revoke_standalone(self.someuser, 'view_collection')
+        self.grant_and_revoke_standalone(self.someuser, PERM_VIEW_COLLECTION)
 
     def test_user_change_permission_on_standalone_collection(self):
-        self.grant_and_revoke_standalone(self.someuser, 'change_collection')
+        self.grant_and_revoke_standalone(self.someuser, PERM_CHANGE_COLLECTION)
 
     def grant_and_revoke_parent(self, user, perm):
         self.assertEqual(user.has_perm(perm, self.parent_coll), False)
@@ -199,10 +202,10 @@ class ShareCollectionTests(TestCase):
         self.assertEqual(user.has_perm(perm, self.child_coll), False)
 
     def test_user_view_permission_on_parent_collection(self):
-        self.grant_and_revoke_parent(self.someuser, 'view_collection')
+        self.grant_and_revoke_parent(self.someuser, PERM_VIEW_COLLECTION)
 
     def test_user_change_permission_on_parent_collection(self):
-        self.grant_and_revoke_parent(self.someuser, 'change_collection')
+        self.grant_and_revoke_parent(self.someuser, PERM_CHANGE_COLLECTION)
 
     def grant_and_revoke_child(self, user, perm):
         self.assertEqual(user.has_perm(perm, self.parent_coll), False)
@@ -217,10 +220,10 @@ class ShareCollectionTests(TestCase):
         self.assertEqual(user.has_perm(perm, self.child_coll), False)
 
     def test_user_view_permission_on_child_collection(self):
-        self.grant_and_revoke_child(self.someuser, 'view_collection')
+        self.grant_and_revoke_child(self.someuser, PERM_VIEW_COLLECTION)
 
     def test_user_change_permission_on_child_collection(self):
-        self.grant_and_revoke_child(self.someuser, 'change_collection')
+        self.grant_and_revoke_child(self.someuser, PERM_CHANGE_COLLECTION)
 
     def assign_parent_child_perms(self, user, parent_perm, child_perm,
                                   parent_deny=False, child_deny=False,
@@ -242,40 +245,40 @@ class ShareCollectionTests(TestCase):
         user = self.someuser
         self.assign_parent_child_perms(
             user,
-            'view_collection',
-            'change_collection',
+            PERM_VIEW_COLLECTION,
+            PERM_CHANGE_COLLECTION,
             child_first=child_first
         )
         # assign_parent_child_perms verifies the assignments, but make sure
         # that the change permission hasn't applied to the parent
-        self.assertEqual(user.has_perm('change_collection', self.parent_coll),
+        self.assertEqual(user.has_perm(PERM_CHANGE_COLLECTION, self.parent_coll),
                          False)
 
     def test_user_change_parent_view_child(self, child_first=False):
         user = self.someuser
         self.assign_parent_child_perms(
             user,
-            'change_collection',
-            'change_collection',
+            PERM_CHANGE_COLLECTION,
+            PERM_CHANGE_COLLECTION,
             child_deny=True,
             child_first=child_first
         )
         # assign_parent_child_perms verifies the assignments, but make sure
         # that the user can still view the child
-        self.assertEqual(user.has_perm('view_collection', self.child_coll),
+        self.assertEqual(user.has_perm(PERM_VIEW_COLLECTION, self.child_coll),
                          True)
 
     def test_user_change_parent_deny_child(self, child_first=False):
         user = self.someuser
         self.assign_parent_child_perms(
             user,
-            'change_collection',
-            'view_collection',
+            PERM_CHANGE_COLLECTION,
+            PERM_VIEW_COLLECTION,
             child_deny=True,
             child_first=child_first
         )
         # Verify that denying view_collection denies change_collection as well
-        self.assertEqual(user.has_perm('change_collection', self.child_coll),
+        self.assertEqual(user.has_perm(PERM_CHANGE_COLLECTION, self.child_coll),
                          False)
 
     def test_user_deny_parent_change_child(self, child_first=False):
@@ -283,20 +286,20 @@ class ShareCollectionTests(TestCase):
         # on the grandparent collection
         user = self.someuser
         self.assertEqual(len(self.grandparent_coll.get_perms(user)), 0)
-        self.grandparent_coll.assign_perm(user, 'change_collection')
+        self.grandparent_coll.assign_perm(user, PERM_CHANGE_COLLECTION)
         self.assertEqual(
-            self.grandparent_coll.has_perm(user, 'change_collection'),
+            self.grandparent_coll.has_perm(user, PERM_CHANGE_COLLECTION),
             True
         )
-        self.assertEqual(self.parent_coll.has_perm(user, 'change_collection'),
+        self.assertEqual(self.parent_coll.has_perm(user, PERM_CHANGE_COLLECTION),
                          True)
-        self.assertEqual(self.child_coll.has_perm(user, 'change_collection'),
+        self.assertEqual(self.child_coll.has_perm(user, PERM_CHANGE_COLLECTION),
                          True)
         # Don't use assign_parent_child_perms because it expects that the
         # parent won't have any existing permissions
-        parent_perm = 'view_collection'
+        parent_perm = PERM_VIEW_COLLECTION
         parent_deny = True
-        child_perm = 'change_collection'
+        child_perm = PERM_CHANGE_COLLECTION
         child_deny = False
         if child_first:
             self.child_coll.assign_perm(user, child_perm, deny=child_deny)
@@ -309,11 +312,11 @@ class ShareCollectionTests(TestCase):
         self.assertEqual(user.has_perm(child_perm, self.child_coll),
                          not child_deny)
         # Verify that denying view_collection denies change_collection as well
-        self.assertEqual(user.has_perm('change_collection', self.parent_coll),
+        self.assertEqual(user.has_perm(PERM_CHANGE_COLLECTION, self.parent_coll),
                          False)
         # Make sure that the deny permission hasn't applied to the grandparent
         self.assertEqual(
-            self.grandparent_coll.has_perm(user, 'change_collection'),
+            self.grandparent_coll.has_perm(user, PERM_CHANGE_COLLECTION),
             True
         )
 
@@ -348,8 +351,8 @@ class ShareCollectionTests(TestCase):
             0
         )
         # Grant some access and verify the result
-        self.grandparent_coll.assign_perm(self.someuser, 'view_collection')
-        self.standalone_coll.assign_perm(self.anotheruser, 'change_collection')
+        self.grandparent_coll.assign_perm(self.someuser, PERM_VIEW_COLLECTION)
+        self.standalone_coll.assign_perm(self.anotheruser, PERM_CHANGE_COLLECTION)
         someuser_objects = get_all_objects_for_user(self.someuser, Collection)
         anotheruser_objects = get_all_objects_for_user(self.anotheruser,
                                                        Collection)
@@ -358,8 +361,8 @@ class ShareCollectionTests(TestCase):
             self.parent_coll.pk,
             self.child_coll.pk
         ]
-        self.assertItemsEqual(
-            someuser_objects.values_list('pk', flat=True),
+        self.assertListEqual(
+            list(someuser_objects.values_list('pk', flat=True)),
             someuser_expected
         )
         self.assertEqual(
@@ -385,8 +388,8 @@ class ShareCollectionTests(TestCase):
             expected_perms
         )
         # Assign some new permissions
-        self.standalone_coll.assign_perm(self.someuser, 'view_collection')
-        self.standalone_coll.assign_perm(self.anotheruser, 'change_collection')
+        self.standalone_coll.assign_perm(self.someuser, PERM_VIEW_COLLECTION)
+        self.standalone_coll.assign_perm(self.anotheruser, PERM_CHANGE_COLLECTION)
         # change_collection also provides view_collection, so expect 3 more
         # permissions, not 2
         self.assertEqual(
@@ -429,10 +432,10 @@ class ShareCollectionTests(TestCase):
 
     def test_change_permission_provides_share_permission(self):
         self.assertFalse(self.someuser.has_perm(
-            'change_collection', self.standalone_coll))
+            PERM_CHANGE_COLLECTION, self.standalone_coll))
         # Grant the change permission and make sure it provides
         # share_collection
-        self.standalone_coll.assign_perm(self.someuser, 'change_collection')
+        self.standalone_coll.assign_perm(self.someuser, PERM_CHANGE_COLLECTION)
         self.assertTrue(self.someuser.has_perm(
             'share_collection', self.standalone_coll))
         # Restrict share_collection to the owner and make sure someuser loses
@@ -444,14 +447,14 @@ class ShareCollectionTests(TestCase):
     def test_anonymous_view_permission_on_standalone_collection(self):
         # Grant
         self.assertFalse(AnonymousUser().has_perm(
-            'view_collection', self.standalone_coll))
-        self.standalone_coll.assign_perm(AnonymousUser(), 'view_collection')
+            PERM_VIEW_COLLECTION, self.standalone_coll))
+        self.standalone_coll.assign_perm(AnonymousUser(), PERM_VIEW_COLLECTION)
         self.assertTrue(AnonymousUser().has_perm(
-            'view_collection', self.standalone_coll))
+            PERM_VIEW_COLLECTION, self.standalone_coll))
         # Revoke
-        self.standalone_coll.remove_perm(AnonymousUser(), 'view_collection')
+        self.standalone_coll.remove_perm(AnonymousUser(), PERM_VIEW_COLLECTION)
         self.assertFalse(AnonymousUser().has_perm(
-            'view_collection', self.standalone_coll))
+            PERM_VIEW_COLLECTION, self.standalone_coll))
 
     def test_anoymous_change_permission_on_standalone_collection(self):
         # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
@@ -460,12 +463,12 @@ class ShareCollectionTests(TestCase):
             # This is expected to fail since only real users can have any
             # permissions beyond view
             self.standalone_coll.assign_perm(
-                AnonymousUser(), 'change_collection')
+                AnonymousUser(), PERM_CHANGE_COLLECTION)
         except ValidationError:
             pass
         # Make sure the assignment failed
         self.assertFalse(AnonymousUser().has_perm(
-            'change_collection', self.standalone_coll))
+            PERM_CHANGE_COLLECTION, self.standalone_coll))
 
     def test_anonymous_as_baseline_for_authenticated(self):
         ''' If the public can view an object, then all users should be able
@@ -473,13 +476,13 @@ class ShareCollectionTests(TestCase):
         # No one should have any permission yet
         for user_obj in AnonymousUser(), self.someuser:
             self.assertFalse(user_obj.has_perm(
-                'view_collection', self.standalone_coll))
+                PERM_VIEW_COLLECTION, self.standalone_coll))
         # Grant to anonymous
-        self.standalone_coll.assign_perm(AnonymousUser(), 'view_collection')
+        self.standalone_coll.assign_perm(AnonymousUser(), PERM_VIEW_COLLECTION)
         # Check that both anonymous and someuser can view
         for user_obj in AnonymousUser(), self.someuser:
             self.assertTrue(user_obj.has_perm(
-                'view_collection', self.standalone_coll))
+                PERM_VIEW_COLLECTION, self.standalone_coll))
 
 
 class DiscoverablePublicCollectionTests(TestCase):
@@ -493,9 +496,9 @@ class DiscoverablePublicCollectionTests(TestCase):
     def test_collection_not_discoverable_by_default(self):
         self.assertFalse(self.coll.discoverable_when_public)
         self.assertFalse(AnonymousUser().has_perm(
-            'view_collection', self.coll))
+            PERM_VIEW_COLLECTION, self.coll))
         # Should remain non-discoverable even after allowing anon access
-        self.coll.assign_perm(AnonymousUser(), 'view_collection')
+        self.coll.assign_perm(AnonymousUser(), PERM_VIEW_COLLECTION)
         self.assertTrue(AnonymousUser().has_perm(
-            'view_collection', self.coll))
+            PERM_VIEW_COLLECTION, self.coll))
         self.assertFalse(self.coll.discoverable_when_public)

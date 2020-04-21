@@ -1,22 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-import json
-
-from django.conf import settings
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
-import requests
-from requests.utils import quote
-from rest_framework import serializers
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route, list_route
-
-from .backends import DEPLOYMENT_BACKENDS
-from .kobocat_backend import KobocatDeploymentBackend
-from .mock_backend import MockDeploymentBackend
-from kpi.exceptions import BadAssetTypeException
+# coding: utf-8
 from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.exceptions import BadAssetTypeException
+from .backends import DEPLOYMENT_BACKENDS
 
 
 class DeployableMixin:
@@ -37,6 +22,8 @@ class DeployableMixin:
         if self.can_be_deployed:
             if not self.has_deployment:
                 self.connect_deployment(backend=backend, active=active)
+                if self.has_deployment:  # Double-check, maybe overkill.
+                    self.deployment.bulk_assign_mapped_perms()
             else:
                 self.deployment.redeploy(active=active)
             self._mark_latest_version_as_deployed()

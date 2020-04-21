@@ -1,3 +1,4 @@
+# coding: utf-8
 from celery import shared_task
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
@@ -9,8 +10,11 @@ def generate_user_report(output_filename):
     import unicodecsv
     from django.core.files.storage import get_storage_class
     from django.contrib.auth.models import User
-    from kpi.deployment_backends.kc_access.shadow_models import UserProfile, ReadOnlyXForm
-    from hub.models import ExtraUserDetail, FormBuilderPreference
+    from kpi.deployment_backends.kc_access.shadow_models import (
+        KobocatUserProfile,
+        ReadOnlyKobocatXForm,
+    )
+    from hub.models import ExtraUserDetail
 
     def format_date(d):
         if hasattr(d, 'strftime'):
@@ -22,8 +26,8 @@ def generate_user_report(output_filename):
         row = []
 
         try:
-            profile = UserProfile.objects.get(user=u)
-        except UserProfile.DoesNotExist:
+            profile = KobocatUserProfile.objects.get(user=u)
+        except KobocatUserProfile.DoesNotExist:
             profile = None
         try:
             extra_details = u.extra_details.data
@@ -58,7 +62,7 @@ def generate_user_report(output_filename):
         else:
             row.append('')
 
-        row.append(ReadOnlyXForm.objects.filter(user=u).count())
+        row.append(ReadOnlyKobocatXForm.objects.filter(user=u).count())
 
         if profile:
             row.append(profile.num_of_submissions)
@@ -67,11 +71,6 @@ def generate_user_report(output_filename):
 
         row.append(format_date(u.date_joined))
         row.append(format_date(u.last_login))
-
-        try:
-            row.append(u.formbuilderpreference.preferred_builder)
-        except FormBuilderPreference.DoesNotExist:
-            row.append('')
 
         return row
 
@@ -88,7 +87,6 @@ def generate_user_report(output_filename):
         'num_of_submissions',
         'date_joined',
         'last_login',
-        'preferred_builder',
     ]
 
     default_storage = get_storage_class()()

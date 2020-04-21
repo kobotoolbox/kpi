@@ -7,10 +7,10 @@ import { Link } from 'react-router';
 import Select from 'react-select';
 
 import {dataInterface} from '../dataInterface';
-import actions from '../actions';
-import stores from '../stores';
-import bem from '../bem';
-import searches from '../searches';
+import {actions} from '../actions';
+import {stores} from '../stores';
+import {bem} from '../bem';
+import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
@@ -24,14 +24,10 @@ import {MODAL_TYPES} from '../constants';
 
 import {
   t,
-  assign,
-  anonUsername,
-  validFileTypes
+  assign
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
-
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
 class FormSidebar extends Reflux.Component {
   constructor(props){

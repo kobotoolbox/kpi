@@ -1,5 +1,5 @@
-$z-modal-backdrop: 1001;
-$z-enketo-iframe-icon: 1000;
+$z-modal-backdrop: 1101;
+$z-enketo-iframe-icon: 1100;
 $z-modal-x: 10;
 
 // -----------------------------------------------------------------------------
@@ -189,6 +189,13 @@ $z-modal-x: 10;
       }
     }
   }
+}
+
+.modal__hr {
+  margin: 20px -30px;
+  border: 0;
+  background-color: $divider-color;
+  height: 1px;
 }
 
 // -----------------------------------------------------------------------------

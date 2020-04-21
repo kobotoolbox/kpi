@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+# coding: utf-8
 from .base import *
 
-# For tests, don't use Kobocat DB
+# For tests, don't use KoBoCAT's DB
 DATABASES = {
-    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': dj_database_url.config(default='sqlite:///%s/db.sqlite3' % BASE_DIR),
 }
 
-if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
-    PRIVATE_STORAGE_S3_REVERSE_PROXY = False
+DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
+
+TESTING = True
+
+# Decrease prod value to speed-up tests
+SUBMISSION_LIST_LIMIT = 100
