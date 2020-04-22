@@ -41,6 +41,7 @@ from .utils.gravatar_url import gravatar_url
 from .deployment_backends.kc_access.utils import get_kc_profile_data
 from .deployment_backends.kc_access.utils import set_kc_require_auth
 
+from kpi.utils.log import logging
 
 class Paginated(LimitOffsetPagination):
 
@@ -346,6 +347,23 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             request=self.context.get('request', None)
         )
 
+    def check_subdomain_permission(self, asset):
+        # Check if asset owner id in subdomain userIds
+        user = self.context['request'].user
+        kc_user = None
+        try:
+            kc_user = KeycloakModel.objects.get(user=user)
+        except KeycloakModel.DoesNotExist:
+            raise serializers.ValidationError('User not found')
+
+        if kc_user is None:
+            raise serializers.ValidationError('User not found')
+        else:
+            subdomain_userIds = KeycloakModel.objects.filter(subdomain=kc_user.subdomain).values_list('user_id', flat=True)
+            if not asset.owner.id in subdomain_userIds:
+                # The client is not allowed to snapshot this asset
+                raise exceptions.PermissionDenied
+
     def create(self, validated_data):
         ''' Create a snapshot of an asset, either by copying an existing
         asset's content or by accepting the source directly in the request.
@@ -362,16 +380,12 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
 
         # TODO: Move to a validator?
         if asset and source:
-            if not self.context['request'].user.has_perm('view_asset', asset):
-                # The client is not allowed to snapshot this asset
-                raise exceptions.PermissionDenied
+            self.check_subdomain_permission(asset)
+
             validated_data['source'] = source
             snapshot = AssetSnapshot.objects.create(**validated_data)
         elif asset:
-            # The client provided an existing asset; read source from it
-            if not self.context['request'].user.has_perm('view_asset', asset):
-                # The client is not allowed to snapshot this asset
-                raise exceptions.PermissionDenied
+            self.check_subdomain_permission(asset)
             # asset.snapshot pulls , by default, a snapshot for the latest
             # version.
             snapshot = asset.snapshot
