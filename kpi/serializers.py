@@ -41,6 +41,7 @@ from .utils.gravatar_url import gravatar_url
 from .deployment_backends.kc_access.utils import get_kc_profile_data
 from .deployment_backends.kc_access.utils import set_kc_require_auth
 
+from kpi.utils.log import logging
 
 class Paginated(LimitOffsetPagination):
 
@@ -359,19 +360,44 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         # without specifying source; in that case, the snapshot owner is the
         # asset's owner, even if a different user makes the request
         validated_data['owner'] = self.context['request'].user
+        user = self.context['request'].user
 
         # TODO: Move to a validator?
         if asset and source:
-            if not self.context['request'].user.has_perm('view_asset', asset):
-                # The client is not allowed to snapshot this asset
-                raise exceptions.PermissionDenied
+            # Check if asset owner id in subdomain userIds
+            kc_user = None
+            try:
+                kc_user = KeycloakModel.objects.get(user=user)
+            except KeycloakModel.DoesNotExist:
+                raise serializers.ValidationError('User not found')
+
+            if kc_user is None:
+                raise serializers.ValidationError('User not found')
+            else:
+                subdomain = kc_user.subdomain
+                subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
+                if not asset.owner.id in subdomain_userIds:
+                    # The client is not allowed to snapshot this asset
+                    raise exceptions.PermissionDenied
+
             validated_data['source'] = source
             snapshot = AssetSnapshot.objects.create(**validated_data)
         elif asset:
-            # The client provided an existing asset; read source from it
-            if not self.context['request'].user.has_perm('view_asset', asset):
-                # The client is not allowed to snapshot this asset
-                raise exceptions.PermissionDenied
+            # Check if asset owner id in subdomain userIds
+            kc_user = None
+            try:
+                kc_user = KeycloakModel.objects.get(user=user)
+            except KeycloakModel.DoesNotExist:
+                raise serializers.ValidationError('User not found')
+
+            if kc_user is None:
+                raise serializers.ValidationError('User not found')
+            else:
+                subdomain = kc_user.subdomain
+                subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
+                if not asset.owner.id in subdomain_userIds:
+                    # The client is not allowed to snapshot this asset
+                    raise exceptions.PermissionDenied
             # asset.snapshot pulls , by default, a snapshot for the latest
             # version.
             snapshot = asset.snapshot
