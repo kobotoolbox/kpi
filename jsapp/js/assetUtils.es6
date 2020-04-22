@@ -1,5 +1,11 @@
 import {actions} from './actions';
-import {QUESTION_TYPES} from 'js/constants';
+import {
+  GROUP_BEGINS,
+  GROUP_ENDS,
+  QUESTION_TYPES,
+  SCORE_ROW_TYPE,
+  RANK_LEVEL_TYPE
+} from 'js/constants';
 
 /**
  * NOTE: this works under a true assumption that all questions have unique names
@@ -13,23 +19,22 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-
-    if (row.type === 'begin_group' || row.type === 'begin_repeat') {
+    if (GROUP_BEGINS.has(row.type)) {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    }
-    if (row.type === 'end_group' || row.type === 'end_repeat') {
+    } else if (GROUP_ENDS.has(row.type)) {
       openedGroups.pop();
-    }
-
-    if (QUESTION_TYPES.has(row.type)) {
+    } else if (
+      QUESTION_TYPES.has(row.type) ||
+      row.type === SCORE_ROW_TYPE ||
+      row.type === RANK_LEVEL_TYPE
+    ) {
       let groupsPath = '';
       if (openedGroups.length >= 1) {
         groupsPath = openedGroups.join('/') + '/';
       }
-
       output[rowName] = `${groupsPath}${rowName}`;
     }
   });

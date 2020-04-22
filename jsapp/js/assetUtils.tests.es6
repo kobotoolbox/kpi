@@ -1,4 +1,7 @@
-import {surveyWithGroups} from 'js/assetUtils.mocks';
+import {
+  surveyWithGroups,
+  surveyWithAllPossibleGroups
+} from 'js/assetUtils.mocks';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 
 describe('getSurveyFlatPaths', () => {
@@ -20,6 +23,45 @@ describe('getSurveyFlatPaths', () => {
       Favourite_vegan_hummus: 'group_favs/group_favvegan/Favourite_vegan_hummus',
       Favourite_spiece: 'group_favs/Favourite_spiece',
       Comments: 'Comments'
+    };
+    expect(test).to.deep.equal(target);
+  });
+
+  it('should work with all possible group types', () => {
+    const test = getSurveyFlatPaths(surveyWithAllPossibleGroups);
+    const target = {
+      'First_name': 'group_people/First_name',
+      'Original_location': 'group_location/Original_location',
+      'Current_location': 'group_location/Current_location',
+      'Killing_humans': 'Are_you_vegan/Killing_humans',
+      'Killing_nonhumans': 'Are_you_vegan/Killing_nonhumans',
+      '_1st_choice': 'Best_things_in_life/_1st_choice',
+      '_2nd_choice': 'Best_things_in_life/_2nd_choice',
+      '_3rd_choice': 'Best_things_in_life/_3rd_choice',
+      'human': 'group_crossbreeding/human',
+      'nonhuman': 'group_crossbreeding/nonhuman',
+    };
+    expect(test).to.deep.equal(target);
+  });
+
+  it('should work with all possible group types with groups included', () => {
+    const test = getSurveyFlatPaths(surveyWithAllPossibleGroups, true);
+    const target = {
+      'group_people': 'group_people',
+      'First_name': 'group_people/First_name',
+      'group_location': 'group_location',
+      'Original_location': 'group_location/Original_location',
+      'Current_location': 'group_location/Current_location',
+      'Are_you_vegan': 'Are_you_vegan',
+      'Killing_humans': 'Are_you_vegan/Killing_humans',
+      'Killing_nonhumans': 'Are_you_vegan/Killing_nonhumans',
+      'Best_things_in_life': 'Best_things_in_life',
+      '_1st_choice': 'Best_things_in_life/_1st_choice',
+      '_2nd_choice': 'Best_things_in_life/_2nd_choice',
+      '_3rd_choice': 'Best_things_in_life/_3rd_choice',
+      'group_crossbreeding': 'group_crossbreeding',
+      'human': 'group_crossbreeding/human',
+      'nonhuman': 'group_crossbreeding/nonhuman',
     };
     expect(test).to.deep.equal(target);
   });
