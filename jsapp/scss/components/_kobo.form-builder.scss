@@ -283,8 +283,7 @@ $t-form-builder-aside-open: 200ms;
   }
 
   &.formBuilder-header__button--create,
-  &.formBuilder-header__button--save,
-  &.formBuilder-header__button--back {
+  &.formBuilder-header__button--save {
     margin-left: 10px;
     text-transform: uppercase;
     min-width: 85px;
@@ -293,6 +292,18 @@ $t-form-builder-aside-open: 200ms;
 
     > i {
       display: none;
+    }
+  }
+  
+  &.formBuilder-header__button--back {
+    text-transform: uppercase;
+    color: $cool-blue;
+    background-color: $white;
+    border: 2px solid $cool-blue;
+    
+    &:hover {
+      border-color: darken($cool-blue, 5%);
+      color: darken($cool-blue, 5%);
     }
   }
 
