@@ -432,6 +432,144 @@ export const nestedRepeatSurveyDisplayData = [
   }
 ];
 
+export const matrixSurvey = [{
+  'name': 'start',
+  'type': 'start',
+  '$kuid': 'HVwODOAEK',
+  '$autoname': 'start'
+}, {
+  'name': 'end',
+  'type': 'end',
+  '$kuid': '32gE3g5ST',
+  '$autoname': 'end'
+}, {
+  'name': 'today',
+  'type': 'today',
+  '$kuid': '3h9Nl2bpx',
+  '$autoname': 'today'
+}, {
+  'name': 'username',
+  'type': 'username',
+  '$kuid': '3RscqJRor',
+  '$autoname': 'username'
+}, {
+  'name': 'simserial',
+  'type': 'simserial',
+  '$kuid': 'ozNn7JwMd',
+  '$autoname': 'simserial'
+}, {
+  'name': 'subscriberid',
+  'type': 'subscriberid',
+  '$kuid': 'tStWXbDyQ',
+  '$autoname': 'subscriberid'
+}, {
+  'name': 'deviceid',
+  'type': 'deviceid',
+  '$kuid': 'll7GCh9oi',
+  '$autoname': 'deviceid'
+}, {
+  'name': 'phonenumber',
+  'type': 'phonenumber',
+  '$kuid': 'b02UNLdMV',
+  '$autoname': 'phonenumber'
+}, {
+  'name': 'countries',
+  'type': 'begin_kobomatrix',
+  '$kuid': 'en5ri38',
+  'label': ['Countries'],
+  'required': false,
+  '$autoname': 'countries',
+  '_isRepeat': 'false',
+  'appearance': 'field-list',
+  'kobo--matrix_list': 'matrix_fs3ka58'
+}, {
+  'hint': [''],
+  'name': 'ecology_level',
+  'type': 'integer',
+  '$kuid': 'mi7ka64',
+  'label': ['Ecology level'],
+  'required': false,
+  '$autoname': 'ecology_level',
+  'appearance': 'w1'
+}, {
+  'hint': [''],
+  'name': 'secularity_level',
+  'type': 'integer',
+  '$kuid': 'iy4fw00',
+  'label': ['Secularity level'],
+  'required': false,
+  '$autoname': 'secularity_level',
+  'appearance': 'w1'
+}, {
+  'type': 'end_kobomatrix',
+  '$kuid': '/en5ri38'
+}];
+
+export const matrixSurveyChoices = [{
+  'name': 'poland',
+  '$kuid': 'wa9kl23',
+  'label': ['Poland'],
+  'list_name': 'matrix_fs3ka58',
+  '$autovalue': 'poland'
+}];
+
+export const matrixSurveySubmission = {
+  '_id': 22,
+  'username': 'username not found',
+  'simserial': 'simserial not found',
+  '_validation_status': {},
+  '_uuid': 'a0039b58-1b2d-4445-912e-01e4ad56dbb4',
+  '_bamboo_dataset_id': '',
+  '_tags': [],
+  '_submitted_by': null,
+  'countries_poland/countries_poland_ecology_level': '3',
+  '_xform_id_string': 'aikoAHFLnmPw6WwQJCb8x3',
+  'meta/instanceID': 'uuid:a0039b58-1b2d-4445-912e-01e4ad56dbb4',
+  'formhub/uuid': 'f081027d597142b9a17a7a3bb3a5aff1',
+  'end': '2020-04-20T18:00:05.384+02:00',
+  '_submission_time': '2020-04-20T16:00:10',
+  '_notes': [],
+  '_attachments': [],
+  'start': '2020-04-20T17:59:54.295+02:00',
+  'countries_poland/countries_poland_secularity_level': '-5',
+  '_geolocation': [null, null],
+  'deviceid': 'ee.kobo.local:4l56OZ7GLLixoZ9J',
+  'phonenumber': 'phonenumber not found',
+  '_status': 'submitted_via_web',
+  '__version__': 'vPNH6GBsRjMKLfXrisReYA',
+  'subscriberid': 'subscriberid not found',
+  'today': '2020-04-20'
+};
+
+export const matrixSurveyDisplayData = [
+  {
+    type: 'group_matrix',
+    label: 'Countries',
+    name: 'countries',
+    children: [
+      {
+        type: 'group_matrix_row',
+        label: 'Poland',
+        name: 'poland',
+        children: [
+          {
+            type: 'integer',
+            label: 'Ecology level',
+            name: 'ecology_level',
+            data: '3'
+          },
+          {
+            type: 'integer',
+            label: 'Secularity level',
+            name: 'secularity_level',
+            data: '-5'
+          }
+        ]
+      }
+    ]
+  }
+];
+
 export const complexSurvey = [{
   'name': 'start',
   'type': 'start',

@@ -371,6 +371,11 @@ export const SCORE_ROW_TYPE = 'score__row';
 // a custom question type for rank
 export const RANK_LEVEL_TYPE = 'rank__level';
 
+export const MATRIX_PAIR_PROPS = {
+  inSurvey: 'kobo--matrix_list',
+  inChoices: 'list_name'
+};
+
 export const NAME_MAX_LENGTH = 255;
 
 const constants = {

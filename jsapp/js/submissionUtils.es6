@@ -6,6 +6,10 @@ import {
 } from 'js/assetUtils';
 import {
   FORM_VERSION_NAME,
+  SCORE_ROW_TYPE,
+  RANK_LEVEL_TYPE,
+  MATRIX_PAIR_PROPS,
+  GROUP_BEGINS,
   QUESTION_TYPES
 } from 'js/constants';
 
@@ -13,7 +17,9 @@ export const DISPLAY_GROUP_TYPES = new Map();
 new Set([
   'group_root',
   'group_repeat',
-  'group_regular'
+  'group_regular',
+  'group_matrix',
+  'group_matrix_row'
 ]).forEach((codename) => {DISPLAY_GROUP_TYPES.set(codename, codename);});
 
 /**
@@ -58,10 +64,11 @@ class DisplayResponse {
 /**
  * @param {object} submissionData
  * @param {Array<object>} survey
+ * @param {Array<object>} choices
  * @param {number} translationIndex - for choosing label to display
  * @returns {Array<DisplayResponse|DisplayGroup>}
  */
-export function getSubmissionDisplayData(survey, translationIndex, submissionData) {
+export function getSubmissionDisplayData(survey, choices, translationIndex, submissionData) {
   const flatPaths = getSurveyFlatPaths(survey, true);
 
   // let's start with a root of survey being a group with special flag
@@ -69,10 +76,10 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
 
   /**
    * recursively generates a nested architecture of survey with data
-   * @param {DisplayGroup} parentGroup
-   * @param {object} parentData
-   * @param {number} [surveyStartIndex] where to start the iteration, useful for groups
-   * @param {number} [repeatIndex] inside a repeat group this is the current repeat submission index
+   * @param {DisplayGroup} parentGroup - rows and groups will be added to it as children
+   * @param {object} parentData - submissionData scoped by parent (useful for repeat groups)
+   * @param {number} [surveyStartIndex] - where to start the iteration, useful for groups POSSIBLY NOT NEEDED BECAUSE OF isRowCurrentLevel
+   * @param {number} [repeatIndex] - inside a repeat group this is the current repeat submission index
    */
   function traverseSurvey(parentGroup, parentData, surveyStartIndex = 0, repeatIndex = null) {
     for (let rowIndex = surveyStartIndex; rowIndex < survey.length; rowIndex++) {
@@ -116,38 +123,77 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
 
       let rowData = getRowData(rowName, survey, parentData);
 
-      if (row.type === 'begin_repeat') {
-        // function to get number of repeat instances here?
+      if (row.type === GROUP_BEGINS.get('begin_repeat')) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
-            let repeatObj = new DisplayGroup(
+            let itemObj = new DisplayGroup(
               DISPLAY_GROUP_TYPES.get('group_repeat'),
               rowLabel,
               rowName
             );
-            parentGroup.addChild(repeatObj);
-            // for a group start whole process again,
-            // begin at this place in survey with group as parent element
-            traverseSurvey(repeatObj, item, rowIndex + 1, itemIndex);
+            parentGroup.addChild(itemObj);
+            /*
+             * Start whole process again starting at this place in survey,
+             * with current group as parent element and new repeat index
+             * being used.
+             */
+            traverseSurvey(itemObj, item, rowIndex + 1, itemIndex);
           });
         }
-      } else if (row.type === 'begin_group') {
+      } else if (row.type === GROUP_BEGINS.get('begin_kobomatrix')) {
+        let matrixGroupObj = new DisplayGroup(
+          DISPLAY_GROUP_TYPES.get('group_matrix'),
+          rowLabel,
+          rowName,
+        );
+        parentGroup.addChild(matrixGroupObj);
+
+        if (Array.isArray(choices)) {
+          /*
+           * For matrixes we generate a group of subgroups - each subgroup
+           * corresponds to a matrix item from choices.
+           */
+          choices.forEach((item) => {
+            if (item[MATRIX_PAIR_PROPS.inChoices] === row[MATRIX_PAIR_PROPS.inSurvey]) {
+              // Matrix is only one level deep, so we can use a "simpler"
+              // non-recursive special function
+              populateMatrixData(
+                survey,
+                choices,
+                submissionData,
+                translationIndex,
+                matrixGroupObj,
+                getRowName(item)
+              );
+            }
+          });
+        }
+      } else if (
+        row.type === GROUP_BEGINS.get('begin_group') ||
+        row.type === GROUP_BEGINS.get('begin_score') ||
+        row.type === GROUP_BEGINS.get('begin_rank')
+      ) {
         let rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.get('group_regular'),
           rowLabel,
           rowName,
         );
         parentGroup.addChild(rowObj);
-        // for a group start whole process again,
-        // begin at this place in survey with group as parent element
+        /*
+         * Start whole process again starting at this place in survey,
+         * with current group as parent element and pass current repeat index.
+         */
         traverseSurvey(rowObj, rowData, rowIndex + 1, repeatIndex);
-      } else if (QUESTION_TYPES.has(row.type)) {
+      } else if (
+        QUESTION_TYPES.has(row.type) ||
+        row.type === SCORE_ROW_TYPE ||
+        row.type === RANK_LEVEL_TYPE
+      ) {
         // for repeat groups, we are interested in current repeat item's data
         if (Array.isArray(rowData) && repeatIndex !== null) {
           rowData = rowData[repeatIndex];
         }
 
-        // for a response, add it as a child of current group
         let rowObj = new DisplayResponse(
           row.type,
           rowLabel,
@@ -160,14 +206,73 @@ export function getSubmissionDisplayData(survey, translationIndex, submissionDat
   }
   traverseSurvey(output, submissionData);
 
-  console.log(output.children);
+  console.log(JSON.stringify(output.children, null, 2));
 
   return output;
 }
 
 /**
+ * It creates display data structure for a given choice-row of a Matrix.
+ * As the data is bit different from all other question types, we need to use
+ * a special function, not a great traverseSurvey one.
+ * @param {Array<object>} survey
+ * @param {Array<object>} choices
+ * @param {object} submissionData
+ * @param {number} translationIndex
+ * @param {DisplayGroup} matrixGroup - a group you want to add a row of questions to
+ * @param {string} matrixRowName - the row name
+ */
+function populateMatrixData(survey, choices, submissionData, translationIndex, matrixGroup, matrixRowName) {
+  // create row display group and add it to matrix group
+  const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
+  let matrixRowGroupObj = new DisplayGroup(
+    DISPLAY_GROUP_TYPES.get('group_matrix_row'),
+    matrixRowLabel,
+    matrixRowName,
+  );
+  matrixGroup.addChild(matrixRowGroupObj);
+
+  const flatPaths = getSurveyFlatPaths(survey, true);
+  const matrixGroupPath = flatPaths[matrixGroup.name];
+
+  /*
+   * Iterate over survey rows to find only ones from inside the matrix.
+   * These rows are the questions from the target matrix choice-row, so we find
+   * all neccessary pieces of data nd build display data structure for it.
+   */
+  Object.keys(flatPaths).forEach((questionName) => {
+    if (flatPaths[questionName].startsWith(`${matrixGroupPath}/`)) {
+      const questionSurveyObj = survey.find((row) => {
+        return getRowName(row) === questionName;
+      });
+
+      /*
+       * NOTE: Submission data for a Matrix question is kept in an unusal
+       * property, so instead of:
+       * [PATH/]MATRIX/MATRIX_QUESTION
+       * it is stored in:
+       * [PATH/]MATRIX_CHOICE/MATRIX_CHOICE_QUESTION
+       */
+      let questionData = null;
+      const dataProp = `${matrixGroupPath}_${matrixRowName}/${matrixGroup.name}_${matrixRowName}_${questionName}`;
+      if (submissionData[dataProp]) {
+        questionData = submissionData[dataProp];
+      }
+
+      let questionObj = new DisplayResponse(
+        questionSurveyObj.type,
+        getTranslatedRowLabel(questionName, survey, translationIndex),
+        questionName,
+        questionData
+      );
+      matrixRowGroupObj.addChild(questionObj);
+    }
+  });
+}
+
+/**
  * Returns data for given row, works for groups too.
- * @param {string} name
+ * @param {string} name - row name
  * @param {Array<object>} survey
  * @param {object} data - submission data
  * @returns {string|null|array<*>|object} row data, null is for identifying

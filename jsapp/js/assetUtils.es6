@@ -51,16 +51,16 @@ export function getRowName(row) {
 }
 
 /**
- * @param {string} rowName
- * @param {Array<object>} survey
+ * @param {string} rowName - could be either a survey row name or choices row name
+ * @param {Array<object>} data - should be either a survey or choices of asset
  * @param {number} translationIndex
  * @returns {string|null} null for not found
  */
-export function getTranslatedRowLabel(rowName, survey, translationIndex) {
+export function getTranslatedRowLabel(rowName, data, translationIndex) {
   let foundRowIndex;
   let foundRow;
 
-  survey.forEach((row, rowIndex) => {
+  data.forEach((row, rowIndex) => {
     if (getRowName(row) === rowName) {
       foundRow = row;
       foundRowIndex = rowIndex;
@@ -71,7 +71,7 @@ export function getTranslatedRowLabel(rowName, survey, translationIndex) {
     return getRowLabelAtIndex(foundRow, translationIndex);
   } else {
     // that mysterious row always comes as a next row
-    let possibleRow = survey[foundRowIndex + 1];
+    let possibleRow = data[foundRowIndex + 1];
     if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
       return getRowLabelAtIndex(possibleRow, translationIndex);
     }
