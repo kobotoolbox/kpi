@@ -78,11 +78,10 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
    * recursively generates a nested architecture of survey with data
    * @param {DisplayGroup} parentGroup - rows and groups will be added to it as children
    * @param {object} parentData - submissionData scoped by parent (useful for repeat groups)
-   * @param {number} [surveyStartIndex] - where to start the iteration, useful for groups POSSIBLY NOT NEEDED BECAUSE OF isRowCurrentLevel
    * @param {number} [repeatIndex] - inside a repeat group this is the current repeat submission index
    */
-  function traverseSurvey(parentGroup, parentData, surveyStartIndex = 0, repeatIndex = null) {
-    for (let rowIndex = surveyStartIndex; rowIndex < survey.length; rowIndex++) {
+  function traverseSurvey(parentGroup, parentData, repeatIndex = null) {
+    for (let rowIndex = 0; rowIndex < survey.length; rowIndex++) {
       const row = survey[rowIndex];
 
       const rowName = getRowName(row);
@@ -137,7 +136,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
              * with current group as parent element and new repeat index
              * being used.
              */
-            traverseSurvey(itemObj, item, rowIndex + 1, itemIndex);
+            traverseSurvey(itemObj, item, itemIndex);
           });
         }
       } else if (row.type === GROUP_BEGINS.get('begin_kobomatrix')) {
@@ -183,7 +182,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
          * Start whole process again starting at this place in survey,
          * with current group as parent element and pass current repeat index.
          */
-        traverseSurvey(rowObj, rowData, rowIndex + 1, repeatIndex);
+        traverseSurvey(rowObj, rowData, repeatIndex);
       } else if (
         QUESTION_TYPES.has(row.type) ||
         row.type === SCORE_ROW_TYPE ||
