@@ -619,8 +619,8 @@ module.exports = do ->
           @listenForInputChange el: $input
 
   viewRowDetail.DetailViewMixins.oc_item_group =
-    onOcCustomEvent: (ocCustomEventArgs)->
-      if ocCustomEventArgs.sender is 'bind::oc:external'
+    onOcCustomEvent: (ocCustomEventArgs) ->
+      if (ocCustomEventArgs.sender is 'bind::oc:external') and (@model._parent.get('type').get('value') isnt 'calculate')
         if ocCustomEventArgs.value isnt ''
           @removeRequired()
         else
