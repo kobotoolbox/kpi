@@ -14,9 +14,10 @@ import {
   matrixSurveyChoices,
   matrixSurveySubmission,
   matrixSurveyDisplayData,
-  complexSurvey,
-  complexSurveySubmission,
-  complexSurveyDisplayData
+  groupsSurvey,
+  groupsSurveyChoices,
+  groupsSurveySubmission,
+  groupsSurveyDisplayData
 } from 'js/submissionUtils.mocks';
 import {
   getSubmissionDisplayData
@@ -53,9 +54,9 @@ describe('getSubmissionDisplayData', () => {
       expect(test).to.deep.equal(target);
   });
 
-  it('should return a valid data for a very complex survey', () => {
-      const test = getSubmissionDisplayData(complexSurvey, null, 0, complexSurveySubmission).children;
-      const target = complexSurveyDisplayData;
+  it.only('should return a valid data for a survey with all kinds of groups', () => {
+      const test = getSubmissionDisplayData(groupsSurvey, groupsSurveyChoices, 0, groupsSurveySubmission).children;
+      const target = groupsSurveyDisplayData;
       expect(test).to.deep.equal(target);
   });
 });

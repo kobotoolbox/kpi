@@ -345,23 +345,23 @@ new Set([
   'audit'
 ]).forEach((codename) => {META_QUESTION_TYPES.set(codename, codename);});
 
-export const GROUP_BEGINS = new Map();
+export const GROUP_TYPES_BEGIN = new Map();
 new Set([
   'begin_group',
   'begin_score',
   'begin_rank',
   'begin_kobomatrix',
   'begin_repeat',
-]).forEach((codename) => {GROUP_BEGINS.set(codename, codename);});
+]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
 
-export const GROUP_ENDS = new Map();
+export const GROUP_TYPES_END = new Map();
 new Set([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]).forEach((codename) => {GROUP_ENDS.set(codename, codename);});
+]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
 
 export const FORM_VERSION_NAME = '__version__';
 
@@ -395,8 +395,8 @@ const constants = {
   ASSET_KINDS,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
-  GROUP_BEGINS,
-  GROUP_ENDS,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END,
   FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,

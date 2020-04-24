@@ -1,7 +1,7 @@
 import {actions} from './actions';
 import {
-  GROUP_BEGINS,
-  GROUP_ENDS,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END,
   QUESTION_TYPES,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE
@@ -19,12 +19,12 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_BEGINS.has(row.type)) {
+    if (GROUP_TYPES_BEGIN.has(row.type)) {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_ENDS.has(row.type)) {
+    } else if (GROUP_TYPES_END.has(row.type)) {
       openedGroups.pop();
     } else if (
       QUESTION_TYPES.has(row.type) ||
@@ -89,7 +89,7 @@ export function getTranslatedRowLabel(rowName, data, translationIndex) {
  * @returns {boolean}
  */
 export function isRowSpecialLabelHolder(mainRow, holderRow) {
-  if (!holderRow || !Object.prototype.hasOwnProperty.call(holderRow, 'label')) {
+  if (!mainRow || !holderRow || !Object.prototype.hasOwnProperty.call(holderRow, 'label')) {
     return false;
   } else {
     let mainRowName = getRowName(mainRow);
