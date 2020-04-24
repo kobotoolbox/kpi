@@ -25,7 +25,7 @@ import {
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
-      const test = getSubmissionDisplayData(simpleSurvey, null, 0, simpleSurveySubmission).children;
+      const test = getSubmissionDisplayData(simpleSurvey, null, 1, simpleSurveySubmission).children;
       const target = simpleSurveyDisplayData;
       expect(test).to.deep.equal(target);
   });
@@ -54,7 +54,7 @@ describe('getSubmissionDisplayData', () => {
       expect(test).to.deep.equal(target);
   });
 
-  it.only('should return a valid data for a survey with all kinds of groups', () => {
+  it('should return a valid data for a survey with all kinds of groups', () => {
       const test = getSubmissionDisplayData(groupsSurvey, groupsSurveyChoices, 0, groupsSurveySubmission).children;
       const target = groupsSurveyDisplayData;
       expect(test).to.deep.equal(target);

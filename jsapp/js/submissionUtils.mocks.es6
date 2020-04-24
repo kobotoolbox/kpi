@@ -85,24 +85,24 @@ export const simpleSurveySubmissionEmpty = {
 export const simpleSurveyDisplayData = [
   {
     type: 'text',
-    label: 'First name',
+    label: 'Pierwsze imię',
     name: 'First_name',
     data: 'Leszek'
   },
   {
     type: 'group_regular',
-    label: 'Favourites',
+    label: 'Ulubione',
     name: 'group_favourites',
     children: [
       {
         type: 'select_one',
-        label: 'Favourite color',
+        label: 'Ulubiony kolor',
         name: 'Favourite_color',
         data: 'pink'
       },
       {
         type: 'integer',
-        label: 'Favourite number',
+        label: 'Ulubiona liczba',
         name: 'Favourite_number',
         data: '24'
       }
