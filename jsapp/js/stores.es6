@@ -396,8 +396,10 @@ var selectedAssetStore = Reflux.createStore({
 var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
-    this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
-    this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
+    if (navigator.onLine) {
+        this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
+        this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
+    }
   },
   checkUsername (username) {
     if (username in this.checked) {
