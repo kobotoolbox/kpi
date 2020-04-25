@@ -10,7 +10,10 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import {MODAL_TYPES} from '../constants';
+import {
+    MODAL_TYPES,
+    DVCOUNT_LIMIT_MINIMUM
+} from '../constants';
 import {
   formatTime,
   t,
@@ -21,7 +24,8 @@ export class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      selectedCollectMethod: 'offline_url'
+      selectedCollectMethod: 'offline_url',
+      DVCOUNT_LIMIT: 2
     };
     autoBind(this);
   }
@@ -129,6 +133,16 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
+  increaseDVCOUNT_LIMIT() {
+    if (this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <= this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM) {
+      this.setState({ DVCOUNT_LIMIT : this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
+    }
+  }
+  decreaseDVCOUNT_LIMIT() {
+    if (this.state.DVCOUNT_LIMIT - DVCOUNT_LIMIT_MINIMUM > 0) {
+      this.setState({ DVCOUNT_LIMIT : this.state.DVCOUNT_LIMIT -  DVCOUNT_LIMIT_MINIMUM });
+    }
+  }
   renderHistory () {
     var dvcount = this.state.deployed_versions.count;
     return (
@@ -147,7 +161,7 @@ export class FormLanding extends React.Component {
             </bem.FormView__group>
             {this.state.deployed_versions.results.map((item, n) => {
               return (
-                <bem.FormView__group m='items' key={n} >
+                <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''} >
                   <bem.FormView__label m='version'>
                     {`v${dvcount - n}`}
                     {item.uid === this.state.deployed_version_id && this.state.deployment__active &&
@@ -177,6 +191,16 @@ export class FormLanding extends React.Component {
             <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
             </button>
+            {this.state.historyExpanded &&
+              <button className='mdl-button mdl-button--colored' onClick={this.increaseDVCOUNT_LIMIT}>
+                {this.state.DVCOUNT_LIMIT < dvcount && t('Load more')}
+              </button>
+            }
+            {this.state.historyExpanded &&
+               <button className='mdl-button mdl-button--colored' onClick={this.decreaseDVCOUNT_LIMIT}>
+                  {this.state.DVCOUNT_LIMIT - DVCOUNT_LIMIT_MINIMUM >= DVCOUNT_LIMIT_MINIMUM && t('Load less')}
+              </button>
+            }
           </bem.FormView__cell>
         }
       </bem.FormView__row>
