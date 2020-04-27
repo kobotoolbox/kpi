@@ -1,0 +1,43 @@
+.submission-data-table {
+  text-align: initial;
+  border: 1px solid red;
+}
+
+.submission-data-table__row {
+  &.submission-data-table__row--columns {
+    display: flex;
+    flex-direction: row;
+  }
+
+  &.submission-data-table__row--column-names {
+    font-weight: bold;
+  }
+
+  &.submission-data-table__row--group-label {
+    color: green;
+  }
+
+  &.submission-data-table__row--group {
+    border: 1px solid blue;
+  }
+
+  &.submission-data-table__row--group-children {
+    padding: 20px;
+  }
+}
+
+.submission-data-table__column {
+  border: 1px solid black;
+
+  &.submission-data-table__column--type {
+    width: 25%;
+  }
+
+  &.submission-data-table__column--label {
+    width: 25%;
+  }
+
+  &.submission-data-table__column--data {
+    flex: 1;
+  }
+}

@@ -66,7 +66,7 @@ class DisplayResponse {
  * @param {Array<object>} survey
  * @param {Array<object>} choices
  * @param {number} translationIndex - for choosing label to display
- * @returns {Array<DisplayResponse|DisplayGroup>}
+ * @returns {DisplayGroup} - a root group with everything inside
  */
 export function getSubmissionDisplayData(survey, choices, translationIndex, submissionData) {
   const flatPaths = getSurveyFlatPaths(survey, true);
@@ -367,6 +367,7 @@ function getRegularGroupAnswers(data, targetKey) {
 }
 
 export default {
+  DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
   getRepeatGroupAnswers
 };
