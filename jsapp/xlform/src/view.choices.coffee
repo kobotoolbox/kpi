@@ -86,7 +86,7 @@ module.exports = do ->
     render: ->
       @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
-      @p = $("<input class=\"js-cancel-select-row\">")
+      @p = $("<scan class=\"js-cancel-select-row\">")
       @c = $("<code><label>#{_t("XML value:")}</label> <input type=\"text\" placeholder=\"AUTOMATIC\"  class=\"js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
