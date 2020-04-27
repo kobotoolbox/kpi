@@ -1,9 +1,28 @@
+$submission-data-table-space: 12px;
+
 .submission-data-table {
   text-align: initial;
-  border: 1px solid red;
+
+  .checkbox + .submission-data-table__row {
+    margin-top: $submission-data-table-space;
+  }
 }
 
 .submission-data-table__row {
+  background-color: $cool-whitegray;
+
+  &.submission-data-table__row--response,
+  &.submission-data-table__row--group,
+  &.submission-data-table__row--group-label {
+    border-bottom: 1px solid $divider-color;
+  }
+
+  &.submission-data-table__row--response,
+  &.submission-data-table__row--group {
+    border-left: 1px solid $divider-color;
+    border-right: 1px solid $divider-color;
+  }
+
   &.submission-data-table__row--columns {
     display: flex;
     flex-direction: row;
@@ -11,33 +30,50 @@
 
   &.submission-data-table__row--column-names {
     font-weight: bold;
+    background-color: $cool-darkgray;
+    color: $white;
   }
 
   &.submission-data-table__row--group-label {
-    color: green;
+    padding: $submission-data-table-space 0;
   }
 
   &.submission-data-table__row--group {
-    border: 1px solid blue;
+    padding: 0 $submission-data-table-space $submission-data-table-space;
   }
 
-  &.submission-data-table__row--group-children {
-    padding: 20px;
+  &.submission-data-table__row--group_root {
+    padding: 0;
+    border: none;
+  }
+
+  &.submission-data-table__row--response {
+    background-color: $white;
   }
 }
 
 .submission-data-table__column {
-  border: 1px solid black;
+  padding: $submission-data-table-space;
 
   &.submission-data-table__column--type {
-    width: 25%;
+    width: 15%;
   }
 
   &.submission-data-table__column--label {
-    width: 25%;
+    width: 35%;
   }
 
   &.submission-data-table__column--data {
     flex: 1;
+    font-family: monospace;
   }
+}
+
+.submission-data-table__xml-name {
+  display: inline-block;
+  margin-left: 0.5em;
+  font-size: 0.8em;
+  line-height: 1;
+  color: $cool-gray;
+  font-family: monospace;
 }

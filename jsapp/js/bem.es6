@@ -95,6 +95,7 @@ bem.LibList__qtype = bem.LibList.__('qtype');
 bem.SubmissionDataTable = bem('submission-data-table');
 bem.SubmissionDataTable__row = bem.SubmissionDataTable.__('row');
 bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
+bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
 

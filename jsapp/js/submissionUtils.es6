@@ -205,8 +205,6 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
   }
   traverseSurvey(output, submissionData);
 
-  console.log(JSON.stringify(output.children, null, 2));
-
   return output;
 }
 

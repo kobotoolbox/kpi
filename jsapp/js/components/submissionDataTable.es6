@@ -1,8 +1,10 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {t} from 'js/utils';
+import Checkbox from 'js/components/checkbox';
 import {bem} from 'js/bem';
 import {DISPLAY_GROUP_TYPES} from 'js/submissionUtils';
+import {QUESTION_TYPES} from 'js/constants';
 
 /**
  * @prop {DisplayGroup} displayData
@@ -11,15 +13,27 @@ class SubmissionDataTable extends React.Component {
   constructor(props){
     super(props);
     autoBind(this);
+    this.state = {
+      showXMLNames: false
+    };
+  }
+
+  onShowXMLNamesChange(newValue) {
+    this.setState({showXMLNames: newValue});
   }
 
   renderGroup(item, itemIndex) {
     const uniqueKey = `${item.name}__${itemIndex}`;
     return (
-      <bem.SubmissionDataTable__row m='group' key={uniqueKey}>
+      <bem.SubmissionDataTable__row m={['group', item.type]} key={uniqueKey}>
         {item.name !== null &&
           <bem.SubmissionDataTable__row m='group-label'>
-            {item.label} ({item.name})
+            {item.label}
+            {this.state.showXMLNames &&
+              <bem.SubmissionDataTable__XMLName>
+                {item.name}
+              </bem.SubmissionDataTable__XMLName>
+            }
           </bem.SubmissionDataTable__row>
         }
 
@@ -54,14 +68,28 @@ class SubmissionDataTable extends React.Component {
 
   renderResponse(item, itemIndex) {
     const uniqueKey = `${item.name}__${itemIndex}`;
+    const typeDef = QUESTION_TYPES.get(item.type);
+
     return (
-      <bem.SubmissionDataTable__row m='columns' key={uniqueKey}>
+      <bem.SubmissionDataTable__row m={['columns', 'response']} key={uniqueKey}>
         <bem.SubmissionDataTable__column m='type'>
-          {item.type}
+          {/* fix icon for date time */}
+          <i className={['fa', typeDef.faIcon].join(' ')}/>
+
+          {this.state.showXMLNames &&
+            <bem.SubmissionDataTable__XMLName>
+              {item.type}
+            </bem.SubmissionDataTable__XMLName>
+          }
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='label'>
           {item.label}
+          {this.state.showXMLNames &&
+            <bem.SubmissionDataTable__XMLName>
+              {item.name}
+            </bem.SubmissionDataTable__XMLName>
+          }
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='data'>
@@ -74,6 +102,12 @@ class SubmissionDataTable extends React.Component {
   render() {
     return (
       <bem.SubmissionDataTable>
+        <Checkbox
+          checked={this.state.showXMLNames}
+          onChange={this.onShowXMLNamesChange}
+          label={t('Display XML names')}
+        />
+
         {this.renderGroup(this.props.displayData)}
       </bem.SubmissionDataTable>
     );
