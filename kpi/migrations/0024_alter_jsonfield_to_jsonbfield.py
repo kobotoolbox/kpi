@@ -47,7 +47,10 @@ def forwards(apps, schema_editor):
     Database is ready.
     Proceeding with migration 0024 (text -> jsonb)
 
-    This might take a while depending on your database size
+    This might take a while depending on your database size.
+    If it's too slow, consider stopping this and instead running
+        ./manage.py migrate_json_text_to_jsonb
+    to avoid downtime.
     ''')
 
 
