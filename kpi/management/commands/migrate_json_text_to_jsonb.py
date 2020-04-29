@@ -24,6 +24,26 @@ MIGRATION_THIS_REPLACES = '0024_alter_jsonfield_to_jsonbfield'
 TEMPORARY_COLUMN_NAME = '{text_column}_0024_temporary_jsonb'
 
 
+def ensure_no_nulls(connection, table, text_column):
+    """
+    Make sure there are no NULL values inside the existing text column. Even
+    columns for `JSONField(null=True)` fields should pass this test, because
+    JSONField translates the Python `None` value to the string `null`.
+    We cannot proceed if there are Postgres NULLs in the column: our update
+    strategy copies the text column into the new jsonb column until all NULLs
+    are eliminated, and if the text column has NULLs, it will loop infinitely.
+    See `run_trigger_via_trivial_update()`
+    """
+    sql = f'SELECT id FROM {table} WHERE {text_column} IS NULL LIMIT 1;'
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+        if cursor.fetchone():
+            raise RuntimeError(
+                f'{table}.{text_column} contains NULLs. Cannot proceed. '
+                'Consider changing these Postgres NULLs to the string "null".'
+            )
+
+
 def create_jsonb_column_with_trigger(connection, table, text_column):
     """
     Create a new jsonb column that mirrors an existing text column using a
@@ -141,6 +161,12 @@ class Command(BaseCommand):
             sys.stdout.flush()
 
         columns_for_table = defaultdict(list)
+
+        write('Ensuring existing columns have no NULLs', ending='')
+        for table, text_column in TABLES_AND_TEXT_JSON_COLUMNS:
+            ensure_no_nulls(connection, table, text_column)
+            write('.', ending='')
+        write('')
 
         write('Adding columns and triggers', ending='')
         for table, text_column in TABLES_AND_TEXT_JSON_COLUMNS:
