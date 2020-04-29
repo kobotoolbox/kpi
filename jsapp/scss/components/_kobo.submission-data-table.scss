@@ -42,13 +42,43 @@ $submission-data-table-space: 12px;
     padding: 0 $submission-data-table-space $submission-data-table-space;
   }
 
-  &.submission-data-table__row--group_root {
+  &.submission-data-table__row--type-group_root {
     padding: 0;
     border: none;
   }
 
-  &.submission-data-table__row--response {
+  &.submission-data-table__row--type-select_multiple .submission-data-table__column--data {
+    ul {
+      list-style: disc;
+      padding-left: 1.25em;
+    }
+  }
+
+  &.submission-data-table__row--response,
+  &.submission-data-table__row--point {
     background-color: $white;
+  }
+
+  &.submission-data-table__row--point {
+    & + & {
+      border-top: 1px dotted $divider-color;
+    }
+
+    &:first-child .submission-data-table__column {
+      padding-top: 0;
+    }
+
+    &:last-child .submission-data-table__column {
+      padding-bottom: 0;
+    }
+
+    .submission-data-table__column:first-child {
+      padding-left: 0;
+    }
+
+    .submission-data-table__column:last-child {
+      padding-right: 0;
+    }
   }
 }
 
@@ -75,5 +105,11 @@ $submission-data-table-space: 12px;
   font-size: 0.8em;
   line-height: 1;
   color: $cool-gray;
+  font-family: monospace;
+}
+
+.submission-data-table__value {
+  color: $black;
+  display: inline-block;
   font-family: monospace;
 }

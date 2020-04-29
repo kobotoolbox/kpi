@@ -17,7 +17,11 @@ import {
   groupsSurvey,
   groupsSurveyChoices,
   groupsSurveySubmission,
-  groupsSurveyDisplayData
+  groupsSurveyDisplayData,
+  everythingSurvey,
+  everythingSurveyChoices,
+  everythingSurveySubmission,
+  everythingSurveyDisplayData
 } from 'js/submissionUtils.mocks';
 import {
   getSubmissionDisplayData
@@ -57,6 +61,12 @@ describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with all kinds of groups', () => {
       const test = getSubmissionDisplayData(groupsSurvey, groupsSurveyChoices, 0, groupsSurveySubmission).children;
       const target = groupsSurveyDisplayData;
+      expect(test).to.deep.equal(target);
+  });
+
+  it('should return a valid data for everyt possible question type', () => {
+      const test = getSubmissionDisplayData(everythingSurvey, everythingSurveyChoices, 0, everythingSurveySubmission).children;
+      const target = everythingSurveyDisplayData;
       expect(test).to.deep.equal(target);
   });
 });

@@ -1,3 +1,4 @@
+import React from 'react';
 import {actions} from './actions';
 import {
   GROUP_TYPES_BEGIN,
@@ -125,6 +126,30 @@ function getRowLabelAtIndex(row, index) {
     return row.label[index];
   } else {
     return row.label;
+  }
+}
+
+/**
+ * @param {string} type - one of QUESTION_TYPES
+ * @returns {Node}
+ */
+export function renderTypeIcon(type, additionalClassNames = []) {
+  let typeDef;
+  if (type === SCORE_ROW_TYPE) {
+    typeDef = QUESTION_TYPES.get('score');
+  } else if (type === RANK_LEVEL_TYPE) {
+    typeDef = QUESTION_TYPES.get('rank');
+  } else {
+    typeDef = QUESTION_TYPES.get(type);
+  }
+
+  if (typeDef) {
+    const classNames = additionalClassNames;
+    classNames.push('fa');
+    classNames.push(typeDef.faIcon);
+    return (<i className={classNames.join(' ')} title={type}/>);
+  } else {
+    return <small><code>{type}</code></small>;
   }
 }
 

@@ -603,7 +603,11 @@ class Submission extends React.Component {
           </tbody>
         </table>
 
-        <SubmissionDataTable displayData={displayData}/>
+        <SubmissionDataTable
+          displayData={displayData}
+          choices={this.props.asset.content.choices}
+          translationIndex={this.state.translationIndex}
+        />
       </bem.FormModal>
     );
   }

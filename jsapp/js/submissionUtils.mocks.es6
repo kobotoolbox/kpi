@@ -898,3 +898,540 @@ export const groupsSurveyDisplayData = [
     ]
   }
 ];
+
+export const everythingSurvey = [{
+  'name': 'start',
+  'type': 'start',
+  '$kuid': 'hI2IjAPLy',
+  '$autoname': 'start'
+}, {
+  'name': 'end',
+  'type': 'end',
+  '$kuid': 'xVomX5yES',
+  '$autoname': 'end'
+}, {
+  'type': 'select_one',
+  '$kuid': 'ys1bd14',
+  'label': ['Favourite country'],
+  'required': false,
+  '$autoname': 'Favourite_country',
+  'select_from_list_name': 'za04s38'
+}, {
+  'type': 'select_multiple',
+  '$kuid': 'ca8bv64',
+  'label': ['Favourite food'],
+  'required': false,
+  '$autoname': 'Favourite_food',
+  'select_from_list_name': 'vx6yh19'
+}, {
+  'type': 'text',
+  '$kuid': 'gr1hn65',
+  'label': ['Your name'],
+  'required': false,
+  '$autoname': 'Your_name'
+}, {
+  'type': 'integer',
+  '$kuid': 'vw1ya03',
+  'label': ['Lucky number'],
+  'required': false,
+  '$autoname': 'Lucky_number'
+}, {
+  'type': 'decimal',
+  '$kuid': 'ia1ux31',
+  'label': ['Unlucky number'],
+  'required': false,
+  '$autoname': 'Unlucky_number'
+}, {
+  'type': 'date',
+  '$kuid': 'vl8ck72',
+  'label': ['Birth date'],
+  'required': false,
+  '$autoname': 'Birth_date'
+}, {
+  'type': 'time',
+  '$kuid': 'qa9pv52',
+  'label': ['Birth time'],
+  'required': false,
+  '$autoname': 'Birth_time'
+}, {
+  'type': 'datetime',
+  '$kuid': 'cq0yk16',
+  'label': ['Some random date and time'],
+  'required': false,
+  '$autoname': 'Some_random_date_and_time'
+}, {
+  'type': 'geopoint',
+  '$kuid': 'ib3wx74',
+  'label': ['Secret spot'],
+  'required': false,
+  '$autoname': 'Secret_spot'
+}, {
+  'type': 'image',
+  '$kuid': 'vu9cb06',
+  'label': ['Selfportrait'],
+  'required': false,
+  '$autoname': 'Selfportrait',
+  'parameters': 'max-pixels=1024'
+}, {
+  'type': 'audio',
+  '$kuid': 'aa28j83',
+  'label': ['Voice password'],
+  'required': false,
+  '$autoname': 'Voice_password'
+}, {
+  'type': 'video',
+  '$kuid': 'tj2xw94',
+  'label': ['A video?'],
+  'required': false,
+  '$autoname': 'A_video'
+}, {
+  'type': 'geotrace',
+  '$kuid': 'bh5yb78',
+  'label': ['Shortest path'],
+  'required': false,
+  '$autoname': 'Shortest_path'
+}, {
+  'type': 'note',
+  '$kuid': 'pg3yl90',
+  'label': ['This is a secret'],
+  'required': false,
+  '$autoname': 'This_is_a_secret'
+}, {
+  'type': 'barcode',
+  '$kuid': 'qu5zg17',
+  'label': ['Favourite chocolate barcode'],
+  'required': false,
+  '$autoname': 'Favourite_chocolate_barcode'
+}, {
+  'type': 'acknowledge',
+  '$kuid': 'ym87f54',
+  'label': ['Are you sane?'],
+  'required': false,
+  '$autoname': 'Are_you_sane'
+}, {
+  'type': 'geoshape',
+  '$kuid': 'ua1av57',
+  'label': ['Secret area'],
+  'required': false,
+  '$autoname': 'Secret_area'
+}, {
+  'type': 'begin_score',
+  '$kuid': 'yp8ep33',
+  'label': ['How are you?'],
+  'required': false,
+  '$autoname': 'How_are_you',
+  'kobo--score-choices': 'ap7yb23'
+}, {
+  'name': 'outside',
+  'type': 'score__row',
+  '$kuid': 'ir6tu76',
+  'label': ['Outside'],
+  'required': false,
+  '$autoname': 'outside'
+}, {
+  'name': 'inside',
+  'type': 'score__row',
+  '$kuid': 'je4go60',
+  'label': ['Inside'],
+  'required': false,
+  '$autoname': 'inside'
+}, {
+  'type': 'end_score',
+  '$kuid': '/yp8ep33'
+}, {
+  'name': 'test_your_math',
+  'type': 'begin_kobomatrix',
+  '$kuid': 'gy07t52',
+  'label': ['Test your math'],
+  'required': false,
+  '$autoname': 'test_your_math',
+  '_isRepeat': 'false',
+  'appearance': 'field-list',
+  'kobo--matrix_list': 'matrix_cb3fk35'
+}, {
+  'hint': [''],
+  'name': 'plus',
+  'type': 'integer',
+  '$kuid': 'oh83n52',
+  'label': ['Plus'],
+  'required': false,
+  '$autoname': 'plus',
+  'appearance': 'w1'
+}, {
+  'hint': [''],
+  'name': 'minus',
+  'type': 'select_one',
+  '$kuid': 'gy9ev97',
+  'label': ['Minus'],
+  'required': false,
+  '$autoname': 'minus',
+  'appearance': 'w1',
+  'select_from_list_name': 'bp2sj21'
+}, {
+  'type': 'end_kobomatrix',
+  '$kuid': '/gy07t52'
+}, {
+  'type': 'begin_rank',
+  '$kuid': 'vs3yt07',
+  'label': ['Colours by brightness'],
+  'required': false,
+  '$autoname': 'Colours_by_brightness',
+  'kobo--rank-items': 'xc5nb13',
+  'kobo--rank-constraint-message': 'Items cannot be selected more than once'
+}, {
+  'type': 'rank__level',
+  '$kuid': 'yp71p21',
+  'label': ['1st choice'],
+  'required': false,
+  '$autoname': '_1st_choice'
+}, {
+  'type': 'rank__level',
+  '$kuid': 'ac8ez34',
+  'label': ['2nd choice'],
+  'required': false,
+  '$autoname': '_2nd_choice'
+}, {
+  'type': 'end_rank',
+  '$kuid': '/vs3yt07'
+}, {
+  'type': 'file',
+  '$kuid': 'dz9cv47',
+  'label': ['We need your CV'],
+  'required': false,
+  '$autoname': 'We_need_your_CV',
+  'body::accept': 'txt'
+}, {
+  'type': 'range',
+  '$kuid': 'jb6ll34',
+  'label': ['Expected lifespan'],
+  'required': false,
+  '$autoname': 'Expected_lifespan',
+  'parameters': 'start=1;end=125;step=1'
+}];
+
+export const everythingSurveyChoices = [{
+  'name': 'poland',
+  '$kuid': 'dVHZ9VigU',
+  'label': ['Poland'],
+  'list_name': 'za04s38',
+  '$autovalue': 'poland'
+}, {
+  'name': 'ireland',
+  '$kuid': 'awQvU6AGY',
+  'label': ['Ireland'],
+  'list_name': 'za04s38',
+  '$autovalue': 'ireland'
+}, {
+  'name': 'pizza',
+  '$kuid': 'V5aeF2EbQ',
+  'label': ['Pizza'],
+  'list_name': 'vx6yh19',
+  '$autovalue': 'pizza'
+}, {
+  'name': 'apple',
+  '$kuid': 'XjaJ0GAm0',
+  'label': ['Apple'],
+  'list_name': 'vx6yh19',
+  '$autovalue': 'apple'
+}, {
+  'name': 'good',
+  '$kuid': 'YtKFyrtef',
+  'label': ['Good'],
+  'list_name': 'ap7yb23',
+  '$autovalue': 'good'
+}, {
+  'name': 'bad',
+  '$kuid': 'eVEUuBWFf',
+  'label': ['Bad'],
+  'list_name': 'ap7yb23',
+  '$autovalue': 'bad'
+}, {
+  'name': 'yellow',
+  '$kuid': 'DzPdmquZQ',
+  'label': ['Yellow'],
+  'list_name': 'xc5nb13',
+  '$autovalue': 'yellow'
+}, {
+  'name': 'blue',
+  '$kuid': '6oHmUYz8S',
+  'label': ['Blue'],
+  'list_name': 'xc5nb13',
+  '$autovalue': 'blue'
+}, {
+  'name': '2_and_4',
+  '$kuid': 'bd6hu92',
+  'label': ['2 and 4'],
+  'list_name': 'matrix_cb3fk35',
+  '$autovalue': '2_and_4'
+}, {
+  'name': 'minus_four',
+  '$kuid': 'tq31o95',
+  'label': ['-4'],
+  'list_name': 'bp2sj21',
+  '$autovalue': 'minus_four'
+}, {
+  'name': 'minus_two',
+  '$kuid': 'ue3oz79',
+  'label': ['-2'],
+  'list_name': 'bp2sj21',
+  '$autovalue': 'minus_two'
+}];
+
+export const everythingSurveySubmission = {
+  '_id': 25,
+  'Secret_spot': '47.754098 3.426214 0 0',
+  'Favourite_chocolate_barcode': '123123123123',
+  '_geolocation': [47.754098, 3.426214],
+  'Favourite_country': 'ireland',
+  'Colours_by_brightness/_1st_choice': 'blue',
+  'Favourite_food': 'pizza apple',
+  'Selfportrait': '784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+  '_validation_status': {},
+  'We_need_your_CV': 'zamki-13_35_5.txt',
+  '_uuid': 'fdd252ee-860a-426c-be90-cbbf61787cb9',
+  '_bamboo_dataset_id': '',
+  '_tags': [],
+  '_notes': [],
+  'Colours_by_brightness/_2nd_choice': 'yellow',
+  'A_video': 'IMG_3619-13_33_22.MOV',
+  '_submitted_by': null,
+  'How_are_you/outside': 'good',
+  '_xform_id_string': 'aXPSbtQcYDm8mcJuVZTUhW',
+  'Birth_date': '1900-04-10',
+  'meta/instanceID': 'uuid:fdd252ee-860a-426c-be90-cbbf61787cb9',
+  'Shortest_path': '26.74561 -1.485606 0 0;18.979026 23.772309 0 0',
+  'formhub/uuid': '712e5fb8d7364482a57c60df876c57fb',
+  'Birth_time': '13:45:00.000+02:00',
+  'end': '2020-04-28T13:35:12.978+02:00',
+  'How_are_you/inside': 'bad',
+  '_submission_time': '2020-04-28T11:35:26',
+  '__version__': 'vbkx6J4Key3yaWF5TGXrxg',
+  'test_your_math_2_and_4/test_your_math_2_and_4_minus': 'minus_four',
+  'Lucky_number': '24',
+  'Are_you_sane': 'OK',
+  '_attachments': [{
+    'mimetype': 'video/quicktime',
+    'download_small_url': 'http://kc.kobo.local/media/small?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
+    'download_large_url': 'http://kc.kobo.local/media/large?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
+    'download_url': 'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
+    'filename': 'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/IMG_3619-13_33_22.MOV',
+    'instance': 25,
+    'download_medium_url': 'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
+    'id': 6,
+    'xform': 18
+  }, {
+    'mimetype': 'audio/mpeg',
+    'download_small_url': 'http://kc.kobo.local/media/small?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
+    'download_large_url': 'http://kc.kobo.local/media/large?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
+    'download_url': 'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
+    'filename': 'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/07. Crazy Love-13_32_31.mp3',
+    'instance': 25,
+    'download_medium_url': 'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
+    'id': 5,
+    'xform': 18
+  }, {
+    'mimetype': 'text/plain',
+    'download_small_url': 'http://kc.kobo.local/media/small?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
+    'download_large_url': 'http://kc.kobo.local/media/large?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
+    'download_url': 'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
+    'filename': 'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/zamki-13_35_5.txt',
+    'instance': 25,
+    'download_medium_url': 'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
+    'id': 4,
+    'xform': 18
+  }, {
+    'mimetype': 'image/jpeg',
+    'download_small_url': 'http://kc.kobo.local/media/small?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+    'download_large_url': 'http://kc.kobo.local/media/large?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+    'download_url': 'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+    'filename': 'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+    'instance': 25,
+    'download_medium_url': 'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+    'id': 3,
+    'xform': 18
+  }],
+  'Expected_lifespan': '88',
+  'start': '2020-04-28T13:30:42.903+02:00',
+  'Your_name': 'Leszek',
+  'Unlucky_number': '-7',
+  'Some_random_date_and_time': '2020-04-02T01:33:00.000+02:00',
+  '_status': 'submitted_via_web',
+  'Secret_area': '-7.362467 -54.112248 0 0;24.20689 -79.483642 0 0;25.720735 -41.556644 0 0;2.196727 -40.315761 0 0;-7.362467 -54.112248 0 0',
+  'Voice_password': '07. Crazy Love-13_32_31.mp3',
+  'test_your_math_2_and_4/test_your_math_2_and_4_plus': '7'
+};
+
+export const everythingSurveyDisplayData = [
+  {
+    'type': 'select_one',
+    'label': 'Favourite country',
+    'name': 'Favourite_country',
+    'data': 'ireland'
+  },
+  {
+    'type': 'select_multiple',
+    'label': 'Favourite food',
+    'name': 'Favourite_food',
+    'data': 'pizza apple'
+  },
+  {
+    'type': 'text',
+    'label': 'Your name',
+    'name': 'Your_name',
+    'data': 'Leszek'
+  },
+  {
+    'type': 'integer',
+    'label': 'Lucky number',
+    'name': 'Lucky_number',
+    'data': '24'
+  },
+  {
+    'type': 'decimal',
+    'label': 'Unlucky number',
+    'name': 'Unlucky_number',
+    'data': '-7'
+  },
+  {
+    'type': 'date',
+    'label': 'Birth date',
+    'name': 'Birth_date',
+    'data': '1900-04-10'
+  },
+  {
+    'type': 'time',
+    'label': 'Birth time',
+    'name': 'Birth_time',
+    'data': '13:45:00.000+02:00'
+  },
+  {
+    'type': 'datetime',
+    'label': 'Some random date and time',
+    'name': 'Some_random_date_and_time',
+    'data': '2020-04-02T01:33:00.000+02:00'
+  },
+  {
+    'type': 'geopoint',
+    'label': 'Secret spot',
+    'name': 'Secret_spot',
+    'data': '47.754098 3.426214 0 0'
+  },
+  {
+    'type': 'image',
+    'label': 'Selfportrait',
+    'name': 'Selfportrait',
+    'data': '784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg'
+  },
+  {
+    'type': 'audio',
+    'label': 'Voice password',
+    'name': 'Voice_password',
+    'data': '07. Crazy Love-13_32_31.mp3'
+  },
+  {
+    'type': 'video',
+    'label': 'A video?',
+    'name': 'A_video',
+    'data': 'IMG_3619-13_33_22.MOV'
+  },
+  {
+    'type': 'geotrace',
+    'label': 'Shortest path',
+    'name': 'Shortest_path',
+    'data': '26.74561 -1.485606 0 0;18.979026 23.772309 0 0'
+  },
+  {
+    'type': 'barcode',
+    'label': 'Favourite chocolate barcode',
+    'name': 'Favourite_chocolate_barcode',
+    'data': '123123123123'
+  },
+  {
+    'type': 'acknowledge',
+    'label': 'Are you sane?',
+    'name': 'Are_you_sane',
+    'data': 'OK'
+  },
+  {
+    'type': 'geoshape',
+    'label': 'Secret area',
+    'name': 'Secret_area',
+    'data': '-7.362467 -54.112248 0 0;24.20689 -79.483642 0 0;25.720735 -41.556644 0 0;2.196727 -40.315761 0 0;-7.362467 -54.112248 0 0'
+  },
+  {
+    'type': 'group_regular',
+    'label': 'How are you?',
+    'name': 'How_are_you',
+    'children': [
+      {
+        'type': 'score__row',
+        'label': 'Outside',
+        'name': 'outside',
+        'data': 'good'
+      },
+      {
+        'type': 'score__row',
+        'label': 'Inside',
+        'name': 'inside',
+        'data': 'bad'
+      }
+    ]
+  },
+  {
+    'type': 'group_matrix',
+    'label': 'Test your math',
+    'name': 'test_your_math',
+    'children': [
+      {
+        'type': 'group_matrix_row',
+        'label': '2 and 4',
+        'name': '2_and_4',
+        'children': [
+          {
+            'type': 'integer',
+            'label': 'Plus',
+            'name': 'plus',
+            'data': '7'
+          },
+          {
+            'type': 'select_one',
+            'label': 'Minus',
+            'name': 'minus',
+            'data': 'minus_four'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    'type': 'group_regular',
+    'label': 'Colours by brightness',
+    'name': 'Colours_by_brightness',
+    'children': [
+      {
+        'type': 'rank__level',
+        'label': '1st choice',
+        'name': '_1st_choice',
+        'data': 'blue'
+      },
+      {
+        'type': 'rank__level',
+        'label': '2nd choice',
+        'name': '_2nd_choice',
+        'data': 'yellow'
+      }
+    ]
+  },
+  {
+    'type': 'file',
+    'label': 'We need your CV',
+    'name': 'We_need_your_CV',
+    'data': 'zamki-13_35_5.txt'
+  },
+  {
+    'type': 'range',
+    'label': 'Expected lifespan',
+    'name': 'Expected_lifespan',
+    'data': '88'
+  }
+];
