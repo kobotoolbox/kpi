@@ -71,12 +71,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='content',
-            field=JSONBField(null=True),
+            field=JSONBField(default=dict),
         ),
         migrations.AlterField(
             model_name='asset',
             name='summary',
-            field=JSONBField(default=dict, null=True),
+            field=JSONBField(default=dict),
         ),
         migrations.AlterField(
             model_name='assetsnapshot',
@@ -86,7 +86,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='assetsnapshot',
             name='source',
-            field=JSONBField(null=True),
+            field=JSONBField(default=dict),
         ),
         migrations.AlterField(
             model_name='assetversion',

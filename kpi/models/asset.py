@@ -463,8 +463,8 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONField(null=True)
-    summary = JSONField(null=True, default=dict)
+    content = JSONField(default=dict)
+    summary = JSONField(default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
@@ -1076,7 +1076,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONField(null=True)
+    source = JSONField(default=dict)
     details = JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
