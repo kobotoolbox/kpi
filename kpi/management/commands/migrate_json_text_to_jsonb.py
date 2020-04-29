@@ -7,13 +7,14 @@ from django.db import connection
 from django.db.migrations.recorder import MigrationRecorder
 
 
+# The `hub` application has its own `0007_alter_jsonfield_to_jsonbfield`
+# migration that we don't worry about because it should complete quickly
 TABLES_AND_TEXT_JSON_COLUMNS = [
     ('kpi_asset', '_deployment_data'),
     ('kpi_asset', 'content'),
     ('kpi_asset', 'summary'),
     ('kpi_assetsnapshot', 'details'),
     ('kpi_assetsnapshot', 'source'),
-    ('kpi_assetversion', '_deployment_data'),
     ('kpi_exporttask', 'data'),
     ('kpi_exporttask', 'messages'),
     ('kpi_importtask', 'data'),
