@@ -25,7 +25,7 @@ def forwards(apps, schema_editor):
         ('ImportTask', 'data'),
         ('ImportTask', 'messages'),
     ]
-    print('\n {} | {}'.format('Scanned'.ljust(22)), '# records need fixing')
+    print('\n {} | {}'.format('Scanned'.ljust(22), '# records need fixing'))
     for (modelname, modelfield) in model_fields:
         # e.g. Asset
         orm_model = apps.get_model('kpi', modelname)
@@ -39,7 +39,8 @@ def forwards(apps, schema_editor):
             fixed = json.loads(dumped)
             setattr(record, modelfield, fixed)
             changed_records.append(record)
-        print(' {} | {}'.format(modelname.ljust(22), len(changed_records)))
+        model_name_plus_field = '{}.{}'.format(modelname, modelfield).ljust(22)
+        print(' {} | {}'.format(model_name_plus_field, len(changed_records)))
         if len(changed_records) > 0:
             orm_model.objects.bulk_update(changed_records, [modelfield])
     print('''
