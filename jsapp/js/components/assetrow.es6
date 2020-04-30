@@ -275,22 +275,6 @@ class AssetRow extends React.Component {
                 <i className='k-icon-clone' />
               </bem.AssetRow__actionIcon>
 
-              { this.props.asset_type &&
-                this.props.asset_type === ASSET_TYPES.template.id &&
-                userCanEdit &&
-                <bem.AssetRow__actionIcon
-                  m={'cloneAsSurvey'}
-                  key='cloneAsSurvey'
-                  data-action={'cloneAsSurvey'}
-                  data-tip={t('Create project')}
-                  data-asset-type={this.props.kind}
-                  data-asset-name={assetName}
-                  data-disabled={false}
-                >
-                  <i className='k-icon-projects' />
-                </bem.AssetRow__actionIcon>
-              }
-
               { this.props.kind === 'collection' &&
                 [/*'view',*/ 'sharing'].map((actn)=>{
                   return (
