@@ -348,7 +348,7 @@ class ExportTask(ImportExportTask):
               response values. Specify `_xml` to use question and choice names
               instead of labels. Leave unset, or use `_default` for labels in
               the default language
-    * `lang_header`: optional; the name of the translation to be used just for
+    * `header_lang`: optional; the name of the translation to be used just for
               headers values. Specify `_xml` to use question names in headers
               instead of labels. Use `_default` for headers labels in the
               default language. Leave unset for override it and use lang arg
@@ -468,12 +468,12 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
-        lang_header = self.data.get('lang_header', lang) or next(iter(translations), None)
+        header_lang = self.data.get('header_lang', lang)
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
             lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
-            lang_header = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang_header]
+            header_lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[header_lang]
         except KeyError:
             pass
         tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
@@ -486,7 +486,7 @@ class ExportTask(ImportExportTask):
             'copy_fields': self.COPY_FIELDS,
             'force_index': True,
             'tag_cols_for_header': tag_cols_for_header,
-            'lang_header': lang_header,
+            'header_lang': header_lang,
         }
 
     def _record_last_submission_time(self, submission_stream):

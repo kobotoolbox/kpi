@@ -56,7 +56,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             'lang',
             'hierarchy_in_labels',
             'fields_from_all_versions',
-            'lang_header',
+            'header_lang',
         )
         task_data = {}
         for opt in valid_options:
