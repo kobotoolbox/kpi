@@ -2,14 +2,14 @@
  * help related actions
  */
 
+import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import {
   t,
   notify
 } from '../utils';
-const Reflux = require('reflux');
 
-const helpActions = Reflux.createActions({
+export const helpActions = Reflux.createActions({
   getInAppMessages: {
     children: [
       'completed',
@@ -60,5 +60,3 @@ helpActions.setMessageAcknowledged.listen((uid, isAcknowledged) => {
 helpActions.setMessageAcknowledged.failed.listen(() => {
   notify(t('Failed to set message acknowledged.'), 'error');
 });
-
-export default helpActions;

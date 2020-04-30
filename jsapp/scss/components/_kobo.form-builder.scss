@@ -402,8 +402,14 @@ $t-form-builder-aside-open: 200ms;
 // FORM META
 
 .form-builder-meta {
-  display: flex;
-  flex-direction: row;
+  .form-builder-meta__columns {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .form-builder-meta__row {
+    margin-top: 10px;
+  }
 
   .form-builder-meta__column {
     flex: 1;

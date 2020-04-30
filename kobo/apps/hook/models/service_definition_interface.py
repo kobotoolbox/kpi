@@ -1,24 +1,24 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-from abc import ABCMeta, abstractmethod
+# coding: utf-8
 import json
 import os
 import re
+from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
-from rest_framework import status
+from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 
-from ..constants import HOOK_LOG_SUCCESS, HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from kpi.utils.log import logging
 from .hook import Hook
 from .hook_log import HookLog
-from kpi.utils.log import logging
+from ..constants import (
+    HOOK_LOG_SUCCESS,
+    HOOK_LOG_FAILED,
+    KOBO_INTERNAL_ERROR_STATUS_CODE,
+)
 
 
-class ServiceDefinitionInterface(object):
-
-    __metaclass__ = ABCMeta
+class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def __init__(self, hook, instance_id):
         self._hook = hook
@@ -30,11 +30,16 @@ class ServiceDefinitionInterface(object):
         Retrieves data from deployment backend of the asset.
         """
         try:
-            submission = self._hook.asset.deployment.get_submission(self._instance_id, self._hook.export_type)
+            submission = self._hook.asset.deployment.get_submission(
+                self._instance_id, self._hook.asset.owner.id,
+                self._hook.export_type)
             return self._parse_data(submission, self._hook.subset_fields)
         except Exception as e:
-            logging.error("service_json.ServiceDefinition._get_data - Hook #{} - Data #{} - {}".format(
-                self._hook.uid, self._instance_id, str(e)), exc_info=True)
+            logging.error("service_json.ServiceDefinition._get_data "
+                          "- Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                              self._instance_id,
+                                                              str(e)),
+                          exc_info=True)
         return None
 
     @abstractmethod
@@ -77,10 +82,11 @@ class ServiceDefinitionInterface(object):
                 request_kwargs = self._prepare_request_kwargs()
 
                 # Add custom headers
-                request_kwargs.get("headers").update(self._hook.settings.get("custom_headers", {}))
+                request_kwargs.get("headers").update(
+                    self._hook.settings.get("custom_headers", {}))
 
                 # Add user agent
-                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME"))\
+                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME")) \
                     if os.getenv("PUBLIC_DOMAIN_NAME") else ""
                 request_kwargs.get("headers").update({
                     "User-Agent": "KoBoToolbox external service {}#{}".format(
@@ -95,6 +101,8 @@ class ServiceDefinitionInterface(object):
                         "auth": (self._hook.settings.get("username"),
                                  self._hook.settings.get("password"))
                     })
+
+                SSRFProtect.validate(self._hook.endpoint)
                 response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
                 response.raise_for_status()
                 self.save_log(response.status_code, response.text, True)
@@ -108,10 +116,21 @@ class ServiceDefinitionInterface(object):
                     text = response.text
                     status_code = response.status_code
                 self.save_log(status_code, text)
-
+            except SSRFProtectException as e:
+                logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                                self._instance_id,
+                                                                str(e)),
+                              exc_info=True)
+                self.save_log(
+                    KOBO_INTERNAL_ERROR_STATUS_CODE,
+                    f'{self._hook.endpoint} is not allowed')
             except Exception as e:
-                logging.error("service_json.ServiceDefinition.send - Hook #{} - Data #{} - {}".format(
-                    self._hook.uid, self._instance_id, str(e)), exc_info=True)
+                logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                                self._instance_id,
+                                                                str(e)),
+                              exc_info=True)
                 self.save_log(
                     KOBO_INTERNAL_ERROR_STATUS_CODE,
                     "An error occurred when sending data to external endpoint")
@@ -153,7 +172,7 @@ class ServiceDefinitionInterface(object):
         # In case of failure, it should be HTML (or plaintext), we can remove tags
         try:
             json.loads(message)
-        except ValueError as e:
+        except ValueError:
             message = re.sub(r"<[^>]*>", " ", message).strip()
 
         log.message = message

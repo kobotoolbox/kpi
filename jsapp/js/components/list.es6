@@ -6,14 +6,14 @@ import Reflux from 'reflux';
 import Select from 'react-select';
 import Checkbox from './checkbox';
 import ui from '../ui';
-import bem from '../bem';
-import actions from '../actions';
+import {bem} from '../bem';
+import {actions} from '../actions';
 import {dataInterface} from '../dataInterface';
-import searches from '../searches';
-import stores from '../stores';
+import {searches} from '../searches';
+import {stores} from '../stores';
 import {t} from '../utils';
 
-class ListSearch extends React.Component {
+export class ListSearch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -50,7 +50,7 @@ ListSearch.defaultProps = {
 reactMixin(ListSearch.prototype, searches.common);
 reactMixin(ListSearch.prototype, Reflux.ListenerMixin);
 
-class ListTagFilter extends React.Component {
+export class ListTagFilter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -127,7 +127,7 @@ ListTagFilter.defaultProps = {
 reactMixin(ListTagFilter.prototype, searches.common);
 reactMixin(ListTagFilter.prototype, Reflux.ListenerMixin);
 
-class ListCollectionFilter extends React.Component {
+export class ListCollectionFilter extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -198,7 +198,7 @@ ListCollectionFilter.defaultProps = {
 reactMixin(ListCollectionFilter.prototype, searches.common);
 reactMixin(ListCollectionFilter.prototype, Reflux.ListenerMixin);
 
-class ListExpandToggle extends React.Component {
+export class ListExpandToggle extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -247,7 +247,7 @@ ListExpandToggle.defaultProps = {
 reactMixin(ListExpandToggle.prototype, searches.common);
 reactMixin(ListExpandToggle.prototype, Reflux.ListenerMixin);
 
-class ListSearchSummary extends React.Component {
+export class ListSearchSummary extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -316,7 +316,7 @@ ListSearchSummary.defaultProps = {
 reactMixin(ListSearchSummary.prototype, searches.common);
 reactMixin(ListSearchSummary.prototype, Reflux.ListenerMixin);
 
-class ListSearchDebug extends React.Component {
+export class ListSearchDebug extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -361,7 +361,7 @@ ListSearchDebug.defaultProps = {
 reactMixin(ListSearchDebug.prototype, searches.common);
 reactMixin(ListSearchDebug.prototype, Reflux.ListenerMixin);
 
-export default {
+export const list = {
   // List: List,
   ListSearch: ListSearch,
   ListSearchDebug: ListSearchDebug,

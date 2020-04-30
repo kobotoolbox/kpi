@@ -6,9 +6,9 @@ import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
 import Radio from './radio';
-import actions from '../actions';
-import bem from '../bem';
-import stores from '../stores';
+import {actions} from '../actions';
+import {bem} from '../bem';
+import {stores} from '../stores';
 import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
@@ -20,6 +20,7 @@ import ReportViewItem from './reportViewItem';
 import {
   assign,
   t,
+  launchPrinting
 } from '../utils';
 
 function labelVal(label, value) {
@@ -969,9 +970,6 @@ class Reports extends React.Component {
   toggleFullscreen () {
     this.setState({isFullscreen: !this.state.isFullscreen});
   }
-  launchPrinting () {
-    window.print();
-  }
   renderReportButtons () {
     var customReports = this.state.reportCustom || {};
     var customReportsList = [];
@@ -1033,7 +1031,7 @@ class Reports extends React.Component {
         </button>
 
         <button className='mdl-button mdl-button--icon report-button__print'
-                onClick={this.launchPrinting}
+                onClick={launchPrinting}
                 data-tip={t('Print')}>
           <i className='k-icon-print' />
         </button>

@@ -10,8 +10,8 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
-
-import bem from './bem';
+import {KEY_CODES} from 'js/constants';
+import {bem} from './bem';
 import {t, assign} from './utils';
 import classNames from 'classnames';
 
@@ -64,7 +64,7 @@ class Modal extends React.Component {
     document.removeEventListener('keydown', this.escFunction);
   }
   escFunction (evt) {
-    if (evt.keyCode === 27 || evt.key === 'Escape') {
+    if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
       this.props.onClose.call(evt);
     }
   }
@@ -91,10 +91,7 @@ class Modal extends React.Component {
   }
   render() {
     return (
-      <bem.Modal__backdrop
-        className='modal__backdrop'
-        onClick={this.backdropClick}
-      >
+      <bem.Modal__backdrop onClick={this.backdropClick}>
         <div className={classNames(
           'modal',
           this.props.className,
@@ -303,7 +300,25 @@ class PopoverMenu extends React.Component {
   }
 };
 
+class AccessDeniedMessage extends React.Component {
+  render() {
+    return (
+      <bem.FormView>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <h3>
+              {t('Access Denied')}
+            </h3>
+            {t('You do not have permission to view this page.')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      </bem.FormView>
+    );
+  }
+}
+
 var ui = {
+  AccessDeniedMessage,
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,

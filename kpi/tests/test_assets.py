@@ -1,8 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-import re
+# coding: utf-8
 import json
+import re
 from collections import OrderedDict
 from copy import deepcopy
 
@@ -11,39 +9,41 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_SHARE_ASSET, \
+    PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
 
 # move this into a fixture file?
 # note: this is not a very robust example of a cascading select
-CASCADE_CONTENT = {u'survey': [{u'type': u'select_one',
-                                u'select_from_list_name': u'country',
-                                u'label': [u'country'],
-                                u'required': True},
-                               {u'type': u'select_one',
-                                u'select_from_list_name': u'region',
-                                u'label': [u'region'],
-                                u'choice_filter': u'country=${country}',
-                                u'required': True},
-                               {u'type': u'select_one',
-                                u'select_from_list_name': u'town',
-                                u'label': [u'region'],
-                                u'choice_filter': u'region=${region}',
-                                u'required': True}],
-                   u'choices': [{u'label': [u'France'],
-                                 u'list_name': u'country',
-                                 u'name': u'france'},
-                                {u'country': u'france',
-                                 u'label': [u'\xcele-de-France'],
-                                 u'list_name': u'region',
-                                 u'name': u'ile-de-france'},
-                                {u'region': u'ile-de-france',
-                                 u'label': [u'Paris'],
-                                 u'list_name': u'town',
-                                 u'name': u'paris'}],
-                   u'translated': [u'label'],
-                   u'translations': [None]}
+CASCADE_CONTENT = {'survey': [{'type': 'select_one',
+                                'select_from_list_name': 'country',
+                                'label': ['country'],
+                                'required': True},
+                               {'type': 'select_one',
+                                'select_from_list_name': 'region',
+                                'label': ['region'],
+                                'choice_filter': 'country=${country}',
+                                'required': True},
+                               {'type': 'select_one',
+                                'select_from_list_name': 'town',
+                                'label': ['region'],
+                                'choice_filter': 'region=${region}',
+                                'required': True}],
+                   'choices': [{'label': ['France'],
+                                 'list_name': 'country',
+                                 'name': 'france'},
+                                {'country': 'france',
+                                 'label': ['\xcele-de-France'],
+                                 'list_name': 'region',
+                                 'name': 'ile-de-france'},
+                                {'region': 'ile-de-france',
+                                 'label': ['Paris'],
+                                 'list_name': 'town',
+                                 'name': 'paris'}],
+                   'translated': ['label'],
+                   'translations': [None]}
 
 
 class AssetsTestCase(TestCase):
@@ -52,14 +52,14 @@ class AssetsTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.create(content={'survey': [
-            {u'type': u'text',
-             u'label': u'Question 1',
-             u'name': u'q1',
-             u'$kuid': u'abc'},
-            {u'type': u'text',
-             u'label': u'Question 2',
-             u'name': u'q2',
-             u'$kuid': u'def'},
+            {'type': 'text',
+             'label': 'Question 1',
+             'name': 'q1',
+             '$kuid': 'abc'},
+            {'type': 'text',
+             'label': 'Question 2',
+             'name': 'q2',
+             '$kuid': 'def'},
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
@@ -122,7 +122,6 @@ class CreateAssetVersions(AssetsTestCase):
         self.assertEqual(surv_l_3, 2)
         self.assertEqual(_c1, _c3)
 
-
     def test_asset_can_be_anonymous(self):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
@@ -147,10 +146,10 @@ class AssetContentTests(AssetsTestCase):
         ]}
 
     def test_default_translation_first(self):
-        '''
+        """
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
-        '''
+        """
         def _check_content(content, expected_translations):
             self.assertListEqual(
                 content['translations'], expected_translations
@@ -206,10 +205,10 @@ class AssetContentTests(AssetsTestCase):
         )
 
     def test_rename_translation(self):
-        '''
+        """
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
-        '''
+        """
         self.asset = Asset.objects.create(content={'survey': [
             {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
         ],
@@ -223,10 +222,10 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
 
     def test_rename_translation_fail(self):
-        '''
+        """
         This allows a workaround to enable multi-translation editing in the
         form builder which focuses on the "null" language.
-        '''
+        """
         self.asset = Asset.objects.create(content={'survey': [
             {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
         ],
@@ -302,7 +301,7 @@ class AssetContentTests(AssetsTestCase):
             },
         )
         self.assertTrue(isinstance(_c, OrderedDict))
-        self.assertTrue(_c.keys(), ['survey', 'settings'])
+        self.assertTrue(list(_c.keys()), ['survey', 'settings'])
         self.assertTrue(isinstance(_c['survey'][0], OrderedDict))
         self.assertEqual(_c['settings'][0]['asdf'], 'jkl')
         self.assertEqual(_c['survey'][-1]['type'], 'note')
@@ -327,26 +326,27 @@ class AssetContentTests(AssetsTestCase):
         # the first two columns (type and name)
         xls_version_row = [
             cell.value for cell in survey_sheet.row(survey_sheet.nrows - 1)]
-        self.assertEqual(xls_version_row[:2], [u'calculate', u'__version__'])
+        self.assertEqual(xls_version_row[:2], ['calculate', '__version__'])
         # The next-to-last row should have the note question from `append`
         xls_note_row = [
             cell.value for cell in survey_sheet.row(survey_sheet.nrows - 2)]
-        expected_note_row = append['survey'][0].values()
+        expected_note_row = list(append['survey'][0].values())
         # Slice the result to discard any extraneous empty cells
         self.assertEqual(
             xls_note_row[:len(expected_note_row)], expected_note_row)
 
         settings_sheet = workbook.sheet_by_name('settings')
-        # Next-to-last column should have `version` setting
-        xls_version_col = [
+        # Next-to-last column should have `asdf` setting
+        xls_asdf_col = [
             cell.value for cell in settings_sheet.col(settings_sheet.ncols - 2)
         ]
-        self.assertEqual(xls_version_col[0], 'version')
-        # Last column should have `asdf` setting from `append`
-        xls_asdf_col = [
+        self.assertEqual(xls_asdf_col, ['asdf', 'jkl'])
+
+        # Last column should have `version` setting from `append`
+        xls_version_col = [
             cell.value for cell in settings_sheet.col(settings_sheet.ncols - 1)
         ]
-        self.assertEqual(xls_asdf_col, ['asdf', 'jkl'])
+        self.assertEqual(xls_version_col[0], 'version')
 
 
 class AssetSettingsTests(AssetsTestCase):
@@ -439,25 +439,25 @@ class AssetScoreTestCase(TestCase):
 
     def test_score_can_be_exported(self):
         _matrix_score = {
-            u'survey': [
-                {u'kobo--score-choices': u'nb7ud55',
-                 u'label': [u'Los Angeles'],
-                 u'required': True,
-                 u'type': u'begin_score'},
-                {u'label': [u'Food'], u'type': u'score__row'},
-                {u'label': [u'Music'], u'type': u'score__row'},
-                {u'label': [u'Night life'], u'type': u'score__row'},
-                {u'label': [u'Housing'], u'type': u'score__row'},
-                {u'label': [u'Culture'], u'type': u'score__row'},
-                {u'type': u'end_score'}],
-            u'choices': [
-                {u'label': [u'Great'],
-                 u'list_name': u'nb7ud55'},
-                {u'label': [u'OK'],
-                 u'list_name': u'nb7ud55'},
-                {u'label': [u'Bad'],
-                 u'list_name': u'nb7ud55'}],
-            u'settings': {},
+            'survey': [
+                {'kobo--score-choices': 'nb7ud55',
+                 'label': ['Los Angeles'],
+                 'required': True,
+                 'type': 'begin_score'},
+                {'label': ['Food'], 'type': 'score__row'},
+                {'label': ['Music'], 'type': 'score__row'},
+                {'label': ['Night life'], 'type': 'score__row'},
+                {'label': ['Housing'], 'type': 'score__row'},
+                {'label': ['Culture'], 'type': 'score__row'},
+                {'type': 'end_score'}],
+            'choices': [
+                {'label': ['Great'],
+                 'list_name': 'nb7ud55'},
+                {'label': ['OK'],
+                 'list_name': 'nb7ud55'},
+                {'label': ['Bad'],
+                 'list_name': 'nb7ud55'}],
+            'settings': {},
         }
         a1 = Asset.objects.create(content=_matrix_score, asset_type='survey')
         _snapshot = a1.snapshot
@@ -477,7 +477,6 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
         # asset.snapshot.xml generates a document that does not have any
         # "$kuid" or "<$kuid>x</$kuid>" elements
         _xml = asset.snapshot.xml
-
         # as is in every xform:
         self.assertTrue('<instance>' in _xml)
         # specific to this cascading select form:
@@ -518,7 +517,7 @@ class AssetSnapshotXmlTestCase(AssetSettingsTests):
 class ShareAssetsTest(AssetsTestCase):
 
     def setUp(self):
-        super(ShareAssetsTest, self).setUp()
+        super().setUp()
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
         self.coll = Collection.objects.create(owner=self.user)
@@ -537,10 +536,10 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertEqual(user.has_perm(perm, self.asset), False)
 
     def test_user_view_permission(self):
-        self.grant_and_revoke_standalone(self.anotheruser, 'view_asset')
+        self.grant_and_revoke_standalone(self.anotheruser, PERM_VIEW_ASSET)
 
     def test_user_change_permission(self):
-        self.grant_and_revoke_standalone(self.anotheruser, 'change_asset')
+        self.grant_and_revoke_standalone(self.anotheruser, PERM_CHANGE_ASSET)
 
     def grant_and_revoke_parent(self, user, perm):
         # Collection permissions have different suffixes
@@ -554,10 +553,10 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertEqual(user.has_perm(perm, self.asset_in_coll), False)
 
     def test_user_inherited_view_permission(self):
-        self.grant_and_revoke_parent(self.anotheruser, 'view_asset')
+        self.grant_and_revoke_parent(self.anotheruser, PERM_VIEW_ASSET)
 
     def test_user_inherited_change_permission(self):
-        self.grant_and_revoke_parent(self.anotheruser, 'change_asset')
+        self.grant_and_revoke_parent(self.anotheruser, PERM_CHANGE_ASSET)
 
     def assign_collection_asset_perms(self, user, collection_perm, asset_perm,
                                       collection_deny=False, asset_deny=False,
@@ -579,8 +578,8 @@ class ShareAssetsTest(AssetsTestCase):
         user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
-            'view_collection',
-            'change_asset',
+            PERM_VIEW_COLLECTION,
+            PERM_CHANGE_ASSET,
             asset_first=asset_first
         )
 
@@ -588,27 +587,27 @@ class ShareAssetsTest(AssetsTestCase):
         user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
-            'change_collection',
-            'change_asset',
+            PERM_CHANGE_COLLECTION,
+            PERM_CHANGE_ASSET,
             asset_deny=True,
             asset_first=asset_first
         )
         # assign_collection_asset_perms verifies the assignments, but make sure
         # that the user can still view the asset
-        self.assertEqual(user.has_perm('view_asset', self.asset_in_coll),
+        self.assertEqual(user.has_perm(PERM_VIEW_ASSET, self.asset_in_coll),
                          True)
 
     def test_user_change_collection_deny_asset(self, asset_first=False):
         user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
-            'change_collection',
-            'view_asset',
+            PERM_CHANGE_COLLECTION,
+            PERM_VIEW_ASSET,
             asset_deny=True,
             asset_first=asset_first
         )
         # Verify that denying view_asset denies change_asset as well
-        self.assertEqual(user.has_perm('change_asset',
+        self.assertEqual(user.has_perm(PERM_CHANGE_ASSET,
                                        self.asset_in_coll),
                          False)
 
@@ -636,7 +635,7 @@ class ShareAssetsTest(AssetsTestCase):
             0
         )
         # Grant access and verify the result
-        self.asset.assign_perm(self.anotheruser, 'view_asset')
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
         self.assertEqual(
             # Without coercion, django.db.models.query.ValuesListQuerySet isn't
             # a real list and will fail the comparison.
@@ -651,7 +650,7 @@ class ShareAssetsTest(AssetsTestCase):
 
     def test_owner_can_edit_permissions(self):
         self.assertTrue(self.asset.owner.has_perm(
-            'share_asset',
+            PERM_SHARE_ASSET,
             self.asset
         ))
 
@@ -664,36 +663,36 @@ class ShareAssetsTest(AssetsTestCase):
         self.asset_in_coll.save()
         # Ensure the parent's owner can't change permissions on the child
         self.assertFalse(self.coll.owner.has_perm(
-            'share_asset',
+            PERM_SHARE_ASSET,
             self.asset_in_coll
         ))
 
     def test_change_permission_provides_share_permission(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertFalse(anotheruser.has_perm(
-            'change_asset', self.asset))
+            PERM_CHANGE_ASSET, self.asset))
         # Grant the change permission and make sure it provides
         # share_asset
-        self.asset.assign_perm(anotheruser, 'change_asset')
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         self.assertTrue(anotheruser.has_perm(
-            'share_asset', self.asset))
+            PERM_SHARE_ASSET, self.asset))
         # Restrict share_asset to the owner and make sure anotheruser loses
         # the permission
         self.asset.editors_can_change_permissions = False
         self.assertFalse(anotheruser.has_perm(
-            'share_asset', self.asset))
+            PERM_SHARE_ASSET, self.asset))
 
     def test_anonymous_view_permission_on_standalone_asset(self):
         # Grant
         self.assertFalse(AnonymousUser().has_perm(
-            'view_asset', self.asset))
-        self.asset.assign_perm(AnonymousUser(), 'view_asset')
+            PERM_VIEW_ASSET, self.asset))
+        self.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         self.assertTrue(AnonymousUser().has_perm(
-            'view_asset', self.asset))
+            PERM_VIEW_ASSET, self.asset))
         # Revoke
-        self.asset.remove_perm(AnonymousUser(), 'view_asset')
+        self.asset.remove_perm(AnonymousUser(), PERM_VIEW_ASSET)
         self.assertFalse(AnonymousUser().has_perm(
-            'view_asset', self.asset))
+            PERM_VIEW_ASSET, self.asset))
 
     def test_anoymous_change_permission_on_standalone_asset(self):
         # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
@@ -702,23 +701,25 @@ class ShareAssetsTest(AssetsTestCase):
             # This is expected to fail since only real users can have any
             # permissions beyond view
             self.asset.assign_perm(
-                AnonymousUser(), 'change_asset')
+                AnonymousUser(), PERM_CHANGE_ASSET)
         except ValidationError:
             pass
         # Make sure the assignment failed
         self.assertFalse(AnonymousUser().has_perm(
-            'change_asset', self.asset))
+            PERM_CHANGE_ASSET, self.asset))
 
     def test_anonymous_as_baseline_for_authenticated(self):
-        ''' If the public can view an object, then all users should be able
-        to do the same. '''
+        """
+        If the public can view an object, then all users should be able
+        to do the same.
+        """
         # Neither anonymous nor `anotheruser` should have any permission yet
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertFalse(user_obj.has_perm(
-                'view_asset', self.asset))
+                PERM_VIEW_ASSET, self.asset))
         # Grant to anonymous
-        self.asset.assign_perm(AnonymousUser(), 'view_asset')
+        self.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         # Check that both anonymous and `anotheruser` can view
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertTrue(user_obj.has_perm(
-                'view_asset', self.asset))
+                PERM_VIEW_ASSET, self.asset))

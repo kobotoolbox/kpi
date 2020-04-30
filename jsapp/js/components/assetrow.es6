@@ -4,17 +4,20 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import $ from 'jquery';
 import { Link } from 'react-router';
-import bem from '../bem';
+import {bem} from '../bem';
 import ui from '../ui';
-import stores from '../stores';
+import {stores} from '../stores';
 import mixins from '../mixins';
-import {dataInterface} from '../dataInterface';
-import {ASSET_TYPES} from '../constants';
+import {
+  KEY_CODES,
+  ASSET_TYPES
+} from 'js/constants';
 import TagInput from '../components/tagInput';
 import {
   formatTime,
   t
 } from '../utils';
+import assetUtils from 'js/assetUtils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -27,6 +30,7 @@ class AssetRow extends React.Component {
     this.escFunction = this.escFunction.bind(this);
     autoBind(this);
   }
+
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
@@ -36,6 +40,7 @@ class AssetRow extends React.Component {
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
   }
+
   clickTagsToggle () {
     const isTagsInputVisible = !this.state.isTagsInputVisible;
     if (isTagsInputVisible) {
@@ -45,49 +50,29 @@ class AssetRow extends React.Component {
     }
     this.setState({isTagsInputVisible: isTagsInputVisible});
   }
+
   escFunction (evt) {
-    if (evt.keyCode === 27 && this.state.isTagsInputVisible) {
+    if (evt.keyCode === KEY_CODES.ESC && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }
-  componentDidMount () {
-    this.prepParentCollection();
-  }
-  prepParentCollection () {
-    this.setState({
-      parent: this.props.parent,
-    });
-  }
+
   moveToCollection (evt) {
-    var uid = this.props.uid;
-    var collid = '/collections/' + evt.currentTarget.dataset.collid + '/';
-    var parent = evt.currentTarget.dataset.parent;
-
-    if (parent == 'true') {
-      collid = null;
-    }
-
-    dataInterface.patchAsset(uid, {
-      parent: collid,
-    }).done(()=>{
-      this.setState({
-        parent: collid,
-      });
-    });
+    assetUtils.moveToCollection(this.props.uid, evt.currentTarget.dataset.collid);
   }
-  preventDefault (evt) {
-    evt.preventDefault();
-  }
+
   clearPopover () {
     if (this.state.popoverVisible) {
       this.setState({clearPopover: true, popoverVisible: false});
     }
   }
+
   popoverSetVisible () {
     this.setState({popoverVisible: true});
   }
+
   render () {
-    var selfowned = this.props.owner__username === this.props.currentUsername;
+    const isSelfOwned = this.userIsOwner(this.props);
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
@@ -108,7 +93,7 @@ class AssetRow extends React.Component {
 
     if (this.isLibrary()) {
       hrefTo = `/library/${this.props.uid}/edit`;
-      parent = this.state.parent || undefined;
+      parent = this.props.parent || undefined;
       ownedCollections = this.props.ownedCollections.map(function(c){
         var p = false;
         if (parent != undefined && parent.indexOf(c.uid) !== -1) {
@@ -193,10 +178,10 @@ class AssetRow extends React.Component {
               ]}
             >
               { this.props.asset_type == ASSET_TYPES.survey.id &&
-                <span>{ selfowned ? ' ' : this.props.owner__username }</span>
+                <span>{ isSelfOwned ? ' ' : this.props.owner__username }</span>
               }
               { this.props.asset_type != ASSET_TYPES.survey.id &&
-                <span>{selfowned ? t('me') : this.props.owner__username}</span>
+                <span>{isSelfOwned ? t('me') : this.props.owner__username}</span>
               }
             </bem.AssetRow__cell>
 
@@ -424,7 +409,7 @@ class AssetRow extends React.Component {
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }
-              {userCanEdit &&
+              {isSelfOwned &&
                 <bem.PopoverMenu__link
                   m={'delete'}
                   data-action={'delete'}

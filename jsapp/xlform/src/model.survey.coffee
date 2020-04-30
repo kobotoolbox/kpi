@@ -115,6 +115,10 @@ module.exports = do ->
               noDetach: true
             }
           )
+
+          # inserting a group (block from Library) doesn't trigger change event
+          # anywhere else, so we do it here manually
+          @trigger('change')
         # inserting a question
         else
           @_ensure_row_list_is_copied(row)

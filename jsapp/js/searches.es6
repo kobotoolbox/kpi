@@ -10,11 +10,11 @@ import Reflux from 'reflux';
 import $ from 'jquery';
 import SparkMD5 from 'spark-md5';
 
-import stores from './stores';
-import actions from './actions';
+import {stores} from './stores';
+import {actions} from './actions';
 import {dataInterface} from './dataInterface';
 import {assign} from './utils';
-import assetParserUtils from './assetParserUtils';
+import {parsed} from './assetParserUtils';
 
 const emptySearchState = {
   searchState: 'none',
@@ -329,7 +329,7 @@ function SearchContext(opts={}) {
   });
 
   search.completed.listen(function(searchParams, data, _opts){
-    data.results = data.results.map(assetParserUtils.parsed);
+    data.results = data.results.map(parsed);
     data.results.forEach(stores.allAssets.registerAssetOrCollection);
 
     var count = data.count;
@@ -500,7 +500,7 @@ function getSearchContext(name, opts={}) {
   return contexts[name];
 }
 
-module.exports = {
+export const searches = {
   getSearchContext: getSearchContext,
   common: commonMethods,
   isSearchContext: isSearchContext,

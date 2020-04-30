@@ -1,54 +1,75 @@
+import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
-import {dataInterface} from '../dataInterface';
-import actions from '../actions';
-import bem from '../bem';
-import stores from '../stores';
+import alertify from 'alertifyjs';
+import {actions} from '../actions';
+import {bem} from '../bem';
+import {stores} from '../stores';
 import Select from 'react-select';
 import TextBox from './textBox';
 import Checkbox from './checkbox';
+import ApiTokenDisplay from './apiTokenDisplay';
+import {hashHistory} from 'react-router';
 import ui from '../ui';
-import $ from 'jquery';
 import {
-  assign,
   t,
-  log,
   stringToColor,
 } from '../utils';
+import {ROOT_URL} from 'js/constants';
+
+const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
 export class AccountSettings extends React.Component {
   constructor(props){
     super(props);
     let state = {
+      isPristine: true,
       requireAuth: false,
       fieldsErrors: {}
-    }
+    };
     this.state = state;
     autoBind(this);
+  }
 
-    if (stores.session && stores.session.currentAccount) {
-      this.state = this.getStateFromCurrentAccount(stores.session.currentAccount);
+  rebuildState() {
+    if (
+      stores.session &&
+      stores.session.currentAccount &&
+      stores.session.environment
+    ) {
+      this.setStateFromSession(
+        stores.session.currentAccount,
+        stores.session.environment
+      );
     }
   }
 
   componentDidMount() {
-    this.listenTo(stores.session, ({currentAccount}) => {
-      if (currentAccount) {
-        this.setState(this.getStateFromCurrentAccount(currentAccount));
-      }
-    });
+    this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
+    this.listenTo(stores.session, this.rebuildState);
+    this.rebuildState();
   }
 
-  getStateFromCurrentAccount(currentAccount) {
-    if (currentAccount.extra_details == undefined) {
+  componentWillUnmount () {
+    this.unpreventClosingTab();
+  }
+
+  routerWillLeave() {
+    if (!this.state.isPristine) {
+      return UNSAVED_CHANGES_WARNING;
+    }
+  }
+
+  setStateFromSession(currentAccount, environment) {
+    if (currentAccount.extra_details === undefined) {
       currentAccount.extra_details = {};
     }
 
-    return {
+    this.setState({
       name: currentAccount.extra_details.name,
       email: currentAccount.email,
       organization: currentAccount.extra_details.organization,
@@ -67,9 +88,9 @@ export class AccountSettings extends React.Component {
       instagram: currentAccount.extra_details.instagram,
       metadata: currentAccount.extra_details.metadata,
 
-      languageChoices: stores.session.environment.all_languages,
-      countryChoices: stores.session.environment.available_countries,
-      sectorChoices: stores.session.environment.available_sectors,
+      languageChoices: environment.all_languages,
+      countryChoices: environment.available_countries,
+      sectorChoices: environment.available_sectors,
       genderChoices: [
         {
           value: 'male',
@@ -85,7 +106,40 @@ export class AccountSettings extends React.Component {
         },
       ],
       fieldsErrors: {}
-    };
+    });
+  }
+
+  /**
+   * returns to where you came from
+   */
+  safeClose() {
+    if (this.state.isPristine) {
+      hashHistory.goBack();
+    } else {
+      let dialog = alertify.dialog('confirm');
+      let opts = {
+        title: UNSAVED_CHANGES_WARNING,
+        message: '',
+        labels: {ok: t('Yes, leave settings'), cancel: t('Cancel')},
+        onok: () => {
+          this.setState({isPristine: true});
+          this.unpreventClosingTab();
+          hashHistory.goBack();
+        },
+        oncancel: dialog.destroy
+      };
+      dialog.set(opts).show();
+    }
+  }
+
+  preventClosingTab() {
+    $(window).on('beforeunload.noclosetab', () => {
+      return UNSAVED_CHANGES_WARNING;
+    });
+  }
+
+  unpreventClosingTab() {
+    $(window).off('beforeunload.noclosetab');
   }
 
   updateProfile() {
@@ -118,8 +172,12 @@ export class AccountSettings extends React.Component {
     );
   }
 
-  onUpdateComplete(data) {
-    this.setState({fieldsErrors: {}});
+  onUpdateComplete() {
+    this.unpreventClosingTab();
+    this.setState({
+      isPristine: true,
+      fieldsErrors: {}
+    });
   }
 
   onUpdateFail(data) {
@@ -129,7 +187,7 @@ export class AccountSettings extends React.Component {
   handleChange(evt, attr) {
     let val;
     if (evt && evt.target) {
-      if (evt.target.type == 'checkbox') {
+      if (evt.target.type === 'checkbox') {
         val = evt.target.checked;
       } else {
         val = evt.target.value;
@@ -138,7 +196,11 @@ export class AccountSettings extends React.Component {
       // react-select, TextBox and Checkbox just passes a value
       val = evt;
     }
-    this.setState({[attr]: val});
+    this.preventClosingTab();
+    this.setState({
+      isPristine: false,
+      [attr]: val
+    });
   }
   nameChange (e) {this.handleChange(e, 'name');}
   emailChange (e) {this.handleChange(e, 'email');}
@@ -159,7 +221,11 @@ export class AccountSettings extends React.Component {
   metadataChange (e) {this.handleChange(e, 'metadata');}
 
   render() {
-    if(!stores.session || !stores.session.currentAccount) {
+    if(
+      !stores.session ||
+      !stores.session.currentAccount ||
+      !stores.session.environment
+    ) {
       return (
         <ui.Panel>
           <bem.AccountSettings>
@@ -185,16 +251,24 @@ export class AccountSettings extends React.Component {
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
       <ui.Panel>
         <bem.AccountSettings>
-          <bem.AccountSettings__item m={'column'}>
-            <bem.AccountSettings__item m='actions'>
-              <button
-                onClick={this.updateProfile}
-                className='mdl-button mdl-button--raised mdl-button--colored'
-              >
-                {t('Save Changes')}
-              </button>
-            </bem.AccountSettings__item>
+          <bem.AccountSettings__actions>
+            <button
+              onClick={this.updateProfile}
+              className='mdl-button mdl-button--raised mdl-button--colored'
+            >
+              {t('Save Changes')}
+              {!this.state.isPristine && ' *'}
+            </button>
 
+            <button
+              onClick={this.safeClose}
+              className='account-settings-close mdl-button mdl-button--icon'
+            >
+              <i className='k-icon k-icon-close'/>
+            </button>
+          </bem.AccountSettings__actions>
+
+          <bem.AccountSettings__item m={'column'}>
             <bem.AccountSettings__item m='username'>
               <bem.AccountBox__initials style={initialsStyle}>
                 {accountName.charAt(0)}
@@ -245,6 +319,8 @@ export class AccountSettings extends React.Component {
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
+
+              <ApiTokenDisplay/>
 
               <bem.AccountSettings__item>
                 <TextBox
@@ -421,7 +497,7 @@ export class AccountSettings extends React.Component {
       </DocumentTitle>
     );
   }
-};
+}
 
 reactMixin(AccountSettings.prototype, Reflux.connect(stores.session, 'session'));
 reactMixin(AccountSettings.prototype, Reflux.ListenerMixin);
@@ -454,7 +530,7 @@ export class ChangePassword extends React.Component {
     this.validateRequired('currentPassword');
     this.validateRequired('newPassword');
     this.validateRequired('verifyPassword');
-    if (this.state.newPassword != this.state.verifyPassword) {
+    if (this.state.newPassword !== this.state.verifyPassword) {
       this.errors['newPassword'] = t('This field must match the Verify Password field.');
     }
     if (Object.keys(this.errors).length === 0) {
@@ -532,7 +608,7 @@ export class ChangePassword extends React.Component {
                 onChange={this.currentPasswordChange}
               />
 
-              <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
+              <a href={`${ROOT_URL}/accounts/password/reset/`}>
                 {t('Forgot Password?')}
               </a>
             </bem.ChangePassword__item>
@@ -557,7 +633,7 @@ export class ChangePassword extends React.Component {
               />
             </bem.ChangePassword__item>
 
-            <bem.ChangePassword__item  m='actions'>
+            <bem.ChangePassword__item m='actions'>
               <button
                 onClick={this.changePassword}
                 className='mdl-button mdl-button--raised mdl-button--colored'
@@ -570,7 +646,7 @@ export class ChangePassword extends React.Component {
       </ui.Panel>
     );
   }
-};
+}
 
 reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
 reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);

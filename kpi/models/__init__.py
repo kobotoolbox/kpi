@@ -1,13 +1,15 @@
-from kpi.models.collection import Collection, CollectionChildrenQuerySet
-from kpi.models.collection import UserCollectionSubscription
-from kpi.models.asset import Asset
-from kpi.models.asset import AssetSnapshot
-from kpi.models.asset_version import AssetVersion
-from kpi.models.asset_file import AssetFile
-from kpi.models.object_permission import ObjectPermission, ObjectPermissionMixin
-from kpi.models.import_export_task import ImportTask, ExportTask
-from kpi.models.tag_uid import TagUid
-from kpi.models.authorized_application import AuthorizedApplication
-from kpi.models.authorized_application import OneTimeAuthenticationKey
+# coding: utf-8
+from .collection import Collection, CollectionChildrenQuerySet
+from .collection import UserCollectionSubscription
+from .asset import Asset
+from .asset import AssetSnapshot
+from .asset_version import AssetVersion
+from .asset_file import AssetFile
+from .asset_user_partial_permission import AssetUserPartialPermission
+from .object_permission import ObjectPermission, ObjectPermissionMixin
+from .import_export_task import ImportTask, ExportTask
+from .tag_uid import TagUid
+from .authorized_application import AuthorizedApplication
+from .authorized_application import OneTimeAuthenticationKey
 
 import kpi.signals

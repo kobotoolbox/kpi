@@ -11,12 +11,12 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import bem from '../bem';
+import {bem} from '../bem';
 
 class Checkbox extends React.Component {
   constructor(props){
     if (typeof props.onChange !== 'function') {
-      throw new Error('onChange callback missing!')
+      throw new Error('onChange callback missing!');
     }
     super(props);
     autoBind(this);
@@ -36,6 +36,7 @@ class Checkbox extends React.Component {
             id={this.props.id}
             onChange={this.onChange}
             checked={this.props.checked}
+            disabled={this.props.disabled}
           />
 
           {this.props.label &&
@@ -45,7 +46,7 @@ class Checkbox extends React.Component {
           }
         </bem.Checkbox__wrapper>
       </bem.Checkbox>
-    )
+    );
   }
 }
 

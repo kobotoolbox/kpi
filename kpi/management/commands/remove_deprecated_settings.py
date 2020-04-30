@@ -1,7 +1,8 @@
+# coding: utf-8
 import copy
 import json
 from contextlib import contextmanager
-from optparse import make_option
+
 from django.core.management.base import BaseCommand
 
 from kpi.models import Asset
@@ -12,7 +13,7 @@ def _disable_auto_field_update(kls, field_names):
     AUTO_ATTRS = ('auto_now', 'auto_now_add')
     previous_values = {}
     for field_name in field_names:
-        field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+        field = [f for f in kls._meta.fields if f.name == field_name][0]
         for attr in AUTO_ATTRS:
             previous_values[field_name] = previous_values.get(field_name, {})
             previous_values[field_name][attr] = getattr(field, attr)
@@ -26,12 +27,13 @@ def _disable_auto_field_update(kls, field_names):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--dryrun',
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--dryrun',
             action='store_true',
             dest='dryrun',
             default=False,
-            help='Print what would be done, but do not make any changes'),
+            help='Print what would be done, but do not make any changes'
         )
 
     def handle(self, *args, **options):
@@ -61,7 +63,7 @@ class Command(BaseCommand):
                                 asset.save()
                             except Exception as err:
                                 print('Error running migration:')
-                                print(err.message)
+                                print(str(err))
                                 import pdb
                                 pdb.set_trace()
                         else:

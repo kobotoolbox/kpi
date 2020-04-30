@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-from django.db import migrations, models
+# coding: utf-8
 import jsonfield.fields
 from django.conf import settings
+from django.db import migrations, models
 
 
 def create_extrauserdetails(apps, schema_editor):
@@ -11,6 +9,7 @@ def create_extrauserdetails(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     for user in User.objects.all():
         ExtraUserDetail.objects.get_or_create(user=user)
+
 
 class Migration(migrations.Migration):
 
@@ -24,8 +23,10 @@ class Migration(migrations.Migration):
             name='ExtraUserDetail',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data', jsonfield.fields.JSONField(default={})),
-                ('user', models.OneToOneField(related_name='extra_details', to=settings.AUTH_USER_MODEL)),
+                ('data', jsonfield.fields.JSONField(default=dict)),
+                ('user', models.OneToOneField(related_name='extra_details',
+                                              to=settings.AUTH_USER_MODEL,
+                                              on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterField(

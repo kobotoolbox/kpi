@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 from django.db import models, migrations
 import jsonfield.fields
 from django.conf import settings
@@ -24,8 +22,8 @@ class Migration(migrations.Migration):
                 ('xform_id_string', models.CharField(max_length=100)),
                 ('data', jsonfield.fields.JSONField()),
                 ('uid', models.CharField(default=b'', max_length=22)),
-                ('asset', models.ForeignKey(to='kpi.Asset')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('asset', models.ForeignKey(to='kpi.Asset', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -34,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='summary',
-            field=jsonfield.fields.JSONField(default={}, null=True),
+            field=jsonfield.fields.JSONField(default=dict, null=True),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -46,7 +44,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asset',
             name='parent',
-            field=models.ForeignKey(related_name='assets', blank=True, to='kpi.Collection', null=True),
+            field=models.ForeignKey(related_name='assets', blank=True, to='kpi.Collection', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(

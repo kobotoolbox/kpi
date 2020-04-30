@@ -1,24 +1,24 @@
+# coding: utf-8
 from itertools import chain
 
-import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django.dispatch import receiver
-from mptt.models import MPTTModel, TreeForeignKey
 from mptt.managers import TreeManager
+from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
-from asset import (
+from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
+    PERM_DELETE_COLLECTION, PERM_SHARE_COLLECTION
+from kpi.fields import KpiUidField
+from .asset import (
     Asset,
     TaggableModelManager,
     KpiTaggableManager,
     TagStringMixin,
 )
-from object_permission import ObjectPermission, ObjectPermissionMixin
-from ..haystack_utils import update_object_in_search_index
-from ..fields import KpiUidField
+from .object_permission import ObjectPermission, ObjectPermissionMixin
 
 
 class CollectionManager(TreeManager, TaggableModelManager):
@@ -28,7 +28,7 @@ class CollectionManager(TreeManager, TaggableModelManager):
         if 'assets' in kwargs:
             assets = kwargs['assets']
             del kwargs['assets']
-        created = super(CollectionManager, self).create(*args, **kwargs)
+        created = super().create(*args, **kwargs)
         if assets:
             new_assets = []
             for asset in assets:
@@ -48,9 +48,10 @@ class CollectionManager(TreeManager, TaggableModelManager):
 
 class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
-    parent = TreeForeignKey(
-        'self', null=True, blank=True, related_name='children')
-    owner = models.ForeignKey('auth.User', related_name='owned_collections')
+    parent = TreeForeignKey('self', null=True, blank=True,
+                            related_name='children', on_delete=models.CASCADE)
+    owner = models.ForeignKey('auth.User', related_name='owned_collections',
+                              on_delete=models.CASCADE)
     editors_can_change_permissions = models.BooleanField(default=True)
     discoverable_when_public = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='c')
@@ -69,42 +70,32 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         permissions = (
             # change_, add_, and delete_collection are provided automatically
             # by Django
-            ('view_collection', 'Can view collection'),
-            ('share_collection',
+            (PERM_VIEW_COLLECTION, 'Can view collection'),
+            (PERM_SHARE_COLLECTION,
              "Can change this collection's sharing settings"),
         )
 
+        # Since Django 2.1, 4 permissions are added for each registered model:
+        # - add
+        # - change
+        # - delete
+        # - view
+        # See https://docs.djangoproject.com/en/2.2/topics/auth/default/#default-permissions
+        # for more detail.
+        # `view_collection` clashes with newly built-in one.
+        # The simplest way to fix this is to keep old behaviour
+        default_permissions = ('add', 'change', 'delete')
+
     # Assignable permissions that are stored in the database
-    ASSIGNABLE_PERMISSIONS = ('view_collection', 'change_collection')
+    ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
-    CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
+    CALCULATED_PERMISSIONS = (PERM_SHARE_COLLECTION, PERM_DELETE_COLLECTION)
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
-        'change_collection': ('view_collection',),
+        PERM_CHANGE_COLLECTION: (PERM_VIEW_COLLECTION,),
     }
-
-    def delete_with_deferred_indexing(self):
-        ''' Defer Haystack indexing, delete all child assets, then delete
-        myself. Should be faster than `delete()` for large collections '''
-        # Get the Haystack index for assets
-        asset_index = haystack.connections['default'].get_unified_index(
-            ).get_index(Asset)
-        # Defer signal processing and begin deletion
-        tag_pks = set()
-        with apps.get_app_config('haystack').signal_processor.defer():
-            for asset in self.assets.only('pk'):
-                # Keep track of the tags we will need to reindex
-                tag_pks.update(asset.tags.values_list('pk', flat=True))
-                # Remove the child asset itself
-                asset.delete()
-                asset_index.remove_object(asset)
-        # Update search index for affected tags
-        for tag in Tag.objects.filter(pk__in=tag_pks):
-            update_object_in_search_index(tag)
-        # Remove this collection; signals will be processed normally
-        self.delete()
 
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
@@ -115,25 +106,18 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             return None
 
     def get_mixed_children(self):
-        ''' Returns all children, both Assets and Collections '''
+        """ Returns all children, both Assets and Collections """
         return CollectionChildrenQuerySet(self)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
-@receiver(models.signals.post_delete, sender=Collection)
-def post_delete_collection(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted
-
-
-class CollectionChildrenQuerySet(object):
-    ''' A pseudo-QuerySet containing mixed-model children of a collection.
+class CollectionChildrenQuerySet:
+    """ A pseudo-QuerySet containing mixed-model children of a collection.
     Collections are always listed before assets.  Derived from
     http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
-    '''
+    """
     def __init__(self, collection):
         self.collection = collection
         self.child_collections = collection.get_children()
@@ -150,19 +134,19 @@ class CollectionChildrenQuerySet(object):
         return repr(data)
 
     def __getitem__(self, k):
-        if not isinstance(k, (slice, int, long)):
+        if not isinstance(k, (slice, int)):
             raise TypeError
         assert ((not isinstance(k, slice) and (k >= 0))
                 or (isinstance(k, slice) and (k.start is None or k.start >= 0)
                     and (k.stop is None or k.stop >= 0))), \
-                "Negative indexing is not supported."
+            "Negative indexing is not supported."
 
         qs = self._clone()
         collections = qs.child_collections
         assets = qs.child_assets
 
         if isinstance(k, slice):
-            ''' Colletions first, then Assets '''
+            """ Colletions first, then Assets """
             collections_start = 0
             assets_start = 0
             collections_count = None
@@ -255,10 +239,11 @@ class CollectionChildrenQuerySet(object):
 
 
 class UserCollectionSubscription(models.Model):
-    ''' Record a user's subscription to a publicly-discoverable collection,
-    i.e. one that has `discoverable_when_public = True` '''
-    collection = models.ForeignKey(Collection)
-    user = models.ForeignKey('auth.User')
+    """ Record a user's subscription to a publicly-discoverable collection,
+    i.e. one that has `discoverable_when_public = True` """
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
+
     class Meta:
         unique_together = ('collection', 'user')

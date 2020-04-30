@@ -1,24 +1,21 @@
-'''
+# coding: utf-8
+"""
 Created on Jun 15, 2015
 
 @author: esmail
-'''
-
-
-import unittest
+"""
 import json
+import unittest
+
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
-from ..views import (
-    COLLECTION_CLONE_FIELDS,
-)
-from .kpi_test_case import KpiTestCase
-from .test_assets import AssetsTestCase
-from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY,\
+from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.exceptions import BadAssetTypeException
+from .kpi_test_case import KpiTestCase
+from .test_assets import AssetsTestCase
 
 
 class TestCloningOrm(AssetsTestCase):
@@ -194,7 +191,6 @@ class TestCloning(KpiTestCase):
             self._clone_asset(original_asset, asset_type=ASSET_TYPE_QUESTION)
 
         self.assertRaises(BadAssetTypeException, _bad_clone)
-
 
     def _create_sample_survey_and_template(self):
         survey_settings = {

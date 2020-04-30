@@ -6,14 +6,11 @@ import RunRoutes, {routes} from './app';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
-import 'babel-polyfill'; // required to support Array.prototypes.includes in IE11
-import {Cookies} from 'react-cookie';
+import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
 import {render} from 'react-dom';
 
 require('../scss/main.scss');
-
-const cookies = new Cookies();
 
 var el = (function(){
   var $d = $('<div>', {'class': 'kpiapp'});
@@ -21,7 +18,7 @@ var el = (function(){
   return $d.get(0);
 })();
 
-window.csrftoken = cookies.get('csrftoken');
+const csrftoken = $('meta[name=csrf-token]').attr('content');
 
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
@@ -35,7 +32,7 @@ $.ajaxSetup({
     }
 });
 
-if (document.head.querySelector('meta[name=kpi-root-url]')) {
+if (document.head.querySelector('meta[name=kpi-root-path]')) {
 
   render(<RunRoutes routes={routes} />, el);
 
@@ -46,7 +43,7 @@ if (document.head.querySelector('meta[name=kpi-root-url]')) {
     });
   }
 } else {
-  console.error('no kpi-root-url meta tag set. skipping react-router init');
+  console.error('no kpi-root-path meta tag set. skipping react-router init');
 }
 
 document.addEventListener('DOMContentLoaded', (evt) => {

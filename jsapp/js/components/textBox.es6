@@ -5,24 +5,25 @@
  * - type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
  * - value <string>: required
  * - onChange <function>: required
- * - errors <string[]> or <string>
+ * - errors <string[]> or <string> or <boolean>: for visual error indication and displaying error messages
  * - label <string>
  * - placeholder <string>
  * - description <string>
+ * - readOnly <boolean>
  *
  * TODO: would be best to move it to `jsapp/js/components/generic` directory.
  */
 
 import React from 'react';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import bem from '../bem';
-import {t} from '../utils';
+import {bem} from '../bem';
+import TextareaAutosize from 'react-autosize-textarea';
 
 class TextBox extends React.Component {
   constructor(props){
     super(props);
     this.AVAILABLE_TYPES = [
+      'text-multiline',
       'text',
       'email',
       'password',
@@ -33,7 +34,22 @@ class TextBox extends React.Component {
   }
 
   onChange(evt) {
-    this.props.onChange(evt.currentTarget.value)
+    if (this.props.readOnly) {
+      return;
+    }
+    this.props.onChange(evt.currentTarget.value);
+  }
+
+  onBlur(evt) {
+    if (typeof this.props.onBlur === 'function') {
+      this.props.onBlur(evt.currentTarget.value);
+    }
+  }
+
+  onKeyPress(evt) {
+    if (typeof this.props.onKeyPress === 'function') {
+      this.props.onKeyPress(evt.key, evt);
+    }
   }
 
   render() {
@@ -45,8 +61,8 @@ class TextBox extends React.Component {
     } else if (typeof this.props.errors === 'string' && this.props.errors.length > 0) {
       errors.push(this.props.errors);
     }
-    if (errors.length > 0) {
-      modifiers.push('error')
+    if (errors.length > 0 || this.props.errors === true) {
+      modifiers.push('error');
     }
 
     let type = this.DEFAULT_TYPE;
@@ -56,6 +72,15 @@ class TextBox extends React.Component {
       throw new Error(`Unknown TextBox type: ${this.props.type}!`);
     }
 
+    const inputProps = {
+      value: this.props.value,
+      placeholder: this.props.placeholder,
+      onChange: this.onChange,
+      onBlur: this.onBlur,
+      onKeyPress: this.onKeyPress,
+      readOnly: this.props.readOnly
+    };
+
     return (
       <bem.TextBox m={modifiers}>
         {this.props.label &&
@@ -64,12 +89,18 @@ class TextBox extends React.Component {
           </bem.TextBox__label>
         }
 
-        <bem.TextBox__input
-          type={type}
-          value={this.props.value}
-          placeholder={this.props.placeholder}
-          onChange={this.onChange}
-        />
+        {this.props.type === 'text-multiline' &&
+          <TextareaAutosize
+            className='text-box__input'
+            {...inputProps}
+          />
+        }
+        {this.props.type !== 'text-multiline' &&
+          <bem.TextBox__input
+            type={type}
+            {...inputProps}
+          />
+        }
 
         {this.props.description &&
           <bem.TextBox__description>
@@ -83,7 +114,7 @@ class TextBox extends React.Component {
           </bem.TextBox__error>
         }
       </bem.TextBox>
-    )
+    );
   }
 }
 
