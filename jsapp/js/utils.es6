@@ -626,3 +626,7 @@ export function processArrayMiddleOut(array, startIndex, direction){
 
   return newArray;
 }
+
+export function getLibraryFilterCacheName() {
+  return 'kpi.library.filter-style';
+}

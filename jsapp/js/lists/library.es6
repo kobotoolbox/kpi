@@ -16,7 +16,10 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import {
   ListSearchSummary,
 } from '../components/list';
-import {t} from '../utils';
+import {
+  t,
+  getLibraryFilterCacheName
+} from '../utils';
 
 class LibrarySearchableList extends React.Component {
   constructor(props) {
@@ -47,6 +50,22 @@ class LibrarySearchableList extends React.Component {
       });
     });
   }
+  loadFilterTypeSettings() {
+    let filterTypeSettings = sessionStorage.getItem(getLibraryFilterCacheName());
+    if (filterTypeSettings) {
+      filterTypeSettings = JSON.parse(filterTypeSettings);
+      this.setState({
+        typeFilterVal: filterTypeSettings,
+        searchContext: searches.getSearchContext('library', {
+          filterParams: {assetType: filterTypeSettings.value},
+          filterTags: filterTypeSettings.value,
+        })
+      });
+    }
+  }
+  saveFilterTypeSettings(filterTypeSettings) {
+    sessionStorage.setItem(getLibraryFilterCacheName(), JSON.stringify(filterTypeSettings));
+  }
   componentDidMount () {
     this.listenTo(stores.session, ({currentAccount}) => {
       if (currentAccount) {
@@ -59,10 +78,12 @@ class LibrarySearchableList extends React.Component {
         }
       }
     });
+    this.loadFilterTypeSettings();
     this.searchDefault();
     this.queryCollections();
   }
   onTypeFilterChange(evt) {
+    this.saveFilterTypeSettings(evt);
     this.setState({
       typeFilterVal: evt,
       searchContext: searches.getSearchContext('library', {
