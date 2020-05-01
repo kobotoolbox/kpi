@@ -5,29 +5,34 @@ import {
   formatTimeDate,
   formatDate
 } from 'js/utils';
-import Checkbox from 'js/components/checkbox';
 import {bem} from 'js/bem';
 import {renderTypeIcon} from 'js/assetUtils';
-import {DISPLAY_GROUP_TYPES} from 'js/submissionUtils';
-import {QUESTION_TYPES} from 'js/constants';
+import {
+  DISPLAY_GROUP_TYPES,
+  getSubmissionDisplayData
+} from 'js/submissionUtils';
+import {
+  QUESTION_TYPES,
+  SCORE_ROW_TYPE,
+  RANK_LEVEL_TYPE
+} from 'js/constants';
 
 /**
- * @prop {DisplayGroup} displayData
- * @prop {Array<object>} choices
+ * @prop {object} asset
+ * @prop {object} submissionData
+ * @prop {number} translationIndex
+ * @prop {boolean} [showXMLNames]
  */
 class SubmissionDataTable extends React.Component {
   constructor(props){
     super(props);
     autoBind(this);
-    this.state = {
-      showXMLNames: false
-    };
   }
 
-  onShowXMLNamesChange(newValue) {
-    this.setState({showXMLNames: newValue});
-  }
-
+  /**
+   * @prop {DisplayGroup} item
+   * @prop {number} itemIndex
+   */
   renderGroup(item, itemIndex) {
     return (
       <bem.SubmissionDataTable__row
@@ -37,7 +42,7 @@ class SubmissionDataTable extends React.Component {
         {item.name !== null &&
           <bem.SubmissionDataTable__row m='group-label'>
             {item.label}
-            {this.state.showXMLNames &&
+            {this.props.showXMLNames &&
               <bem.SubmissionDataTable__XMLName>
                 {item.name}
               </bem.SubmissionDataTable__XMLName>
@@ -74,6 +79,10 @@ class SubmissionDataTable extends React.Component {
     );
   }
 
+  /**
+   * @prop {DisplayResponse} item
+   * @prop {number} itemIndex
+   */
   renderResponse(item, itemIndex) {
     return (
       <bem.SubmissionDataTable__row
@@ -86,7 +95,7 @@ class SubmissionDataTable extends React.Component {
 
         <bem.SubmissionDataTable__column m='label'>
           {item.label}
-          {this.state.showXMLNames &&
+          {this.props.showXMLNames &&
             <bem.SubmissionDataTable__XMLName>
               {item.name}
             </bem.SubmissionDataTable__XMLName>
@@ -100,6 +109,10 @@ class SubmissionDataTable extends React.Component {
     );
   }
 
+  /**
+   * @prop {string} type
+   * @prop {string|null} data
+   */
   renderResponseData(type, data) {
     if (data === null) {
       return null;
@@ -109,6 +122,8 @@ class SubmissionDataTable extends React.Component {
 
     switch (type) {
       case QUESTION_TYPES.get('select_one').id:
+      case SCORE_ROW_TYPE:
+      case RANK_LEVEL_TYPE:
         choice = this.findChoice(data);
         return (
           <bem.SubmissionDataTable__value>
@@ -145,27 +160,14 @@ class SubmissionDataTable extends React.Component {
       case QUESTION_TYPES.get('geopoint').id:
         return this.renderPointData(data);
       case QUESTION_TYPES.get('image').id:
-        break;
       case QUESTION_TYPES.get('audio').id:
-        break;
       case QUESTION_TYPES.get('video').id:
-        break;
+      case QUESTION_TYPES.get('file').id:
+        return this.renderAttachment(type, data);
       case QUESTION_TYPES.get('geotrace').id:
         return this.renderMultiplePointsData(data);
-      case QUESTION_TYPES.get('barcode').id:
-        break;
       case QUESTION_TYPES.get('geoshape').id:
         return this.renderMultiplePointsData(data);
-      case QUESTION_TYPES.get('score').id:
-        break;
-      case QUESTION_TYPES.get('kobomatrix').id:
-        break;
-      case QUESTION_TYPES.get('rank').id:
-        break;
-      case QUESTION_TYPES.get('calculate').id:
-        break;
-      case QUESTION_TYPES.get('file').id:
-        break;
       default:
         // all types not specified above just returns raw data
         return (
@@ -176,12 +178,31 @@ class SubmissionDataTable extends React.Component {
     }
   }
 
+  /**
+   * @prop {string} name
+   * @returns {object|undefined}
+   */
   findChoice(name) {
-    return this.props.choices.find((choice) => {
+    return this.props.asset.content.choices.find((choice) => {
       return choice.name === name;
     });
   }
 
+  /**
+   * @prop {string} filename
+   * @returns {object|undefined}
+   */
+  findAttachmentData(targetFilename) {
+    // Match filename with full filename in attachment list
+    // BUG: this works but is possible to find bad attachment as `includes` can match multiple
+    return this.props.submissionData._attachments.find((attachment) => {
+      return attachment.filename.endsWith(`/${targetFilename}`);
+    });
+  }
+
+  /**
+   * @prop {string} data
+   */
   renderPointData(data) {
     const parts = data.split(' ');
     return (
@@ -206,10 +227,13 @@ class SubmissionDataTable extends React.Component {
     );
   }
 
+  /**
+   * @prop {string} data
+   */
   renderMultiplePointsData(data) {
     return (data.split(';').map((pointData, pointIndex) => {
       return (
-        <bem.SubmissionDataTable__row m={['columns', 'point']}>
+        <bem.SubmissionDataTable__row m={['columns', 'point']} key={pointIndex}>
           <bem.SubmissionDataTable__column>
             P<sub>{pointIndex + 1}</sub>
           </bem.SubmissionDataTable__column>
@@ -221,16 +245,68 @@ class SubmissionDataTable extends React.Component {
     }));
   }
 
+  /**
+   * @prop {string} type
+   * @prop {string} filename
+   */
+  renderAttachment(type, filename) {
+    const attachment = this.findAttachmentData(filename);
+
+    if (type === QUESTION_TYPES.get('image').id) {
+      return (
+        <a href={attachment.download_url} target='_blank'>
+          <img src={attachment.download_small_url}/>
+        </a>
+      );
+    } else {
+      return (<a href={attachment.download_url} target='_blank'>{filename}</a>);
+    }
+  }
+
+  /**
+   * @prop {string} dataName
+   * @prop {string} label
+   */
+  renderMetaResponse(dataName, label) {
+    return (
+      <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']}>
+        <bem.SubmissionDataTable__column m='type'>
+          <i className='fa fa-cubes'/>
+        </bem.SubmissionDataTable__column>
+
+        <bem.SubmissionDataTable__column m='label'>
+          {label}
+          {this.props.showXMLNames &&
+            <bem.SubmissionDataTable__XMLName>
+              {dataName}
+            </bem.SubmissionDataTable__XMLName>
+          }
+        </bem.SubmissionDataTable__column>
+
+        <bem.SubmissionDataTable__column m='data'>
+          {this.props.submissionData[dataName]}
+        </bem.SubmissionDataTable__column>
+      </bem.SubmissionDataTable__row>
+    );
+  }
+
   render() {
+    const displayData = getSubmissionDisplayData(
+      this.props.asset.content.survey,
+      this.props.asset.content.choices,
+      this.props.translationIndex,
+      this.props.submissionData
+    );
+
     return (
       <bem.SubmissionDataTable>
-        <Checkbox
-          checked={this.state.showXMLNames}
-          onChange={this.onShowXMLNamesChange}
-          label={t('Display XML names')}
-        />
+        {this.renderGroup(displayData)}
 
-        {this.renderGroup(this.props.displayData)}
+        {this.renderMetaResponse('start', t('start'))}
+        {this.renderMetaResponse('end', t('end'))}
+        {this.renderMetaResponse('__version__', t('__version__'))}
+        {this.renderMetaResponse('meta/instanceID', t('instanceID'))}
+        {this.renderMetaResponse('_submitted_by', t('Submitted by'))}
       </bem.SubmissionDataTable>
     );
   }

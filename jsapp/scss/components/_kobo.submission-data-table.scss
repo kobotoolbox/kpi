@@ -11,6 +11,10 @@ $submission-data-table-space: 12px;
 .submission-data-table__row {
   background-color: $cool-whitegray;
 
+  &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
+    border-top: 3px solid $divider-color;
+  }
+
   &.submission-data-table__row--response,
   &.submission-data-table__row--group,
   &.submission-data-table__row--group-label {

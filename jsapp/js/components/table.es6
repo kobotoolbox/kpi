@@ -167,7 +167,6 @@ export class DataTable extends React.Component {
       'formhub/uuid',
       '_tags',
       '_geolocation',
-      '_submitted_by',
       'meta/instanceID',
       'meta/deprecatedID',
       '_validation_status'
@@ -366,6 +365,9 @@ export class DataTable extends React.Component {
         case '_submission_time':
             index = 'z91';
             break;
+        case '_submitted_by':
+            index = 'z92';
+            break;
         default:
           // set index for questions in current version of survey (including questions in groups)
           survey.map(function(x, i) {
@@ -468,7 +470,8 @@ export class DataTable extends React.Component {
       '__version__',
       '_id',
       '_uuid',
-      '_submission_time'
+      '_submission_time',
+      '_submitted_by'
     ];
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
