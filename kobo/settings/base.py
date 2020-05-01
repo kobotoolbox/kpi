@@ -349,11 +349,6 @@ else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
 
-''' Search parser configuration '''
-# Lookup to use when a search term appears by itself without a specified field
-SEARCH_DEFAULT_FIELD_LOOKUP = 'summary__icontains'
-
-
 ''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER

@@ -197,6 +197,26 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         # assigned yet and fails when it has.
         self._test_remove_perm(obj, perm_name_prefix, other_user)
 
+    def remove_perm_v2_api(self, asset, user, perm_codename):
+        # TODO: replace `remove_perm()` with this method
+
+        if not isinstance(asset, Asset):
+            raise NotImplementedError
+
+        list_url = reverse(
+            'api_v2:asset-permission-assignment-list', args=[asset.uid]
+        )
+        perm_list = self.client.get(list_url).data
+        for perm in perm_list:
+            # Is there there no simple way to resolve a URL to an object?
+            user_detail = self.client.get(perm['user']).data
+            if user_detail['username'] == user.username:
+                perm_detail = self.client.get(perm['permission']).data
+                if perm_detail['codename'] == perm_codename:
+                    break
+        response = self.client.delete(perm['url'])
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
     def assert_object_in_object_list(self, obj, user=None, password=None,
                                      in_list=True, msg=None):
         view_name = obj._meta.model_name + '-list'

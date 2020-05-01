@@ -7,7 +7,7 @@
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@a08b7626507c2ceff35b816f1e1e0845c85cce26#egg=formpack  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest  # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/ssrf-protect@755efe16694273ce66060a51e04f973dc034ca4e#egg=ssrf_protect  # via -r dependencies/pip/requirements.in
+-e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect  # via -r dependencies/pip/requirements.in
 amqp==2.5.2               # via -r dependencies/pip/requirements.in, kombu
 anyjson==0.3.3            # via -r dependencies/pip/requirements.in
 argparse==1.4.0           # via unittest2
@@ -37,7 +37,7 @@ django-extensions==2.2.5  # via -r dependencies/pip/requirements.in
 django-js-asset==1.2.2    # via django-mptt
 django-loginas==0.3.6     # via -r dependencies/pip/requirements.in
 django-markdownx==2.0.28  # via -r dependencies/pip/requirements.in
-django-markitup==3.7.0    # via -r dependencies/pip/requirements.in
+django-markitup==4.0.0    # via -r dependencies/pip/requirements.in
 django-mptt==0.10.0       # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==1.2.0  # via -r dependencies/pip/requirements.in
 django-picklefield==2.0   # via django-constance

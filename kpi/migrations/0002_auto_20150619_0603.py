@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='summary',
-            field=jsonfield.fields.JSONField(default={}, null=True),
+            field=jsonfield.fields.JSONField(default=dict, null=True),
             preserve_default=True,
         ),
         migrations.AlterField(
