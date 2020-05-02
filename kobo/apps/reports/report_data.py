@@ -31,7 +31,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     version_ids_newest_first = []
     for v in _versions:
         try:
-            fp_schema = v.to_formpack_schema()
+            fp_schema = v.to_formpack_unexpanded_schema()
         # FIXME: should FormPack validation errors have their own
         # exception class?
         except TypeError as e:
