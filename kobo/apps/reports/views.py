@@ -2,13 +2,9 @@
 from django.db.models import Count, Case, When
 from rest_framework import viewsets, mixins
 
-<<<<<<< Updated upstream
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset
-=======
 
-from kpi.models import AssetVersion, Asset
->>>>>>> Stashed changes
 from kpi.models.object_permission import get_objects_for_user, get_anonymous_user
 from .serializers import ReportsListSerializer, ReportsDetailSerializer
 
