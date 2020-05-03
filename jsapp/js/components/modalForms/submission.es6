@@ -109,7 +109,7 @@ class Submission extends React.Component {
       if (error.responseText) {
         let error_message = error.responseText;
         if (error_message === DETAIL_NOT_FOUND)
-          error_message = 'The submission could not be found. It may have been deleted. Submission ID: ' + sid;
+          error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
         this.setState({error: error_message, loading: false});
       } else if (error.statusText) {
           this.setState({error: error.statusText, loading: false});
