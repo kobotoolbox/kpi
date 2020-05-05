@@ -23,7 +23,8 @@ import {
   assign,
   validFileTypes,
   getAnonymousUserPermission,
-  anonUsername
+  anonUsername,
+  getLibraryFilterCacheName
 } from '../utils';
 
 
@@ -53,6 +54,7 @@ class LibrarySidebar extends Reflux.Component {
   }
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
+    this.setStates();
     this.searchDefault();
     this.queryCollections();
   }
@@ -63,14 +65,22 @@ class LibrarySidebar extends Reflux.Component {
     this.setState(state);
   }
   setStates() {
+    let assetType = 'asset_type:question OR asset_type:block OR asset_type:template';
+
+    let filterTypeSettings = sessionStorage.getItem(getLibraryFilterCacheName());
+    if (filterTypeSettings) {
+      filterTypeSettings = JSON.parse(filterTypeSettings);
+      assetType = filterTypeSettings.value;
+    }
+
     this.setState({
       headerFilters: 'library',
       publicCollectionsVisible: false,
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
+          assetType: assetType,
         },
-        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
+        filterTags: assetType,
       })
     });
   }

@@ -273,9 +273,6 @@ export default assign({
   },
 
   onSurveyChange: _.debounce(function () {
-    if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
-      this.preventClosingTab();
-    }
     window.parent.postMessage('form_saveneeded', '*');
     this.setState({
       asset_updated: update_states.UNSAVED_CHANGES,
@@ -637,6 +634,7 @@ export default assign({
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
+          window.parent.postMessage('form_savecomplete', '*');
           hashHistory.push(route);
         },
         oncancel: dialog.destroy
