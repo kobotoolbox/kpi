@@ -55,6 +55,10 @@ export class FormSubScreens extends React.Component {
       return (<ui.AccessDeniedMessage/>);
     }
 
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media`) {
+      return (<ui.AccessDeniedMessage/>);
+    }
+
     var iframeUrl = '';
     var report__base = '';
     var deployment__identifier = '';
