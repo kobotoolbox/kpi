@@ -46,12 +46,12 @@ export class FormSubScreens extends React.Component {
     if (!this.state.permissions)
       return false;
 
-    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !permAccess) {
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
+        !this.userCan('change_asset', this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
 
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
-        !this.userCan('change_asset', this.state)) {
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/rest` && !permAccess) {
       return (<ui.AccessDeniedMessage/>);
     }
 
