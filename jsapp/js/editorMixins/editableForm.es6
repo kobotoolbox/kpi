@@ -634,6 +634,7 @@ export default assign({
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: () => {
+          window.parent.postMessage('form_savecomplete', '*');
           hashHistory.push(route);
         },
         oncancel: dialog.destroy
