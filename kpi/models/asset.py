@@ -85,7 +85,7 @@ class TaggableModelManager(models.Manager):
         tag_string = kwargs.pop('tag_string', None)
         created = super().create(*args, **kwargs)
         if tag_string:
-            created.tag_string= tag_string
+            created.tag_string = tag_string
         return created
 
 

@@ -162,8 +162,10 @@ class AssetsListApiTests(BaseAssetTestCase):
         )
         self.assertListEqual(results, [template.uid, question.uid])
 
-        results = uids_from_search_results('🧀')
-        self.assertListEqual(results, [template.uid])
+        # TODO Uncomment the 2 lines below when
+        # https://github.com/kobotoolbox/kpi/issues/2635 is merged
+        # results = uids_from_search_results('🧀')
+        # self.assertListEqual(results, [template.uid])
 
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
