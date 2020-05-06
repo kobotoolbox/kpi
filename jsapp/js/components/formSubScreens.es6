@@ -55,7 +55,7 @@ export class FormSubScreens extends React.Component {
       return (<ui.AccessDeniedMessage/>);
     }
 
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media`) {
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !this.userIsOwner(this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
 
