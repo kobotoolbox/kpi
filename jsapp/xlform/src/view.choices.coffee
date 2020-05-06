@@ -86,7 +86,7 @@ module.exports = do ->
     render: ->
       @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
-      @p = $("<input class=\"js-cancel-select-row\">")
+      @p = $("<input placeholder=\"#{_t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\">")
       @c = $("<code><label>#{_t("XML value:")}</label> <input type=\"text\" placeholder=\"AUTOMATIC\"  class=\"js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
@@ -138,6 +138,20 @@ module.exports = do ->
       @
     keyupinput: (evt)->
       ifield = @$("input.inplace_field")
+      if evt.keyCode is 13
+        evt.preventDefault()
+
+        localListViewIndex = $('ul.ui-sortable').index($(this.el).parent())
+        localOptionView = $('ul.ui-sortable').eq(localListViewIndex).children().find('input.option-view-input')
+
+        index = localOptionView.index(document.activeElement) + 1
+
+        if index >= localOptionView.length
+          $(this.el).parent().siblings().trigger('click')
+          localOptionView = $('ul.ui-sortable').eq(localListViewIndex).children().find('input.option-view-input')
+        localOptionView.eq(index).focus()
+        localOptionView.eq(index).select()
+
       if evt.keyCode is 8 and ifield.hasClass("empty")
         ifield.blur()
 
