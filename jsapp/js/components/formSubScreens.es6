@@ -55,6 +55,7 @@ export class FormSubScreens extends React.Component {
       return (<ui.AccessDeniedMessage/>);
     }
 
+    //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
     if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !this.userIsOwner(this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
