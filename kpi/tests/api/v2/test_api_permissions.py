@@ -268,9 +268,15 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.client.login(
             username=self.admin.username, password=self.admin_password
         )
-        dest_asset_perm_url = reverse(
-            'asset-permissions', kwargs={'uid': new_asset.uid}
-        )
+        if self.URL_NAMESPACE is None:
+            dest_asset_perm_url = reverse(
+                'asset-permissions', kwargs={'uid': new_asset.uid}
+            )
+        else:
+            dest_asset_perm_url = reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': new_asset.uid}
+            )
         # TODO: check that `clone_from` can also be a URL.
         # You know, Roy Fielding and all that.
         self.client.patch(
@@ -299,9 +305,15 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.client.login(
             username=self.someuser.username, password=self.someuser_password
         )
-        dest_asset_perm_url = reverse(
-            'asset-permissions', kwargs={'uid': new_asset.uid}
-        )
+        if self.URL_NAMESPACE is None:
+            dest_asset_perm_url = reverse(
+                'asset-permissions', kwargs={'uid': new_asset.uid}
+            )
+        else:
+            dest_asset_perm_url = reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': new_asset.uid}
+            )
         self.client.patch(
             dest_asset_perm_url, data={'clone_from': self.admin_asset.uid}
         )
@@ -333,9 +345,15 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.client.login(
             username=self.someuser.username, password=self.someuser_password
         )
-        dest_asset_perm_url = reverse(
-            'asset-permissions', kwargs={'uid': new_asset.uid}
-        )
+        if self.URL_NAMESPACE is None:
+            dest_asset_perm_url = reverse(
+                'asset-permissions', kwargs={'uid': new_asset.uid}
+            )
+        else:
+            dest_asset_perm_url = reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': new_asset.uid}
+            )
         response = self.client.patch(
             dest_asset_perm_url, data={'clone_from': self.admin_asset.uid}
         )
@@ -367,9 +385,15 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.client.login(
             username=self.someuser.username, password=self.someuser_password
         )
-        dest_asset_perm_url = reverse(
-            'asset-permissions', kwargs={'uid': new_asset.uid}
-        )
+        if self.URL_NAMESPACE is None:
+            dest_asset_perm_url = reverse(
+                'asset-permissions', kwargs={'uid': new_asset.uid}
+            )
+        else:
+            dest_asset_perm_url = reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': new_asset.uid}
+            )
         response = self.client.patch(
             dest_asset_perm_url, data={'clone_from': self.admin_asset.uid}
         )
@@ -463,8 +487,8 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Test that "someuser" can't delete the collection.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url = reverse(self._get_endpoint('collection-detail'), kwargs={'uid':
-                                                       self.admin_collection.uid})
+        url = reverse(self._get_endpoint('collection-detail'),
+                      kwargs={'uid': self.admin_collection.uid})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
