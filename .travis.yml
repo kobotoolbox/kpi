@@ -60,9 +60,8 @@ install:
   - npm config set strict-ssl false && npm install --save-dev
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
-  - pip-sync dependencies/pip/requirements.txt
+  - pip-sync dependencies/pip/travis_ci.txt
   - >-
         git submodule init &&
         git submodule update --remote &&
         python manage.py compilemessages
-  - pip install coverage codacy-coverage python-coveralls pytest-cov pytest-django pytest-env

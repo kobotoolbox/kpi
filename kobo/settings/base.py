@@ -46,9 +46,8 @@ if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
     USE_X_FORWARDED_HOST = True
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if os.environ.get('CSRF_COOKIE_DOMAIN'):
-    CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
-    SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+if os.environ.get('SESSION_COOKIE_DOMAIN'):
+    SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
     SESSION_COOKIE_NAME = 'kobonaut'
 
 # "Although the setting offers little practical benefit, it's sometimes
