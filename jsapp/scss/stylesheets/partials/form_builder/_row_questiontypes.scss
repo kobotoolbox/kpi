@@ -149,3 +149,12 @@ input.row__questiontypes__new-question-name {
     }
   }
 }
+
+// Force hover through jQuery for arrow key navigation
+.questiontypelist__item-force-hover {
+  border-color: $cardInSortBorderColor;
+  color: $cardInSortBorderColor;
+  i.fa.invert {
+    background-color: $cardInSortBorderColor;
+  }
+}
