@@ -152,7 +152,26 @@ module.exports = do ->
 
       @expand_all_multioptions = () -> @$('.survey__row:not(.survey__row--deleted) .card--expandedchoices:visible').length > 0
 
+      currentLabelIndex = 0
       $(window).on "keydown", (evt)=>
+        # Shift-Up/Down label navigation
+        currentLabel = $('input.card__header-title')
+        evtobj = if window.event then event else evt
+        if (evtobj.keyCode == 40 or evtobj.keyCode == 38)
+          evtobj.preventDefault()
+          if evtobj.keyCode == 40 and evtobj.shiftKey
+              if currentLabelIndex >= currentLabel.length - 1
+                currentLabelIndex = 0
+              else
+                currentLabelIndex++
+          if evtobj.keyCode == 38 and evtobj.shiftKey
+              if currentLabelIndex == 0
+                currentLabelIndex = currentLabel.length - 1
+              else
+                currentLabelIndex--
+          currentLabel.eq(currentLabelIndex).focus()
+          currentLabel.eq(currentLabelIndex).select()
+
         @onEscapeKeydown(evt)  if evt.keyCode is 27
 
     getView: (cid)->
