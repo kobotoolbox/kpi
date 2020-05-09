@@ -171,6 +171,13 @@ module.exports = do ->
                 currentLabelIndex--
           currentLabel.eq(currentLabelIndex).focus()
           currentLabel.eq(currentLabelIndex).select()
+        # Ctrl-N to create new question next to current item
+        if evtobj.keyCode == 78 and evtobj.ctrlKey
+          evtobj.preventDefault()
+          if currentLabel.length == 0
+            $('div.js-expand-row-selector').trigger('click')
+          else
+            currentLabel.eq(currentLabelIndex).parents().eq(3).find('div.js-expand-row-selector').trigger('click')
 
         @onEscapeKeydown(evt)  if evt.keyCode is 27
 
