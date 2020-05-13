@@ -26,8 +26,8 @@ $z-modal-x: 10;
   top: 50%;
   transform: translate(-50%, -50%);
   min-width: 40%;
-  max-width: 90%;
-  max-height: 95%;
+  max-width: 99%;
+  max-height: 99%;
   overflow-x: auto;
   visibility: hidden;
 
@@ -36,9 +36,8 @@ $z-modal-x: 10;
   }
 
   &.modal--large {
-    height: 80%;
-    width: 80%;
-    max-width: 1240px;
+    height: 100%;
+    width: 100%;
 
     .modal__content {
       height: 100%;
@@ -91,15 +90,15 @@ $z-modal-x: 10;
 }
 
 .modal__header {
-  min-height: 70px;
+  min-height: 30px;
   background: $cool-blue;
   color: #FFF;
 }
 
 .modal__title {
   margin: 0px;
-  padding: 24px 30px;
-  font-size: 18px;
+  padding: 5px 10px;
+  font-size: 14px;
   line-height: 22px;
 }
 
@@ -110,8 +109,8 @@ $z-modal-x: 10;
   right: 0;
   color: inherit;
   background-color: inherit;
-  padding: 8px;
-  margin: 11px;
+  padding: 0;
+  margin: 0 11px;
   border-radius: 50%;
   font-size: 20px;
   cursor: pointer;
