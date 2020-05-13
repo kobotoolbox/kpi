@@ -100,6 +100,11 @@ module.exports = do ->
         @options.cl.options.add(@model)
         @p.val("Option #{1+@options.i}").addClass("preliminary")
 
+      @p.change ((input)->
+        nval = input.currentTarget.value
+        @saveValue(nval)
+      ).bind @
+
       @n = $('input', @c)
       @n.change ((input)->
         val = input.currentTarget.value
