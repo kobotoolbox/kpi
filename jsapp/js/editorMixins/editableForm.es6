@@ -734,10 +734,7 @@ export default assign({
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
-            <bem.FormBuilderHeader__button m={['share']} className='is-edge'>
-              {t('share')}
-            </bem.FormBuilderHeader__button>
-              
+
             {this.canNavigateToList() &&
               <bem.FormBuilderHeader__button
                 m={['back']}

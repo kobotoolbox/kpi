@@ -343,16 +343,6 @@ class LibrarySidebar extends Reflux.Component {
                       { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
                         <ui.PopoverMenu type='collectionSidebarPublic-menu'
                             triggerLabel={<i className='k-icon-more' />}>
-                          { collection.access_type !== 'subscribed' &&
-                            <bem.PopoverMenu__link
-                                m={'share'}
-                                onClick={this.sharingModal}
-                                data-collection-uid={collection.uid}
-                                >
-                              <i className='k-icon-share' />
-                              {t('Share')}
-                            </bem.PopoverMenu__link>
-                          }
 
                           { collection.access_type !== 'subscribed' &&
                             <bem.PopoverMenu__link
