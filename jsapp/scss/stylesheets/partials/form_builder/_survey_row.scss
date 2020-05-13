@@ -377,7 +377,7 @@ $nested-btn--addrow-height: 24px;
 
   // when debugging, it's helpful to mock :hover
   // &:hover, &.hover {
-  &:hover {
+  &:hover, &:focus {
     background-color: transparent;
 
     .fa {

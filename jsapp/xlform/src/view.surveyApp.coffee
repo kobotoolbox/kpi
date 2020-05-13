@@ -152,9 +152,12 @@ module.exports = do ->
 
       @expand_all_multioptions = () -> @$('.survey__row:not(.survey__row--deleted) .card--expandedchoices:visible').length > 0
 
+      # Keyboard Navigation
       currentLabelIndex = 0
+      hoverOver = false
       $(window).on "keydown", (evt)=>
-        # Shift-Up/Down label navigation
+        # TODO To be repleaced with tabindex functionality
+        ### Shift-Up/Down label navigation and Ctrl-N to create new question next to current item
         currentLabel = $('input.card__header-title')
         evtobj = if window.event then event else evt
         if (evtobj.keyCode == 40 or evtobj.keyCode == 38)
@@ -171,13 +174,30 @@ module.exports = do ->
                 currentLabelIndex--
           currentLabel.eq(currentLabelIndex).focus()
           currentLabel.eq(currentLabelIndex).select()
-        # Ctrl-N to create new question next to current item
         if evtobj.keyCode == 78 and evtobj.ctrlKey
           evtobj.preventDefault()
           if currentLabel.length == 0
             $('div.js-expand-row-selector').trigger('click')
           else
             currentLabel.eq(currentLabelIndex).parents().eq(3).find('div.js-expand-row-selector').trigger('click')
+        ###
+        focusedElement = $(':focus')
+        if evt.keyCode == 13
+          evt.preventDefault()
+          # preventDefault stops ENTER from pressing twice, need to trigger click when adding question label
+          $('div.row__questiontypes').find('button').eq(1).trigger('click')
+          focusedElement = $(':focus')
+          # ENTER should highlight add choice button first
+          if focusedElement.hasClass('editable-wrapper')
+            if hoverOver
+              focusedElement.trigger('click')
+              hoverOver = false
+            else
+              hoverOver = true
+          else if focusedElement.css('display') == 'none'
+            focusedElement.css('display', 'block')
+          else
+            focusedElement.trigger('click')
 
         @onEscapeKeydown(evt)  if evt.keyCode is 27
 
@@ -586,12 +606,21 @@ module.exports = do ->
       _notifyIfRowsOutOfOrder(@)
 
       isEmpty = true
+      lastType = ''
       @survey.forEachRow(((row)=>
           if !@features.skipLogic
             row.unset 'relevant'
           isEmpty = false
           @ensureElInView(row, @, @formEditorEl).render()
+          lastType = row.getValue('type')
         ), includeErrors: true, includeGroups: true, flat: true)
+      # If newest question has choices then hightlight the first choice
+      if lastType.includes('select_one') or lastType.includes('select_multiple')
+        newestRowIndex = @$el.children().eq(0).children().eq(0).children().length - 1
+        @$el.children().eq(0).children().eq(0).children().eq(newestRowIndex).find('input.option-view-input').eq(0).select()
+      else
+        $('.btn--addrow').eq($('.btn--addrow').length - 1).focus()
+
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)

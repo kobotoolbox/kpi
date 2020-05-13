@@ -81,6 +81,7 @@ module.exports = do ->
     className: "multioptions__option xlf-option-view xlf-option-view--depr"
     events:
       "keyup input": "keyupinput"
+      "keydown input": "keydowninput"
       "click .js-remove-option": "remove"
     initialize: (@options)->
     render: ->
@@ -138,20 +139,6 @@ module.exports = do ->
       @
     keyupinput: (evt)->
       ifield = @$("input.inplace_field")
-      if evt.keyCode is 13
-        evt.preventDefault()
-
-        localListViewIndex = $('ul.ui-sortable').index($(this.el).parent())
-        localOptionView = $('ul.ui-sortable').eq(localListViewIndex).children().find('input.option-view-input')
-
-        index = localOptionView.index(document.activeElement) + 1
-
-        if index >= localOptionView.length
-          $(this.el).parent().siblings().trigger('click')
-          localOptionView = $('ul.ui-sortable').eq(localListViewIndex).children().find('input.option-view-input')
-        localOptionView.eq(index).focus()
-        localOptionView.eq(index).select()
-
       if evt.keyCode is 8 and ifield.hasClass("empty")
         ifield.blur()
 
@@ -159,6 +146,20 @@ module.exports = do ->
         ifield.addClass("empty")
       else
         ifield.removeClass("empty")
+
+    keydowninput: (evt) ->
+      if evt.keyCode is 13
+        evt.preventDefault()
+
+        localListViewIndex = $('ul.ui-sortable').index($(this.el).parent())
+        localOptionView = $('ul.ui-sortable').eq(localListViewIndex).children().find('input.option-view-input')
+        index = localOptionView.index(document.activeElement) + 1
+
+        if index >= localOptionView.length
+          $(this.el).parent().siblings().find('div.editable-wrapper').eq(0).focus()
+
+        localOptionView.eq(index).focus()
+        localOptionView.eq(index).select()
 
     remove: ()->
       $parent = @$el.parent()

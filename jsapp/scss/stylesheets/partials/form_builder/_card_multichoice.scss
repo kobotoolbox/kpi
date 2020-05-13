@@ -75,6 +75,11 @@
     min-height: 18px;
     cursor: move;
 
+    &:focus {
+      border-color: #1daee3;
+      color: #1daee3;
+    }
+
     span {
       cursor: text;
     }
