@@ -410,9 +410,10 @@ module.exports = do ->
       hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters', 'tags', 'default']
       for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in hiddenFields
         if key is 'required'
-          @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
-            model: @model.get('required')
-          }).render().insertInDOM(@)
+          if questionType isnt 'note'
+            @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
+              model: @model.get('required')
+            }).render().insertInDOM(@)
         else
           if questionType is 'select_one_from_file'
             new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
