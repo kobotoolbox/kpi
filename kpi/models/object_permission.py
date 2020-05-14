@@ -63,7 +63,9 @@ def get_all_objects_for_user(user, klass):
     ).values_list('object_id', flat=True))
 
 
-def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
+def get_objects_for_user(
+    user, perms, klass=None, all_perms_required=True, bad_q_workaround=True
+):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -150,7 +152,7 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
     # The length of `values` here can really get out of hand, e.g. 22,000+ on
     # OCHA; see https://github.com/kobotoolbox/kpi/issues/2671
     values_len = len(values)
-    if values_len > 100:
+    if bad_q_workaround and values_len > 100:
         # It's not ideal to evaluate the queryset here, but we can't keep
         # passing around tens of thousands of IDs willy-nilly
         if queryset[:values_len].count() < values_len:

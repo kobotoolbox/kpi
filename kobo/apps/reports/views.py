@@ -28,12 +28,19 @@ class ReportsViewSet(mixins.ListModelMixin,
             PERM_VIEW_SUBMISSIONS,
             PERM_PARTIAL_SUBMISSIONS,
         ]
-        user_assets = get_objects_for_user(self.request.user,
-                                           required_permissions,
-                                           deployed_assets,
-                                           all_perms_required=False)
+        user_assets = get_objects_for_user(
+            self.request.user,
+            required_permissions,
+            deployed_assets,
+            all_perms_required=False,
+            bad_q_workaround=False,
+        )
         publicly_shared_assets = get_objects_for_user(
-            get_anonymous_user(), required_permissions, deployed_assets,
-            all_perms_required=False)
+            get_anonymous_user(),
+            required_permissions,
+            deployed_assets,
+            all_perms_required=False,
+            bad_q_workaround=False,
+        )
 
         return user_assets | publicly_shared_assets
