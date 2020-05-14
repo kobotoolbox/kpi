@@ -77,12 +77,10 @@ class RemoveBaseCommand(BaseCommand):
                     )
                 else:
                     days_ago = ''
-                print("{} items to delete{}".format(total,
-                    days_ago,
-                ))
+                self.stdout.write("{} items to delete{}".format(total, days_ago))
             except Exception as err:
-                print("{} items to delete".format(total)
                 pass
+
             return
 
         for record_id in delete_queryset.values_list("id", flat=True).iterator():
@@ -105,12 +103,12 @@ class RemoveBaseCommand(BaseCommand):
             chunks_counter += 1
 
         # Print new line
-        print("")
+        self.stdout.write("")
 
         if vacuum is True or vacuum_full is True:
             self._do_vacuum(vacuum_full)
 
-        print("Done!")
+        self.stdout.write("Done!")
 
     def _prepare_delete_queryset(self, **options):
         raise Exception("Must be implemented in child class")
@@ -118,9 +116,9 @@ class RemoveBaseCommand(BaseCommand):
     def _do_vacuum(self, full=False):
         cursor = connection.cursor()
         if full:
-            print("Vacuuming (full) table {}...".format(self._model._meta.db_table))
+            self.stdout.write("Vacuuming (full) table {}...".format(self._model._meta.db_table))
             cursor.execute("VACUUM FULL {}".format(self._model._meta.db_table))
         else:
-            print("Vacuuming table {}...".format(self._model._meta.db_table))
+            self.stdout.write("Vacuuming table {}...".format(self._model._meta.db_table))
             cursor.execute("VACUUM {}".format(self._model._meta.db_table))
         connection.commit()
