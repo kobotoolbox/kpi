@@ -146,9 +146,20 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
 
     values = user_obj_perms_queryset.values_list('object_id', flat=True)
     values = list(values)
-    objects = queryset.filter(pk__in=values)
 
-    return objects
+    # The length of `values` here can really get out of hand, e.g. 22,000+ on
+    # OCHA; see https://github.com/kobotoolbox/kpi/issues/2671
+    values_len = len(values)
+    if values_len > 100:
+        # It's not ideal to evaluate the queryset here, but we can't keep
+        # passing around tens of thousands of IDs willy-nilly
+        if queryset[:values_len].count() < values_len:
+            useful_values = set(values).intersection(
+                queryset.values_list('pk', flat=True)
+            )
+            return queryset.filter(pk__in=useful_values)
+
+    return queryset.filter(pk__in=values)
 
 
 @cache_for_request
