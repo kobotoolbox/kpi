@@ -51,6 +51,7 @@ module.exports = do ->
         i = @model.options.length
         @addEmptyOption("Option #{i+1}")
         @model.getSurvey()?.trigger('change')
+        @$el.children().eq(0).children().eq(i).find('input.option-view-input').select()
       )
 
       @$el.append(btn)
@@ -163,7 +164,6 @@ module.exports = do ->
         if index >= localOptionView.length
           $(this.el).parent().siblings().find('div.editable-wrapper').eq(0).focus()
 
-        localOptionView.eq(index).focus()
         localOptionView.eq(index).select()
 
     remove: ()->
