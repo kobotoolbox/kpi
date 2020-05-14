@@ -15,5 +15,7 @@ class ExtendedS3BotoStorage(S3BotoStorage):
         self.bucket.delete_key(self._encode_name(name))
 
         # Delete all previous versions
-        for versioned_key in self.bucket.list_versions(prefix=name):
-            self.bucket.delete_key(versioned_key.name, version_id=versioned_key.version_id)
+        # ToDo Uncomment lines below few months after first run to
+        # give users some time to notice whether their files have been deleted
+        # for versioned_key in self.bucket.list_versions(prefix=name):
+        #     self.bucket.delete_key(versioned_key.name, version_id=versioned_key.version_id)
