@@ -162,8 +162,10 @@ class AssetsListApiTests(BaseAssetTestCase):
         )
         self.assertListEqual(results, [template.uid, question.uid])
 
-        results = uids_from_search_results('🧀')
-        self.assertListEqual(results, [template.uid])
+        # TODO Uncomment the 2 lines below when
+        # https://github.com/kobotoolbox/kpi/issues/2635 is merged
+        # results = uids_from_search_results('🧀')
+        # self.assertListEqual(results, [template.uid])
 
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
@@ -607,7 +609,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         response = self.client.delete(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # TODO: test that the file itself is removed
 
     def test_editor_can_create_file(self):
@@ -628,7 +630,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         response = self.client.delete(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_viewer_can_access_file(self):
         af_uid = self.verify_asset_file(self.create_asset_file())
@@ -640,7 +642,7 @@ class AssetFileTest(BaseTestCase):
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewer_cannot_create_file(self):
         response = self.client.get(self.list_url)
@@ -689,7 +691,7 @@ class AssetFileTest(BaseTestCase):
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_anon_cannot_access_file(self):
         af_uid = self.verify_asset_file(self.create_asset_file())
@@ -698,7 +700,7 @@ class AssetFileTest(BaseTestCase):
 
         self.client.logout()
         response = self.client.get(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_files_are_filtered_by_parent_asset(self):
         af1_uid = self.verify_asset_file(self.create_asset_file())

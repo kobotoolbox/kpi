@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import re
+from urllib.parse import unquote_plus
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -31,19 +32,24 @@ class RedisHelper:
                     url_variable)
             )
 
+        if match.group('password') is None:
+            password = None
+        else:
+            password = unquote_plus(match.group('password'))
+
         redis_connection_dict = {
             'host': match.group('host'),
             'port': match.group('port'),
             'db': match.group('index') or 0,
-            'password': match.group('password')
+            'password': password
         }
         return redis_connection_dict
 
     @classmethod
     def session_config(cls, default=None):
         """
-        Parses `REDIS_SESSION_URL` environment variable to return a dict
-        for django redis session.
+        Parses `REDIS_SESSION_URL` environment variable to return a dict with
+        expected attributes for django redis session.
 
         :return: dict
         """
@@ -58,8 +64,8 @@ class RedisHelper:
     @classmethod
     def lock_config(cls, default=None):
         """
-        Parses `REDIS_LOCK_URL` environment variable to return a dict with
-        expected attributes for lock mechanism based on redis.
+        Parses `REDIS_LOCK_URL` environment variable to return a dict
+        for lock mechanism based on redis.
 
         :return: dict
         """

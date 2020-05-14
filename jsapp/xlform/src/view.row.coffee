@@ -70,7 +70,7 @@ module.exports = do ->
       @
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
-      @$label = @$('.card__header-title')
+      @$label = @$('.js-card-label')
       @$hint = @$('.card__header-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
@@ -164,7 +164,7 @@ module.exports = do ->
     render: ->
       if !@already_rendered
         @$el.html $viewTemplates.row.groupView(@model)
-        @$label = @$('.card__header-title')
+        @$label = @$('.js-card-label')
         @$rows = @$('.group__rows').eq(0)
         @$card = @$('.card')
         @$header = @$('.card__header,.group__header').eq(0)
@@ -268,7 +268,7 @@ module.exports = do ->
       @$el.html $viewTemplates.row.koboMatrixView()
       @matrix = @$('.card__kobomatrix')
       renderKobomatrix(@, @matrix)
-      @$label = @$('.card__header-title')
+      @$label = @$('.js-card-label')
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}

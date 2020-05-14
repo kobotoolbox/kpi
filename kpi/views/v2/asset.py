@@ -231,7 +231,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
             object_permissions = ObjectPermission.objects.filter(
                 content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids
+                object_id__in=asset_ids,
+                deny=False,
             ).select_related(
                 'user', 'permission'
             ).order_by(
@@ -554,16 +555,22 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         # model-level permissions, accepted_renderer won't be present.
         if hasattr(request, 'accepted_renderer'):
             # Check the class of the renderer instead of just looking at the
-            # format, because we don't want to set Content-Disposition:
-            # attachment on asset snapshot XML
-            if (isinstance(request.accepted_renderer, XlsRenderer) or
-                    isinstance(request.accepted_renderer, XFormRenderer)):
+            # format, because we don't want to set
+            # `Content-Disposition: attachment` on asset snapshot XML
+            if isinstance(request.accepted_renderer, XFormRenderer):
+                filename = '.'.join(
+                    (self.get_object().uid, request.accepted_renderer.format)
+                )
                 response[
                     'Content-Disposition'
-                ] = 'attachment; filename={}.{}'.format(
-                    self.get_object().uid,
-                    request.accepted_renderer.format
-                )
+                ] = 'attachment; filename={}'.format(filename)
+            if isinstance(request.accepted_renderer, XlsRenderer):
+                # `accepted_renderer.format` is 'xls' here for historical
+                # reasons, but what we actually serve now is xlsx (Excel 2007+)
+                filename = '.'.join((self.get_object().uid, 'xlsx'))
+                response[
+                    'Content-Disposition'
+                ] = 'attachment; filename={}'.format(filename)
 
         return super().finalize_response(
             request, response, *args, **kwargs)

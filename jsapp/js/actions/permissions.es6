@@ -113,7 +113,6 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
       permissionsActions.removeAssetPermission.completed();
     })
     .fail(() => {
-      notify(t('failed to remove permission'), 'error');
       permissionsActions.getAssetPermissions(assetUid);
       permissionsActions.removeAssetPermission.failed();
     });
@@ -132,7 +131,6 @@ permissionsActions.removeCollectionPermission.listen((uid, perm) => {
       permissionsActions.removeCollectionPermission.completed();
     })
     .fail(() => {
-      notify(t('failed to remove permission'), 'error');
       permissionsActions.getCollectionPermissions(uid);
       permissionsActions.removeCollectionPermission.failed();
     });

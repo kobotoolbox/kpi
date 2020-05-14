@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import subprocess
 from datetime import timedelta
+from urllib.parse import quote_plus
 
 import dj_database_url
 import django.conf.locale
@@ -32,16 +33,28 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
+if (
+    os.environ.get('PUBLIC_REQUEST_SCHEME', '').lower() == 'https'
+    or 'SECURE_PROXY_SSL_HEADER' in os.environ
+):
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
 if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
     USE_X_FORWARDED_HOST = True
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if os.environ.get('CSRF_COOKIE_DOMAIN'):
-    CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
-    SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+if os.environ.get('SESSION_COOKIE_DOMAIN'):
+    SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
     SESSION_COOKIE_NAME = 'kobonaut'
+
+# "Although the setting offers little practical benefit, it's sometimes
+# required by security auditors."
+# -- https://docs.djangoproject.com/en/2.2/ref/settings/#csrf-cookie-httponly
+CSRF_COOKIE_HTTPONLY = True
+# SESSION_COOKIE_HTTPONLY is more useful, but it defaults to True.
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
@@ -98,9 +111,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # TODO: Uncomment this when interoperability with dkobo is no longer
-    # needed. See https://code.djangoproject.com/ticket/21649
-    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
@@ -338,11 +348,6 @@ else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
 
-''' Search parser configuration '''
-# Lookup to use when a search term appears by itself without a specified field
-SEARCH_DEFAULT_FIELD_LOOKUP = 'summary__icontains'
-
-
 ''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
@@ -448,14 +453,6 @@ if 'KOBOCAT_URL' in os.environ:
                         'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
         }
 
-'''
-Distinct projects using Celery need their own queues. Example commands for
-RabbitMQ queue creation:
-    rabbitmqctl add_user kpi kpi
-    rabbitmqctl add_vhost kpi
-    rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
-See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
-'''
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 
 
@@ -687,10 +684,16 @@ MONGO_DATABASE = {
     'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
 }
 if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = (
-        "mongodb://%(USER)s:%(PASSWORD)s@%(HOST)s:%(PORT)s") % MONGO_DATABASE
+    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+        format(
+            user=MONGO_DATABASE['USER'],
+            password=quote_plus(MONGO_DATABASE['PASSWORD']),
+            host=MONGO_DATABASE['HOST'],
+            port=MONGO_DATABASE['PORT'],
+            db_name=MONGO_DATABASE['NAME']
+        )
 else:
-    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s" % MONGO_DATABASE
+    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
