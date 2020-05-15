@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 def _convert_sheets_to_lists(content):
     cols = OrderedDict()
-    if not content or len(content) is 0:
+    if not content or len(content) == 0:
         return [], None
     if isinstance(content[0], list):
         cols.update(OrderedDict.fromkeys(content[0]))

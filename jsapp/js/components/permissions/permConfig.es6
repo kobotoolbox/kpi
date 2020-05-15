@@ -33,6 +33,10 @@ function stateChanges(orig_obj, new_obj) {
  * @property {string[]} contradictory - A list of contradictory permissions.
  */
 
+/**
+ * NOTE: this relies on the app being initialized by calling
+ * `actions.permissions.getConfig()`, otherwise expect `verifyReady` to throw
+ */
 const permConfig = Reflux.createStore({
   init() {
     this.state = {
@@ -40,7 +44,6 @@ const permConfig = Reflux.createStore({
     };
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
-    actions.permissions.getConfig();
   },
 
   setState (change) {

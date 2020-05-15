@@ -3,8 +3,7 @@ import multiprocessing
 import os
 import subprocess
 from datetime import timedelta
-# TODO remove this import when Python2 support is dropped
-from future.utils import bytes_to_native_str as n
+from urllib.parse import quote_plus
 
 import dj_database_url
 import django.conf.locale
@@ -23,11 +22,7 @@ parent_dirname = os.path.dirname(settings_dirname)
 BASE_DIR = os.path.abspath(os.path.dirname(parent_dirname))
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-# Secret key must match that used by KoBoCAT when sharing sessions
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
 
 # Optionally treat proxied connections as secure.
@@ -38,16 +33,28 @@ if 'SECURE_PROXY_SSL_HEADER' in os.environ:
     SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
                                      os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
+if (
+    os.environ.get('PUBLIC_REQUEST_SCHEME', '').lower() == 'https'
+    or 'SECURE_PROXY_SSL_HEADER' in os.environ
+):
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
 if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
     USE_X_FORWARDED_HOST = True
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if os.environ.get('CSRF_COOKIE_DOMAIN'):
-    CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
-    SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+if os.environ.get('SESSION_COOKIE_DOMAIN'):
+    SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
     SESSION_COOKIE_NAME = 'kobonaut'
+
+# "Although the setting offers little practical benefit, it's sometimes
+# required by security auditors."
+# -- https://docs.djangoproject.com/en/2.2/ref/settings/#csrf-cookie-httponly
+CSRF_COOKIE_HTTPONLY = True
+# SESSION_COOKIE_HTTPONLY is more useful, but it defaults to True.
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
@@ -70,7 +77,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
-    'haystack',
     'private_storage',
     'kobo.apps.KpiConfig',
     'hub',
@@ -104,9 +110,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # TODO: Uncomment this when interoperability with dkobo is no longer
-    # needed. See https://code.djangoproject.com/ticket/21649
-    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
@@ -195,19 +198,14 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-kobocat_database_url = os.getenv("KC_DATABASE_URL", "sqlite:///%s/db.sqlite3" % BASE_DIR)
-
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
-    'kobocat': dj_database_url.parse(kobocat_database_url)
 }
-
-USE_SAME_DATABASE = DATABASES['default'] == DATABASES['kobocat']
+kobocat_database_url = os.getenv('KC_DATABASE_URL')
+if kobocat_database_url:
+    DATABASES['kobocat'] = dj_database_url.parse(kobocat_database_url)
 
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
-if USE_SAME_DATABASE is True:
-    DATABASE_ROUTERS = ['kpi.db_routers.SingleDatabaseRouter']
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -348,38 +346,8 @@ if 'KOBOCAT_URL' in os.environ:
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
-# Following the uWSGI mountpoint convention, this should have a leading slash
-# but no trailing slash
-DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
-if DKOBO_PREFIX.lower() == 'false':
-    DKOBO_PREFIX = False
-else:
-    DKOBO_PREFIX = '/' + DKOBO_PREFIX.strip('/')
 
-''' Haystack search settings '''
-WHOOSH_PATH = os.path.join(
-    os.environ.get('KPI_WHOOSH_DIR', os.path.dirname(__file__)),
-    'whoosh_index'
-)
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': WHOOSH_PATH,
-    },
-}
-# Listed models will be indexed in real time. TaggedItem is handled differently
-# and hard-coded into kpi.haystack_utils.SignalProcessor, so do not list it
-# here.
-HAYSTACK_SIGNAL_MODELS = (
-    # Each tuple must be (app_label, model_name)
-    ('kpi', 'Asset'),
-    ('taggit', 'Tag'),
-)
-# If this causes performance trouble, see
-# http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
-HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
-
-# Enketo settings copied from dkobo.
+''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
@@ -394,6 +362,7 @@ KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION'
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
+
 
 ''' Celery configuration '''
 # Celery 4.0 New lowercase settings.
@@ -427,13 +396,6 @@ CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
     'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
 
 CELERY_BEAT_SCHEDULE = {
-    # Failsafe search indexing: update the Haystack index twice per day to
-    # catch any stragglers that might have gotten past
-    # haystack.signals.RealtimeSignalProcessor
-    #'update-search-index': {
-    #    'task': 'kpi.tasks.update_search_index',
-    #    'schedule': timedelta(hours=12)
-    #},
     # Schedule every day at midnight UTC. Can be customized in admin section
     "send-hooks-failures-reports": {
         "task": "kobo.apps.hook.tasks.failures_reports",
@@ -468,16 +430,10 @@ if 'KOBOCAT_URL' in os.environ:
                         'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES / 2. * 60},
         }
 
-'''
-Distinct projects using Celery need their own queues. Example commands for
-RabbitMQ queue creation:
-    rabbitmqctl add_user kpi kpi
-    rabbitmqctl add_vhost kpi
-    rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
-See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
-'''
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
 
+
+''' Django Registration configuration '''
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
 REGISTRATION_AUTO_LOGIN = True
@@ -491,7 +447,8 @@ WEBPACK_LOADER = {
     }
 }
 
-# Email configuration from dkobo; expects SES
+
+''' Email configuration '''
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
                                'django.core.mail.backends.filebased.EmailBackend')
 
@@ -514,12 +471,16 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
+
+''' AWS configuration (email and storage) '''
 if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
+
+''' Storage configuration '''
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
@@ -536,8 +497,8 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
 
 
+''' Django error logging configuration '''
 # Need a default logger when sentry is not activated
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -571,7 +532,8 @@ LOGGING = {
     }
 }
 
-''' Sentry configuration '''
+
+''' Sentry (error log collection service) configuration '''
 if os.environ.get('RAVEN_DSN', False):
     import raven
     INSTALLED_APPS = INSTALLED_APPS + (
@@ -646,8 +608,8 @@ if os.environ.get('RAVEN_DSN', False):
     }
 
 
-''' Try to identify the running codebase. Based upon
-https://github.com/tblobaum/git-rev/blob/master/index.js '''
+''' Try to identify the running codebase for informational purposes '''
+# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
 GIT_REV = {}
 for git_rev_key, git_command in (
         ('short', ('git', 'rev-parse', '--short', 'HEAD')),
@@ -667,12 +629,12 @@ if GIT_REV['branch'] == 'HEAD':
 EXPOSE_GIT_REV = os.environ.get('EXPOSE_GIT_REV', '').upper() == 'TRUE'
 
 
-''' Since this project handles user creation but shares its database with
-KoBoCAT, we must handle the model-level permission assignment that would've
-been done by KoBoCAT's post_save signal handler. Here we record the content
-types of the models listed in KC's set_api_permissions_for_user(). Verify that
-this list still matches that function if you experience permission-related
-problems. See
+'''
+Since this project handles user creation, we must handle the model-level
+permission assignment that would've been done by KoBoCAT's user post_save
+signal handler. Here we record the content types of the models listed in KC's
+set_api_permissions_for_user(). Verify that this list still matches that
+function if you experience permission-related problems. See
 https://github.com/kobotoolbox/kobocat/blob/master/onadata/libs/utils/user_auth.py.
 '''
 KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
@@ -685,6 +647,12 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     ('logger', 'note'),
 ]
 
+# A flag set by unit tests to bypass KoBoCAT user syncing
+TESTING = False
+
+
+''' Auxiliary database configuration '''
+# KPI must connect to the same Mongo database as KoBoCAT
 MONGO_DATABASE = {
     'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
     'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
@@ -692,17 +660,20 @@ MONGO_DATABASE = {
     'USER': os.environ.get('KPI_MONGO_USER', ''),
     'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
 }
-
 if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-    MONGO_CONNECTION_URL = (
-        "mongodb://%(USER)s:%(PASSWORD)s@%(HOST)s:%(PORT)s") % MONGO_DATABASE
+    MONGO_CONNECTION_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
+        format(
+            user=MONGO_DATABASE['USER'],
+            password=quote_plus(MONGO_DATABASE['PASSWORD']),
+            host=MONGO_DATABASE['HOST'],
+            port=MONGO_DATABASE['PORT'],
+            db_name=MONGO_DATABASE['NAME']
+        )
 else:
-    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s" % MONGO_DATABASE
-
+    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
-
 
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")

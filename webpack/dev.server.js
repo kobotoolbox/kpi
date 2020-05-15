@@ -11,6 +11,17 @@ var publicPath = 'http://' + publicDomain + ':3000/static/compiled/';
 
 module.exports = WebpackCommon({
   mode: 'development',
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all'
+        }
+      }
+    }
+  },
   entry: {
     app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
     tests: path.resolve(__dirname, '../test/index.js')
@@ -31,6 +42,10 @@ module.exports = WebpackCommon({
   },
   plugins: [
     new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new webpack.SourceMapDevToolPlugin({
+      filename: '[file].map',
+      exclude: /vendors.*.*/
+    }),
     new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin()
   ]
