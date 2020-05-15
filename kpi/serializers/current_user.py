@@ -129,20 +129,5 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 instance.set_password(new_password)
                 instance.save()
 
-                if instance.check_password(current_password):
-                    instance.set_password(new_password)
-                    instance.save()
-                    request = self.context.get('request', False)
-                    if request:
-                        update_session_auth_hash(request, instance)
-                else:
-                    raise serializers.ValidationError({
-                        'current_password': 'Incorrect current password.'
-                    })
-        elif any((current_password, new_password)):
-            raise serializers.ValidationError(
-                'current_password and new_password must both be sent '
-                'together; one or the other cannot be sent individually.'
-            )
         return super().update(
             instance, validated_data)

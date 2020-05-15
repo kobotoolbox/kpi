@@ -102,7 +102,6 @@ class AssetsListApiTests(BaseAssetTestCase):
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
 
-<<<<<<< HEAD
     def test_filter_assets(self):
         another_user = User.objects.get(username="anotheruser")
         survey_response = self.create_asset(asset_type='survey')
@@ -147,7 +146,7 @@ class AssetsListApiTests(BaseAssetTestCase):
         url = f'{self.list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 2)
-=======
+
     def test_assets_search_query(self):
         someuser = User.objects.get(username='someuser')
         question = Asset.objects.create(
@@ -222,7 +221,6 @@ class AssetsListApiTests(BaseAssetTestCase):
 
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
->>>>>>> 2332-collection-as-asset-type
 
 
 class AssetVersionApiTests(BaseTestCase):
