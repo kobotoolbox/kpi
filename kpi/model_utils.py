@@ -19,7 +19,6 @@ importing kpi.model_utils:
 '''
 from .constants import ASSET_TYPE_COLLECTION
 from .models import Asset
-from .haystack_utils import update_object_in_search_index
 
 
 TAG_RE = r'tag:(.*)'
@@ -71,61 +70,55 @@ def _load_library_content(structure):
         name=collection_name
     )
 
-    with apps.get_app_config('haystack').signal_processor.defer():
-        for block_name, rows in grouped.items():
-            if block_name is None:
-                for (row, row_tags) in rows:
-                    scontent = copy.deepcopy(content)
-                    scontent['survey'] = [row]
-                    sa = Asset.objects.create(
-                        content=scontent,
-                        asset_type='question',
-                        owner=structure['owner'],
-                        parent=collection,
-                        update_parent_languages=False,
-                    )
-                    created_asset_pks.append(sa.pk)
-                    for tag_name in row_tags:
-                        ti = TaggedItem.objects.create(
-                            tag_id=tag_name_to_pk[tag_name],
-                            content_object=sa
-                        )
-            else:
-                block_rows = []
-                block_tags = set()
-                for (row, row_tags) in rows:
-                    for tag in row_tags:
-                        block_tags.add(tag)
-                    block_rows.append(row)
+    for block_name, rows in grouped.items():
+        if block_name is None:
+            for (row, row_tags) in rows:
                 scontent = copy.deepcopy(content)
-                scontent['survey'] = block_rows
+                scontent['survey'] = [row]
                 sa = Asset.objects.create(
                     content=scontent,
-                    asset_type='block',
-                    name=block_name,
-                    parent=collection,
+                    asset_type='question',
                     owner=structure['owner'],
+                    parent=collection,
                     update_parent_languages=False,
                 )
                 created_asset_pks.append(sa.pk)
-                for tag_name in block_tags:
+                for tag_name in row_tags:
                     ti = TaggedItem.objects.create(
                         tag_id=tag_name_to_pk[tag_name],
                         content_object=sa
                     )
-
-    # Update the search index
-    for tag_pk in tag_name_to_pk.values():
-        update_object_in_search_index(Tag.objects.get(pk=tag_pk))
-    children = []
-    for asset_pk in created_asset_pks:
-        asset = Asset.objects.get(pk=asset_pk)
-        update_object_in_search_index(asset)
-        children.append(asset)
-
-    collection.update_languages(children)
+        else:
+            block_rows = []
+            block_tags = set()
+            for (row, row_tags) in rows:
+                for tag in row_tags:
+                    block_tags.add(tag)
+                block_rows.append(row)
+            scontent = copy.deepcopy(content)
+            scontent['survey'] = block_rows
+            sa = Asset.objects.create(
+                content=scontent,
+                asset_type='block',
+                name=block_name,
+                parent=collection,
+                owner=structure['owner'],
+                update_parent_languages=False,
+            )
+            created_asset_pks.append(sa.pk)
+            for tag_name in block_tags:
+                ti = TaggedItem.objects.create(
+                    tag_id=tag_name_to_pk[tag_name],
+                    content_object=sa
+                )
 
     return collection
+
+
+def _set_auto_field_update(kls, field_name, val):
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
+    field.auto_now = val
+    field.auto_now_add = val
 
 
 def create_assets(kls, structure, **options):

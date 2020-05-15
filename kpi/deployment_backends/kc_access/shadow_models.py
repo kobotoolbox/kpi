@@ -298,7 +298,7 @@ class KobocatUserProfile(ShadowModel):
     created_by = models.ForeignKey(User, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
-    metadata = JSONField(default={}, blank=True)
+    metadata = JSONField(default=dict, blank=True)
 
 
 class KobocatToken(ShadowModel):

@@ -5,9 +5,11 @@
 
 We're open for [contributions](./CONTRIBUTING.md)!
 
-## Important notice when upgrading from `[TODO: INSERT FINAL 1DB RELEASE HERE]` or earlier
+## Important notice when upgrading from any release older than [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18)
 
-Up to and including release `[TODO: INSERT FINAL 1DB RELEASE HERE]`, this project (KPI) and [KoBoCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](`TODO: LINK`)** to migrate the (smaller) KPI tables to a new database and adjust your configuration appropriately.
+Prior to release [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18), this project (KPI) and [KoBoCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
+
+If you do not want to upgrade at this time, please use the [`shared-database-obsolete`](https://github.com/kobotoolbox/kpi/tree/shared-database-obsolete) branch instead.
 
 ## Python Dependencies
 
@@ -24,41 +26,15 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 * Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
 * To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
 
-## Searching assets
+## Searching
 
-For searches, construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:
-
-* `name`: a tokenized\* representation of the name;
-* `name__exact`: a space- and comma-escaped representation of the name, e.g. "Fun, Exciting Asset" would be indexed as "Fun--Exciting-Asset";
-* `owner__username`: a tokenized\* representation of the owner's username;
-* `owner__username__exact`: a space- and comma-escaped representation of the owner's username;
-* `parent__name`: a tokenized\* representation of the parent object's name;
-* `parent__name__exact`: a space- and comma-escaped representation of the parent object's name;
-* `parent__uid`: the UID of the parent collection; To retrieve top-level (null-parent) assets, you can use `null` (e.g. `parent__uid:null`)
-* `ancestor__uid`: a multi-value field containing the UIDs of all ancestor collections;
-* `tag`: a multi-valued field holding space- and comma-escaped representations of each tag assigned to the object;
-* `asset_type`: an escaped representation of the asset's type string; <sup>1</sup>
-* `summary__languages`: an escaped representation of languages; <sup>1</sup>
-* `settings__country__value`: an escaped representation of country values; <sup>1</sup>
-* `settings__sector__value`: an escaped representation of sector values; e.g: <sup>1</sup>
-* `text`: the search "document," which is built by [text templates](https://github.com/kobotoolbox/kpi/tree/master/kpi/templates/search/indexes/kpi).
-
-<sup>1. Several value can be searched at once by joining them with ` OR `, e.g. `q=field:value1 OR field:value2`</sup>
-
-When the `q` parameter contains a search term without a specified field, e.g. `/api/v2/assets/?q=health`, that term is matched against the search "document" (the `text` field). 
-
-## Searching tags
-
-Construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/tags/?q=asset_type:block`. Fields indexed by Whoosh are:
-
-* `name__ngram`: the tag's name decomposed into n-grams, e.g. `?q=name__ngram:cat` would match tags named "dogs/cats" and "education";
-* `asset_type`: a multi-value field containing the types (e.g. `form`, `question`, `block`) of all tagged assets;
-* `kind`: a multi-value field containing "asset" when assets are tagged, "collection" when collections are tagged, or both;
-* `text`: a tokenized\* representation of the name, which serves as the search "document" (see note below).
-
-When the `q` parameter contains a search term without a specified field, e.g. `/tags/?q=health`, that term is matched against the search "document" (the `text` field).
-
-\* Implemented by Haystack as [a Whoosh TEXT field using the StemmingAnalyzer](https://github.com/django-haystack/django-haystack/blob/ad90028a22b4274b8df1f4698dd59ac0643f03d5/haystack/backends/whoosh_backend.py#L174). Unsuitable for exact matching.
+Results from the `tags` and `api/v2/assets` endpoints can be filtered by a
+Boolean query specified in the `q` parameter. For example:
+`api/v2/assets?q=owner__username:meg AND name__icontains:quixotic` would return
+assets whose owner has the username "meg" (case sensitive) and whose name
+contains "quixotic" anywhere (case insensitive). For more details about the
+syntax, see the documentation at the top of
+[kpi/utils/query_parser/query_parser.py](./kpi/utils/query_parser/query_parser.py).
 
 ## Admin reports
 
