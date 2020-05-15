@@ -64,6 +64,8 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             asset = getattr(view, 'asset', self.context.get('asset'))
             partial_perms = asset.get_partial_perms(
                 object_permission.user_id, with_filters=True)
+            if not partial_perms:
+                return None
 
             if partial_perms:
                 hyperlinked_partial_perms = []

@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             name='ExtraUserDetail',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('data', jsonfield.fields.JSONField(default={})),
+                ('data', jsonfield.fields.JSONField(default=dict)),
                 ('user', models.OneToOneField(related_name='extra_details',
                                               to=settings.AUTH_USER_MODEL,
                                               on_delete=models.CASCADE)),
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='formbuilderpreference',
             name='preferred_builder',
-            field=models.CharField(default=b'K', max_length=1, choices=[(b'K', b'kpi'), (b'D', b'dkobo')]),
+            field=models.CharField(default='K', max_length=1, choices=[('K', 'kpi'), ('D', 'dkobo')]),
         ),
         migrations.RunPython(create_extrauserdetails),
     ]
