@@ -66,6 +66,10 @@
 
         &:focus {
             color: $black;
+            outline-color: rgb(77, 144, 254); // #4D90FE
+            outline-offset: -2px;
+            outline-style: auto;
+            outline-width: 5px;
         }
 
         // we use placeholder as error message, as empty title is not welcomed
@@ -80,6 +84,12 @@
         &::placeholder {
             color: $cool-silver;
             font-style: italic;
+        }
+        &:focus {
+            outline-color: rgb(77, 144, 254); // #4D90FE
+            outline-offset: -2px;
+            outline-style: auto;
+            outline-width: 5px;
         }
     }
     .card__header-subtitle {
