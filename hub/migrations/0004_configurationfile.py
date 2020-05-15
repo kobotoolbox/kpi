@@ -13,8 +13,8 @@ class Migration(migrations.Migration):
             name='ConfigurationFile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('slug', models.CharField(unique=True, max_length=32, choices=[(b'logo', b'logo'), (b'logo_small', b'logo_small'), (b'login_background', b'login_background')])),
-                ('content', models.FileField(upload_to=b'')),
+                ('slug', models.CharField(unique=True, max_length=32, choices=[('logo', 'logo'), ('logo_small', 'logo_small'), ('login_background', 'login_background')])),
+                ('content', models.FileField(upload_to='')),
             ],
         ),
     ]
