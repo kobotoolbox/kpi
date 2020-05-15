@@ -71,53 +71,17 @@ def _load_library_content(structure):
         name=collection_name
     )
 
-<<<<<<< HEAD
-    with apps.get_app_config('haystack').signal_processor.defer():
-        for block_name, rows in grouped.items():
-            if block_name is None:
-                for (row, row_tags) in rows:
-                    scontent = copy.deepcopy(content)
-                    scontent['survey'] = [row]
-                    sa = Asset.objects.create(
-                        content=scontent,
-                        asset_type='question',
-                        owner=structure['owner'],
-                        parent=collection,
-                        update_parent_languages=False,
-                    )
-                    created_asset_pks.append(sa.pk)
-                    for tag_name in row_tags:
-                        ti = TaggedItem.objects.create(
-                            tag_id=tag_name_to_pk[tag_name],
-                            content_object=sa
-                        )
-            else:
-                block_rows = []
-                block_tags = set()
-                for (row, row_tags) in rows:
-                    for tag in row_tags:
-                        block_tags.add(tag)
-                    block_rows.append(row)
-=======
     for block_name, rows in grouped.items():
         if block_name is None:
             for (row, row_tags) in rows:
->>>>>>> 2332-collection-as-asset-type
                 scontent = copy.deepcopy(content)
                 scontent['survey'] = [row]
                 sa = Asset.objects.create(
                     content=scontent,
-<<<<<<< HEAD
-                    asset_type='block',
-                    name=block_name,
-                    parent=collection,
-                    owner=structure['owner'],
-                    update_parent_languages=False,
-=======
                     asset_type='question',
                     owner=structure['owner'],
-                    parent=collection
->>>>>>> 2332-collection-as-asset-type
+                    parent=collection,
+                    update_parent_languages=False,
                 )
                 created_asset_pks.append(sa.pk)
                 for tag_name in row_tags:
@@ -125,19 +89,6 @@ def _load_library_content(structure):
                         tag_id=tag_name_to_pk[tag_name],
                         content_object=sa
                     )
-<<<<<<< HEAD
-
-    # Update the search index
-    for tag_pk in tag_name_to_pk.values():
-        update_object_in_search_index(Tag.objects.get(pk=tag_pk))
-    children = []
-    for asset_pk in created_asset_pks:
-        asset = Asset.objects.get(pk=asset_pk)
-        update_object_in_search_index(asset)
-        children.append(asset)
-
-    collection.update_languages(children)
-=======
         else:
             block_rows = []
             block_tags = set()
@@ -152,15 +103,15 @@ def _load_library_content(structure):
                 asset_type='block',
                 name=block_name,
                 parent=collection,
-                owner=structure['owner']
+                owner=structure['owner'],
+                update_parent_languages=False,
             )
             created_asset_pks.append(sa.pk)
             for tag_name in block_tags:
                 ti = TaggedItem.objects.create(
-                    tag_id = tag_name_to_pk[tag_name],
-                    content_object = sa
+                    tag_id=tag_name_to_pk[tag_name],
+                    content_object=sa
                 )
->>>>>>> 2332-collection-as-asset-type
 
     return collection
 

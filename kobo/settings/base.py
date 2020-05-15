@@ -677,9 +677,6 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
-<<<<<<< HEAD
 
 TESTING = False
 ENV = None
-=======
->>>>>>> 2332-collection-as-asset-type

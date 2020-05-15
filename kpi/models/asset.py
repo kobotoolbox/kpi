@@ -7,12 +7,8 @@ from collections import OrderedDict
 from io import BytesIO
 
 import six
-<<<<<<< HEAD
-import xlwt
-from django.conf import settings
-=======
 import xlsxwriter
->>>>>>> 2332-collection-as-asset-type
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType

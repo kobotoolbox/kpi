@@ -760,22 +760,13 @@ class ObjectPermissionMixin:
         ):
             # Is an anonymous user allowed to have this permission?
             fq_permission = f'{app_label}.{codename}'
-<<<<<<< HEAD
-            if deny is False and \
-                    fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
-                raise serializers.ValidationError({
-                    'permission': f'Anonymous users cannot have the permission {codename}.'
-                })
-
-=======
             if (
                 not deny
                 and fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
             ):
-                raise ValidationError(
+                raise serializers.ValidationError({
                     f'Anonymous users cannot be granted the permission {codename}.'
                 )
->>>>>>> 2332-collection-as-asset-type
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
         perm_model = Permission.objects.get(

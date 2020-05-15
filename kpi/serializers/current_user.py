@@ -126,11 +126,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         new_password = validated_data.get('new_password', False)
         if new_password:
             with transaction.atomic():
-<<<<<<< HEAD
                 instance.set_password(new_password)
                 instance.save()
 
-=======
                 if instance.check_password(current_password):
                     instance.set_password(new_password)
                     instance.save()
@@ -146,6 +144,5 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 'current_password and new_password must both be sent '
                 'together; one or the other cannot be sent individually.'
             )
->>>>>>> 2332-collection-as-asset-type
         return super().update(
             instance, validated_data)
