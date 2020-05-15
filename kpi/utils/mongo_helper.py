@@ -31,7 +31,7 @@ class MongoHelper:
         (re.compile(base64_encodestring('.').strip()), '.'),
     ]
 
-    # Match KoBoCat's variables of ParsedInstance class
+    # Match KoBoCAT's variables of ParsedInstance class
     USERFORM_ID = '_userform_id'
     DEFAULT_BATCHSIZE = 1000
 

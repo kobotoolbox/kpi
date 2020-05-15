@@ -347,7 +347,7 @@ new Set([
 
 export const NAME_MAX_LENGTH = 255;
 
-export const constants = {
+const constants = {
   ROOT_URL,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
@@ -366,3 +366,5 @@ export const constants = {
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH
 };
+
+export default constants;
