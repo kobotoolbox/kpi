@@ -83,10 +83,6 @@ class Submission extends React.Component {
           next = this.props.ids[c + 1];
         }
 
-        if (next === null) {
-          throw new Error('wtf null?');
-        }
-
         // table submissions pagination
         if (tableInfo) {
           const nextAvailable = tableInfo.resultsTotal > (tableInfo.currentPage + 1) * tableInfo.pageSize;
