@@ -63,6 +63,7 @@ class App extends React.Component {
     super(props);
     moment.locale(currentLang());
     this.state = assign({
+      isConfigReady: false,
       pageState: stores.pageState.state
     });
   }
@@ -76,9 +77,14 @@ class App extends React.Component {
       stores.pageState.hideModal();
     }
   }
-  componentDidMount() {
+  componentDidMount () {
+    this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
+
     actions.misc.getServerEnvironment();
-    permConfig.fetchAndBuildConfig();
+    actions.permissions.getConfig();
+  }
+  onGetConfigCompleted() {
+    this.setState({isConfigReady: true});
   }
   _handleShortcuts(action) {
     switch (action) {
@@ -91,6 +97,17 @@ class App extends React.Component {
     return {shortcuts: shortcutManager};
   }
   render() {
+    if (!this.state.isConfigReady) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
     var assetid = this.props.params.assetid || this.props.params.uid || null;
 
     const pageWrapperContentModifiers = [];

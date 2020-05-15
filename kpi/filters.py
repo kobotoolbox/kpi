@@ -1,20 +1,21 @@
 # coding: utf-8
 import re
 
-import haystack
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
+<<<<<<< HEAD
 from django.db.models import Count, Q
 from haystack.backends.whoosh_backend import WhooshSearchBackend
 from haystack.constants import DJANGO_CT
 from haystack.query import SearchQuerySet
 from haystack.utils import get_model_ct
+=======
+>>>>>>> 2332-collection-as-asset-type
 from rest_framework import filters
-from whoosh.qparser import QueryParser
-from whoosh.query import Term
 
+<<<<<<< HEAD
 from kpi.constants import (
     PERM_DISCOVER_ASSET,
     ASSET_STATUS_SHARED,
@@ -22,6 +23,10 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC
 )
+=======
+from kpi.constants import PERM_DISCOVER_ASSET
+from kpi.utils.query_parser import parse, ParseError
+>>>>>>> 2332-collection-as-asset-type
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
@@ -35,6 +40,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     For use with nested models of Asset.
     Restricts access to items that are owned by the current user
     """
+
     def filter_queryset(self, request, queryset, view):
         fields = {"asset__owner": request.user}
         return queryset.filter(**fields)
@@ -353,16 +359,16 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
 
 class SearchFilter(filters.BaseFilterBackend, FilteredQuerySetMixin):
     """
-    Filter objects by searching with Whoosh if the request includes a `q`
-    parameter. Another parameter, `parent`, is recognized when its value is an
-    empty string; this restricts the queryset to objects without parents.
+    If the request includes a `q` parameter specifying a Boolean search string
+    with a Whoosh-like syntax, filter the queryset accordingly using the ORM.
+    If no `q` is present, return the queryset untouched. If `q` is not
+    parseable, references a field that does not exist, or specifies an invalid
+    value for a field (e.g. text for an integer field), return an empty
+    queryset to make the problem obvious.
     """
 
-    library_collection_pattern = re.compile(
-        r'\(((?:asset_type:(?:[^ ]+)(?: OR )*)+)\) AND \(parent__uid:([^)]+)\)'
-    )
-
     def filter_queryset(self, request, queryset, view):
+<<<<<<< HEAD
 
         try:
             skipped_fields = {'status': True}
@@ -443,6 +449,22 @@ class SearchFilter(filters.BaseFilterBackend, FilteredQuerySetMixin):
             }
         filter_pks = results_pks.intersection(queryset_pks)
         return queryset.filter(pk__in=filter_pks)
+=======
+        try:
+            q = request.query_params['q']
+        except KeyError:
+            return queryset
+
+        try:
+            q_obj = parse(q)
+        except ParseError:
+            return queryset.model.objects.none()
+
+        try:
+            return queryset.filter(q_obj)
+        except (FieldError, ValueError):
+            return queryset.model.objects.none()
+>>>>>>> 2332-collection-as-asset-type
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):

@@ -19,7 +19,6 @@ importing kpi.model_utils:
 '''
 from .constants import ASSET_TYPE_COLLECTION
 from .models import Asset
-from .haystack_utils import update_object_in_search_index
 
 
 TAG_RE = r'tag:(.*)'
@@ -72,6 +71,7 @@ def _load_library_content(structure):
         name=collection_name
     )
 
+<<<<<<< HEAD
     with apps.get_app_config('haystack').signal_processor.defer():
         for block_name, rows in grouped.items():
             if block_name is None:
@@ -98,22 +98,34 @@ def _load_library_content(structure):
                     for tag in row_tags:
                         block_tags.add(tag)
                     block_rows.append(row)
+=======
+    for block_name, rows in grouped.items():
+        if block_name is None:
+            for (row, row_tags) in rows:
+>>>>>>> 2332-collection-as-asset-type
                 scontent = copy.deepcopy(content)
-                scontent['survey'] = block_rows
+                scontent['survey'] = [row]
                 sa = Asset.objects.create(
                     content=scontent,
+<<<<<<< HEAD
                     asset_type='block',
                     name=block_name,
                     parent=collection,
                     owner=structure['owner'],
                     update_parent_languages=False,
+=======
+                    asset_type='question',
+                    owner=structure['owner'],
+                    parent=collection
+>>>>>>> 2332-collection-as-asset-type
                 )
                 created_asset_pks.append(sa.pk)
-                for tag_name in block_tags:
+                for tag_name in row_tags:
                     ti = TaggedItem.objects.create(
                         tag_id=tag_name_to_pk[tag_name],
                         content_object=sa
                     )
+<<<<<<< HEAD
 
     # Update the search index
     for tag_pk in tag_name_to_pk.values():
@@ -125,8 +137,38 @@ def _load_library_content(structure):
         children.append(asset)
 
     collection.update_languages(children)
+=======
+        else:
+            block_rows = []
+            block_tags = set()
+            for (row, row_tags) in rows:
+                for tag in row_tags:
+                    block_tags.add(tag)
+                block_rows.append(row)
+            scontent = copy.deepcopy(content)
+            scontent['survey'] = block_rows
+            sa = Asset.objects.create(
+                content=scontent,
+                asset_type='block',
+                name=block_name,
+                parent=collection,
+                owner=structure['owner']
+            )
+            created_asset_pks.append(sa.pk)
+            for tag_name in block_tags:
+                ti = TaggedItem.objects.create(
+                    tag_id = tag_name_to_pk[tag_name],
+                    content_object = sa
+                )
+>>>>>>> 2332-collection-as-asset-type
 
     return collection
+
+
+def _set_auto_field_update(kls, field_name, val):
+    field = [f for f in kls._meta.fields if f.name == field_name][0]
+    field.auto_now = val
+    field.auto_now_add = val
 
 
 def create_assets(kls, structure, **options):

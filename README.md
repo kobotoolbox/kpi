@@ -5,9 +5,11 @@
 
 We're open for [contributions](./CONTRIBUTING.md)!
 
-## Important notice when upgrading from `2.019.52-final-shared-database` or earlier
+## Important notice when upgrading from any release older than [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18)
 
-Up to and including release [`2.019.52-final-shared-database`](https://github.com/kobotoolbox/kpi/releases/tag/2.019.52-final-shared-database), this project (KPI) and [KoBoCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
+Prior to release [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18), this project (KPI) and [KoBoCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
+
+If you do not want to upgrade at this time, please use the [`shared-database-obsolete`](https://github.com/kobotoolbox/kpi/tree/shared-database-obsolete) branch instead.
 
 ## Python Dependencies
 
@@ -24,6 +26,7 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 * Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
 * To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
 
+<<<<<<< HEAD
 ## Searching assets
 
 For searches, construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:
@@ -57,8 +60,17 @@ Construct a string using the [Whoosh query language](http://whoosh.readthedocs.i
 * `text`: a tokenized\* representation of the name, which serves as the search "document" (see note below).
 
 When the `q` parameter contains a search term without a specified field, e.g. `/tags/?q=health`, that term is matched against the search "document" (the `text` field).
+=======
+## Searching
+>>>>>>> 2332-collection-as-asset-type
 
-\* Implemented by Haystack as [a Whoosh TEXT field using the StemmingAnalyzer](https://github.com/django-haystack/django-haystack/blob/ad90028a22b4274b8df1f4698dd59ac0643f03d5/haystack/backends/whoosh_backend.py#L174). Unsuitable for exact matching.
+Results from the `tags` and `api/v2/assets` endpoints can be filtered by a
+Boolean query specified in the `q` parameter. For example:
+`api/v2/assets?q=owner__username:meg AND name__icontains:quixotic` would return
+assets whose owner has the username "meg" (case sensitive) and whose name
+contains "quixotic" anywhere (case insensitive). For more details about the
+syntax, see the documentation at the top of
+[kpi/utils/query_parser/query_parser.py](./kpi/utils/query_parser/query_parser.py).
 
 ## Admin reports
 

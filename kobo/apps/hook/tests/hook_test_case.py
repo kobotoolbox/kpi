@@ -4,6 +4,7 @@ import json
 import responses
 from django.conf import settings
 from django.urls import reverse
+from ipaddress import ip_address
 from rest_framework import status
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
@@ -11,6 +12,13 @@ from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
 from ..constants import HOOK_LOG_FAILED
 from ..models import HookLog, Hook
+
+
+class MockSSRFProtect(object):
+
+    @staticmethod
+    def _get_ip_address(url):
+        return ip_address('1.2.3.4')
 
 
 class HookTestCase(KpiTestCase):

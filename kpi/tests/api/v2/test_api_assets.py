@@ -102,6 +102,7 @@ class AssetsListApiTests(BaseAssetTestCase):
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
 
+<<<<<<< HEAD
     def test_filter_assets(self):
         another_user = User.objects.get(username="anotheruser")
         survey_response = self.create_asset(asset_type='survey')
@@ -146,6 +147,82 @@ class AssetsListApiTests(BaseAssetTestCase):
         url = f'{self.list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 2)
+=======
+    def test_assets_search_query(self):
+        someuser = User.objects.get(username='someuser')
+        question = Asset.objects.create(
+            owner=someuser,
+            name='question',
+            asset_type='question',
+            content={'name': 'haiku', 'type': 'text', 'label': 'i like haiku'},
+        )
+        template = Asset.objects.create(
+            owner=someuser,
+            name='template',
+            asset_type='template',
+            content={
+                'survey': [
+                    {
+                        'name': 'zeppelin',
+                        'type': 'select_one',
+                        'label': 'put on some zeppelin 🧀',
+                        'select_from_list_name': 'choicelist',
+                    }
+                ],
+                'choices': [
+                    {
+                        'name': 'cheese',
+                        'label': 'eat cheddar cheese',
+                        'list_name': 'choicelist',
+                    },
+                    {
+                        'name': 'dance',
+                        'label': 'watch me dance',
+                        'list_name': 'choicelist',
+                    },
+                ],
+            },
+        )
+        survey = Asset.objects.create(
+            owner=someuser,
+            name='survey',
+            asset_type='survey',
+            content={
+                'survey': [
+                    {
+                        'name': 'egg',
+                        'type': 'integer',
+                        'label': 'hard boiled eggs',
+                    }
+                ],
+            },
+        )
+
+        def uids_from_search_results(query):
+            return [
+                r['uid']
+                for r in self.client.get(self.list_url, data={'q': query}).data[
+                    'results'
+                ]
+            ]
+
+        results = uids_from_search_results('eggs OR zeppelin')
+        # default sort is newest first
+        self.assertListEqual(results, [survey.uid, template.uid])
+
+        results = uids_from_search_results(
+            'asset_type:question OR asset_type:template'
+        )
+        self.assertListEqual(results, [template.uid, question.uid])
+
+        # TODO Uncomment the 2 lines below when
+        # https://github.com/kobotoolbox/kpi/issues/2635 is merged
+        # results = uids_from_search_results('🧀')
+        # self.assertListEqual(results, [template.uid])
+
+        results = uids_from_search_results('pk:alrighty')
+        self.assertListEqual(results, [])
+>>>>>>> 2332-collection-as-asset-type
 
 
 class AssetVersionApiTests(BaseTestCase):
@@ -586,7 +663,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         response = self.client.delete(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # TODO: test that the file itself is removed
 
     def test_editor_can_create_file(self):
@@ -607,7 +684,7 @@ class AssetFileTest(BaseTestCase):
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         response = self.client.delete(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_viewer_can_access_file(self):
         af_uid = self.verify_asset_file(self.create_asset_file())
@@ -619,7 +696,7 @@ class AssetFileTest(BaseTestCase):
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewer_cannot_create_file(self):
         response = self.client.get(self.list_url)
@@ -668,7 +745,7 @@ class AssetFileTest(BaseTestCase):
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_anon_cannot_access_file(self):
         af_uid = self.verify_asset_file(self.create_asset_file())
@@ -677,7 +754,7 @@ class AssetFileTest(BaseTestCase):
 
         self.client.logout()
         response = self.client.get(detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_files_are_filtered_by_parent_asset(self):
         af1_uid = self.verify_asset_file(self.create_asset_file())

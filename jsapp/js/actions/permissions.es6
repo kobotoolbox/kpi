@@ -91,7 +91,6 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
       permissionsActions.removeAssetPermission.completed(assetUid);
     })
     .fail(() => {
-      notify(t('failed to remove permission'), 'error');
       permissionsActions.getAssetPermissions(assetUid);
       permissionsActions.removeAssetPermission.failed(assetUid);
     });

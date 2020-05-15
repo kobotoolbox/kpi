@@ -3,11 +3,13 @@ import permConfig from './permConfig';
 import {endpoints} from './permissionsMocks';
 import constants from 'js/constants';
 
-// bootstraping
-permConfig.onGetConfigCompleted(endpoints.permissions);
-constants.ROOT_URL = '';
-
 describe('permParser', () => {
+  beforeEach(() => {
+    // bootstraping
+    permConfig.onGetConfigCompleted(endpoints.permissions);
+    constants.ROOT_URL = '';
+  });
+
   describe('parseBackendData', () => {
     it('should hide anonymous user permissions from output by default', () => {
       // in original data there are total 7 permissions (6 of asset owner and
