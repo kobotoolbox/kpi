@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='importtask',
             name='messages',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default=dict),
             preserve_default=True,
         ),
         migrations.AlterField(

@@ -116,7 +116,10 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
 
 
 class XlsRenderer(renderers.BaseRenderer):
-    media_type = 'application/xls'
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    # Really, this should be `format = 'xlsx'`, but let's not make a breaking
+    # change to the API just to use a newer Excel format. Instead, we'll rely
+    # on `AssetViewSet.finalize_response()` to set the filename appropriately
     format = 'xls'
 
     versioned = True

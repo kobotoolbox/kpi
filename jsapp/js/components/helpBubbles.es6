@@ -412,7 +412,7 @@ export class SupportHelpBubble extends HelpBubble {
           <bem.HelpBubble__rowAnchor
             m='link'
             target='_blank'
-            href='http://support.kobotoolbox.org/'
+            href='https://support.kobotoolbox.org/'
             onClick={this.close.bind(this)}
           >
             <i className='k-icon k-icon-help-articles'/>

@@ -152,10 +152,6 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  getFilenameFromURI(url) {
-    return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0]);
-  }
-
   /*
    * handling user input
    */
@@ -499,7 +495,7 @@ class ProjectSettings extends React.Component {
                   this.setState({
                     formAsset: finalAsset,
                     // try proposing something more meaningful than "Untitled"
-                    name: this.getFilenameFromURI(importUrl),
+                    name: finalAsset.name,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
@@ -555,10 +551,9 @@ class ProjectSettings extends React.Component {
                   this.goToFormLanding();
                 } else {
                   // try proposing something more meaningful than "Untitled"
-                  const newName = files[0].name.split('.')[0];
                   this.setState({
                     formAsset: finalAsset,
-                    name: newName,
+                    name: finalAsset.name,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,

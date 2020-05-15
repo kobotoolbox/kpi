@@ -320,7 +320,7 @@ class MockDataExports(TestCase):
             '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
-        
+
     def test_csv_export_english_labels_group_sep(self):
         # Check `group_sep` by looking at the `select_multiple` question
         export_options = {
@@ -472,8 +472,9 @@ class MockDataExports(TestCase):
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        created_export_tasks = ExportTask.objects.filter(
-            user=self.user, data__source=task_data['source']
+        created_export_tasks = ExportTask._filter_by_source_kludge(
+            ExportTask.objects.filter(user=self.user),
+            task_data['source']
         )
         self.assertEqual(excess_count + 1, created_export_tasks.count())
         # Identify which exports should be kept
@@ -484,13 +485,13 @@ class MockDataExports(TestCase):
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         # Verify the cleanup
         self.assertFalse(result.storage.exists(result.name))
-        self.assertListEqual(  # assertSequenceEqual isn't working...
+        self.assertListEqual( # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
-            list(
+            list(ExportTask._filter_by_source_kludge(
                 ExportTask.objects.filter(
-                    user=self.user, data__source=task_data['source']
-                ).order_by('-date_created').values_list('pk', flat=True)
-            ),
+                    user=self.user),
+                task_data['source']
+            ).order_by('-date_created').values_list('pk', flat=True))
         )
 
     def test_log_and_mark_stuck_exports_as_errored(self):
@@ -500,9 +501,11 @@ class MockDataExports(TestCase):
         }
         self.assertEqual(
             0,
-            ExportTask.objects.filter(
-                user=self.user, data__source=task_data['source']
-            ).count(),
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).count()
         )
         # Simulate a few stuck exports
         for status in (ExportTask.CREATED, ExportTask.PROCESSING):
@@ -515,9 +518,11 @@ class MockDataExports(TestCase):
             export_task.save()
         self.assertSequenceEqual(
             [ExportTask.CREATED, ExportTask.PROCESSING],
-            ExportTask.objects.filter(
-                user=self.user, data__source=task_data['source']
-            ).order_by('pk').values_list('status', flat=True),
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).order_by('pk').values_list('status', flat=True)
         )
         # Run another export, which invokes the cleanup logic
         export_task = ExportTask()
@@ -528,9 +533,11 @@ class MockDataExports(TestCase):
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
             [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
-            ExportTask.objects.filter(
-                user=self.user, data__source=task_data['source']
-            ).order_by('pk').values_list('status', flat=True),
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).order_by('pk').values_list('status', flat=True)
         )
 
     def test_export_long_form_title(self):

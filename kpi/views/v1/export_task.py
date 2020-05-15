@@ -33,7 +33,9 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             return queryset
         if q.startswith('source:'):
             q = remove_string_prefix(q, 'source:')
-            queryset = queryset.filter(data__source=q)
+            # This is exceedingly crude... but support for querying inside
+            # JSONField not available until Django 1.9
+            queryset = queryset.filter(data__contains=q)
         elif q.startswith('uid__in:'):
             q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]

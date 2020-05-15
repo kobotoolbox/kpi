@@ -13,10 +13,10 @@ import dateutil.parser
 import pytz
 import requests
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.urls import Resolver404, resolve
 from django.db import models, transaction
+from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
@@ -85,8 +85,8 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    data = JSONBField()
-    messages = JSONBField(default=dict)
+    data = JSONField()
+    messages = JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -589,6 +589,14 @@ class ExportTask(ImportExportTask):
         # exports in excess of the per-user, per-form limit
         self.remove_excess(self.user, source_url)
 
+    @staticmethod
+    def _filter_by_source_kludge(queryset, source):
+        """
+        A disposable way to filter a queryset by source URL.
+        TODO: make `data` a `JSONBField` and use proper filtering
+        """
+        return queryset.filter(data__contains=source)
+
     @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
@@ -609,9 +617,9 @@ class ExportTask(ImportExportTask):
         oldest_allowed_timestamp = this_moment - max_allowed_export_age
         stuck_exports = cls.objects.filter(
             user=user,
-            date_created__lt=oldest_allowed_timestamp,
-            data__source=source,
+            date_created__lt=oldest_allowed_timestamp
         ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
+        stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
                 'Stuck export {}: type {}, username {}, source {}, '
@@ -636,8 +644,8 @@ class ExportTask(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        user_source_exports = cls.objects.filter(
-            user=user, data__source=source
+        user_source_exports = cls._filter_by_source_kludge(
+            cls.objects.filter(user=user), source
         ).order_by('-date_created')
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
