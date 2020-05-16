@@ -28,7 +28,6 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 
 ## Searching
 
-
 Results from the `tags` and `api/v2/assets` endpoints can be filtered by a
 Boolean query specified in the `q` parameter. For example:
 `api/v2/assets?q=owner__username:meg AND name__icontains:quixotic` would return
