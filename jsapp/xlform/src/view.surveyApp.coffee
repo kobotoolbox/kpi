@@ -605,19 +605,32 @@ module.exports = do ->
 
         if !matchingRow
           throw new Error("Matching row was not found.")
+        
+        @_deleteRow matchingRow
 
-        parent = matchingRow._parent._parent
-        matchingRow.detach()
-        # this slideUp is for add/remove row animation
-        rowEl.addClass('survey__row--deleted')
-        rowEl.slideUp 175, "swing", ()=>
-          rowEl.remove()
-          @survey.rows.remove matchingRow
-          if parent.constructor.kls == "Group" && parent.rows.length == 0
-            parent_view = @__rowViews.get(parent.cid)
-            if !parent_view
-              Raven?.captureException("parent view is not defined", matchingRow.get('name').get('value'))
-            parent_view._deleteGroup()
+    _deleteRow: (row) ->
+      $row = $("li[data-row-id='#{row.cid}']")
+      parent = row._parent._parent
+      row.detach()
+      # this slideUp is for add/remove row animation
+      $row.addClass('survey__row--deleted')
+      $row.slideUp 175, "swing", ()=>
+        $row.remove()
+        @survey.rows.remove row
+        if parent.constructor.kls == "Group" && parent.rows.length == 0
+          parent_view = @__rowViews.get(parent.cid)
+          if !parent_view
+            Raven?.captureException("parent view is not defined", row.get('name').get('value'))
+          parent_view._deleteGroup()
+
+    deleteSelectedRows: ->
+      if confirm(_t("Are you sure you want to delete these questions?") + " " +
+          _t("This action cannot be undone."))
+        @survey.trigger('change')
+      
+        rows = @selectedRows()
+        for row in rows
+          @_deleteRow row
 
     groupSelectedRows: ->
       rows = @selectedRows()
