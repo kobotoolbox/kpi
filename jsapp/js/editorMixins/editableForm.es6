@@ -302,6 +302,10 @@ export default assign({
     this.app.groupSelectedRows();
   },
 
+  deleteQuestions() {
+    this.app.deleteSelectedRows();
+  },
+
   showAll(evt) {
     evt.preventDefault();
     evt.currentTarget.blur();
@@ -790,6 +794,15 @@ export default assign({
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon-group' />
+            </bem.FormBuilderHeader__button>
+
+            <bem.FormBuilderHeader__button
+              m={['group', {groupable: groupable}]}
+              onClick={this.deleteQuestions}
+              disabled={!groupable}
+              data-tip={groupable ? t('Delete selected questions') : t('Delete questions disabled. Please select at least one question.')}
+            >
+              <i className='k-icon-trash' />
             </bem.FormBuilderHeader__button>
 
             <bem.FormBuilderHeader__button
