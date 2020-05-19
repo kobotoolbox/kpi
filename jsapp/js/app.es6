@@ -66,22 +66,26 @@ class App extends React.Component {
       pageState: stores.pageState.state
     });
   }
-  componentWillReceiveProps() {
-    // slide out drawer overlay on every page change (better mobile experience)
-    if (this.state.pageState.showFixedDrawer)
-      stores.pageState.setState({showFixedDrawer: false});
-    // hide modal on every page change
-    if (this.state.pageState.modal)
-      stores.pageState.hideModal();
-  }
   componentDidMount () {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
 
     actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
+    hashHistory.listen(this.onRouteChange.bind(this));
   }
   onGetConfigCompleted() {
     this.setState({isConfigReady: true});
+  }
+  onRouteChange() {
+    // slide out drawer overlay on every page change (better mobile experience)
+    if (this.state.pageState.showFixedDrawer) {
+      stores.pageState.setState({showFixedDrawer: false});
+    }
+
+    // hide modal on every page change
+    if (this.state.pageState.modal) {
+      stores.pageState.hideModal();
+    }
   }
   _handleShortcuts(action) {
     switch (action) {
