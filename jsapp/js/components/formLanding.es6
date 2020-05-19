@@ -11,15 +11,14 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import {
-    MODAL_TYPES,
-    DVCOUNT_LIMIT_MINIMUM
-} from '../constants';
+import {MODAL_TYPES} from '../constants';
 import {
   formatTime,
   t,
   notify
 } from '../utils';
+
+const DVCOUNT_LIMIT_MINIMUM = 20;
 
 export class FormLanding extends React.Component {
   constructor(props){

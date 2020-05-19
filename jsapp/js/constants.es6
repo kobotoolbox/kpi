@@ -347,8 +347,6 @@ new Set([
 
 export const NAME_MAX_LENGTH = 255;
 
-export const DVCOUNT_LIMIT_MINIMUM = 20;
-
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
