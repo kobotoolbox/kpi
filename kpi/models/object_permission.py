@@ -60,7 +60,13 @@ def get_all_objects_for_user(user, klass):
     ).values_list('object_id', flat=True))
 
 
-def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
+def get_objects_for_user(
+    user,
+    perms,
+    klass=None,
+    all_perms_required=True,
+    intersect_pks_threshold=100,
+):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -77,6 +83,12 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
       this parameter will be computed based on given ``params``.
     :param all_perms_required: If False, users should have at least one
       of the `perms`
+    :param intersect_pks_threshold: a kludge to deal with performance problems;
+      see https://github.com/kobotoolbox/kpi/issues/2671. In short, if the
+      number of items satisfying the permissions checks exceeds this threshold,
+      intersect the PKs of those items with the PKs from the ``klass`` queryset
+      before building an `__in` query. This EVALUATES the queryset and may
+      worsen performance; if so, set to `False` to disable.
     """
     if isinstance(perms, str):
         perms = [perms]
@@ -144,9 +156,28 @@ def get_objects_for_user(user, perms, klass=None, all_perms_required=True):
 
     values = user_obj_perms_queryset.values_list('object_id', flat=True)
     values = list(values)
-    objects = queryset.filter(pk__in=values)
 
-    return objects
+    # Maybe there are 22,000+ objects that allow anonymous acess, but we're
+    # only interested in the <200 that are part of discoverable collections;
+    # see https://github.com/kobotoolbox/kpi/issues/2671.
+    # Having to filter `ObjectPermission` and then use the resulting
+    # `object_id`s in a `pk__in` query is awful, and we'll dispense with it
+    # after `collection` becomes an `asset_type` and we ditch
+    # `GenericForeignKey` permissions
+    values_len = len(values)
+    if (
+        intersect_pks_threshold is not False
+        and values_len > intersect_pks_threshold
+    ):
+        # It's not ideal to evaluate the queryset here, but we can't keep
+        # passing around tens of thousands of IDs willy-nilly
+        if queryset[:values_len].count() < values_len:
+            useful_values = set(values).intersection(
+                queryset.values_list('pk', flat=True)
+            )
+            return queryset.filter(pk__in=useful_values)
+
+    return queryset.filter(pk__in=values)
 
 
 @cache_for_request
