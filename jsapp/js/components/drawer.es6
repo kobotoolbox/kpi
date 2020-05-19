@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
+import { Link, hashHistory } from 'react-router';
 import Select from 'react-select';
 
 import {dataInterface} from '../dataInterface';
@@ -42,6 +42,9 @@ class FormSidebar extends Reflux.Component {
     ];
     autoBind(this);
   }
+  componentDidMount() {
+    hashHistory.listen(this.onRouteChange.bind(this));
+  }
   componentWillMount() {
     this.setStates();
   }
@@ -72,7 +75,7 @@ class FormSidebar extends Reflux.Component {
       </bem.FormSidebar__wrapper>
     );
   }
-  componentWillReceiveProps() {
+  onRouteChange() {
     this.setStates();
   }
 
