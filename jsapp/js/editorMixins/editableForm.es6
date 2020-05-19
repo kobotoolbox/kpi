@@ -306,6 +306,10 @@ export default assign({
     this.app.deleteSelectedRows();
   },
 
+  duplicateQuestions() {
+    this.app.duplicateSelectedRows();
+  },
+
   showAll(evt) {
     evt.preventDefault();
     evt.currentTarget.blur();
@@ -803,6 +807,15 @@ export default assign({
               data-tip={groupable ? t('Delete selected questions') : t('Delete questions disabled. Please select at least one question.')}
             >
               <i className='k-icon-trash' />
+            </bem.FormBuilderHeader__button>
+
+            <bem.FormBuilderHeader__button
+              m={['group', {groupable: groupable}]}
+              onClick={this.duplicateQuestions}
+              disabled={!groupable}
+              data-tip={groupable ? t('Duplicate selected questions') : t('Duplicate questions disabled. Please select at least one question.')}
+            >
+              <i className='k-icon-clone' />
             </bem.FormBuilderHeader__button>
 
             <bem.FormBuilderHeader__button
