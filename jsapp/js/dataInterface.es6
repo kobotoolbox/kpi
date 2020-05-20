@@ -361,7 +361,37 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    searchAssetsWithPredefinedQuery(params, predefinedQuery) {
+    _searchAssetsWithPredefinedQuery(params, predefinedQuery) {
+      const searchData = {
+        q: predefinedQuery,
+        limit: params.pageSize || 100,
+        offset: params.page * params.pageSize || 0
+      };
+
+      if (params.searchPhrase) {
+        searchData.q += ` AND ${params.searchPhrase}`;
+      }
+
+      if (params.filterProperty && params.filterValue) {
+        searchData.q += ` AND ${params.filterProperty}:${params.filterValue}`;
+      }
+
+      if (params.ordering) {
+        searchData.ordering = params.ordering;
+      }
+
+      if (params.metadata === true) {
+        searchData.metadata = 'on';
+      }
+
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/`,
+        dataType: 'json',
+        data: searchData,
+        method: 'GET'
+      });
+    },
+    _searchMetadataWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
         q: predefinedQuery,
         limit: params.pageSize || 100,
@@ -381,21 +411,34 @@ export var dataInterface;
       }
 
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/`,
+        url: `${ROOT_URL}/api/v2/assets/metadata/`,
         dataType: 'json',
         data: searchData,
         method: 'GET'
       });
     },
     searchMyLibraryAssets(params = {}) {
-      return this.searchAssetsWithPredefinedQuery(
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        // we only want orphans (assets not inside collection)
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+      );
+    },
+    searchMyLibraryMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
         `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
       );
     },
     searchPublicCollections(params = {}) {
-      return this.searchAssetsWithPredefinedQuery(
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+      );
+    },
+    searchPublicCollectionsMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
         params,
         `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
       );
@@ -459,12 +502,12 @@ export var dataInterface;
         }
       });
     },
-    postCreateImport (contents) {
+    createImport(contents) {
       var formData = new FormData();
-      Object.keys(contents).forEach(function(key){
+      Object.keys(contents).forEach((key) => {
         formData.append(key, contents[key]);
       });
-      return $.ajax({
+      return $ajax({
         method: 'POST',
         url: `${ROOT_URL}/imports/`,
         data: formData,

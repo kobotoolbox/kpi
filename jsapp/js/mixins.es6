@@ -24,6 +24,7 @@ import {
 } from './constants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import {searches} from './searches';
 import {actions} from './actions';
 import $ from 'jquery';
 import permConfig from 'js/components/permissions/permConfig';
@@ -235,7 +236,7 @@ mixins.dmix = {
  */
 const applyImport = (params) => {
   const applyPromise = new Promise((resolve, reject) => {
-    dataInterface.postCreateImport(params).then((data) => {
+    actions.resources.createImport(params, (data) => {
       const doneCheckInterval = setInterval(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -320,16 +321,16 @@ mixins.droppable = {
     return applyPromise;
   },
 
-  _forEachDroppedFile (params = {}) {
+  _forEachDroppedFile(params = {}) {
     let router = this.context.router;
     let isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
       && router.params.assetid !== undefined
     );
-    var library = router.isActive('library');
+    var isLibrary = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
-    params = assign({library: library}, params);
+    params = assign({library: isLibrary}, params);
 
     if (params.base64Encoded) {
       stores.pageState.showModal({
@@ -340,41 +341,40 @@ mixins.droppable = {
 
     delete params.totalFiles;
 
-    if (!library && params.base64Encoded) {
+    if (!isLibrary && params.base64Encoded) {
       let destination = params.destination || this.state.url;
       if (destination) {
         params = assign({ destination: destination }, params);
       }
     }
 
-    dataInterface.postCreateImport(params).then((data) => {
-      window.setTimeout((() => {
+    actions.resources.createImport(params, (data) => {
+      // TODO get rid of this barbaric method of waiting a magic number of seconds
+      // to check if import was done - possibly while doing
+      // https://github.com/kobotoolbox/kpi/issues/476
+      window.setTimeout(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
-            if (multipleFiles) {
+            if (!isLibrary && multipleFiles) {
               this.searchDefault();
               // No message shown for multiple files when successful, to avoid overloading screen
-            } else {
-              if (!assetUid) {
-                // TODO: use a more specific error message here
-                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
-                if (params.assetUid) {
-                  hashHistory.push(`/forms/${params.assetUid}`);
-                }
-              } else {
-                if (isProjectReplaceInForm) {
-                  actions.resources.loadAsset({id: assetUid});
-                } else if (library) {
-                  this.searchDefault();
-                } else {
-                  hashHistory.push(`/forms/${assetUid}`);
-                }
-                notify(t('XLS Import completed'));
+            } else if (!assetUid) {
+              // TODO: use a more specific error message here
+              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
+              if (params.assetUid) {
+                hashHistory.push(`/forms/${params.assetUid}`);
               }
+            } else {
+              if (isProjectReplaceInForm) {
+                actions.resources.loadAsset({id: assetUid});
+              } else if (!isLibrary) {
+                hashHistory.push(`/forms/${assetUid}`);
+              }
+              notify(t('XLS Import completed'));
             }
           } else if (importData.status === 'processing') {
             // If the import task didn't complete immediately, inform the user accordingly.
@@ -399,8 +399,8 @@ mixins.droppable = {
           log('import failed', failData);
         });
         stores.pageState.hideModal();
-      }), 2500);
-    }).fail((jqxhr) => {
+      }, 2500);
+    }, (jqxhr) => {
       log('Failed to create import: ', jqxhr);
       alertify.error(t('Failed to create import.'));
     });
@@ -534,6 +534,8 @@ mixins.clickAssets = {
         }
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
+        const safeName = _.escape(name);
+
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
@@ -580,7 +582,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel} "${_.escape(name)}"`,
+          title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
           message: msg,
           labels: {
             ok: t('Delete'),
@@ -767,7 +769,7 @@ mixins.cloneAssetAsNewType = {
     const opts = {
       title: params.promptTitle,
       message: params.promptMessage,
-      value: params.sourceName,
+      value: _.escape(params.sourceName),
       labels: {ok: t('Create'), cancel: t('Cancel')},
       onok: (evt, value) => {
         // disable buttons

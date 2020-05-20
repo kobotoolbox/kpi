@@ -10,6 +10,7 @@ from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
 from private_storage.storage.files import PrivateFileSystemStorage
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset
@@ -271,15 +272,6 @@ class AssetExportTaskTest(BaseTestCase):
         self.asset.deployment.mock_submissions([submission])
         settings.CELERY_TASK_ALWAYS_EAGER = True
 
-    @staticmethod
-    def result_stored_locally(detail_response):
-        """
-        Return `True` if the result is stored locally, or `False` if it's
-        housed externally (e.g. on Amazon S3)
-        """
-        export_task = ExportTask.objects.get(uid=detail_response.data['uid'])
-        return isinstance(export_task.result.storage, PrivateFileSystemStorage)
-
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')
         asset_url = reverse('asset-detail', args=[self.asset.uid])
@@ -296,13 +288,8 @@ class AssetExportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.data['status'], 'complete')
         self.assertEqual(detail_response.data['messages'], {})
         # Get the result file
-        if self.result_stored_locally(detail_response):
-            result_response = self.client.get(detail_response.data['result'])
-            result_content = result_response.getvalue().decode('utf-8')
-        else:
-            result_response = requests.get(detail_response.data['result'])
-            result_response.encoding = 'utf-8'
-            result_content = result_response.text
+        result_response = self.client.get(detail_response.data['result'])
+        result_content = result_response.getvalue().decode('utf-8')
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
             '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_index"\r\n',
@@ -318,22 +305,30 @@ class AssetExportTaskTest(BaseTestCase):
         self.client.login(username='otheruser', password='otheruser')
         response = self.client.get(detail_response.data['url'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        if self.result_stored_locally(detail_response):
-            # This check only makes sense for locally-stored results, since S3
-            # uses query parameters in the URL for access control
-            response = self.client.get(detail_response.data['result'])
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(detail_response.data['result'])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_anon_cannot_access_export(self):
         detail_response = self.test_owner_can_create_export()
         self.client.logout()
         response = self.client.get(detail_response.data['url'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        if self.result_stored_locally(detail_response):
-            # This check only makes sense for locally-stored results, since S3
-            # uses query parameters in the URL for access control
-            response = self.client.get(detail_response.data['result'])
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(detail_response.data['result'])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_with_token_auth_can_access_export(self):
+        detail_response = self.test_owner_can_create_export()
+        self.client.logout()
+        self.client.credentials(
+            HTTP_AUTHORIZATION='Token {}'.format(
+                Token.objects.get_or_create(user=self.user)[0].key
+            )
+        )
+        response = self.client.get(detail_response.data['url'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Get the result file
+        result_response = self.client.get(detail_response.data['result'])
+        self.assertEqual(result_response.status_code, status.HTTP_200_OK)
 
 
 class AssetFileTest(test_api_assets.AssetFileTest):

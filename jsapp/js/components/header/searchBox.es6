@@ -32,7 +32,7 @@ export default class SearchBox extends React.Component {
   }
 
   onInputChange(evt) {
-    const newVal = evt.target.value.trim();
+    const newVal = evt.target.value;
     // set `inpuVal` immediately, but update store after some time
     // to avoid unnecessary updates while typing
     this.setState({inputVal: newVal});
@@ -46,7 +46,7 @@ export default class SearchBox extends React.Component {
   }
 
   setSearchPhrase(searchPhrase) {
-    searchBoxStore.setSearchPhrase(searchPhrase);
+    searchBoxStore.setSearchPhrase(searchPhrase.trim());
   }
 
   clear() {

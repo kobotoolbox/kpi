@@ -249,75 +249,6 @@ ListExpandToggle.defaultProps = {
 reactMixin(ListExpandToggle.prototype, searches.common);
 reactMixin(ListExpandToggle.prototype, Reflux.ListenerMixin);
 
-export class ListSearchSummary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-    autoBind(this);
-  }
-  componentDidMount () {
-    this.listenTo(this.searchStore, this.searchChanged);
-  }
-  searchChanged (state) {
-    this.setState(state);
-  }
-  render () {
-    var messages = [];
-    var modifier;
-    var s = this.state;
-
-    if (s.searchFor && s.searchFor.tags && s.searchFor.tags.length > 0) {
-      var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
-    }
-    if (s.searchState === 'loading') {
-      if (s.searchFor) {
-        if (s.searchFor.string) {
-          messages.push(t('searching for "___"').replace('___', s.searchFor.string));
-        }
-        if (tagString) {
-          messages.push(t('tagged with [___]').replace('___', tagString));
-        }
-      }
-      modifier = 'loading';
-    } else if (s.searchResultsDisplayed) {
-      if (s.searchFor) {
-        if (s.searchFor.string) {
-          messages.push(t('searched for "___"').replace('___', s.searchFor.string));
-        }
-        if (tagString) {
-          messages.push(t('tagged with [___]').replace('___', tagString));
-        }
-      }
-      messages.push(t('found ## results').replace('##', s.searchResultsCount));
-      modifier = 'done';
-    } else {
-      if (s.defaultQueryState === 'loading') {
-        modifier = 'loading';
-      } else if (s.defaultQueryState === 'done') {
-        var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
-        messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
-        modifier = 'done';
-      }
-    }
-
-    return (
-      <bem.Search__summary m={modifier}>
-        {messages.map(function(message, i){
-          return <div key={`prop-${i}`}>{message}</div>;
-        })}
-      </bem.Search__summary>
-    );
-  }
-};
-
-ListSearchSummary.defaultProps = {
-  assetDescriptor: 'item',
-  assetDescriptorPlural: 'items',
-};
-
-reactMixin(ListSearchSummary.prototype, searches.common);
-reactMixin(ListSearchSummary.prototype, Reflux.ListenerMixin);
-
 export class ListSearchDebug extends React.Component {
   constructor(props) {
     super(props);
@@ -367,7 +298,6 @@ export const list = {
   // List: List,
   ListSearch: ListSearch,
   ListSearchDebug: ListSearchDebug,
-  ListSearchSummary: ListSearchSummary,
   ListTagFilter: ListTagFilter,
   ListCollectionFilter: ListCollectionFilter,
   ListExpandToggle: ListExpandToggle,

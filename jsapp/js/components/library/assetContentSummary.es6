@@ -59,7 +59,7 @@ class AssetContentSummary extends React.Component {
     }
 
     let items = getFlatQuestionsList(this.props.asset.content.survey);
-    const isExpandable = items.length > DISPLAY_LIMIT
+    const isExpandable = items.length > DISPLAY_LIMIT;
 
     if (isExpandable && !this.state.isExpanded) {
       items = items.slice(0, DISPLAY_LIMIT);

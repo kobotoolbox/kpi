@@ -113,7 +113,7 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
     TagUid.objects.get_or_create(tag=instance)
 
 
-@receiver([post_save, post_delete], sender=Hook)
+@receiver(post_save, sender=Hook)
 def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     """
     Updates `kc.XForm` instance as soon as Asset.Hook list is updated.
@@ -128,3 +128,11 @@ def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
+
+    # Update parent's languages if this object is a child of another asset.
+    try:
+        if instance.parent:
+            instance.parent.update_languages()
+    except Asset.DoesNotExist:  # `parent` may exists in DJANGO models cache but not in DB
+        pass
+

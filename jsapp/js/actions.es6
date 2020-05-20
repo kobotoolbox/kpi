@@ -17,7 +17,6 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import {
-  log,
   t,
   notify,
   replaceSupportEmail,
@@ -40,142 +39,37 @@ actions.navigation = Reflux.createActions([
 ]);
 
 actions.auth = Reflux.createActions({
-  verifyLogin: {
-    children: [
-      'loggedin',
-      'anonymous',
-      'failed'
-    ]
-  },
-  logout: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  changePassword: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getEnvironment: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getApiToken: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
+  verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
+  logout: {children: ['completed', 'failed']},
+  changePassword: {children: ['completed', 'failed']},
+  getEnvironment: {children: ['completed', 'failed']},
+  getApiToken: {children: ['completed', 'failed']},
 });
 
 actions.survey = Reflux.createActions({
-  addExternalItemAtPosition: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  }
+  addExternalItemAtPosition: {children: ['completed', 'failed']}
 });
 
 actions.search = Reflux.createActions({
-  assets: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  }
+  assets: {children: ['completed', 'failed']}
 });
 
 actions.resources = Reflux.createActions({
-  createImport: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  deployAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  setDeploymentActive: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createSnapshot: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  cloneAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  deleteAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  listTags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAssetSubResource: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAssetContent: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createResource: {
-    asyncResult: true
-  },
-  updateAsset: {
-    asyncResult: true
-  },
-  updateSubmissionValidationStatus: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
-  removeSubmissionValidationStatus: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
-  getAssetFiles: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
+  createImport: {children: ['completed', 'failed']},
+  loadAsset: {children: ['completed', 'failed']},
+  deployAsset: {children: ['completed', 'failed']},
+  setDeploymentActive: {children: ['completed', 'failed']},
+  createSnapshot: {children: ['completed', 'failed']},
+  cloneAsset: {children: ['completed', 'failed']},
+  deleteAsset: {children: ['completed', 'failed']},
+  listTags: {children: ['completed', 'failed']},
+  loadAssetSubResource: {children: ['completed', 'failed']},
+  loadAssetContent: {children: ['completed', 'failed']},
+  createResource: {asyncResult: true},
+  updateAsset: {asyncResult: true},
+  updateSubmissionValidationStatus: {children: ['completed', 'failed']},
+  removeSubmissionValidationStatus: {children: ['completed', 'failed']},
+  getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
 });
 
@@ -190,31 +84,10 @@ actions.hooks = Reflux.createActions({
 });
 
 actions.misc = Reflux.createActions({
-  getUser: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  checkUsername: {
-    asyncResult: true,
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  updateProfile: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getServerEnvironment: {
-    children: [
-      'completed',
-      'failed',
-    ]
-  },
+  getUser: {children: ['completed', 'failed']},
+  checkUsername: {asyncResult: true, children: ['completed', 'failed']},
+  updateProfile: {children: ['completed', 'failed']},
+  getServerEnvironment: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -291,27 +164,16 @@ actions.misc.getServerEnvironment.listen(function(){
     .fail(actions.misc.getServerEnvironment.failed);
 });
 
-actions.resources.createImport.listen(function(contents){
-  if (contents.base64Encoded) {
-    dataInterface.postCreateImport(contents)
-      .done(actions.resources.createImport.completed)
-      .fail(actions.resources.createImport.failed);
-  } else if (contents.content) {
-    dataInterface.createResource(contents);
-  }
-});
-
-actions.resources.createImport.completed.listen(function(contents){
-  if (contents.status) {
-    if(contents.status === 'processing') {
-      notify(t('successfully uploaded file; processing may take a few minutes'));
-      log('processing import ' + contents.uid, contents);
-    } else {
-      notify(t('unexpected import status ##STATUS##').replace('##STATUS##', contents.status), 'error');
-    }
-  } else {
-    notify(t('Error: import.status not available'));
-  }
+actions.resources.createImport.listen((params, onCompleted, onFailed) => {
+  dataInterface.createImport(params)
+    .done((response) => {
+      actions.resources.createImport.completed(response);
+      if (typeof onCompleted === 'function') {onCompleted(response);}
+    })
+    .fail((response) => {
+      actions.resources.createImport.failed(response);
+      if (typeof onFailed === 'function') {onFailed(response);}
+    });
 });
 
 actions.resources.createSnapshot.listen(function(details){
@@ -335,7 +197,7 @@ actions.resources.listTags.completed.listen(function(results){
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
-      actions.resources.updateAsset.completed(asset, uid, values);
+      actions.resources.updateAsset.completed(asset);
       if (typeof params.onComplete === 'function') {
         params.onComplete(asset, uid, values);
       }
@@ -441,16 +303,20 @@ actions.reports = Reflux.createActions({
 });
 
 actions.reports.setStyle.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_styles: JSON.stringify(details),
-  }).done(actions.reports.setStyle.completed)
+  dataInterface.patchAsset(assetId, {report_styles: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setStyle.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setStyle.failed);
 });
 
 actions.reports.setCustom.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_custom: JSON.stringify(details),
-  }).done(actions.reports.setCustom.completed)
+  dataInterface.patchAsset(assetId, {report_custom: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setCustom.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setCustom.failed);
 });
 
@@ -464,26 +330,34 @@ actions.table = Reflux.createActions({
 });
 
 actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {
-    settings: JSON.stringify(settings),
-  }).done(actions.table.updateSettings.completed)
+  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+    .done((asset) => {
+      actions.table.updateSettings.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.table.updateSettings.failed);
 });
 
 
 actions.map = Reflux.createActions({
-  setMapSettings: {
-    children: ['completed', 'failed']
+  setMapStyles: {
+    children: ['started', 'completed', 'failed']
   }
 });
 
-actions.map.setMapSettings.listen(function(assetId, details) {
-  dataInterface
-    .patchAsset(assetId, {
-      map_styles: JSON.stringify(details)
+/**
+ * Note: `started` callback returns parameters with wich the action was called
+ * @param {string} assetUid
+ * @param {object} mapStyles
+ */
+actions.map.setMapStyles.listen(function(assetUid, mapStyles) {
+  dataInterface.patchAsset(assetUid, {map_styles: JSON.stringify(mapStyles)})
+    .done((asset) => {
+      actions.map.setMapStyles.completed(asset);
+      actions.resources.updateAsset.completed(asset);
     })
-    .done(actions.map.setMapSettings.completed)
-    .fail(actions.map.setMapSettings.failed);
+    .fail(actions.map.setMapStyles.failed);
+  actions.map.setMapStyles.started(assetUid, mapStyles);
 });
 
 

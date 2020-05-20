@@ -38,6 +38,7 @@ const publicCollectionsStore = Reflux.createStore({
     actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
     actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
     actions.library.searchPublicCollections.failed.listen(this.onSearchFailed);
+    actions.library.searchPublicCollectionsMetadata.completed.listen(this.onSearchMetadataCompleted);
     actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted);
     actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
@@ -47,7 +48,7 @@ const publicCollectionsStore = Reflux.createStore({
     actions.resources.createResource.completed.listen(this.onAssetCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
-    this.fetchData();
+    this.fetchData(true);
   },
 
   setDefaultColumns() {
@@ -59,26 +60,44 @@ const publicCollectionsStore = Reflux.createStore({
 
   // methods for handling search and data fetch
 
-  fetchData() {
-    if (this.abortFetchData) {
-      this.abortFetchData();
-    }
-
+  /**
+   * @return {object} search params shared by all searches
+   */
+  getSearchParams() {
     const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage,
+      page: this.data.currentPage
     };
-
-    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
-    params.ordering = `${direction}${orderColumn.orderBy}`;
 
     if (this.data.filterColumnId !== null) {
       const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
       params.filterProperty = filterColumn.filterBy;
       params.filterValue = this.data.filterValue;
     }
+
+    return params;
+  },
+
+  fetchMetadata() {
+    actions.library.searchPublicCollectionsMetadata(this.getSearchParams());
+  },
+
+  /**
+   * @param {boolean} needsMetadata
+   */
+  fetchData(needsMetadata = false) {
+    if (this.abortFetchData) {
+      this.abortFetchData();
+    }
+
+    const params = this.getSearchParams();
+
+    params.metadata = needsMetadata;
+
+    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
+    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+    params.ordering = `${direction}${orderColumn.orderBy}`;
 
     actions.library.searchPublicCollections(params);
   },
@@ -91,7 +110,7 @@ const publicCollectionsStore = Reflux.createStore({
       data.pathname.split('/')[1] === 'library'
     ) {
       this.setDefaultColumns();
-      this.fetchData();
+      this.fetchData(true);
     }
     this.previousPath = data.pathname;
   },
@@ -101,7 +120,7 @@ const publicCollectionsStore = Reflux.createStore({
     this.data.currentPage = 0;
     this.data.totalPages = null;
     this.data.totalSearchAssets = null;
-    this.fetchData();
+    this.fetchData(true);
   },
 
   onSearchStarted(abort) {
@@ -112,11 +131,12 @@ const publicCollectionsStore = Reflux.createStore({
 
   onSearchCompleted(response) {
     delete this.abortFetchData;
-
     this.data.totalPages = Math.ceil(response.count / this.PAGE_SIZE);
-
     this.data.assets = response.results;
-    this.data.metadata = response.metadata;
+    // if we didn't fetch metadata, we assume it didn't change so leave current one
+    if (response.metadata) {
+      this.data.metadata = response.metadata;
+    }
     this.data.totalSearchAssets = response.count;
     this.data.isFetchingData = false;
     this.trigger(this.data);
@@ -125,6 +145,11 @@ const publicCollectionsStore = Reflux.createStore({
   onSearchFailed() {
     delete this.abortFetchData;
     this.data.isFetchingData = false;
+    this.trigger(this.data);
+  },
+
+  onSearchMetadataCompleted(response) {
+    this.data.metadata = response;
     this.trigger(this.data);
   },
 
@@ -160,7 +185,7 @@ const publicCollectionsStore = Reflux.createStore({
       asset.asset_type === ASSET_TYPES.collection.id &&
       assetUtils.isAssetPublic(asset.permissions)
     ) {
-      this.fetchData();
+      this.fetchData(true);
     }
   },
 
@@ -180,6 +205,7 @@ const publicCollectionsStore = Reflux.createStore({
       }
       if (wasUpdated) {
         this.trigger(this.data);
+        this.fetchMetadata();
       }
     }
   },
@@ -189,7 +215,7 @@ const publicCollectionsStore = Reflux.createStore({
       asset.asset_type === ASSET_TYPES.collection.id &&
       assetUtils.isAssetPublic(asset.permissions)
     ) {
-      this.fetchData();
+      this.fetchData(true);
     }
   },
 
@@ -197,7 +223,7 @@ const publicCollectionsStore = Reflux.createStore({
     if (assetType === ASSET_TYPES.collection.id) {
       const found = this.data.assets.find((asset) => {return asset.uid === uid;});
       if (found) {
-        this.fetchData();
+        this.fetchData(true);
       }
       // if not found it is possible it is on other page of results, but it is
       // not important enough to do a data fetch
@@ -237,13 +263,13 @@ const publicCollectionsStore = Reflux.createStore({
     ) {
       this.data.filterColumnId = filterColumnId;
       this.data.filterValue = filterValue;
-      this.fetchData();
+      this.fetchData(true);
     }
   },
 
   resetOrderAndFilter() {
     this.setDefaultColumns();
-    this.fetchData();
+    this.fetchData(true);
   },
 
   hasAllDefaultValues() {

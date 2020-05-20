@@ -1,12 +1,13 @@
 # coding: utf-8
 # 😬
 import copy
+import json
 import sys
 from collections import OrderedDict
 from io import BytesIO
 
 import six
-import xlwt
+import xlsxwriter
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.fields import GenericRelation
@@ -14,7 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef, Prefetch
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
@@ -82,17 +83,39 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
-        created = super().create(*args, **kwargs)
+        # created = super().create(*args, **kwargs)
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
+        created = self.model(**kwargs)
+        self._for_write = True
+        created.save(force_insert=True, using=self.db,
+                     update_parent_languages=update_parent_languages)
+
         if tag_string:
-            created.tag_string= tag_string
+            created.tag_string = tag_string
         if children_to_create:
             new_assets = []
             for asset in children_to_create:
                 asset['parent'] = created
-                new_assets.append(Asset.objects.create(**asset))
+                new_assets.append(Asset.objects.create(
+                    update_parent_languages=False, **asset))
             # bulk_create comes with a number of caveats
             # Asset.objects.bulk_create(new_assets)
+            created.update_languages(new_assets)
         return created
+
+    def deployed(self):
+        """
+        Filter for deployed assets (i.e. assets having at least one deployed
+        version) in an efficient way that doesn't involve joining or counting.
+        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        """
+        deployed_versions = AssetVersion.objects.filter(
+            asset=OuterRef('pk'), deployed=True
+        )
+        return self.annotate(deployed=Exists(deployed_versions)).filter(
+            deployed=True
+        )
 
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
@@ -419,22 +442,23 @@ class XlsExportable:
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
             ss_dict = self.ordered_xlsform_content(**kwargs)
-            workbook = xlwt.Workbook()
-            for sheet_name, contents in ss_dict.items():
-                cur_sheet = workbook.add_sheet(sheet_name)
-                _add_contents_to_sheet(cur_sheet, contents)
+            output = BytesIO()
+            with xlsxwriter.Workbook(output) as workbook:
+                for sheet_name, contents in ss_dict.items():
+                    cur_sheet = workbook.add_worksheet(sheet_name)
+                    _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
             six.reraise(
-                Exception,
-                "asset.content improperly formatted for XLS "
-                "export: %s" % repr(e),
-                sys.exc_info()[2]
+                type(e),
+                type(e)(
+                    "asset.content improperly formatted for XLS "
+                    "export: %s" % repr(e)
+                ),
+                sys.exc_info()[2],
             )
 
-        obj = BytesIO()
-        workbook.save(obj)
-        obj.seek(0)
-        return obj
+        output.seek(0)
+        return output
 
 
 class Asset(ObjectPermissionMixin,
@@ -445,8 +469,8 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONField(null=True)
-    summary = JSONField(null=True, default=dict)
+    content = JSONField(default=dict)
+    summary = JSONField(default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
@@ -610,6 +634,10 @@ class Asset(ObjectPermissionMixin,
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__previous_parent_id = self.parent_id
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
@@ -846,8 +874,13 @@ class Asset(ObjectPermissionMixin,
         self.save()
 
     def save(self, *args, **kwargs):
+
+        is_new = self.pk is None
+
         if self.content is None:
             self.content = {}
+
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
@@ -855,7 +888,8 @@ class Asset(ObjectPermissionMixin,
             self.adjust_content_on_save()
 
         # populate summary
-        self._populate_summary()
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -873,6 +907,26 @@ class Asset(ObjectPermissionMixin,
 
         _create_version = kwargs.pop('create_version', True)
         super().save(*args, **kwargs)
+
+        if self.parent is not None and update_parent_languages:
+            if self.parent_id != self.__previous_parent_id and \
+               self.__previous_parent_id is not None:
+                try:
+                    previous_parent = Asset.objects.get(
+                        pk=self.__previous_parent_id)
+                    previous_parent.update_languages()
+                    self.__previous_parent_id = self.parent_id
+                except Asset.DoesNotExist:
+                    pass
+
+            # If object is new, we can add its languages to its parent without
+            # worrying about removing its old values. It avoids an extra query.
+            if is_new:
+                self.parent.update_languages([self])
+            else:
+                # Otherwise, because we cannot know which languages are from
+                # this object, update will be perform with all parent's children.
+                self.parent.update_languages()
 
         if _create_version:
             self.asset_versions.create(name=self.name,
@@ -927,9 +981,58 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_languages(self, children=None):
+        """
+        Updates object's languages by aggregating all its children's languages
+
+        Args:
+            children (list<Asset>): Optional. When specified, `children`'s languages
+            are merged with `self`'s languages. Otherwise, when it's `None`,
+            DB is fetched to build the list according to `self.children`
+
+        """
+        # If object is not a collection, it should not have any children.
+        # No need to go further.
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return
+
+        obj_languages = self.summary.get('languages', [])
+        languages = set()
+
+        if children:
+            summaries = [child.summary for child in children]
+            languages = set(obj_languages)
+        else:
+            # ToDo validate whether all children should be included
+            # (e.g. archives?)
+            summaries = self.children.values_list('summary', flat=True)
+
+        for summary in summaries:
+            if isinstance(summary, str):
+                try:
+                    summary = json.loads(summary)
+                except ValueError:
+                    continue
+            child_languages = [language
+                               for language in summary.get('languages', [])
+                               if language is not None]
+
+            if child_languages:
+                languages = set(list(languages) + child_languages)
+
+        languages = AssetContentAnalyzer.format_translations(list(languages))
+        # If languages are still the same, no needs to update the object
+        if obj_languages == languages:
+            return
+
+        self.summary['languages'] = languages
+        self.save(update_fields=['summary'],
+                  adjust_content=False,
+                  create_version=False)
+
     @property
     def version__content_hash(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
+        # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
@@ -937,7 +1040,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
+        # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
@@ -1111,7 +1214,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONField(null=True)
+    source = JSONField(default=dict)
     details = JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
@@ -1129,7 +1232,10 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.source is None:
+            # Previously, `self.source` was a nullable field. It must now
+            # either contain valid content or be an empty dictionary.
+            assert self.asset is not None
+            if not self.source:
                 if self.asset_version is None:
                     self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
@@ -1137,8 +1243,6 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 self.owner = self.asset.owner
         _note = self.details.pop('note', None)
         _source = copy.deepcopy(self.source)
-        if _source is None:
-            _source = {}
         self._standardize(_source)
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
@@ -1148,7 +1252,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         form_title = _settings.get('form_title')
         id_string = _settings.get('id_string')
 
-        (self.xml, self.details) = \
+        self.xml, self.details = \
             self.generate_xml_from_source(_source,
                                           include_note=_note,
                                           root_node_name='data',

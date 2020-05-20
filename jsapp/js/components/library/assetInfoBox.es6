@@ -105,6 +105,7 @@ class AssetInfoBox extends React.Component {
 
     const isPublicable = this.props.asset.asset_type === ASSET_TYPES.collection.id;
     const isPublic = isPublicable && assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
 
     return (
       <bem.FormView__cell m='box'>
@@ -136,7 +137,7 @@ class AssetInfoBox extends React.Component {
             }
           </bem.FormView__cell>
 
-          {isPublicable &&
+          {isPublicable && isSelfOwned &&
             <bem.FormView__cell m={['buttons', 'column-1']}>
               {!isPublic &&
                 <button
