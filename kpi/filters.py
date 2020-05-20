@@ -1,5 +1,4 @@
 # coding: utf-8
-
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
@@ -54,8 +53,8 @@ class KpiObjectPermissionsFilter:
     perm_format = '%(app_label)s.view_%(model_name)s'
 
     def filter_queryset(self, request, queryset, view):
-        user = request.user
 
+        user = request.user
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
@@ -66,18 +65,18 @@ class KpiObjectPermissionsFilter:
             'app_label': model_cls._meta.app_label,
             'model_name': model_cls._meta.model_name,
         }
+
         self._permission = self.perm_format % kwargs
 
-        queryset = self._get_filtered_queryset(request, queryset)
-        if self._return_filtered_queryset:
+        queryset = self._get_queryset_for_collection_statuses(request, queryset)
+        if self._return_queryset:
             return queryset.distinct()
 
         owned_and_explicitly_shared = self._get_owned_and_explicitly_shared(
             queryset, user)
 
-        public = self._get_public(queryset)
-
         if view.action != 'list':
+            public = self._get_public(queryset)
             # Not a list, so discoverability doesn't matter
             return (owned_and_explicitly_shared | public).distinct()
 
@@ -93,10 +92,17 @@ class KpiObjectPermissionsFilter:
             queryset
         )
 
-    def _get_filtered_queryset(self, request, queryset):
+    def _get_queryset_for_collection_statuses(self, request, queryset):
         """
-        Gets edit URL of the submission from `kc` through proxy
-        TODO: Review this code
+        Narrow down the queryset based on `status` parameter.
+        It is useful when fetching Assets of type `collection`
+
+        If `status` is not detected in `q`, it returns the queryset as is.
+        Otherwise, there are 4 scenarios:
+        - `status` == 'private': collections owned by user
+        - `status` == 'shared': collections user can view
+        - `status` == 'public': collections user has subscribed to (ONLY)
+        - `status` == 'public-discoverable': all public collections
 
         Args:
             request
@@ -105,8 +111,12 @@ class KpiObjectPermissionsFilter:
             QuerySet
         """
 
-        self._return_filtered_queryset = False
+        # Governs whether returned queryset should be processed immediately
+        # and should stop other filtering on `queryset` in parent method of
+        # `_get_queryset_for_collection_statuses()`
+        self._return_queryset = False
         user = request.user
+        STATUS_PARAMETER = 'status'
 
         try:
             q = request.query_params['q'].strip()
@@ -116,13 +126,6 @@ class KpiObjectPermissionsFilter:
             return queryset
 
         query_parts = q.split(' AND ')  # Can be risky if one of values contains ` AND `
-        filters_ = []
-
-        def _get_queryset():
-            all_filters = Q()
-            for filter_ in filters_:
-                all_filters &= filter_
-            return queryset.filter(all_filters)
 
         def _get_value(str_, key):
             return str_[len(key) + 1:]  # get everything after `<key>:`
@@ -133,32 +136,36 @@ class KpiObjectPermissionsFilter:
             query_part = query_part.strip()
 
             # Search for status
-            if not query_part.startswith('status:'):
+            if not query_part.startswith(f'{STATUS_PARAMETER}:'):
                 continue
 
-            self._return_filtered_queryset = True
-            value = _get_value(query_part, 'status')
+            value = _get_value(query_part, STATUS_PARAMETER)
             if value == ASSET_STATUS_PRIVATE:
-                filters_.append(Q(owner_id=request.user.id))
-                query_parts.remove(query_part)
+                self._return_queryset = True
+                return queryset.filter(owner_id=request.user.id)
 
             elif value == ASSET_STATUS_SHARED:
+                self._return_queryset = True
                 return get_objects_for_user(
-                    user, self._permission, _get_queryset())
+                    user, self._permission, queryset)
 
             elif value == ASSET_STATUS_PUBLIC:
-                public = self._get_public(_get_queryset())
+                self._return_queryset = True
+                # ToDo Review for optimization
+                public = self._get_public(queryset)
                 subscribed = self._get_subscribed(public, user)
                 return subscribed
 
             elif value == ASSET_STATUS_DISCOVERABLE:
+                self._return_queryset = True
+                # ToDo Review for optimization
                 discoverable = self._get_discoverable(
-                    self._get_public(_get_queryset()))
+                    self._get_public(queryset))
                 # We were asked not to consider subscriptions; return all
                 # discoverable objects
                 return discoverable
 
-        return _get_queryset()
+        return queryset
 
     def _get_owned_and_explicitly_shared(self, queryset, user):
         if user.is_anonymous:
@@ -182,14 +189,16 @@ class KpiObjectPermissionsFilter:
             user = get_anonymous_user()
         try:
             subscribed = queryset.filter(userassetsubscription__user=user)
-            # TODO: should this expand beyond the immediate parents to include
-            # all ancestors to which the user has subscribed?
-            subscribed |= queryset.filter(
-                parent__userassetsubscription__user=user
-            )
         except FieldError:
-            # The model does not have a subscription relation
-            subscribed = queryset.none()
+            try:
+                # The model does not have a subscription relation, but maybe
+                # its parent does
+                subscribed = queryset.filter(
+                    parent__userassetsubscription__user=user
+                )
+            except FieldError:
+                # Neither the model or its parent has a subscription relation
+                subscribed = queryset.none()
 
         return subscribed
 

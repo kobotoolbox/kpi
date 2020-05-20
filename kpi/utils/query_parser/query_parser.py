@@ -122,6 +122,11 @@ class QueryParseActions(object):
         else:
             # A field+colon, and a value [[field,':'],value]
             field = elements[0].elements[0]
+            # ByPass `status` field because it does not really exist.
+            # It's only a property of Asset model.
+            if field == 'status':
+                return Q()
+
         value = elements[1]
         # Process the value with as much type-validation as necessary
         value = cls.process_value(field, value)
