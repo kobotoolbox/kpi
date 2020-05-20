@@ -646,12 +646,10 @@ module.exports = do ->
         false
 
     _duplicateRows: (rows) ->
-      console.log 'Duplicate rows', rows
       for row in rows
         if row.constructor.kls isnt "Group"
           view = @__rowViews.get(row.cid)
           if view? and typeof view.clone is 'function'
-            console.log 'row', row
             view.clone()
         else
           @_duplicateRows row.rows.models
