@@ -666,7 +666,7 @@ export class FormMap extends React.Component {
         }
       });
     } else if (this.state.noData && this.state.hasGeoPoint) {
-      label = `${t('No GeoPoint Data to show')}`;
+      label = `${t('No "geopoint" responses have been received')}`;
     } else if (!this.state.hasGeoPoint) {
       label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
     }
@@ -764,7 +764,7 @@ export class FormMap extends React.Component {
          <div className="map-transparent-background">
            <div className="map-no-geopoint-wrapper">
             <p className="map-no-geopoint">
-              {t('No GeoPoint Data to show.')}
+              {t('No "geopoint" responses have been received')}
             </p>
           </div>
          </div>
