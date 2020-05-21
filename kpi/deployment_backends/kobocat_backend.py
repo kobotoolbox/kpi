@@ -336,7 +336,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'downloadable': bool(active)
         }
         json_response = self._kobocat_request('PATCH', url, data=payload)
-        assert(json_response['downloadable'] == bool(active))
+        assert json_response['downloadable'] == bool(active)
         self.store_data({
             'active': json_response['downloadable'],
             'backend_response': json_response,
@@ -345,7 +345,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def set_asset_uid(self, force=False):
         """
         Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
-        populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
+        populating the `kpi_asset_uid` field (use KoBoCAT proxy to PATCH XForm).
         Useful when a form is created from the legacy upload form.
         Store results in self.asset._deployment_data
 
@@ -375,7 +375,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def set_has_kpi_hooks(self):
         """
         PATCH `has_kpi_hooks` boolean of survey.
-        It lets `kc` know whether it needs to ping `kpi`
+        It lets KoBoCAT know whether it needs to ping KPI
         each time a submission comes in.
 
         Store results in self.asset._deployment_data
@@ -387,11 +387,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'has_kpi_hooks': has_active_hooks,
             'kpi_asset_uid': self.asset.uid
         }
-        json_response = self._kobocat_request('PATCH', url, data=payload)
-        assert(json_response['has_kpi_hooks'] == has_active_hooks)
-        self.store_data({
-            'backend_response': json_response,
-        })
+
+        try:
+            json_response = self._kobocat_request('PATCH', url, data=payload)
+        except KobocatDeploymentException as e:
+            if (
+                has_active_hooks is False
+                and hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
+            ):
+                # It's okay if we're trying to unset the active hooks flag and
+                # the KoBoCAT project is already gone. See #2497
+                pass
+            else:
+                raise
+        else:
+            assert json_response['has_kpi_hooks'] == has_active_hooks
+            self.store_data({
+                'backend_response': json_response,
+            })
 
     def delete(self):
         """
@@ -401,7 +415,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
+            if (
+                hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
+            ):
                 # The KC project is already gone!
                 pass
             else:
@@ -410,7 +427,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submission(self, pk, user):
         """
-        Deletes submission through `KoBoCat` proxy
+        Deletes submission through KoBoCAT proxy
         :param pk: int
         :param user: User
         :return: dict
@@ -423,7 +440,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submissions(self, data, user):
         """
-        Deletes submissions through `KoBoCat` proxy
+        Deletes submissions through KoBoCAT proxy
         :param user: User
         :return: dict
         """
@@ -757,7 +774,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _('KoBoCat returned an unexpected response: {}'.format(str(e)))
+                    'detail': _('KoBoCAT returned an unexpected response: {}'.format(str(e)))
                 }
 
         return prepared_drf_response

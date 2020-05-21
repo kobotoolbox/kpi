@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='_deployment_data',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default=dict),
         ),
     ]

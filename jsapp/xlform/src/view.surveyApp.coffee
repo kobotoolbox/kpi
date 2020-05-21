@@ -699,8 +699,8 @@ module.exports = do ->
       evt.stopPropagation()
       $et = $(evt.currentTarget)
       buttonName = $et.data('buttonName')
-      $et.parents('.card').addClass('card--shaded')
-      $header = $et.parents('.card__header')
+      $et.closest('.card').addClass('card--shaded')
+      $header = $et.closest('.card__header')
       card_hover_text = do ->
         if buttonName is 'settings'
           _t("[button triggers] Settings")
@@ -719,8 +719,8 @@ module.exports = do ->
       evt.stopPropagation()
       $et = $(evt.currentTarget)
       buttonName = $et.data('buttonName')
-      $et.parents('.card__header').removeClass(buttonName)
-      $et.parents('.card').removeClass('card--shaded')
+      $et.closest('.card__header').removeClass(buttonName)
+      $et.closest('.card').removeClass('card--shaded')
       return
 
   class surveyApp.SurveyApp extends SurveyFragmentApp
