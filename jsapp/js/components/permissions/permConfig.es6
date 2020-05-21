@@ -16,7 +16,8 @@ import {
  */
 
 /**
- * Permissions config. Starts empty and requires to manually call `fetchAndBuildConfig`.
+ * NOTE: this relies on the app being initialized by calling
+ * `actions.permissions.getConfig()`, otherwise expect `verifyReady` to throw
  */
 const permConfig = Reflux.createStore({
   init() {
@@ -26,7 +27,6 @@ const permConfig = Reflux.createStore({
   fetchAndBuildConfig() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
-    actions.permissions.getConfig();
   },
 
   onGetConfigCompleted(response) {

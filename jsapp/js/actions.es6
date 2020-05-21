@@ -197,7 +197,7 @@ actions.resources.listTags.completed.listen(function(results){
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
-      actions.resources.updateAsset.completed(asset, uid, values);
+      actions.resources.updateAsset.completed(asset);
       if (typeof params.onComplete === 'function') {
         params.onComplete(asset, uid, values);
       }
@@ -303,16 +303,20 @@ actions.reports = Reflux.createActions({
 });
 
 actions.reports.setStyle.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_styles: JSON.stringify(details),
-  }).done(actions.reports.setStyle.completed)
+  dataInterface.patchAsset(assetId, {report_styles: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setStyle.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setStyle.failed);
 });
 
 actions.reports.setCustom.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_custom: JSON.stringify(details),
-  }).done(actions.reports.setCustom.completed)
+  dataInterface.patchAsset(assetId, {report_custom: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setCustom.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setCustom.failed);
 });
 
@@ -326,26 +330,34 @@ actions.table = Reflux.createActions({
 });
 
 actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {
-    settings: JSON.stringify(settings),
-  }).done(actions.table.updateSettings.completed)
+  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+    .done((asset) => {
+      actions.table.updateSettings.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.table.updateSettings.failed);
 });
 
 
 actions.map = Reflux.createActions({
-  setMapSettings: {
-    children: ['completed', 'failed']
+  setMapStyles: {
+    children: ['started', 'completed', 'failed']
   }
 });
 
-actions.map.setMapSettings.listen(function(assetId, details) {
-  dataInterface
-    .patchAsset(assetId, {
-      map_styles: JSON.stringify(details)
+/**
+ * Note: `started` callback returns parameters with wich the action was called
+ * @param {string} assetUid
+ * @param {object} mapStyles
+ */
+actions.map.setMapStyles.listen(function(assetUid, mapStyles) {
+  dataInterface.patchAsset(assetUid, {map_styles: JSON.stringify(mapStyles)})
+    .done((asset) => {
+      actions.map.setMapStyles.completed(asset);
+      actions.resources.updateAsset.completed(asset);
     })
-    .done(actions.map.setMapSettings.completed)
-    .fail(actions.map.setMapSettings.failed);
+    .fail(actions.map.setMapStyles.failed);
+  actions.map.setMapStyles.started(assetUid, mapStyles);
 });
 
 

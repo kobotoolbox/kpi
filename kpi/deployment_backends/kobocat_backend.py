@@ -142,7 +142,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
+            if (
+                hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
+            ):
                 # The KC project is already gone!
                 pass
             else:
@@ -151,7 +154,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submission(self, pk, user):
         """
-        Deletes submission through `KoBoCat` proxy
+        Deletes submission through KoBoCAT proxy
         :param pk: int
         :param user: User
         :return: dict
@@ -164,7 +167,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submissions(self, data, user):
         """
-        Deletes submissions through `KoBoCat` proxy
+        Deletes submissions through KoBoCAT proxy
         :param user: User
         :return: dict
         """
@@ -254,162 +257,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
-    @staticmethod
-    def internal_to_external_url(url):
-        """
-        Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
-        `settings.KOBOCAT_URL` when it appears at the beginning of
-        `url`
-        """
-        return re.sub(
-            pattern='^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
-            repl=settings.KOBOCAT_URL,
-            string=url
-        )
-
-    def redeploy(self, active=None):
-        """
-        Replace (overwrite) the deployment, keeping the same identifier, and
-        optionally changing whether the deployment is active
-        """
-        if active is None:
-            active = self.active
-        url = self.external_to_internal_url(self.backend_response['url'])
-        id_string = self.backend_response['id_string']
-        xls_io = self.asset.to_xls_io(
-            versioned=True, append={
-                'settings': {
-                    'id_string': id_string,
-                    'form_title': self.asset.name,
-                }
-            }
-        )
-        payload = {
-            'downloadable': active,
-            'title': self.asset.name,
-            'has_kpi_hook': self.asset.has_active_hooks
-        }
-        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
-        try:
-            json_response = self._kobocat_request(
-                'PATCH', url, data=payload, files=files)
-            self.store_data({
-                'active': json_response['downloadable'],
-                'backend_response': json_response,
-                'version': self.asset.version_id,
-            })
-        except KobocatDeploymentException as e:
-            if hasattr(e, 'response') and e.response.status_code == 404:
-                # Whoops, the KC project we thought we were going to overwrite
-                # is gone! Try a standard deployment instead
-                return self.connect(self.identifier, active)
-            raise
-
-        self.set_asset_uid()
-
-    def set_active(self, active):
-        """
-        PATCH active boolean of survey.
-        store results in self.asset.deployment_data
-        """
-        # self.store_data is an alias for
-        # self.asset.deployment_data.update(...)
-        url = self.external_to_internal_url(
-            self.backend_response['url'])
-        payload = {
-            'downloadable': bool(active)
-        }
-        json_response = self._kobocat_request('PATCH', url, data=payload)
-        assert(json_response['downloadable'] == bool(active))
-        self.store_data({
-            'active': json_response['downloadable'],
-            'backend_response': json_response,
-        })
-
-    def set_asset_uid(self, force=False):
-        """
-        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
-        populating the `kpi_asset_uid` field (use KoBoCat proxy to PATCH XForm).
-        Useful when a form is created from the legacy upload form.
-        Store results in self.asset.deployment_data
-
-        Returns:
-            bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
-                  during this call, otherwise `False`.
-        """
-        is_synchronized = not (
-            force or
-            self.backend_response.get('kpi_asset_uid', None) is None
-        )
-        if is_synchronized:
-            return False
-
-        url = self.external_to_internal_url(self.backend_response['url'])
-        payload = {
-            'kpi_asset_uid': self.asset.uid
-        }
-        json_response = self._kobocat_request('PATCH', url, data=payload)
-        is_set = json_response['kpi_asset_uid'] == self.asset.uid
-        assert is_set
-        self.store_data({
-            'backend_response': json_response,
-        })
-        return True
-
-    def set_has_kpi_hooks(self):
-        """
-        PATCH `has_kpi_hooks` boolean of survey.
-        It lets KoBoCat know whether it needs to ping KPI
-        each time a submission comes in.
-
-        Store results in self.asset.deployment_data
-        """
-        has_active_hooks = self.asset.has_active_hooks
-        url = self.external_to_internal_url(
-            self.backend_response['url'])
-        payload = {
-            'has_kpi_hooks': has_active_hooks,
-            'kpi_asset_uid': self.asset.uid
-        }
-
-        try:
-            json_response = self._kobocat_request('PATCH', url, data=payload)
-            assert (json_response['has_kpi_hooks'] == has_active_hooks)
-            self.store_data({
-                'backend_response': json_response,
-            })
-        except KobocatDeploymentException as e:
-            if not (has_active_hooks is False and hasattr(e, 'response') and
-                    e.response.status_code != status.HTTP_404_NOT_FOUND):
-                raise e
-
-    @staticmethod
-    def make_identifier(username, id_string):
-        """
-        Uses `settings.KOBOCAT_URL` to construct an identifier from a
-        username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers
-        """
-        # No need to use the internal URL here; it will be substituted in when
-        # appropriate
-        return '{}/{}/forms/{}'.format(
-            settings.KOBOCAT_URL,
-            username,
-            id_string
-        )
-
-    @property
-    def mongo_userform_id(self):
-        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
-
-    @property
-    def submission_list_url(self):
-        url = '{kc_base}/api/v1/data/{formid}'.format(
-            kc_base=settings.KOBOCAT_INTERNAL_URL,
-            formid=self.backend_response['formid']
-        )
-        return url
-
     def get_submission_detail_url(self, submission_pk):
         url = '{list_url}/{pk}'.format(
             list_url=self.submission_list_url,
@@ -480,6 +327,170 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_request = requests.Request(method='GET', url=url, data=params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
+
+    @staticmethod
+    def internal_to_external_url(url):
+        """
+        Replace the value of `settings.KOBOCAT_INTERNAL_URL` with that of
+        `settings.KOBOCAT_URL` when it appears at the beginning of
+        `url`
+        """
+        return re.sub(
+            pattern='^{}'.format(re.escape(settings.KOBOCAT_INTERNAL_URL)),
+            repl=settings.KOBOCAT_URL,
+            string=url
+        )
+
+    def redeploy(self, active=None):
+        """
+        Replace (overwrite) the deployment, keeping the same identifier, and
+        optionally changing whether the deployment is active
+        """
+        if active is None:
+            active = self.active
+        url = self.external_to_internal_url(self.backend_response['url'])
+        id_string = self.backend_response['id_string']
+        xls_io = self.asset.to_xls_io(
+            versioned=True, append={
+                'settings': {
+                    'id_string': id_string,
+                    'form_title': self.asset.name,
+                }
+            }
+        )
+        payload = {
+            'downloadable': active,
+            'title': self.asset.name,
+            'has_kpi_hook': self.asset.has_active_hooks
+        }
+        files = {'xls_file': ('{}.xls'.format(id_string), xls_io)}
+        try:
+            json_response = self._kobocat_request(
+                'PATCH', url, data=payload, files=files)
+            self.store_data({
+                'active': json_response['downloadable'],
+                'backend_response': json_response,
+                'version': self.asset.version_id,
+            })
+        except KobocatDeploymentException as e:
+            if hasattr(e, 'response') and e.response.status_code == 404:
+                # Whoops, the KC project we thought we were going to overwrite
+                # is gone! Try a standard deployment instead
+                return self.connect(self.identifier, active)
+            raise
+
+        self.set_asset_uid()
+
+    def set_active(self, active):
+        """
+        PATCH active boolean of survey.
+        store results in self.asset.deployment_data
+        """
+        # self.store_data is an alias for
+        # self.asset._deployment_data.update(...)
+        url = self.external_to_internal_url(
+            self.backend_response['url'])
+        payload = {
+            'downloadable': bool(active)
+        }
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        assert(json_response['downloadable'] == bool(active))
+        self.store_data({
+            'active': json_response['downloadable'],
+            'backend_response': json_response,
+        })
+
+    def set_asset_uid(self, force=False):
+        """
+        Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
+        populating the `kpi_asset_uid` field (use KoBoCAT proxy to PATCH XForm).
+        Useful when a form is created from the legacy upload form.
+        Store results in self.asset.deployment_data
+
+        Returns:
+            bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
+                  during this call, otherwise `False`.
+        """
+        is_synchronized = not (
+            force or
+            self.backend_response.get('kpi_asset_uid', None) is None
+        )
+        if is_synchronized:
+            return False
+
+        url = self.external_to_internal_url(self.backend_response['url'])
+        payload = {
+            'kpi_asset_uid': self.asset.uid
+        }
+        json_response = self._kobocat_request('PATCH', url, data=payload)
+        is_set = json_response['kpi_asset_uid'] == self.asset.uid
+        assert is_set
+        self.store_data({
+            'backend_response': json_response,
+        })
+        return True
+
+    def set_has_kpi_hooks(self):
+        """
+        PATCH `has_kpi_hooks` boolean of survey.
+        It lets KoBoCAT know whether it needs to ping KPI
+        each time a submission comes in.
+
+        Store results in self.asset.deployment_data
+        """
+        has_active_hooks = self.asset.has_active_hooks
+        url = self.external_to_internal_url(
+            self.backend_response['url'])
+        payload = {
+            'has_kpi_hooks': has_active_hooks,
+            'kpi_asset_uid': self.asset.uid
+        }
+
+        try:
+            json_response = self._kobocat_request('PATCH', url, data=payload)
+        except KobocatDeploymentException as e:
+            if (
+                has_active_hooks is False
+                and hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
+            ):
+                # It's okay if we're trying to unset the active hooks flag and
+                # the KoBoCAT project is already gone. See #2497
+                pass
+            else:
+                raise
+        else:
+            assert json_response['has_kpi_hooks'] == has_active_hooks
+            self.store_data({
+                'backend_response': json_response,
+            })
+
+    @staticmethod
+    def make_identifier(username, id_string):
+        """
+        Uses `settings.KOBOCAT_URL` to construct an identifier from a
+        username and id string, without the caller having to specify a server
+        or know the full format of KC identifiers
+        """
+        # No need to use the internal URL here; it will be substituted in when
+        # appropriate
+        return '{}/{}/forms/{}'.format(
+            settings.KOBOCAT_URL,
+            username,
+            id_string
+        )
+
+    @property
+    def mongo_userform_id(self):
+        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+
+    @property
+    def submission_list_url(self):
+        url = '{kc_base}/api/v1/data/{formid}'.format(
+            kc_base=settings.KOBOCAT_INTERNAL_URL,
+            formid=self.backend_response['formid']
+        )
+        return url
 
     def set_validation_status(self, submission_pk, data, user, method):
         """
@@ -822,7 +833,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _('KoBoCat returned an unexpected response: {}'.format(str(e)))
+                    'detail': _('KoBoCAT returned an unexpected response: {}'.format(str(e)))
                 }
 
         return prepared_drf_response

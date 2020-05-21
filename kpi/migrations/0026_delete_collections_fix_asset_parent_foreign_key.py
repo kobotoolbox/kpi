@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('kpi', '0024_copy_collections_to_assets'),
+        ('kpi', '0025_copy_collections_to_assets'),
     ]
 
     operations = [

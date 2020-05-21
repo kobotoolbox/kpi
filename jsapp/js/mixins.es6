@@ -534,6 +534,8 @@ mixins.clickAssets = {
         }
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
 
+        const safeName = _.escape(name);
+
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
@@ -580,7 +582,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel} "${_.escape(name)}"`,
+          title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
           message: msg,
           labels: {
             ok: t('Delete'),
@@ -767,7 +769,7 @@ mixins.cloneAssetAsNewType = {
     const opts = {
       title: params.promptTitle,
       message: params.promptMessage,
-      value: params.sourceName,
+      value: _.escape(params.sourceName),
       labels: {ok: t('Create'), cancel: t('Cancel')},
       onok: (evt, value) => {
         // disable buttons

@@ -235,7 +235,8 @@ export default assign({
 
     let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
-      surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content);
+      let surveyJSONWithMatrix = koboMatrixParser({source: surveyJSON}).source;
+      surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content);
     }
     let params = {content: surveyJSON};
 
@@ -264,8 +265,6 @@ export default assign({
       }
       params.settings = JSON.stringify(settings);
     }
-
-    params = koboMatrixParser(params);
 
     if (this.state.isNewAsset) {
       // we're intentionally leaving after creating new asset,
