@@ -247,7 +247,12 @@ export class FormMap extends React.Component {
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
 
     this.props.asset.content.survey.forEach(function(row) {
-      if (row.label !== null && selectedQuestion === row.label[0] && row.type !== QUESTION_TYPES.get('geopoint').id) {
+      if (
+        typeof row.label !== 'undefined' &&
+        row.label !== null &&
+        selectedQuestion === row.label[0] &&
+        row.type !== QUESTION_TYPES.get('geopoint').id
+      ) {
         selectedQuestion = null; //Ignore if not a geopoint question type
       }
     });

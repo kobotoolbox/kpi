@@ -1,9 +1,5 @@
 import Reflux from 'reflux';
-import {actions} from 'js/actions';
-import {
-  t,
-  notify
-} from 'js/utils';
+import {t} from 'js/utils';
 
 /**
  * @typedef {Object} PermDefinition - A permission object from backend.
@@ -17,24 +13,16 @@ import {
 
 /**
  * NOTE: this relies on the app being initialized by calling
- * `actions.permissions.getConfig()`, otherwise expect `verifyReady` to throw
+ * `actions.permissions.getConfig()` and then manually setting results here,
+ * otherwise expect `verifyReady` to throw
  */
 const permConfig = Reflux.createStore({
   init() {
     this.permissions = [];
   },
 
-  fetchAndBuildConfig() {
-    this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
-    this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
-  },
-
-  onGetConfigCompleted(response) {
-    this.permissions = response.results;
-  },
-
-  onGetConfigFailed() {
-    notify('Failed to get permissions config!', 'error');
+  setPermissions(permissions) {
+    this.permissions = permissions;
   },
 
   /**

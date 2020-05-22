@@ -49,6 +49,7 @@ import {ChangePassword, AccountSettings} from './components/accountSettings';
 import {
   t,
   assign,
+  notify,
   currentLang
 } from './utils';
 import keymap from './keymap';
@@ -79,12 +80,16 @@ class App extends React.Component {
   }
   componentDidMount () {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
-
+    this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
   }
-  onGetConfigCompleted() {
+  onGetConfigCompleted(response) {
     this.setState({isConfigReady: true});
+    permConfig.setPermissions(response.results);
+  }
+  onGetConfigFailed() {
+    notify('Failed to get permissions config!', 'error');
   }
   _handleShortcuts(action) {
     switch (action) {
