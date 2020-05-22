@@ -8,6 +8,7 @@ import {bem} from '../bem';
 import {stores} from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
+import assetUtils from 'js/assetUtils';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
   t,
@@ -114,7 +115,7 @@ class FormViewTabs extends Reflux.Component {
       sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
 
       //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
-      if (this.state.asset.deployment__active && mixins.permissions.userIsOwner(this.state.asset)) {
+      if (this.state.asset.deployment__active && assetUtils.isSelfOwned(this.state.asset)) {
         sideTabs.push({label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
       }
 
