@@ -746,6 +746,86 @@ $z-modal-x: 10;
   }
 }
 
+.form-media__label {
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.form-media__url-input {
+  width: 75%;
+  border: 1px solid #80808063;
+  padding: 7px;
+  border-radius: 5px;
+}
+
+.form-media__url-button {
+  width: 25%;
+  min-height: 28px;
+  line-height: 28px;
+}
+
+.form-media__list-label {
+  margin-top: 32px;
+  color: black;
+  font-weight: 500;
+  font-size: 22px;
+  display: block;
+  margin-bottom: 32px;
+}
+
+.form-media__list-item {
+  font-size: 16px;
+  position: relative;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #8080804f;
+  margin-bottom: 12px;
+
+  i.k-icon-trash {
+    right: 10px;
+    position: absolute;
+    top:-5px;
+    color: #D08B8C;
+    font-size: 36px;
+    float: right;
+  }
+
+  i.k-icon-pdf {
+    position: absolute;
+    left: -10px;
+    top: -5px;
+    color: grey;
+    font-size: 36px;
+  }
+
+  a {
+    font-weight: 400;
+    padding: 5px;
+    padding-left: 30px;
+    font-size: 18;
+    display: inline-block;
+    width: 72%;
+    vertical-align: top;
+    height: auto;
+    position: relative;
+    min-height: 18px;
+    cursor: move;
+  }
+}
+
+.media-settings--upload-file {
+  width: calc(100% - 170px);
+  overflow: auto;
+  padding: 20px;
+  
+  .dropzone {
+    border-color: #b7b8b9;
+  }
+}
+
 @media screen and (max-width: 767px) {
   .modal.modal--open {
     min-width: 90%;
