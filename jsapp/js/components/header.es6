@@ -297,11 +297,12 @@ class MainHeader extends Reflux.Component {
         </header>
       );
   }
-  componentWillReceiveProps(nextProps) {
-    if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)
-      actions.resources.loadAsset({id: nextProps.assetid});
+  componentDidUpdate(prevProps) {
+    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
+      actions.resources.loadAsset({id: this.props.assetid});
+    }
   }
-};
+}
 
 reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
 reactMixin(MainHeader.prototype, mixins.contextRouter);
