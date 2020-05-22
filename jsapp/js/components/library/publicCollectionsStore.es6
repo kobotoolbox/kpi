@@ -48,6 +48,11 @@ const publicCollectionsStore = Reflux.createStore({
     actions.resources.createResource.completed.listen(this.onAssetCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
+    // startup store after config is ready
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+  },
+
+  onGetConfigCompleted() {
     this.fetchData(true);
   },
 

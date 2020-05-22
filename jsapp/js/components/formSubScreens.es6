@@ -7,6 +7,7 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
+import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
@@ -51,7 +52,7 @@ export class FormSubScreens extends React.Component {
     }
 
     //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !this.userIsOwner(this.state)) {
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !assetUtils.isSelfOwned(this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
 

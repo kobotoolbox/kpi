@@ -50,6 +50,11 @@ const myLibraryStore = Reflux.createStore({
     // https://github.com/kobotoolbox/kpi/issues/476
     actions.resources.createImport.completed.listen(this.fetchDataDebounced);
 
+    // startup store after config is ready
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+  },
+
+  onGetConfigCompleted() {
     this.fetchData(true);
   },
 
