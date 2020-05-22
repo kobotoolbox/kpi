@@ -22,9 +22,6 @@ import {
 const permConfig = Reflux.createStore({
   init() {
     this.permissions = [];
-  },
-
-  fetchAndBuildConfig() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
   },
