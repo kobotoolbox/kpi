@@ -246,12 +246,6 @@ export class FormMap extends React.Component {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
 
-    this.props.asset.content.survey.forEach(function(row) {
-      if (row.label !== null && selectedQuestion === row.label[0] && row.type !== QUESTION_TYPES.get('geopoint').id) {
-        selectedQuestion = null; //Ignore if not a geopoint question type
-      }
-    });
-
     let queryLimit = QUERY_LIMIT_DEFAULT;
     if (this.state.overridenStyles && this.state.overridenStyles.querylimit) {
       queryLimit = this.state.overridenStyles.querylimit;
@@ -672,7 +666,7 @@ export class FormMap extends React.Component {
         }
       });
     } else if (this.state.noData && this.state.hasGeoPoint) {
-      label = `${t('No GeoPoint Data to show')}`;
+      label = `${t('No "geopoint" responses have been received')}`;
     } else if (!this.state.hasGeoPoint) {
       label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
     }
@@ -770,7 +764,7 @@ export class FormMap extends React.Component {
          <div className="map-transparent-background">
            <div className="map-no-geopoint-wrapper">
             <p className="map-no-geopoint">
-              {t('No GeoPoint Data to show.')}
+              {t('No "geopoint" responses have been received')}
             </p>
           </div>
          </div>
