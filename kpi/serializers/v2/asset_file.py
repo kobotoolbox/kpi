@@ -5,6 +5,7 @@ import os
 from mimetypes import guess_type
 
 from django.core.files.base import ContentFile
+from django.http import QueryDict
 from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_lazy as _lazy
 from rest_framework import serializers
@@ -56,11 +57,10 @@ class AssetFileSerializer(serializers.ModelSerializer):
         )
 
     def validate_empty_values(self, data):
-        self._populate_content(data)
+        data = self._populate_content(data)
         return super().validate_empty_values(data)
 
     def validate(self, data):
-
         file_type = data['file_type']
 
         if file_type == AssetFile.FORM_MEDIA:
@@ -83,6 +83,8 @@ class AssetFileSerializer(serializers.ModelSerializer):
         If `content` is empty, it's populated with `base64Encoded` if
         it exists and is valid (some validations are made within this method).
         """
+        if isinstance(data, QueryDict):
+            data = data.dict()
 
         # Test if binary file has been uploaded. If it is the case,
         # do not go further.
