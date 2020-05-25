@@ -215,6 +215,13 @@ export var dataInterface;
         data: data,
       });
     },
+    postFormMedia (uid, data) {
+      return $ajax({
+        method: 'POST',
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        data: data,
+      });
+    },
 
     /*
      * permissions
