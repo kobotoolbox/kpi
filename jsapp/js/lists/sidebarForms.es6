@@ -37,9 +37,6 @@ class SidebarFormsList extends Reflux.Component {
     if (!this.isFormList())
       this.searchSemaphore();
   }
-  componentWillReceiveProps () {
-    this.listenTo(this.searchStore, this.searchChanged);
-  }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
