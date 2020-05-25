@@ -27,11 +27,19 @@ import {
   buildUserUrl
 } from '../utils';
 
-
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
     super(props);
-    this.state = assign({}, stores.pageState.state);
+    this.state = assign({
+      headerFilters: 'library',
+      publicCollectionsVisible: false,
+      searchContext: searches.getSearchContext('library', {
+        filterParams: {
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
+        },
+        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
+      })
+    }, stores.pageState.state);
     this.stores = [
       stores.session,
       stores.pageState
@@ -57,23 +65,8 @@ class LibrarySidebar extends Reflux.Component {
     this.searchDefault();
     this.queryCollections();
   }
-  componentWillMount() {
-    this.setStates();
-  }
   searchChanged (state) {
     this.setState(state);
-  }
-  setStates() {
-    this.setState({
-      headerFilters: 'library',
-      publicCollectionsVisible: false,
-      searchContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
-        },
-        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
-      })
-    });
   }
   clickFilterByCollection (evt) {
     var target = $(evt.target);
@@ -470,9 +463,6 @@ class LibrarySidebar extends Reflux.Component {
         }
       </bem.CollectionsWrapper>
       );
-  }
-  componentWillReceiveProps() {
-    this.setStates();
   }
 }
 
