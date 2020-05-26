@@ -29,6 +29,16 @@ import {
 
 import SidebarFormsList from '../lists/sidebarForms';
 
+const INITIAL_STATE = {
+  headerFilters: 'forms',
+  searchContext: searches.getSearchContext('forms', {
+    filterParams: {
+      assetType: 'asset_type:survey',
+    },
+    filterTags: 'asset_type:survey',
+  })
+};
+
 class FormSidebar extends Reflux.Component {
   constructor(props){
     super(props);
@@ -36,6 +46,8 @@ class FormSidebar extends Reflux.Component {
       currentAssetId: false,
       files: []
     }, stores.pageState.state);
+    this.state = assign(INITIAL_STATE, this.state);
+
     this.stores = [
       stores.session,
       stores.pageState
@@ -44,20 +56,6 @@ class FormSidebar extends Reflux.Component {
   }
   componentDidMount() {
     hashHistory.listen(this.onRouteChange.bind(this));
-  }
-  componentWillMount() {
-    this.setStates();
-  }
-  setStates() {
-    this.setState({
-      headerFilters: 'forms',
-      searchContext: searches.getSearchContext('forms', {
-        filterParams: {
-          assetType: 'asset_type:survey',
-        },
-        filterTags: 'asset_type:survey',
-      })
-    });
   }
   newFormModal (evt) {
     evt.preventDefault();
@@ -76,10 +74,9 @@ class FormSidebar extends Reflux.Component {
     );
   }
   onRouteChange() {
-    this.setStates();
+    this.setState(INITIAL_STATE);
   }
-
-};
+}
 
 FormSidebar.contextTypes = {
   router: PropTypes.object
