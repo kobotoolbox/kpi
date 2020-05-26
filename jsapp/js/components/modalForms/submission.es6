@@ -114,13 +114,17 @@ class Submission extends React.Component {
     });
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      sid: nextProps.sid,
+  static getDerivedStateFromProps(props) {
+    return {
+      sid: props.sid,
       promptRefresh: false
-    });
+    };
+  }
 
-    this.getSubmission(nextProps.asset.uid, nextProps.sid);
+  componentDidUpdate(prevProps) {
+    if (this.props.asset && prevProps.sid !== this.props.sid) {
+      this.getSubmission(this.props.asset.uid, this.props.sid);
+    }
   }
 
   deleteSubmission() {
