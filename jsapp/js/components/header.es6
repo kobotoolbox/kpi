@@ -53,6 +53,12 @@ class MainHeader extends Reflux.Component {
     document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
   }
+  /*
+   * NOTE: this should be updated to `getDerivedStateFromProps` but causes Error:
+   * Warning: Unsafe legacy lifecycles will not be called for components using new component APIs.
+   * MainHeader uses getDerivedStateFromProps() but also contains the following legacy lifecycles:
+   * componentWillMount
+   */
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
