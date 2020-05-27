@@ -347,11 +347,6 @@ hashHistory.listen(function() {
 });
 
 export default class RunRoutes extends React.Component {
-  componentDidMount(){
-    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
-    this.router.componentWillReceiveProps = function(){};
-  }
-
   render() {
     return (
       <Router history={hashHistory} ref={ref=>this.router = ref} routes={this.props.routes} />
