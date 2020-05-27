@@ -52,10 +52,16 @@ class FormSidebar extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
+    this.unlisteners = [];
     autoBind(this);
   }
   componentDidMount() {
-    hashHistory.listen(this.onRouteChange.bind(this));
+    this.unlisteners.push(
+      hashHistory.listen(this.onRouteChange.bind(this))
+    );
+  }
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   newFormModal (evt) {
     evt.preventDefault();
