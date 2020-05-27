@@ -818,7 +818,9 @@ $z-modal-x: 10;
 
 .media-settings--upload-file {
   width: calc(100% - 170px);
-  overflow: auto;
+  overflow-y:scroll; 
+  position:relative;
+  height: 100%;
   padding: 20px;
   
   .dropzone {
