@@ -227,6 +227,12 @@ class PopoverMenu extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
   }
+  static getDerivedStateFromProps(props, state) {
+    if (state.popoverVisible && props.clearPopover) {
+      return {popoverVisible: false};
+    }
+    return null;
+  }
   toggle(evt) {
     var isBlur = evt.type === 'blur';
 
@@ -276,13 +282,6 @@ class PopoverMenu extends React.Component {
       } else {
         this.setState({placement: 'below'});
       }
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.state.popoverVisible && nextProps.clearPopover) {
-      this.setState({
-        popoverVisible: false
-      });
     }
   }
   render () {
