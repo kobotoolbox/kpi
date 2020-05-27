@@ -552,22 +552,22 @@ class FormMedia extends React.Component {
 
   async onFileDrop(files) {
     if (files.length >= 1) {
-      const file = files[0];
-      var base64File = await this.toBase64(file);
-	  var formMediaJSON = {
-		description: 'default',
-        file_type: 'form_media',
-        metadata: JSON.stringify({filename: file.name}),
-		base64Encoded: base64File
-	  };
-	  dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done((finalAsset) =>{
-        dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-          this.setState({uploadedAssets: uploadedAssets.results});
-        });
-	  }).fail((err) => {
-		console.log(err);
-	  });
-
+      files.forEach(async (file) => {
+        var base64File = await this.toBase64(file);
+	    var formMediaJSON = {
+	      description: 'default',
+          file_type: 'form_media',
+          metadata: JSON.stringify({filename: file.name}),
+	      base64Encoded: base64File
+	    };
+	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
+          dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
+            this.setState({uploadedAssets: uploadedAssets.results});
+          });
+	    }).fail((err) => {
+	      console.log(err);
+	    });
+      });
     }
   }
 
@@ -945,24 +945,22 @@ class FormMedia extends React.Component {
   render() {
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file media-settings--upload-file'>
-
-	  <div className='form-media__upload'>
-        {!this.state.isUploadFilePending &&
-          <Dropzone
-              onDrop={this.onFileDrop.bind(this)}
-              className='dropzone'
-          >
-            <i className='k-icon-upload' />
-            {t(' Drag and drop files here or click to browse')}
-          </Dropzone>
-        }
-        <div className='form-media__upload-url'>
+	    <div className='form-media__upload'>
+          {!this.state.isUploadFilePending &&
+            <Dropzone
+                onDrop={this.onFileDrop.bind(this)}
+                className='dropzone'
+            >
+              <i className='k-icon-upload' />
+              {t(' Drag and drop files here or click to browse')}
+            </Dropzone>
+          }
+          <div className='form-media__upload-url'>
             <label className='form-media__label'>{t('You can also add files using a URL')}</label>
             <input className='form-media__url-input' placeholder={t('Paste URL here')}/><button onClick={this.uploadFromURL} className='mdl-button mdl-button--raised mdl-button--colored form-media__url-button'>{t('ADD')}</button>
+          </div>
         </div>
-      </div>
 
-        {/* Temporary just for designing UI */}
         <div className='form-media__file-list'>
           <label className='form-media__list-label'>Files uploaded to this project</label>
             <ul>
