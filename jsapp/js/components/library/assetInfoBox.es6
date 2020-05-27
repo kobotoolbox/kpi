@@ -175,7 +175,7 @@ class AssetInfoBox extends React.Component {
               {t('Tags')}
             </bem.FormView__cellLabel>
 
-            {this.props.asset.settings.tags && this.props.asset.settings.tags.join(', ') || '-'}
+            {this.props.asset.tag_string && this.props.asset.tag_string.split(',').join(', ') || '-'}
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['sector', 'column-1']}>

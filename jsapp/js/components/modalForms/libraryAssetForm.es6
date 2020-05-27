@@ -80,8 +80,8 @@ export class LibraryAssetForm extends React.Component {
     if (this.props.asset.settings.sector) {
       this.state.data.sector = this.props.asset.settings.sector;
     }
-    if (this.props.asset.settings.tags) {
-      this.state.data.tags = this.props.asset.settings.tags;
+    if (this.props.asset.tag_string) {
+      this.state.data.tags = this.props.asset.tag_string.split(',');
     }
     if (this.props.asset.settings.description) {
       this.state.data.description = this.props.asset.settings.description;
@@ -126,9 +126,9 @@ export class LibraryAssetForm extends React.Component {
             organization: this.state.data.organization,
             country: this.state.data.country,
             sector: this.state.data.sector,
-            tags: this.state.data.tags,
             description: this.state.data.description
-          })
+          }),
+          tag_string: this.state.data.tags.join(',')
         }
       );
     } else {
@@ -139,9 +139,9 @@ export class LibraryAssetForm extends React.Component {
           organization: this.state.data.organization,
           country: this.state.data.country,
           sector: this.state.data.sector,
-          tags: this.state.data.tags,
           description: this.state.data.description
-        })
+        }),
+        tag_string: this.state.data.tags.join(',')
       };
 
       if (
