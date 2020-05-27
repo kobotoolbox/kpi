@@ -222,6 +222,12 @@ export var dataInterface;
         data: data,
       });
     },
+    getFormMedia (uid) {
+      return $ajax({
+        method: 'GET',
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files.json/`,
+      });
+    },
 
     /*
      * permissions
