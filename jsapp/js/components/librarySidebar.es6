@@ -44,7 +44,7 @@ class LibrarySidebar extends Reflux.Component {
       stores.session,
       stores.pageState
     ];
-
+    this.unlisteners = [];
     autoBind(this);
   }
   queryCollections () {
@@ -61,9 +61,14 @@ class LibrarySidebar extends Reflux.Component {
     });
   }
   componentDidMount () {
-    this.listenTo(this.searchStore, this.searchChanged);
+    this.unlisteners.push(
+      this.listenTo(this.searchStore, this.searchChanged)
+    );
     this.searchDefault();
     this.queryCollections();
+  }
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   searchChanged (state) {
     this.setState(state);
