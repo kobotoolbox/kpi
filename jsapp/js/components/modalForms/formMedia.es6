@@ -84,7 +84,8 @@ class FormMedia extends React.Component {
       isUploadFilePending: false,
       // archive flow
       isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false
+      isAwaitingUnarchiveCompleted: false,
+      uploadedAssets: null
     };
 
     autoBind(this);
@@ -110,6 +111,9 @@ class FormMedia extends React.Component {
       actions.resources.setDeploymentActive.completed.listen(this.onSetDeploymentActiveCompleted.bind(this)),
       hashHistory.listen(this.onRouteChange.bind(this))
     );
+    dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
+      this.setState({uploadedAssets: uploadedAssets.results});
+    });
   }
 
   componentWillUnmount() {
@@ -556,67 +560,14 @@ class FormMedia extends React.Component {
         metadata: JSON.stringify({filename: file.name}),
 		base64Encoded: base64File
 	  };
-	  console.log(formMediaJSON);
-	  console.dir(this);
 	  dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done((finalAsset) =>{
-		console.log(finalAsset);
+        dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
+          this.setState({uploadedAssets: uploadedAssets.results});
+        });
 	  }).fail((err) => {
 		console.log(err);
 	  });
 
-      //this.getOrCreateFormAsset().then(
-      //  (asset) => {
-      //    this.applyFileToAsset(files[0], asset).then(
-      //      (data) => {
-      //        console.dir(data);
-      //        dataInterface.getAsset({id: data.uid}).done((finalAsset) => {
-      //          // TODO: Getting asset outside of actions.resources.loadAsset
-      //          // is not going to notify all the listeners, causing some hard
-      //          // to identify bugs.
-      //          // Until we switch this code to use actions we HACK it so other
-      //          // places are notified.
-      //          actions.resources.loadAsset.completed(finalAsset);
-
-      //          if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
-      //            // when replacing, we omit PROJECT_DETAILS step
-      //            this.goToFormLanding();
-      //          } else {
-      //            // try proposing something more meaningful than "Untitled"
-      //            this.setState({
-      //              formAsset: finalAsset,
-      //              name: finalAsset.name,
-      //              description: finalAsset.settings.description,
-      //              sector: finalAsset.settings.sector,
-      //              country: finalAsset.settings.country,
-      //              'share-metadata': finalAsset.settings['share-metadata'],
-      //              isUploadFilePending: false
-      //            });
-      //            this.displayStep(this.STEPS.PROJECT_DETAILS);
-      //          }
-      //        }).fail(() => {
-      //          this.setState({isUploadFilePending: false});
-      //          alertify.error(t('Failed to reload project after upload!'));
-      //        });
-      //      },
-      //      (response) => {
-      //        this.setState({isUploadFilePending: false});
-      //        const errLines = [];
-      //        errLines.push(t('Import Failed!'));
-      //        if (files[0].name) {
-      //          errLines.push(`<code>Name: ${files[0].name}</code>`);
-      //        }
-      //        if (response.messages.error) {
-      //          errLines.push(`<code>${response.messages.error_type}: ${escapeHtml(response.messages.error)}</code>`);
-      //        }
-      //        alertify.error(errLines.join('<br/>'));
-      //      }
-      //    );
-      //  },
-      //  () => {
-      //    this.setState({isUploadFilePending: false});
-      //    alertify.error(t('Could not import XLSForm!'));
-      //  }
-      //);
     }
   }
 
@@ -1015,48 +966,17 @@ class FormMedia extends React.Component {
         <div className='form-media__file-list'>
           <label className='form-media__list-label'>Files uploaded to this project</label>
             <ul>
-                <li className='form-media__list-item'>
-                  <i className='k-icon-pdf'/>
-                  <a href='#'>This_is_the_name_of_a_file_01.jpg</a>
-                  <i className='k-icon-trash'/>
-                </li>
-                <li className='form-media__list-item'>
-                  <i className='k-icon-pdf'/>
-                  <a href='#'>This_is_the_name_of_a_file_02.jpg</a>
-                  <i className='k-icon-trash'/>
-                </li>
-                <li className='form-media__list-item'>
-                  <i className='k-icon-pdf'/>
-                  <a href='#'>This_is_the_name_of_a_file_03.jpg</a>
-                  <i className='k-icon-trash'/>
-                </li>
-                <li className='form-media__list-item'>
-                  <i className='k-icon-pdf'/>
-                  <a href='#'>This_is_the_name_of_a_file_04.jpg</a>
-                  <i className='k-icon-trash'/>
-                </li>
-            </ul>
-        </div>
-
-        {/* TODO: set filesToShow after successful upload and display uploadedFiles taken from asset
-
-          {this.state.filesToShow &&
-            <div className='form-media__file-list'>
-              <label className='form-media__labelist'>Files uploaded to this project</label>
-              {this.state.uploadedFiles.map((item, n) => {
+              {this.state.uploadedAssets !== null && this.state.uploadedAssets.map((item, n) => {
                 return (
                   <li className='form-media__list-item'>
-                    <i className={dyanmically set icon for file type}/>
-                    <a href='#'>This_is_the_name_of_a_file_01.jpg</a>
-                    <i className='k-icon-trash' onClick={delete this file}/>
+                    <i className='k-icon-pdf'/>
+                    <a href={item.content}>{item.metadata.filename}</a>
+                    <i className='k-icon-trash' />
                   </li>
                 );
               })}
-            </div>
-          }
-
-        */}
-
+            </ul>
+        </div>
       </bem.FormModal__form>
     );
   }
