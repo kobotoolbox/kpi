@@ -517,12 +517,12 @@ module.exports = do ->
         image: ['draw', 'annotate', 'signature']
         date: ['month-year', 'year']
 
-      types[@model_type(@model)]
+      types[@model_type()]
     html: ->
       @$checkbox_samescreen = $('<input/>', { type: "checkbox", id: "checkbox-samescreen", style: 'margin-top: 10px;' })
       @$label_checkbox_samescreen = $('<span/>', { style: 'margin-left: 4px;' }).text(_t('Show all questions in this group on the same screen'))
       @fieldListStr = 'field-list'
-      @$select_width = $('<select/>', { id: "select-width", style: 'display: block; margin-top: 5px;' })
+      @$select_width = $('<select/>', { id: "select-width", style: 'margin-top: 5px;' })
       @$label_select_width = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns (default is w4)'))
       @$label_select_width_group = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns'))
       $('<option />', {value: "select", text: "select"}).appendTo(@$select_width)
@@ -540,7 +540,7 @@ module.exports = do ->
       if @model_is_group(@model)
         return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
       else
-        if @model_type(@model) isnt 'calculate'
+        if @model_type() isnt 'calculate'
           appearances = @getTypes()
           if appearances?
             appearances.push 'other'
@@ -553,7 +553,18 @@ module.exports = do ->
     model_is_group: (model) ->
       model._parent.constructor.key == 'group'
 
-    model_type: (model) ->
+    model_get_parent_group: () ->
+      perent_group = null
+      if @model._parent._parent._parent? and @model._parent._parent._parent.constructor.key == 'group'
+        parent_group = parent_group = @model._parent._parent._parent
+      parent_group
+
+    model_get_parent_group_appearance: () ->
+      parent_group = @model_get_parent_group()
+      if parent_group?
+        parent_group.get('appearance').getValue()
+
+    model_type: () ->
       @model._parent.getValue('type').split(' ')[0]
 
     is_form_style_exist: () ->
@@ -644,8 +655,10 @@ module.exports = do ->
         @$('.settings__input').append(@$select_width)
 
         if @is_form_style_exist() and @is_form_style_pages()
-          @$('.settings__input').append(@$checkbox_samescreen)
-          @$('.settings__input').append(@$label_checkbox_samescreen)
+          $container_checkbox_samescreen = $('<div/>')
+          $container_checkbox_samescreen.append(@$checkbox_samescreen)
+          $container_checkbox_samescreen.append(@$label_checkbox_samescreen)
+          @$('.settings__input').append($container_checkbox_samescreen)
           @is_checkbox_samescreen = true
 
         if modelValue? and modelValue != '' # Parse existing value
@@ -715,6 +728,24 @@ module.exports = do ->
         if @is_form_style_theme_grid()
           @$('.settings__input').append(@$label_select_width)
           @$('.settings__input').append(@$select_width)
+
+          parent_column = 4
+          if @model_get_parent_group()? and @model_get_parent_group_appearance() != ''
+            parent_group_appearance = @model_get_parent_group_appearance()
+            if parent_group_appearance.indexOf(' ') == -1 # no space in parent_group_appearance
+              if parent_group_appearance in @width_options
+                parent_column = parent_group_appearance.slice(1)
+            else
+              parent_group_appearance_last_value = parent_group_appearance.slice(parent_group_appearance.lastIndexOf(' ') + 1)
+              if parent_group_appearance_last_value in @width_options
+                parent_column = parent_group_appearance_last_value.slice(1)
+
+          parent_column = parseInt parent_column, 10
+          text_parent_columns = "Parent group has #{parent_column} columns"
+          if parent_column == 1
+            text_parent_columns = text_parent_columns.replace('columns', 'column')
+          $label_parent_columns = $('<span/>', { style: 'margin-left: 5px;' }).text(_t("#{text_parent_columns}"))
+          @$('.settings__input').append($label_parent_columns)
 
         $select = @$('select').not('#select-width')
         if $select.length > 0 # Question item appearance is dropdown
