@@ -65,7 +65,7 @@ class Command(BaseCommand):
         force = options['force']
 
         query = self._get_queryset(options, last_id)
-        assets = query.all().order_by()[:chunks]
+        assets = query.all().order_by('pk')[:chunks]
 
         if assets.exists():
             last_id = None
