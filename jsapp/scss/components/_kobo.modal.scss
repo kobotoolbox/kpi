@@ -791,14 +791,15 @@ $z-modal-x: 10;
     color: #D08B8C;
     font-size: 36px;
     float: right;
+    cursor: pointer;
   }
 
-  i.k-icon-pdf {
+  i.form-media__file-type {
     position: absolute;
-    left: -10px;
-    top: -5px;
+    left: -5px;
+    top: 4px;
     color: grey;
-    font-size: 36px;
+    font-size: 18px;
   }
 
   a {
@@ -825,6 +826,11 @@ $z-modal-x: 10;
   
   .dropzone {
     border-color: #b7b8b9;
+  }
+}
+@media screen and (max-width: 767px) {
+  .media-settings--upload-file {
+    width: auto;
   }
 }
 
