@@ -215,6 +215,10 @@ export var dataInterface;
         data: data,
       });
     },
+
+    /*
+     * form media
+     */
     postFormMedia (uid, data) {
       return $ajax({
         method: 'POST',
@@ -226,6 +230,21 @@ export var dataInterface;
       return $ajax({
         method: 'GET',
         url: `${ROOT_URL}/api/v2/assets/${uid}/files.json/`,
+      });
+    },
+    //TODO: Figure out a way to import from URL
+    //getMediaFromURL (url) {
+    //  return $ajax({
+    //    method: 'GET',
+    //    url: url,
+    //    dataType: 'jpeg',
+    //    contentType: 'image/jpeg',
+    //  });
+    //},
+    deleteFormMedia(url) {
+      return $ajax({
+        method: 'DELETE',
+        url: url,
       });
     },
 
