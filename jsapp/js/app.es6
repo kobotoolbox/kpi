@@ -348,7 +348,8 @@ hashHistory.listen(function() {
 
 export default class RunRoutes extends React.Component {
   componentDidMount(){
-    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
+    // HACK: when hot reloading, componentWillReceiveProps whines about
+    // changing the routes prop so this shuts that up
     this.router.componentWillReceiveProps = function(){};
   }
 
