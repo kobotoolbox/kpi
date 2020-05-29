@@ -61,7 +61,7 @@ class Command(BaseCommand):
         cpt_no_deployments = 0
 
         # Filter query
-        query = Asset.objects
+        query = Asset.objects.filter(asset_type='survey')
         if rest_service_only:
             query = query.exclude(hooks=None)
         if username:
@@ -108,7 +108,9 @@ class Command(BaseCommand):
 
         self.stdout.write('\nSummary:')
         self.stdout.write(f'Successfully populated: {cpt_patched}')
-        self.stdout.write(f'Failures: {cpt_failed}')
-        self.stdout.write(f'No deployments found: {cpt_no_deployments}')
+        self.stdout.write(f'Failed: {cpt_failed}')
+        self.stdout.write(f'Skipped (not deployed): {cpt_no_deployments}')
         if not force:
-            self.stdout.write(f'Already populated: {cpt_already_populated}')
+            self.stdout.write(f'Skipped (already populated): {cpt_already_populated}')
+
+        self.stdout.write('\nDone!')
