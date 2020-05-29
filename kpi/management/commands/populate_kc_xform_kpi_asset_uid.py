@@ -65,7 +65,8 @@ class Command(BaseCommand):
         force = options['force']
 
         query = self._get_queryset(options, last_id)
-        assets = query.all().order_by('pk')[:chunks]
+        assets = query.only('id', 'uid', '_deployment_data', 'name',
+                            'parent_id', 'owner_id').all().order_by('pk')[:chunks]
 
         if assets.exists():
             last_id = None
@@ -100,6 +101,7 @@ class Command(BaseCommand):
 
                 last_id = asset.id
 
+            assets = None  # Force GC
             self._get_next_chunk(options, last_id)
 
     def _get_queryset(self, options, last_id=None):
