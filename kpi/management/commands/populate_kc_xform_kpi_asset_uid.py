@@ -16,6 +16,10 @@ class Command(BaseCommand):
         super().__init__(stdout=stdout, stderr=stderr, no_color=no_color)
         self.__total = 0
         self.__cpt = 0
+        self.__cpt_already_populated = 0
+        self.__cpt_failed = 0
+        self.__cpt_patched = 0
+        self.__cpt_no_deployments = 0
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
@@ -51,12 +55,17 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-
+        force = options['force']
         query = self._get_queryset(options)
         self.__total = query.count()
         self._get_next_chunk(options)
 
-        self.stdout.write('\nDone!')
+        self.stdout.write('\nSummary:')
+        self.stdout.write(f'Successfully populated: {self.__cpt_patched}')
+        self.stdout.write(f'Failures: {self.__cpt_failed}')
+        self.stdout.write(f'No deployments found: {self.__cpt_no_deployments}')
+        if not force:
+            self.stdout.write(f'Already populated: {self.__cpt_already_populated}')
 
     def _get_next_chunk(self, options, last_id=None):
 
@@ -67,7 +76,6 @@ class Command(BaseCommand):
         query = self._get_queryset(options, last_id)
         assets = query.only('id', 'uid', '_deployment_data', 'name',
                             'parent_id', 'owner_id').all().order_by('pk')[:chunks]
-
         if assets.exists():
             last_id = None
             for asset in assets:
@@ -79,16 +87,20 @@ class Command(BaseCommand):
                             # Avoid `Asset.save()` logic. Do not touch `modified_date`
                             Asset.objects.filter(pk=asset.id).update(
                                 _deployment_data=asset._deployment_data)
+                            self.__cpt_patched += 1
                         else:
                             if verbosity >= 2:
                                 self.stdout.write('\nAsset #{}: Already populated'.format(asset.id))
+                            self.__cpt_already_populated += 1
                     except KobocatDeploymentException as e:
                         if verbosity >= 2:
                             self.stdout.write('\nERROR: Asset #{}: {}'.format(asset.id,
                                                                               str(e)))
+                        self.__cpt_failed += 1
                 else:
                     if verbosity >= 3:
                         self.stdout.write('\nAsset #{}: No deployments found'.format(asset.id))
+                    self.__cpt_no_deployments += 1
 
                 self.__cpt += 1
                 if verbosity >= 1:
