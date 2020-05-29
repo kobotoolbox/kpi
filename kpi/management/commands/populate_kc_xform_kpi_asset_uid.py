@@ -3,6 +3,7 @@ import sys
 
 from django.core.management.base import BaseCommand
 
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import KobocatDeploymentException
 from kpi.models.asset import Asset
 
@@ -58,10 +59,8 @@ class Command(BaseCommand):
         cpt_already_populated = 0
         cpt_failed = 0
         cpt_patched = 0
-        cpt_no_deployments = 0
 
-        # Filter query
-        query = Asset.objects.filter(asset_type='survey')
+        query = Asset.objects.deployed().filter(asset_type=ASSET_TYPE_SURVEY)
         if rest_service_only:
             query = query.exclude(hooks=None)
         if username:
@@ -74,28 +73,23 @@ class Command(BaseCommand):
                             'parent_id', 'owner_id')
 
         for asset in assets.iterator(chunk_size=chunks):
-            if asset.has_deployment:
-                try:
-                    if asset.deployment.set_asset_uid(force=force):
-                        if verbosity >= 2:
-                            self.stdout.write('\nAsset #{}: Patching XForm'.format(asset.id))
-                        # Avoid `Asset.save()` logic. Do not touch `modified_date`
-                        Asset.objects.filter(pk=asset.id).update(
-                            _deployment_data=asset._deployment_data)
-                        cpt_patched += 1
-                    else:
-                        if verbosity >= 2:
-                            self.stdout.write('\nAsset #{}: Already populated'.format(asset.id))
-                        cpt_already_populated += 1
-                except KobocatDeploymentException as e:
+            try:
+                if asset.deployment.set_asset_uid(force=force):
                     if verbosity >= 2:
-                        self.stdout.write('\nERROR: Asset #{}: {}'.format(asset.id,
-                                                                          str(e)))
+                        self.stdout.write('\nAsset #{}: Patching XForm'.format(asset.id))
+                    # Avoid `Asset.save()` logic. Do not touch `modified_date`
+                    Asset.objects.filter(pk=asset.id).update(
+                        _deployment_data=asset._deployment_data)
+                    cpt_patched += 1
+                else:
+                    if verbosity >= 2:
+                        self.stdout.write('\nAsset #{}: Already populated'.format(asset.id))
+                    cpt_already_populated += 1
+            except KobocatDeploymentException as e:
+                if verbosity >= 2:
+                    self.stdout.write('\nERROR: Asset #{}: {}'.format(asset.id,
+                                                                      str(e)))
                     cpt_failed += 1
-            else:
-                if verbosity >= 3:
-                    self.stdout.write('\nAsset #{}: No deployments found'.format(asset.id))
-                cpt_no_deployments += 1
 
             cpt += 1
             if verbosity >= 1:
@@ -109,7 +103,6 @@ class Command(BaseCommand):
         self.stdout.write('\nSummary:')
         self.stdout.write(f'Successfully populated: {cpt_patched}')
         self.stdout.write(f'Failed: {cpt_failed}')
-        self.stdout.write(f'Skipped (not deployed): {cpt_no_deployments}')
         if not force:
             self.stdout.write(f'Skipped (already populated): {cpt_already_populated}')
 
