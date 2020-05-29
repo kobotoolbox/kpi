@@ -12,15 +12,6 @@ class Command(BaseCommand):
     help = 'Link KoBoCAT `XForm`s back to their corresponding KPI `Asset`s ' \
            'by populating the `kpi_asset_uid` field'
 
-    def __init__(self, stdout=None, stderr=None, no_color=False):
-        super().__init__(stdout=stdout, stderr=stderr, no_color=no_color)
-        self.__total = 0
-        self.__cpt = 0
-        self.__cpt_already_populated = 0
-        self.__cpt_failed = 0
-        self.__cpt_patched = 0
-        self.__cpt_no_deployments = 0
-
     def add_arguments(self, parser):
         super().add_arguments(parser)
         parser.add_argument(
@@ -55,79 +46,69 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+
         force = options['force']
-        query = self._get_queryset(options)
-        self.__total = query.count()
-        self._get_next_chunk(options)
-
-        self.stdout.write('\nSummary:')
-        self.stdout.write(f'Successfully populated: {self.__cpt_patched}')
-        self.stdout.write(f'Failures: {self.__cpt_failed}')
-        self.stdout.write(f'No deployments found: {self.__cpt_no_deployments}')
-        if not force:
-            self.stdout.write(f'Already populated: {self.__cpt_already_populated}')
-
-    def _get_next_chunk(self, options, last_id=None):
-
         chunks = options["chunks"]
         verbosity = options['verbosity']
-        force = options['force']
-
-        query = self._get_queryset(options, last_id)
-        assets = query.only('id', 'uid', '_deployment_data', 'name',
-                            'parent_id', 'owner_id').all().order_by('pk')[:chunks]
-        if assets.exists():
-            last_id = None
-            for asset in assets:
-                if asset.has_deployment:
-                    try:
-                        if asset.deployment.set_asset_uid(force=force):
-                            if verbosity >= 2:
-                                self.stdout.write('\nAsset #{}: Patching XForm'.format(asset.id))
-                            # Avoid `Asset.save()` logic. Do not touch `modified_date`
-                            Asset.objects.filter(pk=asset.id).update(
-                                _deployment_data=asset._deployment_data)
-                            self.__cpt_patched += 1
-                        else:
-                            if verbosity >= 2:
-                                self.stdout.write('\nAsset #{}: Already populated'.format(asset.id))
-                            self.__cpt_already_populated += 1
-                    except KobocatDeploymentException as e:
-                        if verbosity >= 2:
-                            self.stdout.write('\nERROR: Asset #{}: {}'.format(asset.id,
-                                                                              str(e)))
-                        self.__cpt_failed += 1
-                else:
-                    if verbosity >= 3:
-                        self.stdout.write('\nAsset #{}: No deployments found'.format(asset.id))
-                    self.__cpt_no_deployments += 1
-
-                self.__cpt += 1
-                if verbosity >= 1:
-                    progress = '\rUpdated {cpt}/{total} records...'.format(
-                        cpt=self.__cpt,
-                        total=self.__total
-                    )
-                    self.stdout.write(progress)
-                    self.stdout.flush()
-
-                last_id = asset.id
-
-            assets = None  # Force GC
-            self._get_next_chunk(options, last_id)
-
-    def _get_queryset(self, options, last_id=None):
-
         rest_service_only = options['rest_service_only']
         username = options['username']
 
+        # Counters
+        cpt = 0
+        cpt_already_populated = 0
+        cpt_failed = 0
+        cpt_patched = 0
+        cpt_no_deployments = 0
+
+        # Filter query
         query = Asset.objects
         if rest_service_only:
             query = query.exclude(hooks=None)
         if username:
             query = query.filter(owner__username=username)
 
-        if last_id:
-            query = query.filter(pk__gt=last_id)
+        total = query.count()
 
-        return query
+        # Use only fields we need.
+        assets = query.only('id', 'uid', '_deployment_data', 'name',
+                            'parent_id', 'owner_id')
+
+        for asset in assets.iterator(chunk_size=chunks):
+            if asset.has_deployment:
+                try:
+                    if asset.deployment.set_asset_uid(force=force):
+                        if verbosity >= 2:
+                            self.stdout.write('\nAsset #{}: Patching XForm'.format(asset.id))
+                        # Avoid `Asset.save()` logic. Do not touch `modified_date`
+                        Asset.objects.filter(pk=asset.id).update(
+                            _deployment_data=asset._deployment_data)
+                        cpt_patched += 1
+                    else:
+                        if verbosity >= 2:
+                            self.stdout.write('\nAsset #{}: Already populated'.format(asset.id))
+                        cpt_already_populated += 1
+                except KobocatDeploymentException as e:
+                    if verbosity >= 2:
+                        self.stdout.write('\nERROR: Asset #{}: {}'.format(asset.id,
+                                                                          str(e)))
+                    cpt_failed += 1
+            else:
+                if verbosity >= 3:
+                    self.stdout.write('\nAsset #{}: No deployments found'.format(asset.id))
+                cpt_no_deployments += 1
+
+            cpt += 1
+            if verbosity >= 1:
+                progress = '\rUpdated {cpt}/{total} records...'.format(
+                    cpt=cpt,
+                    total=total
+                )
+                self.stdout.write(progress)
+                self.stdout.flush()
+
+        self.stdout.write('\nSummary:')
+        self.stdout.write(f'Successfully populated: {cpt_patched}')
+        self.stdout.write(f'Failures: {cpt_failed}')
+        self.stdout.write(f'No deployments found: {cpt_no_deployments}')
+        if not force:
+            self.stdout.write(f'Already populated: {cpt_already_populated}')
