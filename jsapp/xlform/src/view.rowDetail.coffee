@@ -524,7 +524,6 @@ module.exports = do ->
       @fieldListStr = 'field-list'
       @$select_width = $('<select/>', { id: "select-width", style: 'margin-top: 5px;' })
       @$label_select_width = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns (default is w4)'))
-      @$label_select_width_group = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns'))
       $('<option />', {value: "select", text: "select"}).appendTo(@$select_width)
       @width_options = []
       for option in [1..10]
@@ -622,7 +621,7 @@ module.exports = do ->
         model_set_value = input_value
       
       select_width_value = @$select_width.val()
-      select_width_value = '' if select_width_value == 'select'
+      select_width_value = @select_width_default_value if select_width_value == 'select'
       if model_set_value != ''
         if select_width_value != ''
           model_set_value += " #{select_width_value}"
@@ -651,8 +650,9 @@ module.exports = do ->
       if @model_is_group(@model)
         $input = @$('input')
 
-        @$('.settings__input').append(@$label_select_width_group)
-        @$('.settings__input').append(@$select_width)
+        if @is_form_style_theme_grid()
+          @$('.settings__input').append(@$label_select_width)
+          @$('.settings__input').append(@$select_width)
 
         if @is_form_style_exist() and @is_form_style_pages()
           $container_checkbox_samescreen = $('<div/>')
