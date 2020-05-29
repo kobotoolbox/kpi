@@ -442,6 +442,7 @@ export default assign({
       }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
+          window.parent.postMessage('form_savecomplete', '*');
           hashHistory.push('/library');
         });
     } else {
@@ -450,6 +451,7 @@ export default assign({
 
       actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
+          window.parent.postMessage('form_savecomplete', '*');
           this.unpreventClosingTab();
           this.setState({
             asset_updated: update_states.UP_TO_DATE,
