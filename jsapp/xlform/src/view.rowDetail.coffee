@@ -645,6 +645,24 @@ module.exports = do ->
         else
           handler()
 
+    is_same_screen_in_model_value: () ->
+      modelValue = @model.get 'value'
+      modelValue.indexOf @fieldListStr > -1
+
+    get_width_from_model_value: () ->
+      modelValue = @model.get 'value'
+      model_width = null
+      for width_option in @width_options
+        model_width = width_option if (modelValue.indexOf width_option) > -1
+      model_width
+
+    get_select_value_from_model_value: () ->
+      modelValue = @model.get 'value'
+      select_value = null
+      for type in @getTypes()
+        select_value = type if (modelValue.indexOf type) > -1
+      select_value
+
     afterRender: ->
       modelValue = @model.get 'value'
       if @model_is_group(@model)
@@ -662,50 +680,23 @@ module.exports = do ->
           @is_checkbox_samescreen = true
 
         if modelValue? and modelValue != '' # Parse existing value
+          modelValue = modelValue.trim()
           samescreen_value = null
           text_input_value = null
           select_width_value = null
-          if modelValue.indexOf(' ') == -1 # no space in modelValue
-            if modelValue == @fieldListStr
-              samescreen_value = modelValue
-            else if modelValue in @width_options
-              select_width_value = modelValue
-            else
-              text_input_value = modelValue
-          else
-            count_spaces = modelValue.split(' ').length - 1
-            if count_spaces == 1
-              first_value = modelValue.slice(0, modelValue.indexOf(' '))
-              if first_value == @fieldListStr
-                samescreen_value = first_value
 
-              last_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-              if last_value in @width_options
-                select_width_value = last_value
-                if not samescreen_value?
-                  text_input_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              else
-                if samescreen_value?
-                  text_input_value = last_value
-                else
-                  text_input_value = modelValue
-            else
-              first_value = modelValue.slice(0, modelValue.indexOf(' '))
-              if first_value == @fieldListStr
-                samescreen_value = first_value
+          if @is_same_screen_in_model_value()
+            samescreen_value = @fieldListStr
+            modelValue = modelValue.split(samescreen_value).join('') # remove samescreen_value from modelValue
 
-              last_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-              if last_value in @width_options
-                select_width_value = last_value
-                if samescreen_value?
-                  text_input_value = modelValue.slice(modelValue.indexOf(' ') + 1, modelValue.lastIndexOf(' '))
-                else
-                  text_input_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              else
-                if samescreen_value?
-                  text_input_value = modelValue.slice(modelValue.indexOf(' ') + 1)
-                else
-                  text_input_value = modelValue
+          width_model_value = @get_width_from_model_value()
+          if width_model_value?
+            select_width_value = width_model_value
+            modelValue = modelValue.split(select_width_value).join('') # remove select_width_value from modelValue
+
+          modelValue = modelValue.trim()
+          if modelValue != ''
+            text_input_value = modelValue
 
         if samescreen_value?
           @$checkbox_samescreen.prop('checked', true)
@@ -752,16 +743,24 @@ module.exports = do ->
           @$textbox_other = $('<input/>', { class:'text', type: 'text', width: 'auto', style: 'display: block; margin-top: 5px;' })
 
           if modelValue? and modelValue != '' # Parse existing value
+            modelValue = modelValue.trim()
             select_value = null
             other_value = null
             select_width_value = null
-            if modelValue.indexOf(' ') != -1 # found space in modelValue
-              select_value = modelValue.slice(0, modelValue.indexOf(' '))
-              if select_value not in @getTypes()
-                other_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              select_width_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-            else
-              select_width_value = modelValue
+
+            select_model_value = @get_select_value_from_model_value()
+            if select_model_value?
+              select_value = select_model_value
+              modelValue = modelValue.split(select_value).join('') # remove select_value from modelValue
+
+            width_model_value = @get_width_from_model_value()
+            if width_model_value?
+              select_width_value = width_model_value
+              modelValue = modelValue.split(select_width_value).join('') # remove select_width_value from modelValue
+
+            modelValue = modelValue.trim()
+            if modelValue != ''
+              other_value = modelValue
 
             if select_value?
               $select.val(select_value)
@@ -791,13 +790,18 @@ module.exports = do ->
         else # Question item appearance is text input
           $input = @$('input')
           if modelValue? and modelValue != '' # Parse existing value
+            modelValue = modelValue.trim()
             input_value = null
             select_width_value = null
-            if modelValue.indexOf(' ') != -1 # found space in modelValue
-              input_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              select_width_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-            else
-              select_width_value = modelValue
+
+            width_model_value = @get_width_from_model_value()
+            if width_model_value?
+              select_width_value = width_model_value
+              modelValue = modelValue.split(select_width_value).join('') # remove select_width_value from modelValue
+
+            modelValue = modelValue.trim()
+            if modelValue != ''
+              input_value = modelValue
 
             if input_value?
               $input.val(input_value)
