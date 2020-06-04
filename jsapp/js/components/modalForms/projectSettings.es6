@@ -550,10 +550,15 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // try proposing something more meaningful than "Untitled"
+                  // TODO: allow serializers to take care of file names to
+                  // remove this bandaid fix for "Untitled" filenames
+                  var assetName = finalAsset.name;
+                  if (assetName === 'Untitled') {
+                    assetName = files[0].name.split('.xlsx')[0];
+                  }
                   this.setState({
                     formAsset: finalAsset,
-                    name: finalAsset.name,
+                    name: assetName,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
