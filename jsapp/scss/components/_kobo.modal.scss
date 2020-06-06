@@ -748,18 +748,26 @@ $z-modal-x: 10;
 
 .form-media__label {
   font-weight: 400;
-  font-size: 16px;
+  font-size: 18px;
   text-align: center;
   display: block;
   margin-top: 20px;
   margin-bottom: 5px;
+  color: #7d8498;
+}
+
+.form-media__upload-url {
+  text-align: center;
 }
 
 .form-media__url-input {
-  width: 75%;
-  border: 1px solid #80808063;
+  width: 70%;
+  margin-right: 10px;
   padding: 7px;
-  border-radius: 5px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 1px solid;
+  border-bottom-color: #bbb;
 }
 
 .form-media__url-button {
@@ -774,13 +782,19 @@ $z-modal-x: 10;
   font-weight: 500;
   font-size: 22px;
   display: block;
-  margin-bottom: 32px;
+  margin-bottom: 11px;
+  border-bottom: 1px solid #8080804f;
+  padding-bottom: 16px;
+}
+
+.form-media__default-item {
+  padding-left: 10px;
 }
 
 .form-media__list-item {
   font-size: 16px;
   position: relative;
-  padding-bottom: 7px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #8080804f;
   margin-bottom: 12px;
 
@@ -819,15 +833,31 @@ $z-modal-x: 10;
 
 .media-settings--upload-file {
   width: calc(100% - 170px);
-  overflow-y:scroll; 
-  position:relative;
+  overflow-y: scroll;
+  position: relative;
   height: 100%;
   padding: 20px;
-  
+
   .dropzone {
-    border-color: #b7b8b9;
+    font-weight: 400;
+    font-size: 18px;
+    color: #7d8498;
+    border-color: #e6e6e8;
+
+    i {
+      font-size: 50px;
+    }
+
+    div {
+      font-size: 14px;
+
+      a {
+        text-decoration: underline;
+      }
+    }
   }
 }
+
 @media screen and (max-width: 767px) {
   .media-settings--upload-file {
     width: auto;

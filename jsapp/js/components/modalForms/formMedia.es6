@@ -83,7 +83,6 @@ class FormMedia extends React.Component {
  *   }).fail((err) => {
  *     alertify.error(err.responseText);
  *   });
-
  * }
  */
 
@@ -122,7 +121,10 @@ class FormMedia extends React.Component {
                 className='dropzone'
             >
               <i className='k-icon-upload' />
-              {t(' Drag and drop files here or click to browse')}
+              {t(' Drag and drop files here')}
+              <div className='form-media__desc'>
+                {t('or')} <a>{t('click here to browse')}</a>
+              </div>
             </Dropzone>
           }
           <div className='form-media__upload-url'>
@@ -132,7 +134,7 @@ class FormMedia extends React.Component {
         </div>
 
         <div className='form-media__file-list'>
-          <label className='form-media__list-label'>Files uploaded to this project</label>
+          <label className='form-media__list-label'>{t('File(s) uploaded to this project')}</label>
             <ul>
               {this.state.uploadedAssets !== null && this.state.uploadedAssets.map((item, n) => {
                 return (
@@ -143,6 +145,11 @@ class FormMedia extends React.Component {
                   </li>
                 );
               })}
+              {(this.state.uploadedAssets === null || this.state.uploadedAssets.length == 0) &&
+                <li className='form-media__default-item form-media__list-item'>
+                    {t('No files uploaded yet')}
+                </li>
+              }
             </ul>
         </div>
       </bem.FormModal__form>
