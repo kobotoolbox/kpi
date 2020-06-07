@@ -26,8 +26,6 @@ export class FormLanding extends React.Component {
     this.state = {
       selectedCollectMethod: 'offline_url',
       DVCOUNT_LIMIT: 20,
-      currentVersions: {},
-      nextPageUrl: 'inital'
     };
     autoBind(this);
   }
@@ -134,31 +132,28 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
-  increaseDVCOUNT_LIMIT() {
+  loadMoreVersions() {
     if (this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <= this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM) {
-      this.setState({ DVCOUNT_LIMIT : this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
+      this.setState({ DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
     }
-    if (this.state.DVCOUNT_LIMIT >= 80) {
-      var curr = this.state.currentVersions;
-      if (this.state.nextPageUrl) {
-        dataInterface.loadNextPageUrl(this.state.nextPageUrl).done((data) => {
-          this.setState({nextPageUrl: data.deployed_versions.next});
-          Object.values(data.deployed_versions.results).forEach(function(ele){
-              curr.push(ele);
-          });
+    let curr = this.state.deployed_versions.results;
+    let urlToLoad = null;
+    if(this.state.furtherPageUrl) {
+      urlToLoad = this.state.furtherPageUrl;
+    } else if (this.state.deployed_versions.next) {
+      urlToLoad = this.state.deployed_versions.next;
+    }
+    if (urlToLoad !== null) {
+      dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
+        this.setState({furtherPageUrl: data.deployed_versions.next});
+        Object.values(data.deployed_versions.results).forEach(function(ele){
+          curr.push(ele);
         });
-      }
-      this.setState({currentVersions: curr});
+      });
     }
   }
   renderHistory () {
     var dvcount = this.state.deployed_versions.count;
-    if (this.state.nextPageUrl === 'inital') {
-      this.setState({
-          nextPageUrl: this.state.deployed_versions.next,
-      });
-      this.state.currentVersions = this.state.deployed_versions.results;
-    }
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'history-label']}>
@@ -173,7 +168,7 @@ export class FormLanding extends React.Component {
               <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
               <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
             </bem.FormView__group>
-            {this.state.currentVersions.map((item, n) => {
+            {this.state.deployed_versions.results.map((item, n) => {
               if (dvcount - n > 0) {
                 return (
                   <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''} >
@@ -207,9 +202,9 @@ export class FormLanding extends React.Component {
             <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
             </button>
-            {this.state.historyExpanded &&
-              <button className='mdl-button mdl-button--colored' onClick={this.increaseDVCOUNT_LIMIT}>
-                {this.state.DVCOUNT_LIMIT < dvcount && t('Load more')}
+            {(this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount) &&
+              <button className='mdl-button mdl-button--colored' onClick={this.loadMoreVersions}>
+                {t('Load more')}
               </button>
             }
           </bem.FormView__cell>
