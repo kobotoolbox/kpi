@@ -16,8 +16,9 @@ import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
-  DETAIL_NOT_FOUND
 } from 'js/constants';
+
+const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
 class Submission extends React.Component {
   constructor(props) {
