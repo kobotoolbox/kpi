@@ -753,7 +753,7 @@ $z-modal-x: 10;
   display: block;
   margin-top: 20px;
   margin-bottom: 5px;
-  color: #7d8498;
+  color: $cool-gray;
 }
 
 .form-media__upload-url {
@@ -767,7 +767,7 @@ $z-modal-x: 10;
   background: transparent;
   border: 1px solid transparent;
   border-bottom: 1px solid;
-  border-bottom-color: #bbb;
+  border-bottom-color: lighten($cool-gray, 25%);
 }
 
 .form-media__url-button {
@@ -783,7 +783,7 @@ $z-modal-x: 10;
   font-size: 22px;
   display: block;
   margin-bottom: 11px;
-  border-bottom: 1px solid #8080804f;
+  border-bottom: 1px solid lighten($cool-gray, 25%);
   padding-bottom: 16px;
 }
 
@@ -795,14 +795,14 @@ $z-modal-x: 10;
   font-size: 16px;
   position: relative;
   padding-bottom: 12px;
-  border-bottom: 1px solid #8080804f;
+  border-bottom: 1px solid lighten($cool-gray, 25%);
   margin-bottom: 12px;
 
   i.k-icon-trash {
     right: 10px;
     position: absolute;
     top:-5px;
-    color: #D08B8C;
+    color: $cool-light-red;
     font-size: 36px;
     float: right;
     cursor: pointer;
@@ -841,8 +841,8 @@ $z-modal-x: 10;
   .dropzone {
     font-weight: 400;
     font-size: 18px;
-    color: #7d8498;
-    border-color: #e6e6e8;
+    color: $cool-gray;
+    border-color: lighten($cool-gray, 30%);
 
     i {
       font-size: 50px;
