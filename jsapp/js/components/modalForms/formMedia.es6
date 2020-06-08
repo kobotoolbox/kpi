@@ -7,8 +7,6 @@ import {dataInterface} from 'js/dataInterface';
 import {
   t,
 } from 'js/utils';
-import {
-} from 'js/constants';
 
 /*
 Modal for uploading form media, part of #2487.
