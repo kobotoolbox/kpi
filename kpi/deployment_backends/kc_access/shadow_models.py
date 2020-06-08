@@ -5,14 +5,42 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.exceptions import ValidationError
-from django.db import ProgrammingError
-from django.db import models
+from django.db import (
+    ProgrammingError,
+    connections,
+    models,
+    router,
+)
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.utils.strings import hashable_str
+
+
+def update_autofield_sequence(model):
+    """
+    Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
+    `model`, à la `manage.py sqlsequencereset`
+    """
+    sql_template = (
+        "SELECT setval(pg_get_serial_sequence('{table}','{column}'), "
+        "coalesce(max({column}), 1), max({column}) IS NOT null) FROM {table};"
+    )
+    autofield = None
+    for f in model._meta.get_fields():
+        if isinstance(f, models.AutoField):
+            autofield = f
+            break
+    if not autofield:
+        return
+    query = sql_template.format(
+        table=model._meta.db_table, column=autofield.column
+    )
+    connection = connections[router.db_for_write(model)]
+    with connection.cursor() as cursor:
+        cursor.execute(query)
 
 
 class ReadOnlyModelError(ValueError):
@@ -196,6 +224,10 @@ class KobocatUser(ShadowModel):
         kc_auth_user.date_joined = auth_user.date_joined
 
         kc_auth_user.save()
+
+        # We've manually set a primary key, so `last_value` in the sequence
+        # `auth_user_id_seq` now lags behind `max(id)`. Fix it now!
+        update_autofield_sequence(cls)
 
 
 class KobocatUserObjectPermission(ShadowModel):
