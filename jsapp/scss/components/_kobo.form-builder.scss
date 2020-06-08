@@ -284,7 +284,7 @@ $t-form-builder-aside-open: 200ms;
 
   &:focus {
     i {
-      outline-color: rgb(77, 144, 254);
+      outline-color: $cool-blue;
       outline-offset: -2px;
       outline-style: auto;
       outline-width: 5px;
@@ -301,7 +301,7 @@ $t-form-builder-aside-open: 200ms;
 
   &:focus {
     i {
-      outline-color: rgb(77, 144, 254);
+      outline-color: $cool-blue;
       outline-offset: -2px;
       outline-style: auto;
       outline-width: 5px;
@@ -321,7 +321,7 @@ $t-form-builder-aside-open: 200ms;
     }
 
     &:focus {
-      background-color: #0381e6;
+      background-color: darken($cool-blue, 10%);
       font-weight: bold;
     }
   }
@@ -376,7 +376,7 @@ $t-form-builder-aside-open: 200ms;
     }
 
     &:focus {
-      outline-color: rgb(77, 144, 254);
+      outline-color: $cool-blue;
       outline-offset: -2px;
       outline-style: auto;
       outline-width: 5px;

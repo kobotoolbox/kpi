@@ -76,8 +76,8 @@
     cursor: move;
 
     &:focus {
-      border-color: #1daee3;
-      color: #1daee3;
+      border-color: lighten($cool-blue, 10%);
+      color: lighten($cool-blue, 10%);
     }
 
     span {

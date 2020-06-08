@@ -152,7 +152,7 @@ input.row__questiontypes__new-question-name {
 
 // Force hover through jQuery for arrow key navigation
 .questiontypelist__item-force-hover {
-  outline-color: rgb(77, 144, 254); // #4D90FE
+  outline-color: $cool-blue;
   outline-offset: -2px;
   outline-style: auto;
   outline-width: 5px;
