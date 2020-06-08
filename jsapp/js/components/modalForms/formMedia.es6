@@ -28,6 +28,10 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
+    this.refreshFormMedia();
+  }
+
+  refreshFormMedia() {
     dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
       this.setState({uploadedAssets: uploadedAssets.results});
     });
@@ -57,9 +61,7 @@ class FormMedia extends React.Component {
 	      base64Encoded: base64File
 	    };
 	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done((res) => {
-          dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-            this.setState({uploadedAssets: uploadedAssets.results});
-          });
+          this.refreshFormMedia();
 	    }).fail((err) => {
 	      alertify.error(err.responseText);
 	    });
@@ -88,9 +90,7 @@ class FormMedia extends React.Component {
 
   removeMedia(url) {
       dataInterface.deleteFormMedia(url).done((res) => {
-        dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-          this.setState({uploadedAssets: uploadedAssets.results});
-        });
+        this.refreshFormMedia();
       }).fail((err) => {
         alertify.error(err.responseText);
       });
