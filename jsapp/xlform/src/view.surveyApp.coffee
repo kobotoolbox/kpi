@@ -156,31 +156,6 @@ module.exports = do ->
       currentLabelIndex = 0
       hoverOver = false
       $(window).on "keydown", (evt)=>
-        # TODO To be repleaced with tabindex functionality
-        ### Shift-Up/Down label navigation and Ctrl-N to create new question next to current item
-        currentLabel = $('input.card__header-title')
-        evtobj = if window.event then event else evt
-        if (evtobj.keyCode == 40 or evtobj.keyCode == 38)
-          evtobj.preventDefault()
-          if evtobj.keyCode == 40 and evtobj.shiftKey
-              if currentLabelIndex >= currentLabel.length - 1
-                currentLabelIndex = 0
-              else
-                currentLabelIndex++
-          if evtobj.keyCode == 38 and evtobj.shiftKey
-              if currentLabelIndex == 0
-                currentLabelIndex = currentLabel.length - 1
-              else
-                currentLabelIndex--
-          currentLabel.eq(currentLabelIndex).focus()
-          currentLabel.eq(currentLabelIndex).select()
-        if evtobj.keyCode == 78 and evtobj.ctrlKey
-          evtobj.preventDefault()
-          if currentLabel.length == 0
-            $('div.js-expand-row-selector').trigger('click')
-          else
-            currentLabel.eq(currentLabelIndex).parents().eq(3).find('div.js-expand-row-selector').trigger('click')
-        ###
         focusedElement = $(':focus')
         if evt.keyCode == 13
           evt.preventDefault()
