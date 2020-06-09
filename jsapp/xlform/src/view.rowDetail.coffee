@@ -517,14 +517,13 @@ module.exports = do ->
         image: ['draw', 'annotate', 'signature']
         date: ['month-year', 'year']
 
-      types[@model_type(@model)]
+      types[@model_type()]
     html: ->
       @$checkbox_samescreen = $('<input/>', { type: "checkbox", id: "checkbox-samescreen", style: 'margin-top: 10px;' })
       @$label_checkbox_samescreen = $('<span/>', { style: 'margin-left: 4px;' }).text(_t('Show all questions in this group on the same screen'))
       @fieldListStr = 'field-list'
-      @$select_width = $('<select/>', { id: "select-width", style: 'display: block; margin-top: 5px;' })
+      @$select_width = $('<select/>', { id: "select-width", style: 'margin-top: 5px;' })
       @$label_select_width = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns (default is w4)'))
-      @$label_select_width_group = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns'))
       $('<option />', {value: "select", text: "select"}).appendTo(@$select_width)
       @width_options = []
       for option in [1..10]
@@ -533,15 +532,19 @@ module.exports = do ->
         $('<option />', {value: "#{width_option}", text: "#{width_option}"}).appendTo(@$select_width)
       @$textbox_other = null
       @select_width_default_value = 'w4'
+      @is_input_select = false
+      @is_input_text_other = false
+      @is_checkbox_samescreen = false
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
         return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
       else
-        if @model_type(@model) isnt 'calculate'
+        if @model_type() isnt 'calculate'
           appearances = @getTypes()
           if appearances?
             appearances.push 'other'
             appearances.unshift 'select'
+            @is_input_select = true
             return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, _t("Appearance (advanced)")
           else
             return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
@@ -549,7 +552,18 @@ module.exports = do ->
     model_is_group: (model) ->
       model._parent.constructor.key == 'group'
 
-    model_type: (model) ->
+    model_get_parent_group: () ->
+      perent_group = null
+      if @model._parent._parent._parent? and @model._parent._parent._parent.constructor.key == 'group'
+        parent_group = parent_group = @model._parent._parent._parent
+      parent_group
+
+    model_get_parent_group_appearance: () ->
+      parent_group = @model_get_parent_group()
+      if parent_group?
+        parent_group.get('appearance').getValue()
+
+    model_type: () ->
       @model._parent.getValue('type').split(' ')[0]
 
     is_form_style_exist: () ->
@@ -564,82 +578,39 @@ module.exports = do ->
     is_form_style_theme_grid: () ->
       @is_form_style('theme-grid')
 
-    get_select_width_value: () ->
+    not_group_inputs_change_handler: () ->
+      model_set_value = ''
+
+      if @is_input_select
+        if @is_input_text_other
+          textbox_other_value = @$textbox_other.val().trim()
+          model_set_value = textbox_other_value
+        else
+          $select = @$('select').not('#select-width')
+          select_value = $select.val()
+          select_value = '' if select_value == 'select'
+          model_set_value = select_value
+      else # input text
+        $input = @$('input')
+        input_value = $input.val().trim()
+        model_set_value = input_value
+
       select_width_value = @$select_width.val()
       select_width_value = @select_width_default_value if select_width_value == 'select'
-      select_width_value
-
-    textbox_other_change_handler: () ->
-      textbox_other_value = @$textbox_other.val().trim()
-      model_set_value = textbox_other_value
-      select_width_value = @get_select_width_value()
       if model_set_value != ''
         model_set_value += " #{select_width_value}"
       else
         model_set_value = select_width_value
+      
       @model.set 'value', model_set_value
-      console.log 'textbox_other_change_handler model set value', model_set_value
-    
-    add_textbox_other_change_handler: () ->
-      @$textbox_other.off 'change'
-      @$textbox_other.on 'change', () =>
-        @textbox_other_change_handler()
-      @$textbox_other.off 'blur'
-      @$textbox_other.on 'blur', () =>
-        @textbox_other_change_handler()
-      @$textbox_other.off 'keyup'
-      @$textbox_other.on 'keyup', (evt) =>
-        if evt.key is 'Enter' or evt.keyCode is 13
-          @$textbox_other.blur()
-        else
-          @textbox_other_change_handler()
-    
-    select_width_change_handler: () ->
-      $select = @$('select').not('#select-width')
-      select_value = $select.val()
-      select_value = '' if select_value == 'select'
-      model_set_value = select_value
-      select_width_value = @get_select_width_value()
-      if model_set_value != ''
-        model_set_value += " #{select_width_value}"
-      else
-        model_set_value = select_width_value
-      @model.set 'value', model_set_value
-      console.log 'select_width_change_handler model set value', model_set_value
 
-    input_text_change_handler: () ->
-      $input = @$('input')
-      input_value = $input.val().trim()
-      model_set_value = input_value
-      select_width_value = @get_select_width_value()
-      if model_set_value != ''
-        model_set_value += " #{select_width_value}"
-      else
-        model_set_value = select_width_value
-      @model.set 'value', model_set_value
-      console.log 'input_text_change_handler model set value', model_set_value
-
-    add_input_text_change_handler: () ->
-      $input = @$('input')
-      $input.off 'change'
-      $input.on 'change', () =>
-        @input_text_change_handler()
-      $input.off 'blur'
-      $input.on 'blur', () =>
-        @input_text_change_handler()
-      $input.off 'keyup'
-      $input.on 'keyup', (evt) =>
-        if evt.key is 'Enter' or evt.keyCode is 13
-          $input.blur()
-        else
-          @input_text_change_handler()
-    
     group_inputs_change_handler: () ->
       model_set_value = ''
 
-      show_samescreen = @$checkbox_samescreen.prop('checked')
-      if show_samescreen
-        model_set_value = @fieldListStr
+      if @is_checkbox_samescreen
+        show_samescreen = @$checkbox_samescreen.prop('checked')
+        if show_samescreen
+          model_set_value = @fieldListStr
 
       $input = @$('input')
       input_value = $input.val().trim()
@@ -648,9 +619,9 @@ module.exports = do ->
           model_set_value += " #{input_value}"
       else
         model_set_value = input_value
-
+      
       select_width_value = @$select_width.val()
-      select_width_value = '' if select_width_value == 'select'
+      select_width_value = @select_width_default_value if select_width_value == 'select'
       if model_set_value != ''
         if select_width_value != ''
           model_set_value += " #{select_width_value}"
@@ -658,82 +629,74 @@ module.exports = do ->
         model_set_value = select_width_value
 
       @model.set 'value', model_set_value
-      console.log 'group_inputs_change_handler model set value', model_set_value
 
-    add_group_input_change_handler: () ->
-      $input = @$('input')
+    add_input_text_change_handler: ($input, handler) ->
+      handler = handler.bind @
       $input.off 'change'
       $input.on 'change', () =>
-        @group_inputs_change_handler()
+        handler()
       $input.off 'blur'
       $input.on 'blur', () =>
-        @group_inputs_change_handler()
+        handler()
       $input.off 'keyup'
       $input.on 'keyup', (evt) =>
         if evt.key is 'Enter' or evt.keyCode is 13
           $input.blur()
         else
-          @group_inputs_change_handler()
+          handler()
+
+    is_same_screen_in_model_value: () ->
+      modelValue = @model.get 'value'
+      modelValue.indexOf @fieldListStr > -1
+
+    get_width_from_model_value: () ->
+      modelValue = @model.get 'value'
+      model_width = null
+      for width_option in @width_options
+        model_width = width_option if (modelValue.indexOf width_option) > -1
+      model_width
+
+    get_select_value_from_model_value: () ->
+      modelValue = @model.get 'value'
+      select_value = null
+      for type in @getTypes()
+        select_value = type if (modelValue.indexOf type) > -1
+      select_value
 
     afterRender: ->
       modelValue = @model.get 'value'
       if @model_is_group(@model)
-        console.log 'is group'
         $input = @$('input')
 
-        @$('.settings__input').append(@$label_select_width_group)
-        @$('.settings__input').append(@$select_width)
+        if @is_form_style_theme_grid()
+          @$('.settings__input').append(@$label_select_width)
+          @$('.settings__input').append(@$select_width)
 
         if @is_form_style_exist() and @is_form_style_pages()
-          @$('.settings__input').append(@$checkbox_samescreen)
-          @$('.settings__input').append(@$label_checkbox_samescreen)
+          $container_checkbox_samescreen = $('<div/>')
+          $container_checkbox_samescreen.append(@$checkbox_samescreen)
+          $container_checkbox_samescreen.append(@$label_checkbox_samescreen)
+          @$('.settings__input').append($container_checkbox_samescreen)
+          @is_checkbox_samescreen = true
 
         if modelValue? and modelValue != '' # Parse existing value
-          console.log 'group parse existing value', modelValue
+          modelValue = modelValue.trim()
           samescreen_value = null
           text_input_value = null
           select_width_value = null
-          if modelValue.indexOf(' ') == -1 # no space in modelValue
-            if modelValue == @fieldListStr
-              samescreen_value = modelValue
-            else if modelValue in @width_options
-              select_width_value = modelValue
-            else
-              text_input_value = modelValue
-          else
-            count_spaces = modelValue.split(' ').length - 1
-            if count_spaces == 1
-              first_value = modelValue.slice(0, modelValue.indexOf(' '))
-              if first_value == @fieldListStr
-                samescreen_value = first_value
 
-              last_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-              if last_value in @width_options
-                select_width_value = last_value
-                if not samescreen_value?
-                  text_input_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              else
-                if samescreen_value?
-                  text_input_value = last_value
-                else
-                  text_input_value = modelValue
-            else
-              first_value = modelValue.slice(0, modelValue.indexOf(' '))
-              if first_value == @fieldListStr
-                samescreen_value = first_value
+          if @is_same_screen_in_model_value()
+            samescreen_value = @fieldListStr
+            modelValue = modelValue.split(samescreen_value).join('') # remove samescreen_value from modelValue
 
-              last_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-              if last_value in @width_options
-                select_width_value = last_value
-                if samescreen_value?
-                  text_input_value = modelValue.slice(modelValue.indexOf(' ') + 1, modelValue.lastIndexOf(' '))
-                else
-                  text_input_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              else
-                if samescreen_value?
-                  text_input_value = modelValue.slice(modelValue.indexOf(' ') + 1)
-                else
-                  text_input_value = modelValue
+          width_model_value = @get_width_from_model_value()
+          if width_model_value?
+            select_width_value = width_model_value
+            modelValue = modelValue.split(select_width_value).join('') # remove select_width_value from modelValue
+
+          modelValue = modelValue.trim()
+          if modelValue != ''
+            text_input_value = modelValue
 
         if samescreen_value?
           @$checkbox_samescreen.prop('checked', true)
@@ -742,7 +705,7 @@ module.exports = do ->
         if select_width_value?
           @$select_width.val(select_width_value)
 
-        @add_group_input_change_handler()
+        @add_input_text_change_handler($input, @group_inputs_change_handler)
         
         @$select_width.off 'change'
         @$select_width.on 'change', () =>
@@ -753,27 +716,51 @@ module.exports = do ->
           @group_inputs_change_handler()
 
       else # not group. this is question item appearance settings
-        console.log 'is not group'
         if @is_form_style_theme_grid()
           @$('.settings__input').append(@$label_select_width)
           @$('.settings__input').append(@$select_width)
 
+          parent_column = 4
+          if @model_get_parent_group()? and @model_get_parent_group_appearance() != ''
+            parent_group_appearance = @model_get_parent_group_appearance()
+            if parent_group_appearance.indexOf(' ') == -1 # no space in parent_group_appearance
+              if parent_group_appearance in @width_options
+                parent_column = parent_group_appearance.slice(1)
+            else
+              parent_group_appearance_last_value = parent_group_appearance.slice(parent_group_appearance.lastIndexOf(' ') + 1)
+              if parent_group_appearance_last_value in @width_options
+                parent_column = parent_group_appearance_last_value.slice(1)
+
+          parent_column = parseInt parent_column, 10
+          text_parent_columns = "Parent group has #{parent_column} columns"
+          if parent_column == 1
+            text_parent_columns = text_parent_columns.replace('columns', 'column')
+          $label_parent_columns = $('<span/>', { style: 'margin-left: 5px;' }).text(_t("#{text_parent_columns}"))
+          @$('.settings__input').append($label_parent_columns)
+
         $select = @$('select').not('#select-width')
         if $select.length > 0 # Question item appearance is dropdown
-          console.log 'is select'
           @$textbox_other = $('<input/>', { class:'text', type: 'text', width: 'auto', style: 'display: block; margin-top: 5px;' })
 
           if modelValue? and modelValue != '' # Parse existing value
+            modelValue = modelValue.trim()
             select_value = null
             other_value = null
             select_width_value = null
-            if modelValue.indexOf(' ') != -1 # found space in modelValue
-              select_value = modelValue.slice(0, modelValue.indexOf(' '))
-              if select_value not in @getTypes()
-                other_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              select_width_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-            else
-              select_width_value = modelValue
+
+            select_model_value = @get_select_value_from_model_value()
+            if select_model_value?
+              select_value = select_model_value
+              modelValue = modelValue.split(select_value).join('') # remove select_value from modelValue
+
+            width_model_value = @get_width_from_model_value()
+            if width_model_value?
+              select_width_value = width_model_value
+              modelValue = modelValue.split(select_width_value).join('') # remove select_width_value from modelValue
+
+            modelValue = modelValue.trim()
+            if modelValue != ''
+              other_value = modelValue
 
             if select_value?
               $select.val(select_value)
@@ -783,55 +770,48 @@ module.exports = do ->
               $select.val('other')
               @$textbox_other.insertAfter $select
               @$textbox_other.val(other_value)
-
-          @add_textbox_other_change_handler()
+              @is_input_text_other = true
+              @add_input_text_change_handler(@$textbox_other, @not_group_inputs_change_handler)
 
           @$select_width.on 'change', () =>
-            @select_width_change_handler()
+            @not_group_inputs_change_handler()
 
           $select.on 'change', () =>
             if $select.val() == 'other'
-              select_width_value = @get_select_width_value()
-              model_set_value = select_width_value
-              @model.set 'value', model_set_value
-              console.log 'model set value', model_set_value
-              
               @$textbox_other.insertAfter $select
-              @add_textbox_other_change_handler()
-
+              @is_input_text_other = true
+              @add_input_text_change_handler(@$textbox_other, @not_group_inputs_change_handler)
             else
+              @$textbox_other.val('')
               @$textbox_other.remove()
-              @select_width_change_handler()
+              @is_input_text_other = false
+              @not_group_inputs_change_handler()
 
         else # Question item appearance is text input
           $input = @$('input')
-          console.log 'is text input'
           if modelValue? and modelValue != '' # Parse existing value
+            modelValue = modelValue.trim()
             input_value = null
             select_width_value = null
-            if modelValue.indexOf(' ') != -1 # found space in modelValue
-              input_value = modelValue.slice(0, modelValue.lastIndexOf(' '))
-              select_width_value = modelValue.slice(modelValue.lastIndexOf(' ') + 1)
-            else
-              select_width_value = modelValue
+
+            width_model_value = @get_width_from_model_value()
+            if width_model_value?
+              select_width_value = width_model_value
+              modelValue = modelValue.split(select_width_value).join('') # remove select_width_value from modelValue
+
+            modelValue = modelValue.trim()
+            if modelValue != ''
+              input_value = modelValue
 
             if input_value?
               $input.val(input_value)
             if select_width_value?
               @$select_width.val(select_width_value)
 
-          @add_input_text_change_handler()
+          @add_input_text_change_handler($input, @group_inputs_change_handler)
 
           @$select_width.on 'change', () =>
-            input_value = $input.val().trim()
-            model_set_value = input_value
-            select_width_value = @get_select_width_value()
-            if model_set_value != ''
-              model_set_value += " #{select_width_value}"
-            else
-              model_set_value = select_width_value
-            @model.set 'value', model_set_value
-            console.log 'model set value', model_set_value
+            @group_inputs_change_handler()
 
 
   viewRowDetail.DetailViewMixins.oc_item_group =
