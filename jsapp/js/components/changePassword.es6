@@ -2,10 +2,13 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import TextBox from './textBox';
+import {hashHistory} from 'react-router';
+import PasswordStrength from 'js/components/passwordStrength';
 import ui from '../ui';
 import {
   t,
@@ -27,13 +30,18 @@ export default class ChangePassword extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.auth.changePassword.failed, this.changePasswordFailed);
+    this.listenTo(actions.auth.changePassword.failed, this.onChangePasswordFailed);
+    this.listenTo(actions.auth.changePassword.completed, this.onChangePasswordCompleted);
   }
 
   validateRequired(what) {
     if (!this.state[what]) {
       this.errors[what] = t('This field is required.');
     }
+  }
+
+  close() {
+    hashHistory.goBack();
   }
 
   changePassword() {
@@ -50,7 +58,7 @@ export default class ChangePassword extends React.Component {
     this.setState({errors: this.errors});
   }
 
-  changePasswordFailed(jqXHR) {
+  onChangePasswordFailed(jqXHR) {
     if (jqXHR.responseJSON.current_password) {
       this.errors.currentPassword = jqXHR.responseJSON.current_password;
     }
@@ -58,6 +66,10 @@ export default class ChangePassword extends React.Component {
       this.errors.newPassword = jqXHR.responseJSON.new_password;
     }
     this.setState({errors: this.errors});
+  }
+
+  onChangePasswordCompleted() {
+    this.close();
   }
 
   currentPasswordChange(val) {
@@ -96,9 +108,26 @@ export default class ChangePassword extends React.Component {
     };
 
     return (
+      <DocumentTitle title={`${accountName} | KoboToolbox`}>
       <ui.Panel>
         <bem.AccountSettings>
-          <bem.ChangePassword>
+          <bem.AccountSettings__actions>
+            <button
+              onClick={this.changePassword}
+              className='mdl-button mdl-button--raised mdl-button--colored'
+            >
+              {t('Save Password')}
+            </button>
+
+            <button
+              onClick={this.close}
+              className='account-settings-close mdl-button mdl-button--icon'
+            >
+              <i className='k-icon k-icon-close'/>
+            </button>
+          </bem.AccountSettings__actions>
+
+          <bem.AccountSettings__item m={'column'}>
             <bem.AccountSettings__item m='username'>
               <bem.AccountBox__initials style={initialsStyle}>
                 {accountName.charAt(0)}
@@ -106,55 +135,59 @@ export default class ChangePassword extends React.Component {
               <h4>{accountName}</h4>
             </bem.AccountSettings__item>
 
-            <bem.AccountSettings__item>
-              <h4>{t('Reset Password')}</h4>
+            <bem.AccountSettings__item m='fields'>
+              <bem.AccountSettings__item>
+                <h4>{t('Reset Password')}</h4>
+              </bem.AccountSettings__item>
+
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={t('Current Password')}
+                  type='password'
+                  errors={this.state.errors.currentPassword}
+                  value={this.state.currentPassword}
+                  onChange={this.currentPasswordChange}
+                />
+
+                <a
+                  className='account-settings-link'
+                  href={`${ROOT_URL}/accounts/password/reset/`}
+                >
+                  {t('Forgot Password?')}
+                </a>
+              </bem.AccountSettings__item>
+
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={t('New Password')}
+                  type='password'
+                  errors={this.state.errors.newPassword}
+                  value={this.state.newPassword}
+                  onChange={this.newPasswordChange}
+                />
+              </bem.AccountSettings__item>
+
+              {
+                this.state.newPassword !== '' &&
+                <bem.AccountSettings__item>
+                  <PasswordStrength password={this.state.newPassword} />
+                </bem.AccountSettings__item>
+              }
+
+              <bem.AccountSettings__item>
+                <TextBox
+                  label={t('Verify Password')}
+                  type='password'
+                  errors={this.state.errors.verifyPassword}
+                  value={this.state.verifyPassword}
+                  onChange={this.verifyPasswordChange}
+                />
+              </bem.AccountSettings__item>
             </bem.AccountSettings__item>
-
-            <bem.ChangePassword__item>
-              <TextBox
-                label={t('Current Password')}
-                type='password'
-                errors={this.state.errors.currentPassword}
-                value={this.state.currentPassword}
-                onChange={this.currentPasswordChange}
-              />
-
-              <a href={`${ROOT_URL}/accounts/password/reset/`}>
-                {t('Forgot Password?')}
-              </a>
-            </bem.ChangePassword__item>
-
-            <bem.ChangePassword__item>
-              <TextBox
-                label={t('New Password')}
-                type='password'
-                errors={this.state.errors.newPassword}
-                value={this.state.newPassword}
-                onChange={this.newPasswordChange}
-              />
-            </bem.ChangePassword__item>
-
-            <bem.ChangePassword__item>
-              <TextBox
-                label={t('Verify Password')}
-                type='password'
-                errors={this.state.errors.verifyPassword}
-                value={this.state.verifyPassword}
-                onChange={this.verifyPasswordChange}
-              />
-            </bem.ChangePassword__item>
-
-            <bem.ChangePassword__item m='actions'>
-              <button
-                onClick={this.changePassword}
-                className='mdl-button mdl-button--raised mdl-button--colored'
-              >
-                {t('Save Changes')}
-              </button>
-            </bem.ChangePassword__item>
-          </bem.ChangePassword>
+          </bem.AccountSettings__item>
         </bem.AccountSettings>
       </ui.Panel>
+      </DocumentTitle>
     );
   }
 }
