@@ -102,7 +102,10 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
       surveyData.survey.forEach((surveyRow) => {
         translatedProps.forEach((translatedProp) => {
           if (typeof surveyRow[translatedProp] !== 'undefined') {
-            if (surveyData.settings[0].style.includes('theme-grid') && surveyRow.type === 'begin_group') {
+            if (typeof surveyData.settings[0] !== 'undefined'
+                && typeof surveyData.settings[0].style === 'string'
+                && surveyData.settings[0].style.includes('theme-grid')
+                && surveyRow.type === 'begin_group') {
               delete surveyRow[translatedProp];
             }
             surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp];
