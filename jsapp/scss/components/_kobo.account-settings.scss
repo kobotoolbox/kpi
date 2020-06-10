@@ -121,9 +121,10 @@
 
 .change-password {
   width: 90%;
-  height: 100%;
+  min-height: 100%;
   position: relative;
   margin: 0 auto;
+  padding-bottom: 30px;
 
   .form-modal__item--username {
     min-height: 40px;
