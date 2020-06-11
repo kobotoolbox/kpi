@@ -9,6 +9,7 @@ import {actions} from 'js/actions';
 import {t} from 'js/utils';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {
+  KEY_CODES,
   NAME_MAX_LENGTH,
   ASSET_TYPES
 } from 'js/constants';
@@ -61,7 +62,7 @@ class HeaderTitleEditor extends React.Component {
   }
 
   assetTitleKeyDown(evt) {
-    if (evt.key === 'Enter') {
+    if (evt.keyCode === KEY_CODES.get('ENTER')) {
       clearTimeout(this.typingTimer);
       if (this.updateAssetTitle()) {
         evt.currentTarget.blur();
