@@ -523,15 +523,15 @@ module.exports = do ->
       @$label_checkbox_samescreen = $('<span/>', { style: 'margin-left: 4px;' }).text(_t('Show all questions in this group on the same screen'))
       @fieldListStr = 'field-list'
       @$select_width = $('<select/>', { id: "select-width", style: 'margin-top: 5px;' })
-      @$label_select_width = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width in columns (default is w4)'))
-      $('<option />', {value: "select", text: "select"}).appendTo(@$select_width)
+      @$label_select_width = $('<span/>', { style: 'display: block; margin-top: 10px;' }).text(_t('Width') + ":")
+      @select_width_default_value = ''
+      $('<option />', {value: "select", text: "Width not selected (w4 will be used)"}).appendTo(@$select_width)
       @width_options = []
       for option in [1..10]
         @width_options.push "w#{option}"
       for width_option in @width_options
         $('<option />', {value: "#{width_option}", text: "#{width_option}"}).appendTo(@$select_width)
       @$textbox_other = null
-      @select_width_default_value = 'w4'
       @is_input_select = false
       @is_input_text_other = false
       @is_checkbox_samescreen = false
