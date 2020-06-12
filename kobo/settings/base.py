@@ -151,7 +151,13 @@ CONSTANCE_CONFIG = {
                                        '(e.g http://hook.example.com)'),
     'HOOK_MAX_RETRIES': (3,
                          'Number of times the system will retry '
-                         'to send data to remote server before giving up')
+                         'to send data to remote server before giving up'),
+
+    'SSRF_ALLOWED_IP_ADDRESS': ('', 'Whitelisted IP addresses to '
+                                    'bypass SSRF protection\nOne per line'),
+
+    'SSRF_DENIED_IP_ADDRESS': ('', 'Blacklisted IP addresses to '
+                                   'bypass SSRF protection\nOne per line')
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
