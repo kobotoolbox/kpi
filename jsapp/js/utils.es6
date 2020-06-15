@@ -143,7 +143,7 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
   }
 
   if (data.translations.length > 1 && data.translations.indexOf(null) !== -1) {
-    throw new Error('There is an unnamed translation in your form definition.\nPlease give a name to all translations in your form.\nUse "Manage Translations" option from form landing page.');
+    throw new Error('This form includes columns with languages defined but there are also one or more columns that don\'t include a language name.\nIf translations are used in your form, every user-facing text and media content column must include a language name as part of its column title.\nPlease revise your form definition spreadsheet, upload it, and open it in Form Designer again.');
   }
 
   /*

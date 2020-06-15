@@ -491,8 +491,13 @@ mixins.clickAssets = {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
-              hashHistory.push(`/forms/${asset.uid}/landing`);
-              notify(t('cloned project created'));
+              if (asset.asset_type != ASSET_TYPES.survey.id) {
+                hashHistory.push(`/library`);
+                notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetType));
+              } else {
+                hashHistory.push(`/forms/${asset.uid}/landing`);
+                notify(t('cloned project created'));
+              }
             }
             });
             // keep the dialog open

@@ -415,9 +415,44 @@ module.exports = do ->
 
         @survey.trigger evt.type
 
-      sortable_stop = (evt, ui)=>
-        $(ui.item).trigger('survey__row-sortablestop')
+      sortable_stop = (evt, ui) =>
+        elements = ui.item.data('sortable_elements')
+        elements_array = _.toArray(elements)
+        elements_before = []
+        elements_after = []
+        itemElementsIndex = elements_array.findIndex (el) => $(el).attr('data-row-id') == ui.item.attr('data-row-id')
+        if itemElementsIndex > -1
+          elements_before = elements_array.slice(0, itemElementsIndex).map((el) => @__rowViews.get($(el).attr('data-row-id')).$el)
+          elements_after = elements_array.slice(itemElementsIndex + 1).map((el) => @__rowViews.get($(el).attr('data-row-id')).$el)
+        if elements_before.length > 0
+          ui.item.before(elements_before)
+        if elements_after.length > 0
+          ui.item.after(elements_after)
+        ui.item.siblings('.survey__row--selected.hidden').removeClass('hidden')
+        for el in elements
+          row_id = $(el).attr('data-row-id')
+          $row = $("li.survey__row--selected:not('.hidden')[data-row-id='#{row_id}']")
+          $row.trigger('survey__row-sortablestop')
         @survey.trigger 'sortablestop'
+        if not ui.item.data('is_multi_select')
+          ui.item.closest('.survey-editor__list').find('.survey__row--selected').removeClass('survey__row--selected')
+
+      sortable_helper = (evt, item) =>
+        item.data('is_multi_select', true)
+        if not item.hasClass('survey__row--selected')
+          item.closest('.survey-editor__list').find('.survey__row--selected').removeClass('survey__row--selected')
+          item.addClass('survey__row--selected')
+          item.data('is_multi_select', false)
+        selected_elements = item.closest('.survey-editor__list').find('.survey__row--selected:not(".hidden")').clone()
+        for el in selected_elements
+          row_id = $(el).attr('data-row-id')
+          $row = $("li[data-row-id='#{row_id}']")
+          if $row.attr('data-row-id') != item.attr('data-row-id')
+            $row.addClass("hidden")
+        item.data('sortable_elements', selected_elements)
+        helper = $('<ul/>')
+        helper.append item.data('sortable_elements')
+        helper
 
       @formEditorEl.sortable({
           # PM: commented out axis, because it's better if cards move horizontally and vertically
@@ -433,6 +468,7 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          helper: sortable_helper
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
               return
@@ -461,6 +497,7 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          helper: sortable_helper
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows') || ui.sender.hasClass('survey-editor__list')
               return
@@ -645,19 +682,24 @@ module.exports = do ->
       else
         false
 
-    _duplicateRows: (rows) ->
-      for row in rows
+    _duplicateRows: (rows, afterThisRow) ->
+      afterThisRowViewModel = @__rowViews.get(afterThisRow.cid).model
+      afterThisRowViewModelParent = afterThisRowViewModel._parent
+
+      for row, row_idx in rows
         if row.constructor.kls isnt "Group"
           view = @__rowViews.get(row.cid)
-          if view? and typeof view.clone is 'function'
-            view.clone()
-        else
-          @_duplicateRows row.rows.models
+          viewModel = view.model
+          viewParent = viewModel._parent
+          insert_index = afterThisRowViewModelParent.models.indexOf(afterThisRowViewModel) + row_idx + 1
+          viewModel.getSurvey().insert_row.call viewParent._parent, viewModel, insert_index
 
-    duplicateSelectedRows: ->
+    duplicateSelectedRows: () ->
       rows = @selectedRows()
-      if rows.length > 0
-        @_duplicateRows rows
+      rows_length = rows.length
+      if rows_length > 0
+        last_row = rows[rows.length - 1]
+        @_duplicateRows rows, last_row
               
 
     selectedRows: ()->

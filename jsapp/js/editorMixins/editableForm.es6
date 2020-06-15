@@ -1006,7 +1006,7 @@ export default assign({
       return (
         <ErrorMessage>
           <ErrorMessage__strong>
-            {t('Error loading survey:')}
+            {t('Error loading form:')}
           </ErrorMessage__strong>
           <p>
             {this.state.surveyLoadError}
