@@ -41,6 +41,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from taggit.models import Tag
 
+from bossoidc.models import Keycloak as KeycloakModel
+
 from hub.models import SitewideMessage
 from kobo.apps.hook.utils import HookUtils
 from kobo.static_lists import COUNTRIES, LANGUAGES, SECTORS
@@ -1215,9 +1217,17 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             source_version = original_asset.asset_versions.first()
 
-        view_perm = get_perm_name('view', original_asset)
-        if not self.request.user.has_perm(view_perm, original_asset):
+        kc_user = None
+        try:
+            kc_user = KeycloakModel.objects.get(user=self.request.user)
+        except KeycloakModel.DoesNotExist:
             raise Http404
+
+        if kc_user is not None:
+            subdomain = kc_user.subdomain
+            subdomain_userIds = KeycloakModel.objects.filter(subdomain=subdomain).values_list('user_id', flat=True)
+            if original_asset.owner.id not in subdomain_userIds:
+                raise Http404
 
         partial_update = isinstance(current_asset, Asset)
         cloned_data = self._prepare_cloned_data(original_asset, source_version, partial_update)
