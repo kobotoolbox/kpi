@@ -680,16 +680,16 @@ module.exports = do ->
         false
 
     _duplicateRows: (rows, afterThisRow) ->
-      after_this_row_view_model = @__rowViews.get(afterThisRow.cid).model
-      after_this_row_view_parent = after_this_row_view_model._parent
+      afterThisRowViewModel = @__rowViews.get(afterThisRow.cid).model
+      afterThisRowViewModelParent = afterThisRowViewModel._parent
 
       for row, row_idx in rows
         if row.constructor.kls isnt "Group"
           view = @__rowViews.get(row.cid)
-          view_model = view.model
-          view_parent = view_model._parent
-          insert_index = after_this_row_view_parent.models.indexOf(after_this_row_view_model) + row_idx + 1
-          view_model.getSurvey().insert_row.call view_parent._parent, view_model, insert_index
+          viewModel = view.model
+          viewParent = viewModel._parent
+          insert_index = afterThisRowViewModelParent.models.indexOf(afterThisRowViewModel) + row_idx + 1
+          viewModel.getSurvey().insert_row.call viewParent._parent, viewModel, insert_index
 
     duplicateSelectedRows: () ->
       rows = @selectedRows()
