@@ -422,22 +422,18 @@ module.exports = do ->
         elements_after = []
         itemElementsIndex = elements_array.findIndex (el) => $(el).attr('data-row-id') == ui.item.attr('data-row-id')
         if itemElementsIndex > -1
-          elements_before = elements_array.slice(0, itemElementsIndex)
-          elements_after = elements_array.slice(itemElementsIndex + 1)
+          elements_before = elements_array.slice(0, itemElementsIndex).map((el) => @__rowViews.get($(el).attr('data-row-id')).$el)
+          elements_after = elements_array.slice(itemElementsIndex + 1).map((el) => @__rowViews.get($(el).attr('data-row-id')).$el)
         if elements_before.length > 0
           ui.item.before(elements_before)
         if elements_after.length > 0
           ui.item.after(elements_after)
-        ui.item.siblings('.survey__row--selected.hidden').remove()
-        if elements.length > 0
-          for el in elements
-            row_id = $(el).attr('data-row-id')
-            $row = $("li.survey__row--selected:not('.hidden')[data-row-id='#{row_id}']")
-            $row.trigger('survey__row-sortablestop')
+        ui.item.siblings('.survey__row--selected.hidden').removeClass('hidden')
+        for el in elements
+          row_id = $(el).attr('data-row-id')
+          $row = $("li.survey__row--selected:not('.hidden')[data-row-id='#{row_id}']")
+          $row.trigger('survey__row-sortablestop')
         @survey.trigger 'sortablestop'
-        setTimeout =>
-          ui.item.closest('.survey-editor__list').find('.survey__row--selected.hidden').remove()
-        , 1
 
       sortable_helper = (evt, item) =>
         selected_elements = item.closest('.survey-editor__list').find('.survey__row--selected:not(".hidden")').clone()
