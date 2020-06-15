@@ -415,7 +415,7 @@ module.exports = do ->
 
         @survey.trigger evt.type
 
-      sortable_stop = (evt, ui)=>
+      sortable_stop = (evt, ui) =>
         elements = ui.item.data('sortable_elements')
         elements_array = _.toArray(elements)
         elements_before = []
@@ -434,8 +434,15 @@ module.exports = do ->
           $row = $("li.survey__row--selected:not('.hidden')[data-row-id='#{row_id}']")
           $row.trigger('survey__row-sortablestop')
         @survey.trigger 'sortablestop'
+        if not ui.item.data('is_multi_select')
+          ui.item.closest('.survey-editor__list').find('.survey__row--selected').removeClass('survey__row--selected')
 
       sortable_helper = (evt, item) =>
+        item.data('is_multi_select', true)
+        if not item.hasClass('survey__row--selected')
+          item.closest('.survey-editor__list').find('.survey__row--selected').removeClass('survey__row--selected')
+          item.addClass('survey__row--selected')
+          item.data('is_multi_select', false)
         selected_elements = item.closest('.survey-editor__list').find('.survey__row--selected:not(".hidden")').clone()
         for el in selected_elements
           row_id = $(el).attr('data-row-id')
