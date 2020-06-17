@@ -816,10 +816,16 @@ module.exports = do ->
 
   viewRowDetail.DetailViewMixins.oc_item_group =
     onOcCustomEvent: (ocCustomEventArgs) ->
-      if (ocCustomEventArgs.sender is 'bind::oc:external') and (@model._parent.get('type').get('value') isnt 'calculate')
-        if ocCustomEventArgs.value isnt ''
-          @removeRequired()
+      questionId = @model._parent.cid
+      sender = ocCustomEventArgs.sender
+      senderValue = ocCustomEventArgs.value
+      senderQuestionId = sender._parent.cid
+      if (sender.key is 'bind::oc:external') and (questionId is senderQuestionId)
+        if senderValue in ['clinicaldata', 'contactdata']
+          @model.set 'value', ''
+          @$el.addClass('hidden')
         else
+          @$el.removeClass('hidden')
           @makeRequired()
     html: ->
       @fieldTab = "active"
@@ -837,27 +843,38 @@ module.exports = do ->
       @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.oc_external =
+    model_type: () ->
+      @model._parent.getValue('type').split(' ')[0]
+    getOptions: () ->
+      types =
+        text: ['contactdata']
+        calculate: ['clinicaldata', 'contactdata']
+      types[@model_type()]
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      options = ['No', 'clinicaldata']
-      return viewRowDetail.Templates.dropdown @cid, @model.key, options, _t("Use External Value")
+
+      if @model_type() in ['calculate', 'text']
+        options = @getOptions()
+        if options?
+            options.unshift 'No'
+        return viewRowDetail.Templates.dropdown @cid, @model.key, options, _t("Use External Value")
     afterRender: ->
       $select = @$('select')
       modelValue = @model.get 'value'
-      Backbone.trigger('ocCustomEvent', { sender: @model.key, value: @model.get 'value' })
       if $select.length > 0
         if modelValue == ''
           $select.val('No')
         else
           $select.val(modelValue)
+          Backbone.trigger('ocCustomEvent', { sender: @model, value: modelValue })
 
         $select.change () =>
           if $select.val() == 'No'
             @model.set 'value', ''
           else
             @model.set 'value', $select.val()
-          Backbone.trigger('ocCustomEvent', { sender: @model.key, value: @model.get 'value' })
+          Backbone.trigger('ocCustomEvent', { sender: @model, value: @model.get 'value' })
 
   viewRowDetail.DetailViewMixins.readonly =
     html: ->
