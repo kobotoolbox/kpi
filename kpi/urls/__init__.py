@@ -9,7 +9,7 @@ from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, one_time_login, browser_tests
+from kpi.views import home, one_time_login, browser_tests, modern_browsers
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
@@ -43,6 +43,7 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
+    path('modern_browsers/', modern_browsers),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
