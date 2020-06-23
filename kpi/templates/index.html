@@ -15,7 +15,7 @@
     {% if raven_js_dsn %}
       <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
       <script>
-        Raven.config('{{raven_js_dsn}}').install()
+        Raven.config('{{raven_js_dsn}}', {environment: '{{raven_env}}'}).install()
       </script>
     {% endif %}
 

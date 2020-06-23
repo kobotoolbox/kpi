@@ -13,6 +13,8 @@ def external_service_tokens(request):
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     if settings.RAVEN_JS_DSN:
         out['raven_js_dsn'] = settings.RAVEN_JS_DSN
+    if settings.RAVEN_FRONTEND_ENV:
+        out['raven_env'] = settings.RAVEN_FRONTEND_ENV
     try:
         intercom_setting = PerUserSetting.objects.get(name='INTERCOM_APP_ID')
     except PerUserSetting.DoesNotExist:
