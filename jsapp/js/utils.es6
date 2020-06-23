@@ -409,6 +409,33 @@ export function validFileTypes() {
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
 
+export function syncCascadeChoiceNames(params) {
+  let content = {};
+  if (params.content)
+    content = JSON.parse(params.content);
+  if (params.source)
+    content = JSON.parse(params.source);
+
+  if (!content.survey)
+    return params;
+
+  for(var i = 0; i < content.survey.length; i++) {
+    if (content.survey[i].choice_filter !== undefined) {
+      var split = content.survey[i].choice_filter.split('=')[0];
+      var halfChoice1 = '' + split;
+      var halfChoice2 = '=${' + content.survey[i-1].$autoname + '}';
+      content.survey[i].choice_filter = halfChoice1 + halfChoice2;
+    }
+  }
+
+  if (params.content)
+    params.content = JSON.stringify(content);
+  if (params.source)
+    params.source = JSON.stringify(content);
+  return params;
+
+}
+
 export function koboMatrixParser(params) {
   let content = {};
   if (params.content)
