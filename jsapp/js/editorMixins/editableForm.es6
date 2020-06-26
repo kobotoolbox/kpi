@@ -236,7 +236,6 @@ export default assign({
     if (this.state.asset) {
       let surveyJSONWithMatrix = koboMatrixParser({source: surveyJSON}).source;
       let surveyJSONCascade = syncCascadeChoiceNames({source: surveyJSONWithMatrix}).source;
-      console.log(JSON.stringify(surveyJSONCascade));
       surveyJSON = unnullifyTranslations(surveyJSONCascade, this.state.asset.content);
     }
     let params = {content: surveyJSON};
