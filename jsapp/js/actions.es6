@@ -364,8 +364,12 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
+  localStorage.setItem('failedSaves', JSON.stringify({[uid]:{"inRecovery":false,"savedAt":uid+'~~save'}}));
+  localStorage.setItem(uid + '~~save', JSON.stringify(values));
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
+      localStorage.removeItem('failedSaves');
+      localStorage.removeItem(uid + '~~save');
       actions.resources.updateAsset.completed(asset);
       if (typeof params.onComplete === 'function') {
         params.onComplete(asset, uid, values);
@@ -373,6 +377,13 @@ actions.resources.updateAsset.listen(function(uid, values, params={}) {
       notify(t('successfully updated'));
     })
     .fail(function(resp){
+      let failedForms = JSON.parse(localStorage.getItem('failedSaves') || "{}");
+      let keys = Object.keys(failedForms);
+      if (keys.length > 0) {
+          let failedFormKey = failedForms[keys[0]].savedAt;
+          let failedFormContent = localStorage.getItem(failedFormKey);
+          document.body.innerHTML=`<p>here is the data:</p><code><pre>${failedFormContent}</pre></code>`;
+      }
       actions.resources.updateAsset.failed(resp);
       if (params.onFailed) {
         params.onFailed(resp);
