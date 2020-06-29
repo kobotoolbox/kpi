@@ -364,45 +364,34 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
-  var oldItems = JSON.parse(localStorage.getItem('failedSaves')) || [];
-  var newItem =
-    {
-      [uid]: {
-        'inRecovery': false,
-        'savedAt': uid + '~~save'
-      }
-    };
-  if (!(oldItems instanceof Array)) {
-    oldItems = [oldItems];
-  }
-  oldItems.push(newItem);
-
-  localStorage.setItem('failedSaves', JSON.stringify(oldItems));
-  localStorage.setItem(`${uid}~~save`, JSON.stringify(values));
+  const failedSaves = JSON.parse(localStorage.getItem('failedSaves') || '{}');
+  const saveKey = `${uid}~~save`;
+  failedSaves[uid] = {
+    inRecovery: false,
+    savedAt: saveKey,
+  };
+  localStorage.setItem('failedSaves', JSON.stringify(failedSaves));
+  localStorage.setItem(saveKey, JSON.stringify(values));
 
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
-      localStorage.clear();
+      const failedSaves = JSON.parse(localStorage.getItem('failedSaves') || '{}');
+      delete failedSaves[uid];
+      localStorage.setItem('failedSaves', JSON.stringify(failedSaves));
+      localStorage.removeItem(saveKey);
+
       actions.resources.updateAsset.completed(asset);
+
       if (typeof params.onComplete === 'function') {
         params.onComplete(asset, uid, values);
       }
       notify(t('successfully updated'));
     })
     .fail(function(resp){
-      let failedResponse = resp;
-      let failedForms = JSON.parse(localStorage.getItem('failedSaves') || '{}');
-      if (failedForms.length > 0) {
-        for (var index in failedForms) {
-          var thisKey = Object.keys(failedForms[index]);
-          if (thisKey[0] === uid) {
-            let failedFormKey = failedForms[index][thisKey[0]].savedAt; 
-            let failedFormContent = localStorage.getItem(failedFormKey);
-            // Placeholder for checking correct data, TODO: Remove this when UI is done
-            alert(`<p>here is the data:</p><code><pre>${failedFormContent}</pre></code>`);
-          }
-        }
-      }
+      const failedSaves = JSON.parse(localStorage.getItem('failedSaves') || '{}');
+      failedSaves[uid].inRecovery = true;
+      localStorage.setItem('failedSaves', JSON.stringify(failedSaves));
+
       actions.resources.updateAsset.failed(resp);
       if (params.onFailed) {
         params.onFailed(resp);
