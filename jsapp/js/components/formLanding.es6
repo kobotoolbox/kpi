@@ -139,6 +139,13 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
+  showEncryptionModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: MODAL_TYPES.ENCRYPT_FORM,
+      asset: this.state
+    });
+  }
   renderHistory () {
     var dvcount = this.state.deployed_versions.count;
     return (
@@ -431,6 +438,10 @@ export class FormLanding extends React.Component {
               {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
+          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
+            <i className='k-icon-lock'/>
+            {t('Add encryption')}
+          </bem.PopoverMenu__link>
         </ui.PopoverMenu>
       </bem.FormView__group>
     );
