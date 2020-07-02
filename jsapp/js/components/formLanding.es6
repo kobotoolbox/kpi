@@ -11,7 +11,6 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import {MODAL_TYPES} from '../constants';
-import {actions} from 'js/actions';
 import {
   formatTime,
   t,
@@ -35,15 +34,6 @@ export class FormLanding extends React.Component {
   }
   callUnarchiveAsset() {
     this.unarchiveAsset();
-  }
-  onEncryptionSubmit() {
-    var content = this.state.content;
-    content.settings.submission_url = document.getElementsByClassName('submission_url')[0].value;
-    content.settings.public_key = document.getElementsByClassName('public_key')[0].value;
-    actions.resources.updateAsset(
-      this.state.uid,
-      {content: JSON.stringify(content)}
-    );
   }
   renderFormInfo (userCanEdit) {
     var dvcount = this.state.deployed_versions.count;
@@ -522,20 +512,6 @@ export class FormLanding extends React.Component {
               }
               {this.renderFormInfo(userCanEdit)}
               {this.renderLanguages(userCanEdit)}
-
-              <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
-                <bem.FormView__cell m='translation-list'>
-                  <strong>{t('Encryption:')}</strong>
-                  &nbsp;
-                  <input className='submission_url' placeholder='Submission URL'/>
-                  &nbsp;
-                  <input className='public_key' placeholder='Public key'/>
-                  <button onClick={this.onEncryptionSubmit}>
-                    {t('Submit')}
-                  </button>
-                </bem.FormView__cell>
-              </bem.FormView__cell>
-
             </bem.FormView__cell>
           </bem.FormView__row>
           {this.state.deployed_versions.count > 0 &&
