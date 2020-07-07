@@ -86,22 +86,27 @@ module.exports = do ->
     render: ->
       @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
-      @p = $("<span class=\"js-cancel-select-row\">")
-      @c = $("<code><label>#{_t("XML value:")}</label> <span class=\"js-cancel-select-row\">#{_t("AUTOMATIC")}</span></code>")
+      @p = $("<input class=\"js-cancel-select-row\">")
+      @c = $("<code><label>#{_t("XML value:")}</label> <input type=\"text\" placeholder=\"AUTOMATIC\"  class=\"js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
-        @p.html @model.get("label") || 'Empty'
+        @p.val @model.get("label") || 'Empty'
         @$el.attr("data-option-id", @model.cid)
-        $('span', @c).html @model.get("name")
+        $('input', @c).val @model.get("name")
         @model.set('setManually', true)
       else
         @model = new $choices.Option()
         @options.cl.options.add(@model)
-        @p.html("Option #{1+@options.i}").addClass("preliminary")
+        @p.val("Option #{1+@options.i}").addClass("preliminary")
 
-      $viewUtils.makeEditable @, @model, @p, edit_callback: _.bind @saveValue, @
-      @n = $('span', @c)
-      $viewUtils.makeEditable @, @model, @n, edit_callback: (val) =>
+      @p.change ((input)->
+        nval = input.currentTarget.value
+        @saveValue(nval)
+      ).bind @
+
+      @n = $('input', @c)
+      @n.change ((input)->
+        val = input.currentTarget.value
         other_names = @options.cl.getNames()
         if @model.get('name')? && val.toLowerCase() == @model.get('name').toLowerCase()
           other_names.splice _.indexOf(other_names, @model.get('name')), 1
@@ -124,6 +129,7 @@ module.exports = do ->
           @model.set('setManually', true)
           @$el.trigger("choice-list-update", @options.cl.cid)
         newValue: val
+      ).bind @
       @pw.html(@p)
 
       @pw.on 'click', (event) =>
