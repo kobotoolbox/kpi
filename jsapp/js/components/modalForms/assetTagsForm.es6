@@ -46,8 +46,8 @@ export class AssetTagsForm extends React.Component {
   }
 
   applyPropsData() {
-    if (this.props.asset.settings.tags) {
-      this.state.tags = this.props.asset.settings.tags;
+    if (this.props.asset.tag_string) {
+      this.state.tags = this.props.asset.tag_string.split(',');
     }
   }
 
@@ -65,7 +65,7 @@ export class AssetTagsForm extends React.Component {
     this.setState({isPending: true});
     actions.resources.updateAsset(
       this.props.asset.uid,
-      {settings: JSON.stringify({tags: this.state.tags})}
+      {tag_string: this.state.tags.join(',')}
     );
   }
 

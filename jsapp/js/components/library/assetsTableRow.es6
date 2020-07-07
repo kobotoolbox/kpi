@@ -62,9 +62,9 @@ class AssetsTableRow extends React.Component {
 
           <ui.AssetName {...this.props.asset}/>
 
-          {this.props.asset.settings && this.props.asset.settings.tags && this.props.asset.settings.tags.length > 0 &&
+          {this.props.asset.settings && this.props.asset.tag_string && this.props.asset.tag_string.length > 0 &&
             <bem.AssetsTableRow__tags>
-              {this.props.asset.settings.tags.map((tag) => {
+              {this.props.asset.tag_string.split(',').map((tag) => {
                 return ([' ', <bem.AssetsTableRow__tag key={tag}>{tag}</bem.AssetsTableRow__tag>]);
               })}
             </bem.AssetsTableRow__tags>
