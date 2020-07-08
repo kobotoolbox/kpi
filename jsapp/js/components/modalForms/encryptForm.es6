@@ -65,7 +65,7 @@ class EncryptForm extends React.Component {
           >
             {t('Add encryption')}
           </button>
-          <button className="help-bubble__trigger" data-tip="Help">
+          <button className="encrypt-help" onClick={this.openEncryptionHelp} data-tip={t('Learn more about encrypting forms')}>
             <i className='k-icon k-icon-help'/>
           </button>
         </bem.FormView__cell>

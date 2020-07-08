@@ -741,7 +741,11 @@ $z-modal-x: 10;
 .form-view__cell--encrypt-key {
   padding-bottom: 12px;
 }
-.encrypt-wiki {
+
+.encrypt-help {
+  color: $cool-silver;
+  background: transparent;
+  border: 0;
   font-size: 32px;
   vertical-align: middle;
   cursor: pointer;
