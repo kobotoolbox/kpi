@@ -33,11 +33,14 @@ class EncryptForm extends React.Component {
   onPublicKeyChange (newPublicKey) {
     this.setState({publicKey: newPublicKey});
   }
+  openEncryptionHelp() {
+    window.open('https://support.kobotoolbox.org/encrypting_forms.html', '_blank');
+  }
 
   render () {
     return (
       <bem.FormView__form m='add-language-fields'>
-        <bem.FormView__cell m='lang-name'>
+        <bem.FormView__cell m='encrypt-url'>
           <bem.FormModal__item>
             <label>{t('Submission URL')}</label>
             <TextBox
@@ -46,7 +49,7 @@ class EncryptForm extends React.Component {
           </bem.FormModal__item>
         </bem.FormView__cell>
 
-        <bem.FormView__cell m='lang-code'>
+        <bem.FormView__cell m='encrypt-key'>
           <bem.FormModal__item>
             <label>{t('Public key')}</label>
             <TextBox
@@ -61,6 +64,9 @@ class EncryptForm extends React.Component {
             onClick={this.onSubmit} type='submit'
           >
             {t('Add encryption')}
+          </button>
+          <button className="help-bubble__trigger" data-tip="Help">
+            <i className='k-icon k-icon-help'/>
           </button>
         </bem.FormView__cell>
       </bem.FormView__form>
