@@ -89,7 +89,7 @@ webfontsGenerator(
          * This is needed because we use @extend on k-icons selectors, and it
          * sadly doesn't work with a regular CSS file.
          */
-        console.info('Cypying k-icons.css to SCSS file…');
+        console.info('Copying k-icons.css to SCSS file…');
         fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}k-icons.scss`);
       } catch(e){
         console.warn(
