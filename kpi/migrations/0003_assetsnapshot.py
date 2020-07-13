@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('xml', models.TextField()),
                 ('source', jsonfield.fields.JSONField(null=True)),
-                ('details', jsonfield.fields.JSONField(default={})),
+                ('details', jsonfield.fields.JSONField(default=dict)),
                 ('asset_version_id', models.IntegerField(null=True)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('uid', models.CharField(default=b'', max_length=22, blank=True)),

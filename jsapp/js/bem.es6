@@ -235,9 +235,6 @@ bem.AccountSettings__item = bem.FormModal.__('item');
 bem.AccountSettings__desc = bem.AccountSettings.__('desc');
 bem.AccountSettings__actions = bem.AccountSettings.__('actions');
 
-bem.ChangePassword = BEM('change-password');
-bem.ChangePassword__item = bem.FormModal.__('item');
-
 bem.UserRow = BEM('user-row');
 bem.UserRow__info = bem.UserRow.__('info');
 bem.UserRow__avatar = bem.UserRow.__('avatar');

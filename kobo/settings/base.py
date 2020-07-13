@@ -46,16 +46,12 @@ if os.getenv("USE_X_FORWARDED_HOST", "False") == "True":
     USE_X_FORWARDED_HOST = True
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if os.environ.get('CSRF_COOKIE_DOMAIN'):
-    CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
-    SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+if os.environ.get('SESSION_COOKIE_DOMAIN'):
+    SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
     SESSION_COOKIE_NAME = 'kobonaut'
 
-# "Although the setting offers little practical benefit, it's sometimes
-# required by security auditors."
-# -- https://docs.djangoproject.com/en/2.2/ref/settings/#csrf-cookie-httponly
-CSRF_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_HTTPONLY is more useful, but it defaults to True.
+# Limit sessions to 1 week (the default is 2 weeks)
+SESSION_COOKIE_AGE = 604800
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
@@ -347,11 +343,6 @@ if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
-
-
-''' Search parser configuration '''
-# Lookup to use when a search term appears by itself without a specified field
-SEARCH_DEFAULT_FIELD_LOOKUP = 'summary__icontains'
 
 
 ''' Enketo configuration '''
@@ -684,3 +675,9 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+
+# The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
+# The maximum size (in bytes) that an upload will be before it gets streamed to the file system
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
