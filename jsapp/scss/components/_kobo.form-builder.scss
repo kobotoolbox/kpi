@@ -373,7 +373,7 @@ $t-form-builder-aside-open: 200ms;
       @include form-builder-focus();
 
       i {
-        outline-color: transparent;
+        outline: none;
       }
     }
   }
