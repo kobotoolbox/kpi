@@ -284,10 +284,7 @@ $t-form-builder-aside-open: 200ms;
 
   &:focus {
     i {
-      outline-color: $cool-blue;
-      outline-offset: -2px;
-      outline-style: auto;
-      outline-width: 5px;
+      @include form-builder-focus();
     }
   }
 }
@@ -301,10 +298,7 @@ $t-form-builder-aside-open: 200ms;
 
   &:focus {
     i {
-      outline-color: $cool-blue;
-      outline-offset: -2px;
-      outline-style: auto;
-      outline-width: 5px;
+      @include form-builder-focus();
     }
   }
 
@@ -376,10 +370,7 @@ $t-form-builder-aside-open: 200ms;
     }
 
     &:focus {
-      outline-color: $cool-blue;
-      outline-offset: -2px;
-      outline-style: auto;
-      outline-width: 5px;
+      @include form-builder-focus();
 
       i {
         outline-color: transparent;

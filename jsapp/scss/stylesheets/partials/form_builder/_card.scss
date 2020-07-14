@@ -64,10 +64,7 @@
     .card__header-title,
     .card__header-hint {
       &:focus {
-          outline-color: $cool-blue;
-          outline-offset: -2px;
-          outline-style: auto;
-          outline-width: 5px;
+        @include form-builder-focus();
       }
     }
 
