@@ -204,20 +204,25 @@ class MockDataExports(TestCase):
                 self.asset.owner.id)
         )
 
-    def run_csv_export_test(self, expected_lines, export_options=None, user=None):
+    def run_csv_export_test(
+        self, expected_lines, export_options=None, asset=None, user=None
+    ):
         """
         Repeat yourself less while writing CSV export tests.
 
         `expected_lines`: a list of strings *without* trailing newlines whose
                           UTF-8 encoded representation should match the export
                           result
-        `export_options`: a list of extra options for `ExportTask.data`. Do not
-                          include `source` or `type`
+        `export_options`: (optional) a list of extra options for
+                          `ExportTask.data`. Do not include `source` or `type`
+        `asset`: (optional) the asset to export. Defaults to `self.asset`
+        `user`: (optional) the user to own the export. Defaults to `self.user`
         """
         export_task = ExportTask()
+        asset = self.asset if asset is None else asset
         export_task.user = self.user if user is None else user
         export_task.data = {
-            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'source': reverse('asset-detail', args=[asset.uid]),
             'type': 'csv'
         }
         if export_options:
@@ -617,3 +622,25 @@ class MockDataExports(TestCase):
         export_task._run_task(messages)
         # Don't forget to add one for the header row!
         self.assertEqual(len(list(export_task.result)), limit + excess + 1)
+
+    def test_export_with_disabled_questions(self):
+        asset = Asset.objects.create(
+            name='Form with undocumented `disabled` column',
+            owner=self.asset.owner,
+            content={'survey': [
+                {'name': 'q', 'type': 'integer'},
+                {'name': 'ignore', 'type': 'select_one nope', 'disabled': True},
+            ]},
+        )
+        asset.deploy(backend='mock', active=True)
+        asset.deployment.mock_submissions(
+            [{'__version__': asset.latest_deployed_version.uid, 'q': 123,}]
+        )
+        # observe that `ignore` does not appear!
+        expected_lines = [
+            '"q";"_id";"_uuid";"_submission_time";"_validation_status";"_index"',
+            '"123";"";"";"";"";"1"',
+        ]
+        # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
+        self.run_csv_export_test(expected_lines, asset=asset)
+
