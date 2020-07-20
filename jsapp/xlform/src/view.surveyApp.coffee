@@ -19,6 +19,9 @@ module.exports = do ->
   _notifyIfRowsOutOfOrder = do ->
     # a temporary function to notify devs if rows are mysteriously falling out of order
     fn = (surveyApp)->
+      if surveyApp.orderfail
+        # it's already been reported so no need to report it again
+        return
       survey = surveyApp.survey
       elIds = []
       surveyApp.$('.survey__row').each -> elIds.push $(@).data('rowId')
@@ -30,9 +33,13 @@ module.exports = do ->
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)
-        Raven?.captureException new Error('Row model does not match view'), extra:
-          rIds: _s(rIds)
-          elIds: _s(elIds)
+        pathname = window.location.pathname
+        surveyApp.orderfail = true
+        err_message = """
+          Row model does not match view: #{_s(rIds)} #{_s(elIds)} #{pathname}
+        """.trim()
+        console?.error(err_message)
+        Raven?.captureException new Error(err_message)
 
         false
       else
