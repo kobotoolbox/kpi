@@ -2,25 +2,28 @@ import {actions} from '../actions';
 import {
   notify,
   t,
+  unnullifyTranslations,
 } from '../utils';
 
 class SurveyScope {
   constructor ({survey}) {
     this.survey = survey;
   }
-  add_row_to_question_library (row) {
+  add_row_to_question_library (row, assetContent) {
     if (row.constructor.kls === 'Row') {
       var rowJSON = row.toJSON2();
       let content;
       if (rowJSON.type === 'select_one' || rowJSON.type === 'select_multiple') {
         var surv = this.survey.toFlatJSON();
         var choices = surv.choices.filter(s => s.list_name === rowJSON.select_from_list_name);
-        content = JSON.stringify({
-          survey: [
-            row.toJSON2()
-          ],
-          choices: choices || undefined
-        });
+        // content = JSON.stringify({
+        //   survey: [
+        //     row.toJSON2()
+        //   ],
+        //   choices: choices || undefined
+        // });
+        content = unnullifyTranslations(JSON.stringify(surv), assetContent);
+        console.log(content);
       } else {
         content = JSON.stringify({
           survey: [
