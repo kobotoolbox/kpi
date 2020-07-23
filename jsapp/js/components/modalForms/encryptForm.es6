@@ -8,9 +8,16 @@ import {actions} from 'js/actions';
 class EncryptForm extends React.Component {
   constructor(props) {
     super(props);
+
+    let submissionURL, publicKey;
+    if (props.asset) {
+      submissionURL = props.asset.content.settings.submission_url;
+      publicKey = props.asset.content.settings.public_key;
+    }
+
     this.state = {
-      submissionURL: '',
-      publicKey: '',
+      submissionURL: submissionURL || '',
+      publicKey: publicKey || '',
     };
 
     autoBind(this);
@@ -44,6 +51,7 @@ class EncryptForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Submission URL')}</label>
             <TextBox
+              value={this.state.submissionURL}
               onChange={this.onSubmissionURLChange}
             />
           </bem.FormModal__item>
@@ -53,6 +61,7 @@ class EncryptForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Public key')}</label>
             <TextBox
+              value={this.state.publicKey}
               onChange={this.onPublicKeyChange}
             />
           </bem.FormModal__item>
