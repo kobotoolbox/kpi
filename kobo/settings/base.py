@@ -50,11 +50,8 @@ if os.environ.get('SESSION_COOKIE_DOMAIN'):
     SESSION_COOKIE_DOMAIN = os.environ['SESSION_COOKIE_DOMAIN']
     SESSION_COOKIE_NAME = 'kobonaut'
 
-# "Although the setting offers little practical benefit, it's sometimes
-# required by security auditors."
-# -- https://docs.djangoproject.com/en/2.2/ref/settings/#csrf-cookie-httponly
-CSRF_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_HTTPONLY is more useful, but it defaults to True.
+# Limit sessions to 1 week (the default is 2 weeks)
+SESSION_COOKIE_AGE = 604800
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
@@ -151,7 +148,13 @@ CONSTANCE_CONFIG = {
                                        '(e.g http://hook.example.com)'),
     'HOOK_MAX_RETRIES': (3,
                          'Number of times the system will retry '
-                         'to send data to remote server before giving up')
+                         'to send data to remote server before giving up'),
+
+    'SSRF_ALLOWED_IP_ADDRESS': ('', 'Whitelisted IP addresses to '
+                                    'bypass SSRF protection\nOne per line'),
+
+    'SSRF_DENIED_IP_ADDRESS': ('', 'Blacklisted IP addresses to '
+                                   'bypass SSRF protection\nOne per line')
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
