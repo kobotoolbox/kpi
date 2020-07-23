@@ -63,7 +63,7 @@ class EncryptForm extends React.Component {
             className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
             onClick={this.onSubmit} type='submit'
           >
-            {t('Add encryption')}
+            {t('Set encryption')}
           </button>
           <button className="encrypt-help" onClick={this.openEncryptionHelp} data-tip={t('Learn more about encrypting forms')}>
             <i className='k-icon k-icon-help'/>

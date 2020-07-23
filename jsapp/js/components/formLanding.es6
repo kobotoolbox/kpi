@@ -478,7 +478,7 @@ export class FormLanding extends React.Component {
           }
           <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
             <i className='k-icon-lock'/>
-            {t('Add encryption')}
+            {t('Manage Encryption')}
           </bem.PopoverMenu__link>
         </ui.PopoverMenu>
       </bem.FormView__group>

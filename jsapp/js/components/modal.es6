@@ -120,7 +120,7 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.ENCRYPT_FORM:
-        this.setModalTitle(t('Add Form Encryption'));
+        this.setModalTitle(t('Manage Form Encryption'));
         break;
 
       default:
