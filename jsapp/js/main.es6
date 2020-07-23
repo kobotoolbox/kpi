@@ -30,11 +30,11 @@ let csrfToken = '';
 
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
-	try {
-	  csrfToken = document.cookie.match(/csrftoken=(\w{64})/)[1];
-	} catch (err) {
-	  console.error('Cookie not matched');
-	}
+        try {
+            csrfToken = document.cookie.match(/csrftoken=(\w{64})/)[1];
+        } catch (err) {
+            console.error('Cookie not matched');
+        }
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
             xhr.setRequestHeader('X-CSRFToken', csrfToken || cookies.get('csrftoken'));
         }
