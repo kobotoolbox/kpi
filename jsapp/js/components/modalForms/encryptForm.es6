@@ -36,14 +36,12 @@ class EncryptForm extends React.Component {
       if (stores.asset.data[this.state.assetUid]) {
         this.onAssetChange(stores.asset.data[this.state.assetUid]);
       } else {
-        console.log(stores.allAssets);
         stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
       }
     }
   }
 
   onAssetChange(asset) {
-    console.log(asset);
     this.setState({
       asset: asset,
       submissionURL: asset.content.settings.submission_url,
