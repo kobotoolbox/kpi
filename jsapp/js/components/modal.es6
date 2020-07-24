@@ -300,6 +300,7 @@ class Modal extends React.Component {
             { this.props.params.type == MODAL_TYPES.ENCRYPT_FORM &&
               <EncryptForm
                 asset={this.props.params.asset}
+                assetUid={this.props.params.assetUid}
               />
             }
         </ui.Modal.Body>

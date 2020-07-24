@@ -1,9 +1,13 @@
 import React from 'react';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import TextBox from 'js/components/textBox';
 import {t} from 'utils';
 import {actions} from 'js/actions';
+import {stores} from 'js/stores';
+import {MODAL_TYPES} from 'js/constants';
 
 class EncryptForm extends React.Component {
   constructor(props) {
@@ -16,11 +20,50 @@ class EncryptForm extends React.Component {
     }
 
     this.state = {
+      asset: props.asset,
+      assetUid: props.assetUid,
       submissionURL: submissionURL || '',
       publicKey: publicKey || '',
     };
 
     autoBind(this);
+  }
+
+  componentDidMount() {
+    this.listenTo(stores.asset, this.onAssetsChange);
+
+    if (!this.state.asset && this.state.assetUid) {
+      if (stores.asset.data[this.state.assetUid]) {
+        this.onAssetChange(stores.asset.data[this.state.assetUid]);
+      } else {
+        console.log(stores.allAssets);
+        stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
+      }
+    }
+  }
+
+  onAssetChange(asset) {
+    console.log(asset);
+    this.setState({
+      asset: asset,
+      submissionURL: asset.content.settings.submission_url,
+      publicKey: asset.content.settings.public_key
+    });
+
+    stores.pageState.showModal({
+      type: MODAL_TYPES.ENCRYPT_FORM,
+      asset: asset
+    });
+  }
+
+  onAssetsChange(assetsList) {
+    let uid;
+    if (this.state.asset) {
+      uid = this.state.asset.uid;
+    } else if (this.state.assetUid) {
+      uid = this.state.assetUid;
+    }
+    this.onAssetChange(assetsList[uid]);
   }
 
   onSubmit(evt) {
@@ -82,5 +125,7 @@ class EncryptForm extends React.Component {
       );
   }
 }
+
+reactMixin(EncryptForm.prototype, Reflux.ListenerMixin);
 
 export default EncryptForm;
