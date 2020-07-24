@@ -26,15 +26,14 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
-let csrfToken = '';
-try {
-  csrfToken = document.cookie.match(/csrftoken=(\w{64})/)[1];
-} catch (err) {
-  console.error('Cookie not matched');
-}
-
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
+        let csrfToken = '';
+        try {
+            csrfToken = document.cookie.match(/csrftoken=(\w{64})/)[1];
+        } catch (err) {
+            console.error('Cookie not matched');
+        }
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
             xhr.setRequestHeader('X-CSRFToken', csrfToken || cookies.get('csrftoken'));
         }
