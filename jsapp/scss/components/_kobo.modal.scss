@@ -751,6 +751,10 @@ $z-modal-x: 10;
   cursor: pointer;
 }
 
+.remove-ecryption {
+  float: right;
+}
+
 @media screen and (max-width: 767px) {
   .modal.modal--open {
     min-width: 90%;

@@ -1,13 +1,14 @@
+import autoBind from 'react-autobind';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
 import TextBox from 'js/components/textBox';
-import {t} from 'utils';
+
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
+import {bem} from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
+import {stores} from 'js/stores';
+import {t} from 'utils';
 
 class EncryptForm extends React.Component {
   constructor(props) {
@@ -24,6 +25,7 @@ class EncryptForm extends React.Component {
       assetUid: props.assetUid,
       submissionURL: submissionURL || '',
       publicKey: publicKey || '',
+      clearEncryption: false,
     };
 
     autoBind(this);
@@ -64,23 +66,43 @@ class EncryptForm extends React.Component {
     this.onAssetChange(assetsList[uid]);
   }
 
-  onSubmit(evt) {
-    evt.preventDefault();
-    var content = this.props.asset.content;
-    content.settings.submission_url = this.state.submissionURL;
-    content.settings.public_key = this.state.publicKey;
-
+  updateAsset(content) {
     actions.resources.updateAsset(
       this.props.asset.uid,
       {content: JSON.stringify(content)}
     );
   }
+  onSubmit(evt) {
+    evt.preventDefault();
+
+    var content = this.state.asset.content;
+    content.settings.submission_url = this.state.submissionURL;
+    content.settings.public_key = this.state.publicKey;
+    this.updateAsset(content);
+  }
+  onRemove(evt) {
+    evt.preventDefault();
+    this.setState({clearEncryption: true});
+
+    var content = this.state.asset.content
+    content.settings.submission_url = '';
+    content.settings.public_key = '';
+    this.updateAsset(content);
+  }
+
   onSubmissionURLChange (newSubmissionURL) {
-    this.setState({submissionURL: newSubmissionURL});
+    this.setState({
+      submissionURL: newSubmissionURL,
+      clearEncryption: false
+    });
   }
   onPublicKeyChange (newPublicKey) {
-    this.setState({publicKey: newPublicKey});
+    this.setState({
+      publicKey: newPublicKey,
+      clearEncryption: false
+    });
   }
+
   openEncryptionHelp() {
     window.open('https://support.kobotoolbox.org/encrypting_forms.html', '_blank');
   }
@@ -92,7 +114,7 @@ class EncryptForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Submission URL')}</label>
             <TextBox
-              value={this.state.submissionURL}
+              value={!this.state.clearEncryption ? this.state.submissionURL : ''}
               onChange={this.onSubmissionURLChange}
             />
           </bem.FormModal__item>
@@ -102,7 +124,7 @@ class EncryptForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Public key')}</label>
             <TextBox
-              value={this.state.publicKey}
+              value={!this.state.clearEncryption ? this.state.publicKey : ''}
               onChange={this.onPublicKeyChange}
             />
           </bem.FormModal__item>
@@ -114,6 +136,12 @@ class EncryptForm extends React.Component {
             onClick={this.onSubmit} type='submit'
           >
             {t('Set encryption')}
+          </button>
+          <button
+            className='remove-ecryption mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+            onClick={this.onRemove} type='submit'
+          >
+            {t('Remove encryption')}
           </button>
           <button className="encrypt-help" onClick={this.openEncryptionHelp} data-tip={t('Learn more about encrypting forms')}>
             <i className='k-icon k-icon-help'/>
