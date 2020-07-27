@@ -424,9 +424,21 @@ export function syncCascadeChoiceNames(params) {
   }
 
   for(var i = 0; i < content.survey.length; i++) {
-    if (content.survey[i].choice_filter !== undefined && content.survey[i].label !== undefined) {
+    var sluggifiedLabel;
+    if (content.survey[i].name !== undefined && content.survey[i].label !== undefined) {
+      sluggifiedLabel = modelUtils.sluggify(content.survey[i].label, {
+          lowerCase: false,
+          preventDuplicateUnderscores: true,
+          stripSpaces: true,
+          lrstrip: true,
+          incrementorPadding: 3,
+          validXmlTag: true
+        });
+      content.survey[i].name = sluggifiedLabel;
+    }
+    if (content.survey[i].choice_filter !== undefined && content.survey[i - 1].label !== undefined) {
       var choiceQuestion = '' + content.survey[i].choice_filter.split('=')[0];
-      var sluggifiedLabel = modelUtils.sluggify(content.survey[i - 1].label, {
+      sluggifiedLabel = modelUtils.sluggify(content.survey[i - 1].label, {
           lowerCase: false,
           preventDuplicateUnderscores: true,
           stripSpaces: true,
