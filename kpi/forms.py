@@ -82,11 +82,7 @@ class PasswordResetFormWithUsername(PRF):
             '%s__iexact' % UserModel.get_email_field_name(): email,
             'is_active': True,
         })
-        print('--------')
-        print(active_users)
-        print('--------')
-        print(username)
-        print('--------')
+
         if(username == ""):
             return(u for u in active_users if u.has_usable_password())
         else:
