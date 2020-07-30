@@ -17,7 +17,7 @@ def get_response(url_):
     try:
         response_ = requests.get(url_, timeout=45)
         response_.raise_for_status()
-        content = response_.content
+        content = response_.text
     except Exception as e:
         response_ = None
         message = repr(e)
@@ -74,7 +74,7 @@ def service_health(request):
     kobocat_time = time.time() - t0
 
     output = (
-        '{}\r\n\r\n'
+        '{} KPI\r\n\r\n'
         'Mongo: {} in {:.3} seconds\r\n'
         'Postgres: {} in {:.3} seconds\r\n'
         'Enketo [{}]: {} in {:.3} seconds\r\n'

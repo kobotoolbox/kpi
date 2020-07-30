@@ -6,6 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
+from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 
 from kpi.utils.log import logging
 from .hook import Hook
@@ -100,6 +101,19 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                         "auth": (self._hook.settings.get("username"),
                                  self._hook.settings.get("password"))
                     })
+
+                ssrf_protect_options = {}
+                if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
+                    ssrf_protect_options['allowed_ip_addresses'] = constance.\
+                        config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\n')
+
+                if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
+                    ssrf_protect_options['denied_ip_addresses'] = constance.\
+                        config.SSRF_DENIED_IP_ADDRESS.strip().split('\n')
+
+                SSRFProtect.validate(self._hook.endpoint,
+                                     options=ssrf_protect_options)
+
                 response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
                 response.raise_for_status()
                 self.save_log(response.status_code, response.text, True)
@@ -113,7 +127,15 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                     text = response.text
                     status_code = response.status_code
                 self.save_log(status_code, text)
-
+            except SSRFProtectException as e:
+                logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - Data #{} - {}".format(self._hook.uid,
+                                                                self._instance_id,
+                                                                str(e)),
+                              exc_info=True)
+                self.save_log(
+                    KOBO_INTERNAL_ERROR_STATUS_CODE,
+                    f'{self._hook.endpoint} is not allowed')
             except Exception as e:
                 logging.error("service_json.ServiceDefinition.send - "
                               "Hook #{} - Data #{} - {}".format(self._hook.uid,

@@ -496,10 +496,15 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
+                  // TODO: allow serializers to take care of file names to
+                  // remove this bandaid fix for "Untitled" filenames
+                  var assetName = finalAsset.name;
+                  if (assetName === 'Untitled') {
+                    assetName = this.getFilenameFromURI(importUrl);
+                  }
                   this.setState({
                     formAsset: finalAsset,
-                    // try proposing something more meaningful than "Untitled"
-                    name: this.getFilenameFromURI(importUrl),
+                    name: assetName,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
@@ -554,11 +559,15 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // try proposing something more meaningful than "Untitled"
-                  const newName = files[0].name.split('.')[0];
+                  // TODO: allow serializers to take care of file names to
+                  // remove this bandaid fix for "Untitled" filenames
+                  var assetName = finalAsset.name;
+                  if (assetName === 'Untitled') {
+                    assetName = files[0].name.split('.xlsx')[0];
+                  }
                   this.setState({
                     formAsset: finalAsset,
-                    name: newName,
+                    name: assetName,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,

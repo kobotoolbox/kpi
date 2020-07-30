@@ -9,14 +9,16 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
-import {t, notify} from 'js/utils';
+import {t, notify, launchPrinting} from 'js/utils';
 import {stores} from 'js/stores';
 import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
 } from 'js/constants';
+
+const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
 class Submission extends React.Component {
   constructor(props) {
@@ -105,12 +107,16 @@ class Submission extends React.Component {
         hasBetaQuestion: hasBetaQuestion
       });
     }).fail((error)=>{
-      if (error.responseText)
-        this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
-        this.setState({error: error.statusText, loading: false});
-      else
+      if (error.responseText) {
+        let error_message = error.responseText;
+        if (error_message === DETAIL_NOT_FOUND)
+          error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
+        this.setState({error: error_message, loading: false});
+      } else if (error.statusText) {
+          this.setState({error: error.statusText, loading: false});
+      } else {
         this.setState({error: t('Error: could not load data.'), loading: false});
+      }
     });
   }
 
@@ -517,6 +523,12 @@ class Submission extends React.Component {
                 {!this.state.isEditLoading && t('Edit')}
               </a>
             }
+
+            <button className='mdl-button mdl-button--icon report-button__print'
+                    onClick={launchPrinting}
+                    data-tip={t('Print')}>
+              <i className='k-icon-print' />
+            </button>
 
             {this.userCan('change_submissions', this.props.asset) &&
               <a

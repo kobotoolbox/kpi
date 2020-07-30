@@ -3,13 +3,19 @@ import json
 
 import constance
 import responses
+from django.contrib.auth.models import User
 from django.urls import reverse
+from mock import patch
 from rest_framework import status
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.hook.models.hook import Hook
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
-from .hook_test_case import HookTestCase
+from kpi.constants import (
+    PERM_VIEW_SUBMISSIONS,
+    PERM_CHANGE_ASSET
+)
+from .hook_test_case import HookTestCase, MockSSRFProtect
 
 
 class ApiHookTestCase(HookTestCase):
@@ -23,7 +29,7 @@ class ApiHookTestCase(HookTestCase):
         })
 
         response = self.client.get(list_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         detail_url = reverse("hook-detail", kwargs={
             "parent_lookup_asset": self.asset.uid,
@@ -31,7 +37,7 @@ class ApiHookTestCase(HookTestCase):
         })
 
         response = self.client.get(detail_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         log_list_url = reverse("hook-log-list", kwargs={
             "parent_lookup_asset": self.asset.uid,
@@ -39,11 +45,13 @@ class ApiHookTestCase(HookTestCase):
         })
 
         response = self.client.get(log_list_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_hook(self):
         self._create_hook()
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_data_submission(self):
         # Create first hook
@@ -79,6 +87,61 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_editor_access(self):
+        hook = self._create_hook()
+
+        list_url = reverse('hook-list', kwargs={
+            'parent_lookup_asset': self.asset.uid
+        })
+
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        owner_results = response.get('results')
+
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+
+        # Try to access with another user who has only `change_asset` permission
+        another_user = User.objects.get(username='anotheruser')
+        hook.asset.assign_perm(another_user, PERM_CHANGE_ASSET)
+
+        # Should return 404, user needs also `view_submissions`
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Retry will all permissions
+        hook.asset.assign_perm(another_user, PERM_VIEW_SUBMISSIONS)
+        response = self.client.get(list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(owner_results, response.get('results'))
+
+        detail_url = reverse('hook-detail', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'uid': hook.uid,
+        })
+
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        log_list_url = reverse('hook-log-list', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'parent_lookup_hook': hook.uid,
+        })
+
+        response = self.client.get(log_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_editor_create(self):
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        another_user = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(another_user, PERM_CHANGE_ASSET)
+        self.asset.assign_perm(another_user, PERM_VIEW_SUBMISSIONS)
+
+        response = self._create_hook(return_response_only=True,
+                                     name='Hook for asset I can edit')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_non_owner_cannot_access(self):
         hook = self._create_hook()
         self.client.logout()
@@ -110,13 +173,15 @@ class ApiHookTestCase(HookTestCase):
     def test_non_owner_cannot_create(self):
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
-        response = self._create_hook(return_response_only=True, name="Hook for asset I don't own")
+        response = self._create_hook(return_response_only=True,
+                                     name="Hook for asset I don't own")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_anonymous_cannot_create(self):
         self.client.logout()
-        response = self._create_hook(return_response_only=True, name="Hook for asset from anonymous")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self._create_hook(return_response_only=True,
+                                     name="Hook for asset from anonymous")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_partial_update_hook(self):
         hook = self._create_hook()
@@ -135,6 +200,8 @@ class ApiHookTestCase(HookTestCase):
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, "some disabled external service")
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_send_and_retry(self):
 
@@ -161,6 +228,8 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.get(detail_url, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get("tries"), 2)
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_payload_template(self):
 

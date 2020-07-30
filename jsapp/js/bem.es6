@@ -36,6 +36,7 @@ bem.AssetRow__typeIcon  = bem.AssetRow.__('type-icon', '<span>');
 bem.ServiceRow = BEM('service-row');
 bem.ServiceRow__column = bem.ServiceRow.__('column');
 bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
+bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
 bem.FormBuilder = bem('formBuilder');
@@ -233,9 +234,6 @@ bem.AccountSettings__right = bem.AccountSettings.__('right');
 bem.AccountSettings__item = bem.FormModal.__('item');
 bem.AccountSettings__desc = bem.AccountSettings.__('desc');
 bem.AccountSettings__actions = bem.AccountSettings.__('actions');
-
-bem.ChangePassword = BEM('change-password');
-bem.ChangePassword__item = bem.FormModal.__('item');
 
 bem.UserRow = BEM('user-row');
 bem.UserRow__info = bem.UserRow.__('info');

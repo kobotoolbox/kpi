@@ -19,7 +19,8 @@ import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
+  QUESTION_TYPES
 } from '../constants';
 import {
   t,
@@ -321,8 +322,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-
-    uniqueKeys.forEach(function(key){
+    uniqueKeys.forEach((key) => {
       var q = undefined;
       var qParentG = [];
       if (key.includes('/')) {
@@ -405,6 +405,10 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
+              if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
+                var mediaURL = this.getMediaDownloadLink(row.value);
+                return <a href={mediaURL} target="_blank">{row.value}</a>;
+              }
               // show proper labels for choice questions
               if (q.type == 'select_one') {
                 let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
@@ -623,7 +627,7 @@ export class DataTable extends React.Component {
     stores.pageState.hideModal();
     this.setState({
       overrideLabelsAndGroups: overrides
-    }, function() {
+    }, () => {
       this._prepColumns(this.state.tableData);
     });
   }
@@ -729,6 +733,7 @@ export class DataTable extends React.Component {
     this.fetchData(this.state.fetchState, this.state.fetchInstance);
     this.setState({ promptRefresh: false });
   }
+
   clearPromptRefresh() {
     this.setState({ promptRefresh: false });
   }
@@ -748,14 +753,14 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
-
     this.state.tableData.forEach(function(r) {
       if (isChecked) {
         s[r._id] = true;
       } else {
         delete s[r._id];
       }
-    });
+    }
+    );
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
@@ -774,6 +779,7 @@ export class DataTable extends React.Component {
     }
 
   }
+
   onBulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
     const selectAll = this.state.selectAll;
@@ -957,6 +963,22 @@ export class DataTable extends React.Component {
         }
       </bem.FormView__item>
     );
+  }
+  getMediaDownloadLink(fileName) {
+    this.state.tableData.forEach(function(a) {
+        a._attachments.forEach(function(b) {
+          if (b.filename.includes(fileName)) {
+            fileName = b.filename;
+          }
+        });
+
+    });
+
+    var kc_server = document.createElement('a');
+    kc_server.href = this.props.asset.deployment__identifier;
+    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
+    var kc_base = `${kc_server.origin}${kc_prefix}`;
+    return `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
   }
   render () {
     if (this.state.error) {

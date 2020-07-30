@@ -42,8 +42,10 @@ import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
+import PermValidator from './components/permissions/permValidator';
 import Modal from './components/modal';
-import {ChangePassword, AccountSettings} from './components/accountSettings';
+import AccountSettings from './components/accountSettings';
+import ChangePassword from './components/changePassword';
 import {
   t,
   assign,
@@ -61,6 +63,7 @@ class App extends React.Component {
     super(props);
     moment.locale(currentLang());
     this.state = assign({
+      isConfigReady: false,
       pageState: stores.pageState.state
     });
   }
@@ -73,7 +76,13 @@ class App extends React.Component {
       stores.pageState.hideModal();
   }
   componentDidMount () {
+    this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
+
     actions.misc.getServerEnvironment();
+    actions.permissions.getConfig();
+  }
+  onGetConfigCompleted() {
+    this.setState({isConfigReady: true});
   }
   _handleShortcuts(action) {
     switch (action) {
@@ -87,6 +96,18 @@ class App extends React.Component {
   }
   render() {
     var assetid = this.props.params.assetid || null;
+
+    if (!this.state.isConfigReady) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
     return (
       <DocumentTitle title='KoBoToolbox'>
         <Shortcuts
@@ -96,6 +117,7 @@ class App extends React.Component {
           global
           isolate>
 
+        <PermValidator/>
         <IntercomHandler/>
 
           { !this.isFormBuilder() &&

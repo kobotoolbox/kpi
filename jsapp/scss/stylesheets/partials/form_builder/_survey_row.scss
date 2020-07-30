@@ -20,7 +20,10 @@
     display: none;
   }
 
-  &:hover {
+  // display button for adding row when hovering,
+  // or when an input inside has focus (useful for keyboard navigation)
+  &:hover,
+  &:focus-within {
     > .survey__row__spacer > .btn--addrow {
       display: block;
     }
@@ -377,7 +380,7 @@ $nested-btn--addrow-height: 24px;
 
   // when debugging, it's helpful to mock :hover
   // &:hover, &.hover {
-  &:hover {
+  &:hover, &:focus {
     background-color: transparent;
 
     .fa {
