@@ -409,16 +409,19 @@ export class SupportHelpBubble extends HelpBubble {
             {t('Help Resources')}
           </bem.HelpBubble__row>
 
-          <bem.HelpBubble__rowAnchor
-            m='link'
-            target='_blank'
-            href='https://support.kobotoolbox.org/'
-            onClick={this.close.bind(this)}
-          >
-            <i className='k-icon k-icon-help-articles'/>
-            <header>{t('KoBoToolbox Help Center')}</header>
-            <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
-          </bem.HelpBubble__rowAnchor>
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={stores.serverEnvironment.state.support_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-help-articles'/>
+              <header>{t('KoBoToolbox Help Center')}</header>
+              <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+            </bem.HelpBubble__rowAnchor>
+          }
 
           <bem.HelpBubble__rowAnchor
             m='link'
