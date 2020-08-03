@@ -127,9 +127,9 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
                                 'themselves'),
-    'TERMS_OF_SERVICE_URL': ('https://www.kobotoolbox.org/terms',
+    'TERMS_OF_SERVICE_URL': ('',
                              'URL for terms of service document'),
-    'PRIVACY_POLICY_URL': ('https://www.kobotoolbox.org/privacy',
+    'PRIVACY_POLICY_URL': ('',
                            'URL for privacy policy'),
     'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
                         'URL of source code repository. When empty, a link '
