@@ -154,6 +154,14 @@ $t-form-builder-aside-open: 200ms;
         background-color: darken($cool-green, 10%);
       }
 
+      &:focus {
+        background-color: darken($cool-green, 10%);
+        i {
+          font-size: 56px;
+          padding-top: 8px;
+        }
+      }
+
       i {
         color: $white;
         font-size: 48px;
@@ -273,6 +281,12 @@ $t-form-builder-aside-open: 200ms;
   &:hover {
     color: $cool-gray;
   }
+
+  &:focus {
+    i {
+      @include form-builder-focus();
+    }
+  }
 }
 
 .formBuilder-header__button {
@@ -280,6 +294,12 @@ $t-form-builder-aside-open: 200ms;
 
   > i {
     @extend .fa, .fa-fw;
+  }
+
+  &:focus {
+    i {
+      @include form-builder-focus();
+    }
   }
 
   &.formBuilder-header__button--create,
@@ -292,6 +312,11 @@ $t-form-builder-aside-open: 200ms;
 
     > i {
       display: none;
+    }
+
+    &:focus {
+      background-color: darken($cool-blue, 10%);
+      font-weight: bold;
     }
   }
 
@@ -342,6 +367,14 @@ $t-form-builder-aside-open: 200ms;
     i.k-icon {
       font-size: 32px;
       vertical-align: middle;
+    }
+
+    &:focus {
+      @include form-builder-focus();
+
+      i {
+        outline: none;
+      }
     }
   }
 

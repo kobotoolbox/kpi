@@ -538,6 +538,7 @@ export default assign({
             m={'logo'}
             data-tip={t('Return to list')}
             className='left-tooltip'
+            tabIndex='0'
             onClick={this.safeNavigateToList}
           >
             <i className='k-icon-kobo' />
