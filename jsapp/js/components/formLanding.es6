@@ -173,47 +173,19 @@ export class FormLanding extends React.Component {
       this.state.nextPagesVersions
     );
     return (
-      <bem.FormView__row m='history'>
-        {this.state.historyExpanded && [
-          <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
+      <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
+        <bem.FormView__cell m={['columns', 'history-label']}>
+          <bem.FormView__cell m='label'>
             {t('Form history')}
           </bem.FormView__cell>
-          ,
-          <bem.FormView__cell m={['box', 'history-table']}>
-            <bem.FormView__group m='deployments'>
-              <bem.FormView__group m={['items', 'headings']}>
-                <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
-                <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-                <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
-              </bem.FormView__group>
-              {this.state.deployed_versions.results.map((item, n) => {
-                return (
-                  <bem.FormView__group m='items' key={n} >
-                    <bem.FormView__label m='version'>
-                      {`v${dvcount - n}`}
-                      {item.uid === this.state.deployed_version_id && this.state.deployment__active &&
-                        <bem.FormView__cell m='deployed'>
-                          {t('Deployed')}
-                        </bem.FormView__cell>
-                      }
-                    </bem.FormView__label>
-                    <bem.FormView__label m='date'>
-                      {formatTime(item.date_deployed)}
-                    </bem.FormView__label>
-                    <bem.FormView__label m='clone' className='right-tooltip'>
-                        <bem.FormView__link m='clone'
-                            data-version-id={item.uid}
-                            data-tip={t('Clone this version as a new project')}
-                            onClick={this.saveCloneAs}>
-                          <i className='k-icon-clone' />
-                        </bem.FormView__link>
-                    </bem.FormView__label>
-                  </bem.FormView__group>
-                );
-              })}
+        </bem.FormView__cell>
+        <bem.FormView__cell m={['box', 'history-table']}>
+          <bem.FormView__group m='deployments'>
+            <bem.FormView__group m={['items', 'headings']}>
+              <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
+              <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
+              <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
             </bem.FormView__group>
-<<<<<<< HEAD
-=======
             {versionsToDisplay.map((item, n) => {
               if (dvcount - n > 0) {
                 return (
@@ -253,17 +225,10 @@ export class FormLanding extends React.Component {
                 {t('Load more')}
               </button>
             }
->>>>>>> master
           </bem.FormView__cell>
-        ]}
-
-        <bem.FormView__cell m={['centered']}>
-          <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
-            {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-          </button>
-        </bem.FormView__cell>
+        }
       </bem.FormView__row>
-      );
+    );
   }
   renderCollectData () {
     var available_links = new Map([
