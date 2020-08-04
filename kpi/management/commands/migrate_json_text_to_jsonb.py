@@ -199,7 +199,7 @@ class Command(BaseCommand):
         write('')
 
         if options['drop']:
-            write('*** Dropping columns and triggers', ending='')
+            write('*** Dropping temporary columns and triggers', ending='')
             for table, text_column in TABLES_AND_TEXT_JSON_COLUMNS:
                 try:
                     unconditionally_drop_jsonb_column_and_trigger(
