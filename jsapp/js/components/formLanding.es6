@@ -174,7 +174,7 @@ export class FormLanding extends React.Component {
     );
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
-        <bem.FormView__cell m={['columns', 'history-label']}>
+        <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
           <bem.FormView__cell m='label'>
             {t('Form history')}
           </bem.FormView__cell>
