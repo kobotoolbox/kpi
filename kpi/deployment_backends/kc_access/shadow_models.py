@@ -5,14 +5,43 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.exceptions import ValidationError
-from django.db import ProgrammingError
-from django.db import models
+from django.db import (
+    ProgrammingError,
+    connections,
+    models,
+    router,
+)
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django_digest.models import PartialDigest
 from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.utils.strings import hashable_str
+
+
+def update_autofield_sequence(model):
+    """
+    Fixes the PostgreSQL sequence for the first (and only?) `AutoField` on
+    `model`, à la `manage.py sqlsequencereset`
+    """
+    sql_template = (
+        "SELECT setval(pg_get_serial_sequence('{table}','{column}'), "
+        "coalesce(max({column}), 1), max({column}) IS NOT null) FROM {table};"
+    )
+    autofield = None
+    for f in model._meta.get_fields():
+        if isinstance(f, models.AutoField):
+            autofield = f
+            break
+    if not autofield:
+        return
+    query = sql_template.format(
+        table=model._meta.db_table, column=autofield.column
+    )
+    connection = connections[router.db_for_write(model)]
+    with connection.cursor() as cursor:
+        cursor.execute(query)
 
 
 class ReadOnlyModelError(ValueError):
@@ -197,6 +226,14 @@ class KobocatUser(ShadowModel):
 
         kc_auth_user.save()
 
+        # We've manually set a primary key, so `last_value` in the sequence
+        # `auth_user_id_seq` now lags behind `max(id)`. Fix it now!
+        update_autofield_sequence(cls)
+
+        # Update django-digest `PartialDigest`s in KoBoCAT.  This is only
+        # necessary if the user's password has changed, but we do it always
+        KobocatDigestPartial.sync(kc_auth_user)
+
 
 class KobocatUserObjectPermission(ShadowModel):
     """
@@ -335,42 +372,21 @@ class KobocatDigestPartial(ShadowModel):
         db_table = "django_digest_partialdigest"
 
     @classmethod
-    def sync(cls, digest_partial, validate_user=True):
-        """`
-        Sync `django_digest_partialdigest` table between `kpi` and `kc``
-
-        A race condition occurs when users are created.
-        `DigestPartial` post-signal is (often) triggered before `User`
-        post-signal.  Because of that, user doesn't exist in `kc` database
-        when `KobocatDigestPartial` is saved.
-
-        `validate_user` is useful to verify whether foreign key exists to avoid
-        getting an `IntegrityError` on save.
-
-        Args:
-            digest_partial (DigestPartial)
-            validate_user (bool)
+    def sync(cls, user):
         """
-        try:
-            if validate_user:
-                # Race condition. `User` post signal can be triggered after
-                # `DigestPartial` post signal.
-                KobocatUser.objects.get(pk=digest_partial.user_id)
-
-            try:
-                kc_digest_partial = cls.objects.get(pk=digest_partial.pk)
-                assert kc_digest_partial.user_id == digest_partial.user_id
-            except KobocatDigestPartial.DoesNotExist:
-                kc_digest_partial = cls(pk=digest_partial.pk,
-                                        user_id=digest_partial.user_id)
-
-            kc_digest_partial.login = digest_partial.login
-            kc_digest_partial.partial_digest = digest_partial.partial_digest
-            kc_digest_partial.confirmed = kc_digest_partial.confirmed
-            kc_digest_partial.save()
-
-        except KobocatUser.DoesNotExist:
-            pass
+        Mimics the behavior of `django_digest.models._store_partial_digests()`,
+        but updates `KobocatDigestPartial` in the KoBoCAT database instead of
+        `PartialDigest` in the KPI database
+        """
+        cls.objects.filter(user=user).delete()
+        # Query for `user_id` since user PKs are synchronized
+        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+            cls.objects.create(
+                user=user,
+                login=partial_digest.login,
+                confirmed=partial_digest.confirmed,
+                partial_digest=partial_digest.partial_digest,
+            )
 
 
 def safe_kc_read(func):

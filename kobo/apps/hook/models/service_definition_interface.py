@@ -102,7 +102,18 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                                  self._hook.settings.get("password"))
                     })
 
-                SSRFProtect.validate(self._hook.endpoint)
+                ssrf_protect_options = {}
+                if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
+                    ssrf_protect_options['allowed_ip_addresses'] = constance.\
+                        config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\n')
+
+                if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
+                    ssrf_protect_options['denied_ip_addresses'] = constance.\
+                        config.SSRF_DENIED_IP_ADDRESS.strip().split('\n')
+
+                SSRFProtect.validate(self._hook.endpoint,
+                                     options=ssrf_protect_options)
+
                 response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
                 response.raise_for_status()
                 self.save_log(response.status_code, response.text, True)

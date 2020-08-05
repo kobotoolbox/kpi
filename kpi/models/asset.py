@@ -13,7 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef, Prefetch
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
@@ -109,6 +109,19 @@ class KpiTaggableManager(_TaggableManager):
 
 
 class AssetManager(TaggableModelManager):
+    def deployed(self):
+        """
+        Filter for deployed assets (i.e. assets having at least one deployed
+        version) in an efficient way that doesn't involve joining or counting.
+        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        """
+        deployed_versions = AssetVersion.objects.filter(
+            asset=OuterRef('pk'), deployed=True
+        )
+        return self.annotate(deployed=Exists(deployed_versions)).filter(
+            deployed=True
+        )
+
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
 
