@@ -42,6 +42,13 @@ $layout-desktop-header-height: 64px;
   border-radius: 2px;
 }
 
+@mixin form-builder-focus {
+  outline-color: $cool-blue;
+  outline-offset: -2px;
+  outline-style: auto;
+  outline-width: 5px;
+}
+
 html {
   color: $cool-darkgray;
 }

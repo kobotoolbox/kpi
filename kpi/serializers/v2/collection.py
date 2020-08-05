@@ -133,8 +133,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         context.update({'collection_uid': obj.uid})
 
         return CollectionPermissionAssignmentSerializer(queryset.all(),
-                                              many=True, read_only=True,
-                                              context=context).data
+                                                        many=True, read_only=True,
+                                                        context=context).data
 
 
 class CollectionListSerializer(CollectionSerializer):

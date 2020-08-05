@@ -172,7 +172,9 @@ class UserCollectionPermissionsEditor extends React.Component {
   }
 
   notifyUnknownUser(username) {
-    notify(`${t('User not found:')} ${username}`, 'warning');
+    if (navigator.onLine) {
+      notify(`${t('User not found:')} ${username}`, 'warning');
+    }
   }
 
   /**

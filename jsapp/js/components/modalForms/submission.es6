@@ -14,10 +14,12 @@ import {stores} from 'js/stores';
 import ui from 'js/ui';
 import {
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissionDataTable';
 import Checkbox from 'js/components/checkbox';
+
+const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
 class Submission extends React.Component {
   constructor(props) {
@@ -104,11 +106,14 @@ class Submission extends React.Component {
         next: next,
         previous: prev
       });
-    }).fail((error) => {
+    }).fail((error)=>{
       if (error.responseText) {
-        this.setState({error: error.responseText, loading: false});
+        let error_message = error.responseText;
+        if (error_message === DETAIL_NOT_FOUND)
+          error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
+        this.setState({error: error_message, loading: false});
       } else if (error.statusText) {
-        this.setState({error: error.statusText, loading: false});
+          this.setState({error: error.statusText, loading: false});
       } else {
         this.setState({error: t('Error: could not load data.'), loading: false});
       }
