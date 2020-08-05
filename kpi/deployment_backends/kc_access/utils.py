@@ -10,8 +10,6 @@ from django.db import ProgrammingError, transaction
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
-
-
 from kpi.utils.log import logging
 from .shadow_models import (
     safe_kc_read,

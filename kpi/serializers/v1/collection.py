@@ -43,4 +43,5 @@ class CollectionSerializer(collection.CollectionSerializer):
 
 class CollectionListSerializer(collection.CollectionListSerializer,
                                CollectionSerializer):
-    pass
+
+    permissions = ObjectPermissionSerializer(many=True, read_only=True)
