@@ -231,7 +231,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
             object_permissions = ObjectPermission.objects.filter(
                 content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids
+                object_id__in=asset_ids,
+                deny=False,
             ).select_related(
                 'user', 'permission'
             ).order_by(

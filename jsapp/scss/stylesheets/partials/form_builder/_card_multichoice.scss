@@ -75,6 +75,11 @@
     min-height: 18px;
     cursor: move;
 
+    &:focus {
+      border-color: lighten($cool-blue, 10%);
+      color: lighten($cool-blue, 10%);
+    }
+
     span {
       cursor: text;
     }
@@ -100,18 +105,21 @@
     overflow: hidden;
 
     label {
-      width: 32%;
+      display: inline-block;
+      width: 40%;
       padding-left: 4px;
       color: #7E858C;
     }
 
-    span, .editable-container {
+    span,
+    .editable-container {
+      text-align: right;
       display: inline-block;
       float: right;
-      width: 64%;
+      width: 60%;
       padding-right: 4px;
       color: #7E858C;
-      text-align: right;
+      overflow-wrap: break-word;
       cursor: text;
     }
 
@@ -123,8 +131,9 @@
       text-align: right;
       display: inline-block;
       float: right;
+      width: 60% !important;
       color: $linkColor;
-      line-height: 1em;
+      line-height: inherit;
       font-size: 11px;
     }
   }

@@ -20,6 +20,8 @@ import {
   GROUP_TYPES_END
 } from 'js/constants';
 
+const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
+
 class Submission extends React.Component {
   constructor(props) {
     super(props);
@@ -107,12 +109,16 @@ class Submission extends React.Component {
         hasBetaQuestion: hasBetaQuestion
       });
     }).fail((error)=>{
-      if (error.responseText)
-        this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
-        this.setState({error: error.statusText, loading: false});
-      else
+      if (error.responseText) {
+        let error_message = error.responseText;
+        if (error_message === DETAIL_NOT_FOUND)
+          error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
+        this.setState({error: error_message, loading: false});
+      } else if (error.statusText) {
+          this.setState({error: error.statusText, loading: false});
+      } else {
         this.setState({error: t('Error: could not load data.'), loading: false});
+      }
     });
   }
 

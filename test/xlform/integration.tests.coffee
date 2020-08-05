@@ -176,7 +176,7 @@ do ->
         """
       it 'for calculation question through the interface', ->
         click_set_val = (v)->
-          survey_row.find('.card__header-title').eq(0).click()
+          survey_row.find('.js-card-label').eq(0).click()
           inp = survey_row.find('input').eq(0)
           inp.val(v)
           inp.blur()
@@ -199,9 +199,9 @@ do ->
 
         survey_row = @div.find('.survey__row').eq(-1)
 
-        expect(survey_row.find('.card__header-title').text()).toBe("4 + 4")
+        expect(survey_row.find('.js-card-label').text()).toBe("4 + 4")
         click_set_val("5 + 5")
-        expect(survey_row.find('.card__header-title').text()).toBe("5 + 5")
+        expect(survey_row.find('.js-card-label').text()).toBe("5 + 5")
 
         expectedLastRow =
           type: 'calculate'
