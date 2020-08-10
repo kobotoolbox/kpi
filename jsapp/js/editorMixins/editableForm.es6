@@ -38,7 +38,7 @@ import assetUtils from 'js/assetUtils';
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
 
-var webformStylesSupportUrl = 'http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles';
+const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
 
@@ -702,13 +702,17 @@ export default assign({
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
                 {t('Form style')}
-                <a
-                  href={webformStylesSupportUrl}
-                  target='_blank'
-                  data-tip={t('Read more about form styles')}
-                >
-                  <i className='k-icon k-icon-help'/>
-                </a>
+
+                { stores.serverEnvironment &&
+                  stores.serverEnvironment.state.support_url &&
+                  <a
+                    href={stores.serverEnvironment.state.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    target='_blank'
+                    data-tip={t('Read more about form styles')}
+                  >
+                    <i className='k-icon k-icon-help'/>
+                  </a>
+                }
               </bem.FormBuilderAside__header>
 
               <label

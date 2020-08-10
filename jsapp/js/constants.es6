@@ -311,6 +311,14 @@ export const QUESTION_TYPES = new Map([
     }
   ],
   [
+    'hidden',
+    {
+      label: t('Hidden'),
+      faIcon: 'fa-eye-slash',
+      id: 'hidden'
+    }
+  ],
+  [
     'file',
     {
       label: t('File'),
