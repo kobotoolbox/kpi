@@ -4,12 +4,13 @@ import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
+import {hashHistory} from 'react-router';
 import DocumentTitle from 'react-document-title';
 import {bem} from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
-import {ASSET_TYPES} from 'js/constants';
+import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
 import AssetContentSummary from './assetContentSummary';
@@ -119,21 +120,40 @@ class AssetRoute extends React.Component {
     }
   }
 
+  goBack() {
+    hashHistory.goBack();
+  }
+
   render() {
     if (this.state.asset === false) {
       return renderLoading();
     }
 
     const docTitle = this.state.asset.name || t('Untitled');
+    const isUserSubscribed = this.state.asset.access_type === ACCESS_TYPES.get('subscribed');
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
+              <bem.FormView__cell m='back-button'>
+                <bem.FormView__iconButton onClick={this.goBack}>
+                  <i className='k-icon k-icon-prev' />
+                  {t('Back')}
+                </bem.FormView__iconButton>
+              </bem.FormView__cell>
+
               <bem.FormView__cell m='label'>
                 {t('Details')}
               </bem.FormView__cell>
+
+              {isUserSubscribed &&
+                <bem.FormView__cell m='subscribed-badge'>
+                  <i className='k-icon k-icon-check-circle' />
+                  {t('Subscribed')}
+                </bem.FormView__cell>
+              }
 
               <AssetActionButtons asset={this.state.asset}/>
             </bem.FormView__cell>

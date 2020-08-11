@@ -108,6 +108,7 @@ class AssetInfoBox extends React.Component {
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
 
     return (
+      <React.Fragment>
       <bem.FormView__cell m='box'>
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell m={['date', 'column-1']}>
@@ -234,14 +235,15 @@ class AssetInfoBox extends React.Component {
             </bem.FormView__cell>
           </React.Fragment>
         }
-
-        <bem.FormView__cell m={['bordertop', 'toggle-details']}>
-          <button onClick={this.toggleDetails}>
-            {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
-            {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
-          </button>
-        </bem.FormView__cell>
       </bem.FormView__cell>
+
+      <bem.FormView__cell m='toggle-details'>
+        <button onClick={this.toggleDetails}>
+          {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
+          {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
+        </button>
+      </bem.FormView__cell>
+      </React.Fragment>
     );
   }
 }

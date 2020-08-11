@@ -179,6 +179,7 @@ export class FormLanding extends React.Component {
             {t('Form history')}
           </bem.FormView__cell>
         </bem.FormView__cell>
+
         <bem.FormView__cell m={['box', 'history-table']}>
           <bem.FormView__group m='deployments'>
             <bem.FormView__group m={['items', 'headings']}>
