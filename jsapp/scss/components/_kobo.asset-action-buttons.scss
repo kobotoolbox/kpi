@@ -42,6 +42,22 @@
     background-color: darken($cool-gray, 5%);
   }
 
+  &[disabled] {
+    pointer-events: none;
+
+    &.asset-action-buttons__button--subscribe,
+    &.asset-action-buttons__button--unsubscribe {
+      background-color: $cool-gray;
+    }
+  }
+
+  &.asset-action-buttons__button--pending {
+    &.asset-action-buttons__button--subscribe,
+    &.asset-action-buttons__button--unsubscribe {
+      padding-left: 8px;
+    }
+  }
+
   .k-icon {
     position: absolute;
     top: 50%;

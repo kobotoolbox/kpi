@@ -210,7 +210,7 @@ const myLibraryStore = Reflux.createStore({
 
   onDeleteAssetCompleted({uid, assetType}) {
     if (assetUtils.isLibraryAsset(assetType)) {
-      const found = this.data.assets.find((asset) => {return asset.uid === uid;});
+      const found = this.findAsset(uid);
       if (found) {
         this.data.totalUserAssets--;
         this.fetchData(true);
@@ -269,6 +269,10 @@ const myLibraryStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
+  },
+
+  findAsset(uid) {
+    return this.data.assets.find((asset) => {return asset.uid === uid;});
   }
 });
 

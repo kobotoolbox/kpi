@@ -172,7 +172,7 @@
     justify-content: space-between;
     align-items: center;
 
-    .form-view__cell--label {
+    .form-view__cell--stretch {
       flex: 1;
     }
   }
@@ -261,8 +261,13 @@
   }
 
   &.form-view__cell--back-button {
-    width: auto;
     margin-right: 20px;
+
+    &:first-child {
+      .k-icon {
+        margin-left: -10px;
+      }
+    }
   }
 
   &.form-view__cell--subscribed-badge {
@@ -342,7 +347,7 @@
       width: 100%;
       text-align: center;
       font-size: 12px;
-      padding: 8px 0;
+      padding: 8px 0 0;
 
       &:hover {
         opacity: 0.8;

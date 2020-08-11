@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -21,7 +22,8 @@ class AssetRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      asset: false
+      asset: false,
+      isUserSubscribed: false
     };
     this.unlisteners = [];
     autoBind(this);
@@ -30,6 +32,8 @@ class AssetRoute extends React.Component {
   componentDidMount() {
     this.unlisteners.push(
       actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted),
+      actions.library.subscribeToCollection.completed.listen(this.onSubscribeToCollectionCompleted),
+      actions.library.unsubscribeFromCollection.completed.listen(this.onUnsubscribeFromCollectionCompleted),
       actions.resources.loadAsset.completed.listen(this.onAssetChanged),
       actions.resources.updateAsset.completed.listen(this.onAssetChanged),
       actions.resources.cloneAsset.completed.listen(this.onAssetChanged),
@@ -56,6 +60,14 @@ class AssetRoute extends React.Component {
     if (uid) {
       actions.resources.loadAsset({id: uid});
     }
+  }
+
+  onSubscribeToCollectionCompleted() {
+    this.setState({isUserSubscribed: true});
+  }
+
+  onUnsubscribeFromCollectionCompleted() {
+    this.setState({isUserSubscribed: false});
   }
 
   onMoveToCollectionCompleted(asset) {
@@ -94,7 +106,10 @@ class AssetRoute extends React.Component {
 
   onAssetChanged(asset) {
     if (asset.uid === this.currentAssetID()) {
-      this.setState({asset: asset});
+      this.setState({
+        asset: asset,
+        isUserSubscribed: asset.access_type === ACCESS_TYPES.get('subscribed')
+      });
     } else if (
       this.state.asset &&
       this.state.asset.asset_type === ASSET_TYPES.collection.id &&
@@ -130,25 +145,20 @@ class AssetRoute extends React.Component {
     }
 
     const docTitle = this.state.asset.name || t('Untitled');
-    const isUserSubscribed = this.state.asset.access_type === ACCESS_TYPES.get('subscribed');
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
-              <bem.FormView__cell m='back-button'>
+              <bem.FormView__cell m={['stretch', 'back-button']}>
                 <bem.FormView__iconButton onClick={this.goBack}>
                   <i className='k-icon k-icon-prev' />
                   {t('Back')}
                 </bem.FormView__iconButton>
               </bem.FormView__cell>
 
-              <bem.FormView__cell m='label'>
-                {t('Details')}
-              </bem.FormView__cell>
-
-              {isUserSubscribed &&
+              {this.state.isUserSubscribed &&
                 <bem.FormView__cell m='subscribed-badge'>
                   <i className='k-icon k-icon-check-circle' />
                   {t('Subscribed')}
@@ -156,6 +166,12 @@ class AssetRoute extends React.Component {
               }
 
               <AssetActionButtons asset={this.state.asset}/>
+            </bem.FormView__cell>
+
+            <bem.FormView__cell m={['columns', 'first']}>
+              <bem.FormView__cell m='label'>
+                {t('Details')}
+              </bem.FormView__cell>
             </bem.FormView__cell>
 
             <AssetInfoBox asset={this.state.asset}/>
