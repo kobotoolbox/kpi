@@ -69,6 +69,7 @@ input.mdl-button[type="submit"] {
 // Raised buttons
 .mdl-button--raised {
   background: $cool-blue;
+  text-shadow: -1px -1px 1px rgba($black, 0.125);
 
   @include box-shadow;
 

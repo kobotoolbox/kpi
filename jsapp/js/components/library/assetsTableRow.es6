@@ -18,6 +18,8 @@ class AssetsTableRow extends React.Component {
   }
 
   render() {
+    let assetModifiers = ['asset'];
+
     let iconClassName = '';
     if (this.props.asset) {
       iconClassName = assetUtils.getAssetIcon(this.props.asset);
@@ -39,9 +41,12 @@ class AssetsTableRow extends React.Component {
     }
 
     const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
+    if (isUserSubscribed) {
+      assetModifiers.push('is-subscribed');
+    }
 
     return (
-      <bem.AssetsTableRow m='asset'>
+      <bem.AssetsTableRow m={assetModifiers}>
         <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`}/>
 
         <bem.AssetsTableRow__buttons>
@@ -49,18 +54,15 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__buttons>
 
         <bem.AssetsTableRow__column m='icon-status'>
-          {rowCount !== null &&
-            <i className={`k-icon ${iconClassName}`} data-counter={rowCount}/>
-          }
-          {rowCount === null &&
-            <i className={`k-icon ${iconClassName}`}/>
-          }
+          <i className={`k-icon ${iconClassName}`}/>
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>
-          {isUserSubscribed && <bem.AssetsTableRow__dot/>}
-
           <ui.AssetName {...this.props.asset}/>
+
+          {rowCount !== null &&
+            <bem.AssetsTableRow__tag m='gray-circle'>{rowCount}</bem.AssetsTableRow__tag>
+          }
 
           {this.props.asset.settings && this.props.asset.tag_string && this.props.asset.tag_string.length > 0 &&
             <bem.AssetsTableRow__tags>

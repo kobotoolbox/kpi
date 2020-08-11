@@ -329,7 +329,7 @@ class AssetActionButtons extends React.Component {
           !isSelfOwned &&
           isPublic &&
           assetType === ASSET_TYPES.collection.id &&
-          <bem.AssetActionButtons__button onClick={this.subscribeToCollection}>
+          <bem.AssetActionButtons__button m='subscribe' onClick={this.subscribeToCollection}>
             <i className='k-icon k-icon-subscribe'/>
             {t('Subscribe')}
           </bem.AssetActionButtons__button>
@@ -339,7 +339,7 @@ class AssetActionButtons extends React.Component {
           !isSelfOwned &&
           isPublic &&
           assetType === ASSET_TYPES.collection.id &&
-          <bem.AssetActionButtons__button onClick={this.unsubscribeFromCollection}>
+          <bem.AssetActionButtons__button m='unsubscribe' onClick={this.unsubscribeFromCollection}>
             <i className='k-icon k-icon-unsubscribe'/>
             {t('Unsubscribe')}
           </bem.AssetActionButtons__button>

@@ -25,23 +25,44 @@
 }
 
 .asset-action-buttons__button {
-  border: 1px solid currentColor;
-  height: 28px;
+  @include box-shadow;
+
+  font-size: 0.9em;
+  font-weight: 500;
   text-transform: uppercase;
   overflow: hidden;
   position: relative;
-  padding: 3px 6px 0 28px;
-  color: $cool-blue;
-  border-radius: 2px;
+  padding: 5px 8px 5px 30px;
+  color: $white;
+  background-color: $cool-gray;
+  text-shadow: -1px -1px 1px rgba($black, 0.125);
+  transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    color: darken($cool-blue, 5%);
+    background-color: darken($cool-gray, 5%);
   }
 
   .k-icon {
     position: absolute;
-    top: -3px;
-    left: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+  }
+
+  &.asset-action-buttons__button--subscribe {
+    background-color: $cool-green;
+
+    &:hover {
+      background-color: darken($cool-green, 5%);
+    }
+  }
+
+  &.asset-action-buttons__button--unsubscribe {
+    background-color: $cool-red;
+
+    &:hover {
+      background-color: darken($cool-red, 5%);
+    }
   }
 }
 
