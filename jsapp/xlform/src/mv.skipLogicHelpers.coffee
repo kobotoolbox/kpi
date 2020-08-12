@@ -2,7 +2,6 @@ _ = require 'underscore'
 Backbone = require 'backbone'
 $ = require 'jquery'
 $skipLogicParser = require './model.skipLogicParser'
-_t = require('utils').t
 
 module.exports = do ->
   skipLogicHelpers = {}

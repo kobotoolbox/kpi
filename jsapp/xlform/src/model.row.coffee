@@ -11,7 +11,6 @@ $aliases = require './model.aliases'
 $rowDetail = require './model.rowDetail'
 $choices = require './model.choices'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 readParameters = require('utils').readParameters
 writeParameters = require('utils').writeParameters
 

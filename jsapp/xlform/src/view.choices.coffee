@@ -5,7 +5,6 @@ $modelUtils = require './model.utils'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
-_t = require('utils').t
 
 module.exports = do ->
   class ListView extends $baseView

@@ -8,7 +8,6 @@ $hxl = require './view.rowDetail.hxlDict'
 
 $viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
 $viewTemplates = require './view.templates'
-_t = require('utils').t
 
 module.exports = do ->
   viewRowDetail = {}

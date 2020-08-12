@@ -13,7 +13,6 @@ $viewMandatorySetting = require './view.mandatorySetting'
 $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-_t = require('utils').t
 alertify = require 'alertifyjs'
 
 module.exports = do ->

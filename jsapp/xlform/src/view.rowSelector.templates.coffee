@@ -1,5 +1,4 @@
 module.exports = do ->
-  _t = require('utils').t
 
   xlfRowSelector = {}
 

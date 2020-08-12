@@ -10,7 +10,6 @@ $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
-_t = require('utils').t
 alertify = require 'alertifyjs'
 
 module.exports = do ->

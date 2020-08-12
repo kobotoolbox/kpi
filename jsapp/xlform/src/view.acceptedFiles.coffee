@@ -1,7 +1,6 @@
 Backbone = require 'backbone'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
-_t = require('utils').t
 
 module.exports = do ->
   class AcceptedFilesView extends $baseView

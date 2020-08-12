@@ -1,7 +1,6 @@
 $ = require 'jquery'
 $validationLogicParser = require './model.validationLogicParser'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 
 module.exports = do ->
   validationLogicHelpers = {}

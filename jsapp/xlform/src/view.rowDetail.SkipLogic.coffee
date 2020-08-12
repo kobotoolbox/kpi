@@ -3,7 +3,6 @@ Backbone = require 'backbone'
 $modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
 $viewWidgets = require './view.widgets'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 
 PLACEHOLDER_VALUE = 'placeholderVal'
 
