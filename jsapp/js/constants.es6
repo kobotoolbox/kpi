@@ -2,8 +2,6 @@
  * A list of all shareable constants for the application.
  */
 
-import {t} from './utils';
-
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs

@@ -14,8 +14,7 @@ import {
 } from 'js/constants';
 import TagInput from '../components/tagInput';
 import {
-  formatTime,
-  t
+  formatTime
 } from '../utils';
 import assetUtils from 'js/assetUtils';
 

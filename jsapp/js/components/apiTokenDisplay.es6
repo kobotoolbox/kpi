@@ -6,7 +6,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import {t} from 'js/utils';
 
 class ApiTokenDisplay extends React.Component {
   constructor(props) {

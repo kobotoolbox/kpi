@@ -8,7 +8,7 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
-import {t, getLangString, notify} from 'utils';
+import {getLangString, notify} from 'utils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 

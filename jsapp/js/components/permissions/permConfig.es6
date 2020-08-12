@@ -1,7 +1,6 @@
 import Reflux from 'reflux';
 import {actions} from 'js/actions';
 import {
-  t,
   notify,
   assign
 } from 'js/utils';

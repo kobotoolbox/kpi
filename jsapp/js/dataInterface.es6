@@ -10,7 +10,6 @@
 import $ from 'jquery';
 import alertify from 'alertifyjs';
 import {
-  t,
   assign
 } from './utils';
 import {ROOT_URL} from './constants';

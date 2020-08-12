@@ -6,7 +6,6 @@ import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
 import {bem} from '../../bem';
-import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html';

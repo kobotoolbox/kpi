@@ -23,7 +23,6 @@ import {
   QUESTION_TYPES
 } from '../constants';
 import {
-  t,
   notify,
   formatTimeDate,
   renderCheckbox

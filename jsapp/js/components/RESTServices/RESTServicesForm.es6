@@ -11,7 +11,6 @@ import Select from 'react-select';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
 import TextBox from '../textBox';
-import {t} from '../../utils';
 
 const EXPORT_TYPES = {
   json: {

@@ -12,7 +12,7 @@ import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
 import Dropzone from 'react-dropzone';
-import {t, validFileTypes} from '../utils';
+import {validFileTypes} from '../utils';
 import {ASSET_TYPES} from '../constants';
 
 class SearchCollectionList extends Reflux.Component {

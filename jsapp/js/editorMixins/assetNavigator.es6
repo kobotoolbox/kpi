@@ -10,8 +10,6 @@ import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
-import { t } from '../utils';
-
 import {
   ListSearch,
   ListTagFilter,

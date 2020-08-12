@@ -11,7 +11,6 @@ import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
 import {
-  t,
   formatTime
 } from '../../utils';
 import {

@@ -7,7 +7,6 @@ import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
 import {
-  t,
   buildUserUrl
 } from 'js/utils';
 import {

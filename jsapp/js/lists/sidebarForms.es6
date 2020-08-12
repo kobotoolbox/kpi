@@ -10,8 +10,6 @@ import ui from '../ui';
 import {searches} from '../searches';
 import {stores} from '../stores';
 
-import {t} from '../utils';
-
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
     super(props);

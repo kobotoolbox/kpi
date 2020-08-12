@@ -11,7 +11,6 @@ import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import ui from '../ui';
 import {
-  t,
   stringToColor,
 } from '../utils';
 import {ROOT_URL} from 'js/constants';

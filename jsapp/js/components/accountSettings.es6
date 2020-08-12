@@ -16,7 +16,6 @@ import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import ui from '../ui';
 import {
-  t,
   stringToColor,
 } from '../utils';
 

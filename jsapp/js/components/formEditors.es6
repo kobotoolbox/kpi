@@ -12,7 +12,6 @@ import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   log,
   redirectTo,
   formatTime,

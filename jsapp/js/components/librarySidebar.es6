@@ -20,7 +20,6 @@ import mixins from '../mixins';
 import {MODAL_TYPES, ANON_USERNAME, PERMISSIONS_CODENAMES} from '../constants';
 
 import {
-  t,
   assign,
   validFileTypes,
   getAnonymousUserPermission,

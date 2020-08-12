@@ -17,7 +17,6 @@ import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {
-  t,
   validFileTypes,
   isAValidUrl,
   escapeHtml

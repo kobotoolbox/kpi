@@ -17,7 +17,6 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import {
   log,
-  t,
   notify,
   replaceSupportEmail,
 } from './utils';

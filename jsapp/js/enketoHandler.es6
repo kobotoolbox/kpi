@@ -1,5 +1,5 @@
 import {dataInterface} from 'js/dataInterface';
-import {t, notify} from 'js/utils';
+import {notify} from 'js/utils';
 
 /**
  * For handling Enketo in DRY way.

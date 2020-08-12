@@ -5,8 +5,6 @@
  * NOTE: It is not loaded or invoked by the app.
  */
 
-import {t} from './utils';
-
 // strings for zxcvbn 4.4.2 package
 // copied from https://github.com/dropbox/zxcvbn/blob/master/src/feedback.coffee
 test = t('Use a few words, avoid common phrases');

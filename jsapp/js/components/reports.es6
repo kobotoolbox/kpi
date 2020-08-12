@@ -19,7 +19,6 @@ import ReportViewItem from './reportViewItem';
 
 import {
   assign,
-  t,
   launchPrinting
 } from '../utils';
 
