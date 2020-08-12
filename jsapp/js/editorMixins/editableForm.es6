@@ -18,7 +18,8 @@ import {
   unnullifyTranslations,
   assign,
   t,
-  koboMatrixParser
+  koboMatrixParser,
+  syncCascadeChoiceNames
 } from '../utils';
 import {
   ASSET_TYPES,
@@ -231,11 +232,11 @@ export default assign({
     if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
-
     let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
       let surveyJSONWithMatrix = koboMatrixParser({source: surveyJSON}).source;
-      surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content);
+      let surveyJSONCascade = syncCascadeChoiceNames({source: surveyJSONWithMatrix}).source;
+      surveyJSON = unnullifyTranslations(surveyJSONCascade, this.state.asset.content);
     }
     let params = {content: surveyJSON};
 
