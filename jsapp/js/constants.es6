@@ -355,6 +355,24 @@ new Set([
 
 export const NAME_MAX_LENGTH = 255;
 
+export const GROUP_TYPES_BEGIN = new Map();
+new Set([
+  'begin_group',
+  'begin_score',
+  'begin_rank',
+  'begin_kobomatrix',
+  'begin_repeat',
+]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
+
+export const GROUP_TYPES_END = new Map();
+new Set([
+  'end_group',
+  'end_score',
+  'end_rank',
+  'end_kobomatrix',
+  'end_repeat',
+]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -372,7 +390,9 @@ const constants = {
   ASSET_KINDS,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
-  NAME_MAX_LENGTH
+  NAME_MAX_LENGTH,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 };
 
 export default constants;

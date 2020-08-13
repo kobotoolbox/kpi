@@ -16,6 +16,8 @@ import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 } from 'js/constants';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
@@ -294,8 +296,16 @@ class Submission extends React.Component {
           translationIndex = this.state.translationIndex,
           _this = this;
     const openedGroups = [];
-    const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
-    const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
+    const groupTypes = [
+      GROUP_TYPES_BEGIN.get('begin_score'),
+      GROUP_TYPES_BEGIN.get('begin_rank'),
+      GROUP_TYPES_BEGIN.get('begin_group')
+    ];
+    const groupTypesEnd = [
+      GROUP_TYPES_END.get('end_score'),
+      GROUP_TYPES_END.get('end_rank'),
+      GROUP_TYPES_END.get('end_group')
+    ];
 
     const getGroupedName = (name) => {
       if (openedGroups.length === 0) {
