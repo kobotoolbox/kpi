@@ -82,7 +82,7 @@ export class TranslationTable extends React.Component {
                     <i className='k-icon-edit' />
                   }
               </bem.FormView__iconButton>
-              {t('##lang## ' + editableColTitle).replace('##lang##', translations[langIndex])}
+              {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>
           )
         },

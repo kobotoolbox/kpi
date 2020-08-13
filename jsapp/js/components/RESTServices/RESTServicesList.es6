@@ -66,10 +66,12 @@ export default class RESTServicesList extends React.Component {
     const hookUid = evt.currentTarget.dataset.hookUid;
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
+      const title = t('Are you sure you want to delete ##target?')
+        .replace('##target', hookName);
       const message = t('You are about to delete ##target. This action cannot be undone.')
         .replace('##target', `<strong>${hookName}</strong>`);
       let dialogOptions = {
-        title: t(`Are you sure you want to delete ${hookName}?`),
+        title: title,
         message: message,
         labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {

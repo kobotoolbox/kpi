@@ -111,6 +111,11 @@ class SidebarFormsList extends Reflux.Component {
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
+              const categoryLabels = {
+                'Deployed': t('Deployed'),
+                'Draft': t('Draft'),
+                'Archived': t('Archived')
+              };
               return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
                 (category) => {
                   var categoryVisible = this.state.selectedCategories[category];
@@ -122,7 +127,7 @@ class SidebarFormsList extends Reflux.Component {
                                             onClick={this.toggleCategory(category)}
                                             key={`${category}-label`}>
                       <i />
-                      {t(category)}
+                      {categoryLabels[category]}
                       <bem.FormSidebar__labelCount>
                         {s[activeItems][category].length}
                       </bem.FormSidebar__labelCount>

@@ -162,6 +162,11 @@ class SearchCollectionList extends Reflux.Component {
     if (this.state.searchResultsDisplayed)
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
 
+    const categoryLabels = {
+      'Deployed': t('Deployed'),
+      'Draft': t('Draft'),
+      'Archived': t('Archived')
+    };
     var results = ['Deployed', 'Draft', 'Archived'].map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
@@ -169,7 +174,7 @@ class SearchCollectionList extends Reflux.Component {
         }
         return [
           <bem.List__subheading key={i}>
-            {t(category)}
+            {categoryLabels[category]}
           </bem.List__subheading>,
           <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}
