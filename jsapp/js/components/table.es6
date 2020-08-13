@@ -34,6 +34,21 @@ import {getSurveyFlatPaths} from 'js/assetUtils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
+const EXCLUDED_COLUMNS = [
+  '_xform_id_string',
+  '_attachments',
+  '_notes',
+  '_bamboo_dataset_id',
+  '_status',
+  'formhub/uuid',
+  '_tags',
+  '_geolocation',
+  '_submitted_by',
+  'meta/instanceID',
+  'meta/deprecatedID',
+  '_validation_status'
+];
+
 export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
 
 export class DataTable extends React.Component {
@@ -159,34 +174,66 @@ export class DataTable extends React.Component {
     }
   }
 
-  _prepColumns(data) {
-    const excludedKeys = [
-      '_xform_id_string',
-      '_attachments',
-      '_notes',
-      '_bamboo_dataset_id',
-      '_status',
-      'formhub/uuid',
-      '_tags',
-      '_geolocation',
-      '_submitted_by',
-      'meta/instanceID',
-      'meta/deprecatedID',
-      '_validation_status'
-    ];
+  // returns a unique list of columns (keys) that should be displayed to users
+  getDisplayedColumns(data) {
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
+    // start with all paths
+    let output = Object.values(flatPaths);
+
+    // makes sure the survey columns are displayed, even if current data's
+    // submissions doesn't have them
     const dataKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
     }, {}));
+    output = [...new Set([...dataKeys, ...output])];
 
-    const surveyKeys = Object.values(getSurveyFlatPaths(this.props.asset.content.survey));
-
-    // make sure the survey columns are displayed, even if current data's
-    // submissions doesn't have them
-    let uniqueKeys = [...new Set([...dataKeys, ...surveyKeys])];
-    uniqueKeys = uniqueKeys.filter((key) => {
-      return excludedKeys.includes(key) === false;
+    // exclude some technical non-data columns
+    output = output.filter((key) => {
+      return EXCLUDED_COLUMNS.includes(key) === false;
     });
+
+    // exclude notes
+    output = output.filter((key) => {
+      const foundPathKey = Object.keys(flatPaths).find((pathKey) => {
+        return flatPaths[pathKey] === key;
+      });
+      const foundRow = this.props.asset.content.survey.find((row) => {
+        return (
+          key === row.name ||
+          key === row.$autoname ||
+          foundPathKey === row.name ||
+          foundPathKey === row.$autoname
+        );
+      });
+      if (foundRow) {
+        return foundRow.type !== QUESTION_TYPES.get('note').id;
+      }
+      return false;
+    });
+
+    // exclude kobomatrix rows as data is not directly tied to them, but
+    // to rows user answered to, thus making these columns always empty
+    const excludedMatrixKeys = [];
+    let isInsideKoboMatrix = false;
+    this.props.asset.content.survey.forEach((row) => {
+      if (row.type === GROUP_TYPES_BEGIN.get('begin_kobomatrix')) {
+        isInsideKoboMatrix = true;
+      } else if (row.type === GROUP_TYPES_END.get('end_kobomatrix')) {
+        isInsideKoboMatrix = false;
+      } else if (isInsideKoboMatrix) {
+        excludedMatrixKeys.push(row.name || row.$autoname);
+      }
+    });
+    output = output.filter((key) => {
+      return excludedMatrixKeys.includes(key) === false;
+    });
+
+    return output;
+  }
+
+  _prepColumns(data) {
+    const displayedColumns = this.getDisplayedColumns(data);
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
@@ -320,7 +367,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-    uniqueKeys.forEach((key) => {
+    displayedColumns.forEach((key) => {
       var q = undefined;
       var qParentG = [];
       if (key.includes('/')) {
