@@ -330,8 +330,8 @@ class AssetSerializerContentV1(AssetSerializerBase):
 class AssetSerializerContentV2(AssetSerializerBase):
     content = WritableJSONField(required=False, source='content_v2')
 
-class AssetListSerializer(AssetSerializer):
-    class Meta(AssetSerializer.Meta):
+class AssetListSerializer(AssetSerializerBase):
+    class Meta(AssetSerializerBase.Meta):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
         # additional database query for each asset in the list.
@@ -385,7 +385,7 @@ class AssetListSerializer(AssetSerializer):
                                                    context=context).data
 
 
-class AssetUrlListSerializer(AssetSerializer):
+class AssetUrlListSerializer(AssetSerializerBase):
 
-    class Meta(AssetSerializer.Meta):
+    class Meta(AssetSerializerBase.Meta):
         fields = ('url',)
