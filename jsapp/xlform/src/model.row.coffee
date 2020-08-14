@@ -83,10 +83,8 @@ module.exports = do ->
           continue
         else
           result = @getValue(key)
-        unless @hidden
-          if _.isBoolean(result)
-            outObj[key] = $configs.boolOutputs[if result then "true" else "false"]
-          else if '' isnt result
+        if !@hidden
+          if result isnt ""
             outObj[key] = result
       outObj
 
@@ -95,10 +93,7 @@ module.exports = do ->
       for [key, val] in @attributesArray()
         result = @getValue(key)
         unless @hidden
-          if _.isBoolean(result)
-            outObj[key] = $configs.boolOutputs[if result then "true" else "false"]
-          else
-            outObj[key] = result
+          outObj[key] = result
       outObj
 
   class SimpleRow extends Backbone.Model

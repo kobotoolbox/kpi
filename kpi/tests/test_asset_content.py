@@ -1,5 +1,6 @@
 # coding: utf-8
 import inspect
+import pytest
 import json
 import string
 from collections import OrderedDict
@@ -10,6 +11,7 @@ from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_expand_twice():
     a1 = Asset(asset_type='survey', content={'survey': [{'type': 'note',
                                              'label::English': 'english',
@@ -172,6 +174,7 @@ def for_each_row(content, *args):
                 fn(*args)
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_standardization_of_nonstandard_asset():
     a1 = nonstandard_asset()
     # standardize returns True if it passed the content through to the
@@ -209,6 +212,7 @@ def test_standardization_of_nonstandard_asset():
     # at this point, asset.save() is complete.
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_autoname_shortens_long_names():
     def _name_to_autoname(rows):
         s = Asset(asset_type='survey', content={})
@@ -251,6 +255,7 @@ def test_autoname_shortens_long_names():
             'What_is_your_favorit_place_to_go_to_relax']
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_remove_empty_expressions():
     a1 = Asset(asset_type='survey', content={})
 
@@ -263,6 +268,7 @@ def test_remove_empty_expressions():
     assert _r1(c1) == {}
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_save_transformations():
     a1 = Asset(asset_type='survey', content={})
 
@@ -304,6 +310,7 @@ def _score_item(_r):
     ]
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_sluggify_arabic():
     # this "_" value will get replaced with something else by `autoname`
     ll = sluggify_label('مرحبا بالعالم')
@@ -313,6 +320,7 @@ def test_sluggify_arabic():
     assert ll == '_'
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_rank_to_xlsform_structure():
     # a1 = Asset(asset_type='survey', content={})
     content = _compile_asset_content(rank_asset_content())
@@ -328,6 +336,7 @@ def test_rank_to_xlsform_structure():
     assert _rows[5] == [None, None, 'end_group', None]
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_named_rank_to_xlsform_structure():
     # a1 = Asset(asset_type='survey', content={})
     content = _compile_asset_content(rank_asset_named_content())
@@ -344,6 +353,7 @@ def test_named_rank_to_xlsform_structure():
     assert _rows[5] == [None, None, 'end_group', None]
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_score_to_xlsform_structure():
     a1 = score_asset()
     content = _compile_asset_content(score_asset_content())
@@ -386,6 +396,7 @@ def test_score_to_xlsform_structure():
                         }
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_score_question_compiles():
     content = _compile_asset_content(score_asset_content())
     _rows = content['survey']
@@ -406,6 +417,7 @@ def test_score_question_compiles():
     ]
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_named_score_question_compiles():
     content = _compile_asset_content({
         'survey': [
@@ -526,6 +538,7 @@ def _span_display_none(item):
     return '<span style="display:none">{}</span>'.format(item)
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_kobomatrix_content():
     content = _compile_asset_content(kobomatrix_content())
     pattern = ['w7', 'w1', 'w2', 'w2', 'w2', '']
@@ -613,6 +626,7 @@ def test_kobomatrix_content():
                     )
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_kobomatrix_labels_with_translations():
     content = _compile_asset_content(
         kobomatrix_content_with_translations())
@@ -640,6 +654,7 @@ def test_kobomatrix_labels_with_translations():
     assert labels[19:23] == _make_expected_labels('TV')
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_kobomatrix_labels_with_missing_translations():
     content = _compile_asset_content(
         kobomatrix_content_with_missing_translations())
@@ -670,6 +685,7 @@ def test_kobomatrix_labels_with_missing_translations():
     ]
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_xpath_fields_in_kobomatrix_are_preserved():
     _content = kobomatrix_content_with_custom_fields()
     (r0, r1, r2, r3, r4) = _content['survey']
@@ -704,6 +720,7 @@ def test_xpath_fields_in_kobomatrix_are_preserved():
     ])
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_kobomatrix_missing_or_empty_names():
     """
     Test a mixture of survey elements containing:
@@ -793,6 +810,7 @@ def test_kobomatrix_missing_or_empty_names():
     assert types_names == expected_types_names
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_required_value_can_be_a_string():
     content = _compile_asset_content({
         'survey': [
@@ -804,6 +822,7 @@ def test_required_value_can_be_a_string():
     assert r2['required'] == "${abc} != ''"
 
 
+@pytest.mark.skip(reason='moved to external repo tests')
 def test_kuid_persists():
     initial_kuid_1 = 'aaaa1111'
     initial_kuid_2 = 'bbbb2222'

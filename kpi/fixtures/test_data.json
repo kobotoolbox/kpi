@@ -93,10 +93,35 @@
         "collection": 1,
         "fields": {
             "name": "fixture asset",
-            "content": {"survey": [
-                {"type": "text", "label": "fixture q1", "name": "q1", "kuid": "abc"},
-                {"type": "text", "label": "fixture q2", "name": "q2", "kuid": "def"}
-            ]},
+            "content": {
+                "schema": "2",
+                "survey": [
+                    {
+                        "type": "text",
+                        "label": {
+                            "tx0": "fixture q1"
+                        },
+                        "name": "q1",
+                        "$anchor": "abc"
+                    },
+                    {
+                        "type": "text",
+                        "label": {
+                            "tx0": "fixture q2"
+                        },
+                        "name": "q2",
+                        "$anchor": "def"
+                    }
+                ],
+                "choices": {},
+                "settings": {},
+                "translations": [
+                    {
+                        "$anchor": "tx0",
+                        "name": ""
+                    }
+                ]
+            },
             "date_created": "2015-02-12T19:52:14.406Z",
             "date_modified": "2015-02-12T19:52:14.406Z",
             "owner": 2,
@@ -109,21 +134,41 @@
         "collection": 2,
         "fields": {
             "name": "fixture asset with translations",
-            "content": {"survey": [
-                {
-                  "type": "text",
-                  "label": "fixture q1",
-                  "label::English": "fixture q1 translated",
-                  "name": "q1",
-                  "kuid": "abc"
-                }, {
-                  "type": "text",
-                  "label": "fixture q2",
-                  "label::English": "fixture q2 translated",
-                  "name": "q2",
-                  "kuid": "def"
-                }
-            ]},
+            "content": {
+                "schema": "2",
+                "survey": [
+                    {
+                        "type": "text",
+                        "label": {
+                            "tx0": "fixture q1",
+                            "tx1": "fixture q1 translated"
+                        },
+                        "name": "q1",
+                        "$anchor": "abc"
+                    },
+                    {
+                        "type": "text",
+                        "label": {
+                            "tx0": "fixture q2",
+                            "tx1": "fixture q2 translated"
+                        },
+                        "name": "q2",
+                        "$anchor": "def"
+                    }
+                ],
+                "choices": {},
+                "settings": {},
+                "translations": [
+                    {
+                        "$anchor": "tx0",
+                        "name": ""
+                    },
+                    {
+                        "$anchor": "tx1",
+                        "name": "English"
+                    }
+                ]
+            },
             "date_created": "2015-02-12T19:52:14.406Z",
             "date_modified": "2015-02-12T19:52:14.406Z",
             "owner": 2,

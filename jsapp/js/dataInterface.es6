@@ -332,11 +332,11 @@ export var dataInterface;
       return $.getJSON(`${ROOT_URL}/imports/${uid}/`);
     },
     getAsset (params={}) {
-      if (params.url) {
-        return $.getJSON(params.url);
-      } else {
-        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
+      let url = params.url || `${ROOT_URL}/api/v2/assets/${params.id}/`;
+      if (params.schema) {
+        url += `?content_schema=${params.schema}`;
       }
+      return $.getJSON(url);
     },
     /**
      * @param {object} data

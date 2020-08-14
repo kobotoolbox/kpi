@@ -6,10 +6,10 @@ import json
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
-from formpack.utils.expand_content import expand_content
 from reversion.models import Version
 
 from kpi.fields import KpiUidField
+from kpi.utils.kobo_content import KoboContent, get_content_object
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.strings import hashable_str
 
@@ -39,6 +39,7 @@ class AssetVersion(models.Model):
         ordering = ['-date_modified']
 
     def _deployed_content(self):
+        # todo: migrate away from "to_xlsform_structure"
         if self.deployed_content is not None:
             return self.deployed_content
         legacy_names = self._reversion_version is not None
@@ -50,11 +51,13 @@ class AssetVersion(models.Model):
                                         move_autonames=True)
 
     def to_formpack_schema(self):
-        return {
-            'content': expand_content(self._deployed_content()),
+        cc = get_content_object(self.version_content).export_to('2')
+        cc['settings'].update({
+            'title': self.name,
             'version': self.uid,
-            'version_id_key': '__version__',
-        }
+            'version_key': '__version__',
+        })
+        return cc
 
     @property
     def content_hash(self):

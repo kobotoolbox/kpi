@@ -19,7 +19,7 @@ class WritableJSONField(serializers.Field):
         else:
             try:
                 return json.loads(data)
-            except Exception as e:
+            except json.JSONDecodeError as e:
                 raise serializers.ValidationError(
                     'Unable to parse JSON: {}'.format(e))
 

@@ -37,7 +37,11 @@ from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
     XlsRenderer
 from kpi.serializers import DeploymentSerializer
-from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.serializers.v2.asset import (
+    AssetListSerializer,
+    AssetSerializerContentV1,
+    AssetSerializerContentV2,
+)
 from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -200,10 +204,13 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                         )
 
     def get_serializer_class(self):
+        content_schema = self.request.GET.get('content_schema', '1')
         if self.action == 'list':
             return AssetListSerializer
+        elif content_schema == '2':
+            return AssetSerializerContentV2
         else:
-            return AssetSerializer
+            return AssetSerializerContentV1
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
@@ -251,7 +258,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         """
         Gets the serializer from cloned object
         :param current_asset: Asset. Asset to be updated.
-        :return: AssetSerializer
+        :return: AssetSerializerContentV2
         """
         original_uid = self.request.data[CLONE_ARG_NAME]
         original_asset = get_object_or_404(Asset, uid=original_uid)
@@ -397,7 +404,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({
             'kind': 'asset.content',
             'uid': asset.uid,
-            'data': asset.to_ss_structure(),
+            'data': asset.content_v2,
         })
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])

@@ -18,7 +18,7 @@ from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 
 
-class AssetSerializer(serializers.HyperlinkedModelSerializer):
+class AssetSerializerBase(serializers.HyperlinkedModelSerializer):
 
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail', lookup_field='username', read_only=True)
@@ -27,7 +27,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WritableJSONField(required=False, allow_blank=True)
-    content = WritableJSONField(required=False)
+    # content is moved to subclasses AssetSerializeContentV*
     report_styles = WritableJSONField(required=False)
     report_custom = WritableJSONField(required=False)
     map_styles = WritableJSONField(required=False)
@@ -324,6 +324,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        args=(obj.uid,),
                        request=request)
 
+class AssetSerializerContentV1(AssetSerializerBase):
+    content = WritableJSONField(required=False, source='content_v1')
+
+class AssetSerializerContentV2(AssetSerializerBase):
+    content = WritableJSONField(required=False, source='content_v2')
 
 class AssetListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):

@@ -37,8 +37,7 @@ class DeploymentSerializer(serializers.Serializer):
         # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
-        asset.save(create_version=False,
-                   adjust_content=False)
+        asset.save(create_version=False)
         return asset.deployment
 
     def update(self, instance, validated_data):

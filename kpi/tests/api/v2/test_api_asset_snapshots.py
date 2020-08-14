@@ -1,5 +1,6 @@
 # coding: utf-8
 import re
+import json
 
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -10,23 +11,25 @@ from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 
+CONTENT = {
+    'schema': '2',
+    'metas': {'end': True, 'start': True},
+    'settings': {'identifier': 'new_form', 'title': 'New+form'},
+    'survey': [{'$anchor': 'q1',
+             'label': {'tx0': 'Text+Question.'},
+             'name': 'q1',
+             'required': True,
+             'type': 'text'}],
+    'translations': [{'$anchor': 'tx0', 'name': ''}],
+}
+
 
 class TestAssetSnapshotList(KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
-    form_source = """
-                    {
-                        "survey": [
-                            {"type":"text","label":"Text+Question.","required":"true"},
-                            {"name":"start","type":"start"},
-                            {"name":"end","type":"end"}],
-                        "settings": [
-                            {"form_title":"New+form",
-                            "form_id":"new_form"}]
-                    }
-                 """
+    form_source = json.dumps(CONTENT)
 
     def _create_asset_snapshot_from_source(self):
         self.client.login(username='someuser', password='someuser')

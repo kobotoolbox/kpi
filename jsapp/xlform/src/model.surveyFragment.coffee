@@ -325,7 +325,7 @@ module.exports = do ->
       toJSON: ->
         out = {}
         for k, val of group.attributes
-          if k isnt '_isRepeat'
+          if not ['_isRepeat', ''].includes(val)
             out[k] = val.getValue()
         out.type = "begin_#{group._groupOrRepeatKey()}"
         out

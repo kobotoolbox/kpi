@@ -45,8 +45,8 @@ class CreateCollectionTests(TestCase):
     def test_import_assets_to_collection(self):
         self.assertEqual(self.coll.assets.count(), 0)
         self.coll.assets.create(name='test', content={'survey': [
-            {'type': 'text', 'label': 'Q1', 'name': 'q1'},
-            {'type': 'text', 'label': 'Q2', 'name': 'q2'},
+            {'type': 'text', 'label': ['Q1'], 'name': 'q1', '$kuid': 'x'},
+            {'type': 'text', 'label': ['Q2'], 'name': 'q2', '$kuid': 'y'},
         ]})
         self.assertEqual(self.coll.assets.count(), 1)
         self.coll.assets.add(self.asset)
@@ -58,9 +58,9 @@ class CreateCollectionTests(TestCase):
         collection.
         '''
         asset = self.coll.assets.create(name='test', content={'survey': [
-            {'type': 'text', 'label': 'Q1', 'name': 'q1'},
-            {'type': 'text', 'label': 'Q2', 'name': 'q2'},
-        ]})
+            {'type': 'text', 'label': ['Q1'], 'name': 'q1', '$kuid': 'x'},
+            {'type': 'text', 'label': ['Q2'], 'name': 'q2', '$kuid': 'y'},
+        ], 'schema': '1'})
         self.assertEqual(Asset.objects.filter(id=asset.id).count(), 1)
         self.assertEqual(Asset.objects.count(), self.initial_asset_count + 1)
         self.coll.delete()
@@ -86,13 +86,15 @@ class CreateCollectionTests(TestCase):
             {
                 'name': 'test_asset',
                 'content': {'survey': [
-                        {'type': 'text', 'label': 'Q1', 'name': 'q1'},
+                        {'type': 'text', 'label': ['Q1'],
+                         'name': 'q1', '$kuid': 'x'},
                 ]}
             },
             {
                 'name': 'test_asset',
                 'content': {'survey': [
-                        {'type': 'text', 'label': 'Q2', 'name': 'q2'},
+                        {'type': 'text', 'label': ['Q2'],
+                         'name': 'q2', '$kuid': 'y'},
                 ]}
             },
         ])

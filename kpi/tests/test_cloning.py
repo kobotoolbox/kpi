@@ -73,9 +73,8 @@ class TestCloning(KpiTestCase):
             return
         else:
             cloned_asset = self.url_to_obj(response.data['url'])
-            for field in {'name', 'content'}:
-                self.assertEqual(cloned_asset.__dict__[field],
-                                 original_asset.__dict__[field])
+            assert cloned_asset.name == original_asset.name
+            assert cloned_asset.content == original_asset.content
 
             self.assertEqual(cloned_asset.asset_type,
                              kwargs.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type))
@@ -90,7 +89,10 @@ class TestCloning(KpiTestCase):
         self.login(self.someuser.username, self.someuser_password)
         original_asset = self.create_asset(
             'cloning_asset', tag_string='tag1,tag2')
-        self._clone_asset(original_asset)
+        cloned = self._clone_asset(original_asset)
+        assert original_asset.content == cloned.content
+        _tags = lambda aa: set(aa.tag_string.split(','))
+        assert _tags(original_asset) == _tags(cloned)
 
     def test_clone_asset_into_collection(self):
         self.login(self.someuser.username, self.someuser_password)
@@ -224,7 +226,7 @@ class TestCloning(KpiTestCase):
             "description": "A template to be cloned"
         }
         template_asset = self.create_asset(
-            'template_asset', 
+            'template_asset',
             settings=json.dumps(template_settings),
             asset_type=ASSET_TYPE_TEMPLATE
         )

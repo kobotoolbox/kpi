@@ -153,8 +153,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         self.admin_collection = Collection.objects.create(owner=self.admin)
         self.admin_asset = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
-            {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
+            {'type': 'text', 'label': ['Question 1'],
+             'name': 'q1', '$kuid': 'abc'},
+            {'type': 'text', 'label': ['Question 2'],
+             'name': 'q2', '$kuid': 'def'},
         ]}, owner=self.admin)
         self.asset_owner_permissions = [
             PERM_ADD_SUBMISSIONS,
@@ -487,13 +489,13 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def test_copy_permissions_between_objects_same_owner(self):
 
         asset1 = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 3', 'name': 'q3', 'kuid': 'ghi'},
-            {'type': 'text', 'label': 'Question 4', 'name': 'q4', 'kuid': 'ijk'},
+            {'type': 'text', 'label': ['Question 3'], 'name': 'q3', '$kuid': 'ghi'},
+            {'type': 'text', 'label': ['Question 4'], 'name': 'q4', '$kuid': 'ijk'},
         ]}, owner=self.admin)
 
         asset2 = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 5', 'name': 'q5', 'kuid': 'lmn'},
-            {'type': 'text', 'label': 'Question 6', 'name': 'q6', 'kuid': 'opq'},
+            {'type': 'text', 'label': ['Question 5'], 'name': 'q5', '$kuid': 'lmn'},
+            {'type': 'text', 'label': ['Question 6'], 'name': 'q6', '$kuid': 'opq'},
         ]}, owner=self.admin)
 
         assigned_someuser_perms = [
@@ -525,13 +527,13 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def test_copy_permissions_between_objects_different_owner(self):
 
         another_user_asset = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 3', 'name': 'q3', 'kuid': 'ghi'},
-            {'type': 'text', 'label': 'Question 4', 'name': 'q4', 'kuid': 'ijk'},
+            {'type': 'text', 'label': ['Question 3'], 'name': 'q3', '$kuid': 'ghi'},
+            {'type': 'text', 'label': ['Question 4'], 'name': 'q4', '$kuid': 'ijk'},
         ]}, owner=self.anotheruser)
 
         someuser_asset = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 5', 'name': 'q5', 'kuid': 'lmn'},
-            {'type': 'text', 'label': 'Question 6', 'name': 'q6', 'kuid': 'opq'},
+            {'type': 'text', 'label': ['Question 5'], 'name': 'q5', '$kuid': 'lmn'},
+            {'type': 'text', 'label': ['Question 6'], 'name': 'q6', '$kuid': 'opq'},
         ]}, owner=self.someuser)
 
         assigned_someuser_perms = [

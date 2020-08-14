@@ -195,12 +195,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                partial_perms=partial_perms)
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(self.asset.deployment.submission_count == 2)
+        assert self.asset.deployment.submission_count == 2
+
         # User `anotheruser` should only see submissions where `submitted_by`
         # is filled up and equals to `someuser`
-        self.assertTrue(response.data.get('count') == 1)
+        assert response.data['count'] == 1
         submission = response.data.get('results')[0]
-        self.assertTrue(submission.get('_submitted_by') == self.someuser.username)
+        assert submission['_submitted_by'] == self.someuser.username
 
     def test_list_submissions_anonymous(self):
         self.client.logout()
@@ -425,11 +426,18 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         a.name = 'Two points and one text'
         a.owner = self.someuser
         a.asset_type = 'survey'
-        a.content = {'survey': [
-            {'name': 'geo1', 'type': 'geopoint', 'label': 'Where were you?'},
-            {'name': 'geo2', 'type': 'geopoint', 'label': 'Where are you?'},
-            {'name': 'text', 'type': 'text', 'label': 'How are you?'},
-        ]}
+        a.content = {
+            'schema': '2',
+            'survey': [
+                {'name': 'geo1', '$anchor': 'geo1', 'type': 'geopoint',
+                 'label': {'tx0': 'Where were you?'}},
+                {'name': 'geo2', '$anchor': 'geo2', 'type': 'geopoint',
+                 'label': {'tx0': 'Where are you?'}},
+                {'name': 'text', '$anchor': 'text1', 'type': 'text',
+                 'label': {'tx0': 'How are you?'}},
+            ],
+            'translations': [{'$anchor': 'tx0', 'name': ''}],
+        }
         a.save()
         a.deploy(backend='mock', active=True)
         a.save()

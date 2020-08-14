@@ -1,6 +1,9 @@
 # File for use with `pip-compile`; see https://github.com/nvie/pip-tools
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
+# a1d
+-e git+https://github.com/dorey/a1d05eba1.git@d5522aaff0dcac7f67fd47ff4ea6ddb4d6fd1213#egg=a1d05eba1
+
 # formpack
 -e git+https://github.com/kobotoolbox/formpack.git@d8d7a64acd69f6c6fa56638588dbe38c7a97a1e0#egg=formpack
 

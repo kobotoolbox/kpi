@@ -2,10 +2,10 @@
 import hashlib
 import json
 from copy import deepcopy
+from kpi.utils.kobo_content import KoboContent, KoboContentV1
 
 from django.test import TestCase
 
-from formpack.utils.expand_content import SCHEMA_VERSION
 from kpi.exceptions import BadAssetTypeException
 from kpi.utils.strings import hashable_str
 from ..models import Asset
@@ -15,62 +15,59 @@ from ..models import AssetVersion
 class AssetVersionTestCase(TestCase):
     def test_init_asset_version(self):
         av_count = AssetVersion.objects.count()
-        _content = {
-                'survey': [
-                    {'type': 'note',
-                     'label': 'Read me',
-                     'name': 'n1'}
-                ],
-            }
+        _content = {'schema': '2',
+                    'survey': [{'$anchor': 'aaabbb',
+                                'label': {'tx0': 'Read me'},
+                                'name': 'n1',
+                                'type': 'note'}],
+                    'translations': [{'$anchor': 'tx0', 'name': ''}]}
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
-        _vc = deepcopy(new_asset.latest_version.version_content)
-        for row in _vc['survey']:
-            row.pop('$kuid')
-            row.pop('$autoname')
-            row.pop('$prev', None)
-
-        self.assertEqual(_vc, {
-                'survey': [
-                    {'type': 'note',
-                     'label': ['Read me'],
-                     'name': 'n1'},
-                ],
-                'schema': SCHEMA_VERSION,
-                'translated': ['label'],
-                'translations': [None],
-                'settings': {},
-            })
-        self.assertEqual(av_count + 1, AssetVersion.objects.count())
+        _vc = new_asset.latest_version.version_content
+        assert _vc['survey'][0] == {'$anchor': 'aaabbb',
+                                    'label': {'tx0': 'Read me'},
+                                    'name': 'n1',
+                                    'type': 'note'}
+        assert av_count + 1 == AssetVersion.objects.count()
         new_asset.content['survey'].append({'type': 'note',
-                                            'label': 'Read me 2',
+                                            'label': {'tx0': 'Read me 2'},
                                             'name': 'n2'})
         new_asset.save()
-        self.assertEqual(av_count + 2, AssetVersion.objects.count())
+        assert av_count + 2 == AssetVersion.objects.count()
 
     def test_asset_deployment(self):
-        self.asset = Asset.objects.create(asset_type='survey', content={
-            'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}]
-        })
+        ccx = {'choices': {},
+               'metas': {},
+               'schema': '2',
+               'settings': {},
+               'survey': [{'$anchor': 'boddk72oa',
+                          'label': {'tx0': 'Read me'},
+                          'name': 'n1',
+                          'type': 'note'}],
+               'translations': [{'$anchor': 'tx0', 'name': ''}]}
+        self.asset = Asset.objects.create(asset_type='survey', content=ccx)
+
         self.assertEqual(self.asset.asset_versions.count(), 1)
         self.assertEqual(self.asset.latest_version.deployed, False)
 
-        self.asset.content['survey'].append({'type': 'note',
-                                             'label': 'Read me 2',
-                                             'name': 'n2'})
+        _cc = self.asset.content
+        _cc['survey'].append({'type': 'note',
+                              'label': {'tx0': 'Read me 2'},
+                              'name': 'n2',
+                              })
+        self.asset.content = _cc
         self.asset.save()
         self.assertEqual(self.asset.asset_versions.count(), 2)
         v2 = self.asset.latest_version
         self.assertEqual(self.asset.latest_version.deployed, False)
 
         self.asset.deploy(backend='mock', active=True)
-        self.asset.save(create_version=False,
-                        adjust_content=False)
+        self.asset.save(create_version=False)
         # version did not increment
-        self.assertEqual(self.asset.asset_versions.count(), 2)
+        assert self.asset.asset_versions.count() == 2
 
         # v2 now has 'deployed=True'
         v2_ = AssetVersion.objects.get(uid=v2.uid)
-        self.assertEqual(v2_.deployed, True)
+        assert v2_.deployed == True
 
     def test_template_asset_deployment(self):
         self.template_asset = Asset.objects.create(asset_type='template')
@@ -87,12 +84,16 @@ class AssetVersionTestCase(TestCase):
 
     def test_version_content_hash(self):
         _content = {
+            'schema': '1',
             'survey': [
                 {'type': 'note',
-                 'label': 'Read me',
+                 '$kuid': 'n1',
+                 'label': ['Read me'],
                  'name': 'n1'}
             ],
+            'translations': [None],
         }
+        kc = KoboContentV1(_content)
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
         expected_hash = hashlib.sha1(hashable_str(
             json.dumps(new_asset.content,

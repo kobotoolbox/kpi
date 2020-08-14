@@ -33,7 +33,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
         itask_data = {
-            'library': request.POST.get('library') not in ['false', False],
+            # fixes 'libary' is True when argument is missing
+            'library': request.POST.get('library') not in ['false', False, None],
             # NOTE: 'filename' here comes from 'name' (!) in the POST data
             'filename': request.POST.get('name', None),
             'destination': request.POST.get('destination', None),
@@ -61,4 +62,3 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 request=request),
             'status': ImportTask.PROCESSING
         }, status.HTTP_201_CREATED)
-

@@ -145,7 +145,10 @@ class MockDataReports(TestCase):
             })
         self.asset.deployment.mock_submissions(submissions)
         schemas = [v.to_formpack_schema() for v in self.asset.deployed_versions]
-        self.fp = FormPack(versions=schemas, id_string=self.asset.uid)
+        for schema in schemas:
+            # do we want this to happen inside asset.to_formpack_schema()?
+            schema['settings']['identifier'] = self.asset.uid
+        self.fp = FormPack(versions=schemas)
         self.vs = self.fp.versions.keys()
         self.submissions = self.asset.deployment.get_submissions(self.user.id)
 

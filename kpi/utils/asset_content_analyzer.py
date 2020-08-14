@@ -1,18 +1,22 @@
 # coding: utf-8
 from collections import OrderedDict
+from kpi.utils.kobo_content import KoboContent
 
-from formpack.utils.replace_aliases import META_TYPES, GEO_TYPES
+GEO_TYPES = ['geopoint', 'geotrace', 'geoshape']
 
+# How do we want the summary data to be calculated going foward?
 
 class AssetContentAnalyzer:
-    def __init__(self, *args, **kwargs):
-        self.survey = kwargs.get('survey')
-        self.settings = kwargs.get('settings', False)
-        self.choices = kwargs.get('choices', [])
-        self.translations = kwargs.get('translations', [])
-        self.default_translation = False
-        if len(self.translations) > 0:
-            self.default_translation = self.translations[0]
+    def __init__(self, content):
+        KoboContent(content, validate=True)
+        self._content = content
+        # self.survey = content.get('survey')
+        # self.settings = content.get('settings', False)
+        # self.choices = content.get('choices', {})
+        # self.translations = content.get('translations', [])
+        # self.default_translation = False
+        # if len(self.translations) > 0:
+        #     self.default_translation = self.translations[0]
         self.summary = self.get_summary()
 
     def get_summary(self):

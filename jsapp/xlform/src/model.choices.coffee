@@ -2,6 +2,8 @@ _ = require 'underscore'
 base = require './model.base'
 $modelUtils = require './model.utils'
 
+ANCHOR_KEY = '$kuid'
+
 module.exports = do ->
 
   choices = {}
@@ -10,6 +12,8 @@ module.exports = do ->
     initialize: ->
       @unset("list name")
       @unset("list_name")
+      if not @get(ANCHOR_KEY)
+        @set(ANCHOR_KEY, $modelUtils.txtid())
     destroy: ->
       choicelist = @list()._parent
       choicelist_cid = choicelist.cid

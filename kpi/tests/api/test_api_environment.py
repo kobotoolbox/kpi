@@ -40,6 +40,8 @@ class EnvironmentTests(BaseTestCase):
                 self.assertGreater(len(x), 5) and self.assertIn(
                     ('ar', 'العربيّة'), x
                 ),
+            # a viable alternative when interface_languages not present?
+            # 'interface_languages': lambda x: self.assertTrue(len(x) > 0),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
         }
 

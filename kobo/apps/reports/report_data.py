@@ -42,8 +42,8 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
                  exc_info=True
             )
         else:
-            fp_schema['version_id_key'] = INFERRED_VERSION_ID_KEY
-            schemas.append(fp_schema)
+            fp_schema['settings']['version_key'] = INFERRED_VERSION_ID_KEY
+            schemas.insert(0, fp_schema)
             version_ids_newest_first.append(v.uid)
             if v.uid_aliases:
                 version_ids_newest_first.extend(v.uid_aliases)
@@ -52,7 +52,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         raise Exception('Cannot build formpack without any schemas')
 
     # FormPack() expects the versions to be ordered from oldest to newest
-    pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
+    pack = FormPack(versions=schemas)
 
     # Find the AssetVersion UID for each deprecated reversion ID
     _reversion_ids = dict([

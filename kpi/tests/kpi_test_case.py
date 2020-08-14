@@ -5,9 +5,13 @@ Created on Apr 6, 2015
 @author: esmail
 """
 import re
+import json
 
 from django.urls import reverse
 from rest_framework import status
+
+from kpi.utils.kobo_content import KoboContent, empty_content
+
 
 # FIXME: Remove the following line when the permissions API is in place.
 from .base_test_case import BaseTestCase
@@ -74,7 +78,13 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         if content is None:
-            content = ''
+            #? content = self.EMPTY_SURVEY_JSON
+            content = json.dumps(empty_content())
+
+        _content = json.loads(content)
+        assert _content['schema'] == '2'
+        # this will fail if the content does not match the jsonschema
+        KoboContent(_content, validate=True)
 
         kwargs.update({
             'name': name,
@@ -83,7 +93,16 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         })
 
         response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        try:
+            assert response.status_code == status.HTTP_201_CREATED
+        except AssertionError:
+            # bubble up the error message from the response.data
+            raise AssertionError('{} != 201. {}'.format(
+                    response.status_code,
+                    repr(response.data)
+                )
+            )
 
         if owner and owner_password:
             self.client.logout()

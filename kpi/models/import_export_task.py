@@ -296,25 +296,15 @@ class ImportTask(ImportExportTask):
                 'owner__username': self.user.username,
             })
         elif 'survey' in survey_dict_keys:
-            if not destination:
-                if library and len(survey_dict.get('survey')) > 1:
-                    asset_type = 'block'
-                elif library:
-                    asset_type = 'question'
-                else:
-                    asset_type = 'survey'
-                asset = Asset.objects.create(
-                    owner=self.user,
-                    content=survey_dict,
-                    asset_type=asset_type,
-                    summary={'filename': filename},
-                )
-                msg_key = 'created'
-            else:
-                asset = destination
-                asset.content = survey_dict
-                asset.save()
-                msg_key = 'updated'
+            # destination always is set?
+            assert destination
+            # ^ remove this assertion when refactoring this method
+            # knowing that destination is never unknown
+
+            asset = destination
+            asset.from_xlsform(content=survey_dict, filename=filename)
+            asset.save()
+            msg_key = 'updated'
 
             messages[msg_key].append({
                 'uid': asset.uid,

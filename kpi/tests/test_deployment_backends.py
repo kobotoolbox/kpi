@@ -9,11 +9,16 @@ from kpi.models.asset_version import AssetVersion
 class CreateDeployment(TestCase):
     def setUp(self):
         self.asset = Asset(content={
+            'schema': '2',
             'survey': [
-                {'type':'text', 'name': 'q1',
-                    'label': 'Q1.',}
-                ]
-            })
+                    {'type':'text',
+                     'name': 'q1',
+                     '$anchor': 'kq1k',
+                     'label': {'tx0': 'Q1.'},
+                }
+            ],
+            'translations': [{'$anchor': 'tx0', 'name': ''}]
+        })
 
     def test_invalid_backend_fails(self):
         self.asset.save()
@@ -31,34 +36,40 @@ class CreateDeployment(TestCase):
 
 @pytest.mark.django_db
 def test_initial_kuids():
+    ANCHOR_KEY = '$anchor'
     initial_kuid = 'aaaa1111'
     asset = Asset.objects.create(content={
+        'schema': '2',
         'survey': [
-            {'type': 'text',
-                'name': 'q1',
-                'label': 'Q1.',
-                '$kuid': initial_kuid,
-             }
-            ]
-        })
-    assert asset.content['survey'][0]['$kuid'] == initial_kuid
+                {'type':'text',
+                 'name': 'q1',
+                 ANCHOR_KEY: initial_kuid,
+                 'label': {'tx0': 'Q1.'},
+            }
+        ],
+        'translations': [{ANCHOR_KEY: 'tx0', 'name': ''}]
+    })
+    assert asset.content['survey'][0][ANCHOR_KEY] == initial_kuid
 
     asset.deploy(backend='mock', active=False)
     asset.save()
-    assert '$kuid' in asset.content['survey'][0]
-    second_kuid = asset.content['survey'][0]['$kuid']
-    assert asset.content['survey'][0]['$kuid'] == initial_kuid
+    assert ANCHOR_KEY in asset.content['survey'][0]
+    second_kuid = asset.content_v2['survey'][0][ANCHOR_KEY]
+    assert asset.content['survey'][0][ANCHOR_KEY] == initial_kuid
 
 
 class MockDeployment(TestCase):
     def setUp(self):
-        self.asset = Asset.objects.create(content={
-            'survey': [
-                {'type': 'text', 'name': 'q1',
-                    'label': 'Q1.'
-                 }
-                ]
-            })
+        self.asset = Asset.objects.create(content={'choices': {},
+            'metas': {},
+            'schema': '2',
+            'settings': {},
+            'survey': [{'$anchor': 'q1q1',
+                        'label': {'tx0': 'Q1.'},
+                        'name': 'q1',
+                        'type': 'text'}],
+            'translations': [{'$anchor': 'tx0', 'name': ''}]
+        })
         self.asset.deploy(backend='mock', active=False)
         self.asset.save()
 

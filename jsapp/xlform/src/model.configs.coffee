@@ -343,6 +343,6 @@ module.exports = do ->
   ]
 
   # Alternative: XLF.configs.boolOutputs = {"true": "yes", "false": "no"}
-  configs.boolOutputs = {"true": "true", "false": "false"}
+  configs.boolOutputs = {"true": true, "false": false}
 
   configs

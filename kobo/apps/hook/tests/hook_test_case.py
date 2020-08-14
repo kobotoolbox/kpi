@@ -20,6 +20,22 @@ class MockSSRFProtect(object):
     def _get_ip_address(url):
         return ip_address('1.2.3.4')
 
+CONTENT_STRING = json.dumps({'schema': '2',
+    'survey': [
+        {'$anchor': 'q1', 'name': 'q1', 'type': 'text'},
+        {'$anchor': 'group1', 'name': 'group1', 'type': 'begin_group'},
+        {'$anchor': 'q2', 'name': 'q2', 'type': 'text'},
+        {'$anchor': 'q3', 'name': 'q3', 'type': 'text'},
+        {'$anchor': '/group1', 'type': 'end_group'},
+        {'$anchor': 'group2', 'name': 'group2', 'type': 'begin_group'},
+        {'$anchor': 'subgroup1', 'name': 'subgroup1', 'type': 'begin_group'},
+        {'$anchor': 'q4', 'name': 'q4', 'type': 'text'},
+        {'$anchor': 'q5', 'name': 'q5', 'type': 'text'},
+        {'$anchor': 'q6', 'name': 'q6', 'type': 'text'},
+        {'$anchor': '/subgroup1', 'type': 'end_group'},
+        {'$anchor': '/group2', 'type': 'end_group'}
+    ],
+})
 
 class HookTestCase(KpiTestCase):
 
@@ -27,20 +43,7 @@ class HookTestCase(KpiTestCase):
         self.client.login(username="someuser", password="someuser")
         self.asset = self.create_asset(
             "some_asset",
-            content=json.dumps({'survey': [
-                {'type': 'text', 'name': 'q1'},
-                {'type': 'begin_group', 'name': 'group1'},
-                {'type': 'text', 'name': 'q2'},
-                {'type': 'text', 'name': 'q3'},
-                {'type': 'end_group'},
-                {'type': 'begin_group', 'name': 'group2'},
-                {'type': 'begin_group', 'name': 'subgroup1'},
-                {'type': 'text', 'name': 'q4'},
-                {'type': 'text', 'name': 'q5'},
-                {'type': 'text', 'name': 'q6'},
-                {'type': 'end_group'},
-                {'type': 'end_group'},
-            ]}),
+            content=CONTENT_STRING,
             format='json')
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
