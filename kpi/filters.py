@@ -58,46 +58,60 @@ class KpiObjectPermissionsFilter:
         else:
             owned_and_explicitly_shared = get_objects_for_user(
                 user, permission, queryset)
-        public = get_objects_for_user(
-            get_anonymous_user(), permission, queryset)
+
         if view.action != 'list':
             # Not a list, so discoverability doesn't matter
+            public = get_objects_for_user(
+                get_anonymous_user(), permission, queryset
+            )
             return (owned_and_explicitly_shared | public).distinct()
 
-        # For a list, do not include public objects unless they are also
-        # discoverable
-        try:
-            discoverable = public.filter(discoverable_when_public=True)
-        except FieldError:
-            try:
-                # The model does not have a discoverability setting, but maybe
-                # its parent does
-                discoverable = public.filter(
-                    parent__discoverable_when_public=True)
-            except FieldError:
-                # Neither the model or its parent has a discoverability setting
-                discoverable = public.none()
-
         if all_public:
-            # We were asked not to consider subscriptions; return all
-            # discoverable objects
-            return (owned_and_explicitly_shared | discoverable).distinct()
+            # We were asked to return all discoverable objects. It's best to
+            # minimize the queryset before passing it to
+            # `get_objects_for_user()`, since that function executes a large
+            # `__in` query. Find potentially discoverable objects before
+            # verifying that the anonymous user can actually access them
+            try:
+                discoverable = queryset.filter(discoverable_when_public=True)
+            except FieldError:
+                try:
+                    # The model does not have a discoverability setting, but
+                    # maybe its parent does
+                    discoverable = queryset.filter(
+                        parent__discoverable_when_public=True
+                    )
+                except FieldError:
+                    # Neither the model or its parent has a discoverability
+                    # setting
+                    discoverable = queryset.none()
+            # Now, make sure these discoverables are actually public!
+            discoverable_and_public = get_objects_for_user(
+                get_anonymous_user(), permission, discoverable
+            )
+            return (
+                owned_and_explicitly_shared | discoverable_and_public
+            ).distinct()
 
-        # Of the discoverable objects, determine to which the user has
-        # subscribed
+        # `all_public` was not requested; return only objects to which the user
+        # has subscribed
         try:
-            subscribed = public.filter(usercollectionsubscription__user=user)
+            subscribed = queryset.filter(usercollectionsubscription__user=user)
         except FieldError:
             try:
                 # The model does not have a subscription relation, but maybe
                 # its parent does
-                subscribed = public.filter(
-                    parent__usercollectionsubscription__user=user)
+                subscribed = queryset.filter(
+                    parent__usercollectionsubscription__user=user
+                )
             except FieldError:
                 # Neither the model or its parent has a subscription relation
-                subscribed = public.none()
-
-        return (owned_and_explicitly_shared | subscribed).distinct()
+                subscribed = queryset.none()
+        # Make sure the subscribed objects are still public
+        subscribed_and_public = get_objects_for_user(
+            get_anonymous_user(), permission, subscribed
+        )
+        return (owned_and_explicitly_shared | subscribed_and_public).distinct()
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):

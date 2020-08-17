@@ -8,6 +8,7 @@ import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
+import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
 
 require('../scss/main.scss');
@@ -18,16 +19,23 @@ var el = (function(){
   return $d.get(0);
 })();
 
-const csrftoken = $('meta[name=csrf-token]').attr('content');
+const cookies = new Cookies();
 
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
+
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
+        let csrfToken = '';
+        try {
+            csrfToken = document.cookie.match(/csrftoken=(\w{64})/)[1];
+        } catch (err) {
+            console.error('Cookie not matched');
+        }
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader('X-CSRFToken', csrftoken);
+            xhr.setRequestHeader('X-CSRFToken', csrfToken || cookies.get('csrftoken'));
         }
     }
 });
