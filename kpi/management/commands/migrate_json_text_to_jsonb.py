@@ -5,6 +5,7 @@ from collections import defaultdict
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 from django.db.migrations.recorder import MigrationRecorder
+from django.db.utils import ProgrammingError
 
 
 # The `hub` application has its own `0007_alter_jsonfield_to_jsonbfield`
@@ -50,7 +51,7 @@ def create_jsonb_column_with_trigger(connection, table, text_column):
     trigger, stripping out encoded nulls
     """
     jsonb_column = TEMPORARY_COLUMN_NAME.format(text_column=text_column)
-    sql = f'''
+    sql = fr'''
         ALTER TABLE {table} ADD COLUMN {jsonb_column} jsonb;
 
         CREATE OR REPLACE FUNCTION copy_json_{table}_{text_column}_{jsonb_column} ()
@@ -58,8 +59,9 @@ def create_jsonb_column_with_trigger(connection, table, text_column):
         BEGIN
             -- Some of our JSON stored as text has encoded null characters, but
             -- these are not allowed in jsonb columns: strip them out
-            NEW.{jsonb_column} =
-                REPLACE(NEW.{text_column}::text, '\\u0000', '')::jsonb;
+            NEW.{jsonb_column} = REGEXP_REPLACE(
+                NEW.{text_column}::text, '([^\\])\\u0000', '\1', 'g'
+            )::jsonb;
             RETURN NEW;
         END
         $$ LANGUAGE plpgsql;
@@ -68,6 +70,26 @@ def create_jsonb_column_with_trigger(connection, table, text_column):
             BEFORE INSERT OR UPDATE ON {table}
             FOR EACH ROW
             EXECUTE PROCEDURE copy_json_{table}_{text_column}_{jsonb_column} ();
+    '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+
+
+def unconditionally_drop_jsonb_column_and_trigger(
+    connection, table, text_column
+):
+    """
+    Drop temporary jsonb columns and triggers. Useful when developing, in case
+    this management command crashes after creating these columns/triggers but
+    before dropping then normally
+    """
+
+    jsonb_column = TEMPORARY_COLUMN_NAME.format(text_column=text_column)
+    sql = f'''
+        ALTER TABLE {table} DROP COLUMN {jsonb_column};
+        DROP TRIGGER trigger_copy_json_{table}_{text_column}_{jsonb_column}
+            ON {table};
+        DROP FUNCTION copy_json_{table}_{text_column}_{jsonb_column} ();
     '''
     with connection.cursor() as cursor:
         cursor.execute(sql)
@@ -143,6 +165,14 @@ class Command(BaseCommand):
             action='store_true',
             help=f'Proceed even if {MIGRATION_THIS_REPLACES} has already been run',
         )
+        parser.add_argument(
+            '--drop',
+            action='store_true',
+            help=(
+                f'DEVELOPERS ONLY: Assume temporary columns and triggers '
+                'already exist, and remove them before adding them again'
+            ),
+        )
 
     def handle(self, *args, **options):
         migration_done = MigrationRecorder.Migration.objects.filter(
@@ -167,6 +197,19 @@ class Command(BaseCommand):
             ensure_no_nulls(connection, table, text_column)
             write('.', ending='')
         write('')
+
+        if options['drop']:
+            write('*** Dropping temporary columns and triggers', ending='')
+            for table, text_column in TABLES_AND_TEXT_JSON_COLUMNS:
+                try:
+                    unconditionally_drop_jsonb_column_and_trigger(
+                        connection, table, text_column
+                    )
+                except ProgrammingError:
+                    write('!', ending='')
+                else:
+                    write('.', ending='')
+            write('')
 
         write('Adding columns and triggers', ending='')
         for table, text_column in TABLES_AND_TEXT_JSON_COLUMNS:

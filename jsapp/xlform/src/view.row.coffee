@@ -88,7 +88,7 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
-      if questionType is 'calculate'
+      if questionType is 'calculate' or questionType is 'hidden'
         @$hint.hide()
 
       if 'getList' of @model and (cl = @model.getList())
@@ -139,7 +139,7 @@ module.exports = do ->
 
     add_row_to_question_library: (evt) =>
       evt.stopPropagation()
-      @ngScope?.add_row_to_question_library @model
+      @ngScope?.add_row_to_question_library @model, @model.collection._parent._initialParams
 
   class GroupView extends BaseRowView
     className: "survey__row survey__row--group  xlf-row-view xlf-row-view--depr"
