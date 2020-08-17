@@ -373,6 +373,24 @@ new Set([
   'subscribed'
 ]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
 
+export const GROUP_TYPES_BEGIN = new Map();
+new Set([
+  'begin_group',
+  'begin_score',
+  'begin_rank',
+  'begin_kobomatrix',
+  'begin_repeat',
+]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
+
+export const GROUP_TYPES_END = new Map();
+new Set([
+  'end_group',
+  'end_score',
+  'end_rank',
+  'end_kobomatrix',
+  'end_repeat',
+]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -390,7 +408,9 @@ const constants = {
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH,
   COMMON_QUERIES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 };
 
 export default constants;

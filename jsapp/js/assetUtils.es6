@@ -8,6 +8,8 @@ import {
   ASSET_TYPES,
   MODAL_TYPES,
   QUESTION_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
@@ -248,18 +250,18 @@ export function replaceForm(asset) {
 }
 
 /**
- * @param {Object} survey
- * @returns {Object} a pair of quesion names and their full paths
+ * @param {object} survey - from asset's `content.survey`
+ * @returns {object} a pair of quesion names and their full paths
  */
 export function getSurveyFlatPaths(survey) {
   const output = {};
   const openedGroups = [];
 
   survey.forEach((row) => {
-    if (row.type === 'begin_group' || row.type === 'begin_repeat') {
+    if ([GROUP_TYPES_BEGIN.get('begin_group'), GROUP_TYPES_BEGIN.get('begin_repeat')].includes(row.type)) {
       openedGroups.push(row.name || row.$autoname);
     }
-    if (row.type === 'end_group' || row.type === 'end_repeat') {
+    if ([GROUP_TYPES_END.get('end_group'), GROUP_TYPES_END.get('end_repeat')].includes(row.type)) {
       openedGroups.pop();
     }
 

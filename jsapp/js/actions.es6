@@ -371,6 +371,10 @@ actions.resources.createResource.listen(function(details){
     });
 });
 
+/**
+ * @param {object} params
+ * @param {string} params.uid
+ */
 actions.resources.deleteAsset.listen(function(details, params={}){
   dataInterface.deleteAsset(details)
     .done(() => {
