@@ -220,7 +220,7 @@ module.exports = do ->
           }).render().insertInDOM(@)
         else if key is '_isRepeat' and @model.getValue('type') is 'kobomatrix'
           # don't display repeat checkbox for matrix groups
-          return false
+          continue
         else
           new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
