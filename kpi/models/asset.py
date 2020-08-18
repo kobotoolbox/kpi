@@ -398,7 +398,7 @@ class Asset(ObjectPermissionMixin,
 
     @content_v2.setter
     def content_v2(self, content):
-        self.content = get_content_object(content, validate=True).export_to('2')
+        self.content = get_content_object(content).export_to('2')
 
     @property
     def content_v1(self):
@@ -406,7 +406,7 @@ class Asset(ObjectPermissionMixin,
 
     @content_v1.setter
     def content_v1(self, content):
-        self.content = get_content_object(content, validate=True).export_to('2')
+        self.content = get_content_object(content).export_to('2')
 
     def from_xlsform(self, content, filename=None):
         self.content = get_content_object(content).export_to('2')

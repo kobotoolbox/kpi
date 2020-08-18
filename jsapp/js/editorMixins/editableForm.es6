@@ -238,6 +238,10 @@ export default assign({
       let surveyJSONCascade = syncCascadeChoiceNames({source: surveyJSONWithMatrix}).source;
       surveyJSON = unnullifyTranslations(surveyJSONCascade, this.state.asset.content);
     }
+
+    // add "schema":"formbuilder" to the surveyJSON
+    surveyJSON.replace(/\}$/, ',"schema":"formbuilder"}')
+
     let params = {content: surveyJSON};
 
     if (this.state.name) {

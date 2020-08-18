@@ -3,7 +3,7 @@ import yaml
 
 from jsonschema.exceptions import ValidationError
 
-from a1d05eba1 import Content
+from a1d05eba1 import BaseContent
 from a1d05eba1.exceptions import ContentValidationError
 from a1d05eba1.content_variations import VARIATIONS
 from a1d05eba1.transformations.transformer import Transformer
@@ -11,6 +11,8 @@ from a1d05eba1.transformations import (
     AnchorsFromNameOrRandom,
     RenameKuidToAnchor,
     ReplaceTruthyStrings,
+    XlsformTranslations,
+    ChoicesByListNameRW,
     EnsureTranslationListRW,
     FillMissingLabelsRW,
     RemoveEmptiesRW,
@@ -35,7 +37,11 @@ class Autoname(Transformer):
             choice = choice.renamed('$autovalue', 'value')
         return choice
 
-class KoboContent(Content):
+class KoboContent(BaseContent):
+    '''
+    KoboContent matches any content agianst the primary JSON schema for future
+    Asset.content variations
+    '''
     schema_string = '2'
     transformers = (
         AnchorsFromNameOrRandom,
@@ -43,12 +49,34 @@ class KoboContent(Content):
         Autoname,
     )
 
-class KoboContentV1(Content):
+class KoboContentV1(BaseContent):
+    '''
+    KoboContentV1 should match and convert any content that has been saved in
+    Asset.content with "schema"="1" since kpi commit #5853f1cc81
+    '''
     schema_string = '1'
     input_schema = KOBOXLSFORM_SCHEMA
 
     transformers = (
         UnwrapSettingsFromListRW,
+        RemoveEmptiesRW,
+        XlsformChoicesRW,
+        RenameKuidToAnchor,
+        AnchorsFromNameOrRandom,
+        ReplaceTruthyStrings,
+        V1RenamesRW,
+        EnsureTranslationListRW,
+        FillMissingLabelsRW,
+        Autoname,
+    )
+
+class KoboFormBuilderContent(BaseContent):
+    from_schema_string = 'formbuilder'
+    schema_string = '1'
+    transformers = (
+        UnwrapSettingsFromListRW,
+        ChoicesByListNameRW,
+        XlsformTranslations,
         RemoveEmptiesRW,
         XlsformChoicesRW,
         RenameKuidToAnchor,
@@ -66,7 +94,9 @@ def empty_content():
     return copy.deepcopy(_EMPTY_CONTENT)
 
 def get_content_object(content):
-    try:
-        return KoboContentV1(content, validate=True)
-    except (ContentValidationError, ValidationError, AssertionError) as err:
-        return KoboContent(content, validate=True)
+    for Kls in [KoboFormBuilderContent, KoboContentV1]:
+        try:
+            return Kls(content, validate=True)
+        except (ContentValidationError, ValidationError, AssertionError) as err:
+            continue
+    return KoboContent(content, validate=True)
