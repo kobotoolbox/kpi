@@ -44,7 +44,8 @@ import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
 import PermValidator from './components/permissions/permValidator';
 import Modal from './components/modal';
-import {ChangePassword, AccountSettings} from './components/accountSettings';
+import AccountSettings from './components/accountSettings';
+import ChangePassword from './components/changePassword';
 import {
   t,
   assign,

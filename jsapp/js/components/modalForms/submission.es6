@@ -15,8 +15,12 @@ import ui from 'js/ui';
 import icons from '../../../xlform/src/view.icons';
 import {
   VALIDATION_STATUSES_LIST,
-  MODAL_TYPES
+  MODAL_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 } from 'js/constants';
+
+const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
 class Submission extends React.Component {
   constructor(props) {
@@ -76,10 +80,12 @@ class Submission extends React.Component {
       if (this.props.ids && sid) {
         const c = this.props.ids.findIndex(k => k==sid);
         let tableInfo = this.props.tableInfo || false;
-        if (this.props.ids[c - 1])
+        if (this.props.ids[c - 1]) {
           prev = this.props.ids[c - 1];
-        if (this.props.ids[c + 1])
+        }
+        if (this.props.ids[c + 1]) {
           next = this.props.ids[c + 1];
+        }
 
         // table submissions pagination
         if (tableInfo) {
@@ -88,8 +94,9 @@ class Submission extends React.Component {
             next = -2;
           }
 
-          if (tableInfo.currentPage > 0 && prev == -1)
+          if (tableInfo.currentPage > 0 && prev == -1) {
             prev = -2;
+          }
         }
       }
 
@@ -105,12 +112,16 @@ class Submission extends React.Component {
         hasBetaQuestion: hasBetaQuestion
       });
     }).fail((error)=>{
-      if (error.responseText)
-        this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
-        this.setState({error: error.statusText, loading: false});
-      else
+      if (error.responseText) {
+        let error_message = error.responseText;
+        if (error_message === DETAIL_NOT_FOUND)
+          error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
+        this.setState({error: error_message, loading: false});
+      } else if (error.statusText) {
+          this.setState({error: error.statusText, loading: false});
+      } else {
         this.setState({error: t('Error: could not load data.'), loading: false});
+      }
     });
   }
 
@@ -193,9 +204,8 @@ class Submission extends React.Component {
     });
   }
 
-  switchSubmission(evt) {
+  switchSubmission(sid) {
     this.setState({ loading: true});
-    const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: sid,
@@ -292,8 +302,16 @@ class Submission extends React.Component {
           translationIndex = this.state.translationIndex,
           _this = this;
     const openedGroups = [];
-    const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
-    const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
+    const groupTypes = [
+      GROUP_TYPES_BEGIN.get('begin_score'),
+      GROUP_TYPES_BEGIN.get('begin_rank'),
+      GROUP_TYPES_BEGIN.get('begin_group')
+    ];
+    const groupTypesEnd = [
+      GROUP_TYPES_END.get('end_score'),
+      GROUP_TYPES_END.get('end_rank'),
+      GROUP_TYPES_END.get('end_group')
+    ];
 
     const getGroupedName = (name) => {
       if (openedGroups.length === 0) {
@@ -474,36 +492,41 @@ class Submission extends React.Component {
         }
         <bem.FormModal__group>
           <div className='submission-pager'>
+            {/* don't display previous button if `previous` is -1 */}
             {this.state.previous > -1 &&
-              <a onClick={this.switchSubmission}
-                    className='mdl-button mdl-button--colored'
-                    data-sid={this.state.previous}>
+              <a
+                onClick={this.switchSubmission.bind(this, this.state.previous)}
+                className='mdl-button mdl-button--colored'
+              >
+                <i className='k-icon-prev' />
+                {t('Previous')}
+              </a>
+            }
+            {this.state.previous === -2 &&
+              <a
+                onClick={this.prevTablePage}
+                className='mdl-button mdl-button--colored'
+              >
                 <i className='k-icon-prev' />
                 {t('Previous')}
               </a>
             }
 
-            {this.state.previous == -2 &&
-              <a onClick={this.prevTablePage}
-                    className='mdl-button mdl-button--colored'>
-                <i className='k-icon-prev' />
-                {t('Previous')}
-              </a>
-            }
-
-
+            {/* don't display next button if `next` is -1 */}
             {this.state.next > -1 &&
-              <a onClick={this.switchSubmission}
-                    className='mdl-button mdl-button--colored'
-                    data-sid={this.state.next}>
+              <a
+                onClick={this.switchSubmission.bind(this, this.state.next)}
+                className='mdl-button mdl-button--colored'
+              >
                 {t('Next')}
                 <i className='k-icon-next' />
               </a>
             }
-
-            {this.state.next == -2 &&
-              <a onClick={this.nextTablePage}
-                    className='mdl-button mdl-button--colored'>
+            {this.state.next === -2 &&
+              <a
+                onClick={this.nextTablePage}
+                className='mdl-button mdl-button--colored'
+              >
                 {t('Next')}
                 <i className='k-icon-next' />
               </a>

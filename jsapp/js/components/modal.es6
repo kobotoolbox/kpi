@@ -49,8 +49,11 @@ function getSubmissionTitle(props) {
     title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
   } else {
     let index = p.ids.indexOf(sid);
-    title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
-  }
+    if (p.ids.length === 1) {
+      title = `${t('Submission Record')}`;
+    } else {
+      title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+    }
   return title;
 }
 

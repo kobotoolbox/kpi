@@ -19,8 +19,9 @@ class EnvironmentTests(BaseTestCase):
             'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
             'source_code_url': constance.config.SOURCE_CODE_URL,
-            'support_url': constance.config.SUPPORT_URL,
             'support_email': constance.config.SUPPORT_EMAIL,
+            'support_url': constance.config.SUPPORT_URL,
+            'community_url': constance.config.COMMUNITY_URL,
             'available_sectors': lambda x: \
                 self.assertGreater(len(x), 10) and self.assertIn(
                     ("Humanitarian - Sanitation, Water & Hygiene",

@@ -409,27 +409,33 @@ export class SupportHelpBubble extends HelpBubble {
             {t('Help Resources')}
           </bem.HelpBubble__row>
 
-          <bem.HelpBubble__rowAnchor
-            m='link'
-            target='_blank'
-            href='https://support.kobotoolbox.org/'
-            onClick={this.close.bind(this)}
-          >
-            <i className='k-icon k-icon-help-articles'/>
-            <header>{t('KoBoToolbox Help Center')}</header>
-            <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
-          </bem.HelpBubble__rowAnchor>
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={stores.serverEnvironment.state.support_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-help-articles'/>
+              <header>{t('KoBoToolbox Help Center')}</header>
+              <p>{t('A vast collection of user support articles and tutorials related to KoBo')}</p>
+            </bem.HelpBubble__rowAnchor>
+          }
 
-          <bem.HelpBubble__rowAnchor
-            m='link'
-            target='_blank'
-            href='https://community.kobotoolbox.org/'
-            onClick={this.close.bind(this)}
-          >
-            <i className='k-icon k-icon-forum'/>
-            <header>{t('KoBoToolbox Community Forum')}</header>
-            <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
-          </bem.HelpBubble__rowAnchor>
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.community_url &&
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={stores.serverEnvironment.state.community_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-forum'/>
+              <header>{t('KoBoToolbox Community Forum')}</header>
+              <p>{t('Post your questions to get answers from experienced KoBo users around the world')}</p>
+            </bem.HelpBubble__rowAnchor>
+          }
 
           {this.state.messages.length > 0 &&
             <bem.HelpBubble__row m='header'>

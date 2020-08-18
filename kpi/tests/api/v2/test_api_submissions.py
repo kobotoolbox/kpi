@@ -210,10 +210,28 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_list_submissions_anonymous_asset_publicly_shared(self):
         self.client.logout()
         anonymous_user = get_anonymous_user()
-        self.asset.assign_perm(anonymous_user, 'view_submissions')
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.asset.remove_perm(anonymous_user, 'view_submissions')
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+    def test_list_submissions_authenticated_asset_publicly_shared(self):
+        """ https://github.com/kobotoolbox/kpi/issues/2698 """
+
+        anonymous_user = get_anonymous_user()
+        self._log_in_as_another_user()
+
+        # Give the user who will access the public data--without any explicit
+        # permission assignment--their own asset. This is needed to expose a
+        # flaw in `ObjectPermissionMixin.__get_object_permissions()`
+        Asset.objects.create(name='i own it', owner=self.anotheruser)
+
+        # `self.asset` is owned by `someuser`; `anotheruser` has no
+        # explicitly-granted access to it
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+        response = self.client.get(self.submission_url, {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
@@ -311,7 +329,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # Only owner can delete submissions on `kpi`. `delete_submissions` is
         # a calculated permission and thus, can not be assigned.
         # TODO Review this test when kpi#2282 is released.
-        self.asset.assign_perm(self.anotheruser, 'change_submissions')
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
