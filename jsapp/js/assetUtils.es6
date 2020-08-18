@@ -10,7 +10,7 @@ import {
 
 /**
  * NOTE: this works under a true assumption that all questions have unique names
- * @param {Array<object>} survey
+ * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
  * @returns {object} a pair of quesion names and their full paths
  */
@@ -167,5 +167,9 @@ export function moveToCollection(assetUid, collectionId) {
 
 export default {
   getSurveyFlatPaths,
+  getRowName,
+  getTranslatedRowLabel,
+  isRowSpecialLabelHolder,
+  renderTypeIcon,
   moveToCollection
 };

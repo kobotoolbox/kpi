@@ -15,6 +15,8 @@ import ui from 'js/ui';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissionDataTable';
 import Checkbox from 'js/components/checkbox';
@@ -166,9 +168,8 @@ class Submission extends React.Component {
     });
   }
 
-  switchSubmission(evt) {
+  switchSubmission(sid) {
     this.setState({ loading: true});
-    const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: sid,
@@ -288,36 +289,41 @@ class Submission extends React.Component {
         }
         <bem.FormModal__group>
           <div className='submission-pager'>
+            {/* don't display previous button if `previous` is -1 */}
             {this.state.previous > -1 &&
-              <a onClick={this.switchSubmission}
-                    className='mdl-button mdl-button--colored'
-                    data-sid={this.state.previous}>
+              <a
+                onClick={this.switchSubmission.bind(this, this.state.previous)}
+                className='mdl-button mdl-button--colored'
+              >
                 <i className='k-icon k-icon-prev' />
                 {t('Previous')}
               </a>
             }
-
             {this.state.previous === -2 &&
-              <a onClick={this.prevTablePage}
-                    className='mdl-button mdl-button--colored'>
+              <a
+                onClick={this.prevTablePage}
+                className='mdl-button mdl-button--colored'
+              >
                 <i className='k-icon k-icon-prev' />
                 {t('Previous')}
               </a>
             }
 
-
+            {/* don't display next button if `next` is -1 */}
             {this.state.next > -1 &&
-              <a onClick={this.switchSubmission}
-                    className='mdl-button mdl-button--colored'
-                    data-sid={this.state.next}>
+              <a
+                onClick={this.switchSubmission.bind(this, this.state.next)}
+                className='mdl-button mdl-button--colored'
+              >
                 {t('Next')}
                 <i className='k-icon-next' />
               </a>
             }
-
             {this.state.next === -2 &&
-              <a onClick={this.nextTablePage}
-                    className='mdl-button mdl-button--colored'>
+              <a
+                onClick={this.nextTablePage}
+                className='mdl-button mdl-button--colored'
+              >
                 {t('Next')}
                 <i className='k-icon-next' />
               </a>
