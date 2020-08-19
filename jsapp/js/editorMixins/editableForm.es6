@@ -240,7 +240,7 @@ export default assign({
     }
 
     // add "schema":"formbuilder" to the surveyJSON
-    surveyJSON.replace(/\}$/, ',"schema":"formbuilder"}')
+    surveyJSON = surveyJSON.replace(/\}$/, ',"schema":"formbuilder"}');
 
     let params = {content: surveyJSON};
 
