@@ -24,6 +24,7 @@ from kpi.utils.kobo_content import (
     KoboContent,
     empty_content,
     get_content_object,
+    xlsform_content,
 )
 
 from formpack import FormPack
@@ -157,7 +158,7 @@ class XlsExportable:
                                 kobo_specific_types=False,
                                 append=None):
         # currently, this method depends on "FormpackXLSFormUtils"
-        content = get_content_object(self.content).export_to('2')
+        content = self._content_object.export_to('2')
         if append:
             if 'settings' in append:
                 content['settings'].update(append.pop('settings'))
@@ -393,8 +394,15 @@ class Asset(ObjectPermissionMixin,
             '-date_modified')
 
     @property
+    def _content_obj(self):
+        return get_content_object(self.content)
+
+    def content__media_files(self):
+        return self._content_obj.media_files
+
+    @property
     def content_v2(self):
-        return get_content_object(self.content).export_to('2')
+        return self._content_object.export_to('2')
 
     @content_v2.setter
     def content_v2(self, content):
@@ -402,14 +410,14 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def content_v1(self):
-        return get_content_object(self.content).export_to('1')
+        return self._content_object.export_to('1')
 
     @content_v1.setter
     def content_v1(self, content):
         self.content = get_content_object(content).export_to('2')
 
     def from_xlsform(self, content, filename=None):
-        self.content = get_content_object(content).export_to('2')
+        self.content = xlsform_content(content).export_to('2')
         if filename:
             self.summary = {'filename': filename}
 

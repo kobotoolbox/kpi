@@ -5,7 +5,7 @@ from jsonschema.exceptions import ValidationError
 
 from a1d05eba1 import BaseContent
 from a1d05eba1.exceptions import ContentValidationError
-from a1d05eba1.content_variations import VARIATIONS
+from a1d05eba1.content_variations import VARIATIONS, X_Content
 from a1d05eba1.transformations.transformer import Transformer
 from a1d05eba1.transformations import (
     AnchorsFromNameOrRandom,
@@ -88,10 +88,17 @@ class KoboFormBuilderContent(BaseContent):
         Autoname,
     )
 
+class XlsformContent(X_Content):
+    from_schema_string = 'xlsform'
+    schema_string = '1'
+
 _EMPTY_CONTENT = KoboContent({'survey':tuple(), 'choices': {}, 'schema':'2'}).export()
 
 def empty_content():
     return copy.deepcopy(_EMPTY_CONTENT)
+
+def xlsform_content(content):
+    return XlsformContent({**content, 'schema': 'xlsform'})
 
 def get_content_object(content):
     for Kls in [KoboFormBuilderContent, KoboContentV1]:

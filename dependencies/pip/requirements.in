@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # a1d
--e git+https://github.com/dorey/a1d05eba1.git@6bb19b4075e1fd1cc14ef90a27e0108c336961f3#egg=a1d05eba1_dorey
+-e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd42731c59fe33414990b5e59a876cda#egg=a1d05eba1_dorey
 
 # formpack
 -e git+https://github.com/kobotoolbox/formpack.git@d7c5824f7e1cceab1d0feff4cbb9dd8a6167b03f#egg=formpack

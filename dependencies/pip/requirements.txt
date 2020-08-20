@@ -6,7 +6,7 @@
 #
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@d7c5824f7e1cceab1d0feff4cbb9dd8a6167b03f#egg=formpack  # via -r dependencies/pip/requirements.in
--e git+https://github.com/dorey/a1d05eba1.git@6bb19b4075e1fd1cc14ef90a27e0108c336961f3#egg=a1d05eba1_dorey
+-e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd42731c59fe33414990b5e59a876cda#egg=a1d05eba1_dorey
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect  # via -r dependencies/pip/requirements.in
 amqp==2.5.2               # via -r dependencies/pip/requirements.in, kombu
