@@ -7,6 +7,8 @@
 
 {{ kpi_protocol }}://{{ site.domain }}/accounts/activate/{{activation_key}}/
 
+{% trans "Your username is:" %} {{ user }}
+
 {% trans "Please visit our help pages https://support.kobotoolbox.org to find information on how to get started and visit our user forum at https://community.kobotoolbox.org in case you have any questions or difficulties" %}
 
 {% trans "Best," %}
