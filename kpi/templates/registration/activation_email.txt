@@ -1,13 +1,13 @@
 {% load i18n %}
-{% trans "Thanks for signing up with KoBoToolbox!" %}
+{% trans "Dear" %} {{ user }},
 
-{% trans "Confirming your account will give you full access to KoBoToolbox applications. Please visit the following url to finish activation of your new account." %}
+{% trans "Thank you for signing up with KoBoToolbox!" %}
 
-{{ user }}
+{% trans "Confirming your account will give you full access to all KoBoToolbox applications. Please visit the following URL to finish the activation of your new account:" %}
 
 {{ kpi_protocol }}://{{ site.domain }}/accounts/activate/{{activation_key}}/
 
-{% trans "Please visit http://help.kobotoolbox.org to find information on how to get started. There you can also post questions to the community (recommended) or to us directly." %}
+{% trans "Please visit our help pages https://support.kobotoolbox.org to find information on how to get started and visit our user forum at https://community.kobotoolbox.org in case you have any questions or difficulties" %}
 
 {% trans "Best," %}
 KoBoToolbox
