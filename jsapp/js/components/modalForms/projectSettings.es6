@@ -518,6 +518,10 @@ class ProjectSettings extends React.Component {
               });
             },
             (response) => {
+              // delete temporary asset
+              actions.resources.deleteAsset({uid: asset.uid});
+              this.setState({formAsset: false});
+
               this.resetImportUrlButton();
               const errLines = [];
               errLines.push(t('Import Failed!'));
@@ -581,6 +585,10 @@ class ProjectSettings extends React.Component {
               });
             },
             (response) => {
+              // delete temporary asset
+              actions.resources.deleteAsset({uid: asset.uid});
+              this.setState({formAsset: false});
+
               this.setState({isUploadFilePending: false});
               const errLines = [];
               errLines.push(t('Import Failed!'));

@@ -217,6 +217,9 @@ module.exports = do ->
           @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
             model: @model.get('required')
           }).render().insertInDOM(@)
+        else if key is '_isRepeat' and @model.getValue('type') is 'kobomatrix'
+          # don't display repeat checkbox for matrix groups
+          continue
         else
           new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
