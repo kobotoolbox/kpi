@@ -125,7 +125,7 @@ $z-modal-x: 10;
 }
 
 .modal__subheader {
-  background: $cool-whitesilver;
+  background: $c-desert-storm;
   padding: 20px 30px;
   margin: -30px -30px 20px;
   color: $cool-silver;
@@ -204,7 +204,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: $cool-whitesilver;
+    background-color: $c-desert-storm;
     color: $layout-text-color;
   }
 
@@ -398,7 +398,7 @@ $z-modal-x: 10;
       display: inline-block;
       vertical-align: top;
       border: 1px solid $divider-color;
-      background: $cool-whitesilver;
+      background: $c-desert-storm;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
