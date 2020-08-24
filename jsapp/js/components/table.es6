@@ -221,7 +221,8 @@ export class DataTable extends React.Component {
       } else if (row.type === GROUP_TYPES_END.get('end_kobomatrix')) {
         isInsideKoboMatrix = false;
       } else if (isInsideKoboMatrix) {
-        excludedMatrixKeys.push(row.name || row.$autoname);
+        const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
+        excludedMatrixKeys.push(rowPath);
       }
     });
     output = output.filter((key) => {
