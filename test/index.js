@@ -19,3 +19,4 @@ require('./xlform/utils.tests');
 require('../jsapp/js/utils.tests');
 require('../jsapp/js/components/permissions/permParser.tests');
 require('../jsapp/js/assetUtils.tests');
+require('../jsapp/js/submissionUtils.tests');
