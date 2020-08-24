@@ -108,6 +108,16 @@ class App extends React.Component {
       );
     }
 
+    const pageWrapperModifiers = {
+      'fixed-drawer': this.state.pageState.showFixedDrawer,
+      'in-formbuilder': this.isFormBuilder(),
+      'is-modal-visible': Boolean(this.state.pageState.modal)
+    };
+
+    if (typeof this.state.pageState.modal === 'object') {
+      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] = true;
+    }
+
     return (
       <DocumentTitle title='KoBoToolbox'>
         <Shortcuts
@@ -123,10 +133,7 @@ class App extends React.Component {
           { !this.isFormBuilder() &&
             <div className='k-header__bar' />
           }
-          <bem.PageWrapper m={{
-              'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'in-formbuilder': this.isFormBuilder()
-                }} className='mdl-layout mdl-layout--fixed-header'>
+          <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
