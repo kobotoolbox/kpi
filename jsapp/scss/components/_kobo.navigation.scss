@@ -97,15 +97,15 @@ $headerAccountTextColor: #dbedf7;
 
   .search {
     ::-webkit-input-placeholder {
-      color: #FFF;
+      color: $white;
     }
 
     :-ms-input-placeholder {
-      color: #FFF;
+      color: $white;
     }
 
     .k-search__input {
-      color: #FFF;
+      color: $white;
       border: none;
       border-radius: 0px;
       padding: 10px 12px;
@@ -122,7 +122,7 @@ $headerAccountTextColor: #dbedf7;
       position: absolute;
       top: 11px;
       left: 12px;
-      color: #FFF;
+      color: $white;
 
       &:before {
         font-size: 18px;
@@ -215,7 +215,7 @@ $headerAccountTextColor: #dbedf7;
     padding-bottom: 5px;
 
     ul {
-      background-color: #FFF;
+      background-color: $white;
       color: $cool-gray;
       min-width: 140px;
       padding: 0;
@@ -249,7 +249,7 @@ $headerAccountTextColor: #dbedf7;
       display: block;
       margin-right: 8px;
       padding: 0px;
-      color: #FFF;
+      color: $white;
 
       i {
         line-height: 1.5em;
@@ -304,12 +304,12 @@ $headerAccountTextColor: #dbedf7;
 
   .form-title__name {
     flex: 1;
-    color: #FFF;
+    color: $white;
     font-size: 18px;
     padding-right: 20px;
 
     input[name='title'] {
-      color: #FFF;
+      color: $white;
       font-size: 18px;
       min-width: 100%;
       line-height: 1.3333;
@@ -411,7 +411,7 @@ $headerAccountTextColor: #dbedf7;
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
-  color: #FFF;
+  color: $white;
 }
 
 .account-box__menu-item--avatar {

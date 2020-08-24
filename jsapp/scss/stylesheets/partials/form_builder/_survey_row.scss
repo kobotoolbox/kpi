@@ -44,7 +44,7 @@
 }
 
 .score_preview, .rank_preview {
-  background-color: #fff;
+  background-color: $white;
   margin-left: -16px;
 }
 
@@ -154,7 +154,7 @@ tr:last-child {
 }
 
 .score__options {
-  background-color: #fff;
+  background-color: $white;
   padding: 12px 0;
 }
 
@@ -175,7 +175,7 @@ tr:hover .scorecell__radio {
 }
 
 tr .scorecell__radio:hover {
-  background-color: #f8f8f8;
+  background-color: $c-desert-storm;
 }
 
 .rank__rows {
@@ -331,7 +331,7 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: #bbb;
+  color: $c-silver;
 
   &.prelim {
     font-style: italic;

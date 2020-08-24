@@ -51,7 +51,6 @@
         ],
         "color-no-invalid-hex": true,
         "color-hex-case": ["lower", { "severity": "warning" }],
-        "color-hex-length": ["short", { "severity": "warning" }],
         "comment-no-empty": true,
         "comment-empty-line-before": [
             "always",

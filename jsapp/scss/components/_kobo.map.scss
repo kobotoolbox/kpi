@@ -101,7 +101,7 @@ $z-map-settings-3: 701;
 
   .popover-menu__toggle {
     min-width: 180px;
-    background: #FFF;
+    background: $white;
     max-width: 340px;
     overflow: hidden;
     white-space: nowrap;
@@ -127,7 +127,7 @@ $z-map-settings-3: 701;
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: #F9F9F9;
+      background: $c-alabaster;
       border-top: 1px solid $divider-color;
     }
 
@@ -171,7 +171,7 @@ body .leaflet-control-layers,
   min-width: 180px;
   max-width: 300px;
   padding: 5px;
-  background: #FFF;
+  background: $white;
   overflow: none;
 
   @include box-shadow;
@@ -270,7 +270,7 @@ body .leaflet-control-layers,
     height: 24px;
     padding: 0 3px;
     position: relative;
-    text-shadow: 0 0 1px #FFF;
+    text-shadow: 0 0 1px $white;
     color: $black;
 
     &::after {

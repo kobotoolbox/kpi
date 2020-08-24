@@ -37,7 +37,7 @@
 }
 
 .ui-widget-content {
-  background: #FFF;
+  background: $white;
   border: 2px solid #5CB5EB;
   color: #333333;
 }
@@ -70,7 +70,7 @@
 .ui-widget-header .ui-state-default {
   background: #C6CBD0;
   border: none;
-  color: #fff;
+  color: $white;
 }
 
 .ui-widget-header .ui-icon {
@@ -100,7 +100,7 @@
   border: none;
   border-radius: 0px;
   border-bottom: 2px solid #227040;
-  color: #fff;
+  color: $white;
   font-size: 12px;
   font-weight: 600;
   padding: 2px;

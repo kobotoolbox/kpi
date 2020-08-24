@@ -121,7 +121,7 @@ $permEditorColor: #999;
 
       &:hover {
         background-color: #eee;
-        border-color: #bbb;
+        border-color: $c-silver;
       }
     }
   }
@@ -156,7 +156,7 @@ $permEditorColor: #999;
   }
 
   i {
-    color: #fff;
+    color: $white;
 
     &.k-expanded {
       font-size: 30px;

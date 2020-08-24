@@ -9,7 +9,7 @@
 }
 
 .report-view__warning {
-  background-color: #FFF;
+  background-color: $white;
 
   @include box-shadow;
 
@@ -33,7 +33,7 @@
 }
 
 .report-view__item {
-  background-color: #FFF;
+  background-color: $white;
 
   @include box-shadow;
 

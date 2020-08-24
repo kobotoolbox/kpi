@@ -81,19 +81,19 @@ $z-modal-x: 10;
 
 .modal__content {
   overflow: auto;
-  background-color: #FFF;
+  background-color: $white;
   width: 100%;
 }
 
 .modal__tabs {
   background: $cool-blue;
-  color: #FFF;
+  color: $white;
 }
 
 .modal__header {
   min-height: 70px;
   background: $cool-blue;
-  color: #FFF;
+  color: $white;
 }
 
 .modal__title {
@@ -125,7 +125,7 @@ $z-modal-x: 10;
 }
 
 .modal__subheader {
-  background: #f8f8f8;
+  background: $c-desert-storm;
   padding: 20px 30px;
   margin: -30px -30px 20px;
   color: $cool-silver;
@@ -204,7 +204,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: #F8F8F8;
+    background-color: $c-desert-storm;
     color: $layout-text-color;
   }
 
@@ -321,16 +321,16 @@ $z-modal-x: 10;
     }
 
     .submission--repeat-group {
-      background: #F8F8F8;
+      background: $c-desert-storm;
       padding: 0px 30px;
 
       table {
-        background: #FFF;
+        background: $white;
       }
     }
 
     .submission--group {
-      background: #F8F8F8;
+      background: $c-desert-storm;
 
       h4 {
         margin: 0px;
@@ -399,7 +399,7 @@ $z-modal-x: 10;
 }
 
 .enketo-iframe-icon {
-  color: #fff;
+  color: $white;
   background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
   background-color: #C6CBD0;
   background-position: -81px -129px;
@@ -451,7 +451,7 @@ $z-modal-x: 10;
       display: inline-block;
       vertical-align: top;
       border: 1px solid $divider-color;
-      background: #F8F8F8;
+      background: $c-desert-storm;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
@@ -616,7 +616,7 @@ $z-modal-x: 10;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: #F8F8F8;
+    background: $c-desert-storm;
     padding: 15px;
     position: relative;
 
@@ -665,7 +665,7 @@ $z-modal-x: 10;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: #F8F8F8;
+    background: $c-desert-storm;
     padding: 15px;
     position: relative;
 

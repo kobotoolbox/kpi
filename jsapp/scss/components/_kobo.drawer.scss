@@ -87,7 +87,7 @@ $drawer-icons-width: 58px;
     z-index: 1050; // must be over leaflet
     left: -274px;
     transition: left 0.5s;
-    background-color: #fff;
+    background-color: $white;
 
     @include box-shadow;
   }
