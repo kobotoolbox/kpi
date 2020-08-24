@@ -405,13 +405,28 @@ module.exports = do ->
       @$el.removeClass("survey-editor--loading")
       @
 
+    shrinkAllGroups: ->
+      @$('.survey__row--group:not(.group--shrunk)').each (i, el) ->
+        if !$(el).hasClass('group--shrunk')
+          $(el).find('.group__caret').click()
+
+    expandAllGroups: ->
+      depth = 0
+      while @$('.survey__row--group.group--shrunk').length > 0
+        @$('.survey__row--group.group--shrunk').each (i, el) ->
+          $(el).find('.group__caret').click()
+        if depth++ > 10
+          break
+
     expandMultioptions: ->
       if @expand_all_multioptions()
+        @shrinkAllGroups()
         @$(".card--expandedchoices").each (i, el)=>
           @_getViewForTarget(currentTarget: el).hideMultioptions()
           ``
         _expanded = false
       else
+        @expandAllGroups()
         @$(".card--selectquestion").each (i, el)=>
           @_getViewForTarget(currentTarget: el).showMultioptions()
           ``

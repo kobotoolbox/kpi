@@ -142,7 +142,7 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
  * saving the form.
  * @param {Array<string|null>} [translations]
  * @param {Array<string>} translatedProps
- * @param {object} survey
+ * @param {Array<object>} survey
  * @param {object} baseSurvey
  * @return {NullifiedTranslations}
  */

@@ -81,19 +81,19 @@ $z-modal-x: 10;
 
 .modal__content {
   overflow: auto;
-  background-color: #FFF;
+  background-color: $white;
   width: 100%;
 }
 
 .modal__tabs {
   background: $cool-blue;
-  color: #FFF;
+  color: $white;
 }
 
 .modal__header {
   min-height: 70px;
   background: $cool-blue;
-  color: #FFF;
+  color: $white;
 }
 
 .modal__title {
@@ -250,7 +250,7 @@ $z-modal-x: 10;
       width: 50%;
     }
 
-    input {
+    .kobo-select input {
       min-width: 100px;
     }
 
@@ -265,82 +265,25 @@ $z-modal-x: 10;
       cursor: pointer;
 
       &:first-child {
-        padding-left: 0px;
+        padding-left: 0;
+      }
+
+      .k-icon {
+        display: inline-block;
+        vertical-align: middle;
       }
     }
   }
 
-  table {
-    border: 1px solid #F6F6F6;
-    border-collapse: collapse;
-    width: 100%;
-    margin: 20px 0px;
-    text-align: left;
-
-    thead tr {
-      border-bottom: 1px solid $divider-color;
+  .submission-actions {
+    .checkbox {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 40px;
     }
 
-    thead th {
-      font-weight: 600;
-      padding: 8px 12px;
-      background-color: #F6F6F6;
-      text-align: left;
-    }
-
-    tbody {
-      tr {
-        border-bottom: 1px solid $divider-color;
-      }
-
-      td {
-        padding: 12px;
-
-        ul {
-          list-style: disc;
-          margin-left: 30px;
-        }
-      }
-    }
-
-    .submission--question-type {
-      width: 5%;
-    }
-
-    .submission--question {
-      width: 45%;
-    }
-
-    .submission--response {
-      width: 50%;
-
-      img {
-        max-width: 100%;
-        image-orientation: from-image;
-      }
-    }
-
-    .submission--repeat-group {
-      background: $cool-whitesilver;
-      padding: 0px 30px;
-
-      table {
-        background: #FFF;
-      }
-    }
-
-    .submission--group {
-      background: $cool-whitesilver;
-
-      h4 {
-        margin: 0px;
-      }
-    }
-
-    .submission--end-group {
-      background: $divider-color;
-      padding-top: 1px;
-      padding-bottom: 0px;
+    .checkbox__label {
+      white-space: nowrap;
     }
   }
 
@@ -352,7 +295,7 @@ $z-modal-x: 10;
     line-height: 1em;
 
     i {
-      color: #FFB775;
+      color: $cool-orange;
       font-size: 40px;
       margin-right: 10px;
       vertical-align: middle;
@@ -673,7 +616,7 @@ $z-modal-x: 10;
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: #F8F8F8;
+    background: $cool-whitegray;
     padding: 15px;
     position: relative;
 

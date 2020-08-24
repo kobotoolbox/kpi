@@ -26,11 +26,11 @@ import {
 } from '../constants';
 import {
   t,
-  notify,
   formatTimeDate,
   renderCheckbox
 } from '../utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
+import {getRepeatGroupAnswers} from 'js/submissionUtils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
@@ -43,7 +43,6 @@ const EXCLUDED_COLUMNS = [
   'formhub/uuid',
   '_tags',
   '_geolocation',
-  '_submitted_by',
   'meta/instanceID',
   'meta/deprecatedID',
   '_validation_status'
@@ -222,7 +221,8 @@ export class DataTable extends React.Component {
       } else if (row.type === GROUP_TYPES_END.get('end_kobomatrix')) {
         isInsideKoboMatrix = false;
       } else if (isInsideKoboMatrix) {
-        excludedMatrixKeys.push(row.name || row.$autoname);
+        const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
+        excludedMatrixKeys.push(rowPath);
       }
     });
     output = output.filter((key) => {
@@ -377,8 +377,9 @@ export class DataTable extends React.Component {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
 
-      if (q && q.type === 'begin_repeat')
+      if (q && q.type === 'begin_repeat') {
         return false;
+      }
 
       // sets location of columns for questions not in current survey version
       var index = 'y_' + key;
@@ -416,6 +417,9 @@ export class DataTable extends React.Component {
         case '_submission_time':
             index = 'z91';
             break;
+        case '_submitted_by':
+            index = 'z92';
+            break;
         default:
           // set index for questions in current version of survey (including questions in groups)
           survey.map(function(x, i) {
@@ -448,38 +452,45 @@ export class DataTable extends React.Component {
         index: index,
         question: q,
         filterable: false,
-        Cell: row => {
-            if (showLabels && q && q.type && row.value) {
-              if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
-                var mediaURL = this.getMediaDownloadLink(row.value);
-                return <a href={mediaURL} target="_blank">{row.value}</a>;
-              }
-              // show proper labels for choice questions
-              if (q.type == 'select_one') {
-                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
-                return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
-              }
-              if (q.type == 'select_multiple' && row.value) {
-                let values = row.value.split(' ');
-                var labels = [];
-                values.forEach(function(v) {
-                  let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
-                  if (choice && choice.label && choice.label[translationIndex])
-                    labels.push(choice.label[translationIndex]);
-                });
-
-                return labels.join(', ');
-              }
-              if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
-                return formatTimeDate(row.value);
-              }
+        Cell: (row) => {
+          if (showLabels && q && q.type && row.value) {
+            if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
+              var mediaURL = this.getMediaDownloadLink(row.value);
+              return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }
-            if (typeof(row.value) == 'object' || row.value === undefined) {
-              return '';
-            } else {
-              return row.value;
+            // show proper labels for choice questions
+            if (q.type == 'select_one') {
+              let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
+              return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
+            }
+            if (q.type == 'select_multiple' && row.value) {
+              let values = row.value.split(' ');
+              var labels = [];
+              values.forEach(function(v) {
+                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
+                if (choice && choice.label && choice.label[translationIndex])
+                  labels.push(choice.label[translationIndex]);
+              });
+
+              return labels.join(', ');
+            }
+            if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
+              return formatTimeDate(row.value);
             }
           }
+          if (typeof(row.value) == 'object' || row.value === undefined) {
+            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
+
+            if (repeatGroupAnswers) {
+              // display a list of answers from a repeat group question
+              return repeatGroupAnswers.join(', ');
+            } else {
+              return '';
+            }
+          } else {
+            return row.value;
+          }
+        }
       });
 
     });
@@ -511,7 +522,8 @@ export class DataTable extends React.Component {
       '__version__',
       '_id',
       '_uuid',
-      '_submission_time'
+      '_submission_time',
+      '_submitted_by'
     ];
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {

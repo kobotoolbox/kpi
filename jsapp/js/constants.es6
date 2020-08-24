@@ -391,6 +391,19 @@ new Set([
   'end_repeat',
 ]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
 
+export const FORM_VERSION_NAME = '__version__';
+
+// a custom question type for score
+export const SCORE_ROW_TYPE = 'score__row';
+
+// a custom question type for rank
+export const RANK_LEVEL_TYPE = 'rank__level';
+
+export const MATRIX_PAIR_PROPS = {
+  inSurvey: 'kobo--matrix_list',
+  inChoices: 'list_name'
+};
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -410,7 +423,10 @@ const constants = {
   COMMON_QUERIES,
   ACCESS_TYPES,
   GROUP_TYPES_BEGIN,
-  GROUP_TYPES_END
+  GROUP_TYPES_END,
+  FORM_VERSION_NAME,
+  SCORE_ROW_TYPE,
+  RANK_LEVEL_TYPE
 };
 
 export default constants;
