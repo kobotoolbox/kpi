@@ -1,5 +1,5 @@
 # coding: utf-8
-from rest_framework import permissions
+from rest_framework import exceptions, permissions
 
 
 class InAppMessagePermissions(permissions.BasePermission):
@@ -19,9 +19,19 @@ class InAppMessagePermissions(permissions.BasePermission):
                 # that's what the DRF "Browsable API" does, at least. We'll
                 # wave it through for authenticated users
                 return True
-            elif request.data.keys() == ['interactions']:
+            elif list(request.data) == ['interactions']:
                 # Allow any authenticated user to update their own interactions
                 return True
+            else:
+                formatted_fields = ', '.join(
+                    [f'`{x}`' for x in request.data.keys()]
+                )
+                raise exceptions.PermissionDenied(
+                    detail=(
+                        'You may update only `interactions`, but your request '
+                        f'contained {formatted_fields}.'
+                    )
+                )
 
         # Sorry, buddy.
         return False
