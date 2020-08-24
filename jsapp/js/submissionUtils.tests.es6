@@ -21,7 +21,11 @@ import {
   everythingSurvey,
   everythingSurveyChoices,
   everythingSurveySubmission,
-  everythingSurveyDisplayData
+  everythingSurveyDisplayData,
+  matrixRepeatSurvey,
+  matrixRepeatSurveyChoices,
+  matrixRepeatSurveySubmission,
+  matrixRepeatSurveyDisplayData
 } from 'js/submissionUtils.mocks';
 import {
   getSubmissionDisplayData
@@ -64,9 +68,15 @@ describe('getSubmissionDisplayData', () => {
       expect(test).to.deep.equal(target);
   });
 
-  it('should return a valid data for everyt possible question type', () => {
+  it('should return a valid data for every possible question type', () => {
       const test = getSubmissionDisplayData(everythingSurvey, everythingSurveyChoices, 0, everythingSurveySubmission).children;
       const target = everythingSurveyDisplayData;
+      expect(test).to.deep.equal(target);
+  });
+
+  it('should return a valid data for a matrix group inside repeat group', () => {
+      const test = getSubmissionDisplayData(matrixRepeatSurvey, matrixRepeatSurveyChoices, 0, matrixRepeatSurveySubmission).children;
+      const target = matrixRepeatSurveyDisplayData;
       expect(test).to.deep.equal(target);
   });
 });

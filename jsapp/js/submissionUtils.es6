@@ -162,7 +162,8 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
                 submissionData,
                 translationIndex,
                 matrixGroupObj,
-                getRowName(item)
+                getRowName(item),
+                parentData
               );
             }
           });
@@ -218,8 +219,17 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
  * @param {number} translationIndex
  * @param {DisplayGroup} matrixGroup - a group you want to add a row of questions to
  * @param {string} matrixRowName - the row name
+ * @param {object} parentData - submissionData scoped by parent (useful for repeat groups)
  */
-function populateMatrixData(survey, choices, submissionData, translationIndex, matrixGroup, matrixRowName) {
+function populateMatrixData(
+  survey,
+  choices,
+  submissionData,
+  translationIndex,
+  matrixGroup,
+  matrixRowName,
+  parentData
+) {
   // create row display group and add it to matrix group
   const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
   let matrixRowGroupObj = new DisplayGroup(
@@ -254,6 +264,12 @@ function populateMatrixData(survey, choices, submissionData, translationIndex, m
       const dataProp = `${matrixGroupPath}_${matrixRowName}/${matrixGroup.name}_${matrixRowName}_${questionName}`;
       if (submissionData[dataProp]) {
         questionData = submissionData[dataProp];
+      } else if (parentData[dataProp]) {
+        /*
+         * If Matrix question is inside a repeat group, the data is stored
+         * elsewhere :tableflip:
+         */
+        questionData = parentData[dataProp];
       }
 
       let questionObj = new DisplayResponse(
@@ -299,7 +315,6 @@ function getRowData(name, survey, data) {
     if (Object.keys(rowData).length >= 1) {
       return rowData;
     }
-
   }
   return null;
 }

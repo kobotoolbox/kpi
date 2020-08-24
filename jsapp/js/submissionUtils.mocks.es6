@@ -1435,3 +1435,223 @@ export const everythingSurveyDisplayData = [
     'data': '88'
   }
 ];
+
+export const matrixRepeatSurvey = [
+  {
+    'name': 'start',
+    'type': 'start',
+    '$kuid': '5hhy3gTQM',
+    '$autoname': 'start'
+  },
+  {
+    'name': 'end',
+    'type': 'end',
+    '$kuid': 'gIKQbAuFK',
+    '$autoname': 'end'
+  },
+  {
+    'name': 'Simple_repeat',
+    'type': 'begin_repeat',
+    '$kuid': 'wr4ir59',
+    'label': ['Simple repeat'],
+    '$autoname': 'Simple_repeat'
+  },
+  {
+    'name': 'Best_food',
+    'type': 'begin_kobomatrix',
+    '$kuid': 'hn03y22',
+    'label': ['Best food'],
+    '$autoname': 'Best_food',
+    '_isRepeat': 'false',
+    'appearance': 'field-list',
+    'kobo--matrix_list': 'matrix_ri0sw49'
+  },
+  {
+    'hint': [''],
+    'name': 'Salty',
+    'type': 'text',
+    '$kuid': 'ar3rp04',
+    'label': ['Salty'],
+    'required': false,
+    '$autoname': 'Salty',
+    'appearance': 'w1'
+  },
+  {
+    'hint': [''],
+    'name': 'Sweet',
+    'type': 'text',
+    '$kuid': 'qp2gg39',
+    'label': ['Sweet'],
+    'required': true,
+    '$autoname': 'Sweet',
+    'appearance': 'w1'
+  },
+  {
+    'type': 'end_kobomatrix',
+    '$kuid': '/hn03y22'
+  },
+  {
+    'type': 'end_repeat',
+    '$kuid': '/wr4ir59'
+  }
+];
+
+export const matrixRepeatSurveyChoices = [
+  {
+    'name': 'baked',
+    '$kuid': 'hb7vh55',
+    'label': ['Baked'],
+    'list_name': 'matrix_ri0sw49',
+    '$autovalue': 'baked'
+  },
+  {
+    'name': 'raw',
+    '$kuid': 'us3nd72',
+    'label': ['Raw'],
+    'list_name': 'matrix_ri0sw49',
+    '$autovalue': 'raw'
+  }
+];
+
+export const matrixRepeatSurveySubmission = {
+  '_id': 16,
+  '_notes': [],
+  '_validation_status': {},
+  '_uuid': '967be1fa-e015-44f9-af6e-38c795db705a',
+  '_bamboo_dataset_id': '',
+  '_tags': [],
+  '_submitted_by': null,
+  '_xform_id_string': 'aZWrtKay885DknXjjoB7NB',
+  'meta/instanceID': 'uuid:967be1fa-e015-44f9-af6e-38c795db705a',
+  'formhub/uuid': '3d4bb313b9244e97a64339f43bb4317c',
+  'end': '2020-08-24T14:50:33.709+02:00',
+  'Simple_repeat': [
+    {
+      'Simple_repeat/Best_food_raw/Best_food_raw_Sweet': 'apple',
+      'Simple_repeat/Best_food_baked/Best_food_baked_Salty': 'bread',
+      'Simple_repeat/Best_food_baked/Best_food_baked_Sweet': 'pie',
+      'Simple_repeat/Best_food_raw/Best_food_raw_Salty': 'olive'
+    },
+    {
+      'Simple_repeat/Best_food_raw/Best_food_raw_Sweet': 'tomato',
+      'Simple_repeat/Best_food_baked/Best_food_baked_Salty': 'pizza',
+      'Simple_repeat/Best_food_baked/Best_food_baked_Sweet': 'croissant',
+      'Simple_repeat/Best_food_raw/Best_food_raw_Salty': 'cucumber'
+    }
+  ],
+  '_submission_time': '2020-08-24T12:50:49',
+  '_attachments': [],
+  'start': '2020-08-24T14:48:52.577+02:00',
+  '_geolocation': [
+    null, null
+  ],
+  '_status': 'submitted_via_web',
+  '__version__': 'vLao7eC5zPrkyAHKYFt9kY'
+};
+
+export const matrixRepeatSurveyDisplayData = [
+  {
+    'type': 'group_repeat',
+    'label': 'Simple repeat',
+    'name': 'Simple_repeat',
+    'children': [
+      {
+        'type': 'group_matrix',
+        'label': 'Best food',
+        'name': 'Best_food',
+        'children': [
+          {
+            'type': 'group_matrix_row',
+            'label': 'Baked',
+            'name': 'baked',
+            'children': [
+              {
+                'type': 'text',
+                'label': 'Salty',
+                'name': 'Salty',
+                'data': 'bread'
+              },
+              {
+                'type': 'text',
+                'label': 'Sweet',
+                'name': 'Sweet',
+                'data': 'pie'
+              }
+            ]
+          },
+          {
+            'type': 'group_matrix_row',
+            'label': 'Raw',
+            'name': 'raw',
+            'children': [
+              {
+                'type': 'text',
+                'label': 'Salty',
+                'name': 'Salty',
+                'data': 'olive'
+              },
+              {
+                'type': 'text',
+                'label': 'Sweet',
+                'name': 'Sweet',
+                'data': 'apple'
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    'type': 'group_repeat',
+    'label': 'Simple repeat',
+    'name': 'Simple_repeat',
+    'children': [
+      {
+        'type': 'group_matrix',
+        'label': 'Best food',
+        'name': 'Best_food',
+        'children': [
+          {
+            'type': 'group_matrix_row',
+            'label': 'Baked',
+            'name': 'baked',
+            'children': [
+              {
+                'type': 'text',
+                'label': 'Salty',
+                'name': 'Salty',
+                'data': 'pizza'
+              },
+              {
+                'type': 'text',
+                'label': 'Sweet',
+                'name': 'Sweet',
+                'data': 'croissant'
+              }
+            ]
+          },
+          {
+            'type': 'group_matrix_row',
+            'label': 'Raw',
+            'name': 'raw',
+            'children': [
+              {
+                'type': 'text',
+                'label': 'Salty',
+                'name': 'Salty',
+                'data': 'cucumber'
+              },
+              {
+                'type': 'text',
+                'label': 'Sweet',
+                'name': 'Sweet',
+                'data': 'tomato'
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+];
