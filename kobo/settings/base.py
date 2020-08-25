@@ -125,30 +125,51 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
 CONSTANCE_CONFIG = {
-    'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
-                                'themselves'),
-    'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
-                             'URL for terms of service document'),
-    'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
-                           'URL for privacy policy'),
-    'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
-                        'URL of source code repository. When empty, a link '
-                        'will not be shown in the user interface'),
-    'SUPPORT_URL': (os.environ.get('KOBO_SUPPORT_URL',
-                                   'http://help.kobotoolbox.org/'),
-                    'URL of user support portal. When empty, a link will not '
-                    'be shown in the user interface'),
-    'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
-                      os.environ.get('DEFAULT_FROM_EMAIL',
-                                     'help@kobotoolbox.org'),
-                      'Email address for users to contact, e.g. when they '
-                      'encounter unhandled errors in the application'),
-    'ALLOW_UNSECURED_HOOK_ENDPOINTS': (True,
-                                       'Allow the use of unsecured endpoints for hooks. '
-                                       '(e.g http://hook.example.com)'),
-    'HOOK_MAX_RETRIES': (3,
-                         'Number of times the system will retry '
-                         'to send data to remote server before giving up')
+    'REGISTRATION_OPEN': (
+        True,
+        'Allow new users to register accounts for themselves',
+    ),
+    'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
+    'SOURCE_CODE_URL': (
+        'https://github.com/kobotoolbox/',
+        'URL of source code repository. When empty, a link will not be shown '
+        'in the user interface',
+    ),
+    'SUPPORT_EMAIL': (
+        os.environ.get('KOBO_SUPPORT_EMAIL')
+        or os.environ.get('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org'),
+        'Email address for users to contact, e.g. when they encounter '
+        'unhandled errors in the application',
+    ),
+    'SUPPORT_URL': (
+        os.environ.get('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
+        'URL for "KoBoToolbox Help Center"',
+    ),
+    'COMMUNITY_URL': (
+        os.environ.get(
+            'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
+        ),
+        'URL for "KoBoToolbox Community Forum"',
+    ),
+    'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
+        True,
+        'Allow the use of unsecured endpoints for hooks. '
+        '(e.g http://hook.example.com)',
+    ),
+    'HOOK_MAX_RETRIES': (
+        3,
+        'Number of times the system will retry to send data to remote server '
+        'before giving up',
+    ),
+    'SSRF_ALLOWED_IP_ADDRESS': (
+        '',
+        'Whitelisted IP addresses to bypass SSRF protection\nOne per line',
+    ),
+    'SSRF_DENIED_IP_ADDRESS': (
+        '',
+        'Blacklisted IP addresses to bypass SSRF protection\nOne per line',
+    ),
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
