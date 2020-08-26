@@ -111,10 +111,6 @@ class MainHeader extends Reflux.Component {
 
       return (
         <bem.AccountBox>
-          {/*<bem.AccountBox__notifications className="is-edge">
-            <i className="fa fa-bell"></i>
-            <bem.AccountBox__notifications__count> 2 </bem.AccountBox__notifications__count>
-          </bem.AccountBox__notifications>*/}
           <ui.PopoverMenu type='account-menu'
                           triggerLabel={accountMenuLabel}
                           buttonType='text'>

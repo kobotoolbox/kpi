@@ -73,7 +73,6 @@ export class DataTable extends React.Component {
       selectedRows: {},
       selectAll: false,
       fetchState: false,
-      promptRefresh: false,
       submissionPager: false,
       overrideLabelsAndGroups: null
     };
@@ -786,14 +785,6 @@ export class DataTable extends React.Component {
     }
 
   }
-  refreshTable() {
-    this.fetchData(this.state.fetchState, this.state.fetchInstance);
-    this.setState({ promptRefresh: false });
-  }
-
-  clearPromptRefresh() {
-    this.setState({ promptRefresh: false });
-  }
   bulkUpdateChange(sid, isChecked) {
     let selectedRows = this.state.selectedRows;
 
@@ -1061,17 +1052,6 @@ export class DataTable extends React.Component {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        {this.state.promptRefresh &&
-          <bem.FormView__cell m='table-warning'>
-            <i className='k-icon-alert' />
-            {t('The data below may be out of date. ')}
-            <a className='select-all' onClick={this.refreshTable}>
-              {t('Refresh')}
-            </a>
-
-            <i className='k-icon-close' onClick={this.clearPromptRefresh} />
-          </bem.FormView__cell>
-        }
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
