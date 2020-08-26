@@ -225,8 +225,6 @@ bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
 
 bem.AccountBox = BEM('account-box');
-bem.AccountBox__notifications = bem.AccountBox.__('notifications');
-bem.AccountBox__notifications__count = bem.AccountBox.__('notifications__count', '<span>');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');
 bem.AccountBox__initials = bem.AccountBox.__('initials', '<span>');
 bem.AccountBox__menu = bem.AccountBox.__('menu', '<ul>');
