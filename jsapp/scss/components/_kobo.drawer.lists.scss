@@ -59,14 +59,9 @@
       padding: 2px 3px;
       width: 32px;
       border-radius: 40px;
-      background: #E6E6E8;
+      background: $divider-color;
       text-align: center;
     }
-
-    // &--visible, &--selected {
-    //   color: $cool-charcoal;
-    // }
-
   }
 
   &__grouping {
@@ -98,7 +93,7 @@
     }
 
     &--selected {
-      background: #ededee;
+      background: $c-athens-gray;
 
       .popover-menu {
         position: absolute;
@@ -126,7 +121,7 @@
     }
 
     &.active {
-      background: #ededee;
+      background: $c-athens-gray;
 
       .form-sidebar__itemlink {
         color: $cool-green;

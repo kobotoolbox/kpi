@@ -133,7 +133,7 @@
     .rt-th, .rt-td {
       padding: 2px;
       padding-left: 6px;
-      border-right: 1px solid rgba(0, 0, 0, 0.03);
+      border-right: 1px solid rgba($black, 0.03);
       line-height: 30px;
     }
 
@@ -239,44 +239,16 @@
       }
 
       &.-striped .rt-tr.-odd .frozen {
-        background: #F1F1F1;
+        background: $c-athens-gray;
       }
 
       &.-striped .rt-tr:hover .frozen {
-        background: #edf9fa;
+        background: rgba($cool-green, 0.1);
       }
 
       .rt-th.frozen {
         height: 34px;
       }
-    }
-  }
-
-  .form-view__cell--table-warning {
-    position: absolute;
-    width: calc(100% - 60px);
-    background: lighten(#FFB775, 20%);
-    padding: 5px;
-    top: 10px;
-    z-index: 99;
-
-    i.k-icon-alert {
-      font-size: 32px;
-      vertical-align: middle;
-      color: #FFB775;
-    }
-
-    a {
-      cursor: pointer;
-    }
-
-    i.k-icon-close {
-      position: absolute;
-      right: 10px;
-      font-size: 24px;
-      top: 10px;
-      background: lighten(#FFB775, 20%);
-      cursor: pointer;
     }
   }
 }

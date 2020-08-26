@@ -24,7 +24,7 @@
 }
 
 .search__summary {
-  background-color: #F0F0F0;
+  background-color: $c-athens-gray;
   height: 50px;
   width: 100%;
   flex-grow: 0;
@@ -171,7 +171,7 @@
       background: $white;
       z-index: 99;
       overflow: hidden;
-      box-shadow: 0px 2px 4px 2px rgba(0, 0, 0, 0.04);
+      box-shadow: 0px 2px 4px 2px rgba($black, 0.04);
     }
   }
 }

@@ -26,7 +26,7 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba($black, 0.75);
     padding: 20px 30px;
 
     a {
@@ -112,12 +112,12 @@
     color: white;
     text-align: center;
     font-weight: 600;
-    background: #39BF6E;
-    border-bottom: 2px solid darken(#39BF6E, 20%);
+    background: $warm-green;
+    border-bottom: 2px solid darken($warm-green, 20%);
     clear: both;
 
     &:hover {
-      background: lighten(#39BF6E, 10%);
+      background: lighten($warm-green, 10%);
     }
   }
 }
@@ -155,7 +155,7 @@
   .password1 {
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba($white, 0.1);
   }
 
   .passwordreset__cancel {

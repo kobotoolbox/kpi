@@ -34,14 +34,14 @@
     pointer-events: none;
   }
   &:after {
-    border-color: rgba(255, 255, 255, 0);
+    border-color: rgba($white, 0);
     border-bottom-color: $white;
     border-width: 8px;
     margin-left: -8px;
   }
   &:before {
     border-color: rgba(217, 221, 225, 0);
-    border-bottom-color: #3fa2ee;
+    border-bottom-color: $cool-blue-light;
     border-width: 11px;
     margin-left: -11px;
   }
@@ -51,7 +51,7 @@
   position: absolute;
   top: 3px;
   right: 3px;
-  color: #555;
+  color: $cool-charcoal;
   background: transparent;
   border: 0 none;
   font-family: $font;
@@ -61,7 +61,7 @@
   font-size: 16px;
   cursor: pointer;
   &:hover {
-    color: darken(#999, 30%);
+    color: darken($cool-charcoal, 30%);
   }
 }
 
@@ -85,7 +85,7 @@ input.row__questiontypes__new-question-name {
     input {
       width: 72%;
       padding: 6px;
-      border: 1px solid #78C4FD;
+      border: 1px solid $cool-blue-light;
       font-size: 15px;
     }
     button {
@@ -94,9 +94,9 @@ input.row__questiontypes__new-question-name {
       color: white;
       font-weight: 600;
       margin-bottom: 15px;
-      background: #39BF6E;
+      background: $warm-green;
       border: none;
-      border-bottom: 2px solid darken(#39bf6e, 10%);
+      border-bottom: 2px solid darken($warm-green, 10%);
       font-size: 14px;
       width: 25%;
       margin-left: 2%;
@@ -127,12 +127,12 @@ input.row__questiontypes__new-question-name {
   font-family: $font;
   font-weight: 600;
   cursor: pointer;
-  color: #35495D;
+  color: $c-bright-gray;
   i {
     margin-right: 10px;
     font-size: 16px;
     &.fa.invert {
-      background-color: #35495D;
+      background-color: $c-bright-gray;
       color: white;
       border-radius: 4px;
       padding: 3px;

@@ -15,7 +15,7 @@
     white-space: nowrap;
     border-radius: 4px;
     color: white;
-    background-color: #1daee3;
+    background-color: $cool-blue;
     height: 30px;
     line-height: 30px;
     padding: 0 20px;
@@ -29,7 +29,7 @@
     position: relative;
 
     &:hover {
-        background-color: #179dd0;
+        background-color: $cool-blue-light;
         text-decoration: none;
     }
 
@@ -85,7 +85,7 @@ input[type="button"].btn--block {
 }
 
 .btn--utility {
-    color: #222;
+    color: $black;
     background-color: transparent;
     padding:0px 10px;
     font-weight: 600;
@@ -94,7 +94,7 @@ input[type="button"].btn--block {
     }
     &:hover {
         background: transparent;
-        color: #5DB0EC;
+        color: $cool-blue;
     }
 }
 

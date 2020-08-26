@@ -82,7 +82,7 @@
   display: flex;
 
   .form-view__cell {
-    background: #F8F8FA;
+    background: $cool-whitegray;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -113,7 +113,7 @@
     }
 
     &:hover {
-      background: #F8F8FA;
+      background: $cool-whitegray;
     }
 
     i {
@@ -175,7 +175,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: #F8F8FA;
+    background: $cool-whitegray;
 
     span {
       font-size: 16px;

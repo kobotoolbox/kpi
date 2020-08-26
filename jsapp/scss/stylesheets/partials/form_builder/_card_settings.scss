@@ -23,10 +23,6 @@
   width: 20%;
 }
 
-.card__settings__tab--response-type {
-  @extend %incomplete;
-}
-
 // note: this rule is only used with '@extend'
 %card__settings__tabs__tab {
   padding: 6px 10px;
@@ -41,7 +37,7 @@
   @extend %card__settings__tabs__tab;
 
   &.card__settings__tabs__tab--active {
-    background: #E5E8EB;
+    background: $cool-lightgray;
     font-weight: 600;
   }
 }
@@ -104,7 +100,7 @@
 
   // possibly temporary
   &.xlf-dv-constraint_message {
-    border-top: 1px solid #d9dde1;
+    border-top: 1px solid $c-iron;
     padding-top: 15px;
   }
 
@@ -126,7 +122,7 @@
 }
 
 .card__settings-close {
-  background: #C5CACF;
+  background: C5CACF;
   position: absolute;
   right: 6px;
   top: 6px;
@@ -153,11 +149,11 @@
   padding: 0 10px;
   -webkit-appearance: none;
   text-transform: capitalize;
-  color: #333;
+  color: $c-charade;
   background-color: $c-desert-storm;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: $c-athens-gray;
   }
 }
 
@@ -202,7 +198,7 @@
     .select2-container-multi {
         vertical-align: top;
         display: table-cell;
-        border: 1px solid #CCC;
+        border: 1px solid $c-ghost;
         padding: 2px;
 
         .select2-choices {
@@ -213,14 +209,14 @@
             .select2-search-choice {
               border-radius: 5px;
               font-weight: normal;
-              background: darken(#e3e7ec, 6%);
-              color: #333;
+              background: $c-ghost;
+              color: $c-charade;
               padding-left: 5px;
               padding-right: 18px;
               .select2-search-choice-close {
                 left: auto;
                 right: 3px;
-                color: #666;
+                color: $cool-charcoal;
                 &:before {
                   content: '\00d7';
                 }

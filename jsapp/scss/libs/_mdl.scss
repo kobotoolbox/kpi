@@ -1,24 +1,6 @@
-// Theming variables, mixins and includes
+@import "../colors";
 
-$black: #414453;
-$white: #ffffff;
-$cool-charcoal: lighten($black, 10%); // #575b70
-$cool-darkgray: lighten($black, 20%); // #6e738c
-$cool-gray: lighten($black, 30%); // #8a8ea3
-$cool-silver: lighten($black, 40%); // #a6aaba
-$cool-lightgray: lighten($black, 60%); // #e0e1e6
-$divider-color: lighten($black, 63%); // #e8e9ed
-$cool-whitegray: lighten($black, 67%); // #f4f4f6
-$cool-blue: #2095f3;
-$cool-green: #52c5d0;
-$warm-green: #52ce7b;
-$cool-red: #ff556a;
-$cool-orange: #ffaa56;
-$c-river-bed: #454e54;
-$c-alabaster: #f9f9f9;
-$c-desert-storm: #f8f8f8;
-$c-alto: #dedede;
-$c-silver: #bbbbbb;
+// Theming variables, mixins and includes
 
 $root-background: $cool-whitegray;
 
@@ -26,24 +8,22 @@ $font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $layout-text-color: $black !default;
 $layout-nav-color: white !default;
 $layout-header-bg-color: $black !default;
-$layout-drawer-nav-link-color: #7d8a93 !default;
-$layout-drawer-nav-link-active-bg: $c-alabaster !default;
 $layout-desktop-header-height: 64px;
 
 @mixin box-shadow {
-  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.06), 0 2px 2px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 2px 0 rgba($black, 0.06), 0 2px 2px 0 rgba($black, 0.12);
   border-radius: 2px;
 }
 
 // element appears to be above regular box-shadow elements
 @mixin box-shadow-mid {
-  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 8px 8px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 8px 0 rgba($black, 0.06), 0 8px 8px 0 rgba($black, 0.12);
   border-radius: 2px;
 }
 
 // element appears to be above mid box-shadow elements
 @mixin box-shadow-top {
-  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 12px 0 rgba($black, 0.06), 0 12px 12px 0 rgba($black, 0.12);
   border-radius: 2px;
 }
 

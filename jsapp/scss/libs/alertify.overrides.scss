@@ -1,3 +1,5 @@
+@import "../colors";
+
 // alertify overrides
 
 .alertify .ajs-dimmer {
@@ -6,7 +8,7 @@
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba($black, 0.15);
 }
 
 .alertify .ajs-header {
@@ -125,7 +127,7 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: #484b5a;
+    background: $black;
     color: white;
     padding: 17px 24px;
     padding-right: 44px;
@@ -154,7 +156,6 @@
 }
 
 .alertify-toggle {
-  // border:2px solid red;
   display: block;
   padding-bottom: 5px;
   padding-top: 5px;
@@ -171,7 +172,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid #EDEDED;
+    border-top: 1px solid $divider-color;
     font-weight: bold;
   }
 }

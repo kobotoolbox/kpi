@@ -258,7 +258,7 @@ $mdl-layout-width: 1440px;
   }
 
   &:hover {
-    background-color: #eff0f1;
+    background-color: $c-athens-gray;
     color: $cool-gray;
   }
 
@@ -676,7 +676,7 @@ span.svg-icon {
     bottom: 0;
     left: 0;
     content: '';
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba($white, 0.7);
     border: 2px solid $cool-blue;
     z-index: 1;
     opacity: 0;

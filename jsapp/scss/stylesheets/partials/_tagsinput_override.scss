@@ -14,7 +14,7 @@ Overrides to jquery tags input CSS
 }
 
 div.tagsinput span.tag {
-  background: #5cb2ee;
+  background: $cool-blue-light;
   border: none;
   color: $white;
   font-family: $font;
@@ -30,7 +30,7 @@ div.tagsinput span.tag {
 
 div.tagsinput input {
   border: none;
-  color: #222;
+  color: $c-charade;
   font-family: $font;
   font-size: 12px;
   margin: 0 5px;
@@ -39,7 +39,7 @@ div.tagsinput input {
 }
 
 div.tagsinput span.tag a {
-  color: #5cb2ee;
+  color: $cool-blue-light;
   font-size: 1px;
   font-weight: normal;
   text-decoration: none;
@@ -63,7 +63,7 @@ ul.ui-autocomplete.ui-widget-content.ui-widget {
     background: white;
     font-size: 12px;
     &:hover {
-      background: #3875d7;
+      background: $cool-blue;
       a {
         color: $white !important;
         border: none !important;
@@ -73,7 +73,7 @@ ul.ui-autocomplete.ui-widget-content.ui-widget {
     }
     a {
       font-weight: normal;
-      color: #222;
+      color: $c-charade;
     }
   }
 }
