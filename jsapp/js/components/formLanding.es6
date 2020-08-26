@@ -5,9 +5,11 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import {bem} from '../bem';
+import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import ui from '../ui';
 import mixins from '../mixins';
+import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import {MODAL_TYPES} from '../constants';
@@ -17,13 +19,29 @@ import {
   notify
 } from '../utils';
 
+const DVCOUNT_LIMIT_MINIMUM = 20;
+
 export class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      selectedCollectMethod: 'offline_url'
+      selectedCollectMethod: 'offline_url',
+      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
+      nextPageUrl: null,
+      nextPagesVersions: []
     };
     autoBind(this);
+  }
+  componentDidMount () {
+    // reset loaded versions when new one is deployed
+    this.listenTo(actions.resources.deployAsset.completed, this.resetLoadedVersions);
+  }
+  resetLoadedVersions() {
+    this.setState({
+      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
+      nextPageUrl: null,
+      nextPagesVersions: []
+    });
   }
   enketoPreviewModal (evt) {
     evt.preventDefault();
@@ -38,7 +56,6 @@ export class FormLanding extends React.Component {
   renderFormInfo (userCanEdit) {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion;
-
     if (!this.isCurrentVersionDeployed()) {
       undeployedVersion = `(${t('undeployed')})`;
       dvcount = dvcount + 1;
@@ -129,8 +146,32 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
+  loadMoreVersions() {
+    if (this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <= this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM) {
+      this.setState({ DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
+    }
+    let urlToLoad = null;
+    if(this.state.nextPageUrl) {
+      urlToLoad = this.state.nextPageUrl;
+    } else if (this.state.deployed_versions.next) {
+      urlToLoad = this.state.deployed_versions.next;
+    }
+    if (urlToLoad !== null) {
+      dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
+        this.setState({nextPageUrl: data.deployed_versions.next});
+        const newNextPagesVersions = this.state.nextPagesVersions;
+        Object.values(data.deployed_versions.results).forEach((item) => {
+          newNextPagesVersions.push(item);
+        });
+        this.setState({nextPagesVersions: newNextPagesVersions});
+      });
+    }
+  }
   renderHistory () {
     var dvcount = this.state.deployed_versions.count;
+    const versionsToDisplay = this.state.deployed_versions.results.concat(
+      this.state.nextPagesVersions
+    );
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'history-label']}>
@@ -145,30 +186,32 @@ export class FormLanding extends React.Component {
               <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
               <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
             </bem.FormView__group>
-            {this.state.deployed_versions.results.map((item, n) => {
-              return (
-                <bem.FormView__group m='items' key={n} >
-                  <bem.FormView__label m='version'>
-                    {`v${dvcount - n}`}
-                    {item.uid === this.state.deployed_version_id && this.state.deployment__active &&
-                      <bem.FormView__cell m='deployed'>
-                        {t('Deployed')}
-                      </bem.FormView__cell>
-                    }
-                  </bem.FormView__label>
-                  <bem.FormView__label m='date'>
-                    {formatTime(item.date_deployed)}
-                  </bem.FormView__label>
-                  <bem.FormView__label m='clone' className='right-tooltip'>
-                      <bem.FormView__link m='clone'
-                          data-version-id={item.uid}
-                          data-tip={t('Clone this version as a new project')}
-                          onClick={this.saveCloneAs}>
-                        <i className='k-icon-clone' />
-                      </bem.FormView__link>
-                  </bem.FormView__label>
-                </bem.FormView__group>
-              );
+            {versionsToDisplay.map((item, n) => {
+              if (dvcount - n > 0) {
+                return (
+                  <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''} >
+                    <bem.FormView__label m='version'>
+                      {`v${dvcount - n}`}
+                      {item.uid === this.state.deployed_version_id && this.state.deployment__active &&
+                        <bem.FormView__cell m='deployed'>
+                          {t('Deployed')}
+                        </bem.FormView__cell>
+                      }
+                    </bem.FormView__label>
+                    <bem.FormView__label m='date'>
+                      {formatTime(item.date_deployed)}
+                    </bem.FormView__label>
+                    <bem.FormView__label m='clone' className='right-tooltip'>
+                        <bem.FormView__link m='clone'
+                            data-version-id={item.uid}
+                            data-tip={t('Clone this version as a new project')}
+                            onClick={this.saveCloneAs}>
+                          <i className='k-icon-clone' />
+                        </bem.FormView__link>
+                    </bem.FormView__label>
+                  </bem.FormView__group>
+                );
+              }
             })}
           </bem.FormView__group>
         </bem.FormView__cell>
@@ -177,6 +220,11 @@ export class FormLanding extends React.Component {
             <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
             </button>
+            {(this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount) &&
+              <button className='mdl-button mdl-button--colored' onClick={this.loadMoreVersions}>
+                {t('Load more')}
+              </button>
+            }
           </bem.FormView__cell>
         }
       </bem.FormView__row>

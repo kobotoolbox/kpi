@@ -75,6 +75,11 @@
     min-height: 18px;
     cursor: move;
 
+    &:focus {
+      border-color: lighten($cool-blue, 10%);
+      color: lighten($cool-blue, 10%);
+    }
+
     span {
       cursor: text;
     }

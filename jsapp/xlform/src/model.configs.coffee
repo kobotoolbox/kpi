@@ -144,6 +144,12 @@ module.exports = do ->
       required:
         value: false
         _hideUnlessChanged: true
+    hidden:
+      label:
+        value: "hidden"
+      required:
+        value: false
+        _hideUnlessChanged: true
     datetime:
       label:
         value: "Enter a date and time"
@@ -230,6 +236,7 @@ module.exports = do ->
       ["video", "Video", isMedia: true], # Can use phone camera to record video
       ["file", "File"],
       ["calculate", "Calculate"],
+      ["hidden", "Hidden"],
       ["select_one", "Select", orOtherOption: true, specifyChoice: true],
       ["score", "Score"],
       ["score__row", "Score Row"],
