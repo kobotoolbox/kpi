@@ -84,57 +84,8 @@ input[type="button"].btn--block {
     width: 100%;
 }
 
-.btn--utility {
-    color: $black;
-    background-color: transparent;
-    padding:0px 10px;
-    font-weight: 600;
-    i {
-        margin-right: 5px;
-    }
-    &:hover {
-        background: transparent;
-        color: $cool-blue;
-    }
-}
-
 .btn--disabled {
     cursor: default;
     color: $cool-lightgray;
     font-weight: normal;
-    &.btn--utility:hover {
-        background-color: inherit;
-    }
-}
-
-.btn--create-new-form {
-    padding-right: 20px;
-    padding-left: 20px;
-}
-
-
-// ==========================================================================
-// Fileupload Button fix
-// ==========================================================================
-
-.btn--fileupload {
-    /* form */
-    margin-top: -1px;
-    overflow: hidden;
-    position: relative;
-}
-
-.btn--fileupload input {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-    opacity: 0;
-    display: inline-block;
-    width: 77px;
-    height: 33px;
-    -ms-filter: 'alpha(opacity=0)';
-    font-size: 0px;
-    direction: ltr;
-    cursor: pointer;
 }
