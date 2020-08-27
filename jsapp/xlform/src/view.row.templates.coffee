@@ -177,7 +177,7 @@ module.exports = do ->
       </tbody>
       <tfoot>
         <tr>
-        <td class="scorerow--add"><button>+</button></td>
+        <td class="scorerow--add"><button class="btn btn--small btn--gray">+</button></td>
         </tr>
       </tfoot>
     </table>
@@ -232,11 +232,11 @@ module.exports = do ->
     <div class="rank_preview clearfix">
       <ol class="rank__rows">
         #{rank_rows_lis.join('')}
-        <li class="rank_items__add rank_items__add--item"><button>+</button></li>
+        <li class="rank_items__add rank_items__add--item"><button class="btn btn--small btn--gray">+</button></li>
       </ol>
       <ul class="rank__levels">
         #{rank_levels_lis.join('')}
-        <li class="rank_items__add rank_items__add--level"><button>+</button></li>
+        <li class="rank_items__add rank_items__add--level"><button class="btn btn--small btn--gray">+</button></li>
         #{rank_constraint_message_li}
       </ul>
     </div>

@@ -254,9 +254,9 @@ tr .scorecell__radio:hover {
 .rank_items__add {
   list-style-type: none;
 
-  button {
+  .btn {
     display: block;
-    width: 35%;
+    width: 100%;
     line-height: 10px;
   }
 }
