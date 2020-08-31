@@ -28,16 +28,14 @@ $white: #ffffff; // 100% lightness - used 90+ times, buttons text, backgrounds
 /*
  Group 2: Accent colors
 */
-$cool-blue: #2095f3; // KoBo blue
-$cool-blue-light: #3fa2ee;
-$cool-blue-lighter: #a1d2f7;
-$cool-green: #52c5d0; // KoBo green (teal?)
-$warm-green: #52ce7b; // positive messages
-$warm-green-light: #afe9c2;
-$cool-red: #ff556a; // error messages
-$cool-red-light: #ffadb7;
-$cool-red-washed: #cd8991;
-$cool-orange: #ffaa56; // warning color
-$c-pearl-lusta: #fcf8e3; // form builder survey warnings color 1
-$c-shadow: #8a6d3b; // form builder survey warnings color 2
-$c-sorrell-brown: #cfb98b; // form builder survey warnings color 3
+$cool-blue: #2095f3; // THE KoBo blue - used 90+ times
+$cool-blue-light: #3fa2ee; // used 10+ times
+$cool-green: #52c5d0; // KoBo green (teal?) - used 30+ times
+$warm-green: #52ce7b; // positive messages - used 10+ times
+$cool-red: #ff556a; // error messages - used 40+ times
+$cool-red-washed: #cd8991; // used few times for text or buttons
+$cool-orange: #ffaa56; // warning color - used few times for text or buttons
+// below three form builder survey warning message colors - each used only once
+$c-pearl-lusta: #fcf8e3;
+$c-shadow: #8a6d3b;
+$c-sorrell-brown: #cfb98b;

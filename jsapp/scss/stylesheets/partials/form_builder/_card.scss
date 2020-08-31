@@ -16,7 +16,7 @@
     }
     &.card--error {
         padding: 12px 20px;
-        background-color: $cool-red-light;
+        background-color: rgba($cool-red, 0.5);
     }
     .card__header {
         border: $cardBorderStyle;
@@ -143,7 +143,7 @@
     }
 }
 .card--error {
-    background-color: $cool-red-light;
+    background-color: rgba($cool-red, 0.5);
 }
 
 // ==========================================================================

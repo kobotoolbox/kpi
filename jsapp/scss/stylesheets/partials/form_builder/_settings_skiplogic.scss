@@ -18,7 +18,7 @@
   }
 
   &.skiplogic__select-builder {
-    background: $warm-green-light;
+    background: lighten($warm-green, 30%);
     border-bottom: 1px solid $warm-green;
 
     i {
@@ -27,7 +27,7 @@
   }
 
   &.skiplogic__select-handcode {
-    background: $cool-blue-lighter;
+    background: lighten($cool-blue-light, 30%);
     border-bottom: 1px solid $cool-blue-light;
 
     i {
