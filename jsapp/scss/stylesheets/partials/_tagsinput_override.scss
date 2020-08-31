@@ -30,7 +30,7 @@ div.tagsinput span.tag {
 
 div.tagsinput input {
   border: none;
-  color: $c-charade;
+  color: $black;
   font-family: $font;
   font-size: 12px;
   margin: 0 5px;
@@ -73,7 +73,7 @@ ul.ui-autocomplete.ui-widget-content.ui-widget {
     }
     a {
       font-weight: normal;
-      color: $c-charade;
+      color: $black;
     }
   }
 }

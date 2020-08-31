@@ -2,11 +2,6 @@
 // Card settings tabs
 // ==========================================================================
 
-// ==========================================================================
-// Advanced details
-// ==========================================================================
-
-// .advanced-details BECOMES .card__settingswrap
 // TODO: this element might not be necessary
 
 .card__settings {
@@ -137,32 +132,9 @@
 }
 
 // ==========================================================================
-// Edit buttons
-// ==========================================================================
-
-.editable-buttons button,
-.card__settingswrap button {
-  height: 28px;
-  margin: 3px 0;
-  border: 1px solid;
-  border-radius: 4px;
-  padding: 0 10px;
-  -webkit-appearance: none;
-  text-transform: capitalize;
-  color: $c-charade;
-  background-color: $c-desert-storm;
-
-  &:hover {
-    background-color: $c-athens-gray;
-  }
-}
-
-// ==========================================================================
-
 // Overrides
 // --------------------------------------------------------------------------
 
-// .advanced-details displayed only inside .card--expandedsettings
 .card {
   .card__settings {
     display: none;
@@ -174,7 +146,8 @@
     }
 
     .card__buttons__button--settings {
-      @extend %activated-card-button;
+      color: $cool-darkgray;
+      background-color: $c-iron;
     }
   }
 }
@@ -184,7 +157,7 @@
 // ==========================================================================
 
 .settings__hxl {
-    background: $c-desert-storm;
+    background: $cool-whitegray;
     display: table-row;
     .hxlTag {
       width: 120px;
@@ -210,7 +183,7 @@
               border-radius: 5px;
               font-weight: normal;
               background: $c-ghost;
-              color: $c-charade;
+              color: $black;
               padding-left: 5px;
               padding-right: 18px;
               .select2-search-choice-close {

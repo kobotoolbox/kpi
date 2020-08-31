@@ -171,11 +171,11 @@ tr:last-child {
 }
 
 tr:hover .scorecell__radio {
-  background-color: $c-desert-storm;
+  background-color: $cool-whitegray;
 }
 
 tr .scorecell__radio:hover {
-  background-color: $c-desert-storm;
+  background-color: $cool-whitegray;
 }
 
 .rank__rows {
@@ -227,7 +227,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_message {
   font-size: 92%;
-  color: $c-bright-gray;
+  color: $black;
   font-style: italic;
 
   &:before {
@@ -239,7 +239,7 @@ tr .scorecell__radio:hover {
       content: '';
     }
 
-    color: $c-storm-gray;
+    color: $cool-darkgray;
   }
 
   div {
@@ -331,7 +331,7 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: $c-silver;
+  color: $cool-silver;
 
   &.prelim {
     font-style: italic;

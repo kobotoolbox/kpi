@@ -282,12 +282,12 @@ $mdl-layout-width: 1440px;
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: $c-alabaster;
+  background-color: $cool-whitegray;
   border-bottom: 1px solid lighten($cool-gray, 25%);
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: $c-alabaster;
+  background-color: $cool-whitegray;
   position: relative;
   text-align: left;
   padding-right: 35px;
@@ -316,7 +316,7 @@ $mdl-layout-width: 1440px;
   padding: 8px 15px;
   color: $cool-gray;
   border-top: 1px solid lighten($cool-gray, 25%);
-  background-color: $c-alabaster;
+  background-color: $cool-whitegray;
   margin: 0px;
 }
 
@@ -419,7 +419,7 @@ $mdl-layout-width: 1440px;
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    background: $c-desert-storm;
+    background: $cool-whitegray;
     position: relative;
 
     @include box-shadow;
@@ -586,7 +586,7 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: $c-alto;
+      background: $c-iron;
     }
   }
 }
@@ -632,13 +632,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: $c-alto;
+  background-color: $c-iron;
   background-color: transparent;
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: $c-alto;
+  background-color: $c-iron;
   outline: none;
   border-radius: 8px;
 }

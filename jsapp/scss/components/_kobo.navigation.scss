@@ -1,17 +1,8 @@
 // header and navigation styling
 
-.k-header__bar {
+.mdl-layout__header {
   background-color: $layout-header-bg-color;
   box-shadow: 0 2px 2px 0 rgba($black, 0.14), 0 3px 1px -2px rgba($black, 0.2), 0 1px 5px 0 rgba($black, 0.12);
-  position: absolute;
-  min-height: 64px;
-  width: 100%;
-  z-index: 0;
-}
-
-.mdl-layout__header {
-  background-color: transparent;
-  box-shadow: none !important;
   min-height: $layout-desktop-header-height;
   margin-left: 0px;
   width: 100%;

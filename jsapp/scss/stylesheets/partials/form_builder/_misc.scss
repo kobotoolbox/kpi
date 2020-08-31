@@ -50,29 +50,6 @@ code input[type="text"] {
   text-align: right;
 }
 
-//.editable-container is a $.poshytip className
-.editable-container {
-  vertical-align: top;
-  .editable-input input {
-    font-weight: 600;
-    border-radius: 0px;
-    border: none;
-    padding: 0px !important;
-    font-size: 13px;
-    width: 100%;
-    display: inline-block;
-    margin: 0px;
-    height: auto;
-    background-color: transparent;
-  }
-  .editable-buttons {
-    position: absolute;
-    top: -20px;
-    right: 0px;
-    font-size: 10px;
-  }
-}
-
 // ==========================================================================
 // Survey import warnings
 // ==========================================================================

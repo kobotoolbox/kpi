@@ -455,7 +455,7 @@ $t-form-builder-aside-open: 200ms;
 }
 
 .form-meta__button--metasummary {
-  background-color: $c-desert-storm;
+  background-color: $cool-whitegray;
   width: calc(100% - 80px);
   text-align: left;
   text-transform: uppercase;
@@ -596,8 +596,7 @@ $t-form-builder-aside-open: 200ms;
         width: 24%;
       }
 
-      span,
-      .editable-container {
+      span {
         padding-right: 2px;
         width: 64%;
         overflow: hidden;
@@ -633,7 +632,7 @@ $t-form-builder-aside-open: 200ms;
 
   .questiontypelist__item {
     text-align: center;
-    background: $c-desert-storm;
+    background: $cool-whitegray;
 
     i {
       display: block;

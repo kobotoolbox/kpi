@@ -57,7 +57,7 @@
 
       &.active {
         color: $cool-gray;
-        background: $c-desert-storm;
+        background: $cool-whitegray;
         position: relative;
 
         &:after {
@@ -65,7 +65,7 @@
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid $c-desert-storm;
+          border-top: 10px solid $cool-whitegray;
           content: '';
           position: absolute;
           bottom: -9px;

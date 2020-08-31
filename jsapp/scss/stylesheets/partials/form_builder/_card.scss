@@ -100,7 +100,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: $c-silver;
+            color: $cool-silver;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -289,8 +289,7 @@ $cardIndicatorIconWidth: 21px;
         bottom: 26%;
     }
     &.card__buttons__button--activated {
-        // trying to transition this into %activated-card-button
-        color: $c-storm-gray;
+        color: $cool-darkgray;
         background-color: $c-iron;
         opacity: 1;
     }

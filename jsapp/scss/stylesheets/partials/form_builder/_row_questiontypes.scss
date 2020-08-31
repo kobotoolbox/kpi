@@ -127,12 +127,12 @@ input.row__questiontypes__new-question-name {
   font-family: $font;
   font-weight: 600;
   cursor: pointer;
-  color: $c-bright-gray;
+  color: $black;
   i {
     margin-right: 10px;
     font-size: 16px;
     &.fa.invert {
-      background-color: $c-bright-gray;
+      background-color: $black;
       color: white;
       border-radius: 4px;
       padding: 3px;
