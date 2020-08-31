@@ -93,7 +93,7 @@
     }
 
     &--selected {
-      background: $c-athens-gray;
+      background: $cool-whitegray;
 
       .popover-menu {
         position: absolute;
@@ -121,7 +121,7 @@
     }
 
     &.active {
-      background: $c-athens-gray;
+      background: $cool-whitegray;
 
       .form-sidebar__itemlink {
         color: $cool-green;

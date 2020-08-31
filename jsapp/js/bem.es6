@@ -60,10 +60,6 @@ bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 
-bem.FormMeta = bem('form-meta');
-bem.FormMeta__content = bem.FormMeta.__('content');
-bem.FormMeta__button = bem.FormMeta.__('button');
-
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');

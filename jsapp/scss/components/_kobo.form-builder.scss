@@ -23,33 +23,6 @@ $t-form-builder-aside-open: 200ms;
   transition: margin $t-form-builder-aside-open;
 }
 
-@media screen and (min-width: 1400px) {
-  .page-wrapper--in-formbuilder {
-    &::before {
-      content: ' ';
-      width: 100%;
-      height: 75px;
-      background-color: $white;
-      position: fixed;
-      right: 0;
-      z-index: -1;
-      top: 0;
-    }
-
-    &::after {
-      content: ' ';
-      width: 100%;
-      height: 50px;
-      position: fixed;
-      right: 0;
-      z-index: -1;
-      top: 75px;
-      background-color: $c-athens-gray;
-      box-shadow: 0 2px 2px 0 rgba($black, 0.22);
-    }
-  }
-}
-
 @media screen and (min-width: 1100px) {
   .form-builder-aside--visible + .formBuilder,
   .lib-nav--visible + .formBuilder {
@@ -198,7 +171,7 @@ $t-form-builder-aside-open: 200ms;
 
         small {
           display: block;
-          color: $c-waterloo;
+          color: $cool-darkgray;
 
           &::before {
             content: '+ ';
@@ -454,29 +427,6 @@ $t-form-builder-aside-open: 200ms;
   }
 }
 
-.form-meta__button--metasummary {
-  background-color: $cool-whitegray;
-  width: calc(100% - 80px);
-  text-align: left;
-  text-transform: uppercase;
-
-  @extend .mdl-button;
-
-  span {
-    margin: 0 5px;
-  }
-}
-
-.form-meta__button--expand {
-  background-color: $c-athens-gray;
-
-  @extend .mdl-button;
-
-  > i {
-    @extend .fa, .fa-fw, .fa-cog;
-  }
-}
-
 // CASCADE MODAL CONTENTS
 
 .cascade-popup {
@@ -549,11 +499,6 @@ $t-form-builder-aside-open: 200ms;
 
   .form-wrap {
     padding: 30px 45px;
-  }
-
-  .form-meta {
-    margin: 16px 25px;
-    margin-right: 0;
   }
 }
 
