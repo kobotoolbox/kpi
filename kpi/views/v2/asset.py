@@ -385,7 +385,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         Prepare metadata to inject in list endpoint.
         Useful to retrieve values needed for search
 
-        ToDo optimize queries. See https://github.com/kobotoolbox/kpi/issues/2690
         :return: dict
         """
         metadata = {
@@ -396,19 +395,14 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         }
 
         # Languages
-        # Refactor this query when
-        # https://github.com/kobotoolbox/kpi/issues/2635 is merged.
         summaries = queryset.values_list('summary', flat=True). \
-            filter(summary__contains='languages')
+            exclude(summary__languages__is_null=True). \
+            exclude(summary__languages__exact='')
+
         summaries.query.clear_ordering(True)
 
         for summary in summaries.all():
             try:
-                # Remove this condition when
-                # https://github.com/kobotoolbox/kpi/issues/2635 is merged
-                if not isinstance(summary, dict):
-                    summary = json.loads(summary)
-
                 for language in summary['languages']:
                     if language:
                         metadata['languages'].add(language)

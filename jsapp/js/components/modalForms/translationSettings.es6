@@ -10,6 +10,8 @@ import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
 import {t, getLangString, notify} from 'utils';
 
+const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
+
 export class TranslationSettings extends React.Component {
   constructor(props){
     super(props);
@@ -264,9 +266,13 @@ export class TranslationSettings extends React.Component {
                 {' ' + t('official language code') + ' '}
               </a>
               {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
-              <a target='_blank' href='http://support.kobotoolbox.org/creating-forms/adding-another-language-to-your-form-in-the-project-dashboard'>
-                {' ' + t('Read more.')}
-              </a>
+
+              { stores.serverEnvironment &&
+                stores.serverEnvironment.state.support_url &&
+                <a target='_blank' href={stores.serverEnvironment.state.support_url + LANGUAGE_SUPPORT_URL}>
+                  {' ' + t('Read more.')}
+                </a>
+              }
             </p>
           </bem.FormView__cell>
           <bem.FormView__cell m='translation'>

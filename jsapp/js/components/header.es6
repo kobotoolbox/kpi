@@ -133,14 +133,22 @@ class MainHeader extends Reflux.Component {
                     </button>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
-                {stores.session && stores.session.environment &&
+                {
+                  stores.session &&
+                  stores.session.environment &&
+                  stores.session.environment.terms_of_service_url ||
+                  stores.session.environment.privacy_policy_url &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
-                    <a href={stores.session.environment.terms_of_service_url} target='_blank'>
-                      {t('Terms of Service')}
-                    </a>
-                    <a href={stores.session.environment.privacy_policy_url} target='_blank'>
-                      {t('Privacy Policy')}
-                    </a>
+                    {stores.session.environment.terms_of_service_url &&
+                      <a href={stores.session.environment.terms_of_service_url} target='_blank'>
+                        {t('Terms of Service')}
+                      </a>
+                    }
+                    {stores.session.environment.privacy_policy_url &&
+                      <a href={stores.session.environment.privacy_policy_url} target='_blank'>
+                        {t('Privacy Policy')}
+                      </a>
+                    }
                   </bem.AccountBox__menuLI>
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
