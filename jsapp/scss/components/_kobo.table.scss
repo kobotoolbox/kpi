@@ -55,7 +55,7 @@
 
     .rt-table {
       border: 1px solid $divider-color;
-      background-color: #FFF;
+      background-color: $white;
       font-size: 13px;
     }
 
@@ -138,7 +138,7 @@
     .rt-th, .rt-td {
       padding: 2px;
       padding-left: 6px;
-      border-right: 1px solid rgba(0, 0, 0, 0.03);
+      border-right: 1px solid rgba($black, 0.03);
       line-height: 30px;
     }
 
@@ -203,7 +203,7 @@
     }
 
     .-loading {
-      background: $c-desert-storm;
+      background: $cool-whitegray;
 
       .-loading-inner {
         display: block;
@@ -229,7 +229,7 @@
         order: -1;
         position: relative;
         left: 0;
-        background: $c-desert-storm;
+        background: $cool-whitegray;
         height: 36px;
         transition: left 0.2s;
         margin-right: 6px;
@@ -244,44 +244,16 @@
       }
 
       &.-striped .rt-tr.-odd .frozen {
-        background: #F1F1F1;
+        background: $cool-whitegray;
       }
 
       &.-striped .rt-tr:hover .frozen {
-        background: #edf9fa;
+        background: rgba($cool-green, 0.1);
       }
 
       .rt-th.frozen {
         height: 34px;
       }
-    }
-  }
-
-  .form-view__cell--table-warning {
-    position: absolute;
-    width: calc(100% - 60px);
-    background: lighten(#FFB775, 20%);
-    padding: 5px;
-    top: 10px;
-    z-index: 99;
-
-    i.k-icon-alert {
-      font-size: 32px;
-      vertical-align: middle;
-      color: #FFB775;
-    }
-
-    a {
-      cursor: pointer;
-    }
-
-    i.k-icon-close {
-      position: absolute;
-      right: 10px;
-      font-size: 24px;
-      top: 10px;
-      background: lighten(#FFB775, 20%);
-      cursor: pointer;
     }
   }
 }
@@ -297,7 +269,7 @@
     &--advanced-table-options {
       border: 1px solid $divider-color;
       padding: 20px;
-      background: $c-desert-storm;
+      background: $cool-whitegray;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -322,7 +294,7 @@
     overflow: auto;
     border: 1px solid $divider-color;
     padding: 10px;
-    background: #FFF;
+    background: $white;
 
     li {
       margin-bottom: 5px;

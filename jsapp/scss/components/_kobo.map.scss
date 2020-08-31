@@ -19,7 +19,7 @@ $z-map-settings-3: 701;
     width: 100%;
     height: 100%;
     z-index: 0;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba($white, 0.8);
   }
 
   .form-view__map-button {
@@ -101,7 +101,7 @@ $z-map-settings-3: 701;
 
   .popover-menu__toggle {
     min-width: 180px;
-    background: #FFF;
+    background: $white;
     max-width: 340px;
     overflow: hidden;
     white-space: nowrap;
@@ -123,11 +123,11 @@ $z-map-settings-3: 701;
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 5px 5px rgba($black, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: #F9F9F9;
+      background: $cool-whitegray;
       border-top: 1px solid $divider-color;
     }
 
@@ -171,7 +171,7 @@ body .leaflet-control-layers,
   min-width: 180px;
   max-width: 300px;
   padding: 5px;
-  background: #FFF;
+  background: $white;
   overflow: none;
 
   @include box-shadow;
@@ -270,7 +270,7 @@ body .leaflet-control-layers,
     height: 24px;
     padding: 0 3px;
     position: relative;
-    text-shadow: 0 0 1px #FFF;
+    text-shadow: 0 0 1px $white;
     color: $black;
 
     &::after {
@@ -302,7 +302,7 @@ body .leaflet-control-layers,
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba($white, 0.5);
     z-index: $z-map-settings-3;
   }
 }

@@ -13,7 +13,7 @@ $z-modal-x: 10;
   z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
-  background-color: rgba(0, 0, 0, 0.4) !important;
+  background-color: rgba($black, 0.4) !important;
 }
 
 .modal {
@@ -125,7 +125,7 @@ $z-modal-x: 10;
 }
 
 .modal__subheader {
-  background: $c-desert-storm;
+  background: $cool-whitegray;
   padding: 20px 30px;
   margin: -30px -30px 20px;
   color: $cool-silver;
@@ -204,7 +204,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: $c-desert-storm;
+    background-color: $cool-whitegray;
     color: $layout-text-color;
   }
 
@@ -327,7 +327,7 @@ $z-modal-x: 10;
     }
 
     i:before {
-      color: #3FA2EE;
+      color: $cool-blue-light;
       font-size: 20px;
     }
   }
@@ -342,9 +342,9 @@ $z-modal-x: 10;
 }
 
 .enketo-iframe-icon {
-  color: #fff;
+  color: $white;
   background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
-  background-color: #C6CBD0;
+  background-color: $c-ghost;
   background-position: -81px -129px;
   position: absolute;
   right: 6px;
@@ -398,7 +398,7 @@ $z-modal-x: 10;
       display: inline-block;
       vertical-align: top;
       border: 1px solid $divider-color;
-      background: $c-desert-storm;
+      background: $cool-whitegray;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;

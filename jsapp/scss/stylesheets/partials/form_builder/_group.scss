@@ -6,9 +6,8 @@
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
-    background-color: rgba(233, 237, 240, 0.8);
-    background-color: #e9edf0;
-    border: 1px solid #c3cfd8;
+    background-color: $divider-color;
+    border: 1px solid $c-ghost;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
@@ -22,7 +21,7 @@
 }
 
 .group__header {
-    border-bottom: 1px solid #c3cfd8;
+    border-bottom: 1px solid $c-ghost;
     position: relative;
     margin: -4px -10px 0;
     padding: 12px;
@@ -70,14 +69,14 @@
     text-align: center;
 
     &.group__header__buttons__button--gray {
-        color: #858F98;
+        color: $cool-darkgray;
     }
     &.group__header__buttons__button--red {
-        color: #D08B8C;
+        color: $cool-red-washed;
     }
     &.group__header__buttons__button--activated {
-        color: #646D75;
-        background-color: #D9DDE1;
+        color: $cool-darkgray;
+        background-color: $c-iron;
     }
 }
 
@@ -119,7 +118,7 @@
             margin:-4px 0px 0px;
         }
         .group__header__buttons__button--settings {
-            background: #D2D7DC;
+            background: $c-ghost;
         }
     }
 
@@ -129,7 +128,7 @@
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
 .group__caret {
     cursor: pointer;
-    color: #8595a6;
+    color: $cool-gray;
 }
 .group--shrunk {
     border-bottom: none;
@@ -143,12 +142,12 @@
 }
 
 .group__rows .group {
-    background: #CBD3D9;
+    background: $c-iron;
     margin-bottom: 12px;
     .group__header {
-        border-bottom: 1px solid #9EA8B0;
+        border-bottom: 1px solid $c-ghost;
     }
     .group__header__buttons {
-        border-left-color: #9EA8B0;
+        border-left-color: $c-ghost;
     }
 }

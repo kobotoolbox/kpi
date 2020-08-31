@@ -9,7 +9,7 @@
 }
 
 .report-view__warning {
-  background-color: #FFF;
+  background-color: $white;
 
   @include box-shadow;
 
@@ -33,7 +33,7 @@
 }
 
 .report-view__item {
-  background-color: #FFF;
+  background-color: $white;
 
   @include box-shadow;
 
@@ -43,7 +43,7 @@
 .report-view__itemHeading {
   padding: 10px 24px;
   border-left: 5px solid $cool-green;
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid $c-ghost;
   position: relative;
 
   h2 {
@@ -98,7 +98,7 @@
     }
 
     tbody tr td {
-      border-bottom: 1px solid #CCC;
+      border-bottom: 1px solid $c-ghost;
       padding: 8px;
       text-align: right;
 

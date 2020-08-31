@@ -208,7 +208,7 @@ $mdl-layout-width: 1440px;
   min-width: 160px;
   max-width: 300px;
   text-align: left;
-  background: #FFF;
+  background: $white;
   z-index: 10;
   right: -10px;
   transition: opacity 0.35s;
@@ -262,7 +262,7 @@ $mdl-layout-width: 1440px;
   }
 
   &:hover {
-    background-color: $divider-color;
+    background-color: $cool-whitegray;
     color: $cool-gray;
   }
 
@@ -437,7 +437,7 @@ $mdl-layout-width: 1440px;
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    background: $c-desert-storm;
+    background: $cool-whitegray;
     position: relative;
 
     @include box-shadow;
@@ -604,7 +604,7 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: #DEDEDE;
+      background: $c-iron;
     }
   }
 }
@@ -650,13 +650,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #DEDEDE;
+  background-color: $c-iron;
   background-color: transparent;
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #DEDEDE;
+  background-color: $c-iron;
   outline: none;
   border-radius: 8px;
 }
@@ -694,7 +694,7 @@ span.svg-icon {
     bottom: 0;
     left: 0;
     content: '';
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba($white, 0.7);
     border: 2px solid $cool-blue;
     z-index: 1;
     opacity: 0;

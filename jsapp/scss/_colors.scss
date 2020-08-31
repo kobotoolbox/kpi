@@ -1,0 +1,43 @@
+// TODO: this is our current pallete of colors
+// we neeed to clean this up and merge/cut out some colors
+
+/*
+  Group 1: Blueish grays
+
+  NOTE: KPI uses "$black" as default text color and all gray elements of UI are
+  derived from this color for better match (hue and saturation is shared).
+
+  I tried moving all different shades of hues in grays I've found in code to
+  this list, either megring into existing colors or creating new ones.
+
+  There are too many shades of gray here. We need to merge them further and cut
+  down the list at least to less than 10 colors.
+*/
+$black: #414453; // 29% lightness - used 50+ times, base text
+$cool-charcoal: #575b70; // 39% lightness - used 10+ times, header background
+$cool-darkgray: #6e738c; // 49% lightness - used 20+ times, less important text
+$cool-gray: #8a8ea3; // 59% lightness - used 60+ times, buttons text & borders
+$cool-silver: #a6aaba; // 69% lightness - used 10+ times, buttons text & borders
+$c-ghost: #cbced7; // 82% lightness - used 10+ times, borders
+$c-iron: #d8d9df; // 86% lightness - used 20+ times, backgrounds & borders
+$cool-lightgray: #e0e1e6; // 89% lightness - used 40+ times, backgrounds & borders
+$divider-color: #e8e9ed; // 91% lightness - used 40+ times, borders
+$cool-whitegray: #f4f4f6; // 96% lightness - used 40+ times, backgrounds
+$white: #ffffff; // 100% lightness - used 90+ times, buttons text, backgrounds
+
+/*
+ Group 2: Accent colors
+*/
+$cool-blue: #2095f3; // KoBo blue
+$cool-blue-light: #3fa2ee;
+$cool-blue-lighter: #a1d2f7;
+$cool-green: #52c5d0; // KoBo green (teal?)
+$warm-green: #52ce7b; // positive messages
+$warm-green-light: #afe9c2;
+$cool-red: #ff556a; // error messages
+$cool-red-light: #ffadb7;
+$cool-red-washed: #cd8991;
+$cool-orange: #ffaa56; // warning color
+$c-pearl-lusta: #fcf8e3; // form builder survey warnings color 1
+$c-shadow: #8a6d3b; // form builder survey warnings color 2
+$c-sorrell-brown: #cfb98b; // form builder survey warnings color 3

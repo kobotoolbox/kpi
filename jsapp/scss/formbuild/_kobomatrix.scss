@@ -1,11 +1,11 @@
 .card__kobomatrix {
-  border: 1px solid #d9dde1;
+  border: 1px solid $c-iron;
   border-top: none;
 }
 
 .survey__row--selected {
   > .survey__row__item > .card__kobomatrix {
-    border-color: #3fa2ee;
+    border-color: $cool-blue-light;
     border-top: none;
   }
 }
@@ -14,7 +14,7 @@
   width: 100%;
   padding: 23px 50px 23px 20px;
   position: relative;
-  background: #FFF;
+  background: $white;
 
   .matrix-items-new {
     margin: 23px 0px;
@@ -57,8 +57,8 @@
     margin-bottom: -1px;
 
     &.active {
-      background: $c-desert-storm;
-      border-bottom: 1px solid $c-desert-storm;
+      background: $cool-whitegray;
+      border-bottom: 1px solid $cool-whitegray;
     }
 
     .matrix-cols__colattr--type {
@@ -84,7 +84,7 @@
 
 .matrix-cols__settings {
   width: 100%;
-  background: $c-desert-storm;
+  background: $cool-whitegray;
   border: 1px solid $cool-lightgray;
   border-bottom: none;
   padding: 15px;
@@ -124,7 +124,7 @@
 
     > input[type="text"] {
       padding: 4px 8px;
-      border: 1px solid #CCC;
+      border: 1px solid $c-ghost;
       border-radius: 4px;
     }
 
@@ -153,7 +153,7 @@
 }
 
 .matrix-cols__options {
-  background: #F1F1F1;
+  background: $cool-whitegray;
   border: 1px solid $cool-lightgray;
   padding: 10px;
   margin: 20px 0px;
@@ -267,7 +267,7 @@
 
   .matrix-items__itemsettings {
     width: 100%;
-    background: $c-desert-storm;
+    background: $cool-whitegray;
     border: 1px solid $cool-lightgray;
     border-bottom: none;
     padding: 15px;

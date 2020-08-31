@@ -146,11 +146,6 @@ class App extends React.Component {
 
         <PermValidator/>
         <IntercomHandler/>
-
-          {!this.isFormBuilder() &&
-            <div className='k-header__bar' />
-          }
-
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
             { this.state.pageState.modal &&
               <Modal params={this.state.pageState.modal} />

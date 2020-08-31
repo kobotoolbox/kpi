@@ -35,7 +35,6 @@ module.exports = do ->
           <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{_t("Question Options")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
-          <li data-card-settings-tab-id="response-type" class="card__settings__tab--response-type">#{_t("Response Type")}</li>
         </ul>
         <div class="card__settings__content">
           <ul class="card__settings__fields card__settings__fields--active card__settings__fields--question-options">
@@ -178,7 +177,7 @@ module.exports = do ->
       </tbody>
       <tfoot>
         <tr>
-        <td class="scorerow--add"><button>+</button></td>
+        <td class="scorerow--add"><button class="btn btn--small btn--gray">+</button></td>
         </tr>
       </tfoot>
     </table>
@@ -233,11 +232,11 @@ module.exports = do ->
     <div class="rank_preview clearfix">
       <ol class="rank__rows">
         #{rank_rows_lis.join('')}
-        <li class="rank_items__add rank_items__add--item"><button>+</button></li>
+        <li class="rank_items__add rank_items__add--item"><button class="btn btn--small btn--gray">+</button></li>
       </ol>
       <ul class="rank__levels">
         #{rank_levels_lis.join('')}
-        <li class="rank_items__add rank_items__add--level"><button>+</button></li>
+        <li class="rank_items__add rank_items__add--level"><button class="btn btn--small btn--gray">+</button></li>
         #{rank_constraint_message_li}
       </ul>
     </div>

@@ -21,7 +21,7 @@ $drawer-icons-width: 58px;
   flex-direction: column;
   width: $drawer-icons-width;
   height: 100%;
-  border-right: 1px solid #d9dadd;
+  border-right: 1px solid $c-iron;
 }
 
 .k-drawer__link {
@@ -84,7 +84,7 @@ $drawer-icons-width: 58px;
     z-index: 1050; // must be over leaflet
     left: -274px;
     transition: left 0.5s;
-    background-color: #fff;
+    background-color: $white;
 
     @include box-shadow;
   }
