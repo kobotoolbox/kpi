@@ -255,24 +255,6 @@ class MongoHelper:
     def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
                               fields=None, query=None, instance_ids=None,
                               permission_filters=None):
-        # check if query contains an _id and if its a valid ObjectID
-
-        # #2770 flowdock thread: https://www.flowdock.com/app/kobotoolbox/kobo/threads/JWNKW7LKXfzfCpNZpgb9i6lFPWq
-        # Idea for fix right now is to remove  this whole if block as it
-        # would bypass the `Regex` in `query` problem as well as the
-        # specific query length problem
-        if '_uuid' in query:
-            # The uuid must be 22 chars in order for if statement to pass
-            # query['_uuid'] = '123456789012123456789012' # this passes
-            if ObjectId.is_valid(query.get('_uuid')):
-                query['_uuid'] = ObjectId(query.get('_uuid'))
-            else:
-                # Print what query is and whether or not it passes
-                print('-----------------------------------------------', flush=True)
-                print(query.get('_uuid'), flush=True)
-                print('-----------------------------------------------', flush=True)
-                print(ObjectId.is_valid(query.get('_uuid')), flush=True)
-                raise ValidationError(_('Invalid _uuid specified'))
 
         if len(instance_ids) > 0:
             query.update({
