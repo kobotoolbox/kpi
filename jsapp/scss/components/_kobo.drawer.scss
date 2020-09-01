@@ -35,6 +35,10 @@ $drawer-icons-width: 58px;
     margin-top: 20px;
   }
 
+  &:hover {
+    color: $cool-blue;
+  }
+
   &.active {
     color: $cool-green;
     border-left: 3px solid $cool-green;

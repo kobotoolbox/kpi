@@ -4,7 +4,7 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  &__itemlink {
+  .form-sidebar__itemlink {
     display: block;
     line-height: 1.2em;
     padding: 2px 0px;
@@ -17,7 +17,8 @@
     }
   }
 
-  &__label, &__grouping {
+  .form-sidebar__label,
+  .form-sidebar__grouping {
     color: $cool-gray;
     cursor: pointer;
 
@@ -48,9 +49,13 @@
     }
   }
 
-  &__label {
+  .form-sidebar__label {
     padding: 3px 0px;
     position: relative;
+
+    &:hover {
+      color: $cool-charcoal;
+    }
 
     .form-sidebar__label-count {
       position: absolute;
@@ -64,7 +69,7 @@
     }
   }
 
-  &__grouping {
+  .form-sidebar__grouping {
     margin-top: 6px;
     margin-bottom: 12px;
 
@@ -75,7 +80,7 @@
     }
   }
 
-  &__item {
+  .form-sidebar__item {
     display: block;
     position: relative;
     padding-left: 8px;
@@ -129,7 +134,7 @@
     }
   }
 
-  &__item--collection {
+  .form-sidebar__item--collection {
     padding-left: 15px;
     margin: 5px 0px;
 

@@ -34,33 +34,6 @@ $layout-desktop-header-height: 64px;
   outline-width: 5px;
 }
 
-html {
-  color: $cool-darkgray;
-}
-
-body {
-  background: $root-background;
-}
-
-html, body, input, textarea, select, button {
-  font-family: $font;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-a {
-  color: $cool-blue;
-}
-
-p {
-  margin-bottom: 16px;
-}
-
-h3, h4, h5, h6 {
-  font-weight: 400;
-}
-
 @import "mdl.layout";
 @import "mdl.grid";
 @import "mdl.buttons";

@@ -12,6 +12,11 @@ $mdl-layout-width: 1440px;
   overflow: hidden;
 }
 
+.page-wrapper__content {
+  // used mainly for loading view
+  background-color: $divider-color;
+}
+
 .mdl-layout__content {
   height: calc(100% - 97px);
   position: relative;
