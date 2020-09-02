@@ -51,12 +51,8 @@ import {
   assign,
   currentLang
 } from './utils';
-import {keymap} from './keymap';
-import { ShortcutManager, Shortcuts } from 'react-shortcuts';
 import LibrarySearchableList from './lists/library';
 import FormsSearchableList from './lists/forms';
-
-const shortcutManager = new ShortcutManager(keymap);
 
 class App extends React.Component {
   constructor(props) {
@@ -84,16 +80,6 @@ class App extends React.Component {
   onGetConfigCompleted() {
     this.setState({isConfigReady: true});
   }
-  _handleShortcuts(action) {
-    switch (action) {
-      case 'EDGE':
-        document.body.classList.toggle('hide-edge');
-        break;
-    }
-  }
-  getChildContext() {
-    return { shortcuts: shortcutManager };
-  }
   render() {
     var assetid = this.props.params.assetid || null;
 
@@ -120,13 +106,6 @@ class App extends React.Component {
 
     return (
       <DocumentTitle title='KoBoToolbox'>
-        <Shortcuts
-          name='APP_SHORTCUTS'
-          handler={this._handleShortcuts}
-          className='mdl-wrapper'
-          global
-          isolate>
-
         <PermValidator/>
         <IntercomHandler/>
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
@@ -151,7 +130,6 @@ class App extends React.Component {
 
               </bem.PageWrapper__content>
           </bem.PageWrapper>
-        </Shortcuts>
       </DocumentTitle>
     );
   }

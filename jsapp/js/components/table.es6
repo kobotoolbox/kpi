@@ -711,9 +711,6 @@ export class DataTable extends React.Component {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
-  launchPrinting () {
-    window.print();
-  }
   fetchData(state, instance) {
     this.setState({
       loading: true,
@@ -1055,12 +1052,6 @@ export class DataTable extends React.Component {
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
-            <button className='mdl-button mdl-button--icon report-button__print is-edge'
-                    onClick={this.launchPrinting}
-                    data-tip={t('Print')}>
-              <i className='k-icon-print' />
-            </button>
-
             <button
               className='mdl-button mdl-button--icon report-button__expand right-tooltip'
               onClick={this.toggleFullscreen}

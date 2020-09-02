@@ -184,11 +184,7 @@ class SearchCollectionList extends Reflux.Component {
       }
     );
 
-    return [
-      <bem.List__heading key='h1' className='is-edge'>
-        {t('Active Projects')}
-      </bem.List__heading>,
-      results];
+    return results;
   }
 
   render () {

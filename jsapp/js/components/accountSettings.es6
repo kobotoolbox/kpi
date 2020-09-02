@@ -338,10 +338,6 @@ export default class AccountSettings extends React.Component {
                   value={this.state.organizationWebsite}
                   onChange={this.organizationWebsiteChange}
                 />
-
-                <bem.AccountSettings__desc className='is-edge'>
-                  {t('This will be used to create a hyperlink for your organization name. ')}
-                </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='primary-sector'>
@@ -425,21 +421,6 @@ export default class AccountSettings extends React.Component {
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.countryChange}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
-                  />
-                </label>
-              </bem.AccountSettings__item>
-
-              <bem.AccountSettings__item className='is-edge'>
-                <label>
-                  {t('Default Form Language')}
-
-                  <Select
-                    value={this.state.defaultLanguage}
-                    options={this.state.languageChoices}
-                    onChange={this.defaultLanguageChange}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'

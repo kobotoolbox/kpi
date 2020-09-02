@@ -188,40 +188,6 @@ class ChartColorsPicker extends React.Component {
   }
 };
 
-class SizeSliderInput extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {value: this.props.default};
-    autoBind(this);
-  }
-  handleChange (event) {
-    this.props.onChange({
-      value: event.target.value,
-      id: this.props.name
-    });
-
-    this.setState({value: event.target.value});
-  }
-  render () {
-    return (
-      <div className='slider-item is-edge'>
-        <label>
-          {this.props.label}&nbsp;{this.state.value}
-        </label>
-        <input
-          className='mdl-slider'
-          id={this.props.name}
-          type='range'
-          min={this.props.min}
-          max={this.props.max}
-          value={this.state.value}
-          onChange={this.handleChange}
-          step='5' />
-      </div>
-    );
-  }
-};
-
 class CustomReportForm extends React.Component {
   constructor(props) {
     super(props);
@@ -406,10 +372,6 @@ class QuestionGraphSettings extends React.Component {
               <div id='graph-colors'>
                 <ChartColorsPicker
                   defaultStyle={reportStyle}
-                  onChange={this.questionStyleChange} />
-                <SizeSliderInput
-                  name='width' min='300' max='900' default={reportStyle.graphWidth}
-                  label={t('Width: ')}
                   onChange={this.questionStyleChange} />
               </div>
             }
@@ -681,10 +643,6 @@ class ReportStyleSettings extends React.Component {
                 <ChartColorsPicker
                   defaultStyle={reportStyle}
                   onChange={this.reportStyleChange} />
-                <SizeSliderInput
-                  name='width' min='300' max='900' default={reportStyle.graphWidth}
-                  label={t('Width: ')}
-                  onChange={this.reportSizeChange} />
               </div>
             }
             {tabs[this.state.activeModalTab] === t('Group By') && groupByOptions.length > 1 &&

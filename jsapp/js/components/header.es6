@@ -50,7 +50,6 @@ class MainHeader extends Reflux.Component {
     autoBind(this);
   }
   componentDidMount() {
-    document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
   }
   componentWillUpdate(newProps) {
