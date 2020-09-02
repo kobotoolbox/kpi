@@ -126,9 +126,8 @@
     }
 
     &.active {
-      background: $cool-lightgray;
-
       .form-sidebar__itemlink {
+        font-weight: 700;
         color: $cool-green;
       }
     }

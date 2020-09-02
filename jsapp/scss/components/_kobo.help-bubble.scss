@@ -84,21 +84,24 @@ $s-help-bubble-row-spacing: 20px;
   position: absolute;
   left: 50%;
   color: $white;
-  border: 2px solid $root-background;
+  border-style: solid;
+  border-color: $drawer-background;
 }
 
 .help-bubble__trigger-badge {
-  bottom: 0;
+  bottom: 2px;
+  border-width: 2px 0 0 2px;
   background: $cool-blue;
   border-radius: 4px;
   font-size: 8px;
   line-height: 1;
-  padding: 3px 3px 1px;
+  padding: 2px 3px;
   text-transform: uppercase;
 }
 
 .help-bubble__trigger-counter {
-  top: 0;
+  top: 2px;
+  border-width: 0 0 2px 2px;
   background: $cool-red;
   border-radius: 50%;
   font-size: 10px;
