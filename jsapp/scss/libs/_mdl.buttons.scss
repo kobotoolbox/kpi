@@ -13,7 +13,7 @@
   padding: 0 24px;
   margin: 0;
   border: none;
-  border-radius: 2px;
+  border-radius: 10px;
   vertical-align: middle;
   background: transparent;
   position: relative;
@@ -68,10 +68,10 @@ input.mdl-button[type="submit"] {
 
 // Raised buttons
 .mdl-button--raised {
-  background: $cool-blue;
-
   @include box-shadow;
 
+  background: $cool-blue;
+  border-radius: 10px;
   text-transform: uppercase;
 
   &.mdl-button--colored {
@@ -103,10 +103,6 @@ input.mdl-button[type="submit"] {
       color: $white;
     }
   }
-}
-
-.mdl-button--new {
-  border-radius: 10px;
 }
 
 // Icon buttons

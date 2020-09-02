@@ -177,15 +177,14 @@ $z-modal-x: 10;
     }
 
     &.modal__footer-button--back {
-      border-radius: 2px;
+      border-radius: 10px;
       color: $cool-blue;
       border: 1px solid currentColor;
       opacity: 1;
       float: left;
 
       &:hover {
-        opacity: 0.8;
-        color: $cool-blue;
+        color: $cool-blue-light;
       }
     }
   }
