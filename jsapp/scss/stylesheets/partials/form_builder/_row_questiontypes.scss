@@ -11,7 +11,7 @@
 }
 
 .row__questiontypes {
-  border: $cardInSortBorderStyle;
+  border: 1px solid $kobo-blue;
   padding: 0px;
   padding-top: 20px;
   background: white;
@@ -20,7 +20,7 @@
 
 .row__questiontypes__list {
   margin-top: 20px;
-  border-top: $cardInSortBorderStyle;
+  border-top: 1px solid $kobo-blue;
   padding: 3px;
   position: relative;
   &:after, &:before {
@@ -49,19 +49,20 @@
 
 .row__questiontypes__close {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  color: $cool-charcoal;
+  top: -3px;
+  right: 1px;
+  color: $cool-darkgray;
   background: transparent;
   border: 0 none;
   font-family: $font;
   font-weight: 600;
   padding: 4px;
   line-height: 1em;
-  font-size: 16px;
+  font-size: 24px;
   cursor: pointer;
+
   &:hover {
-    color: darken($cool-charcoal, 30%);
+    color: $black;
   }
 }
 
@@ -84,23 +85,13 @@ input.row__questiontypes__new-question-name {
   form {
     input {
       width: 72%;
-      padding: 6px;
-      border: 1px solid $kobo-blue-light;
+      padding: 9px;
+      border: 1px solid $kobo-blue;
       font-size: 15px;
     }
     button {
-      padding: 8px;
-      text-align: center;
-      color: white;
-      font-weight: 600;
-      margin-bottom: 15px;
-      background: $warm-green;
-      border: none;
-      border-bottom: 2px solid darken($warm-green, 10%);
-      font-size: 14px;
       width: 25%;
       margin-left: 2%;
-      cursor: pointer;
     }
     input, button {
       float: left;

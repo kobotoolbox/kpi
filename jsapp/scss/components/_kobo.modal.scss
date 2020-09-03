@@ -173,7 +173,7 @@ $z-modal-x: 10;
     }
 
     &.modal__footer-button--danger {
-      @extend .mdl-button--colored, .mdl-button--danger;
+      @extend .mdl-button--colored, .mdl-button--red;
     }
 
     &.modal__footer-button--back {
@@ -294,7 +294,7 @@ $z-modal-x: 10;
     line-height: 1em;
 
     i {
-      color: $cool-orange;
+      color: $kobo-orange;
       font-size: 40px;
       margin-right: 10px;
       vertical-align: middle;
@@ -453,7 +453,7 @@ $z-modal-x: 10;
 
     &:hover {border-color: $kobo-blue;}
     &.dropzone-active {border-color: $kobo-blue;}
-    &.dropzone-reject {border-color: $cool-red;}
+    &.dropzone-reject {border-color: $kobo-red;}
   }
 }
 
@@ -501,7 +501,7 @@ $z-modal-x: 10;
     vertical-align: middle;
     padding: 0 12px 0 6px;
 
-    &:hover {background: darken($cool-gray, 10%);}
+    &:hover {background: $cool-darkgray;}
   }
 
   .http-header-row-remove {
@@ -509,7 +509,7 @@ $z-modal-x: 10;
     width: 30px;
     vertical-align: top;
     padding: 0;
-    &:hover {color: $cool-red;}
+    &:hover {color: $kobo-red;}
   }
 }
 

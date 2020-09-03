@@ -58,7 +58,7 @@
 
   .kobo-select__option {
     &.kobo-select__option--is-focused {
-      background-color: lighten($kobo-blue, 40%);
+      background-color: $cool-whitegray;
     }
     &.kobo-select__option--is-selected {
       background-color: $kobo-blue;

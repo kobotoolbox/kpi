@@ -28,14 +28,19 @@ $white: #ffffff; // 100% lightness - used 80+ times, buttons text, backgrounds
 /*
  Group 2: Accent colors
 */
-$kobo-blue: #2095f3; // THE KoBo blue - used 80+ times
-$kobo-blue-light: #3fa2ee; // used 10+ times
-$kobo-teal: #52c5d0; // KoBo green (teal?) - used 40+ times
-$warm-green: #52ce7b; // positive messages - used 10+ times
-$cool-red: #ff556a; // error messages - used 40+ times
-$cool-red-washed: #cd8991; // used few times for text or buttons
-$cool-orange: #ffaa56; // warning color - used few times for text or buttons
-// below three form builder survey warning message colors - each used only once
-$c-pearl-lusta: #fcf8e3;
-$c-shadow: #8a6d3b;
-$c-sorrell-brown: #cfb98b;
+$kobo-blue: hsl(206, 90%, 54%); // used 80+ times
+$kobo-blue-light: hsl(206, 90%, 60%); // used 10+ times
+$kobo-blue-dark: hsl(206, 90%, 40%);
+$kobo-teal: #52c5d0; // used 40+ times
+// positive colors
+$kobo-green: hsl(139, 60%, 56%); // positive messages - used 10+ times
+$kobo-green-dark: hsl(139, 60%, 40%);
+$kobo-green-light: hsl(139, 60%, 90%);
+// error/negative colors
+$kobo-red: hsl(352, 100%, 60%); // error messages - used 40+ times
+$kobo-red-dark: hsl(352, 100%, 40%); // error messages - used 40+ times
+$kobo-red-light: hsl(352, 100%, 90%); // error messages - used 40+ times
+// warning colors
+$kobo-orange: hsl(30, 100%, 70%); // for borders
+$kobo-orange-dark: hsl(30, 100%, 40%); // for text
+$kobo-orange-light: hsl(30, 100%, 95%); // for background

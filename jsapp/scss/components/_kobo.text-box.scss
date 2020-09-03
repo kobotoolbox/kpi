@@ -5,10 +5,10 @@
 
 label.text-box {
   &.text-box--error {
-    color: $cool-red;
+    color: $kobo-red;
 
     input.text-box__input {
-      border-bottom-color: $cool-red;
+      border-bottom-color: $kobo-red;
     }
   }
 
@@ -23,7 +23,7 @@ label.text-box {
   }
 
   &.text-box--on-white.text-box--error input.text-box__input {
-    border-color: $cool-red;
+    border-color: $kobo-red;
   }
 
   .text-box__label .text-box__label-link {

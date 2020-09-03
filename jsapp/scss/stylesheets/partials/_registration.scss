@@ -112,12 +112,15 @@
     color: white;
     text-align: center;
     font-weight: 600;
-    background: $warm-green;
-    border-bottom: 2px solid darken($warm-green, 20%);
+    background-color: $kobo-green;
+    border-bottom: 2px solid $kobo-green-dark;
+    text-shadow: -1px -1px $kobo-green-dark;
     clear: both;
 
     &:hover {
-      background: lighten($warm-green, 10%);
+      background-color: $kobo-blue-light;
+      border-bottom-color: $kobo-blue-dark;
+      text-shadow: -1px -1px $kobo-blue-dark;
     }
   }
 }
@@ -133,7 +136,7 @@
   }
 
   span.required {
-    color: $cool-red;
+    color: $kobo-red;
     margin-left: 3px;
   }
 
@@ -193,7 +196,7 @@
 
   ul.errorlist {
     padding: 0px;
-    color: $cool-red;
+    color: $kobo-red;
     margin: 8px 0px;
   }
 }
@@ -249,8 +252,8 @@
 
 .error-message {
   font-size: 14px;
-  color: $cool-red;
-  background-color: rgba($cool-red, 0.075);
+  color: $kobo-red;
+  background-color: rgba($kobo-red, 0.075);
 }
 
 .registration__credit {

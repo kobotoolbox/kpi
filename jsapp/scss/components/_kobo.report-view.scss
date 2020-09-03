@@ -9,19 +9,18 @@
 }
 
 .report-view__warning {
-  background-color: $white;
-  border: 1px solid $cool-orange;
+  background-color: $kobo-orange-light;
+  color: $kobo-orange-dark;
+  border: 1px solid $kobo-orange;
   padding: 16px 24px;
 
   p {
     font-size: 13px;
     line-height: 1.3em;
     margin: 0;
-    color: $cool-darkgray;
   }
 
   h4 {
-    color: $cool-orange;
     margin: 0px;
     padding: 0px;
     padding-bottom: 8px;

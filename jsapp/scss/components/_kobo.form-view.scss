@@ -282,7 +282,7 @@ $z-form-view-fullscreen: 101;
     display: inline-block;
     padding: 6px;
     color: $white;
-    background-color: $warm-green;
+    background-color: $kobo-green;
     border-radius: 2px;
   }
 
@@ -294,7 +294,7 @@ $z-form-view-fullscreen: 101;
     background: $cool-whitegray;
 
     i {
-      color: $cool-orange;
+      color: $kobo-orange;
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
@@ -406,11 +406,11 @@ $z-form-view-fullscreen: 101;
     .form-view__link--export-delete {
       opacity: 0.9;
       vertical-align: middle;
-      color: lighten($cool-red, 10%);
+      color: lighten($kobo-red, 10%);
       font-size: 24px;
 
       &:hover {
-        color: $cool-red;
+        color: $kobo-red;
         opacity: 1;
       }
     }

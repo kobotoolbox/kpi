@@ -295,11 +295,11 @@
     border-bottom: 1px solid transparent;
     // keep these pseudo-states separate
     &::-webkit-input-placeholder {
-      color: darken($cool-gray, 10%);
+      color: $cool-darkgray;
     }
 
     &:-ms-input-placeholder {
-      color: darken($cool-gray, 10%);
+      color: $cool-darkgray;
     }
 
     &:hover {
