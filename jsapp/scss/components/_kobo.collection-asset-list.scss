@@ -132,9 +132,6 @@
   }
 
   .asset-items {
-    @include box-shadow;
-
-    background: $white;
     position: relative;
     overflow: visible;
 

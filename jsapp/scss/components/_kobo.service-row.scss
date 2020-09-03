@@ -86,7 +86,7 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--success {
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 
   &.service-row__column--pending {
@@ -139,7 +139,7 @@ $s-service-row-z-link: 10;
   }
 
   &:active {
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 
   &.service-row-button--loading {

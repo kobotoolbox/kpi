@@ -8,18 +8,18 @@
     display: block;
     line-height: 1.2em;
     padding: 2px 0px;
-    color: $cool-gray;
+    color: $cool-darkgray;
     font-weight: normal;
     font-size: 12px;
 
     &:hover {
-      color: $cool-charcoal;
+      color: $black;
     }
   }
 
   .form-sidebar__label,
   .form-sidebar__grouping {
-    color: $cool-gray;
+    color: $cool-darkgray;
     cursor: pointer;
 
     i {
@@ -34,6 +34,10 @@
 
     span {
       vertical-align: middle;
+    }
+
+    &:hover {
+      color: $black;
     }
 
     &--Deployed i {
@@ -52,10 +56,6 @@
   .form-sidebar__label {
     padding: 3px 0px;
     position: relative;
-
-    &:hover {
-      color: $cool-charcoal;
-    }
 
     .form-sidebar__label-count {
       position: absolute;

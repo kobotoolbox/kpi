@@ -111,7 +111,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $cool-gray;
+    color: $cool-darkgray;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -140,7 +140,7 @@
     padding-bottom: 15px;
 
     a {
-      color: $cool-gray;
+      color: $cool-darkgray;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -177,19 +177,21 @@
 
     ul {
       background-color: $white;
-      color: $cool-gray;
+      color: $cool-darkgray;
       min-width: 140px;
       padding: 0;
-
-      @include box-shadow;
+      border: 1px solid $divider-color;
 
       li {
-        padding: 10px 15px;
         text-transform: capitalize;
-        border-bottom: 1px solid $divider-color;
+        padding: 0;
 
-        &:last-child {
-          border-bottom: 0px;
+        &:not(:last-child) {
+          border-bottom: 1px solid $divider-color;
+        }
+
+        a {
+          padding: 10px 15px;
         }
       }
     }
@@ -255,7 +257,6 @@
   display: flex;
   align-items: center;
   width: calc(100% - 300px);
-  color: $cool-gray;
 
   > i {
     font-size: 38px;

@@ -28,10 +28,10 @@
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
   font-size: 32px;
-  color: lighten($cool-gray, 20%);
+  color: $cool-darkgray;
 
   &:hover {
-    color: $cool-gray;
+    color: $black;
   }
 }
 

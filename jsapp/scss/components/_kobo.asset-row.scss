@@ -11,8 +11,10 @@ $asset-row-spacing: 6px;
   opacity: 1;
   position: relative;
   align-items: flex-start;
+  color: $cool-charcoal;
 
   &:hover {
+    color: $black;
     background: $hover-asset-row;
 
     // avoid displaying border over tooltip
@@ -114,7 +116,7 @@ $asset-row-spacing: 6px;
   .asset-row__description {
     margin-top: $asset-row-spacing;
     display: block;
-    color: $cool-gray;
+    color: $cool-darkgray;
     font-size: 13px;
   }
 
@@ -159,7 +161,7 @@ $asset-row-spacing: 6px;
   .asset-row__action-icon {
     margin-left: 0px;
     font-weight: 400;
-    color: $cool-gray;
+    color: $cool-darkgray;
     cursor: pointer;
 
     &:hover {

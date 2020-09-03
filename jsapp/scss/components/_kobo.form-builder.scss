@@ -201,7 +201,7 @@ $t-form-builder-aside-open: 200ms;
       margin: 0 10px;
 
       button {
-        color: $cool-gray;
+        color: $cool-darkgray;
         // for tooltip
         overflow: visible;
         padding: 0;
@@ -246,13 +246,13 @@ $t-form-builder-aside-open: 200ms;
 
 .formBuilder-header__close {
   border: none;
-  color: lighten($cool-gray, 20%);
+  color: $cool-darkgray;
   cursor: pointer;
 
   @extend .mdl-button, .mdl-button--icon;
 
   &:hover {
-    color: $cool-gray;
+    color: $black;
   }
 
   &:focus {
@@ -463,7 +463,7 @@ $t-form-builder-aside-open: 200ms;
 
     i {
       font-size: 26px;
-      color: $cool-gray;
+      color: $cool-darkgray;
     }
   }
 }

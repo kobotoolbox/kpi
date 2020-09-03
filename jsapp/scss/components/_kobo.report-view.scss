@@ -10,20 +10,18 @@
 
 .report-view__warning {
   background-color: $white;
-
-  @include box-shadow;
-
+  border: 1px solid $cool-orange;
   padding: 16px 24px;
 
   p {
     font-size: 13px;
     line-height: 1.3em;
     margin: 0;
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 
   h4 {
-    color: $cool-red;
+    color: $cool-orange;
     margin: 0px;
     padding: 0px;
     padding-bottom: 8px;
@@ -33,17 +31,14 @@
 }
 
 .report-view__item {
-  background-color: $white;
-
-  @include box-shadow;
-
+  border: 1px solid $divider-color;
   margin: 15px 0px;
 }
 
 .report-view__itemHeading {
   padding: 10px 24px;
   border-left: 5px solid $cool-green;
-  border-bottom: 1px solid $c-ghost;
+  border-bottom: 1px solid $divider-color;
   position: relative;
 
   h2 {
@@ -203,7 +198,7 @@
     margin-bottom: 20px;
     display: block;
     font-weight: 400;
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 }
 

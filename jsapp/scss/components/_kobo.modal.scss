@@ -392,15 +392,17 @@ $z-modal-x: 10;
     button {
       display: inline-block;
       vertical-align: top;
-      border: 1px solid $divider-color;
+      border: none;
       background: $cool-whitegray;
-      border-radius: 4px;
-      color: $cool-gray;
+      border-radius: 10px;
+      color: $cool-darkgray;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
       width: calc(50% - #{$buttons-spacing});
       min-height: 120px;
+
+      @include box-shadow;
 
       @media screen and (min-width: 768px) {
         margin: $buttons-spacing;
@@ -412,12 +414,14 @@ $z-modal-x: 10;
         display: block;
         margin: 0 auto;
         font-size: 48px;
+        color: currentColor;
       }
 
       &:hover {
         color: $cool-blue;
         border-color: $cool-blue;
-        i {color: $cool-blue;}
+
+        @include box-shadow-mid;
       }
     }
   }

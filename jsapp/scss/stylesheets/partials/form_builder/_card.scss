@@ -35,7 +35,7 @@
         position: relative;
 
         &.activated {
-            color: $cool-gray;
+            color: $cool-darkgray;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -63,7 +63,7 @@
     }
 
     .card__header-title {
-        color: $cool-gray;
+        color: $cool-darkgray;
 
         &:focus {
             color: $black;
@@ -125,7 +125,7 @@
 
 .card--placeholder {
     background-color: transparent;
-    color: $cool-gray;
+    color: $cool-darkgray;
     border:2px solid $cool-gray;
     text-align: center;
     font-family: $font;
@@ -182,7 +182,7 @@ $cardIndicatorIconWidth: 21px;
     .fa.invert {
         padding: 3px 1px;
         font-size: 0.95em;
-        background-color: $cool-gray;
+        background-color: $cool-darkgray;
     }
     .fa-lato-range,
     .fa-lato-calculate,

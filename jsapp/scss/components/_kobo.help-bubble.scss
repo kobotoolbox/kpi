@@ -57,7 +57,7 @@ $s-help-bubble-row-spacing: 20px;
   width: 100%;
   display: block;
   font-weight: normal;
-  color: $cool-gray;
+  color: $cool-darkgray;
   // mimic .k-drawer__link
   border-left: 3px solid transparent;
 
@@ -66,10 +66,11 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   &:hover {
-    color: $cool-blue;
+    color: $cool-green;
 
-    .help-bubble__trigger-counter {
-      background-color: $cool-blue;
+    .help-bubble__trigger-counter,
+    .help-bubble__trigger-badge {
+      background-color: $cool-green;
     }
   }
 
