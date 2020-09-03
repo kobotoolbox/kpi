@@ -26,7 +26,7 @@ from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
-from kpi.management.commands.import_xls_to_collection import convert_xls_to_dict
+from kpi.utils.sheet_converter import convert_xls_to_dict
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str
 from ..fields import KpiUidField
