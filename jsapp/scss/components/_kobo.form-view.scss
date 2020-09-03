@@ -74,7 +74,7 @@ $z-form-view-fullscreen: 101;
 
     &.active {
       font-weight: 700;
-      border-bottom: 4px solid $cool-green;
+      border-bottom: 4px solid $kobo-teal;
     }
   }
 
@@ -128,7 +128,7 @@ $z-form-view-fullscreen: 101;
         height: 100%;
         top: 0;
         left: -10px;
-        background-color: $cool-green;
+        background-color: $kobo-teal;
       }
     }
 
@@ -326,7 +326,7 @@ $z-form-view-fullscreen: 101;
   vertical-align: middle;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &--disabled,
@@ -341,11 +341,11 @@ $z-form-view-fullscreen: 101;
   }
 
   10% {
-    background-color: lighten($cool-blue, 20%);
+    background-color: lighten($kobo-blue, 20%);
   }
 
   100% {
-    background-color: lighten($cool-blue, 40%);
+    background-color: lighten($kobo-blue, 40%);
   }
 }
 
@@ -416,7 +416,7 @@ $z-form-view-fullscreen: 101;
     }
 
     &.recent {
-      background-color: lighten($cool-blue, 40%);
+      background-color: lighten($kobo-blue, 40%);
       animation: recent 5s 1;
     }
 

@@ -51,11 +51,11 @@
 
     &:hover, &.selected {
       background: rgba($divider-color, 0.3);
-      color: $cool-blue;
+      color: $kobo-blue;
     }
 
     &.selected {
-      border: 1px solid $cool-blue;
+      border: 1px solid $kobo-blue;
     }
   }
 

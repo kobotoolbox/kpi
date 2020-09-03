@@ -5,7 +5,7 @@
 
 .survey__row--selected {
   > .survey__row__item > .card__kobomatrix {
-    border-color: $cool-blue-light;
+    border-color: $kobo-blue-light;
     border-top: none;
   }
 }
@@ -32,7 +32,7 @@
       cursor: pointer;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }
@@ -76,7 +76,7 @@
       cursor: pointer;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }
@@ -197,7 +197,7 @@
     cursor: pointer;
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }
@@ -245,7 +245,7 @@
       cursor: pointer;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }
@@ -260,7 +260,7 @@
       color: $cool-darkgray;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }

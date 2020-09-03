@@ -119,7 +119,7 @@
       }
 
       .form-sidebar__itemlink {
-        color: $cool-green;
+        color: $kobo-teal;
         margin-right: 32px;
         text-overflow: clip;
       }
@@ -128,7 +128,7 @@
     &.active {
       .form-sidebar__itemlink {
         font-weight: 700;
-        color: $cool-green;
+        color: $kobo-teal;
       }
     }
   }

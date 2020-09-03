@@ -30,10 +30,10 @@
     padding: 20px 30px;
 
     a {
-      color: lighten($cool-blue, 20%);
+      color: lighten($kobo-blue, 20%);
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
 
       &.registration__forgot {
@@ -102,7 +102,7 @@
   opacity: 0.9;
 
   &:focus {
-    border-bottom-color: $cool-blue;
+    border-bottom-color: $kobo-blue;
     opacity: 1;
   }
 

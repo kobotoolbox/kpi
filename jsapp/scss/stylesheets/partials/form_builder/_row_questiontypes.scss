@@ -41,7 +41,7 @@
   }
   &:before {
     border-color: rgba(217, 221, 225, 0);
-    border-bottom-color: $cool-blue-light;
+    border-bottom-color: $kobo-blue-light;
     border-width: 11px;
     margin-left: -11px;
   }
@@ -85,7 +85,7 @@ input.row__questiontypes__new-question-name {
     input {
       width: 72%;
       padding: 6px;
-      border: 1px solid $cool-blue-light;
+      border: 1px solid $kobo-blue-light;
       font-size: 15px;
     }
     button {

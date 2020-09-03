@@ -50,22 +50,22 @@
     a {
       display: inline-block;
       padding: 8px;
-      color: $cool-blue;
+      color: $kobo-teal;
       cursor: pointer;
       font-size: 16px;
       background: transparent;
 
       &.active {
-        color: $cool-darkgray;
-        background: $cool-whitegray;
+        color: $white;
+        background: $kobo-teal;
         position: relative;
 
-        &:after {
+        &::after {
           width: 0;
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid $cool-whitegray;
+          border-top: 10px solid $kobo-teal;
           content: '';
           position: absolute;
           bottom: -9px;
@@ -96,7 +96,7 @@
   .subs-graph-number {
     font-size: 32px;
     font-weight: 600;
-    color: $cool-green;
+    color: $kobo-teal;
   }
 }
 
@@ -161,7 +161,7 @@
     }
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }

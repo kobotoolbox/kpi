@@ -155,7 +155,7 @@
       }
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
 
@@ -303,12 +303,12 @@
     }
 
     &:hover {
-      border-bottom: 1px solid $cool-blue;
+      border-bottom: 1px solid $kobo-blue;
     }
 
     &:focus {
       background: rgba($white, 0.05);
-      border-bottom: 1px solid $cool-blue;
+      border-bottom: 1px solid $kobo-blue;
     }
   }
 
@@ -400,7 +400,7 @@
     .git-rev__item {
       color: white;
       opacity: 0.85;
-      background: darken($cool-green, 10%);
+      background: darken($kobo-teal, 10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;

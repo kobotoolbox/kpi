@@ -165,7 +165,7 @@ $mdl-layout-width: 1440px;
   vertical-align: middle;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   i {
@@ -241,7 +241,7 @@ $mdl-layout-width: 1440px;
   }
 
   &.active {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &.divider {
@@ -286,7 +286,7 @@ $mdl-layout-width: 1440px;
     top: 6px;
     padding-right: 0px;
     font-size: 32px;
-    color: $cool-green;
+    color: $kobo-teal;
   }
 }
 
@@ -332,10 +332,10 @@ $mdl-layout-width: 1440px;
 
   .popover-menu__toggle {
     vertical-align: inherit;
-    color: $cool-blue;
+    color: $kobo-blue;
 
     &:hover {
-      color: lighten($cool-blue, 10%);
+      color: lighten($kobo-blue, 10%);
     }
 
     &::after {
@@ -450,7 +450,7 @@ $mdl-layout-width: 1440px;
       }
 
       &:hover {
-        border-left: 2px solid $cool-green;
+        border-left: 2px solid $kobo-teal;
       }
     }
   }
@@ -545,7 +545,7 @@ iframe {
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 
@@ -582,7 +582,7 @@ iframe {
 
   &:focus {
     transition: border-color 0.3s;
-    border-bottom-color: $cool-blue;
+    border-bottom-color: $kobo-blue;
   }
 }
 
@@ -641,7 +641,7 @@ span.svg-icon {
     display: block;
     margin: 0 auto;
     margin-bottom: 10px;
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
@@ -657,7 +657,7 @@ span.svg-icon {
     left: 0;
     content: '';
     background: rgba($white, 0.7);
-    border: 2px solid $cool-blue;
+    border: 2px solid $kobo-blue;
     z-index: 1;
     opacity: 0;
     visibility: hidden;

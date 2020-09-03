@@ -18,7 +18,7 @@ label.text-box {
     border-right-color: rgba($divider-color, 0.5);
 
     &:focus {
-      border-color: $cool-blue;
+      border-color: $kobo-blue;
     }
   }
 
@@ -47,7 +47,7 @@ label.text-box {
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 }

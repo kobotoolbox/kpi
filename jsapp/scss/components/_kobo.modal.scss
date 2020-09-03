@@ -86,13 +86,13 @@ $z-modal-x: 10;
 }
 
 .modal__tabs {
-  background: $cool-blue;
+  background: $kobo-blue;
   color: $white;
 }
 
 .modal__header {
   min-height: 70px;
-  background: $cool-blue;
+  background: $kobo-blue;
   color: $white;
 }
 
@@ -178,13 +178,13 @@ $z-modal-x: 10;
 
     &.modal__footer-button--back {
       border-radius: 10px;
-      color: $cool-blue;
+      color: $kobo-blue;
       border: 1px solid currentColor;
       opacity: 1;
       float: left;
 
       &:hover {
-        color: $cool-blue-light;
+        color: $kobo-blue-light;
       }
     }
   }
@@ -326,7 +326,7 @@ $z-modal-x: 10;
     }
 
     i:before {
-      color: $cool-blue-light;
+      color: $kobo-blue-light;
       font-size: 20px;
     }
   }
@@ -418,8 +418,8 @@ $z-modal-x: 10;
       }
 
       &:hover {
-        color: $cool-blue;
-        border-color: $cool-blue;
+        color: $kobo-blue;
+        border-color: $kobo-blue;
 
         @include box-shadow-mid;
       }
@@ -451,8 +451,8 @@ $z-modal-x: 10;
       margin-bottom: 16px;
     }
 
-    &:hover {border-color: $cool-blue;}
-    &.dropzone-active {border-color: $cool-blue;}
+    &:hover {border-color: $kobo-blue;}
+    &.dropzone-active {border-color: $kobo-blue;}
     &.dropzone-reject {border-color: $cool-red;}
   }
 }
@@ -667,7 +667,7 @@ $z-modal-x: 10;
         min-width: 70%;
       }
       .translation {
-        background: lighten($cool-green, 41%);
+        background: lighten($kobo-teal, 41%);
         color: lighten($black, 15%);
         padding: 0px;
         textarea {
@@ -676,7 +676,7 @@ $z-modal-x: 10;
           background: transparent;
           width: 100%;
           &:focus {
-            background: lighten($cool-green, 35%);
+            background: lighten($kobo-teal, 35%);
           }
         }
       }

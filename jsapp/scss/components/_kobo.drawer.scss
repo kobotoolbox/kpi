@@ -38,12 +38,12 @@ $drawer-background: $cool-whitegray;
   }
 
   &:hover {
-    color: $cool-green;
+    color: $kobo-teal;
   }
 
   &.active {
-    color: $cool-green;
-    border-left: 3px solid $cool-green;
+    color: $kobo-teal;
+    border-left: 3px solid $kobo-teal;
   }
 }
 
@@ -63,7 +63,7 @@ $drawer-background: $cool-whitegray;
     color: $cool-darkgray;
 
     &:hover {
-      color: $cool-green;
+      color: $kobo-teal;
     }
 
     i {

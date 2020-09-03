@@ -27,7 +27,7 @@
     }
 
     &.kobo-select__control--is-focused {
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 
@@ -58,10 +58,10 @@
 
   .kobo-select__option {
     &.kobo-select__option--is-focused {
-      background-color: lighten($cool-blue, 40%);
+      background-color: lighten($kobo-blue, 40%);
     }
     &.kobo-select__option--is-selected {
-      background-color: $cool-blue;
+      background-color: $kobo-blue;
     }
   }
 }

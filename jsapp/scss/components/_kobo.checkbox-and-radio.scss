@@ -53,7 +53,7 @@
       border-radius: 50%;
       width: 10px;
       height: 10px;
-      background-color: $cool-blue;
+      background-color: $kobo-blue;
     }
   }
 
@@ -67,7 +67,7 @@
       width: 18px;
       height: 18px;
       color: $white;
-      background-color: $cool-blue;
+      background-color: $kobo-blue;
       text-align: center;
       line-height: 18px;
       font-size: 18px;
@@ -94,7 +94,7 @@
     }
 
     &:checked {
-      border-color: $cool-blue;
+      border-color: $kobo-blue;
 
       &::after { opacity: 1; }
     }

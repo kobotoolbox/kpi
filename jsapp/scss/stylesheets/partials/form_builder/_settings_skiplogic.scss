@@ -27,11 +27,11 @@
   }
 
   &.skiplogic__select-handcode {
-    background: lighten($cool-blue-light, 30%);
-    border-bottom: 1px solid $cool-blue-light;
+    background: lighten($kobo-blue-light, 30%);
+    border-bottom: 1px solid $kobo-blue-light;
 
     i {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }

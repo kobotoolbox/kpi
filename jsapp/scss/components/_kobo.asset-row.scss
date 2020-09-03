@@ -87,9 +87,9 @@ $asset-row-spacing: 6px;
   // default row-icon styles are meant for "--question"
   .row-icon {
     vertical-align: middle;
-    border: 1px solid $cool-green;
+    border: 1px solid $kobo-teal;
     font-size: 13px;
-    color: $cool-green;
+    color: $kobo-teal;
     width: 36px;
     border-radius: 10px;
     display: inline-block;
@@ -99,7 +99,7 @@ $asset-row-spacing: 6px;
 
     &.row-icon--block {
       color: white;
-      background: $cool-green;
+      background: $kobo-teal;
     }
 
     &.row-icon--template {
@@ -166,7 +166,7 @@ $asset-row-spacing: 6px;
 
     &:hover {
       background-color: transparent;
-      color: $cool-blue;
+      color: $kobo-blue;
     }
 
     &.asset-row__action-icon--view-collection i {
@@ -181,7 +181,7 @@ $asset-row-spacing: 6px;
 
   &.asset-row--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &:hover {

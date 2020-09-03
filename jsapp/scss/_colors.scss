@@ -13,24 +13,24 @@
   There are too many shades of gray here. We need to merge them further and cut
   down the list at least to less than 10 colors.
 */
-$black: #414453; // 29% lightness - used 50+ times, base text
+$black: #414453; // 29% lightness - used 60+ times, base text
 $cool-charcoal: #575b70; // 39% lightness - used 10+ times, header background
-$cool-darkgray: #6e738c; // 49% lightness - used 20+ times, less important text
-$cool-gray: #8a8ea3; // 59% lightness - used 60+ times, buttons text & borders
+$cool-darkgray: #6e738c; // 49% lightness - used 70+ times, less important text
+$cool-gray: #8a8ea3; // 59% lightness - used 10+ times, buttons text & borders
 $cool-silver: #a6aaba; // 69% lightness - used 10+ times, buttons text & borders
 $c-ghost: #cbced7; // 82% lightness - used 10+ times, borders
-$c-iron: #d8d9df; // 86% lightness - used 20+ times, backgrounds & borders
+$c-iron: #d8d9df; // 86% lightness - used 10+ times, backgrounds & borders
 $cool-lightgray: #e0e1e6; // 89% lightness - used 40+ times, backgrounds & borders
-$divider-color: #e8e9ed; // 91% lightness - used 40+ times, borders, page background
+$divider-color: #e8e9ed; // 91% lightness - used 50+ times, borders, page background
 $cool-whitegray: #f4f4f6; // 96% lightness - used 40+ times, backgrounds
-$white: #ffffff; // 100% lightness - used 90+ times, buttons text, backgrounds
+$white: #ffffff; // 100% lightness - used 80+ times, buttons text, backgrounds
 
 /*
  Group 2: Accent colors
 */
-$cool-blue: #2095f3; // THE KoBo blue - used 90+ times
-$cool-blue-light: #3fa2ee; // used 10+ times
-$cool-green: #52c5d0; // KoBo green (teal?) - used 30+ times
+$kobo-blue: #2095f3; // THE KoBo blue - used 80+ times
+$kobo-blue-light: #3fa2ee; // used 10+ times
+$kobo-teal: #52c5d0; // KoBo green (teal?) - used 40+ times
 $warm-green: #52ce7b; // positive messages - used 10+ times
 $cool-red: #ff556a; // error messages - used 40+ times
 $cool-red-washed: #cd8991; // used few times for text or buttons

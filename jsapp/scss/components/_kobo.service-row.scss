@@ -90,7 +90,7 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--pending {
-    color: $cool-green;
+    color: $kobo-teal;
   }
 
   &.service-row__column--failed {
@@ -117,7 +117,7 @@ $s-service-row-z-link: 10;
   }
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
