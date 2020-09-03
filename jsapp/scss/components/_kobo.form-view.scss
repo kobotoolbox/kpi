@@ -57,7 +57,7 @@ $z-form-view-fullscreen: 101;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 13px 0;
+    padding: 12px 0;
     text-transform: uppercase;
     margin: 0 30px;
     font-size: 15px;
@@ -67,14 +67,14 @@ $z-form-view-fullscreen: 101;
     font-weight: normal;
     display: inline-block;
 
+    &:hover,
     &.active {
-      font-weight: 700;
       color: $black;
-      border-bottom: 2px solid $cool-green;
     }
 
-    &:hover {
-      color: $black;
+    &.active {
+      font-weight: 700;
+      border-bottom: 4px solid $cool-green;
     }
   }
 
@@ -111,9 +111,16 @@ $z-form-view-fullscreen: 101;
       border-bottom: 1px solid $divider-color;
     }
 
+    &:hover,
     &.active {
-      color: $cool-green;
+      color: $black;
+    }
 
+    &.active {
+      font-weight: 700;
+
+      // left border is detached from horizontal lines,
+      // so we need to make it a separate element
       &::before {
         content: "";
         position: absolute;
@@ -123,10 +130,6 @@ $z-form-view-fullscreen: 101;
         left: -10px;
         background-color: $cool-green;
       }
-    }
-
-    &:hover {
-      color: $cool-green;
     }
 
     i {

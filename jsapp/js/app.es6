@@ -106,8 +106,9 @@ class App extends React.Component {
 
     return (
       <DocumentTitle title='KoBoToolbox'>
-        <PermValidator/>
-        <IntercomHandler/>
+        <React.Fragment>
+          <PermValidator/>
+          <IntercomHandler/>
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
@@ -130,6 +131,7 @@ class App extends React.Component {
 
               </bem.PageWrapper__content>
           </bem.PageWrapper>
+        </React.Fragment>
       </DocumentTitle>
     );
   }
@@ -137,10 +139,6 @@ class App extends React.Component {
 
 App.contextTypes = {
   router: PropTypes.object
-};
-
-App.childContextTypes = {
-  shortcuts: PropTypes.object.isRequired
 };
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
