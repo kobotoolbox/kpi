@@ -26,6 +26,7 @@ from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
+from kpi.management.commands.import_xls_to_collection import convert_xls_to_dict
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str
 from ..fields import KpiUidField
@@ -665,7 +666,7 @@ class ExportTask(ImportExportTask):
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
-    survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    survey_dict = convert_xls_to_dict(BytesIO(decoded_str))
     return _strip_header_keys(survey_dict)
 
 
