@@ -510,14 +510,12 @@ export class FormLanding extends React.Component {
 
     if (this.state.uid === undefined) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
       );
     }
 

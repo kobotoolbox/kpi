@@ -14,7 +14,6 @@ import TextBox from './textBox';
 import Checkbox from './checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
-import ui from '../ui';
 import {
   t,
   stringToColor,
@@ -226,18 +225,16 @@ export default class AccountSettings extends React.Component {
       !stores.session.environment
     ) {
       return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
+        <bem.AccountSettings>
+          <bem.AccountSettings__item>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.AccountSettings__item>
+        </bem.AccountSettings>
       );
     }
 
@@ -248,7 +245,6 @@ export default class AccountSettings extends React.Component {
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
-      <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <button
@@ -473,7 +469,6 @@ export default class AccountSettings extends React.Component {
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
-      </ui.Panel>
       </DocumentTitle>
     );
   }

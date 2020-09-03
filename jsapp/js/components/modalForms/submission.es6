@@ -11,7 +11,6 @@ import mixins from 'js/mixins';
 import {bem} from 'js/bem';
 import {t, notify, launchPrinting} from 'js/utils';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
@@ -232,13 +231,11 @@ class Submission extends React.Component {
 
     if (this.state.error) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
+            {this.state.error}
+          </bem.Loading__inner>
+        </bem.Loading>
       );
     }
 
