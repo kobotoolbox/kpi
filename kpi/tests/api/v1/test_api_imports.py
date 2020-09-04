@@ -1,5 +1,6 @@
 # coding: utf-8
 import base64
+import json
 
 import responses
 import unittest
@@ -82,6 +83,27 @@ class AssetImportTaskTest(BaseTestCase):
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
+
+    def test_import_to_library(self):
+        LIBRARY_CONTENT={"library": [
+            {
+                "name": "basic",
+                "type": "text",
+                "label": [
+                    "basic"
+                ],
+                "required": False,
+            }
+        ]}
+        library_asset = Asset.objects.create(asset_type='library',
+                                      content=LIBRARY_CONTENT)
+        xls_io = library_asset.to_xls_io()
+        task_data = {
+            'file': xls_io,
+            'name': 'I was imported via XLS for the Library!',
+        }
+        self._post_import_task_and_compare_created_asset_to_source(task_data,
+                                                                   library_asset)
 
     def test_import_non_xls_url(self):
         """
