@@ -1,5 +1,9 @@
-// TODO: this is our current pallete of colors
-// we neeed to clean this up and merge/cut out some colors
+/*
+  This is our current pallete of colors.
+
+  Please use only colors defined here when writing new styles. Also try to avoid
+  defining new colors, as we already have more than enough.
+*/
 
 /*
   Group 1: Blueish grays
@@ -26,7 +30,7 @@ $cool-whitegray: #f4f4f6; // 96% lightness - used 40+ times, backgrounds
 $white: #ffffff; // 100% lightness - used 80+ times, buttons text, backgrounds
 
 /*
- Group 2: Accent colors
+  Group 2: Accent colors
 */
 $kobo-blue: hsl(206, 90%, 54%); // used 80+ times
 $kobo-blue-light: hsl(206, 90%, 60%); // used 10+ times
