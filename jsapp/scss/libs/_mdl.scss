@@ -2,7 +2,7 @@
 
 // Theming variables, mixins and includes
 
-$root-background: $cool-whitegray;
+$root-background: $white;
 
 $font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $layout-text-color: $black !default;
@@ -14,6 +14,11 @@ $z-fullscreen: 101;
 
 @mixin box-shadow {
   box-shadow: 0 0 2px 0 rgba($black, 0.06), 0 2px 2px 0 rgba($black, 0.12);
+  border-radius: 2px;
+}
+
+@mixin box-shadow-big {
+  box-shadow: 0 0 3px 1px rgba($black, 0.06), 0 1px 3px 0 rgba($black, 0.12);
   border-radius: 2px;
 }
 
@@ -30,37 +35,10 @@ $z-fullscreen: 101;
 }
 
 @mixin form-builder-focus {
-  outline-color: $cool-blue;
+  outline-color: $kobo-blue;
   outline-offset: -2px;
   outline-style: auto;
   outline-width: 5px;
-}
-
-html {
-  color: $cool-darkgray;
-}
-
-body {
-  background: $root-background;
-}
-
-html, body, input, textarea, select, button {
-  font-family: $font;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-a {
-  color: $cool-blue;
-}
-
-p {
-  margin-bottom: 16px;
-}
-
-h3, h4, h5, h6 {
-  font-weight: 400;
 }
 
 @import "mdl.layout";

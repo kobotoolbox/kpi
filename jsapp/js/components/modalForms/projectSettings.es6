@@ -925,7 +925,7 @@ class ProjectSettings extends React.Component {
                 {!this.isArchived() &&
                   <button
                     type='button'
-                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
+                    className='mdl-button mdl-button--colored mdl-button--orange mdl-button--raised'
                     onClick={this.archiveProject}
                   >
                     {t('Archive Project')}
@@ -943,7 +943,7 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <button
                 type='button'
-                className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+                className='mdl-button mdl-button--colored mdl-button--red mdl-button--raised'
                 onClick={this.deleteProject}
               >
                 {t('Delete Project and Data')}

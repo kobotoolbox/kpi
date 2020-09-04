@@ -1,3 +1,8 @@
+// TODO: cleanup these buttons
+// 1. stop @extend-ing them, as ut makes for much harder debugging in Dev Tools
+//    instead create few mixins and use those
+// 2. simplify the number of options
+
 // Inspired but simplified version of MDL buttons
 
 // The button component. Defaults to a flat button.
@@ -13,7 +18,7 @@
   padding: 0 24px;
   margin: 0;
   border: none;
-  border-radius: 2px;
+  border-radius: 10px;
   vertical-align: middle;
   background: transparent;
   position: relative;
@@ -22,7 +27,7 @@
   transition: background-color 0.2s, color 0.2s;
   outline: none;
   cursor: pointer;
-  color: $cool-gray;
+  color: $cool-darkgray;
 
   &[data-tip] {
     overflow: visible;
@@ -37,27 +42,35 @@
   }
 
   &.mdl-button--colored {
-    color: $cool-blue;
+    color: $kobo-blue;
     text-transform: uppercase;
 
     &:hover {
-      color: darken($cool-blue, 20%);
+      color: darken($kobo-blue, 20%);
     }
   }
 
-  &.mdl-button--colored.mdl-button--danger {
-    color: $cool-red;
+  &.mdl-button--colored.mdl-button--red {
+    color: $kobo-red;
 
     &:hover {
-      color: darken($cool-red, 20%);
+      color: darken($kobo-red, 20%);
     }
   }
 
-  &.mdl-button--colored.mdl-button--warning {
-    color: $cool-orange;
+  &.mdl-button--colored.mdl-button--orange {
+    color: $kobo-orange;
 
     &:hover {
-      color: darken($cool-orange, 20%);
+      color: darken($kobo-orange, 20%);
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--green {
+    color: $kobo-green;
+
+    &:hover {
+      color: $kobo-green-dark;
     }
   }
 }
@@ -68,39 +81,53 @@ input.mdl-button[type="submit"] {
 
 // Raised buttons
 .mdl-button--raised {
-  background: $cool-blue;
-  text-shadow: -1px -1px 1px rgba($black, 0.125);
-
   @include box-shadow;
 
+  background: $kobo-blue;
+  border-radius: 10px;
   text-transform: uppercase;
 
+  // same as .mdl-button--blue
   &.mdl-button--colored {
-    background: $cool-blue;
+    background-color: $kobo-blue;
+    text-shadow: -1px -1px rgba($kobo-blue-dark, 0.5);
     color: $white;
 
     &:hover {
-      background-color: darken($cool-blue, 5%);
+      background-color: darken($kobo-blue, 5%);
       color: $white;
     }
   }
 
-  &.mdl-button--colored.mdl-button--danger {
-    background: $cool-red;
+  &.mdl-button--colored.mdl-button--red {
+    background-color: $kobo-red;
+    text-shadow: -1px -1px rgba($kobo-red-dark, 0.5);
     color: $white;
 
     &:hover {
-      background-color: darken($cool-red, 5%);
+      background-color: darken($kobo-red, 5%);
       color: $white;
     }
   }
 
-  &.mdl-button--colored.mdl-button--warning {
-    background: $cool-orange;
+  &.mdl-button--colored.mdl-button--orange {
+    background-color: $kobo-orange;
+    text-shadow: -1px -1px rgba($kobo-orange-dark, 0.5);
     color: $white;
 
     &:hover {
-      background-color: darken($cool-orange, 5%);
+      background-color: darken($kobo-orange, 5%);
+      color: $white;
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--green {
+    background-color: $kobo-green;
+    text-shadow: -1px -1px rgba($kobo-green-dark, 0.5);
+    color: $white;
+
+    &:hover {
+      background-color: darken($kobo-green, 5%);
       color: $white;
     }
   }
@@ -148,7 +175,7 @@ input.mdl-button[type="submit"] {
   // Bump up specificity by using [disabled] twice.
   &[disabled][disabled],
   &.mdl-button--disabled.mdl-button--disabled {
-    color: $cool-gray;
+    color: $cool-darkgray;
     cursor: default;
     background-color: transparent;
     pointer-events: none;
@@ -159,7 +186,7 @@ input.mdl-button[type="submit"] {
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
       background-color: $cool-lightgray;
-      color: $cool-gray;
+      color: $cool-darkgray;
       box-shadow: none;
     }
   }
@@ -168,7 +195,7 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      color: $cool-gray;
+      color: $cool-darkgray;
     }
   }
 }

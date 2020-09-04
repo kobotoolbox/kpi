@@ -245,7 +245,6 @@ class FormSummary extends React.Component {
   renderDataTabs() {
     const sideTabs = [
       {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report`},
-      {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report-legacy`, className: 'is-edge'},
       {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.uid}/data/table`},
       {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.uid}/data/gallery`},
       {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.uid}/data/downloads`},
@@ -260,7 +259,7 @@ class FormSummary extends React.Component {
             key={ind}
             activeClassName='active'
             onlyActiveOnIndex
-            className={`form-view__tab ${item.className || ''}`}
+            className='form-view__tab'
             data-path={item.path}
             onClick={this.triggerRefresh}>
               <i className={item.icon} />

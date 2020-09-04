@@ -13,40 +13,15 @@ $mdl-layout-width: 1440px;
 }
 
 .mdl-layout__content {
-  height: calc(100% - 97px);
+  height: calc(100% - #{$layout-desktop-header-height});
   position: relative;
-  margin-top: 20px;
   flex-grow: 0;
-  margin-right: 12px;
   overflow: hidden;
-
-  &.page-wrapper__content--form-landing {
-    @include box-shadow;
-
-    height: calc(100% - 102px);
-  }
-
-  &.page-wrapper__content--library-landing {
-    @include box-shadow;
-  }
 
   > .dropzone,
   .public-collections-wrapper {
     height: 100%;
     overflow: hidden;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .mdl-layout__content {
-    margin-right: 0px;
-    margin-top: 10px;
-    height: calc(100% - 74px);
-
-    &.page-wrapper__content--form-landing {
-      margin-right: 0px;
-      height: calc(100% - 76px);
-    }
   }
 }
 
@@ -186,12 +161,12 @@ $mdl-layout-width: 1440px;
   margin: 0;
   padding: 0;
   cursor: pointer;
-  color: $cool-gray;
+  color: $cool-darkgray;
   display: inline-block;
   vertical-align: middle;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   i {
@@ -244,7 +219,7 @@ $mdl-layout-width: 1440px;
   display: block;
   padding: 6px 16px 6px 10px;
   position: relative;
-  color: $cool-gray;
+  color: $cool-darkgray;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -263,15 +238,15 @@ $mdl-layout-width: 1440px;
 
   &:hover {
     background-color: $cool-whitegray;
-    color: $cool-gray;
+    color: $black;
   }
 
   &.active {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &.divider {
-    border-top: 1px solid lighten($cool-gray, 25%);
+    border-top: 1px solid $divider-color;
   }
 }
 
@@ -287,7 +262,7 @@ $mdl-layout-width: 1440px;
   overflow: auto;
   overflow-x: hidden;
   background-color: $cool-whitegray;
-  border-bottom: 1px solid lighten($cool-gray, 25%);
+  border-bottom: 1px solid $divider-color;
 }
 
 .popover-menu__item--move-coll-item {
@@ -312,7 +287,7 @@ $mdl-layout-width: 1440px;
     top: 6px;
     padding-right: 0px;
     font-size: 32px;
-    color: $cool-green;
+    color: $kobo-teal;
   }
 
   &.popover-menu__item--move-coll-item-parent {
@@ -324,9 +299,8 @@ $mdl-layout-width: 1440px;
 
 .popover-menu__heading {
   padding: 8px 15px;
-  color: $cool-gray;
-  border-top: 1px solid lighten($cool-gray, 25%);
-  border-bottom: 1px solid $divider-color;
+  color: $cool-darkgray;
+  border-top: 1px solid $divider-color;
   background-color: $cool-whitegray;
   margin: 0;
 }
@@ -355,6 +329,7 @@ $mdl-layout-width: 1440px;
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+  border-radius: 10px;
 
   width: 100%;
 }
@@ -371,10 +346,10 @@ $mdl-layout-width: 1440px;
 
   .popover-menu__toggle {
     vertical-align: inherit;
-    color: $cool-blue;
+    color: $kobo-blue;
 
     &:hover {
-      color: lighten($cool-blue, 10%);
+      color: lighten($kobo-blue, 10%);
     }
 
     &::after {
@@ -437,13 +412,14 @@ $mdl-layout-width: 1440px;
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
+    color: $cool-darkgray;
     background: $cool-whitegray;
     position: relative;
 
     @include box-shadow;
 
     &:hover {
-      color: $cool-gray;
+      color: $black;
     }
 
     &::after {
@@ -488,7 +464,7 @@ $mdl-layout-width: 1440px;
       }
 
       &:hover {
-        border-left: 2px solid $cool-green;
+        border-left: 2px solid $kobo-teal;
       }
     }
   }
@@ -583,7 +559,7 @@ iframe {
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 
@@ -620,7 +596,7 @@ iframe {
 
   &:focus {
     transition: border-color 0.3s;
-    border-bottom-color: $cool-blue;
+    border-bottom-color: $kobo-blue;
   }
 }
 
@@ -679,7 +655,7 @@ span.svg-icon {
     display: block;
     margin: 0 auto;
     margin-bottom: 10px;
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
@@ -695,7 +671,7 @@ span.svg-icon {
     left: 0;
     content: '';
     background: rgba($white, 0.7);
-    border: 2px solid $cool-blue;
+    border: 2px solid $kobo-blue;
     z-index: 1;
     opacity: 0;
     visibility: hidden;

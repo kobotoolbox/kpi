@@ -22,7 +22,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $cool-whitegray;
+  background: $white;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -77,23 +77,40 @@
     font-size: 14px;
     cursor: pointer;
     position: relative;
-    color: lighten($cool-gray, 10%);
+    color: $cool-darkgray;
     font-weight: normal;
     letter-spacing: -0.01em;
     display: block;
+    margin-left: 10px;
 
-    &.active {
-      color: $cool-green;
-      border-left: 2px solid $cool-green;
+    &:not(:last-of-type) {
+      border-bottom: 1px solid $divider-color;
     }
 
-    &:hover {
-      color: $cool-green;
+    &:hover,
+    &.active {
+      color: $black;
+    }
+
+    &.active {
+      font-weight: 700;
+
+      // left border is detached from horizontal lines,
+      // so we need to make it a separate element
+      &::before {
+        content: "";
+        position: absolute;
+        width: 4px;
+        height: 100%;
+        top: 0;
+        left: -10px;
+        background-color: $kobo-teal;
+      }
     }
 
     i {
       font-size: 36px;
-      vertical-align: middle;
+      vertical-align: -13px;
       margin-right: 4px;
     }
 
@@ -104,33 +121,33 @@
 }
 
 .form-view__toptabs {
-  position: relative;
-  background: white;
+  background: $cool-whitegray;
   text-align: center;
   height: 48px;
-  border-bottom: 1px solid $divider-color;
+  position: relative;
 
   a.form-view__tab {
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 13px 30px;
+    padding: 14px 0 12px;
     text-transform: uppercase;
-    margin-right: 10px;
+    margin: 0 30px;
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: lighten($cool-gray, 10%);
+    color: $cool-darkgray;
     font-weight: normal;
     display: inline-block;
 
+    &:hover,
     &.active {
       color: $black;
-      border-bottom: 2px solid $cool-green;
     }
 
-    &:hover {
-      color: $black;
+    &.active {
+      font-weight: 700;
+      border-bottom: 4px solid $kobo-teal;
     }
   }
 
@@ -147,6 +164,31 @@
   + .form-view__row {
     margin-top: 0;
   }
+
+  &.historyHidden {
+    margin: 0;
+  }
+
+  &.historyHidden .form-view__cell--box {
+    border: none;
+  }
+
+  &.historyHidden .form-view__cell--history-label,
+  &.historyHidden .form-view__cell--history-table {
+    max-height: 0;
+    overflow: hidden;
+    transition: 0.2s max-height;
+  }
+
+  &.historyExpanded .form-view__cell--history-label,
+  &.historyExpanded .form-view__cell--history-table {
+    transition: 0.2s max-height;
+    max-height: 99999px;
+  }
+
+  &.historyExpanded .form-view__cell--history-table + .form-view__cell {
+    padding-top: 20px;
+  }
 }
 
 .form-view__row--history {
@@ -162,9 +204,7 @@
 
 .form-view__cell {
   &.form-view__cell--box {
-    @include box-shadow;
-
-    background-color: $white;
+    border: 1px solid $divider-color;
   }
 
   &.form-view__cell--columns {
@@ -219,7 +259,7 @@
 
     span {
       display: block;
-      color: $cool-gray;
+      color: $cool-darkgray;
       font-size: 12px;
     }
 
@@ -313,7 +353,7 @@
   }
 
   &.form-view__cell--thin-label {
-    color: $cool-gray;
+    color: $cool-darkgray;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -333,14 +373,14 @@
     display: inline-block;
     padding: 6px;
     color: $white;
-    background-color: $warm-green;
+    background-color: $kobo-green;
     border-radius: 2px;
   }
 
   &.form-view__cell--toggle-details {
     button {
       cursor: pointer;
-      color: $cool-blue;
+      color: $kobo-blue;
       background: transparent;
       text-transform: uppercase;
       border: 0;
@@ -368,7 +408,7 @@
     background: $cool-whitegray;
 
     i {
-      color: $cool-orange;
+      color: $kobo-orange;
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
@@ -402,13 +442,13 @@
   font-size: 36px;
   line-height: 18px;
   padding: 0 5px;
-  color: $cool-gray;
+  color: $cool-darkgray;
   cursor: pointer;
   vertical-align: middle;
   display: inline-block;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &--disabled,
@@ -423,11 +463,11 @@
   }
 
   10% {
-    background-color: lighten($cool-blue, 20%);
+    background-color: lighten($kobo-blue, 20%);
   }
 
   100% {
-    background-color: lighten($cool-blue, 40%);
+    background-color: lighten($kobo-blue, 40%);
   }
 }
 
@@ -459,11 +499,15 @@
     height: 36px;
   }
 
-  &--items {
+  &.form-view__group--items {
     padding: 0;
     border-top: 1px solid $divider-color;
     display: flex;
     align-items: center;
+
+    &:first-child {
+      border-top: none;
+    }
 
     > .form-view__label {
       text-align: right;
@@ -489,17 +533,17 @@
     .form-view__link--export-delete {
       opacity: 0.9;
       vertical-align: middle;
-      color: lighten($cool-red, 10%);
+      color: lighten($kobo-red, 10%);
       font-size: 24px;
 
       &:hover {
-        color: $cool-red;
+        color: $kobo-red;
         opacity: 1;
       }
     }
 
     &.recent {
-      background-color: lighten($cool-blue, 40%);
+      background-color: lighten($kobo-blue, 40%);
       animation: recent 5s 1;
     }
 

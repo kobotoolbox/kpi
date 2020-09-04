@@ -2,14 +2,13 @@
 
 .mdl-layout__header {
   background-color: $layout-header-bg-color;
-  box-shadow: 0 2px 2px 0 rgba($black, 0.14), 0 3px 1px -2px rgba($black, 0.2), 0 1px 5px 0 rgba($black, 0.12);
   min-height: $layout-desktop-header-height;
   margin-left: 0px;
   width: 100%;
   z-index: auto;
 
   .mdl-layout__header-row {
-    height: 63px;
+    height: $layout-desktop-header-height;
     padding: 0px 20px;
   }
 
@@ -131,7 +130,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $cool-gray;
+    color: $cool-darkgray;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -160,7 +159,7 @@
     padding-bottom: 15px;
 
     a {
-      color: $cool-gray;
+      color: $cool-darkgray;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -175,7 +174,7 @@
       }
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
 
@@ -197,19 +196,21 @@
 
     ul {
       background-color: $white;
-      color: $cool-gray;
+      color: $cool-darkgray;
       min-width: 140px;
       padding: 0;
-
-      @include box-shadow;
+      border: 1px solid $divider-color;
 
       li {
-        padding: 10px 15px;
         text-transform: capitalize;
-        border-bottom: 1px solid $divider-color;
+        padding: 0;
 
-        &:last-child {
-          border-bottom: 0px;
+        &:not(:last-child) {
+          border-bottom: 1px solid $divider-color;
+        }
+
+        a {
+          padding: 10px 15px;
         }
       }
     }
@@ -290,34 +291,35 @@
     }
 
     input {
+      background: transparent;
+      border-left: none;
+      border-right: none;
+      border-bottom: 1px solid transparent;
+      border-top: 1px solid transparent;
       color: $white;
       font-size: 18px;
+      margin: 0;
+      overflow: hidden;
+      padding: 3px 6px;
       text-overflow: ellipsis;
       white-space: nowrap;
-      overflow: hidden;
       width: 100%;
-      background: transparent;
-      padding: 3px 6px;
-      margin: 0;
-      border: none;
-      border-top: 1px solid transparent;
-      border-bottom: 1px solid transparent;
       // keep these pseudo-states separate
       &::-webkit-input-placeholder {
-        color: darken($cool-gray, 10%);
+        color: $cool-darkgray;
       }
 
       &:-ms-input-placeholder {
-        color: darken($cool-gray, 10%);
+        color: $cool-darkgray;
       }
 
       &:hover {
-        border-bottom-color: $cool-blue;
+        border-bottom: 1px solid $kobo-blue;
       }
 
       &:focus {
         background: rgba($white, 0.05);
-        border-bottom-color: $cool-blue;
+        border-bottom: 1px solid $kobo-blue;
       }
     }
   }
@@ -391,7 +393,7 @@
     .git-rev__item {
       color: white;
       opacity: 0.85;
-      background: darken($cool-green, 10%);
+      background: darken($kobo-teal, 10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;

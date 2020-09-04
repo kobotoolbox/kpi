@@ -98,13 +98,6 @@ class SidebarFormsList extends Reflux.Component {
     return (
       <bem.FormSidebar>
         {
-          s.defaultQueryState === 'done' &&
-          <bem.FormSidebar__label m={'active-projects'} className='is-edge'>
-            <i className='k-icon-projects' />
-            <bem.FormSidebar__labelText>{t('Active Projects')}</bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
-        }
-        {
           (() => {
             if (s.defaultQueryState === 'loading') {
               return (
@@ -157,10 +150,6 @@ class SidebarFormsList extends Reflux.Component {
             }
           })()
         }
-        <bem.FormSidebar__label className='is-edge'>
-          <i className='k-icon-trash' />
-          {t('Deleted')} (#)
-        </bem.FormSidebar__label>
       </bem.FormSidebar>
     );
   }

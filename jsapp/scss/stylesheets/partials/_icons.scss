@@ -15,7 +15,7 @@
 
 .header-bar__top-level-menu-button:hover > .fa,
 .header-bar__top-level-menu-button:focus > .fa {
-  color: $cool-blue;
+  color: $kobo-blue;
 }
 
 // ==========================================================================
@@ -23,7 +23,7 @@
 // ==========================================================================
 
 .fa.green {
-  color: $warm-green;
+  color: $kobo-green;
 }
 
 .fa.invert {
@@ -84,7 +84,7 @@
 }
 
 .fa-folder-o .fa-plus {
-  color: $warm-green;
+  color: $kobo-green;
   position: absolute;
   left: 10px;
   top: 7px;

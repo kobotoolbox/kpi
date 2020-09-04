@@ -1,15 +1,17 @@
 // drawer (sidebar)
 
 $drawer-icons-width: 58px;
+$drawer-background: $cool-whitegray;
 
 .k-drawer {
-  height: calc(100% - 66px);
-  top: 65px;
+  height: calc(100% - #{$layout-desktop-header-height});
+  top: $layout-desktop-header-height;
   width: 270px;
   position: absolute;
   left: 0;
   display: flex;
   flex-direction: row;
+  border-right: 2px solid $divider-color;
 }
 
 .mdl-layout__content {
@@ -21,13 +23,13 @@ $drawer-icons-width: 58px;
   flex-direction: column;
   width: $drawer-icons-width;
   height: 100%;
-  border-right: 1px solid $c-iron;
+  background-color: $drawer-background;
 }
 
 .k-drawer__link {
   font-size: 42px;
   text-align: center;
-  color: $cool-silver;
+  color: $cool-darkgray;
   padding: 0;
   border-left: 3px solid transparent;
 
@@ -35,9 +37,13 @@ $drawer-icons-width: 58px;
     margin-top: 20px;
   }
 
+  &:hover {
+    color: $kobo-teal;
+  }
+
   &.active {
-    color: $cool-green;
-    border-left: 3px solid $cool-green;
+    color: $kobo-teal;
+    border-left: 3px solid $kobo-teal;
   }
 }
 
@@ -54,10 +60,10 @@ $drawer-icons-width: 58px;
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: $cool-silver;
+    color: $cool-darkgray;
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-teal;
     }
 
     i {
@@ -86,7 +92,7 @@ $drawer-icons-width: 58px;
     transition: left 0.5s;
     background-color: $white;
 
-    @include box-shadow;
+    @include box-shadow-mid;
   }
 
   .page-wrapper--fixed-drawer .k-drawer {
@@ -96,11 +102,5 @@ $drawer-icons-width: 58px;
 
   .mdl-layout__content {
     margin-left: 0;
-  }
-}
-
-@media screen and (min-width: 768px) and (max-width: 999px) {
-  .mdl-layout__content {
-    margin-left: 18px;
   }
 }

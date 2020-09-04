@@ -2,40 +2,6 @@
 // Skip logic
 // ==========================================================================
 
-.skiplogic__button {
-  border: none;
-  width: 100%;
-  display: block;
-  text-align: center;
-  padding: 12px 0px;
-  font-weight: 600;
-  margin-bottom: 5px;
-  cursor: pointer;
-
-  i {
-    margin-right: 4px;
-    font-style: normal;
-  }
-
-  &.skiplogic__select-builder {
-    background: $warm-green-light;
-    border-bottom: 1px solid $warm-green;
-
-    i {
-      color: $warm-green;
-    }
-  }
-
-  &.skiplogic__select-handcode {
-    background: $cool-blue-lighter;
-    border-bottom: 1px solid $cool-blue-light;
-
-    i {
-      color: $cool-blue;
-    }
-  }
-}
-
 .skiplogic__criterion {
   margin-bottom: 12px;
   position: relative;
@@ -102,7 +68,7 @@ div.skiplogic__responseval {
   position: absolute;
   top: 3px;
   right: -16px;
-  color: $cool-red-washed;
+  color: $kobo-red;
   background-color: transparent;
   opacity: 0.8;
   cursor: pointer;
@@ -122,7 +88,7 @@ div.skiplogic__responseval {
 .skiplogic-handcode__cancel {
   background: none;
   border: medium none;
-  color: $cool-red-washed;
+  color: $kobo-red;
   font-size: 15px;
   position: absolute;
   right: -22px;
@@ -134,6 +100,14 @@ div.skiplogic__responseval {
 
 .skiplogic__main {
   position: relative;
+
+  .mdl-button {
+    width: 100%;
+
+    &:not(:first-child) {
+      margin-top: 10px;
+    }
+  }
 }
 
 .skiplogic__addnew {
@@ -142,23 +116,6 @@ div.skiplogic__responseval {
   height: 36px;
   width: 180px;
   display: inline-block;
-
-  .skiplogic__addcriterion {
-    width: 160px;
-    padding: 5px;
-    font-size: 12px;
-    color: white;
-    text-align: center;
-    font-weight: 600;
-    background: $warm-green;
-    border: none;
-    border-bottom: 2px solid darken($warm-green, 20%);
-    cursor: pointer;
-
-    &:hover {
-      background: lighten($warm-green, 10%);
-    }
-  }
 }
 
 select.skiplogic__delimselect {

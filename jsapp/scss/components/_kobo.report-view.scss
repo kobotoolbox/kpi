@@ -9,21 +9,18 @@
 }
 
 .report-view__warning {
-  background-color: $white;
-
-  @include box-shadow;
-
+  background-color: $kobo-orange-light;
+  color: $kobo-orange-dark;
+  border: 1px solid $kobo-orange;
   padding: 16px 24px;
 
   p {
     font-size: 13px;
     line-height: 1.3em;
     margin: 0;
-    color: $cool-gray;
   }
 
   h4 {
-    color: $cool-red;
     margin: 0px;
     padding: 0px;
     padding-bottom: 8px;
@@ -33,23 +30,20 @@
 }
 
 .report-view__item {
-  background-color: $white;
-
-  @include box-shadow;
-
+  border: 1px solid $divider-color;
   margin: 15px 0px;
 }
 
 .report-view__itemHeading {
   padding: 10px 24px;
-  border-left: 5px solid $cool-green;
-  border-bottom: 1px solid $c-ghost;
+  border-left: 5px solid $kobo-teal;
+  border-bottom: 1px solid $divider-color;
   position: relative;
 
   h2 {
     margin: 0px;
     margin-right: 60px;
-    color: $cool-green;
+    color: $kobo-teal;
     font-size: 16px;
     font-weight: normal;
     line-height: 1.35em;
@@ -203,7 +197,7 @@
     margin-bottom: 20px;
     display: block;
     font-weight: 400;
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 }
 
@@ -225,7 +219,7 @@
   }
 
   input:checked + label {
-    border: 2px solid $cool-blue;
+    border: 2px solid $kobo-blue;
   }
 
   &--vertical {

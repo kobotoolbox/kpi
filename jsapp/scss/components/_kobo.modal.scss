@@ -86,13 +86,13 @@ $z-modal-x: 10;
 }
 
 .modal__tabs {
-  background: $cool-blue;
+  background: $kobo-blue;
   color: $white;
 }
 
 .modal__header {
   min-height: 70px;
-  background: $cool-blue;
+  background: $kobo-blue;
   color: $white;
 }
 
@@ -128,7 +128,7 @@ $z-modal-x: 10;
   background: $cool-whitegray;
   padding: 20px 30px;
   margin: -30px -30px 20px;
-  color: $cool-silver;
+  color: $cool-darkgray;
 
   i {
     margin: 2px 10px 10px 0;
@@ -173,19 +173,18 @@ $z-modal-x: 10;
     }
 
     &.modal__footer-button--danger {
-      @extend .mdl-button--colored, .mdl-button--danger;
+      @extend .mdl-button--colored, .mdl-button--red;
     }
 
     &.modal__footer-button--back {
-      border-radius: 2px;
-      color: $cool-blue;
+      border-radius: 10px;
+      color: $kobo-blue;
       border: 1px solid currentColor;
       opacity: 1;
       float: left;
 
       &:hover {
-        opacity: 0.8;
-        color: $cool-blue;
+        color: $kobo-blue-light;
       }
     }
   }
@@ -295,7 +294,7 @@ $z-modal-x: 10;
     line-height: 1em;
 
     i {
-      color: $cool-orange;
+      color: $kobo-orange;
       font-size: 40px;
       margin-right: 10px;
       vertical-align: middle;
@@ -327,7 +326,7 @@ $z-modal-x: 10;
     }
 
     i:before {
-      color: $cool-blue-light;
+      color: $kobo-blue-light;
       font-size: 20px;
     }
   }
@@ -397,15 +396,17 @@ $z-modal-x: 10;
     button {
       display: inline-block;
       vertical-align: top;
-      border: 1px solid $divider-color;
+      border: none;
       background: $cool-whitegray;
-      border-radius: 4px;
-      color: $cool-gray;
+      border-radius: 10px;
+      color: $cool-darkgray;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
       width: calc(50% - #{$buttons-spacing});
       min-height: 120px;
+
+      @include box-shadow;
 
       @media screen and (min-width: 768px) {
         margin: $buttons-spacing;
@@ -417,12 +418,14 @@ $z-modal-x: 10;
         display: block;
         margin: 0 auto;
         font-size: 48px;
+        color: currentColor;
       }
 
       &:hover {
-        color: $cool-blue;
-        border-color: $cool-blue;
-        i {color: $cool-blue;}
+        color: $kobo-blue;
+        border-color: $kobo-blue;
+
+        @include box-shadow-mid;
       }
     }
   }
@@ -452,9 +455,9 @@ $z-modal-x: 10;
       margin-bottom: 16px;
     }
 
-    &:hover {border-color: $cool-blue;}
-    &.dropzone-active {border-color: $cool-blue;}
-    &.dropzone-reject {border-color: $cool-red;}
+    &:hover {border-color: $kobo-blue;}
+    &.dropzone-active {border-color: $kobo-blue;}
+    &.dropzone-reject {border-color: $kobo-red;}
   }
 }
 
@@ -502,7 +505,7 @@ $z-modal-x: 10;
     vertical-align: middle;
     padding: 0 12px 0 6px;
 
-    &:hover {background: darken($cool-gray, 10%);}
+    &:hover {background: $cool-darkgray;}
   }
 
   .http-header-row-remove {
@@ -510,7 +513,7 @@ $z-modal-x: 10;
     width: 30px;
     vertical-align: top;
     padding: 0;
-    &:hover {color: $cool-red;}
+    &:hover {color: $kobo-red;}
   }
 }
 
@@ -672,7 +675,7 @@ $z-modal-x: 10;
         min-width: 70%;
       }
       .translation {
-        background: lighten($cool-green, 41%);
+        background: lighten($kobo-teal, 41%);
         color: lighten($black, 15%);
         padding: 0px;
         textarea {
@@ -681,7 +684,7 @@ $z-modal-x: 10;
           background: transparent;
           width: 100%;
           &:focus {
-            background: lighten($cool-green, 35%);
+            background: lighten($kobo-teal, 35%);
           }
         }
       }

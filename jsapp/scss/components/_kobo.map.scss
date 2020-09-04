@@ -112,7 +112,7 @@ $z-map-settings-3: 701;
     border-radius: 6px;
     padding: 12px;
     text-align: left;
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 
   .popover-menu__content {
@@ -186,7 +186,7 @@ body .leaflet-control-layers,
       font-size: 18px;
       margin-right: 8px;
       margin-left: 3px;
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 
@@ -244,7 +244,7 @@ body .leaflet-control-layers,
     &.map-marker-reset {
       text-align: right;
       font-size: 12px;
-      color: $cool-blue;
+      color: $kobo-blue;
       opacity: 0.8;
       cursor: pointer;
 
@@ -350,7 +350,7 @@ body .leaflet-control-layers,
 
         i {
           font-size: 24px;
-          color: $cool-red;
+          color: $kobo-red;
         }
       }
     }

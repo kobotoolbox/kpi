@@ -3,21 +3,21 @@
 .react-tagsinput {
   &.react-tagsinput-invalid {
     .react-tagsinput-input {
-      color: $cool-red;
-      border-bottom-color: $cool-red;
+      color: $kobo-red;
+      border-bottom-color: $kobo-red;
     }
   }
 
   &.react-tagsinput-validating {
     .react-tagsinput-input {
-      color: $cool-green;
-      border-bottom-color: $cool-green;
+      color: $kobo-teal;
+      border-bottom-color: $kobo-teal;
     }
   }
 }
 
 .react-tagsinput-tag {
-  background-color: $cool-gray;
+  background-color: $cool-darkgray;
   color: $white;
   font-weight: 400;
   margin-bottom: 4px;

@@ -16,7 +16,7 @@ $z-tooltip: 2;
       font-size: 13px;
       line-height: 1.35em;
       color: white;
-      background-color: darken($cool-gray, 10%);
+      background-color: $cool-darkgray;
       padding: 6px 12px;
       position: absolute;
       top: 96%;
@@ -32,7 +32,7 @@ $z-tooltip: 2;
     }
 
     &::before {
-      border-bottom: 5px solid darken($cool-gray, 10%);
+      border-bottom: 5px solid $cool-darkgray;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
       position: absolute;
@@ -68,7 +68,7 @@ $z-tooltip: 2;
       left: calc(95% - 5px);
       top: 50%;
       transform: translate(0, -50%);
-      border-right: 5px solid darken($cool-gray, 10%);
+      border-right: 5px solid $cool-darkgray;
       border-bottom: 5px solid transparent;
       border-top: 5px solid transparent;
       border-left: none;

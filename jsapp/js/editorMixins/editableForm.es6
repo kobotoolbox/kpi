@@ -49,8 +49,6 @@ export default assign({
   componentDidMount() {
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
 
-    document.body.classList.add('hide-edge');
-
     this.loadAsideSettings();
 
     if (!this.state.isNewAsset) {
@@ -562,10 +560,6 @@ export default assign({
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
-            <bem.FormBuilderHeader__button m={['share']} className='is-edge'>
-              {t('share')}
-            </bem.FormBuilderHeader__button>
-
             <bem.FormBuilderHeader__button
               m={['save', {
                 savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
@@ -617,22 +611,6 @@ export default assign({
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon-group' />
-            </bem.FormBuilderHeader__button>
-
-            <bem.FormBuilderHeader__button
-              m={['download']}
-              data-tip={t('Download form')}
-              className='is-edge'
-            >
-              <i className='k-icon-download' />
-            </bem.FormBuilderHeader__button>
-
-            <bem.FormBuilderHeader__button
-              m={['attach']}
-              data-tip={t('Attach media files')}
-              className='is-edge'
-            >
-              <i className='k-icon-attach' />
             </bem.FormBuilderHeader__button>
 
             { this.toggleCascade !== undefined &&

@@ -115,7 +115,7 @@ $t-form-builder-aside-open: 200ms;
 
   .formBuilder-header__cell {
     &.formBuilder-header__cell--logo {
-      background-color: $cool-green;
+      background-color: $kobo-teal;
       width: 75px;
       text-align: center;
       vertical-align: middle;
@@ -124,11 +124,11 @@ $t-form-builder-aside-open: 200ms;
       transition: background-color 0.2s, color 0.2s;
 
       &:hover {
-        background-color: darken($cool-green, 10%);
+        background-color: darken($kobo-teal, 10%);
       }
 
       &:focus {
-        background-color: darken($cool-green, 10%);
+        background-color: darken($kobo-teal, 10%);
         i {
           font-size: 56px;
           padding-top: 8px;
@@ -201,7 +201,7 @@ $t-form-builder-aside-open: 200ms;
       margin: 0 10px;
 
       button {
-        color: $cool-gray;
+        color: $cool-darkgray;
         // for tooltip
         overflow: visible;
         padding: 0;
@@ -246,13 +246,13 @@ $t-form-builder-aside-open: 200ms;
 
 .formBuilder-header__close {
   border: none;
-  color: lighten($cool-gray, 20%);
+  color: $cool-darkgray;
   cursor: pointer;
 
   @extend .mdl-button, .mdl-button--icon;
 
   &:hover {
-    color: $cool-gray;
+    color: $black;
   }
 
   &:focus {
@@ -288,7 +288,7 @@ $t-form-builder-aside-open: 200ms;
     }
 
     &:focus {
-      background-color: darken($cool-blue, 10%);
+      background-color: darken($kobo-blue, 10%);
       font-weight: bold;
     }
   }
@@ -329,7 +329,7 @@ $t-form-builder-aside-open: 200ms;
 
     &.formBuilder-header__button--active {
       i.k-icon {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
 
@@ -450,11 +450,11 @@ $t-form-builder-aside-open: 200ms;
 
   .cascade-popup__message {
     &--warning {
-      color: $cool-red;
+      color: $kobo-red;
     }
 
     &--ready {
-      color: $cool-green;
+      color: $kobo-teal;
     }
   }
 
@@ -463,7 +463,7 @@ $t-form-builder-aside-open: 200ms;
 
     i {
       font-size: 26px;
-      color: $cool-gray;
+      color: $cool-darkgray;
     }
   }
 }

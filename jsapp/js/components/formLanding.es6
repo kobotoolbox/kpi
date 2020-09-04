@@ -436,11 +436,6 @@ export class FormLanding extends React.Component {
               );
           })}
 
-          <bem.PopoverMenu__link href='#pdf' className='is-edge'>
-            <i className='k-icon-pdf'/>
-            {t('Download PDF')}
-          </bem.PopoverMenu__link>
-
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
               <i className='k-icon-user-share'/>
@@ -514,14 +509,12 @@ export class FormLanding extends React.Component {
 
     if (this.state.uid === undefined) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
       );
     }
 

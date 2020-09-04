@@ -14,7 +14,6 @@ import TextBox from './textBox';
 import Checkbox from './checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
-import ui from '../ui';
 import {
   t,
   stringToColor,
@@ -226,18 +225,16 @@ export default class AccountSettings extends React.Component {
       !stores.session.environment
     ) {
       return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
+        <bem.AccountSettings>
+          <bem.AccountSettings__item>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.AccountSettings__item>
+        </bem.AccountSettings>
       );
     }
 
@@ -248,7 +245,6 @@ export default class AccountSettings extends React.Component {
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
-      <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <button
@@ -338,10 +334,6 @@ export default class AccountSettings extends React.Component {
                   value={this.state.organizationWebsite}
                   onChange={this.organizationWebsiteChange}
                 />
-
-                <bem.AccountSettings__desc className='is-edge'>
-                  {t('This will be used to create a hyperlink for your organization name. ')}
-                </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='primary-sector'>
@@ -432,21 +424,6 @@ export default class AccountSettings extends React.Component {
                 </label>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item className='is-edge'>
-                <label>
-                  {t('Default Form Language')}
-
-                  <Select
-                    value={this.state.defaultLanguage}
-                    options={this.state.languageChoices}
-                    onChange={this.defaultLanguageChange}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
-                  />
-                </label>
-              </bem.AccountSettings__item>
-
               <bem.AccountSettings__item m='social'>
                 <label>{t('Social')}</label>
 
@@ -492,7 +469,6 @@ export default class AccountSettings extends React.Component {
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
-      </ui.Panel>
       </DocumentTitle>
     );
   }

@@ -9,7 +9,6 @@ import {stores} from '../stores';
 import TextBox from './textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
-import ui from '../ui';
 import {
   t,
   stringToColor,
@@ -87,18 +86,16 @@ export default class ChangePassword extends React.Component {
   render() {
     if(!stores.session || !stores.session.currentAccount) {
       return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
+        <bem.AccountSettings>
+          <bem.AccountSettings__item>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.AccountSettings__item>
+        </bem.AccountSettings>
       );
     }
 
@@ -109,7 +106,6 @@ export default class ChangePassword extends React.Component {
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
-      <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <button
@@ -186,7 +182,6 @@ export default class ChangePassword extends React.Component {
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
-      </ui.Panel>
       </DocumentTitle>
     );
   }

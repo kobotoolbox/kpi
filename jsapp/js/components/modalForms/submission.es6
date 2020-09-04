@@ -11,7 +11,6 @@ import mixins from 'js/mixins';
 import {bem} from 'js/bem';
 import {t, notify, launchPrinting} from 'js/utils';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
@@ -232,13 +231,11 @@ class Submission extends React.Component {
 
     if (this.state.error) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
+            {this.state.error}
+          </bem.Loading__inner>
+        </bem.Loading>
       );
     }
 
@@ -357,7 +354,7 @@ class Submission extends React.Component {
             {this.userCan('change_submissions', this.props.asset) &&
               <a
                 onClick={this.deleteSubmission}
-                className='mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip'
+                className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
                 data-tip={t('Delete submission')}
               >
                 <i className='k-icon-trash' />

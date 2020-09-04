@@ -51,22 +51,22 @@
     a {
       display: inline-block;
       padding: 8px;
-      color: $cool-blue;
+      color: $kobo-teal;
       cursor: pointer;
       font-size: 16px;
       background: transparent;
 
       &.active {
-        color: $cool-gray;
-        background: $cool-whitegray;
+        color: $white;
+        background: $kobo-teal;
         position: relative;
 
-        &:after {
+        &::after {
           width: 0;
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid $cool-whitegray;
+          border-top: 10px solid $kobo-teal;
           content: '';
           position: absolute;
           bottom: -9px;
@@ -97,7 +97,7 @@
   .subs-graph-number {
     font-size: 32px;
     font-weight: 600;
-    color: $cool-green;
+    color: $kobo-teal;
   }
 }
 
@@ -105,7 +105,7 @@
   a {
     display: block;
     padding: 6px 10px;
-    color: $cool-gray;
+    color: $cool-darkgray;
     border-bottom: 1px solid $divider-color;
     position: relative;
 
@@ -114,6 +114,7 @@
     }
 
     &:hover {
+      color: $black;
       background: $cool-whitegray;
     }
 
@@ -151,7 +152,7 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $cool-gray;
+    color: $cool-darkgray;
     position: absolute;
     right: 0px;
     top: -6px;
@@ -161,7 +162,7 @@
     }
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }
@@ -180,7 +181,6 @@
 
     span {
       font-size: 16px;
-      color: $cool-gray;
       margin: 10px;
     }
   }

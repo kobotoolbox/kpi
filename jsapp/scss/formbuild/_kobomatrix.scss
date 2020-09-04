@@ -5,7 +5,7 @@
 
 .survey__row--selected {
   > .survey__row__item > .card__kobomatrix {
-    border-color: $cool-blue-light;
+    border-color: $kobo-blue-light;
     border-top: none;
   }
 }
@@ -32,7 +32,7 @@
       cursor: pointer;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }
@@ -76,7 +76,7 @@
       cursor: pointer;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }
@@ -139,13 +139,13 @@
     padding: 10px 0px 10px;
 
     span {
-      color: $cool-red;
+      color: $kobo-red;
       cursor: pointer;
     }
 
     i {
       font-size: 24px;
-      color: $cool-red;
+      color: $kobo-red;
       cursor: pointer;
       vertical-align: middle;
     }
@@ -184,7 +184,7 @@
 
       i {
         font-size: 24px;
-        color: $cool-red;
+        color: $kobo-red;
         cursor: pointer;
       }
     }
@@ -197,7 +197,7 @@
     cursor: pointer;
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }
@@ -245,7 +245,7 @@
       cursor: pointer;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }
@@ -257,10 +257,10 @@
       font-size: 28px;
       opacity: 0.75;
       cursor: pointer;
-      color: $cool-gray;
+      color: $cool-darkgray;
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
   }

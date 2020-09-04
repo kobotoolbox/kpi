@@ -16,7 +16,7 @@
     }
     &.card--error {
         padding: 12px 20px;
-        background-color: $cool-red-light;
+        background-color: rgba($kobo-red, 0.5);
     }
     .card__header {
         border: $cardBorderStyle;
@@ -35,7 +35,7 @@
         position: relative;
 
         &.activated {
-            color: $cool-gray;
+            color: $cool-darkgray;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -63,7 +63,7 @@
     }
 
     .card__header-title {
-        color: $cool-gray;
+        color: $cool-darkgray;
 
         &:focus {
             color: $black;
@@ -71,8 +71,8 @@
 
         // we use placeholder as error message, as empty title is not welcomed
          &::placeholder {
-            color: $cool-red;
-            background-color: rgba($cool-red, 0.075);
+            color: $kobo-red;
+            background-color: rgba($kobo-red, 0.075);
         }
     }
 
@@ -125,7 +125,7 @@
 
 .card--placeholder {
     background-color: transparent;
-    color: $cool-gray;
+    color: $cool-darkgray;
     border:2px solid $cool-gray;
     text-align: center;
     font-family: $font;
@@ -143,7 +143,7 @@
     }
 }
 .card--error {
-    background-color: $cool-red-light;
+    background-color: rgba($kobo-red, 0.5);
 }
 
 // ==========================================================================
@@ -177,12 +177,12 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $indicatorColor;
+    color: $cool-darkgray;
 
     .fa.invert {
         padding: 3px 1px;
         font-size: 0.95em;
-        background-color: $cool-gray;
+        background-color: $cool-darkgray;
     }
     .fa-lato-range,
     .fa-lato-calculate,
@@ -251,13 +251,13 @@ $cardIndicatorIconWidth: 21px;
     background: rgba($cool-gray, 0.6);
 }
 .card__header.delete .card__header--shade {
-    background: rgba($cool-red-washed, 0.6);
+    background: rgba($kobo-red, 0.6);
 }
 .card__header.duplicate .card__header--shade {
-    background:rgba($linkColor, 0.6);
+    background:rgba($kobo-blue, 0.6);
 }
 .card__header.add-to-library .card__header--shade {
-    background: rgba($warm-green, 0.6);
+    background: rgba($kobo-green, 0.6);
 }
 
 .card--insort {
@@ -278,12 +278,12 @@ $cardIndicatorIconWidth: 21px;
         top:0px;
     }
     &.card__buttons__button--red {
-        color: $cool-red-washed;
+        color: $kobo-red;
         top:37%;
         margin-top:-10px;
     }
     &.card__buttons__button--blue {
-        color:$linkColor;
+        color:$kobo-blue;
     }
     &.card__buttons__button--copy {
         bottom: 26%;

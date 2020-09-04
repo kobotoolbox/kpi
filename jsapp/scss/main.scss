@@ -53,9 +53,5 @@
   visibility: hidden;
 }
 
-body.hide-edge .is-edge {
-  display: none !important;
-}
-
 // Print stylesheet
 @import "./libs/print";

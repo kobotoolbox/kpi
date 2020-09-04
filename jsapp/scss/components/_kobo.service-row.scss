@@ -86,15 +86,15 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--success {
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 
   &.service-row__column--pending {
-    color: $cool-green;
+    color: $kobo-teal;
   }
 
   &.service-row__column--failed {
-    color: $cool-red;
+    color: $kobo-red;
   }
 }
 
@@ -117,7 +117,7 @@ $s-service-row-z-link: 10;
   }
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
@@ -139,7 +139,7 @@ $s-service-row-z-link: 10;
   }
 
   &:active {
-    color: $cool-gray;
+    color: $cool-darkgray;
   }
 
   &.service-row-button--loading {

@@ -25,10 +25,10 @@
 
       .select-all {
         cursor: pointer;
-        color: $cool-blue;
+        color: $kobo-blue;
 
         &:hover {
-          color: lighten($cool-blue, 10%);
+          color: lighten($kobo-blue, 10%);
         }
       }
 
@@ -113,17 +113,17 @@
 
       .rt-th:hover,
       .rt-td:hover {
-        background: rgba($cool-green, 0.1);
+        background: rgba($kobo-teal, 0.1);
       }
 
       .rt-th.-sort-desc,
       .rt-td.-sort-desc {
-        box-shadow: inset 0 -3px 0 0 rgba($cool-green, 0.8);
+        box-shadow: inset 0 -3px 0 0 rgba($kobo-teal, 0.8);
       }
 
       .rt-th.-sort-asc,
       .rt-td.-sort-asc {
-        box-shadow: inset 0 3px 0 0 rgba($cool-green, 0.8);
+        box-shadow: inset 0 3px 0 0 rgba($kobo-teal, 0.8);
       }
     }
 
@@ -170,7 +170,7 @@
         min-height: 28px;
 
         &:hover {
-          color: $cool-blue;
+          color: $kobo-blue;
         }
 
         i {
@@ -210,7 +210,7 @@
         text-align: center;
         font-size: 18px;
         opacity: 0.8;
-        color: $cool-gray;
+        color: $cool-darkgray;
 
         i {
           margin-right: 12px;
@@ -221,7 +221,7 @@
     }
 
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-      background: rgba($cool-green, 0.1);
+      background: rgba($kobo-teal, 0.1);
     }
 
     &.has-frozen-column {
@@ -248,7 +248,7 @@
       }
 
       &.-striped .rt-tr:hover .frozen {
-        background: rgba($cool-green, 0.1);
+        background: rgba($kobo-teal, 0.1);
       }
 
       .rt-th.frozen {

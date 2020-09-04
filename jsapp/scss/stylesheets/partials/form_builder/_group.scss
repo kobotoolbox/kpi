@@ -6,7 +6,7 @@
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
-    background-color: $divider-color;
+    background-color: $cool-whitegray;
     border: 1px solid $c-ghost;
     font-size: 13px;
 
@@ -72,11 +72,11 @@
         color: $cool-darkgray;
     }
     &.group__header__buttons__button--red {
-        color: $cool-red-washed;
+        color: $kobo-red;
     }
     &.group__header__buttons__button--activated {
         color: $cool-darkgray;
-        background-color: $c-iron;
+        background-color: $divider-color;
     }
 }
 
@@ -128,7 +128,7 @@
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
 .group__caret {
     cursor: pointer;
-    color: $cool-gray;
+    color: $cool-darkgray;
 }
 .group--shrunk {
     border-bottom: none;
@@ -142,7 +142,7 @@
 }
 
 .group__rows .group {
-    background: $c-iron;
+    background: $divider-color;
     margin-bottom: 12px;
     .group__header {
         border-bottom: 1px solid $c-ghost;

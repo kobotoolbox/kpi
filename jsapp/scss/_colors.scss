@@ -1,5 +1,9 @@
-// TODO: this is our current pallete of colors
-// we neeed to clean this up and merge/cut out some colors
+/*
+  This is our current pallete of colors.
+
+  Please use only colors defined here when writing new styles. Also try to avoid
+  defining new colors, as we already have more than enough.
+*/
 
 /*
   Group 1: Blueish grays
@@ -13,31 +17,34 @@
   There are too many shades of gray here. We need to merge them further and cut
   down the list at least to less than 10 colors.
 */
-$black: #414453; // 29% lightness - used 50+ times, base text
+$black: #414453; // 29% lightness - used 60+ times, base text
 $cool-charcoal: #575b70; // 39% lightness - used 10+ times, header background
-$cool-darkgray: #6e738c; // 49% lightness - used 20+ times, less important text
-$cool-gray: #8a8ea3; // 59% lightness - used 60+ times, buttons text & borders
+$cool-darkgray: #6e738c; // 49% lightness - used 70+ times, less important text
+$cool-gray: #8a8ea3; // 59% lightness - used 10+ times, buttons text & borders
 $cool-silver: #a6aaba; // 69% lightness - used 10+ times, buttons text & borders
 $c-ghost: #cbced7; // 82% lightness - used 10+ times, borders
-$c-iron: #d8d9df; // 86% lightness - used 20+ times, backgrounds & borders
+$c-iron: #d8d9df; // 86% lightness - used 10+ times, backgrounds & borders
 $cool-lightgray: #e0e1e6; // 89% lightness - used 40+ times, backgrounds & borders
-$divider-color: #e8e9ed; // 91% lightness - used 40+ times, borders
+$divider-color: #e8e9ed; // 91% lightness - used 50+ times, borders, page background
 $cool-whitegray: #f4f4f6; // 96% lightness - used 40+ times, backgrounds
-$white: #ffffff; // 100% lightness - used 90+ times, buttons text, backgrounds
+$white: #ffffff; // 100% lightness - used 80+ times, buttons text, backgrounds
 
 /*
- Group 2: Accent colors
+  Group 2: Accent colors
 */
-$cool-blue: #2095f3; // KoBo blue
-$cool-blue-light: #3fa2ee;
-$cool-blue-lighter: #a1d2f7;
-$cool-green: #52c5d0; // KoBo green (teal?)
-$warm-green: #52ce7b; // positive messages
-$warm-green-light: #afe9c2;
-$cool-red: #ff556a; // error messages
-$cool-red-light: #ffadb7;
-$cool-red-washed: #cd8991;
-$cool-orange: #ffaa56; // warning color
-$c-pearl-lusta: #fcf8e3; // form builder survey warnings color 1
-$c-shadow: #8a6d3b; // form builder survey warnings color 2
-$c-sorrell-brown: #cfb98b; // form builder survey warnings color 3
+$kobo-blue: hsl(206, 90%, 54%); // used 80+ times
+$kobo-blue-light: hsl(206, 90%, 60%); // used 10+ times
+$kobo-blue-dark: hsl(206, 90%, 40%);
+$kobo-teal: #52c5d0; // used 40+ times
+// positive colors
+$kobo-green: hsl(139, 60%, 56%); // positive messages - used 10+ times
+$kobo-green-dark: hsl(139, 60%, 40%);
+$kobo-green-light: hsl(139, 60%, 90%);
+// error/negative colors
+$kobo-red: hsl(352, 100%, 60%); // error messages - used 40+ times
+$kobo-red-dark: hsl(352, 100%, 40%); // error messages - used 40+ times
+$kobo-red-light: hsl(352, 100%, 90%); // error messages - used 40+ times
+// warning colors
+$kobo-orange: hsl(30, 100%, 70%); // for borders
+$kobo-orange-dark: hsl(30, 100%, 40%); // for text
+$kobo-orange-light: hsl(30, 100%, 95%); // for background

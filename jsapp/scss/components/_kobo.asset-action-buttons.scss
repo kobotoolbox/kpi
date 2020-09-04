@@ -66,18 +66,18 @@
   }
 
   &.asset-action-buttons__button--subscribe {
-    background-color: $cool-green;
+    background-color: $kobo-teal;
 
     &:hover {
-      background-color: darken($cool-green, 5%);
+      background-color: darken($kobo-teal, 5%);
     }
   }
 
   &.asset-action-buttons__button--unsubscribe {
-    background-color: $cool-red;
+    background-color: $kobo-red;
 
     &:hover {
-      background-color: darken($cool-red, 5%);
+      background-color: darken($kobo-red, 5%);
     }
   }
 }
@@ -86,7 +86,7 @@
   color: $cool-gray;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
