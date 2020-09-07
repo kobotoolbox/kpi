@@ -380,9 +380,6 @@ class AssetRow extends React.Component {
                           m='move-coll-item'>
                             <i className='k-icon-folder' />
                             {col.label}
-                            {col.hasParent &&
-                              <span className='is-parent'>&bull;</span>
-                            }
                         </bem.PopoverMenu__item>
                       );
                   })}

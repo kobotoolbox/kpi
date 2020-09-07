@@ -286,7 +286,12 @@ class AssetActionButtons extends React.Component {
                   title={displayName}
                   m={modifiers}
                 >
-                  <i className='k-icon k-icon-folder-in'/>
+                  {isAssetParent &&
+                    <i className='k-icon k-icon-check'/>
+                  }
+                  {!isAssetParent &&
+                    <i className='k-icon k-icon-folder-in'/>
+                  }
                   {displayName}
                 </bem.PopoverMenu__item>
               );

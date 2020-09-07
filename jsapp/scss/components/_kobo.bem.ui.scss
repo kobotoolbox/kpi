@@ -261,17 +261,15 @@ $mdl-layout-width: 1440px;
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: $cool-whitegray;
-  border-bottom: 1px solid $divider-color;
+  background-color: $white;
+  border-bottom: 2px solid $cool-whitegray;
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: $cool-whitegray;
+  background-color: $white;
   position: relative;
   text-align: left;
-  padding-right: 35px;
-  padding-top: 0px;
-  padding-bottom: 0px;
+  padding: 3px 8px 3px 5px;
 
   span {
     display: inline-block;
@@ -281,26 +279,16 @@ $mdl-layout-width: 1440px;
     word-wrap: break-word;
   }
 
-  .is-parent {
-    position: absolute;
-    right: 12px;
-    top: 6px;
-    padding-right: 0px;
-    font-size: 32px;
-    color: $kobo-teal;
-  }
-
   &.popover-menu__item--move-coll-item-parent {
     pointer-events: none;
     font-weight: 700;
-    background-color: $divider-color;
+    color: $black;
   }
 }
 
 .popover-menu__heading {
   padding: 8px 15px;
   color: $cool-darkgray;
-  border-top: 1px solid $divider-color;
   background-color: $cool-whitegray;
   margin: 0;
 }
