@@ -71,6 +71,11 @@
       min-height: 72px;
     }
 
+    .rt-thead.-header {
+      box-shadow: none;
+      border-bottom: 2px solid $divider-color;
+    }
+
     .rt-thead {
       .rt-tr {
         align-items: center;
