@@ -365,6 +365,10 @@ $z-modal-x: 10;
     }
   }
 
+  .form-view & {
+    margin-bottom: 30px;
+  }
+
   .intro {
     margin-bottom: 20px;
     text-align: left;
