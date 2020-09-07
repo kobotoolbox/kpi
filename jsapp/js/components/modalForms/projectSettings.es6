@@ -16,6 +16,7 @@ import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
+import {removeInvalidChars} from 'js/assetUtils';
 import {
   t,
   validFileTypes,
@@ -822,7 +823,7 @@ class ProjectSettings extends React.Component {
                 maxLength={NAME_MAX_LENGTH}
                 id='name'
                 placeholder={t('Enter title of project here')}
-                value={this.state.name}
+                value={removeInvalidChars(this.state.name)}
                 onChange={this.onNameChange}
               />
             </bem.FormModal__item>

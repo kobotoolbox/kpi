@@ -9,6 +9,7 @@ import {stores} from '../stores';
 import Reflux from 'reflux';
 import {bem} from '../bem';
 import {actions} from '../actions';
+import {removeInvalidChars} from '../assetUtils';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
@@ -219,9 +220,9 @@ class MainHeader extends Reflux.Component {
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
-      asset.name = this.removeInvalidChars(e.target.value);
+      asset.name = removeInvalidChars(e.target.value);
     else
-      asset.settings.description = this.removeInvalidChars(e.target.value);
+      asset.settings.description = removeInvalidChars(e.target.value);
 
     this.setState({
       asset: asset
@@ -229,14 +230,6 @@ class MainHeader extends Reflux.Component {
 
     clearTimeout(typingTimer);
     typingTimer = setTimeout(this.updateAssetTitle.bind(this), 1500);
-  }
-  removeInvalidChars(str) {
-    /*
-    * Inspired by https://gist.github.com/john-doherty/b9195065884cdbfd2017a4756e6409cc
-    * Remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD
-    */
-    var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
-    return str = String(str || '').replace(regex, '');
   }
   assetTitleKeyDown(evt) {
     if (evt.key === 'Enter') {
