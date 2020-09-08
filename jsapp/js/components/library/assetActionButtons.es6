@@ -14,6 +14,7 @@ import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
+import _ from 'lodash';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
@@ -41,6 +42,11 @@ class AssetActionButtons extends React.Component {
       isSubscribePending: false
     };
     this.unlisteners = [];
+    this.hidePopoverDebounced = _.debounce(() => {
+      if (this.state.isPopoverVisible) {
+        this.setState({shouldHidePopover: true});
+      }
+    }, 500);
     autoBind(this);
   }
 
@@ -68,12 +74,17 @@ class AssetActionButtons extends React.Component {
 
   // methods for inner workings of component
 
+  /**
+   * Allow for some time for user to go back to the popover menu.
+   * Then force hide popover in next render cycle (ui.PopoverMenu interface
+   * handles it this way)
+   */
   onMouseLeave() {
-    // force hide popover in next render cycle
-    // (ui.PopoverMenu interface handles it this way)
-    if (this.state.isPopoverVisible) {
-      this.setState({shouldHidePopover: true});
-    }
+    this.hidePopoverDebounced();
+  }
+
+  onMouseEnter() {
+    this.hidePopoverDebounced.cancel();
   }
 
   onPopoverSetVisible() {
@@ -384,7 +395,10 @@ class AssetActionButtons extends React.Component {
     const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
 
     return (
-      <bem.AssetActionButtons onMouseLeave={this.onMouseLeave}>
+      <bem.AssetActionButtons
+        onMouseLeave={this.onMouseLeave}
+        onMouseEnter={this.onMouseEnter}
+      >
         {this.renderSubButton(isUserSubscribed)}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
