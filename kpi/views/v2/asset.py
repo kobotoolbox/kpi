@@ -230,8 +230,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_content_type = ContentType.objects.get_for_model(Asset)
             asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
             object_permissions = ObjectPermission.objects.filter(
-                content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids,
+                asset_id__in=asset_ids,
                 deny=False,
             ).select_related(
                 'user', 'permission'
@@ -241,7 +240,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             object_permissions_per_object = defaultdict(list)
 
             for op in object_permissions:
-                object_permissions_per_object[op.object_id].append(op)
+                object_permissions_per_object[op.asset_id].append(op)
 
             context_['object_permissions_per_object'] = object_permissions_per_object
 

@@ -479,11 +479,12 @@ class ShareCollectionTests(TestCase):
             ).values_list("pk", flat=True)
         )
         self.assertEqual(
-            sorted(ObjectPermission.objects.filter_for_object(
-                self.standalone_coll,
-                user=self.standalone_coll.owner
-            ).values_list('permission_id', flat=True)),
-            expected_perms
+            sorted(
+                self.standalone_coll.permissions.filter(
+                    user=self.standalone_coll.owner
+                ).values_list('permission_id', flat=True)
+            ),
+            expected_perms,
         )
         # Assign some new permissions
         self.standalone_coll.assign_perm(self.someuser, PERM_VIEW_ASSET)
@@ -491,20 +492,12 @@ class ShareCollectionTests(TestCase):
         # change_asset also provides view_asset, so expect 3 more
         # permissions, not 2
         self.assertEqual(
-            ObjectPermission.objects.filter_for_object(
-                self.standalone_coll
-            ).count(),
-            len(expected_perms) + 3
+            self.standalone_coll.permissions.count(), len(expected_perms) + 3
         )
         # Delete the collection and make sure all associated permissions
         # are gone
         self.standalone_coll.delete()
-        self.assertEqual(
-            ObjectPermission.objects.filter_for_object(
-                self.standalone_coll
-            ).count(),
-            0
-        )
+        self.assertEqual(self.standalone_coll.permissions.count(), 0)
 
     def test_owner_can_edit_permissions(self):
         self.assertTrue(self.standalone_coll.owner.has_perm(

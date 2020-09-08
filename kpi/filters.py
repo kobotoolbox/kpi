@@ -8,13 +8,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from rest_framework import filters
 
-from kpi.constants import PERM_DISCOVER_ASSET
+from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
-    get_models_with_object_permissions,
 )
 
 
@@ -68,27 +67,11 @@ class KpiObjectPermissionsFilter:
             return (owned_and_explicitly_shared | public).distinct()
 
         if all_public:
-            # We were asked to return all discoverable objects. It's best to
-            # minimize the queryset before passing it to
-            # `get_objects_for_user()`, since that function executes a large
-            # `__in` query. Find potentially discoverable objects before
-            # verifying that the anonymous user can actually access them
-            try:
-                discoverable = queryset.filter(discoverable_when_public=True)
-            except FieldError:
-                try:
-                    # The model does not have a discoverability setting, but
-                    # maybe its parent does
-                    discoverable = queryset.filter(
-                        parent__discoverable_when_public=True
-                    )
-                except FieldError:
-                    # Neither the model or its parent has a discoverability
-                    # setting
-                    discoverable = queryset.none()
-            # Now, make sure these discoverables are actually public!
+            # We were asked to return all discoverable objects
             discoverable_and_public = get_objects_for_user(
-                get_anonymous_user(), permission, discoverable
+                get_anonymous_user(),
+                [permission, PERM_DISCOVER_ASSET],
+                queryset.filter(asset_type=ASSET_TYPE_COLLECTION),
             )
             return (
                 owned_and_explicitly_shared | discoverable_and_public
@@ -96,18 +79,10 @@ class KpiObjectPermissionsFilter:
 
         # `all_public` was not requested; return only objects to which the user
         # has subscribed
-        try:
-            subscribed = queryset.filter(userassetsubscription__user=user)
-        except FieldError:
-            try:
-                # The model does not have a subscription relation, but maybe
-                # its parent does
-                subscribed = queryset.filter(
-                    parent__userassetsubscription__user=user
-                )
-            except FieldError:
-                # Neither the model or its parent has a subscription relation
-                subscribed = queryset.none()
+        subscribed = queryset.filter(
+            asset_type=ASSET_TYPE_COLLECTION,
+            userassetsubscription__user=user,
+        )
         # Make sure the subscribed objects are still public
         subscribed_and_public = get_objects_for_user(
             get_anonymous_user(), permission, subscribed
@@ -177,22 +152,7 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
         she should see all permissions for that object, including those
         assigned to other users.
         """
-        possible_content_types = ContentType.objects.get_for_models(
-            *get_models_with_object_permissions()
-        ).values()
-        result = queryset.none()
-        for content_type in possible_content_types:
-            # Find all the permissions assigned to the user
-            permissions_assigned_to_user = ObjectPermission.objects.filter(
-                content_type=content_type,
-                user=user,
-            )
-            # Find all the objects associated with those permissions, and then
-            # find all the permissions applied to all of those objects
-            result |= ObjectPermission.objects.filter(
-                content_type=content_type,
-                object_id__in=permissions_assigned_to_user.values(
-                    'object_id'
-                ).distinct()
-            )
+        result = ObjectPermission.objects.filter(
+            asset__permissions__user=user
+        ).distinct()
         return result

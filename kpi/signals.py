@@ -93,10 +93,3 @@ def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
     asset = instance.asset
     if asset.has_deployment:
         asset.deployment.set_has_kpi_hooks()
-
-
-@receiver(post_delete, sender=Asset)
-def post_delete_asset(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted

@@ -27,6 +27,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
     ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -479,7 +480,7 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONField(default=dict)
 
-    permissions = GenericRelation(ObjectPermission)
+    #permissions = GenericRelation(ObjectPermission)
 
     objects = AssetManager()
 
@@ -791,11 +792,6 @@ class Asset(ObjectPermissionMixin,
             # for nested relations."
             'owner',
         ).prefetch_related(
-            # We previously prefetched `permissions__content_object`, but that
-            # actually pulled the entirety of each permission's linked asset
-            # from the database! For now, the solution is to remove
-            # `content_object` here *and* from
-            # `ObjectPermissionNestedSerializer`.
             'permissions__permission',
             'permissions__user',
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
@@ -831,6 +827,13 @@ class Asset(ObjectPermissionMixin,
         self.save()
 
     def save(self, *args, **kwargs):
+        if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
+            # so long as all of the operations in this overriden `save()`
+            # method pertain to content, bail out if it's impossible for this
+            # asset to have content in the first place
+            super().save(*args, **kwargs)
+            return
+
         if self.content is None:
             self.content = {}
 
