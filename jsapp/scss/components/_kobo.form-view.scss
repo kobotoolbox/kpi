@@ -34,7 +34,6 @@ $z-form-view-fullscreen: 101;
   border-right: 1px solid $divider-color;
 
   & + .form-view,
-  & + .report-view,
   & + .loading {
     width: calc(100% - 170px);
     height: calc(100% - 48px);
@@ -632,8 +631,7 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  .form-view__sidetabs + .form-view,
-  .form-view__sidetabs + .report-view {
+  .form-view__sidetabs + .form-view {
     width: calc(100% - 50px);
     overflow-x: hidden;
   }
