@@ -22,6 +22,8 @@ $s-gray-row-spacing: 10px;
 }
 
 .copy-team-permissions {
+  margin-bottom: 30px;
+
   &.copy-team-permissions--opened .mdl-button--copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
   }

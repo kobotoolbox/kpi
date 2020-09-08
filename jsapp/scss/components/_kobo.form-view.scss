@@ -42,15 +42,23 @@
 }
 
 .form-view__sidetabs {
-  border-right: 1px solid $divider-color;
   width: 170px;
   height: 100%;
-  max-height: 100%;
+  max-height: calc(100% - 48px);
   overflow-x: hidden;
   overflow-y: auto;
   float: left;
-  background: white;
-  padding-top: 20px;
+  background: $white;
+  border-right: 1px solid $divider-color;
+
+  & + .form-view,
+  & + .report-view,
+  & + .loading {
+    width: calc(100% - 170px);
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
 
   & + .loading {
     display: flex;
@@ -63,10 +71,8 @@
     }
   }
 
-  a.form-view__link--close {
-    position: absolute;
-    right: 0;
-    top: 5px;
+  & + .form-view.form-view--table {
+    overflow: hidden;
   }
 
   a.form-view__tab {
@@ -82,10 +88,6 @@
     letter-spacing: -0.01em;
     display: block;
     margin-left: 10px;
-
-    &:not(:last-of-type) {
-      border-bottom: 1px solid $divider-color;
-    }
 
     &:hover,
     &.active {
@@ -121,24 +123,28 @@
 }
 
 .form-view__toptabs {
-  background: $cool-whitegray;
+  background: $white;
+  border-bottom: 1px solid $divider-color;
   text-align: center;
   height: 48px;
   position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
 
   a.form-view__tab {
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 14px 0 12px;
     text-transform: uppercase;
+    line-height: 48px;
     margin: 0 30px;
     font-size: 15px;
     cursor: pointer;
     position: relative;
     color: $cool-darkgray;
     font-weight: normal;
-    display: inline-block;
 
     &:hover,
     &.active {
