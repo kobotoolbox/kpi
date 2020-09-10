@@ -92,6 +92,12 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
+bem.SubmissionDataTable = bem('submission-data-table');
+bem.SubmissionDataTable__row = bem.SubmissionDataTable.__('row');
+bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
+bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
+bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
+
 bem.CollectionsWrapper = bem('collections-wrapper');
 
 bem.CollectionNav = bem('collection-nav');
@@ -234,9 +240,6 @@ bem.AccountSettings__right = bem.AccountSettings.__('right');
 bem.AccountSettings__item = bem.FormModal.__('item');
 bem.AccountSettings__desc = bem.AccountSettings.__('desc');
 bem.AccountSettings__actions = bem.AccountSettings.__('actions');
-
-bem.ChangePassword = BEM('change-password');
-bem.ChangePassword__item = bem.FormModal.__('item');
 
 bem.UserRow = BEM('user-row');
 bem.UserRow__info = bem.UserRow.__('info');
