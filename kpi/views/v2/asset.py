@@ -7,7 +7,7 @@ from hashlib import md5
 
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -394,52 +394,55 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'organizations': set(),
         }
 
+        records = queryset.values('summary', 'settings').\
+            exclude(
+                Q(
+                    Q(summary__languages=[]) | Q(summary__languages=[None])
+                ),
+                Q(
+                    Q(settings__country=None) | Q(settings__country__exact=''),
+                    Q(settings__sector=None) | Q(settings__sector__exact=''),
+                    Q(settings__organization=None) | Q(settings__organization='')
+                )
+            )
+
         # Languages
-        summaries = queryset.values_list('summary', flat=True). \
-            exclude(summary__languages__is_null=True). \
-            exclude(summary__languages__exact='')
+        records.query.clear_ordering(True)
 
-        summaries.query.clear_ordering(True)
-
-        for summary in summaries.all():
+        for record in records.all():
             try:
-                for language in summary['languages']:
+                for language in record['summary']['languages']:
                     if language:
                         metadata['languages'].add(language)
             except (ValueError, KeyError):
                 pass
 
-        metadata['languages'] = sorted(list(metadata['languages']))
-
-        # Other properties.
-        # ToDo, find a way to merge both querysets without using objects.
-        others = queryset.values_list('settings', flat=True). \
-            exclude(settings__country=None,
-                    settings__sector=None,
-                    settings__organization=None)
-        others.query.clear_ordering(True)
-        for other in others.all():
             try:
-                value = other['country']['value']
+                country = record['settings']['country']
+                value = country['value']
                 if value and value not in metadata['countries']:
-                    metadata['countries'][other['country']['value']] = \
-                        other['country']['label']
+                    metadata['countries'][value] = \
+                        country['label']
             except (KeyError, TypeError):
                 pass
 
             try:
-                value = other['sector']['value']
+                sector = record['settings']['sector']
+                value = sector['value']
                 if value and value not in metadata['sectors']:
-                    metadata['sectors'][other['sector']['value']] = \
-                        other['sector']['label']
+                    metadata['sectors'][value] = \
+                        sector['label']
             except (KeyError, TypeError):
                 pass
 
             try:
-                if other['organization']:
-                    metadata['organizations'].add(other['organization'])
+                organization = record['settings']['organization']
+                if organization:
+                    metadata['organizations'].add(organization)
             except KeyError:
                 pass
+
+        metadata['languages'] = sorted(list(metadata['languages']))
 
         metadata['countries'] = sorted(metadata['countries'].items(),
                                        key=itemgetter(1))
@@ -482,8 +485,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_content_type = ContentType.objects.get_for_model(Asset)
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
-
+            asset_ids = self.filter_queryset(queryset).values_list('id', flat=True).distinct()
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
                 content_type_id=asset_content_type.pk,

@@ -17,8 +17,10 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC
 )
+from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
+from .models.asset import ASSET_TYPE_COLLECTION
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -192,7 +194,11 @@ class KpiObjectPermissionsFilter:
         if user.is_anonymous:
             user = get_anonymous_user()
         try:
-            subscribed = queryset.filter(userassetsubscription__user=user)
+            asset_ids = list(UserAssetSubscription.objects.
+                             values_list('asset_id', flat=True).
+                             filter(user_id=user.pk))
+            subscribed = queryset.filter(asset_type=ASSET_TYPE_COLLECTION,
+                                         id__in=asset_ids)
         except FieldError:
             try:
                 # The model does not have a subscription relation, but maybe
@@ -235,7 +241,6 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        # TODO Fix search with `summary__languages`
         try:
             q = request.query_params['q']
         except KeyError:
