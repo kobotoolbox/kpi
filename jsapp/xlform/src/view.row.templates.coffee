@@ -170,7 +170,7 @@ module.exports = do ->
       <thead>
         <th class="scorecell--empty"></th>
         #{thead_html}
-        <th class="scorecell--add"><span>+</span></th>
+        <th class="scorecell--add"><button class="mdl-button mdl-button--raised mdl-button--colored mdl-button--gray mdl-button--small">+</button></th>
       </thead>
       <tbody>
         #{tbody_html.join('')}
