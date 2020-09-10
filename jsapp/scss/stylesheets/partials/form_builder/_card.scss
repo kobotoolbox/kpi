@@ -123,17 +123,6 @@
     width: 80px;
 }
 
-.card--placeholder {
-    background-color: transparent;
-    color: $cool-darkgray;
-    border:2px solid $cool-gray;
-    text-align: center;
-    font-family: $font;
-    font-weight: 600;
-    padding: 20px;
-    margin:20px 0px;
-}
-
 .sortable-active {
     .card__header {
         border: $cardInSortBorderStyle;

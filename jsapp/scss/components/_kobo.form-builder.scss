@@ -314,16 +314,6 @@ $t-form-builder-aside-open: 200ms;
     color: white;
   }
 
-  &.formBuilder-header__button--share {
-    min-width: 85px;
-    text-transform: uppercase;
-
-    @extend .mdl-button--raised;
-
-    background: $cool-gray;
-    color: white;
-  }
-
   &.formBuilder-header__button--panel-toggle {
     padding: 0 10px;
 

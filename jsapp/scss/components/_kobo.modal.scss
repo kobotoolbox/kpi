@@ -487,33 +487,19 @@ $z-modal-x: 10;
     }
   }
 
-  .http-header-add,
   .http-header-row-remove {
     height: 30px;
     min-height: 30px;
     line-height: 30px;
+    width: 30px;
+    vertical-align: top;
+    padding: 0;
+    &:hover {color: $kobo-red;}
 
     .k-icon {
       font-size: 1.5em;
       vertical-align: middle;
     }
-  }
-
-  .http-header-add {
-    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-    background: $cool-gray;
-    vertical-align: middle;
-    padding: 0 12px 0 6px;
-
-    &:hover {background: $cool-darkgray;}
-  }
-
-  .http-header-row-remove {
-    @extend .mdl-button, .mdl-button--icon;
-    width: 30px;
-    vertical-align: top;
-    padding: 0;
-    &:hover {color: $kobo-red;}
   }
 }
 
