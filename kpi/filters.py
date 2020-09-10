@@ -200,6 +200,8 @@ class KpiObjectPermissionsFilter:
             subscribed = queryset.filter(asset_type=ASSET_TYPE_COLLECTION,
                                          id__in=asset_ids)
         except FieldError:
+            # TODO, IMHO this part could be removed since Collection
+            # model has been merged in Asset
             try:
                 # The model does not have a subscription relation, but maybe
                 # its parent does
