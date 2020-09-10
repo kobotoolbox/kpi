@@ -82,9 +82,11 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
-        # created = super().create(*args, **kwargs)
         update_parent_languages = kwargs.pop('update_parent_languages', True)
 
+        # 3 lines below are copied from django.db.models.query.QuerySet.create()
+        # because we need to pass an argument to save()
+        # (and the default Django create() does not allow that)
         created = self.model(**kwargs)
         self._for_write = True
         created.save(force_insert=True, using=self.db,
@@ -98,8 +100,6 @@ class AssetManager(models.Manager):
                 asset['parent'] = created
                 new_assets.append(Asset.objects.create(
                     update_parent_languages=False, **asset))
-            # bulk_create comes with a number of caveats
-            # Asset.objects.bulk_create(new_assets)
             created.update_languages(new_assets)
         return created
 
@@ -1002,26 +1002,19 @@ class Asset(ObjectPermissionMixin,
             summaries = [child.summary for child in children]
             languages = set(obj_languages)
         else:
-            # ToDo validate whether all children should be included
-            # (e.g. archives?)
             summaries = self.children.values_list('summary', flat=True)
 
         for summary in summaries:
-            if isinstance(summary, str):
-                try:
-                    summary = json.loads(summary)
-                except ValueError:
-                    continue
             child_languages = [language
                                for language in summary.get('languages', [])
                                if language is not None]
 
             if child_languages:
-                languages = set(list(languages) + child_languages)
+                languages.update(child_languages)
 
         languages = AssetContentAnalyzer.format_translations(list(languages))
         # If languages are still the same, no needs to update the object
-        if obj_languages == languages:
+        if sorted(obj_languages) == sorted(languages):
             return
 
         self.summary['languages'] = languages

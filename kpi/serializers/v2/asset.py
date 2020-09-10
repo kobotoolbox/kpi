@@ -327,7 +327,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return 0
-
+        # ToDo Optimize this. What about caching it inside `summary`
         return UserAssetSubscription.objects.filter(asset_id=asset.pk).count()
 
     def get_status(self, asset):
@@ -470,7 +470,7 @@ class AssetListSerializer(AssetSerializer):
             children_count = self.context['children_count_per_asset'].get(asset.pk, 0)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `children_count` should be always
+            # in the list context, `children_count_per_asset` should be always
             # a property of `self.context`
             children_count = asset.children.count()
 
