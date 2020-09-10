@@ -20,16 +20,33 @@ import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
-  QUESTION_TYPES
+  QUESTION_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END
 } from '../constants';
 import {
   t,
-  notify,
   formatTimeDate,
   renderCheckbox
 } from '../utils';
+import {getSurveyFlatPaths} from 'js/assetUtils';
+import {getRepeatGroupAnswers} from 'js/submissionUtils';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
+
+const EXCLUDED_COLUMNS = [
+  '_xform_id_string',
+  '_attachments',
+  '_notes',
+  '_bamboo_dataset_id',
+  '_status',
+  'formhub/uuid',
+  '_tags',
+  '_geolocation',
+  'meta/instanceID',
+  'meta/deprecatedID',
+  '_validation_status'
+];
 
 export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
 
@@ -156,39 +173,67 @@ export class DataTable extends React.Component {
     }
   }
 
-  _prepColumns(data) {
-    const excludedKeys = [
-      '_xform_id_string',
-      '_attachments',
-      '_notes',
-      '_bamboo_dataset_id',
-      '_status',
-      'formhub/uuid',
-      '_tags',
-      '_geolocation',
-      '_submitted_by',
-      'meta/instanceID',
-      'meta/deprecatedID',
-      '_validation_status'
-    ];
+  // returns a unique list of columns (keys) that should be displayed to users
+  getDisplayedColumns(data) {
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
+    // start with all paths
+    let output = Object.values(flatPaths);
+
+    // makes sure the survey columns are displayed, even if current data's
+    // submissions doesn't have them
     const dataKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
     }, {}));
+    output = [...new Set([...dataKeys, ...output])];
 
-    const surveyKeys = [];
-    this.props.asset.content.survey.forEach((row) => {
-      if (row.name) {
-        surveyKeys.push(row.name);
-      } else if (row.$autoname) {
-        surveyKeys.push(row.$autoname);
-      }
+    // exclude some technical non-data columns
+    output = output.filter((key) => {
+      return EXCLUDED_COLUMNS.includes(key) === false;
     });
 
-    // make sure the survey columns are displayed, even if current data's
-    // submissions doesn't have them
-    let uniqueKeys = [...new Set([...dataKeys, ...surveyKeys])];
-    uniqueKeys = uniqueKeys.filter((key) => excludedKeys.includes(key) === false);
+    // exclude notes
+    output = output.filter((key) => {
+      const foundPathKey = Object.keys(flatPaths).find((pathKey) => {
+        return flatPaths[pathKey] === key;
+      });
+      const foundRow = this.props.asset.content.survey.find((row) => {
+        return (
+          key === row.name ||
+          key === row.$autoname ||
+          foundPathKey === row.name ||
+          foundPathKey === row.$autoname
+        );
+      });
+      if (foundRow) {
+        return foundRow.type !== QUESTION_TYPES.get('note').id;
+      }
+      return false;
+    });
+
+    // exclude kobomatrix rows as data is not directly tied to them, but
+    // to rows user answered to, thus making these columns always empty
+    const excludedMatrixKeys = [];
+    let isInsideKoboMatrix = false;
+    this.props.asset.content.survey.forEach((row) => {
+      if (row.type === GROUP_TYPES_BEGIN.get('begin_kobomatrix')) {
+        isInsideKoboMatrix = true;
+      } else if (row.type === GROUP_TYPES_END.get('end_kobomatrix')) {
+        isInsideKoboMatrix = false;
+      } else if (isInsideKoboMatrix) {
+        const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
+        excludedMatrixKeys.push(rowPath);
+      }
+    });
+    output = output.filter((key) => {
+      return excludedMatrixKeys.includes(key) === false;
+    });
+
+    return output;
+  }
+
+  _prepColumns(data) {
+    const displayedColumns = this.getDisplayedColumns(data);
 
     let showLabels = this.state.showLabels,
         showGroupName = this.state.showGroupName,
@@ -322,7 +367,7 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-    uniqueKeys.forEach((key) => {
+    displayedColumns.forEach((key) => {
       var q = undefined;
       var qParentG = [];
       if (key.includes('/')) {
@@ -332,8 +377,9 @@ export class DataTable extends React.Component {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
 
-      if (q && q.type === 'begin_repeat')
+      if (q && q.type === 'begin_repeat') {
         return false;
+      }
 
       // sets location of columns for questions not in current survey version
       var index = 'y_' + key;
@@ -371,6 +417,9 @@ export class DataTable extends React.Component {
         case '_submission_time':
             index = 'z91';
             break;
+        case '_submitted_by':
+            index = 'z92';
+            break;
         default:
           // set index for questions in current version of survey (including questions in groups)
           survey.map(function(x, i) {
@@ -403,38 +452,45 @@ export class DataTable extends React.Component {
         index: index,
         question: q,
         filterable: false,
-        Cell: row => {
-            if (showLabels && q && q.type && row.value) {
-              if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
-                var mediaURL = this.getMediaDownloadLink(row.value);
-                return <a href={mediaURL} target="_blank">{row.value}</a>;
-              }
-              // show proper labels for choice questions
-              if (q.type == 'select_one') {
-                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
-                return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
-              }
-              if (q.type == 'select_multiple' && row.value) {
-                let values = row.value.split(' ');
-                var labels = [];
-                values.forEach(function(v) {
-                  let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
-                  if (choice && choice.label && choice.label[translationIndex])
-                    labels.push(choice.label[translationIndex]);
-                });
-
-                return labels.join(', ');
-              }
-              if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
-                return formatTimeDate(row.value);
-              }
+        Cell: (row) => {
+          if (showLabels && q && q.type && row.value) {
+            if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
+              var mediaURL = this.getMediaDownloadLink(row.value);
+              return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }
-            if (typeof(row.value) == 'object' || row.value === undefined) {
-              return '';
-            } else {
-              return row.value;
+            // show proper labels for choice questions
+            if (q.type == 'select_one') {
+              let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
+              return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
+            }
+            if (q.type == 'select_multiple' && row.value) {
+              let values = row.value.split(' ');
+              var labels = [];
+              values.forEach(function(v) {
+                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
+                if (choice && choice.label && choice.label[translationIndex])
+                  labels.push(choice.label[translationIndex]);
+              });
+
+              return labels.join(', ');
+            }
+            if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
+              return formatTimeDate(row.value);
             }
           }
+          if (typeof(row.value) == 'object' || row.value === undefined) {
+            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
+
+            if (repeatGroupAnswers) {
+              // display a list of answers from a repeat group question
+              return repeatGroupAnswers.join(', ');
+            } else {
+              return '';
+            }
+          } else {
+            return row.value;
+          }
+        }
       });
 
     });
@@ -466,7 +522,8 @@ export class DataTable extends React.Component {
       '__version__',
       '_id',
       '_uuid',
-      '_submission_time'
+      '_submission_time',
+      '_submitted_by'
     ];
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
@@ -1061,7 +1118,7 @@ export class DataTable extends React.Component {
               {t('Loading...')}
             </span>
           }
-          noDataText={t('Your filters returned no submissions.')} 
+          noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}

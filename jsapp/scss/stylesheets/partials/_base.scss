@@ -75,3 +75,8 @@ textarea {
 //     background: #b3d4fc;
 //     text-shadow: none;
 // }
+
+i {
+  // we use <i> for icons and we want to avoid any focus styles
+  outline: none !important;
+}

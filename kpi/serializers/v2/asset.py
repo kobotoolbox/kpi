@@ -156,7 +156,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             try:
                 asset.update_translation_list(translations_list)
             except ValueError as err:
-                raise serializers.ValidationError(str(err))
+                raise serializers.ValidationError({
+                    'translations': str(err)
+                })
             validated_data['content'] = asset_content
         return super().update(asset, validated_data)
 
