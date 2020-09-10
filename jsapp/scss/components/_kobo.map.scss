@@ -128,7 +128,7 @@ $z-map-settings-3: 701;
 
     .popover-menu__link.see-all {
       background: $cool-whitegray;
-      border-top: 1px solid $divider-color;
+      border-top: 1px solid $cool-lightgray;
     }
 
     .popover-menu__heading {
@@ -316,13 +316,13 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--list-files {
-    border: 1px solid $divider-color;
+    border: 1px solid $cool-lightgray;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid $divider-color;
+      border-top: 1px solid $cool-lightgray;
       padding: 5px;
 
       > span {

@@ -12,19 +12,19 @@ $submission-data-table-space: 12px;
   background-color: $cool-whitegray;
 
   &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
-    border-top: 3px solid $divider-color;
+    border-top: 3px solid $cool-lightgray;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group,
   &.submission-data-table__row--group-label {
-    border-bottom: 1px solid $divider-color;
+    border-bottom: 1px solid $cool-lightgray;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group {
-    border-left: 1px solid $divider-color;
-    border-right: 1px solid $divider-color;
+    border-left: 1px solid $cool-lightgray;
+    border-right: 1px solid $cool-lightgray;
   }
 
   &.submission-data-table__row--columns {
@@ -65,7 +65,7 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__row--point {
     & + & {
-      border-top: 1px dotted $divider-color;
+      border-top: 1px dotted $cool-lightgray;
     }
 
     &:first-child .submission-data-table__column {

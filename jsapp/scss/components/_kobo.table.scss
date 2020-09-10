@@ -49,7 +49,7 @@
     height: calc(100% - 50px);
 
     .rt-table {
-      border: 1px solid $divider-color;
+      border: 1px solid $cool-lightgray;
       background-color: $white;
       font-size: 13px;
     }
@@ -73,7 +73,7 @@
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid $divider-color;
+      border-bottom: 2px solid $cool-lightgray;
     }
 
     .rt-thead {
@@ -267,7 +267,7 @@
     margin-bottom: 20px;
 
     &--advanced-table-options {
-      border: 1px solid $divider-color;
+      border: 1px solid $cool-lightgray;
       padding: 20px;
       background: $cool-whitegray;
 
@@ -292,7 +292,7 @@
   ul {
     max-height: 160px;
     overflow: auto;
-    border: 1px solid $divider-color;
+    border: 1px solid $cool-lightgray;
     padding: 10px;
     background: $white;
 

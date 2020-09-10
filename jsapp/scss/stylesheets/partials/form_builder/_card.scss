@@ -279,7 +279,7 @@ $cardIndicatorIconWidth: 21px;
     }
     &.card__buttons__button--activated {
         color: $cool-darkgray;
-        background-color: $kobo-midgray;
+        background-color: $cool-lightgray;
         opacity: 1;
     }
     &:hover, &.card__buttons__button--activated:hover {

@@ -172,7 +172,7 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $cool-lightgray;
     padding-bottom: 5px;
 
     ul {
@@ -180,14 +180,14 @@
       color: $cool-darkgray;
       min-width: 140px;
       padding: 0;
-      border: 1px solid $divider-color;
+      border: 1px solid $cool-lightgray;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid $divider-color;
+          border-bottom: 1px solid $cool-lightgray;
         }
 
         a {
@@ -415,7 +415,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $divider-color;
+      border: 1px solid $cool-lightgray;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

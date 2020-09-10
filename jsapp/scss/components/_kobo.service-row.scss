@@ -13,7 +13,7 @@ $s-service-row-z-link: 10;
   position: relative;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid $divider-color;
+    border-bottom: 1px solid $cool-lightgray;
   }
 
   &:hover .service-row__action-button {

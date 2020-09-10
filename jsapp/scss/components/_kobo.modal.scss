@@ -193,7 +193,7 @@ $z-modal-x: 10;
 .modal__hr {
   margin: 20px -30px;
   border: 0;
-  background-color: $divider-color;
+  background-color: $cool-lightgray;
   height: 1px;
 }
 
@@ -310,7 +310,7 @@ $z-modal-x: 10;
 
     + .submission--warning {
       margin-top: -30px;
-      border-top: 1px solid $divider-color;
+      border-top: 1px solid $cool-lightgray;
     }
   }
 }
@@ -433,7 +433,7 @@ $z-modal-x: 10;
   .dropzone {
     background: $cool-whitegray;
     padding: 30px;
-    border: 2px dashed $divider-color;
+    border: 2px dashed $cool-lightgray;
     cursor: pointer;
     border-radius: 6px;
     text-align: center;
@@ -519,7 +519,7 @@ $z-modal-x: 10;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $cool-lightgray;
     padding: 6px 0px;
 
     .form-view__cell--translation-name .form-view__icon-button {
@@ -547,7 +547,7 @@ $z-modal-x: 10;
   .form-view__cell--add-language {
     padding-top: 20px;
     text-align: right;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $cool-lightgray;
   }
 
   .form-view__cell--add-language-form,
@@ -596,7 +596,7 @@ $z-modal-x: 10;
   .translation-table-container {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid $divider-color;
+    border: 1px solid $cool-lightgray;
   }
 
   .form-view__cell--add-language-form,
@@ -638,7 +638,7 @@ $z-modal-x: 10;
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid $divider-color;
+      border-bottom: 2px solid $cool-lightgray;
     }
 
     .rt-thead > .rt-tr,

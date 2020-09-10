@@ -245,7 +245,7 @@ $mdl-layout-width: 1440px;
   }
 
   &.divider {
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $cool-lightgray;
   }
 }
 
@@ -261,7 +261,7 @@ $mdl-layout-width: 1440px;
   overflow: auto;
   overflow-x: hidden;
   background-color: $cool-whitegray;
-  border-bottom: 1px solid $divider-color;
+  border-bottom: 1px solid $cool-lightgray;
 }
 
 .popover-menu__item--move-coll-item {
@@ -293,7 +293,7 @@ $mdl-layout-width: 1440px;
 .popover-menu__heading {
   padding: 8px 15px;
   color: $cool-darkgray;
-  border-top: 1px solid $divider-color;
+  border-top: 1px solid $cool-lightgray;
   background-color: $cool-whitegray;
   margin: 0px;
 }
@@ -432,7 +432,7 @@ $mdl-layout-width: 1440px;
       max-width: 100%;
       white-space: normal;
       padding: 12px;
-      border-bottom: 1px solid $divider-color;
+      border-bottom: 1px solid $cool-lightgray;
       border-left: 2px solid transparent;
 
       &:last-child {
@@ -540,7 +540,7 @@ iframe {
     padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
-    border-bottom-color: $divider-color;
+    border-bottom-color: $cool-lightgray;
     transition: border-color 0.3s;
 
     &:focus {
@@ -577,7 +577,7 @@ iframe {
   padding: 6px 0px;
   font-size: 15px;
   border: 1px solid transparent;
-  border-bottom-color: $divider-color;
+  border-bottom-color: $cool-lightgray;
   transition: border-color 0.3s;
 
   &:focus {

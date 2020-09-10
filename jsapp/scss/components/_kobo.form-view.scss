@@ -31,7 +31,7 @@ $z-form-view-fullscreen: 101;
   overflow-y: auto;
   float: left;
   background: $white;
-  border-right: 1px solid $divider-color;
+  border-right: 1px solid $cool-lightgray;
 
   & + .form-view,
   & + .loading {
@@ -104,7 +104,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view__toptabs {
   background: $white;
-  border-bottom: 1px solid $divider-color;
+  border-bottom: 1px solid $cool-lightgray;
   text-align: center;
   height: 48px;
   position: relative;
@@ -180,7 +180,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view__cell {
   &.form-view__cell--box {
-    border: 1px solid $divider-color;
+    border: 1px solid $cool-lightgray;
   }
 
   &.form-view__cell--columns {
@@ -374,7 +374,7 @@ $z-form-view-fullscreen: 101;
 
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $cool-lightgray;
     display: flex;
     align-items: center;
 
@@ -550,7 +550,7 @@ $z-form-view-fullscreen: 101;
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $divider-color;
+    border: 1px solid $cool-lightgray;
     background: $cool-whitegray;
     font-size: 13px;
     white-space: normal;
@@ -576,7 +576,7 @@ $z-form-view-fullscreen: 101;
 
   code {
     padding: 4px;
-    border: 1px solid $divider-color;
+    border: 1px solid $cool-lightgray;
     background: $cool-whitegray;
     margin-left: 5px;
     margin-right: 5px;
