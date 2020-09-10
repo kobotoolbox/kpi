@@ -380,13 +380,13 @@ class QuestionGraphSettings extends React.Component {
 
         <ui.Modal.Footer>
           {(reportStyle.report_type || reportStyle.report_colors || reportStyle.width) &&
-            <button className='mdl-button reset' onClick={this.saveQS.bind(this, true)}>
+            <bem.Button className='reset' onClick={this.saveQS.bind(this, true)}>
               {t('Reset')}
-            </button>
+            </bem.Button>
           }
-          <button className='mdl-button primary' onClick={this.saveQS.bind(this, false)}>
+          <bem.Button className='primary' onClick={this.saveQS.bind(this, false)}>
             {t('Save')}
-          </button>
+          </bem.Button>
         </ui.Modal.Footer>
       </bem.GraphSettings>
     );
@@ -973,33 +973,33 @@ class Reports extends React.Component {
         </ui.PopoverMenu>
 
         {this.state.currentCustomReport &&
-          <button className='mdl-button mdl-button--icon report-button__edit'
+          <bem.Button m='icon' className='report-button__edit'
                 onClick={this.editCustomReport}
                 data-tip={t('Edit Report Questions')}>
             <i className='k-icon-edit' />
-          </button>
+          </bem.Button>
         }
 
-        <button
-          className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+        <bem.Button
+          m='icon' className='report-button__expand right-tooltip'
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle fullscreen')}
         >
           <i className='k-icon-expand' />
-        </button>
+        </bem.Button>
 
-        <button className='mdl-button mdl-button--icon report-button__print'
+        <bem.Button m='icon' className='report-button__print'
                 onClick={launchPrinting}
                 data-tip={t('Print')}>
           <i className='k-icon-print' />
-        </button>
+        </bem.Button>
 
         {this.userCan('change_asset', this.state.asset) &&
-          <button className='mdl-button mdl-button--icon report-button__settings'
+          <bem.Button m='icon' className='report-button__settings'
                   onClick={this.toggleReportGraphSettings}
                   data-tip={t('Configure Report Style')}>
             <i className='k-icon-settings' />
-          </button>
+          </bem.Button>
         }
       </bem.FormView__reportButtons>
     );
@@ -1138,9 +1138,9 @@ class Reports extends React.Component {
                     <div>
                       {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
                     </div>
-                    <button className='mdl-button mdl-button--colored' onClick={this.resetReportLimit}>
+                    <bem.Button m='colored' onClick={this.resetReportLimit}>
                       {t('Show all (##)').replace('##', this.state.reportData.length)}
-                    </button>
+                    </bem.Button>
                   </bem.FormView__cell>
                 }
 

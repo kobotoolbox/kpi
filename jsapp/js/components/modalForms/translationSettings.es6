@@ -377,13 +377,13 @@ export class TranslationSettings extends React.Component {
           })}
           {!this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language'>
-              <button
-                className='mdl-button mdl-button--raised mdl-button--colored'
+              <bem.Button
+                m={['raised', 'colored']}
                 onClick={this.showAddLanguageForm}
                 disabled={!this.canAddLanguages()}
               >
                 {t('Add language')}
-              </button>
+              </bem.Button>
             </bem.FormView__cell>
           }
           {this.state.showAddLanguageForm &&

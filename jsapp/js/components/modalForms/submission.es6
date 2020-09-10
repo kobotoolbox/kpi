@@ -345,11 +345,11 @@ class Submission extends React.Component {
               </a>
             }
 
-            <button className='mdl-button mdl-button--icon report-button__print'
+            <bem.Button m='icon' className='report-button__print'
                     onClick={launchPrinting}
                     data-tip={t('Print')}>
               <i className='k-icon-print' />
-            </button>
+            </bem.Button>
 
             {this.userCan('change_submissions', this.props.asset) &&
               <a

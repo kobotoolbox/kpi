@@ -217,13 +217,13 @@ export class FormLanding extends React.Component {
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 &&
           <bem.FormView__cell m={['centered']}>
-            <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
+            <bem.Button m='colored' onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-            </button>
+            </bem.Button>
             {(this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount) &&
-              <button className='mdl-button mdl-button--colored' onClick={this.loadMoreVersions}>
+              <bem.Button m='colored' onClick={this.loadMoreVersions}>
                 {t('Load more')}
-              </button>
+              </bem.Button>
             }
           </bem.FormView__cell>
         }

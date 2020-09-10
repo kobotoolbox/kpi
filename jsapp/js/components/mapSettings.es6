@@ -356,9 +356,9 @@ class MapSettings extends React.Component {
                     className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <button className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.Button className={['raised', 'colored']}>
                       {t('Upload')}
-                    </button>
+                    </bem.Button>
                   </Dropzone>
                 </bem.FormModal__item>
               </div>

@@ -65,9 +65,9 @@ class FormSidebar extends Reflux.Component {
   render () {
     return (
       <bem.FormSidebar__wrapper>
-        <button onClick={this.newFormModal} className='mdl-button mdl-button--raised mdl-button--colored'>
+        <bem.Button onClick={this.newFormModal} m={['raised', 'colored']}>
           {t('new')}
-        </button>
+        </bem.Button>
         <SidebarFormsList/>
       </bem.FormSidebar__wrapper>
     );

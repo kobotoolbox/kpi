@@ -910,23 +910,21 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
+                  <bem.Button
+                    m={['colored', 'blue', 'raised']}
                     onClick={this.unarchiveProject}
                   >
                     {t('Unarchive Project')}
-                  </button>
+                  </bem.Button>
                 }
 
                 {!this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--orange mdl-button--raised'
+                  <bem.Button
+                    m={['colored', 'orange', 'raised']}
                     onClick={this.archiveProject}
                   >
                     {t('Archive Project')}
-                  </button>
+                  </bem.Button>
                 }
               </bem.FormModal__item>
 
