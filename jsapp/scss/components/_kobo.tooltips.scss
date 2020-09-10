@@ -15,7 +15,7 @@ $z-tooltip: 2;
       content: attr(data-tip);
       font-size: 13px;
       line-height: 1.35em;
-      color: white;
+      color: $white;
       background-color: $cool-darkgray;
       padding: 6px 12px;
       position: absolute;

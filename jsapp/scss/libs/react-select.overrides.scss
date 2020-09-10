@@ -19,7 +19,7 @@
     border: none;
     border-bottom: 1px solid $cool-lightgray;
     border-radius: 0;
-    background-color: white;
+    background-color: $white;
     transition: border-bottom-color 250ms;
 
     &:hover {

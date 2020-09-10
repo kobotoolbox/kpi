@@ -398,7 +398,7 @@
     z-index: 100;
 
     .git-rev__item {
-      color: white;
+      color: $white;
       opacity: 0.85;
       background: darken($kobo-teal, 10%);
       margin-top: 5px;

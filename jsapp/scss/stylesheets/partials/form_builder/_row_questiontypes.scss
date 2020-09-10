@@ -14,7 +14,7 @@
   border: 1px solid $kobo-blue;
   padding: 0px;
   padding-top: 20px;
-  background: white;
+  background: $white;
   margin: 4px 0px;
 }
 
@@ -124,7 +124,7 @@ input.row__questiontypes__new-question-name {
     font-size: 16px;
     &.fa.invert {
       background-color: $black;
-      color: white;
+      color: $white;
       border-radius: 4px;
       padding: 3px;
       font-size: 1em;

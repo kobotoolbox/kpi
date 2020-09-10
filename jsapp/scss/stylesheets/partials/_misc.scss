@@ -22,7 +22,7 @@
     line-height: 30px;
     text-align: center;
     text-transform: uppercase;
-    color: white;
+    color: $white;
     background-color: $cool-charcoal;
 }
 
@@ -103,7 +103,7 @@
     display: none;
   }
   .select2-results .select2-no-results {
-    background: white;
+    background: $white;
   }
 }
 

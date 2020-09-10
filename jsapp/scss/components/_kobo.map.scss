@@ -31,7 +31,7 @@ $z-map-settings-3: 701;
     @include box-shadow;
 
     border-radius: 6px;
-    background: white;
+    background: $white;
     z-index: $z-map-settings-2;
     cursor: pointer;
     color: $cool-darkgray;
@@ -430,7 +430,7 @@ body .leaflet-control-layers,
 .map-no-geopoint {
   text-align: center;
   font-weight: bold;
-  color: white;
+  color: $white;
 }
 
 .map-no-geopoint-wrapper {

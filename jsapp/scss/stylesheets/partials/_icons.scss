@@ -28,7 +28,7 @@
 
 .fa.invert {
   background-color: $black;
-  color: white;
+  color: $white;
   border-radius: 4px;
 }
 
@@ -75,7 +75,7 @@
   position: absolute;
   margin-left: -20px;
   margin-top: -6px;
-  background-color: white;
+  background-color: $white;
   border-radius: 8px;
 }
 

@@ -128,7 +128,7 @@
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
     background: $black;
-    color: white;
+    color: $white;
     padding: 17px 24px;
     padding-right: 44px;
     width: auto;
@@ -151,7 +151,7 @@
 
     @extend .k-icon, .k-icon-close;
 
-    color: white;
+    color: $white;
   }
 }
 

@@ -1,7 +1,7 @@
 %card-content {
   border: $cardBorderStyle;
   border-top-width: 1px;
-  background: white;
+  background: $white;
   margin-top:-2px;
   position: relative;
 }
@@ -9,7 +9,7 @@
 %card-expansion {
     border: $cardBorderStyle;
     border-top-width: 1px;
-    background: white;
+    background: $white;
     margin-top:-2px;
     position: relative;
 

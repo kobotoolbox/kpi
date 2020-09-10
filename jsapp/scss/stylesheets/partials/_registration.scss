@@ -9,7 +9,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: white;
+  color: $white;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -109,7 +109,7 @@
   &.registration__action {
     font-size: 16px;
     padding: 10px;
-    color: white;
+    color: $white;
     text-align: center;
     font-weight: 600;
     background-color: $kobo-green;
@@ -162,7 +162,7 @@
   }
 
   .passwordreset__cancel {
-    color: white;
+    color: $white;
     width: 45%;
     float: left;
     display: block;
@@ -242,7 +242,7 @@
   margin: 20px 10px 10px 10px;
 
   a {
-    color: white;
+    color: $white;
   }
 
   .registration__legal a {
@@ -264,7 +264,7 @@
 
   a {
     opacity: 0.8;
-    color: white;
+    color: $white;
   }
 }
 

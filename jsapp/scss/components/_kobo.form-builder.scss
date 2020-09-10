@@ -311,7 +311,7 @@ $t-form-builder-aside-open: 200ms;
   &.formBuilder-header__button--savefailed::after,
   &.formBuilder-header__button--saveneeded::after {
     content: '*';
-    color: white;
+    color: $white;
   }
 
   &.formBuilder-header__button--panel-toggle {
