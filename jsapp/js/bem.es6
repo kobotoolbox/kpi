@@ -178,7 +178,6 @@ bem.FormTitle__submissions = bem.FormTitle.__('submissions');
 
 bem.ReportView = BEM('report-view');
 bem.ReportView__wrap = bem.ReportView.__('wrap');
-bem.ReportView__warning = bem.ReportView.__('warning');
 bem.ReportView__item = bem.ReportView.__('item');
 bem.ReportView__itemHeading = bem.ReportView.__('itemHeading');
 bem.ReportView__headingMeta = bem.ReportView.__('headingMeta');

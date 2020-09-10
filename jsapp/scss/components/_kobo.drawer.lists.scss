@@ -8,18 +8,18 @@
     display: block;
     line-height: 1.2em;
     padding: 2px 0px;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     font-weight: normal;
     font-size: 12px;
 
     &:hover {
-      color: $black;
+      color: $kobo-black;
     }
   }
 
   .form-sidebar__label,
   .form-sidebar__grouping {
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     cursor: pointer;
 
     i {
@@ -37,7 +37,7 @@
     }
 
     &:hover {
-      color: $black;
+      color: $kobo-black;
     }
 
     &--Deployed i {
@@ -64,7 +64,7 @@
       padding: 2px 3px;
       width: 32px;
       border-radius: 40px;
-      background: $cool-whitegray;
+      background: $kobo-whitegray;
       text-align: center;
     }
   }
@@ -98,7 +98,7 @@
     }
 
     &--selected {
-      background: $cool-whitegray;
+      background: $kobo-whitegray;
 
       .popover-menu {
         position: absolute;

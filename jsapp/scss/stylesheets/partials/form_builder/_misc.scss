@@ -3,8 +3,8 @@
 .survey-editor__message {
   border: $cardBorderStyle;
   padding: 20px;
-  background: $white;
-  color: $cool-darkgray;
+  background: $kobo-white;
+  color: $kobo-darkgray;
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
@@ -109,5 +109,5 @@ code input[type="text"] {
 
 .survey-editor__message {
   text-align: center;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
 }

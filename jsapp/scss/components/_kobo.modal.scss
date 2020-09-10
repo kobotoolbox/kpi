@@ -13,7 +13,7 @@ $z-modal-x: 10;
   z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
-  background-color: rgba($black, 0.4) !important;
+  background-color: rgba($kobo-black, 0.4) !important;
 }
 
 .modal {
@@ -81,19 +81,19 @@ $z-modal-x: 10;
 
 .modal__content {
   overflow: auto;
-  background-color: $white;
+  background-color: $kobo-white;
   width: 100%;
 }
 
 .modal__tabs {
   background: $kobo-blue;
-  color: $white;
+  color: $kobo-white;
 }
 
 .modal__header {
   min-height: 70px;
   background: $kobo-blue;
-  color: $white;
+  color: $kobo-white;
 }
 
 .modal__title {
@@ -125,10 +125,10 @@ $z-modal-x: 10;
 }
 
 .modal__subheader {
-  background: $cool-whitegray;
+  background: $kobo-whitegray;
   padding: 20px 30px;
   margin: -30px -30px 20px;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
 
   i {
     margin: 2px 10px 10px 0;
@@ -193,7 +193,7 @@ $z-modal-x: 10;
 .modal__hr {
   margin: 20px -30px;
   border: 0;
-  background-color: $cool-lightgray;
+  background-color: $kobo-lightgray;
   height: 1px;
 }
 
@@ -203,7 +203,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: $cool-whitegray;
+    background-color: $kobo-whitegray;
     color: $layout-text-color;
   }
 
@@ -289,7 +289,7 @@ $z-modal-x: 10;
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     text-align: center;
     line-height: 1em;
 
@@ -310,7 +310,7 @@ $z-modal-x: 10;
 
     + .submission--warning {
       margin-top: -30px;
-      border-top: 1px solid $cool-lightgray;
+      border-top: 1px solid $kobo-lightgray;
     }
   }
 }
@@ -341,7 +341,7 @@ $z-modal-x: 10;
 }
 
 .enketo-iframe-icon {
-  color: $white;
+  color: $kobo-white;
   background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
   background-color: $kobo-midgray;
   background-position: -81px -129px;
@@ -397,9 +397,9 @@ $z-modal-x: 10;
       display: inline-block;
       vertical-align: top;
       border: none;
-      background: $cool-whitegray;
+      background: $kobo-whitegray;
       border-radius: 8px;
-      color: $cool-darkgray;
+      color: $kobo-darkgray;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
@@ -431,9 +431,9 @@ $z-modal-x: 10;
   }
 
   .dropzone {
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     padding: 30px;
-    border: 2px dashed $cool-lightgray;
+    border: 2px dashed $kobo-lightgray;
     cursor: pointer;
     border-radius: 6px;
     text-align: center;
@@ -477,7 +477,7 @@ $z-modal-x: 10;
 
     input {
       width: calc(50% - 20px);
-      background-color: rgba($black, 0.05);
+      background-color: rgba($kobo-black, 0.05);
       padding-left: 5px;
       padding-right: 5px;
 
@@ -519,7 +519,7 @@ $z-modal-x: 10;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-lightgray;
     padding: 6px 0px;
 
     .form-view__cell--translation-name .form-view__icon-button {
@@ -547,12 +547,12 @@ $z-modal-x: 10;
   .form-view__cell--add-language {
     padding-top: 20px;
     text-align: right;
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-lightgray;
   }
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     padding: 15px;
     position: relative;
 
@@ -596,12 +596,12 @@ $z-modal-x: 10;
   .translation-table-container {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid $cool-lightgray;
+    border: 1px solid $kobo-lightgray;
   }
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     padding: 15px;
     position: relative;
 
@@ -638,7 +638,7 @@ $z-modal-x: 10;
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid $cool-lightgray;
+      border-bottom: 2px solid $kobo-lightgray;
     }
 
     .rt-thead > .rt-tr,
@@ -649,7 +649,7 @@ $z-modal-x: 10;
       > .rt-th:first-child,
       > .rt-td:first-child {
         min-width: 30%;
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
       }
 
       > .rt-th:last-child,
@@ -658,7 +658,7 @@ $z-modal-x: 10;
       }
       .translation {
         background: $kobo-green-light;
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
         padding: 2px;
         textarea {
           display: block;
@@ -666,9 +666,9 @@ $z-modal-x: 10;
           border: none;
           background: transparent;
           width: 100%;
-          color: $black;
+          color: $kobo-black;
           &:focus {
-            background: $white;
+            background: $kobo-white;
           }
         }
       }

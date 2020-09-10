@@ -8,36 +8,32 @@
 /*
   Group 1: Blueish grays
 
-  NOTE: KPI uses "$black" as default text color and all gray elements of UI are
-  derived from this color for better match (hue and saturation is shared).
-
-  WARNING: All text should either be $black/$cool-charcoal for light backgrounds
-  or $white/$cool-whitegray for dark backgrounds.
+  WARNING: All text should either be $kobo-black/$kobo-darkgray for light backgrounds
+  or $kobo-white/$kobo-whitegray for dark backgrounds.
 */
 
-$black: hsl(230, 12%, 25%); // used 60+ times, base text
-$cool-charcoal: hsl(230, 12%, 35%); // used 10+ times, header background
-$cool-darkgray: hsl(230, 12%, 45%); // used 70+ times, less important text
-$kobo-midgray: hsl(230, 12%, 80%); // used 10+ times, borders
-$cool-lightgray: hsl(230, 12%, 89%); // used 40+ times, backgrounds & borders
-$cool-whitegray: hsl(230, 12%, 96%); // used 40+ times, backgrounds
-$white: hsl(0, 0%, 100%); // used 130+ times, buttons text, backgrounds
+$kobo-black: hsl(230, 12%, 20%); // base text color
+$kobo-darkgray: hsl(230, 12%, 40%);
+$kobo-midgray: hsl(230, 12%, 75%); // mostly used for darker borders
+$kobo-lightgray: hsl(230, 12%, 90%); // mostly used for lighter borders
+$kobo-whitegray: hsl(230, 12%, 95%);
+$kobo-white: hsl(0, 0%, 100%);
 
 /*
   Group 2: Accent colors
 */
-$kobo-blue: hsl(206, 90%, 54%); // used 80+ times
-$kobo-blue-light: hsl(206, 90%, 60%); // used 10+ times
-$kobo-blue-dark: hsl(206, 90%, 40%);
-$kobo-teal: hsl(185, 60%, 50%); // used 40+ times
+$kobo-blue: hsl(206, 90%, 54%);
+$kobo-blue-dark: hsl(206, 90%, 44%);
+$kobo-blue-light: hsl(206, 90%, 60%);
+$kobo-teal: hsl(185, 60%, 50%);
 // positive colors
-$kobo-green: hsl(139, 60%, 56%); // positive messages - used 10+ times
-$kobo-green-dark: hsl(139, 60%, 40%);
-$kobo-green-light: hsl(139, 60%, 90%);
+$kobo-green: hsl(149, 70%, 46%);
+$kobo-green-dark: hsl(149, 70%, 36%);
+$kobo-green-light: hsl(149, 70%, 90%);
 // error/negative colors
-$kobo-red: hsl(352, 100%, 60%); // error messages - used 40+ times
-$kobo-red-dark: hsl(352, 100%, 40%); // error messages - used 40+ times
-$kobo-red-light: hsl(352, 100%, 90%); // error messages - used 40+ times
+$kobo-red: hsl(352, 100%, 60%);
+$kobo-red-dark: hsl(352, 100%, 40%);
+$kobo-red-light: hsl(352, 100%, 90%);
 // warning colors
 $kobo-orange: hsl(30, 100%, 70%); // for borders
 $kobo-orange-dark: hsl(30, 100%, 40%); // for text

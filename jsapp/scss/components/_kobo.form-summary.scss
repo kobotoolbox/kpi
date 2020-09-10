@@ -13,7 +13,7 @@
 }
 
 .form-view__cell.form-view__cell--description {
-  border-top: 1px solid $cool-lightgray;
+  border-top: 1px solid $kobo-lightgray;
   padding: 20px;
 }
 
@@ -56,7 +56,7 @@
       background: transparent;
 
       &.active {
-        color: $white;
+        color: $kobo-white;
         background: $kobo-teal;
         position: relative;
 
@@ -82,7 +82,7 @@
   display: flex;
 
   .form-view__cell {
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -104,8 +104,8 @@
   a {
     display: block;
     padding: 6px 10px;
-    color: $cool-darkgray;
-    border-bottom: 1px solid $cool-lightgray;
+    color: $kobo-darkgray;
+    border-bottom: 1px solid $kobo-lightgray;
     position: relative;
 
     &:last-child {
@@ -113,8 +113,8 @@
     }
 
     &:hover {
-      color: $black;
-      background: $cool-whitegray;
+      color: $kobo-black;
+      background: $kobo-whitegray;
     }
 
     i {
@@ -151,7 +151,7 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     position: absolute;
     right: 0px;
     top: -6px;
@@ -176,7 +176,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
 
     span {
       font-size: 16px;

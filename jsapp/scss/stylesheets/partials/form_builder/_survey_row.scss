@@ -44,7 +44,7 @@
 }
 
 .score_preview, .rank_preview {
-  background-color: $white;
+  background-color: $kobo-white;
   margin-left: -16px;
 }
 
@@ -96,11 +96,11 @@ tr:first-child .scorelabel {
   border-left-color: $scorebordercolor;
   border-right-width: 1px;
   border-right-style: solid;
-  border-right-color: $cool-lightgray;
+  border-right-color: $kobo-lightgray;
 }
 
 .scorelabel, .scorecell__radio {
-  border-bottom: 1px dotted $cool-lightgray;
+  border-bottom: 1px dotted $kobo-lightgray;
   padding: 4px 6px;
 }
 
@@ -119,7 +119,7 @@ tr:last-child {
 }
 
 .score__options {
-  background-color: $white;
+  background-color: $kobo-white;
   padding: 12px 0;
 }
 
@@ -136,11 +136,11 @@ tr:last-child {
 }
 
 tr:hover .scorecell__radio {
-  background-color: $cool-whitegray;
+  background-color: $kobo-whitegray;
 }
 
 tr .scorecell__radio:hover {
-  background-color: $cool-whitegray;
+  background-color: $kobo-whitegray;
 }
 
 .rank__rows {
@@ -153,7 +153,7 @@ tr .scorecell__radio:hover {
 
 .rank__levels, .rank__rows {
   float: left;
-  background-color: rgba($white, 0.5);
+  background-color: rgba($kobo-white, 0.5);
   padding: 4px 20px 18px 2px;
   margin: 0;
 }
@@ -170,7 +170,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_explanation {
   font-size: 10px;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
   text-decoration: underline;
 }
 
@@ -192,7 +192,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_message {
   font-size: 92%;
-  color: $black;
+  color: $kobo-black;
   font-style: italic;
 
   &:before {
@@ -204,7 +204,7 @@ tr .scorecell__radio:hover {
       content: '';
     }
 
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
   }
 
   div {
@@ -228,15 +228,15 @@ tr .scorecell__radio:hover {
 
 .scorecell__name {
   margin: 0 0 -1px 0;
-  background-color: $cool-whitegray;
-  color: $cool-darkgray;
+  background-color: $kobo-whitegray;
+  color: $kobo-darkgray;
   line-height: 15px;
   font-size: 9px;
 }
 
 .scorecell__name, .scorelabel__name {
   display: block;
-  border-bottom: 1px dotted $cool-lightgray;
+  border-bottom: 1px dotted $kobo-lightgray;
 
   br {
     display: none;
@@ -294,11 +294,11 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
 
   &.prelim {
     font-style: italic;
-    color: $cool-lightgray;
+    color: $kobo-lightgray;
   }
 }
 

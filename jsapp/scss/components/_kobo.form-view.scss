@@ -4,7 +4,7 @@ $z-form-view-fullscreen: 101;
   width: 100%;
   height: calc(100% - 48px);
   overflow-y: auto;
-  background: $white;
+  background: $kobo-white;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -30,8 +30,8 @@ $z-form-view-fullscreen: 101;
   overflow-x: hidden;
   overflow-y: auto;
   float: left;
-  background: $white;
-  border-right: 1px solid $cool-lightgray;
+  background: $kobo-white;
+  border-right: 1px solid $kobo-lightgray;
 
   & + .form-view,
   & + .loading {
@@ -63,7 +63,7 @@ $z-form-view-fullscreen: 101;
     font-size: 14px;
     cursor: pointer;
     position: relative;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     font-weight: normal;
     letter-spacing: -0.01em;
     display: block;
@@ -71,7 +71,7 @@ $z-form-view-fullscreen: 101;
 
     &:hover,
     &.active {
-      color: $black;
+      color: $kobo-black;
     }
 
     &.active {
@@ -103,8 +103,8 @@ $z-form-view-fullscreen: 101;
 }
 
 .form-view__toptabs {
-  background: $white;
-  border-bottom: 1px solid $cool-lightgray;
+  background: $kobo-white;
+  border-bottom: 1px solid $kobo-lightgray;
   text-align: center;
   height: 48px;
   position: relative;
@@ -123,12 +123,12 @@ $z-form-view-fullscreen: 101;
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     font-weight: normal;
 
     &:hover,
     &.active {
-      color: $black;
+      color: $kobo-black;
     }
 
     &.active {
@@ -180,7 +180,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view__cell {
   &.form-view__cell--box {
-    border: 1px solid $cool-lightgray;
+    border: 1px solid $kobo-lightgray;
   }
 
   &.form-view__cell--columns {
@@ -190,7 +190,7 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-lightgray;
   }
 
   &.form-view__cell--padding {
@@ -199,13 +199,13 @@ $z-form-view-fullscreen: 101;
 
   &.form-view__cell--label {
     font-size: 14px;
-    color: $black;
+    color: $kobo-black;
     font-weight: 500;
     padding-bottom: 20px;
 
     span {
       display: block;
-      color: $cool-darkgray;
+      color: $kobo-darkgray;
       font-size: 12px;
     }
   }
@@ -262,7 +262,7 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--thin-label {
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -281,30 +281,34 @@ $z-form-view-fullscreen: 101;
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    color: $white;
+    color: $kobo-white;
     background-color: $kobo-green;
     border-radius: 2px;
   }
 
   &.form-view__cell--warning {
-    margin: 10px 20px;
-    margin-top: 0;
-    border-top: 15px solid $white;
+    background-color: $kobo-orange-light;
+    color: $kobo-orange-dark;
+    border: 1px solid $kobo-orange;
     padding: 10px;
-    background: $cool-whitegray;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .form-view__row & {
+      margin: 15px 20px 10px;
+    }
 
     i {
       color: $kobo-orange;
       font-size: 32px;
-      margin-right: 10px;
-      vertical-align: middle;
+      margin-right: 5px;
+      vertical-align: -11px;
       display: inline-block;
     }
 
-    span {
-      vertical-align: middle;
-      display: inline-block;
-      width: calc(100% - 48px);
+    p {
+      margin: 0;
     }
   }
 }
@@ -321,7 +325,7 @@ $z-form-view-fullscreen: 101;
   font-size: 36px;
   line-height: 18px;
   padding: 0 5px;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
   cursor: pointer;
   vertical-align: middle;
 
@@ -337,7 +341,7 @@ $z-form-view-fullscreen: 101;
 
 @keyframes recent {
   0% {
-    background-color: $white;
+    background-color: $kobo-white;
   }
 
   10% {
@@ -374,7 +378,7 @@ $z-form-view-fullscreen: 101;
 
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-lightgray;
     display: flex;
     align-items: center;
 
@@ -443,7 +447,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view--form-settings,
 .form-view--settings-sharing {
-  background: $white;
+  background: $kobo-white;
   padding: 40px;
 }
 
@@ -456,7 +460,7 @@ $z-form-view-fullscreen: 101;
 
 .form-view.form-view--form-settings-sharing {
   .form-modal {
-    background: $white;
+    background: $kobo-white;
     padding: 40px;
     height: 100%;
     overflow: auto;
@@ -550,8 +554,8 @@ $z-form-view-fullscreen: 101;
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $cool-lightgray;
-    background: $cool-whitegray;
+    border: 1px solid $kobo-lightgray;
+    background: $kobo-whitegray;
     font-size: 13px;
     white-space: normal;
   }
@@ -576,8 +580,8 @@ $z-form-view-fullscreen: 101;
 
   code {
     padding: 4px;
-    border: 1px solid $cool-lightgray;
-    background: $cool-whitegray;
+    border: 1px solid $kobo-lightgray;
+    background: $kobo-whitegray;
     margin-left: 5px;
     margin-right: 5px;
   }

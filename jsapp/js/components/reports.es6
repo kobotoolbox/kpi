@@ -1144,10 +1144,10 @@ class Reports extends React.Component {
                   </bem.FormView__cell>
                 }
 
-                <bem.ReportView__warning>
-                  <h4>{t('Warning')}</h4>
+                <bem.FormView__cell m='warning'>
+                  <i className='k-icon-alert' />
                   <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-                </bem.ReportView__warning>
+                </bem.FormView__cell>
 
                 <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
               </bem.ReportView__wrap>

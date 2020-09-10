@@ -537,7 +537,7 @@ export class FormLanding extends React.Component {
               {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
                   <i className='k-icon-alert' />
-                  {t('If you want to make these changes public, you must deploy this form.')}
+                  <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
                 </bem.FormView__cell>
               }
               {this.renderFormInfo(userCanEdit)}
