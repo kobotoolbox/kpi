@@ -92,6 +92,7 @@ class ImportExportTask(models.Model):
         asynchronous task runner (Celery)
         """
         with transaction.atomic():
+            # FIXME: use `select_for_update`
             _refetched_self = self._meta.model.objects.get(pk=self.pk)
             self.status = _refetched_self.status
             del _refetched_self
@@ -587,6 +588,7 @@ class ExportTask(ImportExportTask, ExportObjectMixin):
                     this_moment - stuck_export.date_created,
                 )
             )
+            # FIXME: use `select_for_update`
             stuck_export.status = cls.ERROR
             stuck_export.save()
 
@@ -603,6 +605,7 @@ class ExportTask(ImportExportTask, ExportObjectMixin):
         user_source_exports = cls.objects.filter(
             user=user, data__source=source
         ).order_by('-date_created')
+        # FIXME: use `select_for_update`
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
         ]

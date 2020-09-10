@@ -129,14 +129,12 @@ def set_kc_require_auth(user_id, require_auth):
     token, _ = Token.objects.get_or_create(user=user)
     with transaction.atomic():
         try:
-            profile = KobocatUserProfile.objects.get(user_id=user_id)
+            KobocatUserProfile.objects.filter(user_id=user_id).update(
+                require_auth=require_auth
+            )
         except ProgrammingError as e:
             raise ProgrammingError('set_kc_require_auth error accessing '
                                    'kobocat tables: {}'.format(repr(e)))
-        else:
-            if profile.require_auth != require_auth:
-                profile.require_auth = require_auth
-                profile.save()
 
 
 def _get_content_type_kwargs_for_related(obj):
