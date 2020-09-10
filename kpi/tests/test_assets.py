@@ -1,13 +1,12 @@
 # coding: utf-8
 import json
-import re
 from collections import OrderedDict
 from copy import deepcopy
 
 import xlrd
 from django.contrib.auth.models import User, AnonymousUser
-from django.core.exceptions import ValidationError
 from django.test import TestCase
+from rest_framework import serializers
 
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
@@ -697,7 +696,7 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertFalse(AnonymousUser().has_perm(
             PERM_VIEW_ASSET, self.asset))
 
-    def test_anoymous_change_permission_on_standalone_asset(self):
+    def test_anonymous_change_permission_on_standalone_asset(self):
         # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
         # includes change_asset
         try:
@@ -705,7 +704,7 @@ class ShareAssetsTest(AssetsTestCase):
             # permissions beyond view
             self.asset.assign_perm(
                 AnonymousUser(), PERM_CHANGE_ASSET)
-        except ValidationError:
+        except serializers.ValidationError:
             pass
         # Make sure the assignment failed
         self.assertFalse(AnonymousUser().has_perm(
