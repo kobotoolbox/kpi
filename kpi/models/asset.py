@@ -957,6 +957,8 @@ class Asset(ObjectPermissionMixin,
                 snapshot = False
         except AssetSnapshot.MultipleObjectsReturned:
             # how did multiple snapshots get here?
+            # FIXME: because `transaction.atomic` does not prevent `INSERT`s
+            #   into the table between our `get()` and `create()` calls!
             snaps = AssetSnapshot.objects.filter(asset=self,
                                                  asset_version=asset_version)
             snaps.delete()
@@ -1203,6 +1205,8 @@ class Asset(ObjectPermissionMixin,
         - `self.__deployment_data_copy` is used to detect whether
           `_deployment_data` has been altered directly
         """
+
+    # FIXME: this model should have a `unique_together` constraint
 
         # When fields are deferred, Django instantiates another copy
         # of the current Asset object to retrieve the value of the

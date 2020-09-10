@@ -1,6 +1,5 @@
 # coding: utf-8
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
@@ -48,7 +47,9 @@ class TokenView(APIView):
     def delete(self, request, *args, **kwargs):
         """ Delete an existing token and do not generate a new one """
         user = self._which_user(request)
-        with transaction.atomic():
-            token = get_object_or_404(Token, user=user)
-            token.delete()
+        token = get_object_or_404(Token, user=user)
+        # Yes, another thread could delete the token here, but Django's
+        # `delete()` does not care whether or not the object being deleted
+        # actually exists!
+        token.delete()
         return Response({}, status=status.HTTP_204_NO_CONTENT)
