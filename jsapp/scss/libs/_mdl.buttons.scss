@@ -73,10 +73,37 @@
       color: $kobo-green-dark;
     }
   }
+
+  &.mdl-button--colored.mdl-button--gray {
+    color: $cool-darkgray;
+
+    &:hover {
+      color: $cool-charcoal;
+    }
+  }
 }
 
 input.mdl-button[type="submit"] {
   -webkit-appearance: none;
+}
+
+.mdl-button--icon-and-text {
+  i,
+  .k-icon {
+    vertical-align: top;
+    font-size: 24px;
+  }
+}
+
+.mdl-button--small {
+  height: 30px;
+  min-height: 30px;
+  line-height: 30px;
+  padding: 0 12px;
+}
+
+.mdl-button--fullwidth {
+  width: 100%;
 }
 
 // Raised buttons
@@ -125,6 +152,16 @@ input.mdl-button[type="submit"] {
 
     &:hover {
       background-color: darken($kobo-green, 5%);
+      color: $white;
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--gray {
+    background-color: $cool-darkgray;
+    color: $white;
+
+    &:hover {
+      background-color: $cool-charcoal;
       color: $white;
     }
   }
