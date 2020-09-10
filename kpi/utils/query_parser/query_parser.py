@@ -55,10 +55,6 @@ class QueryParseActions(object):
         # is saved in the database as `pr\u00e9mier`. Let's handle this only
         # for `summary` to make people's lives easier. If they try to search
         # another text-based JSONField, tough luck.
-        # TODO: Remove after converting `summary` to a JSONBField
-        if field == 'summary' or field.startswith('summary_'):
-            return json.dumps(value).strip('"')
-
         if value == 'null':
             return None
         else:

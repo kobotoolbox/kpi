@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -215,8 +216,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Returns the deployment for the asset specified by the request
         """
         if not self.asset.has_deployment:
-            raise serializers.ValidationError(
-                _('The specified asset has not been deployed'))
+            raise ObjectDeploymentDoesNotExist(_('The specified asset has not been '
+                                                 'deployed'))
+
         return self.asset.deployment
 
     @action(detail=False, methods=['DELETE'],
@@ -295,8 +297,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return Response(submission)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
-                  renderer_classes=[renderers.JSONRenderer],
-                  permission_classes=[SubmissionValidationStatusPermission])
+            renderer_classes=[renderers.JSONRenderer],
+            permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == 'GET':
