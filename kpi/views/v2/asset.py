@@ -265,7 +265,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
             # 4) Get children count per asset
-            # ToDo Verify if all children must be included in count (e.g. Archives)
             records = Asset.objects.filter(parent_id__in=asset_ids). \
                 values('parent_id').annotate(children_count=Count('id'))
             # Ordering must be cleared otherwise group_by is wrong
