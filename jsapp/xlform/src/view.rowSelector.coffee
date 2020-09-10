@@ -75,6 +75,63 @@ module.exports = do ->
       @scrollFormBuilder('+=220')
       @$('.questiontypelist__item').click _.bind(@onSelectNewQuestionType, @)
 
+      # Keyboard navigation
+      toggleKeyboardNavigation = false
+      columnIndex = 0
+      rowIndex = 0
+      currentListRow = $("div.questiontypelist__row")
+
+      $DOWN = 40
+      $RIGHT = 39
+      $UP = 38
+      $LEFT = 37
+      $ENTER = 13
+
+      # Always start at top left most item first
+      currentListRow.eq(columnIndex).children().eq(0).toggleClass("questiontypelist__item-force-hover")
+
+      $(window).on 'keydown', (evt) =>
+        # Toggle previous item off
+        currentListRow.eq(columnIndex).children().eq(rowIndex).toggleClass("questiontypelist__item-force-hover")
+
+        # Navigation
+        if evt.which == $DOWN
+          if rowIndex >= currentListRow.eq(columnIndex).children().length - 1
+            rowIndex = 0
+          else
+            rowIndex++
+        if evt.which == $RIGHT
+          if columnIndex >= currentListRow.length - 1
+            columnIndex = 0
+          else
+            if currentListRow.eq(columnIndex + 1).children().length < currentListRow.eq(columnIndex).children().length && rowIndex > currentListRow.length
+              columnIndex = 0
+            else
+              columnIndex++
+        if evt.which == $UP
+          if rowIndex == 0
+            rowIndex = currentListRow.eq(columnIndex).children().length - 1
+          else
+            rowIndex--
+        if evt.which == $LEFT
+          if columnIndex == 0
+            if currentListRow.eq(currentListRow.length - 1).children().length < currentListRow.eq(columnIndex).children().length && rowIndex > currentListRow.length
+              columnIndex = currentListRow.length - 2
+            else
+              columnIndex = currentListRow.length - 1
+          else
+            if currentListRow.eq(columnIndex - 1).children().length < currentListRow.eq(columnIndex).children().length && rowIndex > currentListRow.eq(columnIndex - 1).length
+              columnIndex = currentListRow.length - 1
+            else
+              columnIndex--
+
+        # Toggle current item on
+        currentListRow.eq(columnIndex).children().eq(rowIndex).toggleClass("questiontypelist__item-force-hover")
+
+        # user makes selection by pressing ENTER
+        if evt.which == $ENTER
+          currentListRow.eq(columnIndex).children().eq(rowIndex).trigger('click')
+
     shrink: ->
       # click .js-close-row-selector
       $(window).off 'keydown.cancel_add_question'
@@ -114,7 +171,6 @@ module.exports = do ->
         type: rowType
 
       if rowType is 'calculate'
-
         rowDetails.calculation = questionLabelValue
       else
         rowDetails.label = questionLabelValue

@@ -10,6 +10,10 @@ class BadAssetTypeException(Exception):
     pass
 
 
+class BadContentTypeException(Exception):
+    pass
+
+
 class BadFormatException(Exception):
     pass
 
@@ -38,3 +42,9 @@ class KobocatDeploymentException(exceptions.APIException):
             'contain no spaces.',
         )
         return self.detail in invalid_form_id_responses
+
+
+class ObjectDeploymentDoesNotExist(exceptions.APIException):
+    status_code = 400
+    default_detail = 'The specified object has not been deployed'
+    default_code = 'deployment_does_not_exist'
