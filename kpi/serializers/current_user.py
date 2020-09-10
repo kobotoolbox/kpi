@@ -121,24 +121,15 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                     instance.pk, extra_details['data']['require_auth'])
             extra_details_obj.data.update(extra_details['data'])
             extra_details_obj.save()
-        current_password = validated_data.pop('current_password', False)
-        new_password = validated_data.pop('new_password', False)
-        if all((current_password, new_password)):
+
+        new_password = validated_data.get('new_password', False)
+        if new_password:
             with transaction.atomic():
-                if instance.check_password(current_password):
-                    instance.set_password(new_password)
-                    instance.save()
-                    request = self.context.get('request', False)
-                    if request:
-                        update_session_auth_hash(request, instance)
-                else:
-                    raise serializers.ValidationError({
-                        'current_password': 'Incorrect current password.'
-                    })
-        elif any((current_password, new_password)):
-            raise serializers.ValidationError(
-                'current_password and new_password must both be sent '
-                'together; one or the other cannot be sent individually.'
-            )
+                instance.set_password(new_password)
+                instance.save()
+                request = self.context.get('request', False)
+                if request:
+                    update_session_auth_hash(request, instance)
+
         return super().update(
             instance, validated_data)
