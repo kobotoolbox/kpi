@@ -1,9 +1,8 @@
 # coding: utf-8
-from django.db import IntegrityError
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.test import TestCase
+from rest_framework import serializers
 
 from ..models.asset import Asset
 from ..models.object_permission import ObjectPermission
@@ -555,7 +554,7 @@ class ShareCollectionTests(TestCase):
         self.assertFalse(AnonymousUser().has_perm(
             PERM_VIEW_ASSET, self.standalone_coll))
 
-    def test_anoymous_change_permission_on_standalone_collection(self):
+    def test_anonymous_change_permission_on_standalone_collection(self):
         # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
         # includes change_asset
         try:
@@ -563,22 +562,24 @@ class ShareCollectionTests(TestCase):
             # permissions beyond view
             self.standalone_coll.assign_perm(
                 AnonymousUser(), PERM_CHANGE_ASSET)
-        except ValidationError:
+        except serializers.ValidationError:
             pass
         # Make sure the assignment failed
         self.assertFalse(AnonymousUser().has_perm(
             PERM_CHANGE_ASSET, self.standalone_coll))
 
     def test_anonymous_as_baseline_for_authenticated(self):
-        ''' If the public can view an object, then all users should be able
-        to do the same. '''
+        """
+        If the public can view an object, then all users should be able
+        to do the same.
+        """
         # No one should have any permission yet
         for user_obj in AnonymousUser(), self.someuser:
             self.assertFalse(user_obj.has_perm(
                 PERM_VIEW_ASSET, self.standalone_coll))
         # Grant to anonymous
         self.standalone_coll.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
-        # Check that both anonymous and someuser can view
+        # Check that both anonymous and `someuser` can view
         for user_obj in AnonymousUser(), self.someuser:
             self.assertTrue(user_obj.has_perm(
                 PERM_VIEW_ASSET, self.standalone_coll))
