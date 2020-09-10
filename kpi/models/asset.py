@@ -785,11 +785,8 @@ class Asset(ObjectPermissionMixin,
     def optimize_queryset_for_list(queryset):
         """ Used by serializers to improve performance when listing assets """
         queryset = queryset.defer(
-            # Avoid pulling these `JSONField`s from the database because:
-            #   * they are stored as plain text, and just deserializing them
-            #     to Python objects is CPU-intensive;
-            #   * they are often huge;
-            #   * we don't need them for list views.
+            # Avoid pulling these from the database because they are often huge
+            # and we don't need them for list views.
             'content', 'report_styles'
         ).select_related(
             # We only need `username`, but `select_related('owner__username')`
