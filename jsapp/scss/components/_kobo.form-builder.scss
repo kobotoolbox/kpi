@@ -434,7 +434,7 @@ $t-form-builder-aside-open: 200ms;
     margin: 15px 0;
     width: 100%;
     height: 220px;
-    border: 2px solid $cool-gray;
+    border: 2px solid $divider-color;
   }
 
   .cascade-popup__buttonWrapper {
@@ -470,7 +470,7 @@ $t-form-builder-aside-open: 200ms;
 
 .survey-editor {
   .ui-sortable-placeholder.lib-list__item {
-    border: 1px dashed $c-iron;
+    border: 1px dashed $kobo-midgray;
     visibility: visible !important;
     min-height: 80px;
     padding: 0;

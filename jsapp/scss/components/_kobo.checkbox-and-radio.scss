@@ -62,8 +62,9 @@
 
     &::after {
       content: "✓";
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 18px;
       height: 18px;
       color: $white;
@@ -79,7 +80,7 @@
     appearance: none;
     position: relative;
     margin: 0;
-    border: 1px solid $cool-gray;
+    border: 1px solid $cool-darkgray;
     width: 20px;
     height: 20px;
     outline: 0;

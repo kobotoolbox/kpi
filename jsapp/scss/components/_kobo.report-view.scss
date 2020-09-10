@@ -80,7 +80,7 @@
     thead th {
       margin: 0px;
       padding: 8px;
-      background-color: lighten($cool-gray, 10%);
+      background-color: $cool-darkgray;
       color: white;
       text-align: right;
       font-weight: normal;
@@ -92,7 +92,7 @@
     }
 
     tbody tr td {
-      border-bottom: 1px solid $c-ghost;
+      border-bottom: 1px solid $kobo-midgray;
       padding: 8px;
       text-align: right;
 

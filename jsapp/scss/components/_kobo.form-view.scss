@@ -331,7 +331,7 @@ $z-form-view-fullscreen: 101;
 
   &--disabled,
   &--disabled:hover {
-    color: lighten($cool-gray, 15%);
+    color: $kobo-midgray;
   }
 }
 

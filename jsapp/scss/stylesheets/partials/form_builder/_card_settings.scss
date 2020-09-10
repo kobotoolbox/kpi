@@ -147,7 +147,7 @@
 
     .card__buttons__button--settings {
       color: $cool-darkgray;
-      background-color: $c-iron;
+      background-color: $kobo-midgray;
     }
   }
 }
@@ -171,7 +171,7 @@
     .select2-container-multi {
         vertical-align: top;
         display: table-cell;
-        border: 1px solid $c-ghost;
+        border: 1px solid $kobo-midgray;
         padding: 2px;
 
         .select2-choices {
@@ -182,7 +182,7 @@
             .select2-search-choice {
               border-radius: 5px;
               font-weight: normal;
-              background: $c-ghost;
+              background: $kobo-midgray;
               color: $black;
               padding-left: 5px;
               padding-right: 18px;

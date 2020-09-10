@@ -1,5 +1,5 @@
 .card__kobomatrix {
-  border: 1px solid $c-iron;
+  border: 1px solid $kobo-midgray;
   border-top: none;
 }
 
@@ -124,7 +124,7 @@
 
     > input[type="text"] {
       padding: 4px 8px;
-      border: 1px solid $c-ghost;
+      border: 1px solid $kobo-midgray;
       border-radius: 4px;
     }
 

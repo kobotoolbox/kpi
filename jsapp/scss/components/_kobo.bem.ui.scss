@@ -322,7 +322,7 @@ $mdl-layout-width: 1440px;
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  border-radius: 10px;
+  border-radius: 8px;
 
   width: 100%;
 }
@@ -510,7 +510,7 @@ iframe {
   label {
     font-weight: normal;
     font-size: 12px;
-    color: $cool-silver;
+    color: $cool-darkgray;
 
     &.long {
       padding-top: 5px;
@@ -566,7 +566,7 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: $c-iron;
+      background: $kobo-midgray;
     }
   }
 }
@@ -612,13 +612,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: $c-iron;
+  background-color: $kobo-midgray;
   background-color: transparent;
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: $c-iron;
+  background-color: $kobo-midgray;
   outline: none;
   border-radius: 8px;
 }

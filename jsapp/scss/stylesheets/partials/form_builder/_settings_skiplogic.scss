@@ -43,13 +43,13 @@ input[type=text].skiplogic__responseval, select.skiplogic__responseval {
   width: 25%;
   font-weight: normal;
   display: inline-block;
-  border-bottom: 1px solid $c-iron;
+  border-bottom: 1px solid $kobo-midgray;
 }
 
 input[type=text].skiplogic__responseval {
   border-radius: 0;
   border: none;
-  border-bottom: 1px solid $c-iron;
+  border-bottom: 1px solid $kobo-midgray;
   padding: 1px;
   height: 30px;
   vertical-align: bottom;
@@ -124,7 +124,7 @@ select.skiplogic__delimselect {
   background: transparent;
   border-radius: 0px !important;
   border: none;
-  border-bottom: 1px solid $c-iron;
+  border-bottom: 1px solid $kobo-midgray;
   padding: 4px 2px;
   font-size: 13px;
   font-weight: 400;
@@ -139,12 +139,12 @@ select.skiplogic__delimselect {
 
 .skiplogic__criterialist {
   .select2-container .select2-choice {
-    border-bottom: 1px solid $c-iron;
+    border-bottom: 1px solid $kobo-midgray;
   }
 
   .select2-dropdown-open.select2-drop-above .select2-choice,
   .select2-dropdown-open.select2-drop-above .select2-choices {
-    border-bottom: 1px solid $c-iron;
+    border-bottom: 1px solid $kobo-midgray;
     border-radius: 0px;
   }
 }

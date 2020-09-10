@@ -58,15 +58,16 @@
   border: 0 none;
   background-color: transparent;
   float: right;
-  color: rgba(181, 15, 15, 0.33);
+  color: $kobo-red;
+  cursor: pointer;
 
   &:hover {
-    color: rgba(181, 15, 15, 1);
+    color: $kobo-red-dark;
   }
 }
 
 .scorecell__col {
-  border: 1px solid $c-ghost;
+  border: 1px solid $kobo-midgray;
   border-width: 1px 0 0.5px 1px;
   text-align: center;
   padding: 0;
@@ -102,7 +103,7 @@
 
   span {
     &:hover {
-      background-color: $c-ghost;
+      background-color: $kobo-midgray;
     }
 
     cursor: pointer;
@@ -117,7 +118,7 @@
   }
 }
 
-$scorebordercolor: $c-ghost;
+$scorebordercolor: $kobo-midgray;
 
 tr:first-child .scorelabel {
   border-top-width: 1px;
@@ -221,7 +222,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__item, .rank_items__level {
   border: 1px solid;
-  border-color: $cool-silver;
+  border-color: $kobo-midgray;
   border-radius: 4px;
 }
 
@@ -279,8 +280,6 @@ tr .scorecell__radio:hover {
 }
 
 .scorelabel__name, .rank__rows .rank_items__name {
-  opacity: 0.8;
-
   &:before, &:after {
     line-height: 20px;
     margin: 0 3px;
@@ -331,7 +330,7 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: $cool-silver;
+  color: $cool-darkgray;
 
   &.prelim {
     font-style: italic;

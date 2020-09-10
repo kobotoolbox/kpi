@@ -18,7 +18,7 @@
   padding: 0 24px;
   margin: 0;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   vertical-align: middle;
   background: transparent;
   position: relative;
@@ -84,7 +84,7 @@ input.mdl-button[type="submit"] {
   @include box-shadow;
 
   background: $kobo-blue;
-  border-radius: 10px;
+  border-radius: 8px; // needed because of box-shadow
   text-transform: uppercase;
 
   // same as .mdl-button--blue
