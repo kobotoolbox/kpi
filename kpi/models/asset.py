@@ -1,9 +1,10 @@
 # coding: utf-8
 # 😬
 import copy
-import json
 import sys
 from collections import OrderedDict
+from functools import reduce
+from operator import add
 from io import BytesIO
 
 import six
@@ -15,7 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -998,18 +999,23 @@ class Asset(ObjectPermissionMixin,
         languages = set()
 
         if children:
-            summaries = [child.summary for child in children]
             languages = set(obj_languages)
+            children_languages = [child.summary.get('languages')
+                                  for child in children
+                                  if child.summary.get('languages')]
         else:
-            summaries = self.children.values_list('summary', flat=True)
+            children_languages = list(self.children
+                                      .values_list('summary__languages',
+                                                   flat=True)
+                                      .exclude(Q(summary__languages=[]) |
+                                               Q(summary__languages=[None]))
+                                      .order_by())
 
-        for summary in summaries:
-            child_languages = [language
-                               for language in summary.get('languages', [])
-                               if language is not None]
+        if children_languages:
+            # Flatten `children_languages` to 1-dimension list.
+            languages.update(reduce(add, children_languages))
 
-            if child_languages:
-                languages.update(child_languages)
+        languages.discard(None)
 
         languages = list(languages)
         # If languages are still the same, no needs to update the object
