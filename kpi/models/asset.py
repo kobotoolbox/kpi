@@ -15,7 +15,6 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch
 from django.utils.translation import ugettext_lazy as _
-from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -458,8 +457,8 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONField(default=dict)
-    summary = JSONField(default=dict)
+    content = JSONBField(default=dict)
+    summary = JSONBField(default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
@@ -477,7 +476,7 @@ class Asset(ObjectPermissionMixin,
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
-    _deployment_data = JSONField(default=dict)
+    _deployment_data = JSONBField(default=dict)
 
     permissions = GenericRelation(ObjectPermission)
 
@@ -1096,8 +1095,8 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONField(default=dict)
-    details = JSONField(default=dict)
+    source = JSONBField(default=dict)
+    details = JSONBField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey(Asset, null=True, on_delete=models.CASCADE)

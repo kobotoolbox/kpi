@@ -1,5 +1,5 @@
 # coding: utf-8
-from rest_framework import status, exceptions
+from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -33,9 +33,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             return queryset
         if q.startswith('source:'):
             q = remove_string_prefix(q, 'source:')
-            # This is exceedingly crude... but support for querying inside
-            # JSONField not available until Django 1.9
-            queryset = queryset.filter(data__contains=q)
+            queryset = queryset.filter(data__source=q)
         elif q.startswith('uid__in:'):
             q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]
@@ -66,14 +64,14 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
                 task_data[opt] = opt_val
         # Complain if no source was specified
         if not task_data.get('source', False):
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'source': 'This field is required.'})
         # Get the source object
         source = _resolve_url_to_asset(
             task_data['source'])
         # Complain if it's not deployed
         if not source.has_deployment:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'source': 'The specified asset must be deployed.'})
         # Create a new export task
         export_task = ExportTask.objects.create(user=request.user,

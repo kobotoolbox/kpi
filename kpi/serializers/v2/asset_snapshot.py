@@ -33,28 +33,20 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
 
-    def get_xml(self, obj):
-        """
-        There's too much magic in HyperlinkedIdentityField. When format is
-        unspecified by the request, HyperlinkedIdentityField.to_representation()
-        refuses to append format to the url. We want to *unconditionally*
-        include the xml format suffix.
-        :param obj: AssetSnapshot
-        :return: str
-        """
-        return reverse(
-            viewname='assetsnapshot-detail',
-            format='xml',
-            kwargs={'uid': obj.uid},
-            request=self.context.get('request', None)
-        )
-
-    def get_enketopreviewlink(self, obj):
-        return reverse(
-            viewname='assetsnapshot-preview',
-            kwargs={'uid': obj.uid},
-            request=self.context.get('request', None)
-        )
+    class Meta:
+        model = AssetSnapshot
+        lookup_field = 'uid'
+        fields = ('url',
+                  'uid',
+                  'owner',
+                  'date_created',
+                  'xml',
+                  'enketopreviewlink',
+                  'asset',
+                  'asset_version_id',
+                  'details',
+                  'source',
+                  )
 
     def create(self, validated_data):
         """
@@ -72,45 +64,62 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         # asset's owner, even if a different user makes the request
         validated_data['owner'] = self.context['request'].user
 
-        # TODO: Move to a validator?
-        if asset and source:
-            if not self.context['request'].user.has_perm(PERM_VIEW_ASSET, asset):
-                # The client is not allowed to snapshot this asset
-                raise exceptions.PermissionDenied
-            validated_data['source'] = source
-            snapshot = AssetSnapshot.objects.create(**validated_data)
-        elif asset:
-            # The client provided an existing asset; read source from it
-            if not self.context['request'].user.has_perm(PERM_VIEW_ASSET, asset):
-                # The client is not allowed to snapshot this asset
-                raise exceptions.PermissionDenied
-            # asset.snapshot pulls , by default, a snapshot for the latest
-            # version.
-            snapshot = asset.snapshot
-        elif source:
-            # The client provided source directly; no need to copy anything
-            # For tidiness, pop off unused fields. `None` avoids KeyError
-            validated_data.pop('asset', None)
-            validated_data.pop('asset_version', None)
+        if source:
             snapshot = AssetSnapshot.objects.create(**validated_data)
         else:
-            raise serializers.ValidationError('Specify an asset and/or a source')
+            # asset.snapshot pulls, by default, a snapshot for the latest
+            # version.
+            snapshot = asset.snapshot
 
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.details)
         return snapshot
 
-    class Meta:
-        model = AssetSnapshot
-        lookup_field = 'uid'
-        fields = ('url',
-                  'uid',
-                  'owner',
-                  'date_created',
-                  'xml',
-                  'enketopreviewlink',
-                  'asset',
-                  'asset_version_id',
-                  'details',
-                  'source',
-                  )
+    def get_enketopreviewlink(self, obj):
+        return reverse(
+            viewname='assetsnapshot-preview',
+            kwargs={'uid': obj.uid},
+            request=self.context.get('request', None)
+        )
+
+    def get_xml(self, obj):
+        """
+        There's too much magic in HyperlinkedIdentityField. When format is
+        unspecified by the request, HyperlinkedIdentityField.to_representation()
+        refuses to append format to the url. We want to *unconditionally*
+        include the xml format suffix.
+        :param obj: AssetSnapshot
+        :return: str
+        """
+        return reverse(
+            viewname='assetsnapshot-detail',
+            format='xml',
+            kwargs={'uid': obj.uid},
+            request=self.context.get('request', None)
+        )
+
+    def validate(self, attrs):
+
+        user = self.context['request'].user
+
+        asset = attrs.get('asset', False)
+        source = attrs.get('source', False)
+
+        if not any((asset, source)):
+            raise serializers.ValidationError({
+                'asset': 'Specify an asset and/or a source'
+            })
+
+        if asset:
+            if not user.has_perm(PERM_VIEW_ASSET, asset):
+                # The client is not allowed to snapshot this asset
+                raise exceptions.PermissionDenied
+            if not source:
+                attrs.pop('source', None)
+        elif source:
+            # The client provided source directly; no need to copy anything
+            # For tidiness, pop off unused fields. `None` avoids KeyError
+            attrs.pop('asset', None)
+            attrs.pop('asset_version', None)
+
+        return attrs

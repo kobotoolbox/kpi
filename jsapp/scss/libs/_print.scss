@@ -92,6 +92,14 @@
       max-height: none;
     }
   }
+
+  .page-wrapper {
+    &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
+      .form-view.form-view--table {
+        display: none;
+      }
+    }
+  }
 }
 
 @media only screen {
