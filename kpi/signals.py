@@ -103,8 +103,9 @@ def post_delete_asset(sender, instance, **kwargs):
 
     # Update parent's languages if this object is a child of another asset.
     try:
-        if instance.parent:
-            instance.parent.update_languages()
+        parent = instance.parent
     except Asset.DoesNotExist:  # `parent` may exists in DJANGO models cache but not in DB
         pass
-
+    else:
+        if parent:
+            parent.update_languages()
