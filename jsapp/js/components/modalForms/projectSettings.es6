@@ -168,13 +168,13 @@ class ProjectSettings extends React.Component {
   }
 
   onNameChange(evt) {
-    this.setState({name: evt.target.value});
-    this.onAnyDataChange('name', evt.target.value);
+    this.setState({name: removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('name', removeInvalidChars(evt.target.value));
   }
 
   onDescriptionChange(evt) {
-    this.setState({description: evt.target.value});
-    this.onAnyDataChange('description', evt.target.value);
+    this.setState({description: removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('description', removeInvalidChars(evt.target.value));
   }
 
   onCountryChange(val) {
@@ -823,7 +823,7 @@ class ProjectSettings extends React.Component {
                 maxLength={NAME_MAX_LENGTH}
                 id='name'
                 placeholder={t('Enter title of project here')}
-                value={removeInvalidChars(this.state.name)}
+                value={this.state.name}
                 onChange={this.onNameChange}
               />
             </bem.FormModal__item>
