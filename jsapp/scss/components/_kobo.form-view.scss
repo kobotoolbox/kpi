@@ -391,7 +391,11 @@
       padding: 8px 0 0;
 
       &:hover {
-        opacity: 0.8;
+        color: $kobo-blue-dark;
+      }
+
+      &:active {
+        transform: translateY(1px);
       }
 
       .k-icon {
