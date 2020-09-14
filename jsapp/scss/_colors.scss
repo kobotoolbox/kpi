@@ -22,19 +22,19 @@ $kobo-white: hsl(0, 0%, 100%);
 /*
   Group 2: Accent colors
 */
-$kobo-blue: hsl(206, 90%, 54%);
-$kobo-blue-dark: hsl(206, 90%, 44%);
+$kobo-blue: hsl(206, 90%, 55%);
+$kobo-blue-dark: hsl(206, 90%, 45%);
 $kobo-blue-light: hsl(206, 90%, 60%);
-$kobo-teal: hsl(185, 60%, 50%);
+$kobo-teal: hsl(185, 70%, 45%);
 // positive colors
-$kobo-green: hsl(149, 70%, 46%);
-$kobo-green-dark: hsl(149, 70%, 36%);
-$kobo-green-light: hsl(149, 70%, 90%);
+$kobo-green: hsl(149, 65%, 45%);
+$kobo-green-dark: hsl(149, 65%, 35%);
+$kobo-green-light: hsl(149, 65%, 90%);
 // error/negative colors
-$kobo-red: hsl(352, 100%, 60%);
-$kobo-red-dark: hsl(352, 100%, 40%);
-$kobo-red-light: hsl(352, 100%, 90%);
+$kobo-red: hsl(352, 70%, 50%);
+$kobo-red-dark: hsl(352, 70%, 40%);
+$kobo-red-light: hsl(352, 70%, 90%);
 // warning colors
-$kobo-orange: hsl(30, 100%, 70%); // for borders
-$kobo-orange-dark: hsl(30, 100%, 40%); // for text
-$kobo-orange-light: hsl(30, 100%, 95%); // for background
+$kobo-orange: hsl(30, 80%, 50%);
+$kobo-orange-dark: hsl(30, 80%, 40%);
+$kobo-orange-light: hsl(30, 80%, 95%);
