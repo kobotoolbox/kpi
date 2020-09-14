@@ -149,8 +149,8 @@ class MainHeader extends Reflux.Component {
                 {
                   stores.session &&
                   stores.session.environment &&
-                  stores.session.environment.terms_of_service_url ||
-                  stores.session.environment.privacy_policy_url &&
+                  stores.session.environment.terms_of_service_url !== '' ||
+                  stores.session.environment.privacy_policy_url !== '' &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
                     {stores.session.environment.terms_of_service_url &&
                       <a href={stores.session.environment.terms_of_service_url} target='_blank'>
