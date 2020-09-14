@@ -561,7 +561,6 @@ export default assign({
             <bem.FormBuilderHeader__button
               m={['save', {
                 savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
-                savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
                 savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
                 saveneeded: this.needsSave(),
               }]}

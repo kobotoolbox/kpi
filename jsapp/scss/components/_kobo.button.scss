@@ -9,10 +9,14 @@
   - red
   - whitegray
 
+  NOTE: Please __do not @extend__ this component. If possible use
+  `bem.KoboButton` or raw class names.
+
   NOTE: Our current go-to button solution (`_mdl.buttons.scss`) turned out to be
   chaotic-neutral and hard to maintain, so we should transition here all buttons
   that use: `.mdl-button.mdl-button--colored.mdl-button--raised`.
 */
+
 .kobo-button {
   display: inline-block;
   vertical-align: middle;
@@ -35,15 +39,7 @@
   margin: 0;
   border: none;
 
-  // icon inside button
-  i,
-  .k-icon {
-    vertical-align: top;
-    font-size: 30px;
-  }
-
-  &[disabled],
-  &.kobo-button--disabled {
+  &[disabled] {
     pointer-events: none;
     color: rgba($kobo-white, 0.75);
     // 1px black transparent png with 10% opacity (png-pixel.com)
@@ -60,6 +56,13 @@
     // to make it look pressed-in
     transform: translateY(1px);
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  // icon inside button
+  i,
+  .k-icon {
+    vertical-align: top;
+    font-size: 30px;
   }
 
   &.kobo-button--small {

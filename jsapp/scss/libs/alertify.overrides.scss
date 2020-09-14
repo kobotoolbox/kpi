@@ -78,22 +78,14 @@
   }
 
   button {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 20px;
-    padding-right: 20px;
+    @extend .kobo-button;
 
     &.ajs-ok {
-      @extend .mdl-button--colored, .mdl-button--raised;
+      @extend .kobo-button--blue;
     }
 
     &.ajs-cancel {
-      @extend .mdl-button--colored;
-
-      &:focus, &:focus:not(:active) {
-        background: transparent;
-      }
+      @extend .kobo-button--red;
     }
   }
 }

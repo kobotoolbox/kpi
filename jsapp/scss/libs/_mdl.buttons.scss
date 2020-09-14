@@ -104,6 +104,7 @@ input.mdl-button[type="submit"] {
   background: $kobo-blue;
   border-radius: 6px; // needed because of box-shadow
   text-transform: uppercase;
+  font-weight: 600;
 
   &:active {
     transform: translateY(1px);
