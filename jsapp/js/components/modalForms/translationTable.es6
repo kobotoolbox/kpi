@@ -257,7 +257,7 @@ export class TranslationTable extends React.Component {
 
         <bem.Modal__footer>
           <bem.KoboButton
-            m='lightgray'
+            m='whitegray'
             onClick={this.onBack.bind(this)}
           >
             {t('Back')}

@@ -232,7 +232,7 @@ export class TableColumnFilter extends React.Component {
         }
         <bem.Modal__footer>
           {this.userCan('change_asset', this.props.asset) &&
-            <bem.KoboButton m='lightgray' onClick={this.resetTableSettings}>
+            <bem.KoboButton m='whitegray' onClick={this.resetTableSettings}>
               {t('Reset')}
             </bem.KoboButton>
           }

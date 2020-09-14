@@ -956,7 +956,7 @@ class ProjectSettings extends React.Component {
       );
       return (
         <bem.KoboButton
-          m='lightgray'
+          m='whitegray'
           type='button'
           onClick={this.displayPreviousStep}
           disabled={isBackButtonDisabled}
