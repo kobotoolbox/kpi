@@ -125,6 +125,7 @@ class App extends React.Component {
         <React.Fragment>
           <PermValidator/>
           <IntercomHandler/>
+          <div className='header-stretch-bg'/>
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
             { this.state.pageState.modal &&
               <Modal params={this.state.pageState.modal} />
