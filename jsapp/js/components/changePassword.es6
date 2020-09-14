@@ -108,12 +108,12 @@ export default class ChangePassword extends React.Component {
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <button
+            <bem.KoboButton
               onClick={this.changePassword}
-              className='mdl-button mdl-button--raised mdl-button--colored'
+              m={['blue']}
             >
               {t('Save Password')}
-            </button>
+            </bem.KoboButton>
 
             <button
               onClick={this.close}

@@ -2,12 +2,13 @@
 // Groups
 // ==========================================================================
 
+$formbuilder-group-bg: $kobo-whitegray;
 
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
-    background-color: $cool-whitegray;
-    border: 1px solid $c-ghost;
+    background-color: $formbuilder-group-bg;
+    border: 1px solid $kobo-midgray;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
@@ -21,7 +22,7 @@
 }
 
 .group__header {
-    border-bottom: 1px solid $c-ghost;
+    border-bottom: 1px solid $kobo-midgray;
     position: relative;
     margin: -4px -10px 0;
     padding: 12px;
@@ -69,14 +70,14 @@
     text-align: center;
 
     &.group__header__buttons__button--gray {
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
     }
     &.group__header__buttons__button--red {
         color: $kobo-red;
     }
     &.group__header__buttons__button--activated {
-        color: $cool-darkgray;
-        background-color: $divider-color;
+        color: $kobo-darkgray;
+        background-color: $kobo-lightgray;
     }
 }
 
@@ -99,7 +100,7 @@
         padding-bottom: 0px;
         > .card__settings {
             display: block;
-            background-color: white;
+            background-color: $kobo-white;
             border:none;
             margin-top:1px;
             &:after {
@@ -118,7 +119,7 @@
             margin:-4px 0px 0px;
         }
         .group__header__buttons__button--settings {
-            background: $c-ghost;
+            background: $kobo-lightgray;
         }
     }
 
@@ -128,7 +129,7 @@
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
 .group__caret {
     cursor: pointer;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
 }
 .group--shrunk {
     border-bottom: none;
@@ -142,12 +143,18 @@
 }
 
 .group__rows .group {
-    background: $divider-color;
+    background: darken($formbuilder-group-bg, 3%);
     margin-bottom: 12px;
-    .group__header {
-        border-bottom: 1px solid $c-ghost;
-    }
-    .group__header__buttons {
-        border-left-color: $c-ghost;
+
+    .group__rows .group {
+        background: darken($formbuilder-group-bg, 6%);
+
+        .group__rows .group {
+            background: darken($formbuilder-group-bg, 9%);
+
+            .group__rows .group {
+                background: darken($formbuilder-group-bg, 12%);
+            }
+        }
     }
 }

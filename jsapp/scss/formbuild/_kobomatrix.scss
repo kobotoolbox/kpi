@@ -1,5 +1,5 @@
 .card__kobomatrix {
-  border: 1px solid $c-iron;
+  border: 1px solid $kobo-midgray;
   border-top: none;
 }
 
@@ -14,7 +14,7 @@
   width: 100%;
   padding: 23px 50px 23px 20px;
   position: relative;
-  background: $white;
+  background: $kobo-white;
 
   .matrix-items-new {
     margin: 23px 0px;
@@ -41,15 +41,15 @@
 .matrix-cols--header {
   display: flex;
   flex-wrap: nowrap;
-  border-top: 1px solid $cool-lightgray;
-  border-left: 1px solid $cool-lightgray;
+  border-top: 1px solid $kobo-lightgray;
+  border-left: 1px solid $kobo-lightgray;
 
   .matrix-cols__col {
     flex-grow: 1;
     flex-basis: 0;
     padding: 10px 20px;
     text-align: center;
-    border-right: 1px solid $cool-lightgray;
+    border-right: 1px solid $kobo-lightgray;
     position: relative;
     padding-right: 30px;
     vertical-align: middle;
@@ -57,8 +57,8 @@
     margin-bottom: -1px;
 
     &.active {
-      background: $cool-whitegray;
-      border-bottom: 1px solid $cool-whitegray;
+      background: $kobo-whitegray;
+      border-bottom: 1px solid $kobo-whitegray;
     }
 
     .matrix-cols__colattr--type {
@@ -84,8 +84,8 @@
 
 .matrix-cols__settings {
   width: 100%;
-  background: $cool-whitegray;
-  border: 1px solid $cool-lightgray;
+  background: $kobo-whitegray;
+  border: 1px solid $kobo-lightgray;
   border-bottom: none;
   padding: 15px;
   display: none;
@@ -124,7 +124,7 @@
 
     > input[type="text"] {
       padding: 4px 8px;
-      border: 1px solid $c-ghost;
+      border: 1px solid $kobo-midgray;
       border-radius: 4px;
     }
 
@@ -153,8 +153,8 @@
 }
 
 .matrix-cols__options {
-  background: $cool-whitegray;
-  border: 1px solid $cool-lightgray;
+  background: $kobo-whitegray;
+  border: 1px solid $kobo-lightgray;
   padding: 10px;
   margin: 20px 0px;
   clear: both;
@@ -170,7 +170,7 @@
     input {
       padding: 4px 8px;
       border-radius: 4px;
-      border: 1px solid $cool-lightgray;
+      border: 1px solid $kobo-lightgray;
     }
 
     &.matrix-options__value {
@@ -213,19 +213,19 @@
     flex-grow: 1;
     flex-basis: 0;
     padding: 5px;
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-lightgray;
     vertical-align: middle;
     position: relative;
   }
 
   .matrix-cols__col {
-    border-right: 1px solid $cool-lightgray;
+    border-right: 1px solid $kobo-lightgray;
     text-align: center;
   }
 
   .matrix-items__itemattr {
-    border-right: 1px solid $cool-lightgray;
-    border-left: 1px solid $cool-lightgray;
+    border-right: 1px solid $kobo-lightgray;
+    border-left: 1px solid $kobo-lightgray;
     position: relative;
     line-height: 28px;
 
@@ -251,13 +251,13 @@
   }
 
   &--new {
-    border-top: 1px solid $cool-lightgray;
+    border-top: 1px solid $kobo-lightgray;
 
     i {
       font-size: 28px;
       opacity: 0.75;
       cursor: pointer;
-      color: $cool-darkgray;
+      color: $kobo-darkgray;
 
       &:hover {
         color: $kobo-blue;
@@ -267,8 +267,8 @@
 
   .matrix-items__itemsettings {
     width: 100%;
-    background: $cool-whitegray;
-    border: 1px solid $cool-lightgray;
+    background: $kobo-whitegray;
+    border: 1px solid $kobo-lightgray;
     border-bottom: none;
     padding: 15px;
     display: none;

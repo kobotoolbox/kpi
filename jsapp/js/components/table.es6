@@ -1052,21 +1052,21 @@ export class DataTable extends React.Component {
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
-            <button
-              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+            <bem.Button
+              m='icon' className='report-button__expand right-tooltip'
               onClick={this.toggleFullscreen}
               data-tip={t('Toggle fullscreen')}
             >
               <i className='k-icon-expand' />
-            </button>
+            </bem.Button>
 
-            <button
-              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+            <bem.Button
+              m='icon' className='report-button__expand right-tooltip'
               onClick={this.showTableColumsOptionsModal}
               data-tip={t('Display options')}
             >
               <i className='k-icon-settings' />
-            </button>
+            </bem.Button>
           </bem.FormView__item>
         </bem.FormView__group>
 

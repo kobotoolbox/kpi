@@ -247,7 +247,7 @@ class Submission extends React.Component {
         {this.state.promptRefresh &&
           <div className='submission--warning'>
             <p>{t('Click on the button below to load the most recent data for this submission. ')}</p>
-            <a onClick={this.triggerRefresh} className='mdl-button mdl-button--raised mdl-button--colored'>
+            <a onClick={this.triggerRefresh} className='kobo-button kobo-button--blue'>
               {t('Refresh submission')}
             </a>
           </div>
@@ -337,7 +337,7 @@ class Submission extends React.Component {
             {this.userCan('change_submissions', this.props.asset) &&
               <a
                 onClick={this.launchEditSubmission.bind(this)}
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 disabled={!this.isSubmissionEditable()}
               >
                 {this.state.isEditLoading && t('Loading…')}
@@ -345,11 +345,11 @@ class Submission extends React.Component {
               </a>
             }
 
-            <button className='mdl-button mdl-button--icon report-button__print'
+            <bem.Button m='icon' className='report-button__print'
                     onClick={launchPrinting}
                     data-tip={t('Print')}>
               <i className='k-icon-print' />
-            </button>
+            </bem.Button>
 
             {this.userCan('change_submissions', this.props.asset) &&
               <a

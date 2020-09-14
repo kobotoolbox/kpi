@@ -14,7 +14,7 @@
     border: 1px solid transparent;
     white-space: nowrap;
     border-radius: 4px;
-    color: white;
+    color: $kobo-white;
     background-color: $kobo-blue;
     height: 30px;
     line-height: 30px;
@@ -48,15 +48,6 @@ fieldset[disabled] .btn {
     opacity: 0.65;
 }
 
-.btn--gray {
-  color: $black;
-  background-color: $cool-lightgray;
-
-  &:hover {
-    background-color: $c-iron;
-  }
-}
-
 .btn--small {
     height: 20px;
     padding-right: 5px;
@@ -83,6 +74,6 @@ input[type="button"].btn--block {
 
 .btn--disabled {
     cursor: default;
-    color: $cool-lightgray;
+    color: $kobo-lightgray;
     font-weight: normal;
 }

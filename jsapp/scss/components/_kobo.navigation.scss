@@ -67,20 +67,20 @@
 
   .search {
     ::-webkit-input-placeholder {
-      color: $white;
+      color: $kobo-white;
     }
 
     :-ms-input-placeholder {
-      color: $white;
+      color: $kobo-white;
     }
 
     .k-search__input {
-      color: $white;
+      color: $kobo-white;
       border: none;
       border-radius: 0px;
       padding: 10px 12px;
       padding-left: 42px;
-      background-color: rgba($white, 0.1);
+      background-color: rgba($kobo-white, 0.1);
       font-size: 16px;
       position: relative;
       width: 99%;
@@ -90,7 +90,7 @@
     .search__cancel {
       position: absolute;
       top: 11px;
-      color: $white;
+      color: $kobo-white;
 
       &::before {
         font-size: 18px;
@@ -130,7 +130,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -159,7 +159,7 @@
     padding-bottom: 15px;
 
     a {
-      color: $cool-darkgray;
+      color: $kobo-darkgray;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -191,22 +191,22 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
     padding-bottom: 5px;
 
     ul {
-      background-color: $white;
-      color: $cool-darkgray;
+      background-color: $kobo-white;
+      color: $kobo-darkgray;
       min-width: 140px;
       padding: 0;
-      border: 1px solid $divider-color;
+      border: 1px solid $kobo-lightgray;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid $divider-color;
+          border-bottom: 1px solid $kobo-lightgray;
         }
 
         a {
@@ -231,7 +231,7 @@
       display: block;
       margin-right: 8px;
       padding: 0px;
-      color: $white;
+      color: $kobo-white;
 
       i {
         line-height: 1.5em;
@@ -283,7 +283,7 @@
     margin-right: 20px;
     flex: 1;
     align-items: center;
-    color: $white;
+    color: $kobo-white;
     font-size: 18px;
 
     &.main-header__title--long input {
@@ -306,11 +306,11 @@
       width: 100%;
       // keep these pseudo-states separate
       &::-webkit-input-placeholder {
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
       }
 
       &:-ms-input-placeholder {
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
       }
 
       &:hover {
@@ -318,7 +318,7 @@
       }
 
       &:focus {
-        background: rgba($white, 0.05);
+        background: rgba($kobo-white, 0.05);
         border-bottom: 1px solid $kobo-blue;
       }
     }
@@ -366,7 +366,7 @@
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
-  color: $white;
+  color: $kobo-white;
 }
 
 .account-box__menu-item--avatar {
@@ -391,7 +391,7 @@
     z-index: 100;
 
     .git-rev__item {
-      color: white;
+      color: $kobo-white;
       opacity: 0.85;
       background: darken($kobo-teal, 10%);
       margin-top: 5px;
@@ -408,7 +408,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $divider-color;
+      border: 1px solid $kobo-lightgray;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

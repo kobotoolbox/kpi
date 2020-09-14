@@ -1,7 +1,7 @@
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
-  border-bottom: 1px solid transparentize($cool-gray, 0.7);
+  border-bottom: 1px solid $kobo-lightgray;
   overflow: hidden;
 
   > .asset-list-sorts__item {
@@ -24,7 +24,7 @@
 }
 
 .search__summary {
-  background-color: $cool-lightgray;
+  background-color: $kobo-lightgray;
   height: 50px;
   width: 100%;
   flex-grow: 0;
@@ -53,7 +53,7 @@
 
   span.parent {
     font-weight: normal;
-    color: $cool-charcoal;
+    color: $kobo-darkgray;
   }
 
   i {
@@ -107,7 +107,7 @@
   }
 
   .asset-list, .asset-list-sorts {
-    background-color: $white;
+    background-color: $kobo-white;
   }
 
   .asset-list-sorts {
@@ -160,7 +160,7 @@
       display: flex;
       position: fixed;
       top: $layout-desktop-header-height;
-      background: $white;
+      background: $kobo-white;
       z-index: 99;
       overflow: hidden;
 

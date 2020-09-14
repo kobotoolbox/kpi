@@ -4,7 +4,7 @@ module.exports = do ->
 
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
-        <div tabIndex="0" class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default  add-row-btn"
+        <div tabIndex="0" class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default"
             ><i class="fa fa-plus"></i></div>
         <div class="line">&nbsp;</div>
       </div>
@@ -170,14 +170,14 @@ module.exports = do ->
       <thead>
         <th class="scorecell--empty"></th>
         #{thead_html}
-        <th class="scorecell--add"><span>+</span></th>
+        <th class="scorecell--add"><button class="kobo-button kobo-button--small">+</button></th>
       </thead>
       <tbody>
         #{tbody_html.join('')}
       </tbody>
       <tfoot>
         <tr>
-        <td class="scorerow--add"><button class="btn btn--small btn--gray">+</button></td>
+        <td class="scorerow--add"><button class="kobo-button kobo-button--small kobo-button--fullwidth">+</button></td>
         </tr>
       </tfoot>
     </table>
@@ -232,11 +232,11 @@ module.exports = do ->
     <div class="rank_preview clearfix">
       <ol class="rank__rows">
         #{rank_rows_lis.join('')}
-        <li class="rank_items__add rank_items__add--item"><button class="btn btn--small btn--gray">+</button></li>
+        <li class="rank_items__add rank_items__add--item"><button class="kobo-button kobo-button--small kobo-button--fullwidth">+</button></li>
       </ol>
       <ul class="rank__levels">
         #{rank_levels_lis.join('')}
-        <li class="rank_items__add rank_items__add--level"><button class="btn btn--small btn--gray">+</button></li>
+        <li class="rank_items__add rank_items__add--level"><button class="kobo-button kobo-button--small kobo-button--fullwidth">+</button></li>
         #{rank_constraint_message_li}
       </ul>
     </div>

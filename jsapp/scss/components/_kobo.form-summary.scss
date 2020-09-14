@@ -1,4 +1,4 @@
-.form-view__group--description-cols {
+.form-view__group.form-view__group--description-cols {
   padding: 20px;
   display: flex;
 
@@ -14,11 +14,11 @@
 
 .form-view__row--summary-description {
   .form-view__cell--description:not(:first-child) {
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
   }
 }
 
-.form-view__group--summary-details-cols {
+.form-view__group.form-view__group--summary-details-cols {
   display: flex;
   align-items: flex-start;
 
@@ -37,7 +37,7 @@
   }
 }
 
-.form-view__cell--subs-graph {
+.form-view__cell.form-view__cell--subs-graph {
   padding: 30px;
   padding-bottom: 0px;
 
@@ -57,7 +57,7 @@
       background: transparent;
 
       &.active {
-        color: $white;
+        color: $kobo-white;
         background: $kobo-teal;
         position: relative;
 
@@ -78,12 +78,12 @@
   }
 }
 
-.form-view__group--submission-stats {
+.form-view__group.form-view__group--submission-stats {
   padding: 30px;
   display: flex;
 
   .form-view__cell {
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -101,12 +101,12 @@
   }
 }
 
-.form-view__cell--data-tabs {
+.form-view__cell.form-view__cell--data-tabs {
   a {
     display: block;
     padding: 6px 10px;
-    color: $cool-darkgray;
-    border-bottom: 1px solid $divider-color;
+    color: $kobo-darkgray;
+    border-bottom: 1px solid $kobo-lightgray;
     position: relative;
 
     &:last-child {
@@ -114,8 +114,8 @@
     }
 
     &:hover {
-      color: $black;
-      background: $cool-whitegray;
+      color: $kobo-black;
+      background: $kobo-whitegray;
     }
 
     i {
@@ -135,7 +135,7 @@
   }
 }
 
-.form-view__row--team {
+.form-view__row.form-view__row--team {
   position: relative;
 
   .form-view__cell--box {
@@ -152,7 +152,7 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     position: absolute;
     right: 0px;
     top: -6px;
@@ -167,7 +167,7 @@
   }
 }
 
-.form-view__cell--summary-chart {
+.form-view__cell.form-view__cell--summary-chart {
   position: relative;
   height: 0px;
   overflow: hidden;
@@ -177,7 +177,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
 
     span {
       font-size: 16px;

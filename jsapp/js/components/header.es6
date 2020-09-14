@@ -141,9 +141,9 @@ class MainHeader extends Reflux.Component {
                     <span className='account-email'>{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
-                    <button onClick={this.accountSettings} className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.KoboButton onClick={this.accountSettings} m={['blue', 'fullwidth']}>
                       {t('Account Settings')}
-                    </button>
+                    </bem.KoboButton>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
                 {
@@ -225,9 +225,9 @@ class MainHeader extends Reflux.Component {
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <button className='mdl-button mdl-button--icon' onClick={this.toggleFixedDrawer}>
+            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
               <i className='fa fa-bars' />
-            </button>
+            </bem.Button>
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />

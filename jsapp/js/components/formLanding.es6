@@ -83,21 +83,21 @@ export class FormLanding extends React.Component {
           <bem.FormView__cell m='buttons'>
             {userCanEdit && this.state.has_deployment && this.state.deployment__active &&
               <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 onClick={this.deployAsset}>
                   {t('redeploy')}
               </a>
             }
             {userCanEdit && !this.state.has_deployment && !this.state.deployment__active &&
               <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 onClick={this.deployAsset}>
                   {t('deploy')}
               </a>
             }
             {userCanEdit && this.state.has_deployment && !this.state.deployment__active &&
               <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 onClick={this.callUnarchiveAsset}>
                   {t('unarchive')}
               </a>
@@ -218,13 +218,13 @@ export class FormLanding extends React.Component {
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 &&
           <bem.FormView__cell m={['centered']}>
-            <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
+            <bem.Button m='colored' onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-            </button>
+            </bem.Button>
             {(this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount) &&
-              <button className='mdl-button mdl-button--colored' onClick={this.loadMoreVersions}>
+              <bem.Button m='colored' onClick={this.loadMoreVersions}>
                 {t('Load more')}
-              </button>
+              </bem.Button>
             }
           </bem.FormView__cell>
         }
@@ -536,7 +536,7 @@ export class FormLanding extends React.Component {
               {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
                   <i className='k-icon-alert' />
-                  {t('If you want to make these changes public, you must deploy this form.')}
+                  <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
                 </bem.FormView__cell>
               }
               {this.renderFormInfo(userCanEdit)}

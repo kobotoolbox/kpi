@@ -9,7 +9,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: white;
+  color: $kobo-white;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -26,7 +26,7 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba($black, 0.75);
+    background: rgba($kobo-black, 0.75);
     padding: 20px 30px;
 
     a {
@@ -109,7 +109,7 @@
   &.registration__action {
     font-size: 16px;
     padding: 10px;
-    color: white;
+    color: $kobo-white;
     text-align: center;
     font-weight: 600;
     background-color: $kobo-green;
@@ -158,11 +158,11 @@
   .password1 {
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid rgba($white, 0.1);
+    border-top: 1px solid rgba($kobo-white, 0.1);
   }
 
   .passwordreset__cancel {
-    color: white;
+    color: $kobo-white;
     width: 45%;
     float: left;
     display: block;
@@ -242,7 +242,7 @@
   margin: 20px 10px 10px 10px;
 
   a {
-    color: white;
+    color: $kobo-white;
   }
 
   .registration__legal a {
@@ -264,7 +264,7 @@
 
   a {
     opacity: 0.8;
-    color: white;
+    color: $kobo-white;
   }
 }
 

@@ -27,7 +27,7 @@ module.exports = do ->
         </p>
         <div class="skiplogic__criterialist"></div>
         <p class="skiplogic__addnew">
-          <button class="skiplogic__addcriterion mdl-button mdl-button--raised mdl-button--colored mdl-button--green">+ #{_t("Add another condition")}</button>
+          <button class="skiplogic__addcriterion kobo-button kobo-button--green">+ #{_t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
           <option value="and">#{_t("Question should match all of these criteria")}</option>

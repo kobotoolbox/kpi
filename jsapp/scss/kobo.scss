@@ -4,10 +4,10 @@
 
 // Colors
 // ==========================================================================
-$cardBorderColor: $c-iron;
+$cardBorderColor: $kobo-midgray;
 $cardInSortBorderColor: $kobo-blue-light;
 
-$addButtonColor: $c-ghost;
+$addButtonColor: $kobo-midgray;
 $addButtonColorHover: $kobo-blue-light;
 
 $linkColor: $kobo-blue-light;
@@ -35,7 +35,6 @@ $buttonBorderRadius: 5px;
 
 @import "stylesheets/partials/content";
 @import "stylesheets/partials/registration";
-@import "stylesheets/partials/sidenote";
 
 @import "stylesheets/pages/form_builder";
 

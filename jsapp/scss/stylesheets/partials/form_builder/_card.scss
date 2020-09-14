@@ -22,7 +22,7 @@
         border: $cardBorderStyle;
         padding: 20px 40px 20px 75px;
         display: block;
-        background: white;
+        background: $kobo-white;
         cursor: move;
         position: relative;
     }
@@ -35,7 +35,7 @@
         position: relative;
 
         &.activated {
-            color: $cool-darkgray;
+            color: $kobo-darkgray;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -63,10 +63,10 @@
     }
 
     .card__header-title {
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
 
         &:focus {
-            color: $black;
+            color: $kobo-black;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
@@ -81,7 +81,7 @@
         font-weight: 400;
 
         &::placeholder {
-            color: $cool-silver;
+            color: $kobo-darkgray;
             font-style: italic;
         }
     }
@@ -100,7 +100,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: $cool-silver;
+            color: $kobo-darkgray;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -121,17 +121,6 @@
     left: -60px;
     position: absolute;
     width: 80px;
-}
-
-.card--placeholder {
-    background-color: transparent;
-    color: $cool-darkgray;
-    border:2px solid $cool-gray;
-    text-align: center;
-    font-family: $font;
-    font-weight: 600;
-    padding: 20px;
-    margin:20px 0px;
 }
 
 .sortable-active {
@@ -177,12 +166,12 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
 
     .fa.invert {
         padding: 3px 1px;
         font-size: 0.95em;
-        background-color: $cool-darkgray;
+        background-color: $kobo-darkgray;
     }
     .fa-lato-range,
     .fa-lato-calculate,
@@ -248,16 +237,16 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba($cool-gray, 0.6);
+    background: rgba($kobo-darkgray, 0.5);
 }
 .card__header.delete .card__header--shade {
-    background: rgba($kobo-red, 0.6);
+    background: rgba($kobo-red, 0.5);
 }
 .card__header.duplicate .card__header--shade {
-    background:rgba($kobo-blue, 0.6);
+    background: rgba($kobo-blue, 0.5);
 }
 .card__header.add-to-library .card__header--shade {
-    background: rgba($kobo-green, 0.6);
+    background: rgba($kobo-green, 0.5);
 }
 
 .card--insort {
@@ -274,7 +263,7 @@ $cardIndicatorIconWidth: 21px;
     bottom: 0px;
     text-align: center;
     &.card__buttons__button--gray {
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
         top:0px;
     }
     &.card__buttons__button--red {
@@ -289,8 +278,8 @@ $cardIndicatorIconWidth: 21px;
         bottom: 26%;
     }
     &.card__buttons__button--activated {
-        color: $cool-darkgray;
-        background-color: $c-iron;
+        color: $kobo-darkgray;
+        background-color: $kobo-lightgray;
         opacity: 1;
     }
     &:hover, &.card__buttons__button--activated:hover {

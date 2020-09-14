@@ -9,6 +9,8 @@ export const bem = BEM.init();
 
 bem.Button = BEM('mdl-button', '<button>');
 
+bem.KoboButton = BEM('kobo-button', '<button>');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -170,7 +172,6 @@ bem.MainHeader__counter = bem.MainHeader.__('counter');
 
 bem.ReportView = BEM('report-view');
 bem.ReportView__wrap = bem.ReportView.__('wrap');
-bem.ReportView__warning = bem.ReportView.__('warning');
 bem.ReportView__item = bem.ReportView.__('item');
 bem.ReportView__itemHeading = bem.ReportView.__('itemHeading');
 bem.ReportView__headingMeta = bem.ReportView.__('headingMeta');
@@ -197,7 +198,6 @@ bem.Modal__header = bem.Modal.__('header', '<header>');
 bem.Modal__title = bem.Modal.__('title', '<h4>');
 bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
 bem.Modal__footer = bem.Modal.__('footer', '<footer>');
-bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
 bem.Modal__tabs = bem.Modal.__('tabs');
 bem.Modal__hr = bem.Modal.__('hr', '<hr>');
 

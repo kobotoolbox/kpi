@@ -17,8 +17,8 @@
 }
 
 .react-tagsinput-tag {
-  background-color: $cool-darkgray;
-  color: $white;
+  background-color: $kobo-darkgray;
+  color: $kobo-white;
   font-weight: 400;
   margin-bottom: 4px;
   margin-right: 4px;
@@ -34,7 +34,7 @@
   @extend .k-icon, .k-icon-close;
 
   cursor: pointer;
-  color: $white !important;
+  color: $kobo-white !important;
   opacity: 0.6;
   margin-left: 6px;
 
@@ -46,7 +46,7 @@
 .react-tagsinput-input {
   background: transparent;
   border: 0 none;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
   font-family: sans-serif;
   font-size: 13px;
   font-weight: 400;

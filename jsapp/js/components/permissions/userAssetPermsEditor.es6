@@ -520,13 +520,13 @@ class UserAssetPermsEditor extends React.Component {
         </div>
 
         <div className='user-permissions-editor__row'>
-          <bem.Button
-            m={['raised', 'colored']}
+          <bem.KoboButton
+            m='blue'
             type='submit'
             disabled={!this.isSubmitEnabled()}
             >
               {isNew ? t('Grant permissions') : t('Update permissions')}
-            </bem.Button>
+            </bem.KoboButton>
         </div>
       </bem.FormModal__form>
     );

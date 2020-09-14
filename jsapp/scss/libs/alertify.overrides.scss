@@ -3,12 +3,12 @@
 // alertify overrides
 
 .alertify .ajs-dimmer {
-  background-color: $white;
+  background-color: $kobo-white;
   opacity: 0.55;
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba($black, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba($kobo-black, 0.15);
 }
 
 .alertify .ajs-header {
@@ -28,10 +28,10 @@
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
   font-size: 32px;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
 
   &:hover {
-    color: $black;
+    color: $kobo-black;
   }
 }
 
@@ -78,22 +78,14 @@
   }
 
   button {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 20px;
-    padding-right: 20px;
+    @extend .kobo-button;
 
     &.ajs-ok {
-      @extend .mdl-button--colored, .mdl-button--raised;
+      @extend .kobo-button--blue;
     }
 
     &.ajs-cancel {
-      @extend .mdl-button--colored;
-
-      &:focus, &:focus:not(:active) {
-        background: transparent;
-      }
+      @extend .kobo-button--red;
     }
   }
 }
@@ -127,8 +119,8 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: $black;
-    color: white;
+    background: $kobo-black;
+    color: $kobo-white;
     padding: 17px 24px;
     padding-right: 44px;
     width: auto;
@@ -151,7 +143,7 @@
 
     @extend .k-icon, .k-icon-close;
 
-    color: white;
+    color: $kobo-white;
   }
 }
 
@@ -172,7 +164,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
     font-weight: bold;
   }
 }

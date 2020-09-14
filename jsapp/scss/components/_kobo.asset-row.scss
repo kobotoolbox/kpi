@@ -1,20 +1,20 @@
-$hover-asset-row: $cool-whitegray;
+$hover-asset-row: $kobo-whitegray;
 $hover-transition: 0.3s opacity;
 $asset-row-spacing: 6px;
 
 .asset-row {
   list-style-type: none;
-  border-top: 1px solid $divider-color;
+  border-top: 1px solid $kobo-lightgray;
   padding: $asset-row-spacing $asset-row-spacing * 2;
   transition: max-height 0.5s ease, opacity 0.5s ease;
   min-height: 49px;
   opacity: 1;
   position: relative;
   align-items: flex-start;
-  color: $cool-charcoal;
+  color: $kobo-darkgray;
 
   &:hover {
-    color: $black;
+    color: $kobo-black;
     background: $hover-asset-row;
 
     // avoid displaying border over tooltip
@@ -46,7 +46,7 @@ $asset-row-spacing: 6px;
   }
 
   &:last-child {
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
   }
 
   &.asset-row--deleting {
@@ -65,10 +65,6 @@ $asset-row-spacing: 6px;
 
   .asset-row__cell--asset-details {
     position: relative;
-
-    &:hover {
-      color: $cool-charcoal;
-    }
   }
 
   .asset-row__cell--name {
@@ -91,14 +87,14 @@ $asset-row-spacing: 6px;
     font-size: 13px;
     color: $kobo-teal;
     width: 36px;
-    border-radius: 10px;
+    border-radius: 6px;
     display: inline-block;
     margin-right: 10px;
     text-align: center;
     font-style: normal;
 
     &.row-icon--block {
-      color: white;
+      color: $kobo-white;
       background: $kobo-teal;
     }
 
@@ -116,7 +112,7 @@ $asset-row-spacing: 6px;
   .asset-row__description {
     margin-top: $asset-row-spacing;
     display: block;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     font-size: 13px;
   }
 
@@ -161,7 +157,7 @@ $asset-row-spacing: 6px;
   .asset-row__action-icon {
     margin-left: 0px;
     font-weight: 400;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     cursor: pointer;
 
     &:hover {

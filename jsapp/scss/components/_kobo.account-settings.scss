@@ -1,7 +1,7 @@
 .account-settings {
   width: 100%;
   height: 100%;
-  background: $white;
+  background: $kobo-white;
   overflow-y: auto;
   position: relative;
 
@@ -62,11 +62,11 @@
   h4 {
     margin: 0;
     font-weight: 400;
-    color: $black;
+    color: $kobo-black;
   }
 
   .account-settings__desc {
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
   }
 
   .form-modal__item--primary-sector {

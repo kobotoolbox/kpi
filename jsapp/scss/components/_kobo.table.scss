@@ -54,8 +54,8 @@
     height: calc(100% - 50px);
 
     .rt-table {
-      border: 1px solid $divider-color;
-      background-color: $white;
+      border: 1px solid $kobo-lightgray;
+      background-color: $kobo-white;
       font-size: 13px;
     }
 
@@ -78,7 +78,7 @@
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid $divider-color;
+      border-bottom: 2px solid $kobo-lightgray;
     }
 
     .rt-thead {
@@ -101,7 +101,7 @@
         }
 
         .column-header-hxl-tags {
-          color: $cool-silver;
+          color: $kobo-darkgray;
         }
       }
     }
@@ -143,7 +143,7 @@
     .rt-th, .rt-td {
       padding: 2px;
       padding-left: 6px;
-      border-right: 1px solid rgba($black, 0.03);
+      border-right: 1px solid rgba($kobo-black, 0.03);
       line-height: 30px;
     }
 
@@ -208,14 +208,14 @@
     }
 
     .-loading {
-      background: $cool-whitegray;
+      background: $kobo-whitegray;
 
       .-loading-inner {
         display: block;
         text-align: center;
         font-size: 18px;
         opacity: 0.8;
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
 
         i {
           margin-right: 12px;
@@ -234,7 +234,7 @@
         order: -1;
         position: relative;
         left: 0;
-        background: $cool-whitegray;
+        background: $kobo-whitegray;
         height: 36px;
         transition: left 0.2s;
         margin-right: 6px;
@@ -249,7 +249,7 @@
       }
 
       &.-striped .rt-tr.-odd .frozen {
-        background: $cool-whitegray;
+        background: $kobo-whitegray;
       }
 
       &.-striped .rt-tr:hover .frozen {
@@ -272,9 +272,9 @@
     margin-bottom: 20px;
 
     &--advanced-table-options {
-      border: 1px solid $divider-color;
+      border: 1px solid $kobo-lightgray;
       padding: 20px;
-      background: $cool-whitegray;
+      background: $kobo-whitegray;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -297,9 +297,9 @@
   ul {
     max-height: 160px;
     overflow: auto;
-    border: 1px solid $divider-color;
+    border: 1px solid $kobo-lightgray;
     padding: 10px;
-    background: $white;
+    background: $kobo-white;
 
     li {
       margin-bottom: 5px;

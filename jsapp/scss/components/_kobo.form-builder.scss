@@ -7,7 +7,7 @@ $t-form-builder-aside-open: 200ms;
 // FORM BUILDER MAIN LAYOUT
 
 .formBuilder {
-  background-color: $white;
+  background-color: $kobo-white;
 }
 
 .formBuilder-header {
@@ -97,19 +97,19 @@ $t-form-builder-aside-open: 200ms;
     align-items: center;
 
     &.formBuilder-header__row--primary {
-      background-color: $white;
+      background-color: $kobo-white;
       height: 75px;
       position: relative;
       z-index: 2;
-      box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
+      box-shadow: 0 0 3px 0 rgba($kobo-black, 0.2), 0 0 10px 0 rgba($kobo-black, 0.1);
     }
 
     &.formBuilder-header__row--secondary {
-      background: $cool-whitegray;
+      background: $kobo-whitegray;
       height: 50px;
       position: relative;
       z-index: 1;
-      box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
+      box-shadow: 0 0 3px 0 rgba($kobo-black, 0.2), 0 0 10px 0 rgba($kobo-black, 0.1);
     }
   }
 
@@ -136,7 +136,7 @@ $t-form-builder-aside-open: 200ms;
       }
 
       i {
-        color: $white;
+        color: $kobo-white;
         font-size: 48px;
         padding-top: 14px;
         display: inline-block;
@@ -171,7 +171,7 @@ $t-form-builder-aside-open: 200ms;
 
         small {
           display: block;
-          color: $cool-darkgray;
+          color: $kobo-darkgray;
 
           &::before {
             content: '+ ';
@@ -201,7 +201,7 @@ $t-form-builder-aside-open: 200ms;
       margin: 0 10px;
 
       button {
-        color: $cool-darkgray;
+        color: $kobo-darkgray;
         // for tooltip
         overflow: visible;
         padding: 0;
@@ -217,7 +217,7 @@ $t-form-builder-aside-open: 200ms;
         }
 
         &:hover {
-          color: $black;
+          color: $kobo-black;
         }
 
         i {
@@ -238,7 +238,7 @@ $t-form-builder-aside-open: 200ms;
 
     &.formBuilder-header__cell--verticalRule {
       width: 1px;
-      background: $cool-lightgray;
+      background: $kobo-lightgray;
       height: 100%;
     }
   }
@@ -246,13 +246,13 @@ $t-form-builder-aside-open: 200ms;
 
 .formBuilder-header__close {
   border: none;
-  color: $cool-darkgray;
+  color: $kobo-darkgray;
   cursor: pointer;
 
   @extend .mdl-button, .mdl-button--icon;
 
   &:hover {
-    color: $black;
+    color: $kobo-black;
   }
 
   &:focus {
@@ -311,17 +311,7 @@ $t-form-builder-aside-open: 200ms;
   &.formBuilder-header__button--savefailed::after,
   &.formBuilder-header__button--saveneeded::after {
     content: '*';
-    color: white;
-  }
-
-  &.formBuilder-header__button--share {
-    min-width: 85px;
-    text-transform: uppercase;
-
-    @extend .mdl-button--raised;
-
-    background: $cool-gray;
-    color: white;
+    color: $kobo-white;
   }
 
   &.formBuilder-header__button--panel-toggle {
@@ -365,9 +355,9 @@ $t-form-builder-aside-open: 200ms;
   bottom: 0;
   top: $s-form-builder-header;
   width: $s-form-builder-aside;
-  background-color: $cool-whitegray;
+  background-color: $kobo-whitegray;
   transition: right $t-form-builder-aside-open;
-  box-shadow: 0 0 3px 0 rgba($black, 0.2), 0 0 10px 0 rgba($black, 0.1);
+  box-shadow: 0 0 3px 0 rgba($kobo-black, 0.2), 0 0 10px 0 rgba($kobo-black, 0.1);
   z-index: $z-form-builder-aside;
 
   &:not(.form-builder-aside--visible) {
@@ -434,7 +424,7 @@ $t-form-builder-aside-open: 200ms;
     margin: 15px 0;
     width: 100%;
     height: 220px;
-    border: 2px solid $cool-gray;
+    border: 2px solid $kobo-lightgray;
   }
 
   .cascade-popup__buttonWrapper {
@@ -463,14 +453,14 @@ $t-form-builder-aside-open: 200ms;
 
     i {
       font-size: 26px;
-      color: $cool-darkgray;
+      color: $kobo-darkgray;
     }
   }
 }
 
 .survey-editor {
   .ui-sortable-placeholder.lib-list__item {
-    border: 1px dashed $c-iron;
+    border: 1px dashed $kobo-midgray;
     visibility: visible !important;
     min-height: 80px;
     padding: 0;
@@ -570,14 +560,14 @@ $t-form-builder-aside-open: 200ms;
 
     .settings__input {
       input[type="text"] {
-        border: 1px solid $cool-lightgray;
+        border: 1px solid $kobo-lightgray;
       }
     }
   }
 
   .questiontypelist__item {
     text-align: center;
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
 
     i {
       display: block;

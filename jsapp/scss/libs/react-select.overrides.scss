@@ -36,13 +36,13 @@
   .kobo-select__control {
     box-shadow: none;
     border: none;
-    border-bottom: 1px solid $cool-lightgray;
+    border-bottom: 1px solid $kobo-lightgray;
     border-radius: 0;
-    background-color: white;
+    background-color: $kobo-white;
     transition: border-bottom-color 250ms;
 
     &:hover {
-      border-bottom-color: $cool-lightgray;
+      border-bottom-color: $kobo-lightgray;
     }
 
     &.kobo-select__control--is-focused {
@@ -58,7 +58,7 @@
   }
 
   .kobo-select__placeholder {
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
   }
 
   .kobo-select__indicator-separator {
@@ -77,7 +77,7 @@
 
   .kobo-select__option {
     &.kobo-select__option--is-focused {
-      background-color: $cool-whitegray;
+      background-color: $kobo-whitegray;
     }
 
     &.kobo-select__option--is-selected {
