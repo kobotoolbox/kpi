@@ -63,6 +63,10 @@ $z-map-settings-3: 701;
       color: $kobo-black;
     }
 
+    &:active {
+      transform: translateY(1px);
+    }
+
     i {
       font-size: 36px;
       line-height: 1em;
