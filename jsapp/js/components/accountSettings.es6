@@ -247,13 +247,13 @@ export default class AccountSettings extends React.Component {
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <bem.Button
+            <bem.KoboButton
               onClick={this.updateProfile}
-              m={['raised', 'colored']}
+              m={['blue']}
             >
               {t('Save Changes')}
               {!this.state.isPristine && ' *'}
-            </bem.Button>
+            </bem.KoboButton>
 
             <bem.Button
               onClick={this.safeClose}
@@ -310,7 +310,7 @@ export default class AccountSettings extends React.Component {
               <bem.AccountSettings__item m='password'>
                 <a
                   href='/#/change-password'
-                  className='mdl-button mdl-button--raised mdl-button--colored'
+                  className='kobo-button kobo-button--teal'
                 >
                   {t('Modify Password')}
                 </a>

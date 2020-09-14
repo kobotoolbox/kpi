@@ -72,7 +72,7 @@ module.exports = do ->
   class validationLogicHelpers.ValidationLogicModeSelectorHelper extends $skipLogicHelpers.SkipLogicModeSelectorHelper
     constructor: (view_factory, @context) ->
       super
-      @handcode_button = view_factory.create_button '<i>${}</i> ' + _t("Manually enter your validation logic in XLSForm code"), 'mdl-button mdl-button--raised mdl-button--colored mdl-button--blue'
+      @handcode_button = view_factory.create_button '<i>${}</i> ' + _t("Manually enter your validation logic in XLSForm code"), 'kobo-button kobo-button--blue'
 
   class validationLogicHelpers.ValidationLogicHandCodeHelper extends $skipLogicHelpers.SkipLogicHandCodeHelper
     render: ($destination) ->

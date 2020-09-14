@@ -322,7 +322,7 @@ $mdl-layout-width: 1440px;
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  border-radius: 8px;
+  border-radius: 6px;
 
   width: 100%;
 }
@@ -614,13 +614,13 @@ span.svg-icon {
 ::-webkit-scrollbar-track {
   background-color: $kobo-midgray;
   background-color: transparent;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: $kobo-midgray;
   outline: none;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 // active dropzone element (above list while dragging)

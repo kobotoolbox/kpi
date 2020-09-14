@@ -356,9 +356,9 @@ class MapSettings extends React.Component {
                     className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <bem.Button className={['raised', 'colored']}>
+                    <bem.KoboButton m='blue'>
                       {t('Upload')}
-                    </bem.Button>
+                    </bem.KoboButton>
                   </Dropzone>
                 </bem.FormModal__item>
               </div>
@@ -402,13 +402,13 @@ class MapSettings extends React.Component {
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.Modal__footerButton onClick={this.resetMapSettings}>
+              <bem.KoboButton m='lightgray' onClick={this.resetMapSettings}>
                 {t('Reset')}
-              </bem.Modal__footerButton>
+              </bem.KoboButton>
             }
-            <bem.Modal__footerButton m='primary' onClick={this.onSave}>
+            <bem.KoboButton m='blue' onClick={this.onSave}>
               {t('Save')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         }
       </bem.GraphSettings>

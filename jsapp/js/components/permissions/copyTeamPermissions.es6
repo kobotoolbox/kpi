@@ -95,11 +95,6 @@ class CopyTeamPermissions extends React.Component {
     let isImportButtonEnabled =
       this.state.sourceUid !== null && !this.state.isAwaitingAssetChange;
 
-    const importButtonModifiers = [
-      'raised',
-      isImportButtonEnabled ? 'colored' : 'disabled'
-    ];
-
     const availableOptions = [];
     for (const assetUid in stores.allAssets.byUid) {
       if (stores.allAssets.byUid.hasOwnProperty(assetUid)) {
@@ -148,14 +143,14 @@ class CopyTeamPermissions extends React.Component {
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
               />
-              <bem.Button
+              <bem.KoboButton
                 id='copyTeamPermissionsImportButton'
-                m={importButtonModifiers}
+                m='blue'
                 disabled={!isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
                 {t('copy')}
-              </bem.Button>
+              </bem.KoboButton>
             </bem.FormModal__item>
           </bem.FormView__cell>
         )}

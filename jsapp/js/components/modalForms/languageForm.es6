@@ -142,13 +142,13 @@ class LanguageForm extends React.Component {
         </bem.FormView__cell>
 
         <bem.FormView__cell m='submit-button'>
-          <bem.Button
-            m={['raised', 'colored']}
+          <bem.KoboButton
+            m='blue'
             onClick={this.onSubmit} type='submit'
             disabled={isAnyFieldEmpty}
           >
             {this.props.langIndex !== undefined ? t('Update') : (this.props.isDefault) ? t('Set') : t('Add')}
-          </bem.Button>
+          </bem.KoboButton>
         </bem.FormView__cell>
       </bem.FormView__form>
       );

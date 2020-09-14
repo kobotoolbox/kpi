@@ -18,7 +18,7 @@
   padding: 0 24px;
   margin: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   vertical-align: middle;
   background: transparent;
   position: relative;
@@ -86,14 +86,6 @@ input.mdl-button[type="submit"] {
   -webkit-appearance: none;
 }
 
-.mdl-button--icon-and-text {
-  i,
-  .k-icon {
-    vertical-align: top;
-    font-size: 24px;
-  }
-}
-
 .mdl-button--small {
   height: 30px;
   min-height: 30px;
@@ -110,8 +102,12 @@ input.mdl-button[type="submit"] {
   @include box-shadow;
 
   background: $kobo-blue;
-  border-radius: 8px; // needed because of box-shadow
+  border-radius: 6px; // needed because of box-shadow
   text-transform: uppercase;
+
+  &:active {
+    transform: translateY(1px);
+  }
 
   // same as .mdl-button--blue
   &.mdl-button--colored {

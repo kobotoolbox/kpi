@@ -369,13 +369,13 @@ export default class RESTServicesForm extends React.Component {
           );
         })}
 
-        <bem.Button
-          m={['raised', 'colored', 'gray', 'icon-and-text', 'small']}
+        <bem.KoboButton
+          m='small'
           onClick={this.addNewCustomHeaderRow}
         >
           <i className='k-icon k-icon-plus' />
           {t('Add header')}
-        </bem.Button>
+        </bem.KoboButton>
       </bem.FormModal__item>
     );
   }
@@ -540,13 +540,13 @@ export default class RESTServicesForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.Modal__footer>
-            <bem.Modal__footerButton
-              m='primary'
+            <bem.KoboButton
+              m='blue'
               onClick={this.onSubmit}
               disabled={this.state.isSubmitPending}
             >
               { isEditingExistingHook ? t('Save') : t('Create') }
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         </bem.FormModal__form>
       );

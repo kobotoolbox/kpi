@@ -254,19 +254,19 @@ class CustomReportForm extends React.Component {
         </div>
         <bem.Modal__footer>
           {this.props.asset.report_custom[crid] &&
-            <bem.Modal__footerButton
-              m='danger'
+            <bem.KoboButton
+              m='red'
               onClick={this.deleteCustomReport}
             >
               {t('Delete')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           }
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             onClick={this.saveCustomReport}
           >
             {t('Save')}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </div>
     );
@@ -667,9 +667,9 @@ class ReportStyleSettings extends React.Component {
             }
           </div>
           <ui.Modal.Footer>
-            <bem.Modal__footerButton m='primary' onClick={this.saveReportStyles}>
+            <bem.KoboButton m='blue' onClick={this.saveReportStyles}>
               {t('Save')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </ui.Modal.Footer>
         </ui.Modal.Body>
       </bem.GraphSettings>

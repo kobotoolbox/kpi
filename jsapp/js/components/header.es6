@@ -123,9 +123,9 @@ class MainHeader extends Reflux.Component {
                     <span className='account-email'>{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
-                    <bem.Button onClick={this.accountSettings} m={['raised', 'colored']}>
+                    <bem.KoboButton onClick={this.accountSettings} m={['blue', 'fullwidth']}>
                       {t('Account Settings')}
-                    </bem.Button>
+                    </bem.KoboButton>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
                 {

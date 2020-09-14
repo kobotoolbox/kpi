@@ -154,39 +154,8 @@ $z-modal-x: 10;
     margin-bottom: 20px;
   }
 
-  .modal__footer-button {
-    @extend .mdl-button;
-    text-transform: uppercase;
-
-    &:not(:first-of-type) {
-      margin-left: 10px;
-    }
-
-    &.modal__footer-button--primary {
-      @extend .mdl-button--colored, .mdl-button--raised;
-      padding-left: 40px;
-      padding-right: 40px;
-    }
-
-    &.modal__footer-button--secondary {
-      @extend .mdl-button--colored;
-    }
-
-    &.modal__footer-button--danger {
-      @extend .mdl-button--colored, .mdl-button--red;
-    }
-
-    &.modal__footer-button--back {
-      border-radius: 8px;
-      color: $kobo-blue;
-      border: 1px solid currentColor;
-      opacity: 1;
-      float: left;
-
-      &:hover {
-        color: $kobo-blue-light;
-      }
-    }
+  button:not(:first-of-type) {
+    margin-left: 10px;
   }
 }
 
@@ -398,15 +367,14 @@ $z-modal-x: 10;
       vertical-align: top;
       border: none;
       background: $kobo-whitegray;
-      border-radius: 8px;
+      border-radius: 6px;
       color: $kobo-darkgray;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
       width: calc(50% - #{$buttons-spacing});
       min-height: 120px;
-
-      @include box-shadow;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
 
       @media screen and (min-width: 768px) {
         margin: $buttons-spacing;
@@ -422,10 +390,15 @@ $z-modal-x: 10;
       }
 
       &:hover {
-        color: $kobo-blue;
-        border-color: $kobo-blue;
+        color: $kobo-black;
+        background-color: $kobo-lightgray;
+      }
 
-        @include box-shadow-mid;
+      &:active {
+        // makes the shadow smaller and moves button down by small bit
+        // to make it look pressed-in
+        transform: translateY(1px);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
       }
     }
   }

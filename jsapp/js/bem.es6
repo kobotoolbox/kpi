@@ -9,6 +9,8 @@ export const bem = BEM.init();
 
 bem.Button = BEM('mdl-button', '<button>');
 
+bem.KoboButton = BEM('kobo-button', '<button>');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -204,7 +206,6 @@ bem.Modal__header = bem.Modal.__('header', '<header>');
 bem.Modal__title = bem.Modal.__('title', '<h4>');
 bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
 bem.Modal__footer = bem.Modal.__('footer', '<footer>');
-bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
 bem.Modal__tabs = bem.Modal.__('tabs');
 bem.Modal__hr = bem.Modal.__('hr', '<hr>');
 
