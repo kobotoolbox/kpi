@@ -4,7 +4,7 @@
 
 .assets-table {
   width: 100%;
-  background-color: $white;
+  background-color: $kobo-white;
   // for small screens we want the table to still be readable and it can't get to narrow
   overflow-x: auto;
 
@@ -29,7 +29,7 @@
 
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
-  border-bottom: 2px solid $divider-color;
+  border-bottom: 2px solid $kobo-lightgray;
   align-self: stretch;
 }
 
@@ -39,8 +39,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-top: 2px solid $divider-color;
-  color: $cool-gray;
+  border-top: 2px solid $kobo-lightgray;
+  color: $kobo-darkgray;
   height: 40px;
 
   .mdl-button {
@@ -96,11 +96,11 @@
   height: 20px;
 
   &:hover {
-    color: $cool-darkgray;
+    opacity: 0.8;
   }
 
   &:active {
-    color: $cool-charcoal;
+    opacity: 0.6;
   }
 
   &[disabled] {
@@ -122,7 +122,7 @@
 $z-assets-table-row-link: 10;
 $z-assets-table-row-buttons: 20;
 $z-assets-table-row-header: 30;
-$c-assets-table-row-hover: $cool-whitegray;
+$c-assets-table-row-hover: $kobo-whitegray;
 
 .assets-table-row {
   display: flex;
@@ -132,7 +132,7 @@ $c-assets-table-row-hover: $cool-whitegray;
 
   &.assets-table-row--asset {
     &:hover {
-      background-color: $cool-whitegray;
+      background-color: $kobo-whitegray;
 
       .assets-table-row__buttons {
         opacity: 1;
@@ -171,7 +171,7 @@ $c-assets-table-row-hover: $cool-whitegray;
 
   &.assets-table-row--header .assets-table-row__column {
     border-top: 0;
-    border-bottom: 2px solid $divider-color;
+    border-bottom: 2px solid $kobo-lightgray;
     cursor: pointer;
     font-weight: 700;
     white-space: nowrap;
@@ -179,7 +179,7 @@ $c-assets-table-row-hover: $cool-whitegray;
     line-height: 20px;
 
     &:hover {
-      background-color: $cool-whitegray;
+      background-color: $kobo-whitegray;
     }
 
     &:active {
@@ -244,7 +244,7 @@ $c-assets-table-row-hover: $cool-whitegray;
   }
 
   .assets-table-row__column {
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
     padding: 10px;
 
     &[disabled] {
@@ -317,8 +317,8 @@ $c-assets-table-row-hover: $cool-whitegray;
 
   &.assets-table-row__tag--gray-circle {
     border-radius: 1em;
-    background: $cool-lightgray;
-    border-color: $cool-lightgray;
+    background: $kobo-lightgray;
+    border-color: $kobo-lightgray;
   }
 }
 

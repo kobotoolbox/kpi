@@ -21,14 +21,14 @@ export function renderLoading(message = t('loading…')) {
 export function renderBackButton(isDisabled = false) {
   if (stores.pageState.hasPreviousModal()) {
     return (
-      <bem.Modal__footerButton
-        m='back'
+      <bem.KoboButton
+        m='whitegray'
         type='button'
         onClick={stores.pageState.switchToPreviousModal}
         disabled={isDisabled}
       >
         {t('Back')}
-      </bem.Modal__footerButton>
+      </bem.KoboButton>
     );
   } else {
     return null;

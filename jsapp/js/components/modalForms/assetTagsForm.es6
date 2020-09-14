@@ -99,15 +99,15 @@ export class AssetTagsForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             type='submit'
             onClick={this.onSubmit}
             disabled={this.state.isPending}
             className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
