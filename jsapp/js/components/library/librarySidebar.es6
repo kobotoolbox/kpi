@@ -57,12 +57,12 @@ class LibrarySidebar extends Reflux.Component {
 
     return (
       <React.Fragment>
-        <button
+        <bem.KoboButton
+          m={['blue', 'fullwidth']}
           onClick={this.showLibraryNewModal}
-          className='mdl-button mdl-button--raised mdl-button--colored'
         >
           {t('new')}
-        </button>
+        </bem.KoboButton>
 
         <bem.FormSidebar m={sidebarModifier}>
           <bem.FormSidebar__label

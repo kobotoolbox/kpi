@@ -44,7 +44,7 @@
   display: block;
   font-size: 18px;
   font-weight: 500;
-  padding: 9px 0;
+  padding: 9px;
   line-height: 1;
 
   span, i {
@@ -73,8 +73,8 @@
   overflow: hidden;
 
   > .dropzone {
-    height: calc(100% - 58px);
-    min-height: calc(100% - 58px);
+    height: calc(100% - 50px);
+    min-height: calc(100% - 50px);
   }
 
   .library__type-filter {

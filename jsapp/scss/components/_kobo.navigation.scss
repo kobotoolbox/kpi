@@ -1,5 +1,14 @@
 // header and navigation styling
 
+// This element handles stretched background of app header
+.header-stretch-bg {
+  position: absolute;
+  width: 100%;
+  background-color: $layout-header-bg-color;
+  min-height: $layout-desktop-header-height;
+  z-index: 0;
+}
+
 .mdl-layout__header {
   background-color: $layout-header-bg-color;
   min-height: $layout-desktop-header-height;
@@ -49,7 +58,7 @@
   }
 
   .header__link {
-    color: $white;
+    color: $kobo-white;
     cursor: pointer;
 
     &:hover {
@@ -273,7 +282,7 @@
 .main-header {
   .main-header__icon {
     font-size: 38px;
-    color: $cool-gray;
+    color: $kobo-midgray;
     vertical-align: middle;
     width: 38px;
   }
@@ -296,7 +305,7 @@
       border-right: none;
       border-bottom: 1px solid transparent;
       border-top: 1px solid transparent;
-      color: $white;
+      color: $kobo-white;
       font-size: 18px;
       margin: 0;
       overflow: hidden;
@@ -327,7 +336,7 @@
   .main-header__counter {
     font-size: 14px;
     margin-right: 20px;
-    color: $cool-gray;
+    color: $kobo-midgray;
   }
 }
 

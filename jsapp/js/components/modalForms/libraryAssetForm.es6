@@ -279,15 +279,15 @@ export class LibraryAssetForm extends React.Component {
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
 
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             type='submit'
             onClick={this.onSubmit}
             disabled={!this.isSubmitEnabled()}
             className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

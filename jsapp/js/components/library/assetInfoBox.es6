@@ -141,22 +141,22 @@ class AssetInfoBox extends React.Component {
           {isPublicable && isSelfOwned &&
             <bem.FormView__cell m={['buttons', 'column-1']}>
               {!isPublic &&
-                <button
-                  className='mdl-button mdl-button--raised mdl-button--colored'
+                <bem.KoboButton
+                  m='blue'
                   onClick={this.makePublic}
                   disabled={this.isSetPublicButtonDisabled()}
                 >
                   {t('Make public')}
-                </button>
+                </bem.KoboButton>
               }
               {isPublic &&
-                <button
-                  className='mdl-button mdl-button--raised mdl-button--colored'
+                <bem.KoboButton
+                  m='blue'
                   onClick={this.makePrivate}
                   disabled={this.isSetPublicButtonDisabled()}
                 >
                   {t('Make private')}
-                </button>
+                </bem.KoboButton>
               }
             </bem.FormView__cell>
           }

@@ -33,13 +33,13 @@
   overflow: hidden;
   position: relative;
   padding: 5px 8px 5px 30px;
-  color: $white;
-  background-color: $cool-gray;
-  text-shadow: -1px -1px 1px rgba($black, 0.125);
+  color: $kobo-white;
+  background-color: $kobo-darkgray;
+  text-shadow: -1px -1px 1px rgba($kobo-black, 0.125);
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    background-color: darken($cool-gray, 5%);
+    background-color: darken($kobo-darkgray, 5%);
   }
 
   &[disabled] {
@@ -47,7 +47,7 @@
 
     &.asset-action-buttons__button--subscribe,
     &.asset-action-buttons__button--unsubscribe {
-      background-color: $cool-gray;
+      background-color: $kobo-darkgray;
     }
   }
 
@@ -83,7 +83,7 @@
 }
 
 .asset-action-buttons__icon-button {
-  color: $cool-gray;
+  color: $kobo-darkgray;
 
   &:hover {
     color: $kobo-blue;
