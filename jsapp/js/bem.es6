@@ -123,15 +123,6 @@ bem.AssetListSorts__item = bem.AssetListSorts.__('item');
 
 bem.Message = BEM('message');
 
-bem.ListView = BEM('list-view');
-bem.ListView__header = bem.ListView.__('header');
-bem.ListView__content = bem.ListView.__('content');
-bem.ListView__search = bem.ListView.__('search');
-bem.ListView__searchcriteria = bem.ListView.__('searchcriteria', '<ul>');
-bem.ListView__searchcriterion = bem.ListView.__('searchcriterion', '<li>');
-bem.ListView__headerbutton = bem.ListView.__('headerbutton');
-bem.ListView__attr = bem.ListView.__('attr');
-
 bem.FormView = BEM('form-view');
 // used in header.es6
 bem.FormView__title = bem.FormView.__('title');
