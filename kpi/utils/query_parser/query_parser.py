@@ -51,10 +51,6 @@ class QueryParseActions(object):
         # TODO: Use Django or DRF machinery (or JSON parsing?) to handle types
         # that need special treatment, like dates
 
-        # The `summary` text-based JSONField uses `\u` escaping, e.g. `prémier`
-        # is saved in the database as `pr\u00e9mier`. Let's handle this only
-        # for `summary` to make people's lives easier. If they try to search
-        # another text-based JSONField, tough luck.
         if value == 'null':
             return None
         else:
