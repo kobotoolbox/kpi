@@ -1017,8 +1017,9 @@ class Asset(ObjectPermissionMixin,
             languages.update(reduce(add, children_languages))
 
         languages.discard(None)
+        # Object of type set is not JSON serializable
+        languages = list(languages)
 
-        languages = AssetContentAnalyzer.format_translations(list(languages))
         # If languages are still the same, no needs to update the object
         if sorted(obj_languages) == sorted(languages):
             return

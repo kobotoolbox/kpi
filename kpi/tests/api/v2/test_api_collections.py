@@ -8,7 +8,7 @@ from rest_framework import status
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
-    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
@@ -109,14 +109,14 @@ class CollectionsTests(BaseTestCase):
             owner=self.someuser
         )
         public_collection_asset = Asset.objects.create(
-            asset_type=ASSET_TYPE_SURVEY,
+            asset_type=ASSET_TYPE_TEMPLATE,
             name='public asset',
             owner=self.someuser,
             parent_id=public_collection.pk
         )
 
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
-    
+
         # Retrieve all assets. Should have 5
         response = self.client.get(list_url)
         self.assertTrue(response.data.get('count') == 5)
@@ -126,47 +126,79 @@ class CollectionsTests(BaseTestCase):
         url = f'{list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 3)
+        expected_uids = list(
+            Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION)
+            .values_list('uid', flat=True)
+        )
+        self.assertListEqual(
+            sorted([x['uid'] for x in response.data['results']]),
+            sorted(expected_uids)  # `order_by` handles capitals differently
+        )
 
         # Retrieve assets with no parents. Should have 4
-        query_string = 'parent__uid:null'
+        query_string = 'parent:null'
         url = f'{list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 4)
+        self.assertListEqual(
+            sorted([x['uid'] for x in response.data['results']]),
+            sorted(
+                [
+                    x.uid
+                    for x in (
+                        self.coll,
+                        block,
+                        public_collection,
+                        shared_collection,
+                    )
+                ]
+            )
+        )
 
         # Retrieve all children of `public_collection`. Should have 1
         query_string = f'parent__uid:{public_collection.uid}'
         url = f'{list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 1)
+        self.assertEqual(
+            response.data['results'][0]['uid'], public_collection_asset.uid
+        )
 
-        # Retrieve all children of `public_collection`. Should have 0
-        query_string = f'parent__uid:{public_collection.pk} AND asset_type:collection'
+        # Make sure none of the children of `public_collection` is a collection
+        query_string = f'parent__uid:{public_collection.uid} AND asset_type:collection'
         url = f'{list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 0)
 
         # Retrieve public and discoverable collections. Should have 1
-        query_string = 'status:public-discoverable AND asset_type:collection'
-        url = f'{list_url}?q={query_string}'
+        query_string = 'status=public-discoverable&q=asset_type:collection'
+        url = f'{list_url}?{query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 1)
+        self.assertEqual(
+            response.data['results'][0]['uid'], public_collection.uid
+        )
 
         # Logged in as another user, retrieve public and discoverable collections.
-        # Should have 1 because it returns all public collections whatever
+        # Should have 1 because it returns all public collections no matter
         # if user has subscribed to it or not.
         self.login_as_other_user(username="anotheruser", password="anotheruser")
-        query_string = 'status:public-discoverable AND asset_type:collection'
-        url = f'{list_url}?q={query_string}'
+        query_string = 'status=public-discoverable&q=asset_type:collection'
+        url = f'{list_url}?{query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 1)
+        self.assertEqual(
+            response.data['results'][0]['uid'], public_collection.uid
+        )
 
-        # Logged in as another user, retrieve collections.
+        # Logged in as another user, retrieve explicitly-shared collections.
         query_string = 'asset_type:collection'
         url = f'{list_url}?q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 0)
-
         shared_collection.assign_perm(another_user, PERM_VIEW_ASSET)
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 1)
-
+        self.assertEqual(
+            response.data['results'][0]['uid'], shared_collection.uid
+        )

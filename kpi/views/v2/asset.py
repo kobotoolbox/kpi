@@ -407,40 +407,45 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             )
 
         # Languages
-        records.query.clear_ordering(True)
+        records = records.order_by()
 
         for record in records.all():
             try:
-                for language in record['summary']['languages']:
-                    if language:
-                        metadata['languages'].add(language)
+                languages = record['summary']['languages']
             except (ValueError, KeyError):
                 pass
+            else:
+                for language in languages:
+                    if language:
+                        metadata['languages'].add(language)
 
             try:
                 country = record['settings']['country']
                 value = country['value']
-                if value and value not in metadata['countries']:
-                    metadata['countries'][value] = \
-                        country['label']
+                label = country['label']
             except (KeyError, TypeError):
                 pass
+            else:
+                if value and value not in metadata['countries']:
+                    metadata['countries'][value] = label
 
             try:
                 sector = record['settings']['sector']
                 value = sector['value']
-                if value and value not in metadata['sectors']:
-                    metadata['sectors'][value] = \
-                        sector['label']
+                label = sector['label']
             except (KeyError, TypeError):
                 pass
+            else:
+                if value and value not in metadata['sectors']:
+                    metadata['sectors'][value] = label
 
             try:
                 organization = record['settings']['organization']
-                if organization:
-                    metadata['organizations'].add(organization)
             except KeyError:
                 pass
+            else:
+                if organization:
+                    metadata['organizations'].add(organization)
 
         metadata['languages'] = sorted(list(metadata['languages']))
 
