@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kpi.models import Asset
+from kpi.models import Collection
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.strings import to_str
 
