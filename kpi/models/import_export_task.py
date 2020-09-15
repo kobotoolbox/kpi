@@ -219,6 +219,9 @@ class ImportTask(ImportExportTask):
             }
 
             if item.get_type() == 'collection':
+                # FIXME: seems to allow importing nested collections, even
+                # though uploading from a file does not (`_parse_b64_upload()`
+                # raises `NotImplementedError`)
                 item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
