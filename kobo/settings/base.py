@@ -696,6 +696,8 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
 
+ENV = None
+
 # The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 

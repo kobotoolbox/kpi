@@ -53,7 +53,7 @@ class AssetSerializer(AssetSerializerV2):
                   'permissions',
                   'settings',
                   'children',
-                 )
+                  )
 
     permissions = serializers.SerializerMethodField()
 

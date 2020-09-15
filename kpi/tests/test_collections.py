@@ -9,6 +9,7 @@ from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
+    ASSET_TYPE_QUESTION,
     PERM_CHANGE_ASSET,
     PERM_DISCOVER_ASSET,
     PERM_SHARE_ASSET,
@@ -25,7 +26,7 @@ class CreateCollectionTests(TestCase):
             asset_type=ASSET_TYPE_COLLECTION, owner=self.user
         )
         self.asset = Asset.objects.get(name='fixture asset')
-        self.initial_asset_count= Asset.objects.exclude(
+        self.initial_asset_count = Asset.objects.exclude(
             asset_type=ASSET_TYPE_COLLECTION
         ).count()
         self.initial_collection_count= Asset.objects.filter(
@@ -67,10 +68,10 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(self.coll.children.count(), 2)
 
     def test_assets_are_deleted_with_collection(self):
-        '''
+        """
         right now, this does make it easy to delete assets within a
         collection.
-        '''
+        """
         asset = self.coll.children.create(name='test', content={'survey': [
             {'type': 'text', 'label': 'Q1', 'name': 'q1'},
             {'type': 'text', 'label': 'Q2', 'name': 'q2'},
@@ -606,3 +607,119 @@ class DiscoverablePublicCollectionTests(TestCase):
             PERM_VIEW_ASSET, self.coll))
         self.assertFalse(AnonymousUser().has_perm(
             PERM_DISCOVER_ASSET, self.coll))
+
+
+class LanguagesCollectionTests(TestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.user = User.objects.get(username='someuser')
+        self.one_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.user,
+            name='One collection'
+        )
+
+        self.other_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.user,
+            name='Another collection'
+        )
+
+    def add_child(self, update_parent_languages=True, content=None):
+        question_content = content or {
+            'survey': [
+                {
+                    'type': 'text',
+                    'label': ['Une question', 'Una pregunta']
+                }
+            ],
+            'translations': ['Français (fr)', 'Español (es)'],
+            'translated': ['label'],
+            'schema': '1',
+            'settings': {}
+        }
+        child = Asset.objects.create(
+            asset_type=ASSET_TYPE_QUESTION,
+            owner=self.user,
+            parent=self.one_collection,
+            content=question_content,
+            update_parent_languages=update_parent_languages
+        )
+        return child
+
+    def test_add_child(self):
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        child = self.add_child()
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
+        return child
+
+    def test_move_child_to_another_collection(self):
+        child = self.add_child()
+        self.assertEqual(self.other_collection.summary.get('languages', []), [])
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
+
+        child.parent = self.other_collection
+        child.save()
+
+        self.one_collection.refresh_from_db()
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        self.assertEqual(sorted(self.other_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))
+
+    def test_delete_children(self):
+        first_child = self.add_child()
+        second_child = self.add_child(content={
+            'survey': [
+                {
+                    'type': 'text',
+                    'label': ['One question', 'Jedno pytanie', 'Une question']
+                }
+            ],
+            'translations': ['English (en)', 'Polski (pl)', 'Français (fr)'],
+            'translated': ['label'],
+            'schema': '1',
+            'settings': {}
+        })
+        first_child.delete()
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(second_child.summary.get('languages')))
+
+        second_child.delete()
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+
+    def test_bulk_insert_children(self):
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        first_child = self.add_child(update_parent_languages=False)
+        second_child = self.add_child(update_parent_languages=False, content={
+            'survey': [
+                {
+                    'type': 'text',
+                    'label': ['One question', 'Jedno pytanie', 'Une question']
+                }
+            ],
+            'translations': ['English (en)', 'Polski (pl)', 'Français (fr)'],
+            'translated': ['label'],
+            'schema': '1',
+            'settings': {}
+        })
+        self.assertEqual(self.one_collection.summary.get('languages', []), [])
+        self.one_collection.update_languages([first_child, second_child])
+
+        children_languages = list(set(first_child.summary.get('languages')
+                                      + second_child.summary.get('languages')))
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(children_languages))
+
+    def test_rename_child_language(self):
+        child = self.add_child()
+        self.assertEqual(self.one_collection.summary.get('languages').sort(),
+                         child.summary.get('languages').sort())
+
+        child.content['translations'] = ['Français (fra)', 'Español (es)']
+        child.save()
+        self.one_collection.refresh_from_db()
+        self.assertEqual(sorted(self.one_collection.summary.get('languages')),
+                         sorted(child.summary.get('languages')))

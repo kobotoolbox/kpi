@@ -100,3 +100,12 @@ def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
+
+    # Update parent's languages if this object is a child of another asset.
+    try:
+        parent = instance.parent
+    except Asset.DoesNotExist:  # `parent` may exists in DJANGO models cache but not in DB
+        pass
+    else:
+        if parent:
+            parent.update_languages()
