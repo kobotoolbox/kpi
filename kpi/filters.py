@@ -6,11 +6,21 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
+from django.db.models import Count, Q
 from rest_framework import filters
 
-from kpi.constants import PERM_DISCOVER_ASSET
+
+from kpi.constants import (
+    PERM_DISCOVER_ASSET,
+    ASSET_STATUS_SHARED,
+    ASSET_STATUS_DISCOVERABLE,
+    ASSET_STATUS_PRIVATE,
+    ASSET_STATUS_PUBLIC
+)
+from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
+from .models.asset import ASSET_TYPE_COLLECTION
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -29,7 +39,23 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(**fields)
 
 
+class AssetOrderingFilter(filters.OrderingFilter):
+
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+
+        if ordering:
+            if 'subscribers_count' in ordering or \
+                    '-subscribers_count' in ordering:
+                queryset = queryset.annotate(subscribers_count=
+                                             Count('userassetsubscription__user'))
+            return queryset.order_by(*ordering)
+
+        return queryset
+
+
 class KpiObjectPermissionsFilter:
+
     perm_format = '%(app_label)s.view_%(model_name)s'
 
     def filter_queryset(self, request, queryset, view):
@@ -39,80 +65,124 @@ class KpiObjectPermissionsFilter:
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
             return queryset
-        # Governs whether unsubscribed (but publicly discoverable) objects are
-        # included. Exclude them by default
-        all_public = bool(strtobool(
-            request.query_params.get('all_public', 'false').lower()))
 
         model_cls = queryset.model
         kwargs = {
             'app_label': model_cls._meta.app_label,
             'model_name': model_cls._meta.model_name,
         }
-        permission = self.perm_format % kwargs
 
+        self._permission = self.perm_format % kwargs
+
+        queryset = self._get_queryset_for_collection_statuses(request, queryset)
+        if self._return_queryset:
+            return queryset.distinct()
+
+        owned_and_explicitly_shared = self._get_owned_and_explicitly_shared(
+            queryset, user)
+
+        if view.action != 'list':
+            public = self._get_public(queryset)
+            # Not a list, so discoverability doesn't matter
+            return (owned_and_explicitly_shared | public).distinct()
+
+        subscribed = self._get_subscribed(queryset, user)
+
+        return (owned_and_explicitly_shared | subscribed).distinct()
+
+    def _get_discoverable(self, queryset):
+        # We were asked not to consider subscriptions; return all
+        # discoverable objects
+        return get_objects_for_user(
+            get_anonymous_user(), PERM_DISCOVER_ASSET,
+            queryset
+        )
+
+    def _get_queryset_for_collection_statuses(self, request, queryset):
+        """
+        Narrow down the queryset based on `status` parameter.
+        It is useful when fetching Assets of type `collection`
+
+        If `status` is not detected in `q`, it returns the queryset as is.
+        Otherwise, there are 4 scenarios:
+        - `status` == 'private': collections owned by user
+        - `status` == 'shared': collections user can view
+        - `status` == 'public': collections user has subscribed to (ONLY)
+        - `status` == 'public-discoverable': all public collections
+
+        Args:
+            request
+            queryset
+        Returns:
+            QuerySet
+        """
+
+        # Governs whether returned queryset should be processed immediately
+        # and should stop other filtering on `queryset` in parent method of
+        # `_get_queryset_for_collection_statuses()`
+        self._return_queryset = False
+        user = request.user
+        STATUS_PARAMETER = 'status'
+
+        try:
+            status = request.query_params[STATUS_PARAMETER].strip()
+        except KeyError:
+            return queryset
+
+        if status == ASSET_STATUS_PRIVATE:
+            self._return_queryset = True
+            return queryset.filter(owner=request.user)
+
+        elif status == ASSET_STATUS_SHARED:
+            self._return_queryset = True
+            return get_objects_for_user(user, self._permission, queryset)
+
+        elif status == ASSET_STATUS_PUBLIC:
+            self._return_queryset = True
+            # ToDo Review for optimization
+            public = self._get_public(queryset)
+            subscribed = self._get_subscribed(public, user)
+            return subscribed
+
+        elif status == ASSET_STATUS_DISCOVERABLE:
+            self._return_queryset = True
+            # ToDo Review for optimization
+            discoverable = self._get_discoverable(self._get_public(queryset))
+            # We were asked not to consider subscriptions; return all
+            # discoverable objects
+            return discoverable
+
+        return queryset
+
+    def _get_owned_and_explicitly_shared(self, queryset, user):
         if user.is_anonymous:
-            user = get_anonymous_user()
             # Avoid giving anonymous users special treatment when viewing
             # public objects
             owned_and_explicitly_shared = queryset.none()
         else:
             owned_and_explicitly_shared = get_objects_for_user(
-                user, permission, queryset)
+                user, self._permission, queryset)
 
-        if view.action != 'list':
-            # Not a list, so discoverability doesn't matter
-            public = get_objects_for_user(
-                get_anonymous_user(), permission, queryset
-            )
-            return (owned_and_explicitly_shared | public).distinct()
+        return owned_and_explicitly_shared
 
-        if all_public:
-            # We were asked to return all discoverable objects. It's best to
-            # minimize the queryset before passing it to
-            # `get_objects_for_user()`, since that function executes a large
-            # `__in` query. Find potentially discoverable objects before
-            # verifying that the anonymous user can actually access them
-            try:
-                discoverable = queryset.filter(discoverable_when_public=True)
-            except FieldError:
-                try:
-                    # The model does not have a discoverability setting, but
-                    # maybe its parent does
-                    discoverable = queryset.filter(
-                        parent__discoverable_when_public=True
-                    )
-                except FieldError:
-                    # Neither the model or its parent has a discoverability
-                    # setting
-                    discoverable = queryset.none()
-            # Now, make sure these discoverables are actually public!
-            discoverable_and_public = get_objects_for_user(
-                get_anonymous_user(), permission, discoverable
-            )
-            return (
-                owned_and_explicitly_shared | discoverable_and_public
-            ).distinct()
+    def _get_public(self, queryset):
+        return get_objects_for_user(get_anonymous_user(),
+                                    self._permission, queryset)
 
-        # `all_public` was not requested; return only objects to which the user
-        # has subscribed
-        try:
-            subscribed = queryset.filter(userassetsubscription__user=user)
-        except FieldError:
-            try:
-                # The model does not have a subscription relation, but maybe
-                # its parent does
-                subscribed = queryset.filter(
-                    parent__userassetsubscription__user=user
-                )
-            except FieldError:
-                # Neither the model or its parent has a subscription relation
-                subscribed = queryset.none()
-        # Make sure the subscribed objects are still public
-        subscribed_and_public = get_objects_for_user(
-            get_anonymous_user(), permission, subscribed
+    def _get_subscribed(self, queryset, user):
+        # Of the public objects, determine to which the user has subscribed
+        if user.is_anonymous:
+            user = get_anonymous_user()
+
+        asset_ids = list(
+            UserAssetSubscription.objects.values_list(
+                'asset_id', flat=True
+            ).filter(user_id=user.pk)
         )
-        return (owned_and_explicitly_shared | subscribed_and_public).distinct()
+        subscribed = queryset.filter(
+            asset_type=ASSET_TYPE_COLLECTION, id__in=asset_ids
+        )
+        return subscribed
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):

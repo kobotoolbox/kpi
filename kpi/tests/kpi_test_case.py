@@ -174,7 +174,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
 
     def remove_perm(self, obj, owner, owner_password, other_user,
                     other_user_password, perm_name_prefix):
-        '''
+        """
         Remove a permission.
 
         :param obj: Object to manipulate permissions on.
@@ -191,7 +191,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
-        '''
+        """
         # FIXME: Do this through the API once the interface has stabilized.
         # self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
         # jnm: _test_add_and_remove expects the permission to not have been

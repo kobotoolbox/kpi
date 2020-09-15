@@ -603,6 +603,7 @@ class Asset(ObjectPermissionMixin,
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
+        PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
@@ -1016,8 +1017,9 @@ class Asset(ObjectPermissionMixin,
             languages.update(reduce(add, children_languages))
 
         languages.discard(None)
-
+        # Object of type set is not JSON serializable
         languages = list(languages)
+
         # If languages are still the same, no needs to update the object
         if sorted(obj_languages) == sorted(languages):
             return
