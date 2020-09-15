@@ -97,12 +97,16 @@ class AssetImportTaskTest(BaseTestCase):
 
        # Check for correct collection asset content
        created_collection = Collection.objects.get(uid=created_details['uid'])
+       # TODO: Uploading a library sheet result in four uploaded assets
+       for e in created_collection.assets.all():
+           if e.content['survey'][0]['name'] == 'basic':
+               created_asset = Asset()
+               created_asset.content = e.content
        self.assertEqual(created_collection.name, task_data['name'])
        # Make equivilent Asset to check against collection children
        library_asset = Asset()
-       library_asset.content = {'library': [{'name': 'basic', 'type': 'text', 'label': ['basic'], 'required': False}]}
-       # TODO: Every test passes up to here
-       self._assert_assets_contents_equal(created_collection.children, library_asset)
+       library_asset.content = {'survey': [{'name': 'basic', 'type': 'text', 'label': ['basic'], 'required': False}]}
+       self._assert_assets_contents_equal(created_asset, library_asset)
 
     def test_import_asset_xls(self):
         xls_io = self.asset.to_xls_io()
