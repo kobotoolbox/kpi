@@ -2,7 +2,6 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import TagsInput from 'react-tagsinput';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
 import {stores} from 'js/stores';
@@ -42,7 +41,6 @@ class UserAssetPermsEditor extends React.Component {
       usernamesBeingChecked: new Set(),
       isSubmitPending: false,
       isEditingUsername: false,
-      isAddingPartialUsernames: false,
       // form user inputs
       username: '',
       formView: false,
@@ -213,47 +211,17 @@ class UserAssetPermsEditor extends React.Component {
     }
   }
 
-  /**
-   * Enables Enter key on username input.
-   */
-  onUsernameKeyPress(key, evt) {
-    if (key === 'Enter') {
+  onInputKeyPress(key, evt) {
+    if (key === KEY_CODES.get('ENTER')) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
     }
   }
 
-  /**
-   * Handles TagsInput change event and blocks adding nonexistent usernames.
-   * Also unblocks the submit button.
-   */
   onSubmissionsViewPartialUsersChange(allUsers) {
-    this.setState({isAddingPartialUsernames: false});
-    const submissionsViewPartialUsers = [];
-
-    allUsers.forEach((username) => {
-      const userCheck = this.checkUsernameSync(username);
-      if (userCheck === true) {
-        submissionsViewPartialUsers.push(username);
-      } else if (userCheck === undefined) {
-        // we add unknown usernames for now and will check and possibly remove
-        // with checkUsernameAsync
-        submissionsViewPartialUsers.push(username);
-        this.checkUsernameAsync(username);
-      } else {
-        this.notifyUnknownUser(username);
-      }
+    this.setState({
+      submissionsViewPartialUsers: allUsers.split(' ')
     });
-
-    this.setState({submissionsViewPartialUsers: submissionsViewPartialUsers});
-  }
-
-  onSubmissionsViewPartialUsersInputFocus() {
-    this.setState({isAddingPartialUsernames: true});
-  }
-
-  onSubmissionsViewPartialUsersInputBlur() {
-    this.setState({isAddingPartialUsernames: false});
   }
 
   /**
@@ -343,7 +311,6 @@ class UserAssetPermsEditor extends React.Component {
       isPartialValid &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
-      !this.state.isAddingPartialUsernames &&
       this.state.username.length > 0 &&
       this.state.usernamesBeingChecked.size === 0 &&
       // we don't allow manual setting anonymous user permissions through UI
@@ -402,20 +369,10 @@ class UserAssetPermsEditor extends React.Component {
   render() {
     const isNew = typeof this.props.username === 'undefined';
 
-    const submissionsViewPartialUsersInputProps = {
-      placeholder: t('Enter usernames separated by spaces'),
-      onFocus: this.onSubmissionsViewPartialUsersInputFocus,
-      onBlur: this.onSubmissionsViewPartialUsersInputBlur
-    };
-
-    let submissionsViewPartialUsersClassName = 'react-tagsinput';
-    if (
+    const submissionsViewPartialUsersError = (
       this.state.submissionsViewPartial &&
-      this.state.submissionsViewPartialUsers.length === 0 &&
-      !this.state.isAddingPartialUsernames
-    ) {
-      submissionsViewPartialUsersClassName += ' react-tagsinput-invalid';
-    }
+      this.state.submissionsViewPartialUsers.length === 0
+    );
 
     const formModifiers = [];
     if (this.state.isSubmitPending) {
@@ -436,7 +393,7 @@ class UserAssetPermsEditor extends React.Component {
               value={this.state.username}
               onChange={this.onUsernameChange}
               onBlur={this.onUsernameChangeEnd}
-              onKeyPress={this.onUsernameKeyPress}
+              onKeyPress={this.onInputKeyPress}
               errors={this.state.username.length === 0}
             />
           </div>
@@ -479,14 +436,12 @@ class UserAssetPermsEditor extends React.Component {
               />
 
               {this.state.submissionsViewPartial === true &&
-                <TagsInput
-                  className={submissionsViewPartialUsersClassName}
-                  value={this.state.submissionsViewPartialUsers}
+                <TextBox
+                  placeholder={t('Enter usernames separated by spaces')}
+                  value={this.state.submissionsViewPartialUsers.join(' ')}
                   onChange={this.onSubmissionsViewPartialUsersChange}
-                  addOnBlur
-                  addKeys={[KEY_CODES.get('ENTER'), KEY_CODES.get('SPACE'), KEY_CODES.get('TAB')]}
-                  inputProps={submissionsViewPartialUsersInputProps}
-                  onlyUnique
+                  errors={submissionsViewPartialUsersError}
+                  onKeyPress={this.onInputKeyPress}
                 />
               }
             </div>
