@@ -257,7 +257,6 @@ bem.HelpBubble__close = bem.HelpBubble.__('close', 'button');
 bem.HelpBubble__back = bem.HelpBubble.__('back', 'button');
 bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
 bem.HelpBubble__triggerCounter = bem.HelpBubble.__('trigger-counter', 'span');
-bem.HelpBubble__triggerBadge = bem.HelpBubble.__('trigger-badge', 'span');
 bem.HelpBubble__popup = bem.HelpBubble.__('popup');
 bem.HelpBubble__popupContent = bem.HelpBubble.__('popup-content');
 bem.HelpBubble__row = bem.HelpBubble.__('row');

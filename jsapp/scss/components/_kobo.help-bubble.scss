@@ -68,8 +68,7 @@ $s-help-bubble-row-spacing: 20px;
   &:hover {
     color: $kobo-teal;
 
-    .help-bubble__trigger-counter,
-    .help-bubble__trigger-badge {
+    .help-bubble__trigger-counter {
       background-color: $kobo-teal;
     }
   }
@@ -80,27 +79,12 @@ $s-help-bubble-row-spacing: 20px;
   }
 }
 
-.help-bubble__trigger-badge,
 .help-bubble__trigger-counter {
   position: absolute;
   left: 50%;
   color: $kobo-white;
   border-style: solid;
   border-color: $drawer-background;
-}
-
-.help-bubble__trigger-badge {
-  bottom: 2px;
-  border-width: 2px 0 0 2px;
-  background: $kobo-blue;
-  border-radius: 4px;
-  font-size: 8px;
-  line-height: 1;
-  padding: 2px 3px;
-  text-transform: uppercase;
-}
-
-.help-bubble__trigger-counter {
   top: 2px;
   border-width: 0 0 2px 2px;
   background: $kobo-red;
