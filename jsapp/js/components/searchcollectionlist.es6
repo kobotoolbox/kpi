@@ -67,7 +67,6 @@ class SearchCollectionList extends Reflux.Component {
   handleScroll (event) {
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
-      console.log(offset);
       this.setState({
         fixedHeadings: offset < 30 ? 'fixed-headings' : '',
         fixedHeadingsWidth: offset < 30 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
