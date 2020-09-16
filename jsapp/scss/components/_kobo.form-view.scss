@@ -183,6 +183,7 @@
     max-height: 0;
     overflow: hidden;
     transition: 0.2s max-height;
+    padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
