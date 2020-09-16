@@ -2,7 +2,10 @@ import datetime
 import re
 
 import xlrd
+
+from xlrd import XLRDError
 from collections import OrderedDict
+from pyxform.errors import PyXFormError
 from pyxform.utils import basestring, unichr, unicode
 
 def _iswhitespace(string):
@@ -110,7 +113,11 @@ def convert_xls_to_dict(xls_file_object, strip_empty_rows=True):
             result.append(row_dict)
         return result
 
-    workbook = xlrd.open_workbook(file_contents=xls_file_object.read())
+    try:
+        workbook = xlrd.open_workbook(file_contents=xls_file_object.read())
+    except XLRDError as error:
+        raise PyXFormError("Error reading .xls file: %s" % error)
+
     ss_structure = {}
     for sheet in workbook.sheets():
         sheet_name = sheet.name
