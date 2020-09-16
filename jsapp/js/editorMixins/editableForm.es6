@@ -13,6 +13,7 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
+import {removeInvalidChars} from 'js/assetUtils';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -155,7 +156,7 @@ export default assign({
 
   nameChange(evt) {
     this.setState({
-      name: evt.target.value,
+      name: removeInvalidChars(evt.target.value),
     });
     this.onSurveyChange();
   },

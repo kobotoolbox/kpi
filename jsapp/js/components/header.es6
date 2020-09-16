@@ -9,6 +9,7 @@ import {stores} from '../stores';
 import Reflux from 'reflux';
 import {bem} from '../bem';
 import {actions} from '../actions';
+import {removeInvalidChars} from '../assetUtils';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
@@ -219,9 +220,9 @@ class MainHeader extends Reflux.Component {
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
-      asset.name = e.target.value;
+      asset.name = removeInvalidChars(e.target.value);
     else
-      asset.settings.description = e.target.value;
+      asset.settings.description = removeInvalidChars(e.target.value);
 
     this.setState({
       asset: asset
