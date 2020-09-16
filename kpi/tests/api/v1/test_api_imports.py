@@ -75,11 +75,12 @@ class AssetImportTaskTest(BaseTestCase):
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
+
     def test_import_asset_library(self):
-       #TODO: Genereate xls here and convert to base64?
-       encoded_xls = self.base64_library_import
+       library_xls = open('../../../fixtures/basic-text-library.xlsx', 'rb').read()
+       encoded_xls = base64.b64encode(library_xls)
        task_data = {
-           'base64Encoded': 'base64:{}'.format(encoded_xls),
+           'base64Encoded': f'base64:{to_str(encoded_xls)}',
            'name': 'I was imported to the library via base64-encoded XLS!',
        }
 
@@ -97,9 +98,9 @@ class AssetImportTaskTest(BaseTestCase):
 
        # Check for correct collection asset content
        created_collection = Collection.objects.get(uid=created_details['uid'])
-       # TODO: Uploading a library sheet result in four uploaded assets
+       # TODO: XLSForms downloaded from KoBo contain extra assets for `start`, `end` and `calculate`
        for e in created_collection.assets.all():
-           if e.content['survey'][0]['name'] == 'basic':
+           if e.cntent['survey'][0]['name'] == 'basic':
                created_asset = Asset()
                created_asset.content = e.content
        self.assertEqual(created_collection.name, task_data['name'])
