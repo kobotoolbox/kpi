@@ -494,6 +494,16 @@ export function buildAssetUrl(assetUid) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`;
 }
 
+/*
+* Inspired by https://gist.github.com/john-doherty/b9195065884cdbfd2017a4756e6409cc
+* Remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD
+* @param {string} str
+*/
+export function removeInvalidChars(str) {
+  var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
+  return str = String(str || '').replace(regex, '');
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -520,4 +530,5 @@ export default {
   renderTypeIcon,
   replaceForm,
   share,
+  removeInvalidChars
 };

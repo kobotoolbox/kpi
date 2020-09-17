@@ -7,7 +7,7 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
-import {getAssetDisplayName} from 'js/assetUtils';
+import {removeInvalidChars, getAssetDisplayName} from 'js/assetUtils';
 import {
   KEY_CODES,
   NAME_MAX_LENGTH,
@@ -56,7 +56,7 @@ class HeaderTitleEditor extends React.Component {
   }
 
   assetTitleChange(evt) {
-    this.setState({name: evt.target.value});
+    this.setState({name: removeInvalidChars(evt.target.value)});
     clearTimeout(this.typingTimer);
     this.typingTimer = setTimeout(this.updateAssetTitle.bind(this), 1500);
   }
