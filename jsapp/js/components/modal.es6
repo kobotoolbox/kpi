@@ -54,6 +54,7 @@ function getSubmissionTitle(props) {
     } else {
       title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
     }
+  }
   return title;
 }
 
