@@ -1,0 +1,40 @@
+/*
+  This is our current pallete of colors.
+
+  Please use only colors defined here when writing new styles. Also try to avoid
+  defining new colors, as we already have more than enough.
+*/
+
+/*
+  Group 1: Blueish grays
+
+  WARNING: All text should either be $kobo-black/$kobo-darkgray for light backgrounds
+  or $kobo-white/$kobo-whitegray for dark backgrounds.
+*/
+
+$kobo-black: hsl(230, 12%, 20%); // base text color
+$kobo-darkgray: hsl(230, 12%, 40%);
+$kobo-midgray: hsl(230, 12%, 75%); // mostly used for darker borders
+$kobo-lightgray: hsl(230, 12%, 90%); // mostly used for lighter borders
+$kobo-whitegray: hsl(230, 12%, 95%);
+$kobo-white: hsl(0, 0%, 100%);
+
+/*
+  Group 2: Accent colors
+*/
+$kobo-blue: hsl(206, 90%, 55%);
+$kobo-blue-dark: hsl(206, 90%, 45%);
+$kobo-blue-light: hsl(206, 90%, 60%);
+$kobo-teal: hsl(185, 70%, 45%);
+// positive colors
+$kobo-green: hsl(149, 65%, 45%);
+$kobo-green-dark: hsl(149, 65%, 35%);
+$kobo-green-light: hsl(149, 65%, 90%);
+// error/negative colors
+$kobo-red: hsl(352, 70%, 50%);
+$kobo-red-dark: hsl(352, 70%, 40%);
+$kobo-red-light: hsl(352, 70%, 90%);
+// warning colors
+$kobo-orange: hsl(30, 80%, 50%);
+$kobo-orange-dark: hsl(30, 80%, 40%);
+$kobo-orange-light: hsl(30, 80%, 95%);

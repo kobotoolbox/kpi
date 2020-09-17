@@ -9,7 +9,7 @@ import {bem} from '../../bem';
 import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
-const RESTServicesSupportUrl = 'http://help.kobotoolbox.org/managing-your-project-s-data/rest-services';
+const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
 
 export default class RESTServicesList extends React.Component {
   constructor(props){
@@ -92,14 +92,20 @@ export default class RESTServicesList extends React.Component {
     });
   }
 
-  renderModalButton(additionalClassNames) {
+  getSupportUrl() {
+    if (stores.serverEnvironment && stores.serverEnvironment.state.support_url) {
+      return stores.serverEnvironment.state.support_url + REST_SERVICES_SUPPORT_URL;
+    }
+  }
+
+  renderModalButton() {
     return (
-      <button
-        className={`mdl-button mdl-button--raised mdl-button--colored ${additionalClassNames}`}
+      <bem.KoboButton
+        m='blue'
         onClick={this.openNewRESTServiceModal}
       >
         {t('Register a New Service')}
-      </button>
+      </bem.KoboButton>
     );
   }
 
@@ -116,10 +122,10 @@ export default class RESTServicesList extends React.Component {
           <bem.EmptyContent__message>
             {t('You can use REST Services to automatically post submissions to a third-party application.')}
             &nbsp;
-            <a href={RESTServicesSupportUrl} target='_blank'>{t('Learn more')}</a>
+            <a href={this.getSupportUrl()} target='_blank'>{t('Learn more')}</a>
           </bem.EmptyContent__message>
 
-          {this.renderModalButton('empty-content__button')}
+          {this.renderModalButton()}
         </bem.EmptyContent>
       </bem.FormView>
     );
@@ -136,7 +142,7 @@ export default class RESTServicesList extends React.Component {
 
             <a
               className='rest-services-list__header-help-link rest-services-list__header-right'
-              href={RESTServicesSupportUrl}
+              href={this.getSupportUrl()}
               target='_blank'
             >
               <i className='k-icon k-icon-help' />

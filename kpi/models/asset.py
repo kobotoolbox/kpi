@@ -13,7 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef, Prefetch
 from django.utils.translation import ugettext_lazy as _
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -84,7 +84,7 @@ class TaggableModelManager(models.Manager):
         tag_string = kwargs.pop('tag_string', None)
         created = super().create(*args, **kwargs)
         if tag_string:
-            created.tag_string= tag_string
+            created.tag_string = tag_string
         return created
 
 
@@ -108,6 +108,19 @@ class KpiTaggableManager(_TaggableManager):
 
 
 class AssetManager(TaggableModelManager):
+    def deployed(self):
+        """
+        Filter for deployed assets (i.e. assets having at least one deployed
+        version) in an efficient way that doesn't involve joining or counting.
+        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        """
+        deployed_versions = AssetVersion.objects.filter(
+            asset=OuterRef('pk'), deployed=True
+        )
+        return self.annotate(deployed=Exists(deployed_versions)).filter(
+            deployed=True
+        )
+
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
 
@@ -462,8 +475,8 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONBField(null=True)
-    summary = JSONBField(null=True, default=dict)
+    content = JSONBField(default=dict)
+    summary = JSONBField(default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
@@ -772,11 +785,8 @@ class Asset(ObjectPermissionMixin,
     def optimize_queryset_for_list(queryset):
         """ Used by serializers to improve performance when listing assets """
         queryset = queryset.defer(
-            # Avoid pulling these `JSONField`s from the database because:
-            #   * they are stored as plain text, and just deserializing them
-            #     to Python objects is CPU-intensive;
-            #   * they are often huge;
-            #   * we don't need them for list views.
+            # Avoid pulling these from the database because they are often huge
+            # and we don't need them for list views.
             'content', 'report_styles'
         ).select_related(
             # We only need `username`, but `select_related('owner__username')`
@@ -1093,7 +1103,10 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 
     def save(self, *args, **kwargs):
         if self.asset is not None:
-            if self.source is None:
+            # Previously, `self.source` was a nullable field. It must now
+            # either contain valid content or be an empty dictionary.
+            assert self.asset is not None
+            if not self.source:
                 if self.asset_version is None:
                     self.asset_version = self.asset.latest_version
                 self.source = self.asset_version.version_content
@@ -1101,8 +1114,6 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 self.owner = self.asset.owner
         _note = self.details.pop('note', None)
         _source = copy.deepcopy(self.source)
-        if _source is None:
-            _source = {}
         self._standardize(_source)
         self._make_default_translation_first(_source)
         self._strip_empty_rows(_source)
@@ -1112,7 +1123,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         form_title = _settings.get('form_title')
         id_string = _settings.get('id_string')
 
-        (self.xml, self.details) = \
+        self.xml, self.details = \
             self.generate_xml_from_source(_source,
                                           include_note=_note,
                                           root_node_name='data',

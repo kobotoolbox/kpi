@@ -5,6 +5,7 @@ import constance
 import responses
 from django.contrib.auth.models import User
 from django.urls import reverse
+from mock import patch
 from rest_framework import status
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
@@ -14,7 +15,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_CHANGE_ASSET
 )
-from .hook_test_case import HookTestCase
+from .hook_test_case import HookTestCase, MockSSRFProtect
 
 
 class ApiHookTestCase(HookTestCase):
@@ -49,6 +50,8 @@ class ApiHookTestCase(HookTestCase):
     def test_create_hook(self):
         self._create_hook()
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_data_submission(self):
         # Create first hook
@@ -197,6 +200,8 @@ class ApiHookTestCase(HookTestCase):
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, "some disabled external service")
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_send_and_retry(self):
 
@@ -223,6 +228,8 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.get(detail_url, format=INSTANCE_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get("tries"), 2)
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_payload_template(self):
 

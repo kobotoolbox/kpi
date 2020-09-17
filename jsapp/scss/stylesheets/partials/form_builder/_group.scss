@@ -2,13 +2,13 @@
 // Groups
 // ==========================================================================
 
+$formbuilder-group-bg: $kobo-whitegray;
 
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
-    background-color: rgba(233, 237, 240, 0.8);
-    background-color: #e9edf0;
-    border: 1px solid #c3cfd8;
+    background-color: $formbuilder-group-bg;
+    border: 1px solid $kobo-midgray;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
@@ -22,7 +22,7 @@
 }
 
 .group__header {
-    border-bottom: 1px solid #c3cfd8;
+    border-bottom: 1px solid $kobo-midgray;
     position: relative;
     margin: -4px -10px 0;
     padding: 12px;
@@ -70,14 +70,14 @@
     text-align: center;
 
     &.group__header__buttons__button--gray {
-        color: #858F98;
+        color: $kobo-darkgray;
     }
     &.group__header__buttons__button--red {
-        color: #D08B8C;
+        color: $kobo-red;
     }
     &.group__header__buttons__button--activated {
-        color: #646D75;
-        background-color: #D9DDE1;
+        color: $kobo-darkgray;
+        background-color: $kobo-lightgray;
     }
 }
 
@@ -100,7 +100,7 @@
         padding-bottom: 0px;
         > .card__settings {
             display: block;
-            background-color: white;
+            background-color: $kobo-white;
             border:none;
             margin-top:1px;
             &:after {
@@ -119,7 +119,7 @@
             margin:-4px 0px 0px;
         }
         .group__header__buttons__button--settings {
-            background: #D2D7DC;
+            background: $kobo-lightgray;
         }
     }
 
@@ -129,7 +129,7 @@
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
 .group__caret {
     cursor: pointer;
-    color: #8595a6;
+    color: $kobo-darkgray;
 }
 .group--shrunk {
     border-bottom: none;
@@ -143,12 +143,18 @@
 }
 
 .group__rows .group {
-    background: #CBD3D9;
+    background: darken($formbuilder-group-bg, 3%);
     margin-bottom: 12px;
-    .group__header {
-        border-bottom: 1px solid #9EA8B0;
-    }
-    .group__header__buttons {
-        border-left-color: #9EA8B0;
+
+    .group__rows .group {
+        background: darken($formbuilder-group-bg, 6%);
+
+        .group__rows .group {
+            background: darken($formbuilder-group-bg, 9%);
+
+            .group__rows .group {
+                background: darken($formbuilder-group-bg, 12%);
+            }
+        }
     }
 }

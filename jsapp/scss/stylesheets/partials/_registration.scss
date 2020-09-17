@@ -9,7 +9,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: white;
+  color: $kobo-white;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -26,14 +26,14 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba($kobo-black, 0.75);
     padding: 20px 30px;
 
     a {
-      color: lighten($cool-blue, 20%);
+      color: lighten($kobo-blue, 20%);
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
 
       &.registration__forgot {
@@ -102,22 +102,25 @@
   opacity: 0.9;
 
   &:focus {
-    border-bottom-color: $cool-blue;
+    border-bottom-color: $kobo-blue;
     opacity: 1;
   }
 
   &.registration__action {
     font-size: 16px;
     padding: 10px;
-    color: white;
+    color: $kobo-white;
     text-align: center;
     font-weight: 600;
-    background: #39BF6E;
-    border-bottom: 2px solid darken(#39BF6E, 20%);
+    background-color: $kobo-green;
+    border-bottom: 2px solid $kobo-green-dark;
+    text-shadow: -1px -1px $kobo-green-dark;
     clear: both;
 
     &:hover {
-      background: lighten(#39BF6E, 10%);
+      background-color: $kobo-blue-light;
+      border-bottom-color: $kobo-blue-dark;
+      text-shadow: -1px -1px $kobo-blue-dark;
     }
   }
 }
@@ -133,7 +136,7 @@
   }
 
   span.required {
-    color: $cool-red;
+    color: $kobo-red;
     margin-left: 3px;
   }
 
@@ -155,11 +158,11 @@
   .password1 {
     margin-top: 10px;
     padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba($kobo-white, 0.1);
   }
 
   .passwordreset__cancel {
-    color: white;
+    color: $kobo-white;
     width: 45%;
     float: left;
     display: block;
@@ -193,7 +196,7 @@
 
   ul.errorlist {
     padding: 0px;
-    color: $cool-red;
+    color: $kobo-red;
     margin: 8px 0px;
   }
 }
@@ -239,7 +242,7 @@
   margin: 20px 10px 10px 10px;
 
   a {
-    color: white;
+    color: $kobo-white;
   }
 
   .registration__legal a {
@@ -249,8 +252,8 @@
 
 .error-message {
   font-size: 14px;
-  color: $cool-red;
-  background-color: rgba($cool-red, 0.075);
+  color: $kobo-red;
+  background-color: rgba($kobo-red, 0.075);
 }
 
 .registration__credit {
@@ -261,7 +264,7 @@
 
   a {
     opacity: 0.8;
-    color: white;
+    color: $kobo-white;
   }
 }
 

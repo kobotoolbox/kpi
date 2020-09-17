@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
-from kpi.utils.query_parser.query_parser import parse, ParseError
+from kpi.utils.query_parser import parse, ParseError
 from kpi.utils.sluggify import sluggify, sluggify_label
 
 
