@@ -18,11 +18,11 @@
 }
 
 .lib-list__item {
-  border: 1px solid $cool-lightgray;
+  border: 1px solid $kobo-lightgray;
   padding-left: 20px;
   position: relative;
   margin: 5px 0;
-  background-color: #FFF;
+  background-color: $kobo-white;
 
   &.sortable-active {
     &:after {
@@ -37,7 +37,7 @@
   }
 
   &.ui-sortable-helper {
-    background-color: #fff;
+    background-color: $kobo-white;
   }
 
   ol {
@@ -68,7 +68,7 @@
   width: 12px;
   height: 12px;
   margin-top: -8px;
-  background-color: #e8e8e8;
+  background-color: $kobo-lightgray;
   border-radius: 6px;
 }
 

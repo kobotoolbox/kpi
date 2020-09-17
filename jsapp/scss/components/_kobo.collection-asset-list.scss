@@ -1,7 +1,7 @@
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
-  border-bottom: 1px solid transparentize($cool-gray, 0.7);
+  border-bottom: 1px solid $kobo-lightgray;
   overflow: hidden;
 
   > .asset-list-sorts__item {
@@ -24,7 +24,7 @@
 }
 
 .search__summary {
-  background-color: #F0F0F0;
+  background-color: $kobo-lightgray;
   height: 50px;
   width: 100%;
   flex-grow: 0;
@@ -44,7 +44,7 @@
   display: block;
   font-size: 18px;
   font-weight: 500;
-  padding: 9px 0;
+  padding: 9px;
   line-height: 1;
 
   span, i {
@@ -53,7 +53,7 @@
 
   span.parent {
     font-weight: normal;
-    color: $cool-charcoal;
+    color: $kobo-darkgray;
   }
 
   i {
@@ -67,18 +67,14 @@
   font-weight: 600;
 }
 
-.list__heading.is-edge + .list__subheading {
-  margin-top: 0px;
-}
-
 // regular, non-grouped list for library
 .library {
   height: 100%;
   overflow: hidden;
 
   > .dropzone {
-    height: calc(100% - 58px);
-    min-height: calc(100% - 58px);
+    height: calc(100% - 50px);
+    min-height: calc(100% - 50px);
   }
 
   .library__type-filter {
@@ -111,7 +107,7 @@
   }
 
   .asset-list, .asset-list-sorts {
-    background-color: #FFF;
+    background-color: $kobo-white;
   }
 
   .asset-list-sorts {
@@ -129,17 +125,13 @@
 .list--grouped {
   height: 100%;
   overflow-y: auto;
-  padding-left: 3px;
-  padding-right: 12px;
+  padding: 20px;
 
   .asset-list {
     min-height: 100%;
   }
 
   .asset-items {
-    @include box-shadow;
-
-    background: #FFF;
     position: relative;
     overflow: visible;
 
@@ -167,11 +159,12 @@
     .asset-list-sorts {
       display: flex;
       position: fixed;
-      top: 70px;
-      background: #FFF;
+      top: $layout-desktop-header-height;
+      background: $kobo-white;
       z-index: 99;
       overflow: hidden;
-      box-shadow: 0px 2px 4px 2px rgba(0, 0, 0, 0.04);
+
+      @include box-shadow;
     }
   }
 }

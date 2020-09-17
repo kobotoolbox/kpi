@@ -4,21 +4,22 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  &__itemlink {
+  .form-sidebar__itemlink {
     display: block;
     line-height: 1.2em;
     padding: 2px 0px;
-    color: $cool-silver;
+    color: $kobo-darkgray;
     font-weight: normal;
     font-size: 12px;
 
     &:hover {
-      color: $cool-charcoal;
+      color: $kobo-black;
     }
   }
 
-  &__label, &__grouping {
-    color: $cool-silver;
+  .form-sidebar__label,
+  .form-sidebar__grouping {
+    color: $kobo-darkgray;
     cursor: pointer;
 
     i {
@@ -35,6 +36,10 @@
       vertical-align: middle;
     }
 
+    &:hover {
+      color: $kobo-black;
+    }
+
     &--Deployed i {
       @extend .k-icon-deploy;
     }
@@ -48,7 +53,7 @@
     }
   }
 
-  &__label {
+  .form-sidebar__label {
     padding: 3px 0px;
     position: relative;
 
@@ -59,17 +64,12 @@
       padding: 2px 3px;
       width: 32px;
       border-radius: 40px;
-      background: #E6E6E8;
+      background: $kobo-whitegray;
       text-align: center;
     }
-
-    // &--visible, &--selected {
-    //   color: $cool-charcoal;
-    // }
-
   }
 
-  &__grouping {
+  .form-sidebar__grouping {
     margin-top: 6px;
     margin-bottom: 12px;
 
@@ -80,7 +80,7 @@
     }
   }
 
-  &__item {
+  .form-sidebar__item {
     display: block;
     position: relative;
     padding-left: 8px;
@@ -98,7 +98,7 @@
     }
 
     &--selected {
-      background: #ededee;
+      background: $kobo-whitegray;
 
       .popover-menu {
         position: absolute;
@@ -119,22 +119,21 @@
       }
 
       .form-sidebar__itemlink {
-        color: $cool-green;
+        color: $kobo-teal;
         margin-right: 32px;
         text-overflow: clip;
       }
     }
 
     &.active {
-      background: #ededee;
-
       .form-sidebar__itemlink {
-        color: $cool-green;
+        font-weight: 700;
+        color: $kobo-teal;
       }
     }
   }
 
-  &__item--collection {
+  .form-sidebar__item--collection {
     padding-left: 15px;
     margin: 5px 0px;
 

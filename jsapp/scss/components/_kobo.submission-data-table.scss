@@ -9,22 +9,22 @@ $submission-data-table-space: 12px;
 }
 
 .submission-data-table__row {
-  background-color: $cool-whitegray;
+  background-color: $kobo-whitegray;
 
   &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
-    border-top: 3px solid $divider-color;
+    border-top: 3px solid $kobo-lightgray;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group,
   &.submission-data-table__row--group-label {
-    border-bottom: 1px solid $divider-color;
+    border-bottom: 1px solid $kobo-lightgray;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group {
-    border-left: 1px solid $divider-color;
-    border-right: 1px solid $divider-color;
+    border-left: 1px solid $kobo-lightgray;
+    border-right: 1px solid $kobo-lightgray;
   }
 
   &.submission-data-table__row--columns {
@@ -34,8 +34,8 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__row--column-names {
     font-weight: bold;
-    background-color: $cool-darkgray;
-    color: $white;
+    background-color: $kobo-darkgray;
+    color: $kobo-white;
   }
 
   &.submission-data-table__row--group-label {
@@ -60,12 +60,12 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--point {
-    background-color: $white;
+    background-color: $kobo-white;
   }
 
   &.submission-data-table__row--point {
     & + & {
-      border-top: 1px dotted $divider-color;
+      border-top: 1px dotted $kobo-lightgray;
     }
 
     &:first-child .submission-data-table__column {
@@ -108,12 +108,12 @@ $submission-data-table-space: 12px;
   margin-left: 0.5em;
   font-size: 0.8em;
   line-height: 1;
-  color: $cool-gray;
+  color: $kobo-darkgray;
   font-family: monospace;
 }
 
 .submission-data-table__value {
-  color: $black;
+  color: $kobo-black;
   display: inline-block;
   font-family: monospace;
 }
