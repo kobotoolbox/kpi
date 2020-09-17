@@ -98,7 +98,7 @@ class AssetImportTaskTest(BaseTestCase):
        created_collection = Collection.objects.get(uid=created_details['uid'])
        # TODO: XLSForms downloaded from KoBo contain extra assets for `start`, `end` and `calculate`
        for e in created_collection.assets.all():
-           if e.cntent['survey'][0]['name'] == 'basic':
+           if e.content['survey'][0]['name'] == 'basic':
                created_asset = Asset()
                created_asset.content = e.content
        self.assertEqual(created_collection.name, task_data['name'])
