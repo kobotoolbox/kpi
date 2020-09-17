@@ -43,10 +43,8 @@ class Command(BaseCommand):
             raise CommandError('No users selected!')
         initial_count = users.count()
         if not options.get('again'):
-            # Poor man's query within JSONField that saves a little time. We'll
-            # check `copied_kc_profile` again after parsing the JSON
             users = users.exclude(
-                extra_details__data__contains='"copied_kc_profile":true')
+                extra_details__data__copied_kc_profile=True)
         copied_count = 0
         for user in users:
             extra_details, created = ExtraUserDetail.objects.get_or_create(

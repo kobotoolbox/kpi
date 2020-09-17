@@ -51,6 +51,7 @@ module.exports = do ->
         i = @model.options.length
         @addEmptyOption("Option #{i+1}")
         @model.getSurvey()?.trigger('change')
+        @$el.children().eq(0).children().eq(i).find('input.option-view-input').select()
       )
 
       @$el.append(btn)
@@ -81,18 +82,19 @@ module.exports = do ->
     className: "multioptions__option xlf-option-view xlf-option-view--depr"
     events:
       "keyup input": "keyupinput"
+      "keydown input": "keydowninput"
       "click .js-remove-option": "remove"
     initialize: (@options)->
     render: ->
       @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
-      @p = $("<input class=\"js-cancel-select-row\">")
-      @c = $("<code><label>#{_t("XML value:")}</label> <input type=\"text\" placeholder=\"AUTOMATIC\"  class=\"js-cancel-select-row\"></input></code>")
+      @p = $("<input placeholder=\"#{_t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\">")
+      @c = $("<code><label>#{_t("XML value:")}</label> <input type=\"text\" class=\"js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
         @p.val @model.get("label") || 'Empty'
         @$el.attr("data-option-id", @model.cid)
-        $('input', @c).val @model.get("name")
+        $('input', @c).val @model.get("name") || 'AUTOMATIC'
         @model.set('setManually', true)
       else
         @model = new $choices.Option()
@@ -150,6 +152,19 @@ module.exports = do ->
         ifield.addClass("empty")
       else
         ifield.removeClass("empty")
+
+    keydowninput: (evt) ->
+      if evt.keyCode is 13
+        evt.preventDefault()
+
+        localListViewIndex = $('ul.ui-sortable').index($(this.el).parent())
+        localOptionView = $('ul.ui-sortable').eq(localListViewIndex).children().find('input.option-view-input')
+        index = localOptionView.index(document.activeElement) + 1
+
+        if index >= localOptionView.length
+          $(this.el).parent().siblings().find('div.editable-wrapper').eq(0).focus()
+
+        localOptionView.eq(index).select()
 
     remove: ()->
       $parent = @$el.parent()

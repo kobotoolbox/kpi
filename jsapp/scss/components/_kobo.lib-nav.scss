@@ -6,7 +6,7 @@
 }
 
 .library-asset-list__item {
-  border-bottom: 1px solid $cool-lightgray;
+  border-bottom: 1px solid $kobo-lightgray;
   padding-left: 20px;
   position: relative;
 }
@@ -18,7 +18,7 @@
   width: 12px;
   height: 12px;
   margin-top: -8px;
-  background-color: #e8e8e8;
+  background-color: $kobo-lightgray;
   border-radius: 6px;
 }
 
@@ -48,9 +48,9 @@
       padding: 5px 8px;
       width: 100%;
       color: inherit;
-      border: 1px solid $cool-lightgray;
+      border: 1px solid $kobo-lightgray;
       border-radius: 3px;
-      background: white;
+      background: $kobo-white;
 
       &::placeholder {
         color: inherit;
@@ -73,7 +73,7 @@
 .lib-nav__expanded {
   padding-bottom: 10px;
   margin-bottom: 20px;
-  border-bottom: 1px solid $cool-lightgray;
+  border-bottom: 1px solid $kobo-lightgray;
 }
 
 .lib-nav__header .tag-select {
