@@ -255,12 +255,6 @@ class MongoHelper:
     def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
                               fields=None, query=None, instance_ids=None,
                               permission_filters=None):
-        # check if query contains an _id and if its a valid ObjectID
-        if '_uuid' in query:
-            if ObjectId.is_valid(query.get('_uuid')):
-                query['_uuid'] = ObjectId(query.get('_uuid'))
-            else:
-                raise ValidationError(_('Invalid _uuid specified'))
 
         if len(instance_ids) > 0:
             query.update({

@@ -74,8 +74,8 @@ class SearchCollectionList extends Reflux.Component {
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
-        fixedHeadings: offset < -105 ? 'fixed-headings' : '',
-        fixedHeadingsWidth: offset < -105 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
+        fixedHeadings: offset < 30 ? 'fixed-headings' : '',
+        fixedHeadingsWidth: offset < 30 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
       });
     }
   }
@@ -190,11 +190,7 @@ class SearchCollectionList extends Reflux.Component {
       }
     );
 
-    return [
-      <bem.List__heading key='h1' className='is-edge'>
-        {t('Active Projects')}
-      </bem.List__heading>,
-      results];
+    return results;
   }
 
   render () {

@@ -1,26 +1,23 @@
 // header and navigation styling
 
-$headerAccountTextColor: #dbedf7;
-
-.k-header__bar {
-  background-color: $layout-header-bg-color;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+// This element handles stretched background of app header
+.header-stretch-bg {
   position: absolute;
-  min-height: 64px;
   width: 100%;
+  background-color: $layout-header-bg-color;
+  min-height: $layout-desktop-header-height;
   z-index: 0;
 }
 
 .mdl-layout__header {
-  background-color: transparent;
-  box-shadow: none !important;
+  background-color: $layout-header-bg-color;
   min-height: $layout-desktop-header-height;
   margin-left: 0px;
   width: 100%;
   z-index: auto;
 
   .mdl-layout__header-row {
-    height: 63px;
+    height: $layout-desktop-header-height;
     padding: 0px 20px;
   }
 
@@ -44,33 +41,6 @@ $headerAccountTextColor: #dbedf7;
     margin-left: auto;
     position: relative;
     max-width: 115px;
-  }
-
-  .account-box__notifications {
-    display: inline-block;
-    vertical-align: middle;
-    margin: 0px 32px;
-    margin-top: 4px;
-    position: relative;
-
-    i {
-      font-size: 24px;
-      color: $headerAccountTextColor;
-    }
-  }
-
-  .account-box__notifications__count {
-    background-color: #FF5469;
-    color: white;
-    padding: 1px 5px;
-    font-weight: bold;
-    border-radius: 15px;
-    position: absolute;
-    font-size: 11px;
-    line-height: 15px;
-    top: -8px;
-    left: 10px;
-    border: 1px solid $layout-header-bg-color;
   }
 
   .account-box__name {
@@ -97,20 +67,20 @@ $headerAccountTextColor: #dbedf7;
 
   .search {
     ::-webkit-input-placeholder {
-      color: #FFF;
+      color: $kobo-white;
     }
 
     :-ms-input-placeholder {
-      color: #FFF;
+      color: $kobo-white;
     }
 
     .k-search__input {
-      color: #FFF;
+      color: $kobo-white;
       border: none;
       border-radius: 0px;
       padding: 10px 12px;
       padding-left: 42px;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba($kobo-white, 0.1);
       font-size: 16px;
       position: relative;
       width: 99%;
@@ -122,7 +92,7 @@ $headerAccountTextColor: #dbedf7;
       position: absolute;
       top: 11px;
       left: 12px;
-      color: #FFF;
+      color: $kobo-white;
 
       &:before {
         font-size: 18px;
@@ -150,7 +120,7 @@ $headerAccountTextColor: #dbedf7;
   }
 
   .account-box__menu-item--mini-profile {
-    color: $cool-gray;
+    color: $kobo-darkgray;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -179,7 +149,7 @@ $headerAccountTextColor: #dbedf7;
     padding-bottom: 15px;
 
     a {
-      color: $cool-gray;
+      color: $kobo-darkgray;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -194,7 +164,7 @@ $headerAccountTextColor: #dbedf7;
       }
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
 
@@ -211,24 +181,26 @@ $headerAccountTextColor: #dbedf7;
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
     padding-bottom: 5px;
 
     ul {
-      background-color: #FFF;
-      color: $cool-gray;
+      background-color: $kobo-white;
+      color: $kobo-darkgray;
       min-width: 140px;
       padding: 0;
-
-      @include box-shadow;
+      border: 1px solid $kobo-lightgray;
 
       li {
-        padding: 10px 15px;
         text-transform: capitalize;
-        border-bottom: 1px solid $divider-color;
+        padding: 0;
 
-        &:last-child {
-          border-bottom: 0px;
+        &:not(:last-child) {
+          border-bottom: 1px solid $kobo-lightgray;
+        }
+
+        a {
+          padding: 10px 15px;
         }
       }
     }
@@ -249,7 +221,7 @@ $headerAccountTextColor: #dbedf7;
       display: block;
       margin-right: 8px;
       padding: 0px;
-      color: #FFF;
+      color: $kobo-white;
 
       i {
         line-height: 1.5em;
@@ -294,7 +266,6 @@ $headerAccountTextColor: #dbedf7;
   display: flex;
   align-items: center;
   width: calc(100% - 300px);
-  color: $cool-gray;
 
   > i {
     font-size: 38px;
@@ -304,12 +275,12 @@ $headerAccountTextColor: #dbedf7;
 
   .form-title__name {
     flex: 1;
-    color: #FFF;
+    color: $kobo-white;
     font-size: 18px;
     padding-right: 20px;
 
     input[name='title'] {
-      color: #FFF;
+      color: $kobo-white;
       font-size: 18px;
       min-width: 100%;
       line-height: 1.3333;
@@ -333,20 +304,20 @@ $headerAccountTextColor: #dbedf7;
     border-bottom: 1px solid transparent;
     // keep these pseudo-states separate
     &::-webkit-input-placeholder {
-      color: darken($cool-gray, 10%);
+      color: $kobo-darkgray;
     }
 
     &:-ms-input-placeholder {
-      color: darken($cool-gray, 10%);
+      color: $kobo-darkgray;
     }
 
     &:hover {
-      border-bottom: 1px solid $cool-blue;
+      border-bottom: 1px solid $kobo-blue;
     }
 
     &:focus {
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid $cool-blue;
+      background: rgba($kobo-white, 0.05);
+      border-bottom: 1px solid $kobo-blue;
     }
   }
 
@@ -411,7 +382,7 @@ $headerAccountTextColor: #dbedf7;
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
-  color: #FFF;
+  color: $kobo-white;
 }
 
 .account-box__menu-item--avatar {
@@ -436,9 +407,9 @@ $headerAccountTextColor: #dbedf7;
     z-index: 100;
 
     .git-rev__item {
-      color: white;
+      color: $kobo-white;
       opacity: 0.85;
-      background: darken($cool-green, 10%);
+      background: darken($kobo-teal, 10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;
@@ -453,7 +424,7 @@ $headerAccountTextColor: #dbedf7;
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $divider-color;
+      border: 1px solid $kobo-lightgray;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;
