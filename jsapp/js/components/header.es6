@@ -9,6 +9,7 @@ import {stores} from '../stores';
 import Reflux from 'reflux';
 import {bem} from '../bem';
 import {actions} from '../actions';
+import {removeInvalidChars} from '../assetUtils';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
@@ -50,7 +51,6 @@ class MainHeader extends Reflux.Component {
     autoBind(this);
   }
   componentDidMount() {
-    document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
   }
   componentWillUpdate(newProps) {
@@ -111,10 +111,6 @@ class MainHeader extends Reflux.Component {
 
       return (
         <bem.AccountBox>
-          {/*<bem.AccountBox__notifications className="is-edge">
-            <i className="fa fa-bell"></i>
-            <bem.AccountBox__notifications__count> 2 </bem.AccountBox__notifications__count>
-          </bem.AccountBox__notifications>*/}
           <ui.PopoverMenu type='account-menu'
                           triggerLabel={accountMenuLabel}
                           buttonType='text'>
@@ -128,16 +124,16 @@ class MainHeader extends Reflux.Component {
                     <span className='account-email'>{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
-                    <button onClick={this.accountSettings} className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.KoboButton onClick={this.accountSettings} m={['blue', 'fullwidth']}>
                       {t('Account Settings')}
-                    </button>
+                    </bem.KoboButton>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
                 {
                   stores.session &&
                   stores.session.environment &&
-                  stores.session.environment.terms_of_service_url ||
-                  stores.session.environment.privacy_policy_url &&
+                  stores.session.environment.terms_of_service_url !== '' ||
+                  stores.session.environment.privacy_policy_url !== '' &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
                     {stores.session.environment.terms_of_service_url &&
                       <a href={stores.session.environment.terms_of_service_url} target='_blank'>
@@ -219,9 +215,9 @@ class MainHeader extends Reflux.Component {
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
-      asset.name = e.target.value;
+      asset.name = removeInvalidChars(e.target.value);
     else
-      asset.settings.description = e.target.value;
+      asset.settings.description = removeInvalidChars(e.target.value);
 
     this.setState({
       asset: asset
@@ -255,9 +251,9 @@ class MainHeader extends Reflux.Component {
     return (
         <header className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <button className='mdl-button mdl-button--icon' onClick={this.toggleFixedDrawer}>
+            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
               <i className='fa fa-bars' />
-            </button>
+            </bem.Button>
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />

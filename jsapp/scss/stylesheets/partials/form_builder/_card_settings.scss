@@ -2,11 +2,6 @@
 // Card settings tabs
 // ==========================================================================
 
-// ==========================================================================
-// Advanced details
-// ==========================================================================
-
-// .advanced-details BECOMES .card__settingswrap
 // TODO: this element might not be necessary
 
 .card__settings {
@@ -23,10 +18,6 @@
   width: 20%;
 }
 
-.card__settings__tab--response-type {
-  @extend %incomplete;
-}
-
 // note: this rule is only used with '@extend'
 %card__settings__tabs__tab {
   padding: 6px 10px;
@@ -41,7 +32,7 @@
   @extend %card__settings__tabs__tab;
 
   &.card__settings__tabs__tab--active {
-    background: #E5E8EB;
+    background: $kobo-lightgray;
     font-weight: 600;
   }
 }
@@ -59,7 +50,7 @@
 
   //== i.fa
   .fa {
-    color: $indicatorColor;
+    color: $kobo-darkgray;
     margin-right: 5px;
   }
 }
@@ -102,12 +93,6 @@
     }
   }
 
-  // possibly temporary
-  &.xlf-dv-constraint_message {
-    border-top: 1px solid #d9dde1;
-    padding-top: 15px;
-  }
-
   input[type="text"] {
     width: 85%;
     padding: 2px;
@@ -126,11 +111,11 @@
 }
 
 .card__settings-close {
-  background: #C5CACF;
+  background: C5CACF;
   position: absolute;
   right: 6px;
   top: 6px;
-  color: white;
+  color: $kobo-white;
   padding: 3px;
   border-radius: 3px;
   cursor: pointer;
@@ -141,32 +126,9 @@
 }
 
 // ==========================================================================
-// Edit buttons
-// ==========================================================================
-
-.editable-buttons button,
-.card__settingswrap button {
-  height: 28px;
-  margin: 3px 0;
-  border: 1px solid;
-  border-radius: 4px;
-  padding: 0 10px;
-  -webkit-appearance: none;
-  text-transform: capitalize;
-  color: #333;
-  background-color: #f8f8f8;
-
-  &:hover {
-    background-color: #f0f0f0;
-  }
-}
-
-// ==========================================================================
-
 // Overrides
 // --------------------------------------------------------------------------
 
-// .advanced-details displayed only inside .card--expandedsettings
 .card {
   .card__settings {
     display: none;
@@ -178,7 +140,8 @@
     }
 
     .card__buttons__button--settings {
-      @extend %activated-card-button;
+      color: $kobo-darkgray;
+      background-color: $kobo-lightgray;
     }
   }
 }
@@ -188,7 +151,7 @@
 // ==========================================================================
 
 .settings__hxl {
-    background: #F8F8F8;
+    background: $kobo-whitegray;
     display: table-row;
     .hxlTag {
       width: 120px;
@@ -202,7 +165,7 @@
     .select2-container-multi {
         vertical-align: top;
         display: table-cell;
-        border: 1px solid #CCC;
+        border: 1px solid $kobo-midgray;
         padding: 2px;
 
         .select2-choices {
@@ -213,14 +176,14 @@
             .select2-search-choice {
               border-radius: 5px;
               font-weight: normal;
-              background: darken(#e3e7ec, 6%);
-              color: #333;
+              background: $kobo-lightgray;
+              color: $kobo-black;
               padding-left: 5px;
               padding-right: 18px;
               .select2-search-choice-close {
                 left: auto;
                 right: 3px;
-                color: #666;
+                color: $kobo-darkgray;
                 &:before {
                   content: '\00d7';
                 }
@@ -242,7 +205,7 @@
       }
     }
     .hxlAttrs.select2-container-multi {
-        background: #FFF;
+        background: $kobo-white;
         border-left: 0px;
     }
 }

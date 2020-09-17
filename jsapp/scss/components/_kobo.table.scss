@@ -25,10 +25,10 @@
 
       .select-all {
         cursor: pointer;
-        color: $cool-blue;
+        color: $kobo-blue;
 
         &:hover {
-          color: lighten($cool-blue, 10%);
+          color: lighten($kobo-blue, 10%);
         }
       }
     }
@@ -49,8 +49,8 @@
     height: calc(100% - 50px);
 
     .rt-table {
-      border: 1px solid $divider-color;
-      background-color: #FFF;
+      border: 1px solid $kobo-lightgray;
+      background-color: $kobo-white;
       font-size: 13px;
     }
 
@@ -69,6 +69,11 @@
     // minimum body height so at least two rows are visible
     .rt-tbody {
       min-height: 72px;
+    }
+
+    .rt-thead.-header {
+      box-shadow: none;
+      border-bottom: 2px solid $kobo-lightgray;
     }
 
     .rt-thead {
@@ -91,7 +96,7 @@
         }
 
         .column-header-hxl-tags {
-          color: $cool-silver;
+          color: $kobo-darkgray;
         }
       }
     }
@@ -108,17 +113,17 @@
 
       .rt-th:hover,
       .rt-td:hover {
-        background: rgba($cool-green, 0.1);
+        background: rgba($kobo-teal, 0.1);
       }
 
       .rt-th.-sort-desc,
       .rt-td.-sort-desc {
-        box-shadow: inset 0 -3px 0 0 rgba($cool-green, 0.8);
+        box-shadow: inset 0 -3px 0 0 rgba($kobo-teal, 0.8);
       }
 
       .rt-th.-sort-asc,
       .rt-td.-sort-asc {
-        box-shadow: inset 0 3px 0 0 rgba($cool-green, 0.8);
+        box-shadow: inset 0 3px 0 0 rgba($kobo-teal, 0.8);
       }
     }
 
@@ -133,7 +138,7 @@
     .rt-th, .rt-td {
       padding: 2px;
       padding-left: 6px;
-      border-right: 1px solid rgba(0, 0, 0, 0.03);
+      border-right: 1px solid rgba($kobo-black, 0.03);
       line-height: 30px;
     }
 
@@ -165,7 +170,7 @@
         min-height: 28px;
 
         &:hover {
-          color: $cool-blue;
+          color: $kobo-blue;
         }
 
         i {
@@ -198,14 +203,14 @@
     }
 
     .-loading {
-      background: #F8F8F8;
+      background: $kobo-whitegray;
 
       .-loading-inner {
         display: block;
         text-align: center;
         font-size: 18px;
         opacity: 0.8;
-        color: $cool-gray;
+        color: $kobo-darkgray;
 
         i {
           margin-right: 12px;
@@ -216,7 +221,7 @@
     }
 
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-      background: rgba($cool-green, 0.1);
+      background: rgba($kobo-teal, 0.1);
     }
 
     &.has-frozen-column {
@@ -224,7 +229,7 @@
         order: -1;
         position: relative;
         left: 0;
-        background: #F8F8F8;
+        background: $kobo-whitegray;
         height: 36px;
         transition: left 0.2s;
         margin-right: 6px;
@@ -239,44 +244,16 @@
       }
 
       &.-striped .rt-tr.-odd .frozen {
-        background: #F1F1F1;
+        background: $kobo-whitegray;
       }
 
       &.-striped .rt-tr:hover .frozen {
-        background: #edf9fa;
+        background: rgba($kobo-teal, 0.1);
       }
 
       .rt-th.frozen {
         height: 34px;
       }
-    }
-  }
-
-  .form-view__cell--table-warning {
-    position: absolute;
-    width: calc(100% - 60px);
-    background: lighten(#FFB775, 20%);
-    padding: 5px;
-    top: 10px;
-    z-index: 99;
-
-    i.k-icon-alert {
-      font-size: 32px;
-      vertical-align: middle;
-      color: #FFB775;
-    }
-
-    a {
-      cursor: pointer;
-    }
-
-    i.k-icon-close {
-      position: absolute;
-      right: 10px;
-      font-size: 24px;
-      top: 10px;
-      background: lighten(#FFB775, 20%);
-      cursor: pointer;
     }
   }
 }
@@ -290,9 +267,9 @@
     margin-bottom: 20px;
 
     &--advanced-table-options {
-      border: 1px solid $divider-color;
+      border: 1px solid $kobo-lightgray;
       padding: 20px;
-      background: #F8F8F8;
+      background: $kobo-whitegray;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -315,9 +292,9 @@
   ul {
     max-height: 160px;
     overflow: auto;
-    border: 1px solid $divider-color;
+    border: 1px solid $kobo-lightgray;
     padding: 10px;
-    background: #FFF;
+    background: $kobo-white;
 
     li {
       margin-bottom: 5px;

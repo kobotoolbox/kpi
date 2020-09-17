@@ -6,11 +6,11 @@ $s-gray-row-spacing: 10px;
   h2 {
     margin: 0;
     font-size: 14px;
-    color: $black;
+    color: $kobo-black;
     font-weight: 500;
   }
 
-  .user-row + .mdl-button {
+  .user-row + button {
     margin-top: 15px;
   }
 
@@ -22,6 +22,8 @@ $s-gray-row-spacing: 10px;
 }
 
 .copy-team-permissions {
+  margin-bottom: 30px;
+
   &.copy-team-permissions--opened .mdl-button--copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
   }
@@ -31,7 +33,7 @@ $s-gray-row-spacing: 10px;
   }
 
   .mdl-button--copy-team-permissions-opener {
-    color: $cool-blue;
+    color: $kobo-blue;
     padding-left: 0;
     padding-right: 0;
     font-weight: 500;
@@ -52,7 +54,7 @@ $s-gray-row-spacing: 10px;
 }
 
 .user-row {
-  border-bottom: 1px solid $cool-lightgray;
+  border-bottom: 1px solid $kobo-lightgray;
   padding-bottom: 5px;
   padding-top: 5px;
 
@@ -120,7 +122,7 @@ $s-gray-row-spacing: 10px;
 
 .user-permissions-editor {
   .react-tagsinput-input {
-    background-color: $white;
+    background-color: $kobo-white;
   }
 
   .user-permissions-editor__row {
@@ -144,8 +146,8 @@ $s-gray-row-spacing: 10px;
       left: 10px;
       width: 15px;
       height: 15px;
-      border-left: 1px solid $cool-lightgray;
-      border-bottom: 1px solid $cool-lightgray;
+      border-left: 1px solid $kobo-lightgray;
+      border-bottom: 1px solid $kobo-lightgray;
       border-radius: 2px;
     }
   }
@@ -157,7 +159,7 @@ $s-gray-row-spacing: 10px;
 
 .user-row__editor,
 .form-modal__item--gray-row {
-  background: #F8F8F8;
+  background: $kobo-whitegray;
   padding: 15px;
 }
 
