@@ -1,0 +1,112 @@
+/*
+  This is a simple colored button. You can make it small or choose a color.
+
+  The default color is gray, other available are:
+  - blue
+  - teal
+  - green
+  - orange
+  - red
+  - whitegray
+
+  NOTE: Please __do not @extend__ this component. If possible use
+  `bem.KoboButton` or raw class names.
+
+  NOTE: Our current go-to button solution (`_mdl.buttons.scss`) turned out to be
+  chaotic-neutral and hard to maintain, so we should transition here all buttons
+  that use: `.mdl-button.mdl-button--colored.mdl-button--raised`.
+*/
+
+.kobo-button {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative; // needed for tooltips etc.
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 6px;
+  color: $kobo-white;
+  background-color: $kobo-darkgray;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+  height: auto;
+  min-height: 40px;
+  line-height: 30px;
+  padding: 5px 30px;
+  margin: 0;
+  border: none;
+
+  &[disabled] {
+    pointer-events: none;
+    color: rgba($kobo-white, 0.75);
+    // 1px black transparent png with 10% opacity (png-pixel.com)
+    background-image: url("data:image/png;base64,  iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkkAQAAB8AG7jymN8AAAAASUVORK5CYII= ");
+  }
+
+  &:hover {
+    // 1px black transparent png with 6% opacity (png-pixel.com)
+    background-image: url("data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk4AcAABUAET9MVpIAAAAASUVORK5CYII=");
+  }
+
+  &:active {
+    // makes the shadow smaller and moves button down by small bit
+    // to make it look pressed-in
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  // icon inside button
+  i,
+  .k-icon {
+    vertical-align: top;
+    font-size: 30px;
+  }
+
+  &.kobo-button--small {
+    font-size: 13px;
+    line-height: 20px;
+    min-height: 30px;
+    padding: 5px 15px;
+
+    i,
+    .k-icon {
+      font-size: 20px;
+    }
+  }
+
+  &.kobo-button--fullwidth {
+    display: block;
+    width: 100%;
+  }
+
+  &.kobo-button--blue {
+    background-color: $kobo-blue;
+  }
+
+  &.kobo-button--teal {
+    background-color: $kobo-teal;
+  }
+
+  &.kobo-button--green {
+    background-color: $kobo-green;
+  }
+
+  &.kobo-button--orange {
+    background-color: $kobo-orange;
+  }
+
+  &.kobo-button--red {
+    background-color: $kobo-red;
+  }
+
+  &.kobo-button--whitegray {
+    color: $kobo-black;
+    background-color: $kobo-whitegray;
+
+    &[disabled] {
+      color: rgba($kobo-black, 0.75);
+    }
+  }
+}

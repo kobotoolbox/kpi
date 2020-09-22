@@ -781,24 +781,4 @@ module.exports = do ->
       skipLogic: true
       copyToLibrary: true
 
-  class surveyApp.QuestionApp extends SurveyFragmentApp
-    features:
-      multipleQuestions: false
-      skipLogic: false
-      copyToLibrary: false
-    render: () ->
-      super
-      @$('.survey-editor.form-editor-wrap.container').append $('.question__tags')
-
-  class surveyApp.SurveyTemplateApp extends $baseView
-    events:
-      "click .js-start-survey": "startSurvey"
-    initialize: (@options)->
-    render: ()->
-      @$el.addClass("content--centered").addClass("content")
-      @$el.html $viewTemplates.$$render('surveyTemplateApp')
-      @
-    startSurvey: ->
-      new surveyApp.SurveyApp(@options).render()
-
   surveyApp

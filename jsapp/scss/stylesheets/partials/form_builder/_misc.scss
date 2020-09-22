@@ -3,8 +3,8 @@
 .survey-editor__message {
   border: $cardBorderStyle;
   padding: 20px;
-  background: #FFF;
-  color: $wellTextColor;
+  background: $kobo-white;
+  color: $kobo-darkgray;
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
@@ -50,41 +50,18 @@ code input[type="text"] {
   text-align: right;
 }
 
-//.editable-container is a $.poshytip className
-.editable-container {
-  vertical-align: top;
-  .editable-input input {
-    font-weight: 600;
-    border-radius: 0px;
-    border: none;
-    padding: 0px !important;
-    font-size: 13px;
-    width: 100%;
-    display: inline-block;
-    margin: 0px;
-    height: auto;
-    background-color: transparent;
-  }
-  .editable-buttons {
-    position: absolute;
-    top: -20px;
-    right: 0px;
-    font-size: 10px;
-  }
-}
-
 // ==========================================================================
 // Survey import warnings
 // ==========================================================================
 
 .survey-warnings {
   @extend .container;
-  background-color: #fcf8e3;
-  color: #8a6d3b;
+  background-color: $kobo-orange-light;
+  color: $kobo-orange-dark;
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 4px;
-  border: 1px solid #cfb98b;
+  border: 1px solid $kobo-orange;
 }
 
 .survey-warnings__warning {
@@ -92,7 +69,7 @@ code input[type="text"] {
 }
 
 .survey-warnings__close-button {
-  color: #8a6d3b;
+  color: $kobo-orange-dark;
   position: absolute;
   top: 24px;
   margin-top: -12px;
@@ -132,5 +109,5 @@ code input[type="text"] {
 
 .survey-editor__message {
   text-align: center;
-  color: #888;
+  color: $kobo-darkgray;
 }

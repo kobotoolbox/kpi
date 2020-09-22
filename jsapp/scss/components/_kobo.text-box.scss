@@ -5,25 +5,25 @@
 
 label.text-box {
   &.text-box--error {
-    color: $cool-red;
+    color: $kobo-red;
 
     input.text-box__input {
-      border-bottom-color: $cool-red;
+      border-bottom-color: $kobo-red;
     }
   }
 
   &.text-box--on-white input.text-box__input {
-    border-top-color: rgba($divider-color, 0.5);
-    border-left-color: rgba($divider-color, 0.5);
-    border-right-color: rgba($divider-color, 0.5);
+    border-top-color: rgba($kobo-lightgray, 0.5);
+    border-left-color: rgba($kobo-lightgray, 0.5);
+    border-right-color: rgba($kobo-lightgray, 0.5);
 
     &:focus {
-      border-color: $cool-blue;
+      border-color: $kobo-blue;
     }
   }
 
   &.text-box--on-white.text-box--error input.text-box__input {
-    border-color: $cool-red;
+    border-color: $kobo-red;
   }
 
   .text-box__label .text-box__label-link {
@@ -42,12 +42,12 @@ label.text-box {
     padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
-    border-bottom-color: $divider-color;
+    border-bottom-color: $kobo-lightgray;
     transition: border-color 0.3s;
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 }
