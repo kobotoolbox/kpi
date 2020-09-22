@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
-from django.core.exceptions import ValidationError
 from django.db import (
     ProgrammingError,
     connections,

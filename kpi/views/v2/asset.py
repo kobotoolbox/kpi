@@ -7,7 +7,7 @@ from hashlib import md5
 
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
@@ -385,7 +385,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         Prepare metadata to inject in list endpoint.
         Useful to retrieve values needed for search
 
-        ToDo optimize queries. See https://github.com/kobotoolbox/kpi/issues/2690
         :return: dict
         """
         metadata = {
@@ -395,57 +394,60 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'organizations': set(),
         }
 
+        records = queryset.values('summary', 'settings').\
+            exclude(
+                Q(
+                    Q(summary__languages=[]) | Q(summary__languages=[None])
+                ),
+                Q(
+                    Q(settings__country=None) | Q(settings__country__exact=''),
+                    Q(settings__sector=None) | Q(settings__sector__exact=''),
+                    Q(settings__organization=None) | Q(settings__organization='')
+                )
+            )
+
         # Languages
-        # Refactor this query when
-        # https://github.com/kobotoolbox/kpi/issues/2635 is merged.
-        summaries = queryset.values_list('summary', flat=True). \
-            filter(summary__contains='languages')
-        summaries.query.clear_ordering(True)
+        records = records.order_by()
 
-        for summary in summaries.all():
+        for record in records.all():
             try:
-                # Remove this condition when
-                # https://github.com/kobotoolbox/kpi/issues/2635 is merged
-                if not isinstance(summary, dict):
-                    summary = json.loads(summary)
-
-                for language in summary['languages']:
-                    if language:
-                        metadata['languages'].add(language)
+                languages = record['summary']['languages']
             except (ValueError, KeyError):
                 pass
+            else:
+                for language in languages:
+                    if language:
+                        metadata['languages'].add(language)
 
-        metadata['languages'] = sorted(list(metadata['languages']))
-
-        # Other properties.
-        # ToDo, find a way to merge both querysets without using objects.
-        others = queryset.values_list('settings', flat=True). \
-            exclude(settings__country=None,
-                    settings__sector=None,
-                    settings__organization=None)
-        others.query.clear_ordering(True)
-        for other in others.all():
             try:
-                value = other['country']['value']
+                country = record['settings']['country']
+                value = country['value']
+                label = country['label']
+            except (KeyError, TypeError):
+                pass
+            else:
                 if value and value not in metadata['countries']:
-                    metadata['countries'][other['country']['value']] = \
-                        other['country']['label']
-            except (KeyError, TypeError):
-                pass
+                    metadata['countries'][value] = label
 
             try:
-                value = other['sector']['value']
+                sector = record['settings']['sector']
+                value = sector['value']
+                label = sector['label']
+            except (KeyError, TypeError):
+                pass
+            else:
                 if value and value not in metadata['sectors']:
-                    metadata['sectors'][other['sector']['value']] = \
-                        other['sector']['label']
-            except (KeyError, TypeError):
-                pass
+                    metadata['sectors'][value] = label
 
             try:
-                if other['organization']:
-                    metadata['organizations'].add(other['organization'])
+                organization = record['settings']['organization']
             except KeyError:
                 pass
+            else:
+                if organization:
+                    metadata['organizations'].add(organization)
+
+        metadata['languages'] = sorted(list(metadata['languages']))
 
         metadata['countries'] = sorted(metadata['countries'].items(),
                                        key=itemgetter(1))
@@ -488,8 +490,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_content_type = ContentType.objects.get_for_model(Asset)
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
-
+            asset_ids = self.filter_queryset(queryset).values_list('id', flat=True).distinct()
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
                 content_type_id=asset_content_type.pk,
@@ -520,7 +521,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
             # 4) Get children count per asset
-            # ToDo Verify if all children must be included in count (e.g. Archives)
             records = Asset.objects.filter(parent_id__in=asset_ids). \
                 values('parent_id').annotate(children_count=Count('id'))
             # Ordering must be cleared otherwise group_by is wrong

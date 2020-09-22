@@ -13,8 +13,10 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC
 )
+from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
+from .models.asset import ASSET_TYPE_COLLECTION
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -119,51 +121,32 @@ class KpiObjectPermissionsFilter:
         STATUS_PARAMETER = 'status'
 
         try:
-            q = request.query_params['q'].strip()
-            if q == '':
-                return queryset
+            status = request.query_params[STATUS_PARAMETER].strip()
         except KeyError:
             return queryset
 
-        query_parts = q.split(' AND ')  # Can be risky if one of values contains ` AND `
+        if status == ASSET_STATUS_PRIVATE:
+            self._return_queryset = True
+            return queryset.filter(owner=request.user)
 
-        def _get_value(str_, key):
-            return str_[len(key) + 1:]  # get everything after `<key>:`
+        elif status == ASSET_STATUS_SHARED:
+            self._return_queryset = True
+            return get_objects_for_user(user, self._permission, queryset)
 
-        # Create filters to narrow down `queryset`
-        query_parts_iter = list(query_parts)
-        for query_part in query_parts_iter:
-            query_part = query_part.strip()
+        elif status == ASSET_STATUS_PUBLIC:
+            self._return_queryset = True
+            # ToDo Review for optimization
+            public = self._get_public(queryset)
+            subscribed = self._get_subscribed(public, user)
+            return subscribed
 
-            # Search for status
-            if not query_part.startswith(f'{STATUS_PARAMETER}:'):
-                continue
-
-            value = _get_value(query_part, STATUS_PARAMETER)
-            if value == ASSET_STATUS_PRIVATE:
-                self._return_queryset = True
-                return queryset.filter(owner_id=request.user.id)
-
-            elif value == ASSET_STATUS_SHARED:
-                self._return_queryset = True
-                return get_objects_for_user(
-                    user, self._permission, queryset)
-
-            elif value == ASSET_STATUS_PUBLIC:
-                self._return_queryset = True
-                # ToDo Review for optimization
-                public = self._get_public(queryset)
-                subscribed = self._get_subscribed(public, user)
-                return subscribed
-
-            elif value == ASSET_STATUS_DISCOVERABLE:
-                self._return_queryset = True
-                # ToDo Review for optimization
-                discoverable = self._get_discoverable(
-                    self._get_public(queryset))
-                # We were asked not to consider subscriptions; return all
-                # discoverable objects
-                return discoverable
+        elif status == ASSET_STATUS_DISCOVERABLE:
+            self._return_queryset = True
+            # ToDo Review for optimization
+            discoverable = self._get_discoverable(self._get_public(queryset))
+            # We were asked not to consider subscriptions; return all
+            # discoverable objects
+            return discoverable
 
         return queryset
 
@@ -183,23 +166,18 @@ class KpiObjectPermissionsFilter:
                                     self._permission, queryset)
 
     def _get_subscribed(self, queryset, user):
-        # Of the public objects, determine to which the user has
-        # subscribed
+        # Of the public objects, determine to which the user has subscribed
         if user.is_anonymous:
             user = get_anonymous_user()
-        try:
-            subscribed = queryset.filter(userassetsubscription__user=user)
-        except FieldError:
-            try:
-                # The model does not have a subscription relation, but maybe
-                # its parent does
-                subscribed = queryset.filter(
-                    parent__userassetsubscription__user=user
-                )
-            except FieldError:
-                # Neither the model or its parent has a subscription relation
-                subscribed = queryset.none()
 
+        asset_ids = list(
+            UserAssetSubscription.objects.values_list(
+                'asset_id', flat=True
+            ).filter(user_id=user.pk)
+        )
+        subscribed = queryset.filter(
+            asset_type=ASSET_TYPE_COLLECTION, id__in=asset_ids
+        )
         return subscribed
 
 
@@ -231,7 +209,6 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        # TODO Fix search with `summary__languages`
         try:
             q = request.query_params['q']
         except KeyError:

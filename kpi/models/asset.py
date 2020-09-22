@@ -1,9 +1,10 @@
 # coding: utf-8
 # 😬
 import copy
-import json
 import sys
 from collections import OrderedDict
+from functools import reduce
+from operator import add
 from io import BytesIO
 
 import six
@@ -15,7 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -82,9 +83,11 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
-        # created = super().create(*args, **kwargs)
         update_parent_languages = kwargs.pop('update_parent_languages', True)
 
+        # 3 lines below are copied from django.db.models.query.QuerySet.create()
+        # because we need to pass an argument to save()
+        # (and the default Django create() does not allow that)
         created = self.model(**kwargs)
         self._for_write = True
         created.save(force_insert=True, using=self.db,
@@ -98,8 +101,6 @@ class AssetManager(models.Manager):
                 asset['parent'] = created
                 new_assets.append(Asset.objects.create(
                     update_parent_languages=False, **asset))
-            # bulk_create comes with a number of caveats
-            # Asset.objects.bulk_create(new_assets)
             created.update_languages(new_assets)
         return created
 
@@ -996,29 +997,28 @@ class Asset(ObjectPermissionMixin,
         languages = set()
 
         if children:
-            summaries = [child.summary for child in children]
             languages = set(obj_languages)
+            children_languages = [child.summary.get('languages')
+                                  for child in children
+                                  if child.summary.get('languages')]
         else:
-            # ToDo validate whether all children should be included
-            # (e.g. archives?)
-            summaries = self.children.values_list('summary', flat=True)
+            children_languages = list(self.children
+                                      .values_list('summary__languages',
+                                                   flat=True)
+                                      .exclude(Q(summary__languages=[]) |
+                                               Q(summary__languages=[None]))
+                                      .order_by())
 
-        for summary in summaries:
-            if isinstance(summary, str):
-                try:
-                    summary = json.loads(summary)
-                except ValueError:
-                    continue
-            child_languages = [language
-                               for language in summary.get('languages', [])
-                               if language is not None]
+        if children_languages:
+            # Flatten `children_languages` to 1-dimension list.
+            languages.update(reduce(add, children_languages))
 
-            if child_languages:
-                languages = set(list(languages) + child_languages)
+        languages.discard(None)
+        # Object of type set is not JSON serializable
+        languages = list(languages)
 
-        languages = AssetContentAnalyzer.format_translations(list(languages))
         # If languages are still the same, no needs to update the object
-        if obj_languages == languages:
+        if sorted(obj_languages) == sorted(languages):
             return
 
         self.summary['languages'] = languages
@@ -1210,7 +1210,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONBField(null=True)
+    source = JSONBField(default=dict)
     details = JSONBField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
