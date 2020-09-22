@@ -16,21 +16,15 @@
     }
     &.card--error {
         padding: 12px 20px;
-        background-color: rgb(255, 176, 176);
+        background-color: rgba($kobo-red, 0.5);
     }
     .card__header {
         border: $cardBorderStyle;
         padding: 20px 40px 20px 75px;
         display: block;
-        background: white;
+        background: $kobo-white;
         cursor: move;
         position: relative;
-    }
-
-    .bleeding-edge .card__header {
-        padding-top: 5px;
-        padding-bottom: 5px;
-        border-width: 1px;
     }
 
     .card__text {
@@ -41,7 +35,7 @@
         position: relative;
 
         &.activated {
-            color: #8595A5;
+            color: $kobo-darkgray;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -69,16 +63,16 @@
     }
 
     .card__header-title {
-        color: $cool-gray;
+        color: $kobo-darkgray;
 
         &:focus {
-            color: $black;
+            color: $kobo-black;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
          &::placeholder {
-            color: $cool-red;
-            background-color: rgba($cool-red, 0.075);
+            color: $kobo-red;
+            background-color: rgba($kobo-red, 0.075);
         }
     }
 
@@ -87,26 +81,9 @@
         font-weight: 400;
 
         &::placeholder {
-            color: $cool-silver;
+            color: $kobo-darkgray;
             font-style: italic;
         }
-    }
-
-    .card__header-subtitle {
-        margin: 10px 0 0 0;
-        color: #aaa;
-        font-size: 12px;
-
-        &:before {
-            content: '+ ';
-            opacity: 0.5;
-        }
-    }
-    .card__header-subtitle-empty-value {
-        border: 1px solid #ffdbdb;
-        padding: 2px 3px;
-        border-radius: 3px;
-        background-color: #fff8f8;
     }
     .card__option-translation {
         &--empty {
@@ -123,7 +100,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: #bbb;
+            color: $kobo-darkgray;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -137,10 +114,6 @@
     }
 }
 
-.bleeding-edge .card {
-    margin-bottom: 0;
-}
-
 // pseudo-rule used only to increase card hover area to the left of the card
 .no-touch .card:before {
     content: " ";
@@ -148,17 +121,6 @@
     left: -60px;
     position: absolute;
     width: 80px;
-}
-
-.card--placeholder {
-    background-color: transparent;
-    color:#8695A5;
-    border:2px solid #8695A5;
-    text-align: center;
-    font-family: $font;
-    font-weight: 600;
-    padding: 20px;
-    margin:20px 0px;
 }
 
 .sortable-active {
@@ -170,7 +132,7 @@
     }
 }
 .card--error {
-    background-color: rgb(255, 176, 176);
+    background-color: rgba($kobo-red, 0.5);
 }
 
 // ==========================================================================
@@ -204,12 +166,12 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $indicatorColor;
+    color: $kobo-darkgray;
 
     .fa.invert {
         padding: 3px 1px;
         font-size: 0.95em;
-        background-color: #8595A5;
+        background-color: $kobo-darkgray;
     }
     .fa-lato-range,
     .fa-lato-calculate,
@@ -245,11 +207,6 @@ $cardIndicatorIconWidth: 21px;
     border:none;
 }
 
-.bleeding-edge .card__buttons {
-    width: 169px;
-    right: -181px;
-    background-color: white;
-}
 // ==========================================================================
 // Card Shade (displays on hover above the card header)
 // ==========================================================================
@@ -280,16 +237,16 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba(#858F98, 0.6);
+    background: rgba($kobo-darkgray, 0.5);
 }
 .card__header.delete .card__header--shade {
-    background: rgba(#D08B8C, 0.6);
+    background: rgba($kobo-red, 0.5);
 }
 .card__header.duplicate .card__header--shade {
-    background:rgba($linkColor, 0.6);
+    background: rgba($kobo-blue, 0.5);
 }
 .card__header.add-to-library .card__header--shade {
-    background: rgba(#39BF6E, 0.6);
+    background: rgba($kobo-green, 0.5);
 }
 
 .card--insort {
@@ -306,70 +263,29 @@ $cardIndicatorIconWidth: 21px;
     bottom: 0px;
     text-align: center;
     &.card__buttons__button--gray {
-        color: #858F98;
+        color: $kobo-darkgray;
         top:0px;
     }
     &.card__buttons__button--red {
-        color: #D08B8C;
+        color: $kobo-red;
         top:37%;
         margin-top:-10px;
     }
     &.card__buttons__button--blue {
-        color:$linkColor;
+        color:$kobo-blue;
     }
-    // &.card__buttons__button--add {
-    //   bottom: 22%;
-    // }
     &.card__buttons__button--copy {
         bottom: 26%;
     }
     &.card__buttons__button--activated {
-        // trying to transition this into %activated-card-button
-        color: #646D75;
-        background-color: #D9DDE1;
+        color: $kobo-darkgray;
+        background-color: $kobo-lightgray;
         opacity: 1;
     }
     &:hover, &.card__buttons__button--activated:hover {
         opacity: 0.5;
-        // @extend %activated-card-button;
-        // background: none;
-        // color: white;
     }
 
-}
-
-.bleeding-edge .card__buttons__button {
-    position: relative;
-    float: left;
-    width: 30px;
-    display: block;
-    margin: 5px;
-    &.card__buttons__button--red,
-      &.card__buttons__button--gray,
-      &.card__buttons__button--blue,
-      &.card__buttons__button--gray-green,
-      &.card__buttons__button--copy {
-        top: 0;
-    }
-}
-// Misc...
-
-.placeholder {
-    height: 80px;
-    margin-bottom: 10px;
-    border: 2px solid #B4C1CD;
-    border-radius: 4px;
-    position: relative;
-    &:before {
-        content: "Drag and drop to reorder. ";
-        position: absolute;
-        font-weight: bold;
-        color: #8595A5;
-        width: 100%;
-        text-align: center;
-        line-height: 75px;
-        font-size: 14px;
-    }
 }
 
 // overrides

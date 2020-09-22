@@ -1,3 +1,8 @@
+// TODO: cleanup these buttons
+// 1. stop @extend-ing them, as ut makes for much harder debugging in Dev Tools
+//    instead create few mixins and use those
+// 2. simplify the number of options
+
 // Inspired but simplified version of MDL buttons
 
 // The button component. Defaults to a flat button.
@@ -13,16 +18,15 @@
   padding: 0 24px;
   margin: 0;
   border: none;
-  border-radius: 2px;
+  border-radius: 6px;
   vertical-align: middle;
   background: transparent;
   position: relative;
   display: inline-block;
   overflow: hidden;
-  transition: background-color 0.2s, color 0.2s;
   outline: none;
   cursor: pointer;
-  color: $cool-gray;
+  color: $kobo-darkgray;
 
   &[data-tip] {
     overflow: visible;
@@ -33,31 +37,47 @@
   }
 
   &:hover {
-    color: $black;
+    color: $kobo-black;
   }
 
   &.mdl-button--colored {
-    color: $cool-blue;
+    color: $kobo-blue;
     text-transform: uppercase;
 
     &:hover {
-      color: darken($cool-blue, 20%);
+      color: darken($kobo-blue, 10%);
     }
   }
 
-  &.mdl-button--colored.mdl-button--danger {
-    color: $cool-red;
+  &.mdl-button--colored.mdl-button--red {
+    color: $kobo-red;
 
     &:hover {
-      color: darken($cool-red, 20%);
+      color: darken($kobo-red, 10%);
     }
   }
 
-  &.mdl-button--colored.mdl-button--warning {
-    color: $cool-orange;
+  &.mdl-button--colored.mdl-button--orange {
+    color: $kobo-orange;
 
     &:hover {
-      color: darken($cool-orange, 20%);
+      color: darken($kobo-orange, 10%);
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--green {
+    color: $kobo-green;
+
+    &:hover {
+      color: darken($kobo-green, 10%);
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--gray {
+    color: $kobo-darkgray;
+
+    &:hover {
+      color: darken($kobo-darkgray, 10%);
     }
   }
 }
@@ -66,41 +86,78 @@ input.mdl-button[type="submit"] {
   -webkit-appearance: none;
 }
 
+.mdl-button--small {
+  height: 30px;
+  min-height: 30px;
+  line-height: 30px;
+  padding: 0 12px;
+}
+
+.mdl-button--fullwidth {
+  width: 100%;
+}
+
 // Raised buttons
 .mdl-button--raised {
-  background: $cool-blue;
-
   @include box-shadow;
 
+  background: $kobo-blue;
+  border-radius: 6px; // needed because of box-shadow
   text-transform: uppercase;
+  font-weight: 600;
 
+  &:active {
+    transform: translateY(1px);
+  }
+
+  // same as .mdl-button--blue
   &.mdl-button--colored {
-    background: $cool-blue;
-    color: $white;
+    background-color: $kobo-blue;
+    color: $kobo-white;
 
     &:hover {
-      background-color: darken($cool-blue, 5%);
-      color: $white;
+      background-color: darken($kobo-blue, 5%);
+      color: $kobo-white;
     }
   }
 
-  &.mdl-button--colored.mdl-button--danger {
-    background: $cool-red;
-    color: $white;
+  &.mdl-button--colored.mdl-button--red {
+    background-color: $kobo-red;
+    color: $kobo-white;
 
     &:hover {
-      background-color: darken($cool-red, 5%);
-      color: $white;
+      background-color: darken($kobo-red, 5%);
+      color: $kobo-white;
     }
   }
 
-  &.mdl-button--colored.mdl-button--warning {
-    background: $cool-orange;
-    color: $white;
+  &.mdl-button--colored.mdl-button--orange {
+    background-color: $kobo-orange;
+    color: $kobo-white;
 
     &:hover {
-      background-color: darken($cool-orange, 5%);
-      color: $white;
+      background-color: darken($kobo-orange, 5%);
+      color: $kobo-white;
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--green {
+    background-color: $kobo-green;
+    color: $kobo-white;
+
+    &:hover {
+      background-color: darken($kobo-green, 5%);
+      color: $kobo-white;
+    }
+  }
+
+  &.mdl-button--colored.mdl-button--gray {
+    background-color: $kobo-darkgray;
+    color: $kobo-white;
+
+    &:hover {
+      background-color: darken($kobo-darkgray, 5%);
+      color: $kobo-white;
     }
   }
 }
@@ -119,20 +176,18 @@ input.mdl-button[type="submit"] {
 
 // Tab buttons
 .mdl-button--tab {
-  color: $white;
+  color: $kobo-white;
   opacity: 0.7;
   border-radius: 0;
   border-bottom: 2px solid transparent;
   text-transform: uppercase;
-  transition: opacity 0.2s;
   height: 50px;
   line-height: 50px;
   padding: 0 32px;
 
   &:hover {
     opacity: 1;
-    color: $white;
-    transition: opacity 0.2s;
+    color: $kobo-white;
   }
 
   &.active {
@@ -147,7 +202,7 @@ input.mdl-button[type="submit"] {
   // Bump up specificity by using [disabled] twice.
   &[disabled][disabled],
   &.mdl-button--disabled.mdl-button--disabled {
-    color: $cool-gray;
+    color: $kobo-darkgray;
     cursor: default;
     background-color: transparent;
     pointer-events: none;
@@ -157,8 +212,8 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      background-color: $cool-lightgray;
-      color: $cool-gray;
+      background-color: $kobo-lightgray;
+      color: $kobo-darkgray;
       box-shadow: none;
     }
   }
@@ -167,7 +222,7 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      color: $cool-gray;
+      color: $kobo-darkgray;
     }
   }
 }
