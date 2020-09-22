@@ -31,13 +31,10 @@ new Set([
   'change_asset',
   'discover_asset',
   'add_submissions',
-  'add_submissions_partial', // ?? TODO WIP
   'view_submissions',
-  'view_submissions_partial', // ?? was `partial_submissions` TODO WIP
+  'partial_submissions',
   'change_submissions',
-  'change_submissions_partial', // ?? TODO WIP
   'validate_submissions',
-  'validate_submissions_partial' // ?? TODO WIP
 ]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
 
 export const HOOK_LOG_STATUSES = {

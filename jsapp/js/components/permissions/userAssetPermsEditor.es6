@@ -370,7 +370,7 @@ class UserAssetPermsEditor extends React.Component {
     if (this.isAssignable('change_asset')) {output.formEdit = this.state.formEdit;}
     if (this.isAssignable('add_submissions')) {output.submissionsAdd = this.state.submissionsAdd;}
     if (this.isAssignable('view_submissions')) {output.submissionsView = this.state.submissionsView;}
-    if (this.isAssignable('view_submissions_partial')) {
+    if (this.isAssignable('partial_submissions')) {
       output.submissionsViewPartial = this.state.submissionsViewPartial;
       output.submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
     }
@@ -462,13 +462,13 @@ class UserAssetPermsEditor extends React.Component {
             />
           }
 
-          {this.isAssignable('view_submissions_partial') && this.state.submissionsView === true &&
+          {this.isAssignable('partial_submissions') && this.state.submissionsView === true &&
             <div className='user-permissions-editor__sub-row'>
               <Checkbox
                 checked={this.state.submissionsViewPartial}
                 disabled={this.state.submissionsViewPartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
-                label={this.getLabel('view_submissions_partial')}
+                label={this.getLabel('partial_submissions')}
               />
 
               {this.state.submissionsViewPartial === true &&
@@ -492,13 +492,13 @@ class UserAssetPermsEditor extends React.Component {
             />
           }
 
-          {this.isAssignable('add_submissions_partial') && this.state.submissionsAdd === true &&
+          {this.isAssignable('partial_submissions') && this.state.submissionsAdd === true &&
             <div className='user-permissions-editor__sub-row'>
               <Checkbox
                 checked={this.state.submissionsAddPartial}
                 disabled={this.state.submissionsAddPartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsAddPartial')}
-                label={this.getLabel('add_submissions_partial')}
+                label={this.getLabel('partial_submissions')}
               />
 
               {this.state.submissionsAddPartial === true &&
@@ -522,13 +522,13 @@ class UserAssetPermsEditor extends React.Component {
             />
           }
 
-          {this.isAssignable('change_submissions_partial') && this.state.submissionsEdit === true &&
+          {this.isAssignable('partial_submissions') && this.state.submissionsEdit === true &&
             <div className='user-permissions-editor__sub-row'>
               <Checkbox
                 checked={this.state.submissionsEditPartial}
                 disabled={this.state.submissionsEditPartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsEditPartial')}
-                label={this.getLabel('change_submissions_partial')}
+                label={this.getLabel('partial_submissions')}
               />
 
               {this.state.submissionsEditPartial === true &&
@@ -552,13 +552,13 @@ class UserAssetPermsEditor extends React.Component {
             />
           }
 
-          {this.isAssignable('validate_submissions_partial') && this.state.submissionsValidate === true &&
+          {this.isAssignable('partial_submissions') && this.state.submissionsValidate === true &&
             <div className='user-permissions-editor__sub-row'>
               <Checkbox
                 checked={this.state.submissionsValidatePartial}
                 disabled={this.state.submissionsValidatePartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsValidatePartial')}
-                label={this.getLabel('validate_submissions_partial')}
+                label={this.getLabel('partial_submissions')}
               />
 
               {this.state.submissionsValidatePartial === true &&
