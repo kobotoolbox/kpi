@@ -28,7 +28,7 @@ import {
   PROJECT_SETTINGS_CONTEXTS
 } from 'js/constants';
 
-const formViaUrlHelpLink = 'http://help.kobotoolbox.org/creating-forms/importing-an-xlsform-via-url';
+const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
 /*
 This is used for multiple different purposes:
@@ -151,6 +151,10 @@ class ProjectSettings extends React.Component {
       case this.STEPS.PROJECT_DETAILS: return t('Project details');
       default: return '';
     }
+  }
+
+  getFilenameFromURI(url) {
+    return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0]);
   }
 
   /*
@@ -495,10 +499,15 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
+                  // TODO: allow serializers to take care of file names to
+                  // remove this bandaid fix for "Untitled" filenames
+                  var assetName = finalAsset.name;
+                  if (assetName === 'Untitled') {
+                    assetName = this.getFilenameFromURI(importUrl);
+                  }
                   this.setState({
                     formAsset: finalAsset,
-                    // try proposing something more meaningful than "Untitled"
-                    name: finalAsset.name,
+                    name: assetName,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
@@ -513,6 +522,10 @@ class ProjectSettings extends React.Component {
               });
             },
             (response) => {
+              // delete temporary asset
+              actions.resources.deleteAsset({uid: asset.uid});
+              this.setState({formAsset: false});
+
               this.resetImportUrlButton();
               const errLines = [];
               errLines.push(t('Import Failed!'));
@@ -553,10 +566,15 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // try proposing something more meaningful than "Untitled"
+                  // TODO: allow serializers to take care of file names to
+                  // remove this bandaid fix for "Untitled" filenames
+                  var assetName = finalAsset.name;
+                  if (assetName === 'Untitled') {
+                    assetName = files[0].name.split('.xlsx')[0];
+                  }
                   this.setState({
                     formAsset: finalAsset,
-                    name: finalAsset.name,
+                    name: assetName,
                     description: finalAsset.settings.description,
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
@@ -571,6 +589,10 @@ class ProjectSettings extends React.Component {
               });
             },
             (response) => {
+              // delete temporary asset
+              actions.resources.deleteAsset({uid: asset.uid});
+              this.setState({formAsset: false});
+
               this.setState({isUploadFilePending: false});
               const errLines = [];
               errLines.push(t('Import Failed!'));
@@ -729,9 +751,13 @@ class ProjectSettings extends React.Component {
       <bem.FormModal__form className='project-settings project-settings--import-url'>
         <div className='intro'>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
-          <a href={formViaUrlHelpLink} target='_blank'>
-            {t('Having issues? See this help article.')}
-          </a>
+
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <a href={stores.serverEnvironment.state.support_url + VIA_URL_SUPPORT_URL} target='_blank'>
+              {t('Having issues? See this help article.')}
+            </a>
+          }
         </div>
 
         <bem.FormModal__item>

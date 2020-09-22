@@ -134,10 +134,6 @@ $c-assets-table-row-hover: $cool-whitegray;
     &:hover {
       background-color: $cool-whitegray;
 
-      .k-icon[data-counter]::after {
-        background-color: $c-assets-table-row-hover;
-      }
-
       .assets-table-row__buttons {
         opacity: 1;
         visibility: visible;
@@ -150,6 +146,16 @@ $c-assets-table-row-hover: $cool-whitegray;
       .k-icon {
         font-size: 32px;
       }
+    }
+  }
+
+  &.assets-table-row--is-subscribed {
+    .assets-table-row__column--icon-status {
+      color: $cool-blue;
+    }
+
+    .assets-table-row__column--name .asset-name {
+      font-weight: bold;
     }
   }
 
@@ -289,34 +295,31 @@ $c-assets-table-row-hover: $cool-whitegray;
   }
 }
 
-.assets-table-row__dot {
-  display: inline-block;
-  vertical-align: 2px;
-  margin-right: 3px;
-  background-color: $cool-blue;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-
 /* ==========================================================================
  * AssetsTableRow tags
  * ========================================================================== */
 
 .assets-table-row__tags {
-  display: inline;
+  display: block;
+  margin-top: 0.5em;
 }
 
 .assets-table-row__tag {
   display: inline-block;
   vertical-align: middle;
-  border-radius: 1em;
   padding: 2px 4px;
   font-size: 9px;
   line-height: 1;
   color: currentColor;
   background: transparent;
   border: 1px solid currentColor;
+  border-radius: 2px;
+
+  &.assets-table-row__tag--gray-circle {
+    border-radius: 1em;
+    background: $cool-lightgray;
+    border-color: $cool-lightgray;
+  }
 }
 
 /* ==========================================================================

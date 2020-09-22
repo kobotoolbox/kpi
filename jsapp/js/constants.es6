@@ -311,6 +311,14 @@ export const QUESTION_TYPES = new Map([
     }
   ],
   [
+    'hidden',
+    {
+      label: t('Hidden'),
+      faIcon: 'fa-eye-slash',
+      id: 'hidden'
+    }
+  ],
+  [
     'file',
     {
       label: t('File'),
@@ -365,6 +373,37 @@ new Set([
   'subscribed'
 ]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
 
+export const GROUP_TYPES_BEGIN = new Map();
+new Set([
+  'begin_group',
+  'begin_score',
+  'begin_rank',
+  'begin_kobomatrix',
+  'begin_repeat',
+]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
+
+export const GROUP_TYPES_END = new Map();
+new Set([
+  'end_group',
+  'end_score',
+  'end_rank',
+  'end_kobomatrix',
+  'end_repeat',
+]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
+
+export const FORM_VERSION_NAME = '__version__';
+
+// a custom question type for score
+export const SCORE_ROW_TYPE = 'score__row';
+
+// a custom question type for rank
+export const RANK_LEVEL_TYPE = 'rank__level';
+
+export const MATRIX_PAIR_PROPS = {
+  inSurvey: 'kobo--matrix_list',
+  inChoices: 'list_name'
+};
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -382,7 +421,12 @@ const constants = {
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH,
   COMMON_QUERIES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END,
+  FORM_VERSION_NAME,
+  SCORE_ROW_TYPE,
+  RANK_LEVEL_TYPE
 };
 
 export default constants;

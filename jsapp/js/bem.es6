@@ -92,7 +92,15 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
-bem.CollectionNav = BEM('collection-nav');
+bem.SubmissionDataTable = bem('submission-data-table');
+bem.SubmissionDataTable__row = bem.SubmissionDataTable.__('row');
+bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
+bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
+bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
+
+bem.CollectionsWrapper = bem('collections-wrapper');
+
+bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
 bem.CollectionNav__searchcriterion = bem.CollectionNav.__('searchcriterion', '<li>');
@@ -225,9 +233,6 @@ bem.AccountSettings__item = bem.FormModal.__('item');
 bem.AccountSettings__desc = bem.AccountSettings.__('desc');
 bem.AccountSettings__actions = bem.AccountSettings.__('actions');
 
-bem.ChangePassword = BEM('change-password');
-bem.ChangePassword__item = bem.FormModal.__('item');
-
 bem.UserRow = BEM('user-row');
 bem.UserRow__info = bem.UserRow.__('info');
 bem.UserRow__avatar = bem.UserRow.__('avatar');
@@ -274,9 +279,8 @@ bem.AssetsTableRow__link = bem.AssetsTableRow.__('link', '<a>');
 bem.AssetsTableRow__buttons = bem.AssetsTableRow.__('buttons');
 bem.AssetsTableRow__column = bem.AssetsTableRow.__('column');
 bem.AssetsTableRow__headerLabel = bem.AssetsTableRow.__('header-label', 'span');
-bem.AssetsTableRow__tags = bem.AssetsTableRow.__('tags', '<ul>');
-bem.AssetsTableRow__tag = bem.AssetsTableRow.__('tag', '<li>');
-bem.AssetsTableRow__dot = bem.AssetsTableRow.__('dot', '<span>');
+bem.AssetsTableRow__tags = bem.AssetsTableRow.__('tags', '<div>');
+bem.AssetsTableRow__tag = bem.AssetsTableRow.__('tag', '<span>');
 bem.AssetsTablePagination = BEM('assets-table-pagination');
 bem.AssetsTablePagination__button = bem.AssetsTablePagination.__('button', '<button>');
 bem.AssetsTablePagination__index = bem.AssetsTablePagination.__('index');
