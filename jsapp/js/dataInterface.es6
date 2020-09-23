@@ -384,6 +384,10 @@ export var dataInterface;
         searchData.metadata = 'on';
       }
 
+      if (params.status) {
+        searchData.status = params.status;
+      }
+
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
@@ -410,6 +414,10 @@ export var dataInterface;
         searchData.ordering = params.ordering;
       }
 
+      if (params.status) {
+        searchData.status = params.status;
+      }
+
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/metadata/`,
         dataType: 'json',
@@ -421,26 +429,28 @@ export var dataInterface;
       return this._searchAssetsWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
       );
     },
     searchMyLibraryMetadata(params = {}) {
       return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
       );
     },
     searchPublicCollections(params = {}) {
+      params['status'] = 'public-discoverable';
       return this._searchAssetsWithPredefinedQuery(
         params,
-        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+        COMMON_QUERIES.get('c'),
       );
     },
     searchPublicCollectionsMetadata(params = {}) {
+      params['status'] = 'public-discoverable';
       return this._searchMetadataWithPredefinedQuery(
         params,
-        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+        COMMON_QUERIES.get('c'),
       );
     },
     assetsHash () {
