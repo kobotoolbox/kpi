@@ -11,6 +11,12 @@ from pyxform.utils import basestring, unichr, unicode
 def _iswhitespace(string):
     return isinstance(string, str) and len(string.strip()) == 0
 
+'''
+Checks if current row is a calculate question contianing a form's version
+'''
+def _isCalculateVersion(row_dict):
+    return row_dict.get('type') == 'calculate' and row_dict.get('name') == '__version__'
+
 def xls_value_to_unicode(value, value_type):
     '''
     Take a xls formatted value and try to make a unicode string
@@ -110,7 +116,8 @@ def convert_xls_to_dict(xls_file_object, strip_empty_rows=True):
                         row_dict[key] = xls_value_to_unicode(
                             value, value_type
                         )
-            result.append(row_dict)
+            if not _isCalculateVersion(row_dict):
+                result.append(row_dict)
         return result
 
     try:
