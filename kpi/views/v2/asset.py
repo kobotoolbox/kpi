@@ -504,7 +504,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:
-                object_permissions_per_asset[op.object_id].append(op)
+                object_permissions_per_asset[op.asset_id].append(op)
 
             context_['object_permissions_per_asset'] = object_permissions_per_asset
 

@@ -11,7 +11,6 @@ import six
 import xlsxwriter
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
@@ -868,15 +867,15 @@ class Asset(ObjectPermissionMixin,
 
     def save(self, *args, **kwargs):
 
+        is_new = self.pk is None
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
             # method pertain to content, bail out if it's impossible for this
             # asset to have content in the first place
             super().save(*args, **kwargs)
             return
-
-        is_new = self.pk is None
-        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         if self.content is None:
             self.content = {}
@@ -1026,9 +1025,7 @@ class Asset(ObjectPermissionMixin,
             return
 
         self.summary['languages'] = languages
-        self.save(update_fields=['summary'],
-                  adjust_content=False,
-                  create_version=False)
+        self.save(update_fields=['summary'])
 
     @property
     def version__content_hash(self):

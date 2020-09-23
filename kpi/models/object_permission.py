@@ -6,7 +6,6 @@ from collections import defaultdict
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models, transaction
@@ -14,8 +13,6 @@ from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
-from kpi.constants import ASSET_TYPE_SURVEY, PREFIX_PARTIAL_PERMS
-from kpi.exceptions import BadContentTypeException
 from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
@@ -814,7 +811,6 @@ class ObjectPermissionMixin:
                 'permission': f'{codename} cannot be removed explicitly.'
             })
         all_permissions = self.permissions.filter(
-            self,
             user=user_obj,
             permission__codename=codename,
             deny=False

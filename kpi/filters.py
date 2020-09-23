@@ -174,9 +174,12 @@ class KpiObjectPermissionsFilter:
                 'asset_id', flat=True
             ).filter(user_id=user.pk)
         )
+        # Notes: `.distinct()` is mandatory to join this queryset with the result
+        # of `get_objects_for_user()`
         subscribed = queryset.filter(
             asset_type=ASSET_TYPE_COLLECTION, id__in=asset_ids
-        )
+        ).distinct()
+
         return subscribed
 
 
