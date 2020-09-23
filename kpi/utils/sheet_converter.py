@@ -8,6 +8,9 @@ from collections import OrderedDict
 from pyxform.errors import PyXFormError
 from pyxform.utils import basestring, unichr, unicode
 
+META_TYPES = ['start', 'end', 'today', 'deviceid', 'username', 'subscriberid',
+              'simserial', 'phonenumber', 'email', 'audit']
+
 def _iswhitespace(string):
     return isinstance(string, str) and len(string.strip()) == 0
 
@@ -110,7 +113,8 @@ def convert_xls_to_dict(xls_file_object, strip_empty_rows=True):
                         row_dict[key] = xls_value_to_unicode(
                             value, value_type
                         )
-            result.append(row_dict)
+            if all(x != row_dict.get('type') for x in META_TYPES):
+                result.append(row_dict)
         return result
 
     try:
