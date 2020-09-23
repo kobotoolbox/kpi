@@ -367,8 +367,7 @@ def _sync_permissions(asset, xform):
     current_kpi_perms = defaultdict(set)
     for user, kpi_permission in ObjectPermission.objects.filter(
                 deny=False,
-                content_type=ASSET_CT,
-                object_id=asset.pk
+                asset=asset,
             ).values_list('user', 'permission'):
         current_kpi_perms[user].add(kpi_permission)
 
@@ -410,8 +409,7 @@ def _sync_permissions(asset, xform):
             ObjectPermission.objects.get_or_create(
                 user_id=user,
                 permission=FROM_KC_ONLY_PERMISSION,
-                content_type=ASSET_CT,
-                object_id=asset.pk
+                asset=asset,
             )
         for p in perms_to_assign:
             asset.assign_perm(user_obj, KPI_PKS_TO_CODENAMES[p], skip_kc=True)
@@ -426,8 +424,7 @@ def _sync_permissions(asset, xform):
             ObjectPermission.objects.filter(
                 user_id=user,
                 deny=False,
-                content_type=ASSET_CT,
-                object_id=asset.pk
+                asset=asset,
             ).delete()
         if perms_to_assign or perms_to_revoke:
             affected_usernames.append(user_obj.username)

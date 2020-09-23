@@ -493,8 +493,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_ids = self.filter_queryset(queryset).values_list('id', flat=True).distinct()
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
-                content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids,
+                asset_id__in=asset_ids,
                 deny=False,
             ).select_related(
                 'user', 'permission'

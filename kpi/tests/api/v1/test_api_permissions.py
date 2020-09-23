@@ -85,7 +85,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         returned_uids = [r['uid'] for r in response.data['results']]
-        all_obj_perms = ObjectPermission.objects.filter_for_object(self.asset)
+        all_obj_perms = self.asset.permissions.all()
 
         self.assertTrue(
             set(returned_uids).issuperset(
@@ -108,8 +108,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         returned_uids = [r['uid'] for r in response.data['results']]
-        other_obj_perms = ObjectPermission.objects.filter_for_object(
-            self.collection)
+        other_obj_perms = self.collection.permissions.all()
 
         self.assertFalse(
             set(returned_uids).intersection(

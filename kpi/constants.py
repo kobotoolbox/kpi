@@ -23,6 +23,20 @@ ASSET_TYPES = [
     (ASSET_TYPE_COLLECTION, ASSET_TYPE_COLLECTION),   # an organizational container for other assets
 ]
 
+ASSET_TYPES_WITH_CHILDREN = [
+    ASSET_TYPE_COLLECTION,
+]
+
+# if an asset cannot have content, it should not be versioned
+ASSET_TYPES_WITH_CONTENT = [
+    ASSET_TYPE_TEXT,
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_QUESTION,
+    ASSET_TYPE_BLOCK,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+    # notably not ASSET_TYPE_COLLECTION
+]
 
 CLONE_ARG_NAME = "clone_from"
 CLONE_FROM_VERSION_ID_ARG_NAME = "clone_from_version_id"
