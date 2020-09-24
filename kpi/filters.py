@@ -162,7 +162,7 @@ class KpiObjectPermissionsFilter:
     def _get_public(self, queryset):
         return get_objects_for_user(get_anonymous_user(),
                                     self._permission,
-                                    queryset.filter(asset_type=ASSET_TYPE_COLLECTION))
+                                    queryset)
 
     def _get_subscribed(self, queryset, user):
         # Of the public objects, determine to which the user has subscribed
