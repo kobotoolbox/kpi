@@ -152,10 +152,13 @@ class UserAssetPermsEditor extends React.Component {
     CHECKBOX_PERM_PAIRS.forEach((pairPermission, pairCheckbox) => {
       this.applyValidityRulesForCheckbox(pairCheckbox, stateObj);
     });
-    // cleanup partial checkboxes
+    // cleanup unchecked partial checkboxes users lists
     CHECKBOX_PERM_PAIRS.forEach((pairPermission, pairCheckbox) => {
-      if (pairCheckbox.endsWith('Partial')) {
-        this.applyValidityCleanup(pairCheckbox, stateObj);
+      if (
+        pairCheckbox.endsWith('Partial') &&
+        stateObj[pairCheckbox] === false
+      ) {
+        stateObj[`${pairCheckbox}Users`] = [];
       }
     });
     return stateObj;
@@ -196,15 +199,6 @@ class UserAssetPermsEditor extends React.Component {
         stateObj[`${contradictoryCheckbox}Disabled`] = true;
       });
     });
-  }
-
-  applyValidityCleanup(partialCheckboxName, stateObj) {
-    const parentCheckboxName = partialCheckboxName.replace('Partial', '');
-
-    // for unchecked make sure partial data is empty
-    if (stateObj[parentCheckboxName] === false) {
-      stateObj[`${partialCheckboxName}Users`] = [];
-    }
   }
 
   /**
@@ -356,10 +350,9 @@ class UserAssetPermsEditor extends React.Component {
     }
   }
 
-  getLabel(permCodename) {
-    const permDef = permConfig.getPermissionByCodename(
-      PERMISSIONS_CODENAMES.get(permCodename)
-    );
+  getCheckboxLabel(checkboxName) {
+    const permName = this.getCheckboxPermissionPair(checkboxName);
+    const permDef = permConfig.getPermissionByCodename(permName);
     if (!permDef) {
       return false;
     } else {
@@ -493,7 +486,7 @@ class UserAssetPermsEditor extends React.Component {
               checked={this.state.formView}
               disabled={this.state.formViewDisabled}
               onChange={this.onCheckboxChange.bind(this, 'formView')}
-              label={this.getLabel('view_asset')}
+              label={this.getCheckboxLabel('formView')}
             />
           }
 
@@ -501,7 +494,7 @@ class UserAssetPermsEditor extends React.Component {
             <Checkbox
               checked={this.state.formEdit}
               onChange={this.onCheckboxChange.bind(this, 'formEdit')}
-              label={this.getLabel('change_asset')}
+              label={this.getCheckboxLabel('formEdit')}
             />
           }
 
@@ -510,7 +503,7 @@ class UserAssetPermsEditor extends React.Component {
               checked={this.state.submissionsView}
               disabled={this.state.submissionsViewDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsView')}
-              label={this.getLabel('view_submissions')}
+              label={this.getCheckboxLabel('submissionsView')}
             />
           }
 
@@ -520,7 +513,7 @@ class UserAssetPermsEditor extends React.Component {
                 checked={this.state.submissionsViewPartial}
                 disabled={this.state.submissionsViewPartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
-                label={this.getLabel('partial_submissions')}
+                label={this.getCheckboxLabel('submissionsViewPartial')}
               />
 
               {this.state.submissionsViewPartial === true &&
@@ -540,7 +533,7 @@ class UserAssetPermsEditor extends React.Component {
               checked={this.state.submissionsAdd}
               disabled={this.state.submissionsAddDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsAdd')}
-              label={this.getLabel('add_submissions')}
+              label={this.getCheckboxLabel('submissionsAdd')}
             />
           }
 
@@ -550,7 +543,7 @@ class UserAssetPermsEditor extends React.Component {
                 checked={this.state.submissionsAddPartial}
                 disabled={this.state.submissionsAddPartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsAddPartial')}
-                label={this.getLabel('partial_submissions')}
+                label={this.getCheckboxLabel('submissionsAddPartial')}
               />
 
               {this.state.submissionsAddPartial === true &&
@@ -570,7 +563,7 @@ class UserAssetPermsEditor extends React.Component {
               checked={this.state.submissionsEdit}
               disabled={this.state.submissionsEditDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
-              label={this.getLabel('change_submissions')}
+              label={this.getCheckboxLabel('submissionsEdit')}
             />
           }
 
@@ -580,7 +573,7 @@ class UserAssetPermsEditor extends React.Component {
                 checked={this.state.submissionsEditPartial}
                 disabled={this.state.submissionsEditPartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsEditPartial')}
-                label={this.getLabel('partial_submissions')}
+                label={this.getCheckboxLabel('submissionsEditPartial')}
               />
 
               {this.state.submissionsEditPartial === true &&
@@ -600,7 +593,7 @@ class UserAssetPermsEditor extends React.Component {
               checked={this.state.submissionsValidate}
               disabled={this.state.submissionsValidateDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsValidate')}
-              label={this.getLabel('validate_submissions')}
+              label={this.getCheckboxLabel('submissionsValidate')}
             />
           }
 
@@ -610,7 +603,7 @@ class UserAssetPermsEditor extends React.Component {
                 checked={this.state.submissionsValidatePartial}
                 disabled={this.state.submissionsValidatePartialDisabled}
                 onChange={this.onCheckboxChange.bind(this, 'submissionsValidatePartial')}
-                label={this.getLabel('partial_submissions')}
+                label={this.getCheckboxLabel('submissionsValidatePartial')}
               />
 
               {this.state.submissionsValidatePartial === true &&
