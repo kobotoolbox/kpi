@@ -11,6 +11,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
+
 from rest_framework import serializers
 
 from kpi.constants import (

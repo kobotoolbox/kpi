@@ -462,6 +462,66 @@ class AssetListSerializer(AssetSerializer):
                   'children'
                   )
 
+    def get_access_type(self, obj):
+        """
+        Overrides parent's method to benefit of
+        `AssetViewSet.get_serializer_context()` "cache" for the list endpoint.
+        """
+        # Avoid extra queries if obj is not a collection
+        if obj.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        # User is the owner
+        try:
+            request = self.context['request']
+        except KeyError:
+            return None
+        if request.user == obj.owner:
+            return 'owned'
+
+        # User can view the collection.
+        try:
+            asset_permission_assignments = self.context[
+                'object_permissions_per_asset'].get(obj.pk)
+        except KeyError:
+            return super().get_access_type(obj)
+
+        for obj_permission in asset_permission_assignments:
+            if not obj_permission.deny and obj_permission.user == request.user:
+                return 'shared'
+
+        # User has subscribed to this collection
+        try:
+            subscriptions = self.context[
+                'user_subscriptions_per_asset'].get(obj.pk, [])
+        except KeyError:
+            pass
+            for subscription in subscriptions:
+                if subscription.user_id == request.user.pk:
+                    return 'subscribed'
+
+        # Collection is public (and discoverable).
+        # ToDo avoid another loop, merge logic with `shared` status
+        for obj_permission in asset_permission_assignments:
+            # `asset_permission_assignments` is order by:
+            # - `user_id`
+            # - `username`
+            # - `codename`
+            # No need to go further
+            if obj_permission.user_id > settings.ANONYMOUS_USER_ID:
+                break
+
+            if (not obj_permission.deny and
+                    obj_permission.user_id == settings.ANONYMOUS_USER_ID and
+                    obj_permission.permission.codename == PERM_DISCOVER_ASSET):
+                return 'public'
+
+        # User is big brother.
+        if request.user.is_superuser:
+            return 'superuser'
+        raise Exception(
+            f'{request.user.username} has unexpected access to {obj.uid}')
+
     def get_children(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return {'count': 0}
@@ -499,7 +559,6 @@ class AssetListSerializer(AssetSerializer):
             get_user_permission_assignments(asset,
                                             request.user,
                                             asset_permission_assignments)
-
         return AssetPermissionAssignmentSerializer(user_assignments,
                                                    many=True, read_only=True,
                                                    context=context).data
