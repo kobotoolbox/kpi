@@ -58,10 +58,17 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
     def get_label(self, object_permission):
         # `self.object_permission.label` calls `self.object_permission.asset`
-        # internally. Thus, costs an extra query each time the object is serialized
-        # `asset` is already loaded and attached to context. let's use it.
-        asset = self.context.get('asset')
-        return asset.get_label_for_permission(object_permission.permission.codename)
+        # internally. Thus, costs an extra query each time the object is
+        # serialized. `asset` is already loaded and attached to context,
+        # let's use it!
+        try:
+            asset = self.context['asset']
+            return asset.get_label_for_permission(object_permission.
+                                                  permission.codename)
+        except KeyError:
+            pass
+
+        return object_permission.label
 
     def get_partial_permissions(self, object_permission):
         codename = object_permission.permission.codename
