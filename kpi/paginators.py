@@ -2,6 +2,7 @@
 from collections import OrderedDict
 
 from django.conf import settings
+from django_request_cache import cache_for_request
 from rest_framework.pagination import (
     LimitOffsetPagination,
     PageNumberPagination,
@@ -42,6 +43,25 @@ class AssetPagination(Paginated):
             response['metadata'] = metadata
 
         return Response(response)
+
+    @staticmethod
+    @cache_for_request
+    def get_all_asset_ids_from_queryset(queryset):
+        # Micro optimization, cast `asset_ids` as a list to force the query
+        # to be processed right now. Otherwise, because queryset is lazy query
+        # it creates (left) joins on tables when queryset is interpreted which is
+        # slower than running this extra query.
+        #
+        # AssetPagination.get_count()` and `AssetViewSet.get_serializer_context()`
+        # use the same query base. Retrieve them here and cache the results
+        asset_ids = list(queryset.values_list('id', flat=True).distinct().order_by())
+        return asset_ids
+
+    def get_count(self, queryset):
+        """
+        Determine an object count, supporting either querysets or regular lists.
+        """
+        return len(AssetPagination.get_all_asset_ids_from_queryset(queryset))
 
     def get_paginated_response_schema(self, schema):
         return {

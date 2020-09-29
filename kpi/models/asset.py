@@ -490,8 +490,6 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONBField(default=dict)
 
-    #permissions = GenericRelation(ObjectPermission)
-
     objects = AssetManager()
 
     @property
@@ -694,7 +692,6 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
-        # ToDo: See if using a loop can reduce the number of SQL queries.
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
