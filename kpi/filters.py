@@ -133,15 +133,13 @@ class KpiObjectPermissionsFilter:
 
         elif status == ASSET_STATUS_PUBLIC:
             self._return_queryset = True
-            # ToDo Review for optimization
             public = self._get_public(queryset)
             subscribed = self._get_subscribed(public, user)
             return subscribed
 
         elif status == ASSET_STATUS_DISCOVERABLE:
             self._return_queryset = True
-            # ToDo Review for optimization
-            discoverable = self._get_discoverable(self._get_public(queryset))
+            discoverable = self._get_discoverable(queryset)
             # We were asked not to consider subscriptions; return all
             # discoverable objects
             return discoverable
@@ -169,6 +167,9 @@ class KpiObjectPermissionsFilter:
         if user.is_anonymous:
             user = get_anonymous_user()
 
+        # Coerced to a list to force Django to run query now. We don't want a
+        # lazy queryset because it will produce a left join on tables when
+        # the final queryset is interpreted (i.e. in `id__in=asset_ids`)
         asset_ids = list(
             UserAssetSubscription.objects.values_list(
                 'asset_id', flat=True
