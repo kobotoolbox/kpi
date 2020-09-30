@@ -56,8 +56,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         # A collection is considered as public when it's shared
         # with `AnonymousUser`.
         return ObjectPermission.objects.filter(
-            content_type=ContentType.objects.get_for_model(Asset),
-            object_id__in=collection_ids,
+            asset_id__in=collection_ids,
             user_id=settings.ANONYMOUS_USER_ID,
-            permission__codename=PERM_DISCOVER_ASSET).values_list('object_id',
+            permission__codename=PERM_DISCOVER_ASSET).values_list('asset_id',
                                                                   flat=True)
