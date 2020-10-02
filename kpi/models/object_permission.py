@@ -6,7 +6,6 @@ from collections import defaultdict
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models, transaction
@@ -14,8 +13,11 @@ from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
-from kpi.constants import ASSET_TYPE_SURVEY, PREFIX_PARTIAL_PERMS
-from kpi.exceptions import BadContentTypeException
+from kpi.constants import (
+    ASSET_TYPES_WITH_CHILDREN,
+    ASSET_TYPE_SURVEY,
+    PREFIX_PARTIAL_PERMS,
+)
 from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
@@ -41,28 +43,16 @@ def perm_parse(perm, obj=None):
     return app_label, codename
 
 
-def get_models_with_object_permissions():
-    """
-    Return a list of all models that inherit from `ObjectPermissionMixin`
-    """
-    models = []
-    for model in apps.get_models():
-        if issubclass(model, ObjectPermissionMixin):
-            models.append(model)
-    return models
-
-
 def get_all_objects_for_user(user, klass):
     """
     Return all objects of type klass to which user has been assigned any
     permission.
     """
-    # TODO: trash this once we've axed `GenericForeignKey`
-    return klass.objects.filter(
-        pk__in=ObjectPermission.objects.filter(
-            user=user, content_type=ContentType.objects.get_for_model(klass)
-        ).values_list("object_id", flat=True)
-    )
+    if ('kpi', 'asset') != (klass._meta.app_label, klass._meta.model_name):
+        # Transitioning away from generic-relation ObjectPermission
+        raise NotImplementedError
+
+    return klass.objects.filter(permissions__user=user).distinct()
 
 
 def get_objects_for_user(
@@ -70,7 +60,6 @@ def get_objects_for_user(
     perms,
     klass=None,
     all_perms_required=True,
-    intersect_pks_threshold=100,
 ):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
@@ -88,59 +77,34 @@ def get_objects_for_user(
       this parameter will be computed based on given ``params``.
     :param all_perms_required: If False, users should have at least one
       of the `perms`
-    :param intersect_pks_threshold: a kludge to deal with performance problems;
-      see https://github.com/kobotoolbox/kpi/issues/2671. In short, if the
-      number of items satisfying the permissions checks exceeds this threshold,
-      intersect the PKs of those items with the PKs from the ``klass`` queryset
-      before building an `__in` query. This EVALUATES the queryset and may
-      worsen performance; if so, set to `False` to disable.
     """
+    app_label = 'kpi'
+    if klass is None:
+        # referencing `Asset` this way avoids a circular import
+        queryset = apps.get_model('kpi.asset').objects.all()
+    else:
+        queryset = _get_queryset(klass)
+        if (app_label, 'asset') != (
+            queryset.model._meta.app_label,
+            queryset.model._meta.model_name,
+        ):
+            # Transitioning away from generic-relation ObjectPermission
+            raise NotImplementedError
+
     if isinstance(perms, str):
         perms = [perms]
-    ctype = None
-    app_label = None
-    codenames = set()
 
-    # Compute codenames set and ctype if possible
+    codenames = set()
+    # Compute codenames set
     for perm in perms:
         if '.' in perm:
             new_app_label, codename = perm.split('.', 1)
-            if app_label is not None and app_label != new_app_label:
-                raise ValidationError(
-                    'Given perms must have same app label '
-                    f'({app_label} != {new_app_label})')
-            else:
-                app_label = new_app_label
+            if app_label != new_app_label:
+                # Transitioning away from generic-relation ObjectPermission
+                raise NotImplementedError
         else:
             codename = perm
         codenames.add(codename)
-        if app_label is not None:
-            new_ctype = ContentType.objects.get(app_label=app_label,
-                                                permission__codename=codename)
-            if ctype is not None and ctype != new_ctype:
-                raise BadContentTypeException(
-                    'Computed ContentTypes do not match '
-                    f'({ctype} != {new_ctype})')
-            else:
-                ctype = new_ctype
-
-    # Compute queryset and ctype if still missing
-    if ctype is None and klass is None:
-        raise BadContentTypeException('Cannot determine content type')
-    elif ctype is None and klass is not None:
-        queryset = _get_queryset(klass)
-        ctype = ContentType.objects.get_for_model(queryset.model)
-    elif ctype is not None and klass is None:
-        queryset = _get_queryset(ctype.model_class())
-    else:
-        queryset = _get_queryset(klass)
-        if ctype.model_class() != queryset.model:
-            raise BadContentTypeException('Content type for given perms and '
-                                          'klass differs')
-
-    # At this point, we should have both ctype and queryset and they should
-    # match which means: ctype.model_class() == queryset.model
-    # we should also have ``codenames`` list
 
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
@@ -148,42 +112,20 @@ def get_objects_for_user(
     if user.is_anonymous:
         user = get_anonymous_user()
 
-    # Now we should extract list of pk values for which we would filter queryset
-    user_obj_perms_queryset = (ObjectPermission.objects
-        .filter(user=user)
-        .filter(permission__content_type=ctype)
-        .filter(permission__codename__in=codenames)
-        .filter(deny=False))
-
-    if len(codenames) > 1 and all_perms_required:
-        counts = user_obj_perms_queryset.values('object_id').annotate(
-            object_pk_count=models.Count('object_id'))
-        user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
-
-    values = user_obj_perms_queryset.values_list('object_id', flat=True)
-    values = list(values)
-
-    # Maybe there are 22,000+ objects that allow anonymous acess, but we're
-    # only interested in the <200 that are part of discoverable collections;
-    # see https://github.com/kobotoolbox/kpi/issues/2671.
-    # Having to filter `ObjectPermission` and then use the resulting
-    # `object_id`s in a `pk__in` query is awful, and we'll dispense with it
-    # after `collection` becomes an `asset_type` and we ditch
-    # `GenericForeignKey` permissions
-    values_len = len(values)
-    if (
-        intersect_pks_threshold is not False
-        and values_len > intersect_pks_threshold
-    ):
-        # It's not ideal to evaluate the queryset here, but we can't keep
-        # passing around tens of thousands of IDs willy-nilly
-        if queryset[:values_len].count() < values_len:
-            useful_values = set(values).intersection(
-                queryset.values_list('pk', flat=True)
+    if all_perms_required:
+        for codename in codenames:
+            queryset = queryset.filter(
+                permissions__user=user,
+                permissions__permission__codename=codename,
+                permissions__deny=False,
             )
-            return queryset.filter(pk__in=useful_values)
-
-    return queryset.filter(pk__in=values)
+        return queryset.distinct()
+    else:
+        return queryset.filter(
+            permissions__user=user,
+            permissions__permission__codename__in=codenames,
+            permissions__deny=False,
+        ).distinct()
 
 
 @cache_for_request
@@ -204,39 +146,12 @@ def get_anonymous_user():
     return user
 
 
-class ObjectPermissionManager(models.Manager):
-    def _rewrite_query_args(self, method, content_object, **kwargs):
-        """ Rewrite content_object into object_id and content_type, then pass
-        those together with **kwargs to the given method. """
-        content_type = ContentType.objects.get_for_model(content_object)
-        kwargs['object_id'] = content_object.pk
-        kwargs['content_type'] = content_type
-        return method(**kwargs)
-
-    def get_for_object(self, content_object, **kwargs):
-        """ Wrapper to allow get() queries using a generic foreign key. """
-        return self._rewrite_query_args(
-            super().get, content_object, **kwargs)
-
-    def filter(self, *args, **kwargs):
-        return super().filter(*args, **kwargs)
-
-    def filter_for_object(self, content_object, **kwargs):
-        """ Wrapper to allow filter() queries using a generic foreign key. """
-        return self._rewrite_query_args(
-            super().filter, content_object, **kwargs)
-
-    def get_or_create_for_object(self, content_object, **kwargs):
-        """ Wrapper to allow get_or_create() calls using a generic foreign
-        key. """
-        return self._rewrite_query_args(
-            super().get_or_create, content_object, **kwargs)
-
-
 class ObjectPermission(models.Model):
-    """ An application of an auth.Permission instance to a specific
-    content_object. Call ObjectPermission.objects.get_for_object() or
-    filter_for_object() to run queries using the content_object field. """
+    """
+    An object-level permission assignment for an `Asset`.
+    It was formerly a generic object-level permission assignment, but the class
+    name will change soon to `AssetPermission`.
+    """
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     permission = models.ForeignKey('auth.Permission', on_delete=models.CASCADE)
     deny = models.BooleanField(
@@ -244,13 +159,10 @@ class ObjectPermission(models.Model):
         help_text='Blocks inheritance of this permission when set to True'
     )
     inherited = models.BooleanField(default=False)
-    object_id = models.PositiveIntegerField()
-    # We can't do something like GenericForeignKey('permission__content_type'),
-    # so duplicate the content_type field here.
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    content_object = GenericForeignKey('content_type', 'object_id')
+    asset = models.ForeignKey(
+        'kpi.Asset', related_name='permissions', on_delete=models.CASCADE
+    )
     uid = KpiUidField(uid_prefix='p')
-    objects = ObjectPermissionManager()
 
     @property
     def kind(self):
@@ -258,18 +170,22 @@ class ObjectPermission(models.Model):
 
     @property
     def label(self):
-        return self.content_object.get_label_for_permission(self.permission)
+        return self.asset.get_label_for_permission(self.permission)
 
     class Meta:
-        unique_together = ('user', 'permission', 'deny', 'inherited',
-                           'object_id', 'content_type')
+        unique_together = ('user', 'permission', 'deny', 'inherited', 'asset')
 
     @void_cache_for_request(keys=('__get_all_object_permissions',
                                   '__get_all_user_permissions',))
     def save(self, *args, **kwargs):
-        if self.permission.content_type_id is not self.content_type_id:
-            raise BadContentTypeException('The content type of the permission '
-                                          'does not match that of the object.')
+        if ('kpi', 'asset') != (
+            self.permission.content_type.app_label,
+            self.permission.content_type.model,
+        ):
+            raise ValidationError(
+                'The content type of the permission does '
+                'not match that of the object.'
+            )
         super().save(*args, **kwargs)
 
     @void_cache_for_request(keys=('__get_all_object_permissions',
@@ -466,8 +382,8 @@ class ObjectPermissionMixin:
                     # `*_submissions` in addition to `*_asset`
                     continue
                 share_perm_pk, _ = self.__get_permissions_for_content_type(
-                    content_type.pk,
-                    codename=share_permission_codename)[0]
+                    content_type.pk, codename=share_permission_codename
+                )[0]
                 for user_id, permission_id in effective_perms_copy:
                     if permission_id == change_perm_pk:
                         effective_perms.add((user_id, share_perm_pk))
@@ -502,14 +418,13 @@ class ObjectPermissionMixin:
             return effective_perms
 
     def recalculate_descendants_perms(self):
-        if not hasattr(self, 'children'):
+        if self.asset_type not in ASSET_TYPES_WITH_CHILDREN:
             # It's impossible for us to have descendants. Move along...
             return
         children = list(self.children.only('pk', 'owner', 'parent'))
         if not children:
             return
-        effective_perms = self._get_effective_perms(
-            include_calculated=False)
+        effective_perms = self._get_effective_perms(include_calculated=False)
         for child in children:
             # remove stale inherited perms
             child.permissions.filter(inherited=True).delete()
@@ -521,79 +436,6 @@ class ObjectPermissionMixin:
             )
             # recurse!
             child.recalculate_descendants_perms()
-
-    def fuckall_recalculate_descendants_perms(self):
-        """
-        Recalculate the inherited permissions of all `self.children`
-        """
-
-        if not hasattr(self, 'children'):
-            # It's impossible for us to have descendants. Move along...
-            return
-
-        # Any potential parents found will be appended to this list
-        parents = [self]
-        while True:
-            try:
-                parent = parents.pop()
-            except IndexError:
-                # No parents left; we're done!
-                break
-
-            # Query for all the children now instead of using `exists()` since
-            # we're about to use the results, if any
-            children = list(self.children.only('pk', 'owner', 'parent'))
-            if not children:
-                continue
-
-            # Get the effective permissions once per parent so that each child
-            # does not have to query the database for the same information
-            # FIXME: does this really work? if we're a grandchild whose parent
-            # was just updated by this function, are the effective permissions
-            # accurate?
-            parent_effective_perms = parent._get_effective_perms(
-                include_calculated=False)
-            # Delete stale permissions once per parent, instead of per-child
-            delete_pks_by_content_type = {}
-            for child in children:
-                content_type = ContentType.objects.get_for_model(child).pk
-                pk_list = delete_pks_by_content_type.get(content_type, [])
-                pk_list.append(child.pk)
-                delete_pks_by_content_type[content_type] = pk_list
-            delete_query = models.Q()
-            for content_type, pks in delete_pks_by_content_type.items():
-                delete_query |= models.Q(
-                    content_type=content_type,
-                    object_id__in=pks
-                )
-            # filter(Q()) is like all(); make sure we don't delete with a query
-            # like that just because there are no children!
-            if len(delete_pks_by_content_type):
-                # This doesn't run as a single DELETE query. For once, MySQL
-                # wins? https://code.djangoproject.com/ticket/23576#comment:3
-                # TODO: Verify this is faster than having children delete
-                ObjectPermission.objects.filter(
-                    delete_query, inherited=True).delete()
-            # Process each child individually, but only write to the database
-            # once per parent
-            objects_to_create = []
-            for child in children:
-                if child.asset_type == 'collection':
-                    # This child could have its own children; make sure we
-                    # check it later
-                    parents.append(child)
-                    # FIXME: why do we break here? did we not care about
-                    # recalculating child collections' permissions? i guess it
-                    # didn't matter because we never had nested collections
-                    break
-                # Recalculate the child's permissions
-                new_permissions = child._recalculate_inherited_perms(
-                    parent_effective_perms=parent_effective_perms,
-                    stale_already_deleted=True,
-                    return_instead_of_creating=True
-                )
-                objects_to_create += new_permissions
-            ObjectPermission.objects.bulk_create(objects_to_create)
 
     def _recalculate_inherited_perms(
             self,
@@ -609,10 +451,7 @@ class ObjectPermissionMixin:
         """
         # Start with a clean slate
         if not stale_already_deleted:
-            ObjectPermission.objects.filter_for_object(
-                self,
-                inherited=True
-            ).delete()
+            self.permissions.filter(inherited=True).delete()
         content_type = ContentType.objects.get_for_model(self)
         if return_instead_of_creating:
             # Conditionally create this so that Python will raise an exception
@@ -625,7 +464,7 @@ class ObjectPermissionMixin:
                 codename__in=self.get_assignable_permissions(with_partial=False)
             ):
                 new_permission = ObjectPermission()
-                new_permission.content_object = self
+                new_permission.asset = self
                 # `user_id` instead of `user` is another workaround for
                 # migrations
                 new_permission.user_id = self.owner_id
@@ -671,7 +510,7 @@ class ObjectPermissionMixin:
                     translate_perm[permission_id] = translated_id
                 permission_id = translated_id
                 new_permission = ObjectPermission()
-                new_permission.content_object = self
+                new_permission.asset = self
                 new_permission.user_id = user_id
                 new_permission.permission_id = permission_id
                 new_permission.inherited = True
@@ -804,10 +643,7 @@ class ObjectPermissionMixin:
             content_type__app_label=app_label,
             codename=codename
         )
-        existing_perms = ObjectPermission.objects.filter_for_object(
-            self,
-            user=user_obj,
-        )
+        existing_perms = self.permissions.filter(user=user_obj)
         identical_existing_perm = existing_perms.filter(
             inherited=False,
             permission_id=perm_model.pk,
@@ -844,7 +680,7 @@ class ObjectPermissionMixin:
                 self, user_obj, contradictory_codenames)
         # Create the new permission
         new_permission = ObjectPermission.objects.create(
-            content_object=self,
+            asset=self,
             user=user_obj,
             permission_id=perm_model.pk,
             deny=deny,
@@ -974,8 +810,7 @@ class ObjectPermissionMixin:
             raise serializers.ValidationError({
                 'permission': f'{codename} cannot be removed explicitly.'
             })
-        all_permissions = ObjectPermission.objects.filter_for_object(
-            self,
+        all_permissions = self.permissions.filter(
             user=user_obj,
             permission__codename=codename,
             deny=False
@@ -1018,7 +853,7 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_all_object_permissions(content_type_id, object_id):
+    def __get_all_object_permissions(object_id):
         """
         Retrieves all object permissions and builds an dict with user ids as keys.
         Useful to retrieve permissions for several users in a row without
@@ -1034,7 +869,6 @@ class ObjectPermissionMixin:
         by the returned dict keys.
 
         Args:
-            content_type_id (int): ContentType's pk
             object_id (int): Object's pk
 
         Returns:
@@ -1052,7 +886,7 @@ class ObjectPermissionMixin:
             }
         """
         records = ObjectPermission.objects. \
-            filter(content_type_id=content_type_id, object_id=object_id). \
+            filter(asset_id=object_id). \
             values('user_id',
                    'permission_id',
                    'permission__codename',
@@ -1069,7 +903,7 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_all_user_permissions(content_type_id, user_id):
+    def __get_all_user_permissions(user_id):
         """
         Retrieves all object permissions and builds an dict with object ids as keys.
         Useful to retrieve permissions (thanks to `@cache_for_request`)
@@ -1085,7 +919,6 @@ class ObjectPermissionMixin:
         they can be easily retrieved by the returned dict keys.
 
         Args:
-            content_type_id (int): ContentType's pk
             user_id (int): User's pk
 
         Returns:
@@ -1102,16 +935,12 @@ class ObjectPermissionMixin:
                 ]
             }
         """
-        records = ObjectPermission.objects. \
-            filter(content_type_id=content_type_id, user=user_id). \
-            values('object_id',
-                   'permission_id',
-                   'permission__codename',
-                   'deny')
-
+        records = ObjectPermission.objects.filter(user=user_id).values(
+            'asset_id', 'permission_id', 'permission__codename', 'deny'
+        )
         object_permissions_per_object = defaultdict(list)
         for record in records:
-            object_permissions_per_object[record['object_id']].append((
+            object_permissions_per_object[record['asset_id']].append((
                 record['permission_id'],
                 record['permission__codename'],
                 record['deny'],
@@ -1145,7 +974,6 @@ class ObjectPermissionMixin:
             return perms_
 
         perms = []
-        object_content_type_id = ContentType.objects.get_for_model(self).pk
         # If User is not none, retrieve all permissions for this user
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.
@@ -1153,20 +981,20 @@ class ObjectPermissionMixin:
             user_id = user.pk if not user.is_anonymous \
                 else settings.ANONYMOUS_USER_ID
             all_object_permissions = self.__get_all_user_permissions(
-                content_type_id=object_content_type_id,
-                user_id=user_id)
+                user_id=user_id
+            )
             perms = build_dict(user_id, all_object_permissions.get(self.pk))
 
             if not perms:
                 # Try AnonymousUser's permissions in case user does not have any.
                 all_object_permissions = self.__get_all_user_permissions(
-                    content_type_id=object_content_type_id,
-                    user_id=settings.ANONYMOUS_USER_ID)
+                    user_id=settings.ANONYMOUS_USER_ID
+                )
                 perms = build_dict(user_id, all_object_permissions.get(self.pk))
         else:
             all_object_permissions = self.__get_all_object_permissions(
-                content_type_id=object_content_type_id,
-                object_id=self.pk)
+                object_id=self.pk
+            )
             for user_id, object_permissions in all_object_permissions.items():
                 perms += build_dict(user_id, object_permissions)
 

@@ -490,11 +490,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             asset_content_type = ContentType.objects.get_for_model(Asset)
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = self.filter_queryset(queryset).values_list('id', flat=True).distinct()
+
+            # Micro optimization, cast `asset_ids` as a list to force the query
+            # to be processed right now. Otherwise, because queryset is lazy query
+            # it creates joins on tables when queryset is interpreted which is
+            # slower than running this extra query.
+            asset_ids = list(self.filter_queryset(queryset).
+                             values_list('id', flat=True).distinct())
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
-                content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids,
+                asset_id__in=asset_ids,
                 deny=False,
             ).select_related(
                 'user', 'permission'
@@ -505,7 +510,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:
-                object_permissions_per_asset[op.object_id].append(op)
+                object_permissions_per_asset[op.asset_id].append(op)
 
             context_['object_permissions_per_asset'] = object_permissions_per_asset
 

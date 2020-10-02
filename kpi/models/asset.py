@@ -11,7 +11,6 @@ import six
 import xlsxwriter
 from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
@@ -29,6 +28,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
     ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -490,7 +490,7 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONBField(default=dict)
 
-    permissions = GenericRelation(ObjectPermission)
+    #permissions = GenericRelation(ObjectPermission)
 
     objects = AssetManager()
 
@@ -831,11 +831,6 @@ class Asset(ObjectPermissionMixin,
             # for nested relations."
             'owner',
         ).prefetch_related(
-            # We previously prefetched `permissions__content_object`, but that
-            # actually pulled the entirety of each permission's linked asset
-            # from the database! For now, the solution is to remove
-            # `content_object` here *and* from
-            # `ObjectPermissionNestedSerializer`.
             'permissions__permission',
             'permissions__user',
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
@@ -873,11 +868,17 @@ class Asset(ObjectPermissionMixin,
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
+        if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
+            # so long as all of the operations in this overridden `save()`
+            # method pertain to content, bail out if it's impossible for this
+            # asset to have content in the first place
+            super().save(*args, **kwargs)
+            return
 
         if self.content is None:
             self.content = {}
-
-        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
@@ -885,8 +886,7 @@ class Asset(ObjectPermissionMixin,
             self.adjust_content_on_save()
 
         # populate summary
-        if self.asset_type != ASSET_TYPE_COLLECTION:
-            self._populate_summary()
+        self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -905,6 +905,9 @@ class Asset(ObjectPermissionMixin,
         _create_version = kwargs.pop('create_version', True)
         super().save(*args, **kwargs)
 
+        # Update languages for parent and previous parent.
+        # e.g. if an survey has been moved from one collection to another,
+        # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
             if self.parent_id != self.__previous_parent_id and \
                self.__previous_parent_id is not None:
@@ -1022,9 +1025,7 @@ class Asset(ObjectPermissionMixin,
             return
 
         self.summary['languages'] = languages
-        self.save(update_fields=['summary'],
-                  adjust_content=False,
-                  create_version=False)
+        self.save(update_fields=['summary'])
 
     @property
     def version__content_hash(self):
