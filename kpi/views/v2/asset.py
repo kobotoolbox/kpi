@@ -495,7 +495,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             ).select_related(
                 'user', 'permission'
             ).order_by(
-                'user_id', 'user__username', 'permission__codename'
+                'user__username', 'permission__codename'
             )
 
             object_permissions_per_asset = defaultdict(list)
@@ -507,12 +507,13 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = UserAssetSubscription.objects. \
-                values('asset_id').annotate(user_subscriptions=Count('user_id'))
+                values('asset_id', 'user_id').distinct().order_by('asset_id')
 
-            user_subscriptions_per_asset = defaultdict(int)
+            user_subscriptions_per_asset = defaultdict(list)
             for record in subscriptions_queryset:
-                user_subscriptions_per_asset[record['asset_id']] = \
-                    record['user_subscriptions']
+                user_subscriptions_per_asset[record['asset_id']].append(
+                    record['user_id'])
+
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
             # 4) Get children count per asset
