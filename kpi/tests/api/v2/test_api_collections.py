@@ -202,3 +202,70 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(
             response.data['results'][0]['uid'], shared_collection.uid
         )
+
+    def test_collection_statuses_and_access_types(self):
+
+        another_user = User.objects.get(username="anotheruser")
+
+        public_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='public collection',
+            owner=another_user
+        )
+        shared_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='shared collection',
+            owner=another_user
+        )
+        subscribed_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='subscribed collection',
+            owner=another_user
+        )
+
+        # Make `public_collection` and `subscribed_collection` public-discoverable
+        public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+        subscribed_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+
+        # Make `shared_collection` shared
+        shared_collection.assign_perm(self.someuser, PERM_VIEW_ASSET)
+
+        # Subscribe `someuser` to  `subscribed_collection`.
+        subscription_url = reverse(
+            self._get_endpoint('userassetsubscription-list'))
+        asset_detail_url = self.absolute_reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': subscribed_collection.uid})
+        response = self.client.post(subscription_url, data={
+            'asset': asset_detail_url})
+        assert response.status_code == status.HTTP_201_CREATED
+
+        list_url = reverse(self._get_endpoint('asset-list'))
+        query_string = 'asset_type:collection'
+        collections_list_url = f'{list_url}?q={query_string}'
+        response = self.client.get(collections_list_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        expected = {
+            'public collection': {
+                'status': 'public-discoverable',
+                'access_type': 'public'
+            },
+            'shared collection': {
+                'status': 'shared',
+                'access_type': 'shared'
+            },
+            'subscribed collection': {
+                'status': 'public-discoverable',
+                'access_type': 'subscribed'
+            },
+            'test collection': {
+                'status': 'private',
+                'access_type': 'owned'
+            }
+        }
+
+        for collection in response.data['results']:
+            expected_collection = expected[collection.get('name')]
+            assert expected_collection['status'] == collection['status']
+            assert expected_collection['access_type'] == collection['access_type']

@@ -47,19 +47,23 @@ class AssetPagination(Paginated):
     @staticmethod
     @cache_for_request
     def get_all_asset_ids_from_queryset(queryset):
-        # Micro optimization, cast `asset_ids` as a list to force the query
-        # to be processed right now. Otherwise, because queryset is lazy query
-        # it creates (left) joins on tables when queryset is interpreted which is
-        # slower than running this extra query.
+        # Micro optimization, coerce `asset_ids` as a list to force the query
+        # to be processed right now. Otherwise, because queryset is a lazy query,
+        # it creates (left) joins on tables when queryset is interpreted
+        # and it is way slower than running this extra query.
         #
-        # AssetPagination.get_count()` and `AssetViewSet.get_serializer_context()`
-        # use the same query base. Retrieve them here and cache the results
+        # `AssetPagination.get_count()` and `AssetViewSet.get_serializer_context()`
+        # use the same query base. So use it here to retrieve `asset_ids`
+        # and cache them.
         asset_ids = list(queryset.values_list('id', flat=True).distinct().order_by())
         return asset_ids
 
     def get_count(self, queryset):
         """
-        Determine an object count, supporting either querysets or regular lists.
+        Determine total number of assets.
+        Use `len()` instead of `queryset.count()`.
+
+        See cls.get_all_asset_ids_from_queryset())
         """
         return len(AssetPagination.get_all_asset_ids_from_queryset(queryset))
 
