@@ -119,8 +119,10 @@ do ->
           {
             criteria: [{name:'.', operator:'resp_equals', response_value: 'coriander is delicious'}]
           })
-
-
-
-
-
+        
+      it 'gracefully handles spurious whitespace', ->
+        results = $validationParser('(  .  =     123   )')
+        expect(results).toEqual(
+          {
+            criteria: [{name:'.', operator:'resp_equals', response_value: '123'}]
+          })
