@@ -440,14 +440,14 @@ export var dataInterface;
       );
     },
     searchPublicCollections(params = {}) {
-      params['status'] = 'public-discoverable';
+      params.status = 'public-discoverable';
       return this._searchAssetsWithPredefinedQuery(
         params,
         COMMON_QUERIES.get('c'),
       );
     },
     searchPublicCollectionsMetadata(params = {}) {
-      params['status'] = 'public-discoverable';
+      params.status = 'public-discoverable';
       return this._searchMetadataWithPredefinedQuery(
         params,
         COMMON_QUERIES.get('c'),
