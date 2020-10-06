@@ -8,6 +8,7 @@ from pyxform.errors import PyXFormError
 from pyxform.utils import basestring, unichr, unicode
 from xlrd import XLRDError
 
+
 def convert_xls_to_dict(xls_file_object, strip_empty_rows=True):
     """
 
@@ -51,6 +52,7 @@ def convert_xls_to_dict(xls_file_object, strip_empty_rows=True):
         ss_structure[sheet_name] = sheet_contents
     return ss_structure
 
+
 def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     """
     The goal: Convert an XLS file object to a CSV string.
@@ -91,8 +93,10 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
         ss_structure[sheet_name] = sheet_contents
     return ss_structure
 
+
 def _iswhitespace(string):
     return isinstance(string, str) and len(string.strip()) == 0
+
 
 def _xls_value_to_unicode(value, value_type):
     """
@@ -124,3 +128,4 @@ def _xls_value_to_unicode(value, value_type):
         # to avoid this issue:
         # https://github.com/modilabs/pyxform/issues/83
         return str(value).replace(chr(160), ' ')
+
