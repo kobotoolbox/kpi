@@ -2,6 +2,7 @@
 import copy
 import re
 from collections import defaultdict
+from typing import Union
 
 from django.apps import apps
 from django.conf import settings
@@ -115,16 +116,18 @@ def get_objects_for_user(
 
     if all_perms_required:
         for codename in codenames:
+            perm_id = get_perm_ids_from_code_names(codename)
             queryset = queryset.filter(
                 permissions__user=user,
-                permissions__permission__codename=codename,
+                permissions__permission_id=perm_id,
                 permissions__deny=False,
             )
         return queryset.distinct()
     else:
+        perm_ids = get_perm_ids_from_code_names(codenames)
         return queryset.filter(
             permissions__user=user,
-            permissions__permission__codename__in=codenames,
+            permissions__permission_id__in=perm_ids,
             permissions__deny=False,
         ).distinct()
 
@@ -145,6 +148,37 @@ def get_anonymous_user():
             username=username
         )
     return user
+
+
+@cache_for_request
+def get_all_perm_ids_from_code_names() -> dict:
+    """
+    Creates a dictionary from `auth_permission` table and saves it in cache
+    during the request life.
+    Avoids several access to DB to fetch permission ids - which don't often change.
+
+    Returns:
+      dict: a dictionary of code names and ids
+    """
+    records = list(Permission.objects.values('id', 'codename'))
+    return {r['codename']: r['id'] for r in records}
+
+
+@cache_for_request
+def get_perm_ids_from_code_names(code_names: Union[str, list]) -> Union[int, list]:
+    """
+    Args:
+      code_names (str/list): Code name or list of code names to convert to ids
+
+    Returns:
+      int/list: id or list of ids
+    """
+
+    perm_ids = get_all_perm_ids_from_code_names()
+    if isinstance(code_names, list):
+        return [v for k, v in perm_ids.items() if k in code_names]
+    else:
+        return perm_ids[code_names]
 
 
 class ObjectPermission(models.Model):
