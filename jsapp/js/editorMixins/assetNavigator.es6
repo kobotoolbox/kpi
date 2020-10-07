@@ -10,6 +10,8 @@ import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
 
+import { ASSET_TYPES } from '../constants';
+
 import { t } from '../utils';
 
 import {
@@ -100,9 +102,11 @@ class AssetNavigatorListView extends React.Component {
           {list.map((item)=> {
             var modifiers = [item.asset_type];
             var summ = item.summary;
+            // HACK FIX: (ideally `survey`s would not be searched)
             // Library questions can only be of `question` or `block` types
             // Reject `survey` types to not include current survey on save
-            if (summ.row_count == undefined || item.asset_type == 'survey') {
+            if (summ.row_count == undefined
+              || item.asset_type === ASSET_TYPES.survey.id) {
               return false;
             }
             return (
