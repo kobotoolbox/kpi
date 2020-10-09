@@ -207,7 +207,10 @@ class SearchFilter(filters.BaseFilterBackend):
             return queryset.model.objects.none()
 
         try:
-            return queryset.filter(q_obj)
+            # If no search field is specified, the search term is compared
+            # to several default fields and therefore may return a copies
+            # of the same match, therefore the `distinct()` method is required
+            return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
 
