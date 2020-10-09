@@ -3,6 +3,7 @@ import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
+import {isOnLibraryRoute} from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -19,17 +20,21 @@ const myLibraryStore = Reflux.createStore({
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
+  isVirgin: true,
+
+  data: {
+    isFetchingData: false,
+    currentPage: 0,
+    totalPages: null,
+    totalUserAssets: null,
+    totalSearchAssets: null,
+    assets: [],
+    metadata: {}
+  },
+
   init() {
     this.fetchDataDebounced = _.debounce(this.fetchData.bind(true), 2500);
-    this.data = {
-      isFetchingData: false,
-      currentPage: 0,
-      totalPages: null,
-      totalUserAssets: null,
-      totalSearchAssets: null,
-      assets: [],
-      metadata: {}
-    };
+
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
@@ -51,11 +56,17 @@ const myLibraryStore = Reflux.createStore({
     actions.resources.createImport.completed.listen(this.fetchDataDebounced);
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+    actions.permissions.getConfig.completed.listen(this.startupStore);
   },
 
-  onGetConfigCompleted() {
-    this.fetchData(true);
+  /**
+   * Only makes a call to BE when loaded app on a library route
+   * otherwise wait until route changes to a library (see `onRouteChange`)
+   */
+  startupStore() {
+    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+      this.fetchData(true);
+    }
   },
 
   setDefaultColumns() {
@@ -110,12 +121,14 @@ const myLibraryStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    // refresh data when navigating into library from other place
-    if (
+    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+      this.fetchData();
+    } else if (
       this.previousPath !== null &&
       this.previousPath.split('/')[1] !== 'library' &&
-      data.pathname.split('/')[1] === 'library'
+      isOnLibraryRoute()
     ) {
+      // refresh data when navigating into library from other place
       this.setDefaultColumns();
       this.fetchData(true);
     }
@@ -150,6 +163,7 @@ const myLibraryStore = Reflux.createStore({
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
+    this.isVirgin = false;
     this.trigger(this.data);
   },
 
@@ -269,6 +283,10 @@ const myLibraryStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
+  },
+
+  getCurrentUserTotalAssets() {
+    return this.data.totalUserAssets;
   },
 
   findAsset(uid) {

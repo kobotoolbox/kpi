@@ -67,8 +67,8 @@ class MainHeader extends Reflux.Component {
   }
   isSearchBoxDisabled() {
     if (this.isMyLibrary()) {
-      // disable search for when user has zero assets
-      return myLibraryStore.data.totalUserAssets === null;
+      // disable search when user has zero assets
+      return myLibraryStore.getCurrentUserTotalAssets() === null;
     } else {
       return false;
     }

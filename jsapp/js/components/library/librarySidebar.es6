@@ -23,14 +23,14 @@ class LibrarySidebar extends Reflux.Component {
     this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
     this.setState({
       isLoading: false,
-      myLibraryCount: myLibraryStore.data.totalUserAssets
+      myLibraryCount: myLibraryStore.getCurrentUserTotalAssets()
     });
   }
 
   myLibraryStoreChanged() {
     this.setState({
       isLoading: false,
-      myLibraryCount: myLibraryStore.data.totalUserAssets
+      myLibraryCount: myLibraryStore.getCurrentUserTotalAssets()
     });
   }
 

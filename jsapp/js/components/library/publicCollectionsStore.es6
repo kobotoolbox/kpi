@@ -2,6 +2,7 @@ import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import searchBoxStore from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
+import {isOnLibraryRoute} from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -22,15 +23,18 @@ const publicCollectionsStore = Reflux.createStore({
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
+  isVirgin: true,
+
+  data: {
+    isFetchingData: false,
+    currentPage: 0,
+    totalPages: null,
+    totalSearchAssets: null,
+    assets: [],
+    metadata: {}
+  },
+
   init() {
-    this.data = {
-      isFetchingData: false,
-      currentPage: 0,
-      totalPages: null,
-      totalSearchAssets: null,
-      assets: [],
-      metadata: {}
-    };
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
@@ -49,11 +53,17 @@ const publicCollectionsStore = Reflux.createStore({
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+    actions.permissions.getConfig.completed.listen(this.startupStore);
   },
 
-  onGetConfigCompleted() {
-    this.fetchData(true);
+  /**
+   * Only makes a call to BE when loaded app on a library route
+   * otherwise wait until route changes to a library (see `onRouteChange`)
+   */
+  startupStore() {
+    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+      this.fetchData(true);
+    }
   },
 
   setDefaultColumns() {
@@ -108,12 +118,14 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    // refresh data when navigating into library from other place
-    if (
+    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+      this.fetchData();
+    } else if (
       this.previousPath !== null &&
       this.previousPath.split('/')[1] !== 'library' &&
-      data.pathname.split('/')[1] === 'library'
+      isOnLibraryRoute()
     ) {
+      // refresh data when navigating into library from other place
       this.setDefaultColumns();
       this.fetchData(true);
     }
@@ -144,6 +156,7 @@ const publicCollectionsStore = Reflux.createStore({
     }
     this.data.totalSearchAssets = response.count;
     this.data.isFetchingData = false;
+    this.isVirgin = false;
     this.trigger(this.data);
   },
 
