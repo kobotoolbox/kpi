@@ -136,7 +136,7 @@ class AssetInfoBox extends React.Component {
 
           {isPublicable && isSelfOwned &&
             <bem.FormView__cell m={['buttons', 'column-1']}>
-              {/* NOTE: this button is purposefully available for not ready
+              {/* NOTE: this button is purposely available for not ready
               collections as a means to teach users (via error notifications). */}
               {!isPublic &&
                 <bem.KoboButton
